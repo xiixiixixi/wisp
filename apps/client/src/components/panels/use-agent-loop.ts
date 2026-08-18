@@ -12,9 +12,9 @@ import {
 } from './chat-file-actions';
 import {
   MAX_AGENT_ITERATIONS,
-  type XplorerState,
+  type WispState,
   type FileContext,
-  getXplorerState,
+  getWispState,
 } from './chat-context-helpers';
 import { parseAndSaveMemories } from './chat-agent-memory';
 import { parseTaskPlan, useTaskPlan } from './use-task-plan';
@@ -44,7 +44,7 @@ interface AgentLoopDeps {
     pendingActions: PendingFileAction[],
   ) => Promise<{ readOnlyResults: string[]; hasRemainingPending: boolean }>;
   buildSystemPrompt: (
-    xState: XplorerState | undefined,
+    xState: WispState | undefined,
     fileContexts: FileContext[],
     agentLoopContext?: string,
   ) => Promise<string>;
@@ -78,7 +78,7 @@ export const useAgentLoop = (deps: AgentLoopDeps) => {
   const runAgentLoop = useCallback(
     async (
       initialMessages: Array<{ role: string; content: string }>,
-      xState: XplorerState | undefined,
+      xState: WispState | undefined,
       fileContexts: FileContext[],
       currentMsgs: ChatMessage[],
     ) => {
@@ -218,7 +218,7 @@ export const useAgentLoop = (deps: AgentLoopDeps) => {
     abortRef.current = false;
 
     startSession();
-    const xState = getXplorerState();
+    const xState = getWispState();
 
     for (let i = 0; i < plan.steps.length; i++) {
       if (taskPlan.isCancelled.current || abortRef.current) break;

@@ -1,7 +1,7 @@
 {
-  "productName": "Xplorer",
+  "productName": "Wisp",
   "version": "0.99.1",
-  "identifier": "com.xplorer.app",
+  "identifier": "com.wisp.app",
   "build": {
     "beforeBuildCommand": "pnpm -w frontend:build",
     "frontendDist": "../client/dist",
@@ -10,7 +10,7 @@
   "app": {
     "windows": [
       {
-        "title": "Xplorer - File Explorer",
+        "title": "Wisp - File Explorer",
         "width": 1200,
         "height": 800,
         "minWidth": 800,
@@ -47,22 +47,22 @@
     "active": true,
     "targets": "all",
     "resources": {
-      "../../packages/cli/bin/xplorer.mjs": "xplorer.mjs"
+      "../../packages/cli/bin/wisp.mjs": "wisp.mjs"
     },
     "icon": [
       "icons/icon.png",
       "icons/icon.ico"
     ],
-    "publisher": "Xplorer",
-    "copyright": "Copyright 2025 Xplorer",
+    "publisher": "Wisp",
+    "copyright": "Copyright 2025 Wisp",
     "category": "Utility",
     "shortDescription": "Modern file explorer",
     "longDescription": "A modern file explorer built with Tauri, React, and TypeScript",
     "fileAssociations": [
       {
         "ext": ["xtension"],
-        "mimeType": "application/x-xplorer-extension",
-        "description": "Xplorer Extension Package"
+        "mimeType": "application/x-wisp-extension",
+        "description": "Wisp Extension Package"
       }
     ],
     "windows": {

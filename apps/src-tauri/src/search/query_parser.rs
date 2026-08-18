@@ -1,4 +1,4 @@
-// Xplorer Search Engine — Query Parser
+// Wisp Search Engine — Query Parser
 //
 // Parses natural-language and structured queries into a `ParsedQuery` struct.
 // Handles: quoted phrases, negations (-term), field:value filters, intent

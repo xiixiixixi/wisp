@@ -144,7 +144,7 @@ export default function BillingPage() {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm text-green-600">
               <CheckCircle className="h-4 w-4" />
-              Active — thank you for sponsoring Xplorer!
+              Active — thank you for sponsoring Wisp!
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Your Pro access is linked to your GitHub Sponsors subscription. Manage it directly on

@@ -97,15 +97,15 @@ const PERMISSIONS: Record<string, PermissionInfo> = {
     risk: 'warning',
     icon: Info,
   },
-  'xplorer:settings': {
-    id: 'xplorer:settings',
+  'wisp:settings': {
+    id: 'wisp:settings',
     label: 'App Settings',
-    description: 'Read and modify Xplorer settings',
+    description: 'Read and modify Wisp settings',
     risk: 'warning',
     icon: Settings,
   },
-  'xplorer:extensions': {
-    id: 'xplorer:extensions',
+  'wisp:extensions': {
+    id: 'wisp:extensions',
     label: 'Manage Extensions',
     description: 'Install, disable, or remove other extensions',
     risk: 'warning',
@@ -155,15 +155,15 @@ const PERMISSIONS: Record<string, PermissionInfo> = {
     risk: 'safe',
     icon: Clipboard,
   },
-  'xplorer:themes': {
-    id: 'xplorer:themes',
+  'wisp:themes': {
+    id: 'wisp:themes',
     label: 'Register Themes',
     description: 'Add custom color themes',
     risk: 'safe',
     icon: Palette,
   },
-  'xplorer:history': {
-    id: 'xplorer:history',
+  'wisp:history': {
+    id: 'wisp:history',
     label: 'Navigation History',
     description: 'Read browsing and navigation history',
     risk: 'safe',

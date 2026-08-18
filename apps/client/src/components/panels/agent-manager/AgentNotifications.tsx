@@ -112,7 +112,7 @@ const AgentNotifications = ({
 
       // Also dispatch a custom event so other parts of the UI can react
       window.dispatchEvent(
-        new CustomEvent('xplorer-agent-notification', {
+        new CustomEvent('wisp-agent-notification', {
           detail: { type, sessionId: session.id, sessionName: session.name },
         }),
       );
@@ -172,8 +172,8 @@ const AgentNotifications = ({
       });
     };
 
-    window.addEventListener('xplorer-agent-end', handleAgentEnd);
-    return () => window.removeEventListener('xplorer-agent-end', handleAgentEnd);
+    window.addEventListener('wisp-agent-end', handleAgentEnd);
+    return () => window.removeEventListener('wisp-agent-end', handleAgentEnd);
   }, [t]);
 
   // This component is invisible — it only emits side effects (toasts)

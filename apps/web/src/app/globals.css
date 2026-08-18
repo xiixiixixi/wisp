@@ -8,8 +8,8 @@
   }
 }
 
-/* ── Xplorer Glass Theme CSS Variables ─────────────────────────────
- * Used by real Xplorer client components rendered on the landing page.
+/* ── Wisp Glass Theme CSS Variables ─────────────────────────────
+ * Used by real Wisp client components rendered on the landing page.
  * Scoped to .xp-theme so they don't leak into the rest of the web app.
  */
 .xp-theme {

@@ -34,10 +34,10 @@ export const MAX_IMAGE_CONTEXT_COUNT = 3;
 export const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp']);
 
 // ---------------------------------------------------------------------------
-// Xplorer state helpers
+// Wisp state helpers
 // ---------------------------------------------------------------------------
 
-export interface XplorerState {
+export interface WispState {
   currentPath?: string;
   selectedFiles?: Array<{ name: string; path: string; is_dir: boolean }>;
   editorSelection?: {
@@ -48,8 +48,8 @@ export interface XplorerState {
   } | null;
 }
 
-export const getXplorerState = (): XplorerState | undefined =>
-  (window as unknown as { __xplorer_state__?: XplorerState }).__xplorer_state__;
+export const getWispState = (): WispState | undefined =>
+  (window as unknown as { __wisp_state__?: WispState }).__wisp_state__;
 
 // ---------------------------------------------------------------------------
 // File context type

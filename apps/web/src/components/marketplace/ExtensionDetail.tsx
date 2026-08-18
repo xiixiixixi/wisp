@@ -59,7 +59,7 @@ interface ExtensionDetailProps {
     updatedAt: string;
     pricingType: string;
     price?: number | null;
-    minimumXplorerVersion?: string;
+    minimumWispVersion?: string;
     author: {
       name?: string | null;
       username?: string | null;
@@ -228,7 +228,7 @@ function ScreenshotGallery({ screenshots }: { screenshots: string[] }) {
 export function ExtensionDetail({ extension }: ExtensionDetailProps) {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const screenshots = parseScreenshots(extension.screenshots);
-  const deepLink = `xplorer://extensions/install/${extension.slug}`;
+  const deepLink = `wisp://extensions/install/${extension.slug}`;
 
   const tabs: { id: Tab; label: string; count?: number }[] = [
     { id: 'overview', label: 'Overview' },
@@ -330,11 +330,11 @@ export function ExtensionDetail({ extension }: ExtensionDetailProps) {
               <Monitor className="h-4 w-4" />
               {extension.pricingType === 'PAID' && extension.price
                 ? `Buy for ${formatPrice(extension.price)}`
-                : 'Install in Xplorer'}
+                : 'Install in Wisp'}
             </Button>
           </a>
           <p className="text-center text-xs text-gray-400 dark:text-gray-500">
-            Opens in Xplorer desktop app
+            Opens in Wisp desktop app
           </p>
         </div>
       </div>
@@ -461,11 +461,11 @@ export function ExtensionDetail({ extension }: ExtensionDetailProps) {
                     {formatFileSize(extension.fileSize)}
                   </dd>
                 </div>
-                {extension.minimumXplorerVersion && (
+                {extension.minimumWispVersion && (
                   <div className="flex justify-between">
                     <dt className="text-gray-500 dark:text-gray-400">Requires</dt>
                     <dd className="text-gray-900 dark:text-white">
-                      Xplorer {extension.minimumXplorerVersion}+
+                      Wisp {extension.minimumWispVersion}+
                     </dd>
                   </div>
                 )}

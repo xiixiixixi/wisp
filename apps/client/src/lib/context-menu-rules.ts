@@ -2,7 +2,7 @@
  * Context Menu Rules — user-configurable rules that control which context menu
  * items appear based on file type, extension, name pattern, or directory status.
  *
- * Rules are persisted in localStorage under `xplorer:context-menu-rules`.
+ * Rules are persisted in localStorage under `wisp:context-menu-rules`.
  */
 
 import type { FileEntry } from '@/lib/tauri-api';

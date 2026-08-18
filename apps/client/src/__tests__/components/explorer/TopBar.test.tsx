@@ -22,7 +22,7 @@ vi.mock('@/lib/constants', () => ({
 
 describe('TopBar', () => {
   const mockTabs = [
-    { id: 'home', name: 'Home', path: 'xplorer://home', type: 'folder' as const },
+    { id: 'home', name: 'Home', path: 'wisp://home', type: 'folder' as const },
     { id: 'docs', name: 'Documents', path: 'C:\\Users\\Test\\Documents', type: 'folder' as const },
   ];
 
@@ -52,7 +52,7 @@ describe('TopBar', () => {
   describe('Basic Rendering', () => {
     it('renders the application title', () => {
       render(<TopBar {...mockProps} />);
-      expect(screen.getByText('Xplorer')).toBeInTheDocument();
+      expect(screen.getByText('Wisp')).toBeInTheDocument();
     });
 
     it('renders the sidebar toggle button', () => {

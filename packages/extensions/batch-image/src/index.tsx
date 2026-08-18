@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Sidebar, type XplorerAPI, type SidebarRenderProps } from '@xplorer/extension-sdk';
+import { Sidebar, type WispAPI, type SidebarRenderProps } from '@wisp/extension-sdk';
 
 interface ImageInfo {
   width: number;
@@ -157,7 +157,7 @@ function BatchImagePanel({
 }: {
   currentPath: string;
   selectedFiles: SelectedFile[];
-  api: XplorerAPI;
+  api: WispAPI;
 }) {
   // Filter to only image files
   const imageFiles = (selectedFiles || []).filter(f => !f.is_dir && isImageFile(f.name));
@@ -228,7 +228,7 @@ function BatchImagePanel({
 
     // Listen for progress events via the Tauri event system
     try {
-      const { listenToEvent } = await import('@xplorer/extension-sdk') as unknown as {
+      const { listenToEvent } = await import('@wisp/extension-sdk') as unknown as {
         listenToEvent: undefined;
       };
       // Progress will be tracked by the batch results
@@ -562,7 +562,7 @@ function BatchImagePanel({
   );
 }
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 Sidebar.register({
   id: 'batch-image',
@@ -576,5 +576,5 @@ Sidebar.register({
     selectedFiles: (props.selectedFiles as Array<{ name: string; path: string; is_dir: boolean }>) || [],
     api,
   }),
-  onActivate: (injectedApi: XplorerAPI) => { api = injectedApi; },
+  onActivate: (injectedApi: WispAPI) => { api = injectedApi; },
 });

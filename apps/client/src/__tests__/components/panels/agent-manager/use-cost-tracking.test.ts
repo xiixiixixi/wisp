@@ -4,7 +4,7 @@ import { renderHook, act } from '@testing-library/react';
 // We need to mock storage-keys before the module loads
 vi.mock('@/lib/storage-keys', () => ({
   STORAGE_KEYS: {
-    AGENT_COST_HISTORY: 'xplorer:agent-cost-history',
+    AGENT_COST_HISTORY: 'wisp:agent-cost-history',
   },
 }));
 
@@ -220,7 +220,7 @@ describe('useCostTracking', () => {
         result.current.recordTokens('s1', 'Agent', 'claude-sonnet-4-20250514', 1000, 500);
       });
 
-      const raw = store['xplorer:agent-cost-history'];
+      const raw = store['wisp:agent-cost-history'];
       expect(raw).toBeDefined();
       const parsed = JSON.parse(raw);
       const keys = Object.keys(parsed);

@@ -83,7 +83,7 @@ describe('ChatPanel', () => {
       const { container, unmount } = renderChatPanel();
       // Agent enabled is the default (true in the component), but our mock returns
       // rejected promise for getSettings, so agentEnabled stays at its initial value (true)
-      expect(container.textContent).toContain('Xplorer Agent');
+      expect(container.textContent).toContain('Wisp Agent');
       unmount();
     });
   });

@@ -1,5 +1,5 @@
 /**
- * AI-powered Git helpers for the Xplorer file manager.
+ * AI-powered Git helpers for the Wisp file manager.
  *
  * Provides smart commit message generation by reading `git diff --staged`
  * and asking the AI to produce a conventional commit message. Also exposes

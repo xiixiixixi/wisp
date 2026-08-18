@@ -1,12 +1,12 @@
 [package]
-name = "xplorer"
+name = "wisp"
 version = "0.99.1"
 description = "A modern file explorer built with Tauri"
 authors = ["Justin Maximillian Kimlim"]
 license = "AGPL-3.0"
 repository = "https://github.com/kimlimjustin/xplorer"
 edition = "2021"
-default-run = "xplorer"
+default-run = "wisp"
 
 [build-dependencies]
 tauri-build = { version = "2.5.5", features = [] }
@@ -78,7 +78,7 @@ tokio-test = "0.4"
 tempfile = "3.0"
 
 [[bin]]
-name = "xplorer"
+name = "wisp"
 path = "src/main.rs"
 
 [target.'cfg(windows)'.dependencies]

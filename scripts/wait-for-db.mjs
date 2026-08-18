@@ -10,7 +10,7 @@ const RETRY_INTERVAL_MS = 1000;
 
 for (let i = 0; i < MAX_RETRIES; i++) {
   try {
-    execSync('docker compose exec postgres pg_isready -U xplorer', { stdio: 'ignore' });
+    execSync('docker compose exec postgres pg_isready -U wisp', { stdio: 'ignore' });
     console.log('[db] PostgreSQL is ready.');
     process.exit(0);
   } catch {

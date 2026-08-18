@@ -14,7 +14,7 @@ import type {
   PreviewProps,
   PanelProps,
   ExtensionLifecycle,
-  XplorerAPI,
+  WispAPI,
 } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -452,10 +452,10 @@ describe('ExtensionContext', () => {
 });
 
 // ---------------------------------------------------------------------------
-// XplorerAPI
+// WispAPI
 // ---------------------------------------------------------------------------
-describe('XplorerAPI', () => {
-  const createApi = (): XplorerAPI => ({
+describe('WispAPI', () => {
+  const createApi = (): WispAPI => ({
     files: {
       read: jest.fn(),
       readText: jest.fn(),

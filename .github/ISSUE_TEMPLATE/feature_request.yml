@@ -1,5 +1,5 @@
 name: Feature Request
-description: Suggest an idea for Xplorer
+description: Suggest an idea for Wisp
 labels: [enhancement]
 body:
   - type: markdown

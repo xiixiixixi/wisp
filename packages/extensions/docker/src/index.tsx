@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Sidebar, type XplorerAPI, type SidebarRenderProps } from '@xplorer/extension-sdk';
+import { Sidebar, type WispAPI, type SidebarRenderProps } from '@wisp/extension-sdk';
 
 interface ContainerInfo {
   id: string;
@@ -155,7 +155,7 @@ function ActionButton({ onClick, title, color, disabled, children }: {
   );
 }
 
-function DockerPanel({ api }: { api: XplorerAPI }) {
+function DockerPanel({ api }: { api: WispAPI }) {
   const [tab, setTab] = useState<Tab>('containers');
   const [available, setAvailable] = useState<boolean | null>(null);
   const [containers, setContainers] = useState<ContainerInfo[]>([]);
@@ -541,7 +541,7 @@ function DockerPanel({ api }: { api: XplorerAPI }) {
   );
 }
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 Sidebar.register({
   id: 'docker-manager',
@@ -551,7 +551,7 @@ Sidebar.register({
   location: 'right',
   permissions: ['system:exec'],
   render: (_props: SidebarRenderProps) => React.createElement(DockerPanel, { api }),
-  onActivate: async (injectedApi: XplorerAPI) => {
+  onActivate: async (injectedApi: WispAPI) => {
     api = injectedApi;
   },
 });

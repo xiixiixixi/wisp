@@ -176,14 +176,14 @@ class ExtensionHost {
   getAllExtensions(): LoadedExtension[] {
     return [
       {
-        id: 'xplorer-code-editor',
+        id: 'wisp-code-editor',
         manifest: {
-          id: 'xplorer-code-editor',
+          id: 'wisp-code-editor',
           name: 'Code Editor',
           display_name: 'Code Editor',
           version: '1.0.0',
           description: 'Edit code with syntax highlighting',
-          author: 'Xplorer',
+          author: 'Wisp',
           permissions: ['file:read', 'file:write'],
           entry_point: 'index.js',
           extension_type: 'panel',
@@ -193,14 +193,14 @@ class ExtensionHost {
         isBuiltin: true,
       },
       {
-        id: 'xplorer-markdown-preview',
+        id: 'wisp-markdown-preview',
         manifest: {
-          id: 'xplorer-markdown-preview',
+          id: 'wisp-markdown-preview',
           name: 'Markdown Preview',
           display_name: 'Markdown Preview',
           version: '1.0.0',
           description: 'Render Markdown files',
-          author: 'Xplorer',
+          author: 'Wisp',
           permissions: ['file:read'],
           entry_point: 'index.js',
           extension_type: 'preview',
@@ -210,15 +210,15 @@ class ExtensionHost {
         isBuiltin: true,
       },
       {
-        id: 'xplorer-dracula-theme',
+        id: 'wisp-dracula-theme',
         manifest: {
-          id: 'xplorer-dracula-theme',
+          id: 'wisp-dracula-theme',
           name: 'Dracula Theme',
           display_name: 'Dracula Theme',
           version: '1.2.0',
-          description: 'Dracula color theme for Xplorer',
+          description: 'Dracula color theme for Wisp',
           author: 'Community',
-          permissions: ['xplorer:themes'],
+          permissions: ['wisp:themes'],
           entry_point: 'index.js',
           extension_type: 'theme',
           icon: 'palette',
@@ -227,9 +227,9 @@ class ExtensionHost {
         isBuiltin: false,
       },
       {
-        id: 'xplorer-file-hasher',
+        id: 'wisp-file-hasher',
         manifest: {
-          id: 'xplorer-file-hasher',
+          id: 'wisp-file-hasher',
           name: 'File Hasher',
           display_name: 'File Hasher',
           version: '0.8.1',

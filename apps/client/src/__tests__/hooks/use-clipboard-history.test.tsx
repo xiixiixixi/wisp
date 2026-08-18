@@ -8,7 +8,7 @@ import {
   getRecentEntries,
 } from '@/hooks/use-clipboard-history';
 
-const STORAGE_KEY = 'xplorer:clipboard-history';
+const STORAGE_KEY = 'wisp:clipboard-history';
 
 describe('use-clipboard-history', () => {
   beforeEach(() => {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
-const STORAGE_KEY = 'xplorer-notification-history';
+const STORAGE_KEY = 'wisp-notification-history';
 
 // We need to use dynamic import with resetModules to handle the module-level
 // global state (globalNotifications, listeners, idCounter) that persists

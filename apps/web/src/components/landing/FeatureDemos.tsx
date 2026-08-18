@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-// ── Real Xplorer client components ──────────────────────────────────────────
+// ── Real Wisp client components ──────────────────────────────────────────
 import LeftSidebar from '@client/components/explorer/LeftSidebar';
 import OperationBar from '@client/components/explorer/OperationBar';
 import FileGridItem from '@client/components/explorer/FileGridItem';
@@ -33,7 +33,7 @@ import {
  *  Demo data — static files used to populate the real components
  * ═══════════════════════════════════════════════════════════════════════════ */
 
-const DEMO_PATH = 'C:\\Users\\User\\Projects\\xplorer';
+const DEMO_PATH = 'C:\\Users\\User\\Projects\\wisp';
 
 const DEMO_FILES: FileEntry[] = [
   {
@@ -182,7 +182,7 @@ function demoFormatDate(timestamp: number): string {
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 const DEMO_TABS = [
-  { id: '1', name: 'xplorer', path: DEMO_PATH, type: 'folder' as const },
+  { id: '1', name: 'wisp', path: DEMO_PATH, type: 'folder' as const },
   { id: '2', name: 'package.json', path: `${DEMO_PATH}\\package.json`, type: 'file' as const },
   { id: '3', name: 'README.md', path: `${DEMO_PATH}\\README.md`, type: 'file' as const },
 ];
@@ -332,7 +332,7 @@ export function FileBrowserDemo({ compact }: { compact?: boolean }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
- *  2–6. Real Xplorer panel components with fake demo data
+ *  2–6. Real Wisp panel components with fake demo data
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 import PreviewPanel from '@client/components/panels/PreviewPanel';
@@ -442,7 +442,7 @@ const searchResults = [
   },
   {
     name: 'product-hero.png',
-    path: '~/Projects/xplorer',
+    path: '~/Projects/wisp',
     size: '2.8 MB',
     relevance: 'High',
     score: 0.91,
@@ -708,7 +708,7 @@ const DEMO_THEMES: Record<
   { name: string; primary: string; bg: string; surface: string; text: string }
 > = {
   glass: {
-    name: 'Xplorer Glass',
+    name: 'Wisp Glass',
     primary: '#6366f1',
     bg: '#0a0a1a',
     surface: '#111122',

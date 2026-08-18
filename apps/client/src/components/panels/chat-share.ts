@@ -5,7 +5,7 @@
  * encodes it as a base64 URL fragment, and copies a shareable link
  * to the clipboard.
  *
- * The link can be opened in another Xplorer instance to restore
+ * The link can be opened in another Wisp instance to restore
  * the conversation.
  */
 import type { ChatMessage } from './chat-history';
@@ -45,8 +45,8 @@ export interface SharedMessage {
 // Constants
 // ---------------------------------------------------------------------------
 
-/** Base URL for share links (Xplorer custom protocol) */
-const SHARE_BASE_URL = 'xplorer://chat/shared';
+/** Base URL for share links (Wisp custom protocol) */
+const SHARE_BASE_URL = 'wisp://chat/shared';
 
 /** Maximum payload size before compression (500 KB) */
 const MAX_PAYLOAD_SIZE = 500 * 1024;
@@ -358,6 +358,6 @@ export const handleShareCommand = async (
     `*Shared on ${new Date().toLocaleDateString()} from ${folder || 'unknown folder'}*`,
     `*Model: ${model || 'unknown'}*`,
     '',
-    'Open this link in another Xplorer instance to restore the conversation.',
+    'Open this link in another Wisp instance to restore the conversation.',
   ].join('\n');
 };

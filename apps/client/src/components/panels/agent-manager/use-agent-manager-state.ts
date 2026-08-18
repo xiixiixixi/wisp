@@ -263,7 +263,7 @@ export const useAgentManagerProvider = (): AgentManagerState => {
 
     // Dispatch event for the conversation view to handle actual API call
     window.dispatchEvent(
-      new CustomEvent('xplorer-agent-send-message', {
+      new CustomEvent('wisp-agent-send-message', {
         detail: { sessionId, message },
       }),
     );
@@ -271,11 +271,11 @@ export const useAgentManagerProvider = (): AgentManagerState => {
 
   // ── Approve / reject ───────────────────────────────────────────────
   const approveAction = useCallback((approvalId: string) => {
-    window.dispatchEvent(new CustomEvent('xplorer-agent-approve', { detail: { approvalId } }));
+    window.dispatchEvent(new CustomEvent('wisp-agent-approve', { detail: { approvalId } }));
   }, []);
 
   const rejectAction = useCallback((approvalId: string) => {
-    window.dispatchEvent(new CustomEvent('xplorer-agent-reject', { detail: { approvalId } }));
+    window.dispatchEvent(new CustomEvent('wisp-agent-reject', { detail: { approvalId } }));
   }, []);
 
   // ── Dismiss resume dialog ──────────────────────────────────────────
@@ -337,14 +337,14 @@ export const useAgentManagerProvider = (): AgentManagerState => {
       });
     };
 
-    window.addEventListener('xplorer-agent-messages-update', handleMessageUpdate);
-    window.addEventListener('xplorer-agent-cost-update', handleCostUpdate);
-    window.addEventListener('xplorer-agent-approvals-update', handleApprovalUpdate);
+    window.addEventListener('wisp-agent-messages-update', handleMessageUpdate);
+    window.addEventListener('wisp-agent-cost-update', handleCostUpdate);
+    window.addEventListener('wisp-agent-approvals-update', handleApprovalUpdate);
 
     return () => {
-      window.removeEventListener('xplorer-agent-messages-update', handleMessageUpdate);
-      window.removeEventListener('xplorer-agent-cost-update', handleCostUpdate);
-      window.removeEventListener('xplorer-agent-approvals-update', handleApprovalUpdate);
+      window.removeEventListener('wisp-agent-messages-update', handleMessageUpdate);
+      window.removeEventListener('wisp-agent-cost-update', handleCostUpdate);
+      window.removeEventListener('wisp-agent-approvals-update', handleApprovalUpdate);
     };
   }, []);
 

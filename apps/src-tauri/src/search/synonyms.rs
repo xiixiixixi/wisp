@@ -1,4 +1,4 @@
-// Xplorer Search Engine — Synonym Dictionary
+// Wisp Search Engine — Synonym Dictionary
 // Provides query expansion via bidirectional synonym lookup.
 
 use std::collections::{HashMap, HashSet};

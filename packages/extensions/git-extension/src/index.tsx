@@ -1,5 +1,5 @@
 /**
- * Git Extension for Xplorer — GitHub Desktop style
+ * Git Extension for Wisp — GitHub Desktop style
  *
  * Two-tab layout: Changes (file list + diff + commit area) and History (commit list + diff).
  * Uses api.git.* methods. All inline styles + CSS variables. BottomTab.register().
@@ -7,8 +7,8 @@
 import {
   BottomTab,
   Command,
-  type XplorerAPI,
-} from '@xplorer/extension-sdk';
+  type WispAPI,
+} from '@wisp/extension-sdk';
 
 const React = (window as unknown as Record<string, unknown>).React as typeof import('react');
 const { useState, useEffect, useCallback, useRef, useMemo } = React;
@@ -136,7 +136,7 @@ const dirname = (p: string): string => {
 let wasmAvailable: boolean | null = null;
 
 const gitCall = async (
-  api: XplorerAPI,
+  api: WispAPI,
   method: string,
   args: Record<string, unknown>,
 ): Promise<unknown> => {
@@ -430,7 +430,7 @@ const DiffViewer = ({ diff }: { diff: GitDiff | null }) => {
 
 // ── Changes Tab ──────────────────────────────────────────────────────
 
-const ChangesTab = ({ api, repoPath, branch }: { api: XplorerAPI; repoPath: string; branch: string }) => {
+const ChangesTab = ({ api, repoPath, branch }: { api: WispAPI; repoPath: string; branch: string }) => {
   const [files, setFiles] = useState<FileStatusEntry[]>([]);
   const [staged, setStaged] = useState<Set<string>>(new Set());
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
@@ -781,7 +781,7 @@ const groupByDate = (commits: GitCommit[]): GroupedCommits => {
 
 // ── HistoryTab (GitLens style) ──────────────────────────────────────
 
-const HistoryTab = ({ api, repoPath, branch }: { api: XplorerAPI; repoPath: string; branch: string }) => {
+const HistoryTab = ({ api, repoPath, branch }: { api: WispAPI; repoPath: string; branch: string }) => {
   const [commits, setCommits] = useState<GitCommit[]>([]);
   const [selectedCommit, setSelectedCommit] = useState<GitCommit | null>(null);
   const [commitDiffs, setCommitDiffs] = useState<GitDiff[]>([]);
@@ -1180,7 +1180,7 @@ const NoRepo = () => (
 
 type MainTab = 'changes' | 'history';
 
-const GitPanel = ({ api, currentPath }: { api: XplorerAPI; currentPath?: string }) => {
+const GitPanel = ({ api, currentPath }: { api: WispAPI; currentPath?: string }) => {
   const [tab, setTab] = useState<MainTab>('changes');
   const [repoPath, setRepoPath] = useState<string | null>(null);
   const [currentBranch, setCurrentBranch] = useState('main');
@@ -1377,7 +1377,7 @@ const GitPanel = ({ api, currentPath }: { api: XplorerAPI; currentPath?: string 
 
 // ── Registration ─────────────────────────────────────────────────────
 
-let gitApi: XplorerAPI;
+let gitApi: WispAPI;
 
 BottomTab.register({
   id: 'git',
@@ -1392,7 +1392,7 @@ Command.register({
   id: 'git-open-changes',
   title: 'Git: Show Changes',
   action: (_api) => {
-    window.dispatchEvent(new CustomEvent('xplorer-set-bottom-tab', { detail: { tab: 'git' } }));
+    window.dispatchEvent(new CustomEvent('wisp-set-bottom-tab', { detail: { tab: 'git' } }));
   },
 });
 
@@ -1400,6 +1400,6 @@ Command.register({
   id: 'git-open-history',
   title: 'Git: Show History',
   action: (_api) => {
-    window.dispatchEvent(new CustomEvent('xplorer-set-bottom-tab', { detail: { tab: 'git' } }));
+    window.dispatchEvent(new CustomEvent('wisp-set-bottom-tab', { detail: { tab: 'git' } }));
   },
 });

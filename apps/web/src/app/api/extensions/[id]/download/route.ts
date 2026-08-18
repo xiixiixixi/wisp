@@ -213,10 +213,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
       const candidates = [
         extension.slug,
         `${extension.slug}-extension`,
-        extension.slug.replace('xplorer-', ''),
+        extension.slug.replace('wisp-', ''),
         extension.slug.replace('-extension', ''),
-        extension.slug.replace('xplorer-', '').replace('-theme', '-theme'),
-        extension.slug.replace('xplorer-', '').replace('-extension', ''),
+        extension.slug.replace('wisp-', '').replace('-theme', '-theme'),
+        extension.slug.replace('wisp-', '').replace('-extension', ''),
         extension.slug.replace('-dialog', '-extension'),
       ];
 

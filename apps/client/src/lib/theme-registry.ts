@@ -70,12 +70,12 @@ export const installThemeEventBridge = () => {
   if (bridgeInstalled) return;
   bridgeInstalled = true;
 
-  window.addEventListener('xplorer-theme-register', ((e: CustomEvent) => {
+  window.addEventListener('wisp-theme-register', ((e: CustomEvent) => {
     const { id, name, primary, bg, surface, text } = e.detail;
     if (id && name) registerTheme(id, { name, primary, bg, surface, text });
   }) as EventListener);
 
-  window.addEventListener('xplorer-theme-unregister', ((e: CustomEvent) => {
+  window.addEventListener('wisp-theme-unregister', ((e: CustomEvent) => {
     if (e.detail?.id) unregisterTheme(e.detail.id);
   }) as EventListener);
 };

@@ -24,10 +24,10 @@ const PERMISSION_DESCRIPTIONS: Record<string, string> = {
   'directory:list': 'View files inside folders',
   'directory:create': 'Create new folders',
   'directory:delete': 'Delete folders and their contents',
-  'xplorer:settings': 'Read and modify Xplorer settings',
-  'xplorer:extensions': 'Install, disable, or remove other extensions',
-  'xplorer:themes': 'Add custom color themes',
-  'xplorer:history': 'Read browsing and navigation history',
+  'wisp:settings': 'Read and modify Wisp settings',
+  'wisp:extensions': 'Install, disable, or remove other extensions',
+  'wisp:themes': 'Add custom color themes',
+  'wisp:history': 'Read browsing and navigation history',
 };
 
 /** Permissions considered dangerous -- highlighted with orange/red */
@@ -168,7 +168,7 @@ export const EXTENSION_PERMISSION_RESPONSE_EVENT = 'extension-permission-respons
 // ── Helper: localStorage consent key ─────────────────────────────────────────
 
 export const getConsentKey = (extensionId: string): string => {
-  return `xplorer:ext-consent:${extensionId}`;
+  return `wisp:ext-consent:${extensionId}`;
 };
 
 export const hasStoredConsent = (extensionId: string): boolean => {

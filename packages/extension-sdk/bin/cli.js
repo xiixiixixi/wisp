@@ -43,7 +43,7 @@ function main() {
 
   if (!commands[command]) {
     console.error(`Unknown command: ${command}`);
-    console.error('Run "xplorer-sdk help" to see available commands');
+    console.error('Run "wisp-sdk help" to see available commands');
     process.exit(1);
   }
 
@@ -59,7 +59,7 @@ function createExtension(args) {
   const name = args[0];
   if (!name) {
     console.error('Extension name is required');
-    console.error('Usage: xplorer-sdk create <name> --template=<template>');
+    console.error('Usage: wisp-sdk create <name> --template=<template>');
     process.exit(1);
   }
 
@@ -83,24 +83,24 @@ function createExtension(args) {
   const packageJson = {
     name: name,
     version: '1.0.0',
-    description: `A Xplorer extension`,
+    description: `A Wisp extension`,
     main: 'dist/index.js',
     scripts: {
       build: 'tsc',
       dev: 'tsc --watch',
-      package: 'xplorer-sdk package',
+      package: 'wisp-sdk package',
     },
     devDependencies: {
-      '@xplorer/extension-sdk': 'latest',
+      '@wisp/extension-sdk': 'latest',
       typescript: '^5.0.0',
     },
-    xplorer: {
+    wisp: {
       id: name,
       displayName: name.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
       category: template,
       version: '1.0.0',
       author: 'Your Name',
-      description: `A ${template} extension for Xplorer`,
+      description: `A ${template} extension for Wisp`,
     },
   };
 
@@ -145,7 +145,7 @@ function createTemplateFiles(extensionDir, name, template) {
 
   if (template === 'theme') {
     // Create theme extension template
-    const themeTemplate = `import { ThemeExtension } from '@xplorer/extension-sdk';
+    const themeTemplate = `import { ThemeExtension } from '@wisp/extension-sdk';
 
 export class ${toPascalCase(name)} extends ThemeExtension {
   constructor() {
@@ -154,7 +154,7 @@ export class ${toPascalCase(name)} extends ThemeExtension {
       name: '${name.replace(/-/g, ' ').replace(/\\b\\w/g, (l) => l.toUpperCase())}',
       version: '1.0.0',
       author: 'Your Name',
-      description: 'A custom theme for Xplorer'
+      description: 'A custom theme for Wisp'
     });
   }
 
@@ -197,7 +197,7 @@ export class ${toPascalCase(name)} extends ThemeExtension {
     fs.writeFileSync(path.join(srcDir, 'index.ts'), themeTemplate);
   } else {
     // Create basic extension template
-    const basicTemplate = `import { Extension } from '@xplorer/extension-sdk';
+    const basicTemplate = `import { Extension } from '@wisp/extension-sdk';
 
 export class ${toPascalCase(name)} extends Extension {
   constructor() {
@@ -207,7 +207,7 @@ export class ${toPascalCase(name)} extends Extension {
       version: '1.0.0',
       author: 'Your Name',
       category: 'tool',
-      description: 'A Xplorer extension'
+      description: 'A Wisp extension'
     });
   }
 
@@ -231,7 +231,7 @@ export class ${toPascalCase(name)} extends Extension {
   // Create README
   const readme = `# ${name.replace(/-/g, ' ').replace(/\\b\\w/g, (l) => l.toUpperCase())}
 
-A Xplorer extension.
+A Wisp extension.
 
 ## Development
 
@@ -246,7 +246,7 @@ npm run build
 npm run package
 \`\`\`
 
-Then install the generated \`.zip\` file in Xplorer.
+Then install the generated \`.zip\` file in Wisp.
 `;
 
   fs.writeFileSync(path.join(extensionDir, 'README.md'), readme);
@@ -278,7 +278,7 @@ function packageExtension(args) {
   }
 
   const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-  const extensionName = packageJson.xplorer?.id || packageJson.name;
+  const extensionName = packageJson.wisp?.id || packageJson.name;
   const version = packageJson.version;
 
   const archiver = require('archiver');
@@ -316,7 +316,7 @@ function installExtension(args) {
   }
 
   const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-  const extensionId = packageJson.xplorer?.id || packageJson.name;
+  const extensionId = packageJson.wisp?.id || packageJson.name;
 
   const home = process.env.HOME || process.env.USERPROFILE;
   if (!home) {
@@ -325,11 +325,11 @@ function installExtension(args) {
 
   let baseDir;
   if (process.platform === 'win32') {
-    baseDir = path.join(process.env.APPDATA || path.join(home, 'AppData', 'Roaming'), 'xplorer');
+    baseDir = path.join(process.env.APPDATA || path.join(home, 'AppData', 'Roaming'), 'wisp');
   } else if (process.platform === 'darwin') {
-    baseDir = path.join(home, 'Library', 'Application Support', 'xplorer');
+    baseDir = path.join(home, 'Library', 'Application Support', 'wisp');
   } else {
-    baseDir = path.join(home, '.local', 'share', 'xplorer');
+    baseDir = path.join(home, '.local', 'share', 'wisp');
   }
 
   const extensionTarget = path.join(baseDir, 'extensions', extensionId);
@@ -370,15 +370,15 @@ function installExtension(args) {
 function showHelp(commandName) {
   if (commandName && commands[commandName]) {
     const cmd = commands[commandName];
-    console.log(`xplorer-sdk ${commandName}`);
-    console.log(`Usage: xplorer-sdk ${cmd.usage}`);
+    console.log(`wisp-sdk ${commandName}`);
+    console.log(`Usage: wisp-sdk ${cmd.usage}`);
     console.log(`Description: ${cmd.description}`);
     return;
   }
 
-  console.log('Xplorer Extension SDK');
+  console.log('Wisp Extension SDK');
   console.log('');
-  console.log('Usage: xplorer-sdk <command> [options]');
+  console.log('Usage: wisp-sdk <command> [options]');
   console.log('');
   console.log('Commands:');
 
@@ -388,11 +388,11 @@ function showHelp(commandName) {
 
   console.log('');
   console.log('Examples:');
-  console.log('  xplorer-sdk create my-theme --template=theme');
-  console.log('  xplorer-sdk build');
-  console.log('  xplorer-sdk package');
+  console.log('  wisp-sdk create my-theme --template=theme');
+  console.log('  wisp-sdk build');
+  console.log('  wisp-sdk package');
   console.log('');
-  console.log('For more information, visit: https://github.com/xplorer/extension-sdk');
+  console.log('For more information, visit: https://github.com/wisp/extension-sdk');
 }
 
 if (require.main === module) {

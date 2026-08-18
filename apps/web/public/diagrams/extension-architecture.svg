@@ -45,9 +45,9 @@
   <!-- Arrow host → API -->
   <line x1="450" y1="94" x2="488" y2="94" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <!-- Xplorer SDK API -->
+  <!-- Wisp SDK API -->
   <rect x="490" y="24" width="160" height="140" rx="10" fill="#172554" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow)"/>
-  <text x="570" y="50" text-anchor="middle" fill="#93c5fd" font-size="13" font-weight="600">XplorerSDK</text>
+  <text x="570" y="50" text-anchor="middle" fill="#93c5fd" font-size="13" font-weight="600">WispSDK</text>
 
   <rect x="506" y="62" width="128" height="24" rx="6" fill="#1e3a5f" stroke="#2563eb" stroke-width="0.5"/>
   <text x="570" y="78" text-anchor="middle" fill="#bfdbfe" font-size="10">files, ui, navigation</text>
@@ -114,5 +114,5 @@
 
   <!-- Permission note -->
   <rect x="30" y="340" width="620" height="30" rx="8" fill="#1c1917" stroke="#475569" stroke-width="0.5"/>
-  <text x="340" y="360" text-anchor="middle" fill="#94a3b8" font-size="11">All extensions run with permission-scoped access: file system, UI, system, and Xplorer APIs</text>
+  <text x="340" y="360" text-anchor="middle" fill="#94a3b8" font-size="11">All extensions run with permission-scoped access: file system, UI, system, and Wisp APIs</text>
 </svg>

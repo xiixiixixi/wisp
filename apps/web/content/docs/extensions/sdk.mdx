@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # SDK Reference
 
-The Xplorer Extension SDK (`@xplorer/extension-sdk`) provides high-level registration APIs, React hooks, UI components, base classes, and type definitions for building extensions.
+The Wisp Extension SDK (`@wisp/extension-sdk`) provides high-level registration APIs, React hooks, UI components, base classes, and type definitions for building extensions.
 
 ```typescript
 import {
@@ -18,7 +18,7 @@ import {
   ContextMenu,
   BottomTab,
   Editor,
-} from '@xplorer/extension-sdk';
+} from '@wisp/extension-sdk';
 ```
 
 ---
@@ -32,7 +32,7 @@ These APIs are the easiest way to create extensions. Each one handles manifest c
 Create a custom color theme. Pass a `colors` object and the SDK auto-generates all CSS variables.
 
 ```typescript
-import { Theme } from '@xplorer/extension-sdk';
+import { Theme } from '@wisp/extension-sdk';
 
 Theme.register({
   id: 'my-theme', // CSS class: .theme-my-theme
@@ -62,7 +62,7 @@ Theme.register({
 
 1. Generates all `--xp-*` and standard CSS variables from `colors`
 2. Injects a `<style>` element with the generated CSS + any extra `css`
-3. Dispatches `xplorer-theme-register` CustomEvent
+3. Dispatches `wisp-theme-register` CustomEvent
 4. Registers the extension with the host
 
 ### Sidebar.register()
@@ -70,9 +70,9 @@ Theme.register({
 Create a sidebar panel with React UI.
 
 ```typescript
-import { Sidebar, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Sidebar, type WispAPI } from '@wisp/extension-sdk';
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 Sidebar.register({
   id: 'my-panel',
@@ -101,9 +101,9 @@ Sidebar.register({
 Create a custom file preview renderer.
 
 ```typescript
-import { Preview, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Preview, type WispAPI } from '@wisp/extension-sdk';
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 Preview.register({
   id: 'csv-preview',
@@ -129,7 +129,7 @@ Preview.register({
 Register a command with an optional keyboard shortcut.
 
 ```typescript
-import { Command, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Command, type WispAPI } from '@wisp/extension-sdk';
 
 Command.register({
   id: 'word-count',
@@ -149,7 +149,7 @@ Command.register({
 Add an item to the right-click context menu.
 
 ```typescript
-import { ContextMenu, type XplorerAPI } from '@xplorer/extension-sdk';
+import { ContextMenu, type WispAPI } from '@wisp/extension-sdk';
 
 ContextMenu.register({
   id: 'calculate-hash',
@@ -171,9 +171,9 @@ ContextMenu.register({
 Register a tab in the left sidebar tab bar (alongside Explorer and Search). When the user clicks the tab icon, your component is rendered in the left sidebar area.
 
 ```typescript
-import { SidebarTab, useCurrentPath, type XplorerAPI } from '@xplorer/extension-sdk';
+import { SidebarTab, useCurrentPath, type WispAPI } from '@wisp/extension-sdk';
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 const MyTabContent = () => {
   const currentPath = useCurrentPath();
@@ -205,9 +205,9 @@ SidebarTab.register({
 Register a tab in the bottom panel (alongside Terminal). Useful for persistent tooling panels like Git, Build Output, or Problems.
 
 ```typescript
-import { BottomTab, type XplorerAPI } from '@xplorer/extension-sdk';
+import { BottomTab, type WispAPI } from '@wisp/extension-sdk';
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 BottomTab.register({
   id: 'git-panel',
@@ -233,12 +233,12 @@ BottomTab.register({
 
 ### Editor.register()
 
-Register a custom file editor. When a user opens a file for editing, Xplorer checks registered editors for a match.
+Register a custom file editor. When a user opens a file for editing, Wisp checks registered editors for a match.
 
 ```typescript
-import { Editor, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Editor, type WispAPI } from '@wisp/extension-sdk';
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 Editor.register({
   id: 'markdown-editor',
@@ -272,14 +272,14 @@ Editor.register({
 
 ## Hooks
 
-React hooks for reading Xplorer state from within extension components.
+React hooks for reading Wisp state from within extension components.
 
 ### useCurrentPath()
 
 Returns the current directory path. Re-renders when the path changes.
 
 ```typescript
-import { useCurrentPath } from '@xplorer/extension-sdk';
+import { useCurrentPath } from '@wisp/extension-sdk';
 
 function MyComponent() {
   const currentPath = useCurrentPath();
@@ -292,7 +292,7 @@ function MyComponent() {
 Returns the currently selected files. Re-renders when the selection changes.
 
 ```typescript
-import { useSelectedFiles } from '@xplorer/extension-sdk';
+import { useSelectedFiles } from '@wisp/extension-sdk';
 
 function MyComponent() {
   const files = useSelectedFiles();
@@ -306,7 +306,7 @@ function MyComponent() {
 Navigate to a directory programmatically.
 
 ```typescript
-import { navigateTo } from '@xplorer/extension-sdk';
+import { navigateTo } from '@wisp/extension-sdk';
 
 navigateTo('/home/user/Documents');
 ```
@@ -320,7 +320,7 @@ Pre-built React components that automatically match the active theme via CSS var
 ### Button
 
 ```typescript
-import { Button } from '@xplorer/extension-sdk';
+import { Button } from '@wisp/extension-sdk';
 
 React.createElement(Button, {
   label: 'Click me',
@@ -334,7 +334,7 @@ React.createElement(Button, {
 ### Input
 
 ```typescript
-import { Input } from '@xplorer/extension-sdk';
+import { Input } from '@wisp/extension-sdk';
 
 React.createElement(Input, {
   value: text,
@@ -347,7 +347,7 @@ React.createElement(Input, {
 ### Select
 
 ```typescript
-import { Select } from '@xplorer/extension-sdk';
+import { Select } from '@wisp/extension-sdk';
 
 React.createElement(Select, {
   value: selected,
@@ -364,7 +364,7 @@ React.createElement(Select, {
 A styled toggle switch.
 
 ```typescript
-import { Toggle } from '@xplorer/extension-sdk';
+import { Toggle } from '@wisp/extension-sdk';
 
 React.createElement(Toggle, {
   checked: enabled,
@@ -378,7 +378,7 @@ React.createElement(Toggle, {
 An animated loading spinner.
 
 ```typescript
-import { Spinner } from '@xplorer/extension-sdk';
+import { Spinner } from '@wisp/extension-sdk';
 
 React.createElement(Spinner, { size: 24 });
 ```
@@ -388,7 +388,7 @@ React.createElement(Spinner, { size: 24 });
 Full-height layout wrapper with optional title header.
 
 ```typescript
-import { Panel } from '@xplorer/extension-sdk';
+import { Panel } from '@wisp/extension-sdk';
 
 React.createElement(
   Panel,
@@ -402,14 +402,14 @@ React.createElement(
 Surface box with optional title.
 
 ```typescript
-import { Card } from '@xplorer/extension-sdk';
+import { Card } from '@wisp/extension-sdk';
 
 React.createElement(Card, { title: 'Stats' }, React.createElement('p', null, '42 files'));
 ```
 
 ---
 
-## XplorerAPI
+## WispAPI
 
 The sandboxed API object provided to extensions at runtime. Method access is gated by the extension's declared permissions.
 
@@ -694,7 +694,7 @@ For complex extensions needing full lifecycle control, use the base classes dire
 | `EditorExtension`    | editor     | File editors with `canEdit()` + `render()`     |
 
 ```typescript
-import { Extension, registerExtension } from '@xplorer/extension-sdk';
+import { Extension, registerExtension } from '@wisp/extension-sdk';
 
 class MyExtension extends Extension {
   async activate() {
@@ -763,7 +763,7 @@ Extensions run in a sandboxed environment. Dangerous globals are blocked:
 | `eval`                                              | Prevent arbitrary code execution    |
 | `__TAURI__`, `__TAURI_INTERNALS__`, `__TAURI_IPC__` | Prevent Tauri IPC bypass            |
 
-**Allowed:** `React`, `ReactDOM`, `XplorerSDK`, `document`, `console`, `crypto.subtle`, `setTimeout`/`setInterval`, `CustomEvent`, `CSS`.
+**Allowed:** `React`, `ReactDOM`, `WispSDK`, `document`, `console`, `crypto.subtle`, `setTimeout`/`setInterval`, `CustomEvent`, `CSS`.
 
 ---
 

@@ -83,7 +83,7 @@ export const useFileActions = (deps: FileActionsDeps) => {
     async (file: FileEntry, handler: OpenHandler) => {
       try {
         switch (handler) {
-          case 'xplorer-editor': {
+          case 'wisp-editor': {
             const editorTab: TabItem = {
               id: `editor-${file.path}-${Date.now()}`,
               name: file.name,
@@ -187,7 +187,7 @@ export const useFileActions = (deps: FileActionsDeps) => {
     const managerTab: TabItem = {
       id: 'gdrive-manager',
       name: 'Google Drive',
-      path: 'xplorer://gdrive-manager',
+      path: 'wisp://gdrive-manager',
       type: 'gdrive-manager',
     };
     splitLayoutRef.current.addTab(activeGroupRef.current.id, managerTab, true);

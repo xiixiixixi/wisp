@@ -1,15 +1,15 @@
 {
-  "name": "xplorer-software-finder",
+  "name": "wisp-software-finder",
   "version": "1.0.0",
   "description": "Find installation paths of popular software and navigate to them",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "esbuild src/index.tsx --bundle --format=iife --outfile=dist/index.js --external:react --external:react-dom --external:@xplorer/extension-sdk --target=es2020 --jsx=transform",
-    "dev": "touch .hotreload && esbuild src/index.tsx --bundle --outfile=dist/index.js --watch --format=iife --external:react --external:react-dom --external:@xplorer/extension-sdk --define:process.env.NODE_ENV=\\\"development\\\"; rm -f .hotreload"
+    "build": "esbuild src/index.tsx --bundle --format=iife --outfile=dist/index.js --external:react --external:react-dom --external:@wisp/extension-sdk --target=es2020 --jsx=transform",
+    "dev": "touch .hotreload && esbuild src/index.tsx --bundle --outfile=dist/index.js --watch --format=iife --external:react --external:react-dom --external:@wisp/extension-sdk --define:process.env.NODE_ENV=\\\"development\\\"; rm -f .hotreload"
   },
-  "xplorer": {
-    "id": "xplorer-software-finder",
+  "wisp": {
+    "id": "wisp-software-finder",
     "name": "Software Finder",
     "displayName": "Software Finder",
     "version": "1.0.0",
@@ -22,7 +22,7 @@
     "contributes": {
       "panels": [
         {
-          "id": "xplorer-software-finder",
+          "id": "wisp-software-finder",
           "title": "Software Finder",
           "location": "right",
           "icon": "app-window"

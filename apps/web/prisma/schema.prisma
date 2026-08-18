@@ -1,4 +1,4 @@
-// Xplorer Web — Prisma Schema (PostgreSQL)
+// Wisp Web — Prisma Schema (PostgreSQL)
 // Migrated from SQLite to PostgreSQL for Vercel/Neon deployment
 
 generator client {
@@ -129,7 +129,7 @@ model Extension {
   description           String
   longDescription       String?  @db.Text
   version               String
-  minimumXplorerVersion String   @default("0.1.0")
+  minimumWispVersion String   @default("0.1.0")
   icon                  String?
   screenshots           String?  @db.Text
   downloadCount         Int      @default(0)

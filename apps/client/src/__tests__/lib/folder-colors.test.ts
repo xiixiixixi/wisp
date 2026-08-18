@@ -145,14 +145,14 @@ describe('folder-colors', () => {
 
     it('returns null for folder with unknown color id', () => {
       // Manually inject a folder with an unknown color id
-      store['xplorer:folder-colors'] = JSON.stringify([{ path: '/test', colorId: 'neon' }]);
+      store['wisp:folder-colors'] = JSON.stringify([{ path: '/test', colorId: 'neon' }]);
       expect(getFolderColorHex('/test')).toBeNull();
     });
   });
 
   describe('storage edge cases', () => {
     it('handles corrupted JSON', () => {
-      store['xplorer:folder-colors'] = '{bad';
+      store['wisp:folder-colors'] = '{bad';
       expect(getAllFolderColors()).toEqual([]);
     });
   });

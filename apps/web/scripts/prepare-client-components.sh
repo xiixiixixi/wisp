@@ -80,7 +80,7 @@ EOF
 echo "export {};" > "$DEST/lib/tauri-api/index.ts"
 
 # Hook stubs
-for f in use-toast use-chat use-chat-state use-file-operations use-xplorer-actions use-xplorer-effects use-navigation use-live-search use-folder-sizes use-sidebar-resize use-window-event use-draggable use-theme-manager use-shortcuts use-vim-mode use-type-ahead-search use-cross-tab-selection use-dialogs use-split-layout use-pane-sync use-layout-state use-file-comparison use-terminal use-focus-change-tracker use-context-menu use-bulk-rename use-file-actions use-navigation-actions use-search-results use-undo-history use-open-with-prefs use-updater; do
+for f in use-toast use-chat use-chat-state use-file-operations use-wisp-actions use-wisp-effects use-navigation use-live-search use-folder-sizes use-sidebar-resize use-window-event use-draggable use-theme-manager use-shortcuts use-vim-mode use-type-ahead-search use-cross-tab-selection use-dialogs use-split-layout use-pane-sync use-layout-state use-file-comparison use-terminal use-focus-change-tracker use-context-menu use-bulk-rename use-file-actions use-navigation-actions use-search-results use-undo-history use-open-with-prefs use-updater; do
   echo "export const ${f//-/_} = () => ({}); export default ${f//-/_};" > "$DEST/hooks/$f}.ts" 2>/dev/null || echo "export default {};" > "$DEST/hooks/$f.ts"
 done
 

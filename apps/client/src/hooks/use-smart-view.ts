@@ -82,7 +82,7 @@ const getExt = (name: string): string => {
 };
 
 const detectOptimalView = (files: FileEntry[], _currentPath: string): ViewMode => {
-  if (files.length === 0) return 'medium';
+  if (files.length === 0) return 'details';
 
   // Gallery mode: if >60% of non-directory files are images/videos
   const nonDirFiles = files.filter((f) => !f.is_dir);
@@ -95,19 +95,15 @@ const detectOptimalView = (files: FileEntry[], _currentPath: string): ViewMode =
   // Details view: if >100 files (too many for grid)
   if (files.length > 100) return 'details';
 
-  // Large icons: if mostly folders (like a home directory)
-  const dirCount = files.filter((f) => f.is_dir).length;
-  if (files.length > 0 && dirCount / files.length > 0.7) return 'large';
-
-  // Default: medium icons
-  return 'medium';
+  // Default: details list (user prefers details view everywhere)
+  return 'details';
 };
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
 export const useSmartView = (files: FileEntry[], currentPath: string): SmartViewResult => {
   const [isAutoDetected, setIsAutoDetected] = useState(false);
-  const [suggestedView, setSuggestedView] = useState<ViewMode>('medium');
+  const [suggestedView, setSuggestedView] = useState<ViewMode>('details');
 
   // Track whether user has manually set a view for the current path this session
   const userOverrodeRef = useRef(false);
@@ -121,7 +117,7 @@ export const useSmartView = (files: FileEntry[], currentPath: string): SmartView
     }
 
     // Skip auto-detection for special pages
-    if (currentPath.startsWith('xplorer://') || currentPath.startsWith('gdrive://')) {
+    if (currentPath.startsWith('wisp://') || currentPath.startsWith('gdrive://')) {
       setIsAutoDetected(false);
       setSuggestedView('medium');
       return;

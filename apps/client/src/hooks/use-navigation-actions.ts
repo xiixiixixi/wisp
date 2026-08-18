@@ -37,7 +37,7 @@ export const useNavigationActions = (deps: NavigationActionsDeps) => {
       const isGDriveTab =
         activeTabObj?.type === 'gdrive' || activeTabObj?.type === 'gdrive-manager';
       const isLocalPath =
-        !newPath.startsWith('gdrive://') && !newPath.startsWith('xplorer://gdrive-manager');
+        !newPath.startsWith('gdrive://') && !newPath.startsWith('wisp://gdrive-manager');
 
       if (isGDriveTab && isLocalPath) {
         const folderTab = ag.tabs.find((t: TabItem) => t.type === 'folder' || t.type === undefined);
@@ -58,7 +58,7 @@ export const useNavigationActions = (deps: NavigationActionsDeps) => {
       }
 
       if (
-        !newPath.startsWith('xplorer://') &&
+        !newPath.startsWith('wisp://') &&
         !newPath.startsWith('gdrive://') &&
         !newPath.startsWith('comparison://') &&
         !newPath.startsWith('collection://')
@@ -83,8 +83,8 @@ export const useNavigationActions = (deps: NavigationActionsDeps) => {
   );
 
   const navigateUp = useCallback(() => {
-    if (currentPath === 'xplorer://home') return;
-    if (currentPath === 'xplorer://gdrive-manager') return;
+    if (currentPath === 'wisp://home') return;
+    if (currentPath === 'wisp://gdrive-manager') return;
     if (currentPath.startsWith('gdrive://')) return;
     if (currentPath.startsWith('collection://')) return;
     if (currentPath.startsWith('/')) {
@@ -109,7 +109,7 @@ export const useNavigationActions = (deps: NavigationActionsDeps) => {
   navigateToPathRef.current = navigateToPath;
 
   const navigateToHome = useCallback(() => {
-    navigateWithHistory('xplorer://home');
+    navigateWithHistory('wisp://home');
   }, [navigateWithHistory]);
 
   const navigateFromHome = useCallback(

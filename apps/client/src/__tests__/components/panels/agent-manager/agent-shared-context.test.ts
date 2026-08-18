@@ -59,8 +59,8 @@ describe('agent-shared-context', () => {
       const mod = await loadModule();
       mod.addDiscovery('config_read', 'tsconfig has strict mode', 's1', 'Reader');
 
-      expect(store['xplorer:agent-shared-discoveries']).toBeDefined();
-      const parsed = JSON.parse(store['xplorer:agent-shared-discoveries']);
+      expect(store['wisp:agent-shared-discoveries']).toBeDefined();
+      const parsed = JSON.parse(store['wisp:agent-shared-discoveries']);
       expect(parsed).toHaveLength(1);
       expect(parsed[0][1].content).toBe('tsconfig has strict mode');
     });
@@ -68,18 +68,18 @@ describe('agent-shared-context', () => {
     it('dispatches custom events on add', async () => {
       const mod = await loadModule();
       const handler = vi.fn();
-      window.addEventListener('xplorer-discoveries-changed', handler);
+      window.addEventListener('wisp-discoveries-changed', handler);
 
       mod.addDiscovery('test_result', 'All tests pass', 's1', 'Tester');
 
       expect(handler).toHaveBeenCalledTimes(1);
-      window.removeEventListener('xplorer-discoveries-changed', handler);
+      window.removeEventListener('wisp-discoveries-changed', handler);
     });
 
     it('dispatches a broadcast event with the discovery in detail', async () => {
       const mod = await loadModule();
       const handler = vi.fn();
-      window.addEventListener('xplorer-discovery-broadcast', handler);
+      window.addEventListener('wisp-discovery-broadcast', handler);
 
       mod.addDiscovery('dependency_found', 'react 18 detected', 's2', 'Scanner');
 
@@ -87,7 +87,7 @@ describe('agent-shared-context', () => {
       const event = handler.mock.calls[0][0] as CustomEvent;
       expect(event.detail.discovery.content).toBe('react 18 detected');
 
-      window.removeEventListener('xplorer-discovery-broadcast', handler);
+      window.removeEventListener('wisp-discovery-broadcast', handler);
     });
   });
 
@@ -126,7 +126,7 @@ describe('agent-shared-context', () => {
       mod.addDiscovery('bug_found', 'bug1', 's1', 'Agent');
       mod.clearAllDiscoveries();
 
-      const stored = JSON.parse(store['xplorer:agent-shared-discoveries']);
+      const stored = JSON.parse(store['wisp:agent-shared-discoveries']);
       expect(stored).toEqual([]);
     });
   });

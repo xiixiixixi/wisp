@@ -1,9 +1,9 @@
-//! MCP Host — Exposes Xplorer's file-system capabilities as MCP-compatible tools.
+//! MCP Host — Exposes Wisp's file-system capabilities as MCP-compatible tools.
 //!
 //! This module defines a lightweight MCP tool provider that maps standard
-//! Model Context Protocol tool schemas to existing Xplorer operations.
+//! Model Context Protocol tool schemas to existing Wisp operations.
 //! External AI clients can call these Tauri commands to interact with the
-//! file system through Xplorer's managed runtime.
+//! file system through Wisp's managed runtime.
 //!
 //! The actual MCP JSON-RPC over stdio transport can be layered on top later;
 //! for now these are plain Tauri commands that follow MCP tool conventions.
@@ -55,7 +55,7 @@ impl McpToolResult {
 
 // ─── Tool Catalogue ────────────────────────────────────────────────────────
 
-/// Returns the list of MCP-compatible tools that Xplorer exposes.
+/// Returns the list of MCP-compatible tools that Wisp exposes.
 #[command]
 pub async fn mcp_list_tools() -> Result<Vec<McpToolSchema>, String> {
     Ok(vec![

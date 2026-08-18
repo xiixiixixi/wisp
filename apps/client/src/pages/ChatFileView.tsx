@@ -78,7 +78,7 @@ const ChatFileView = ({ filePath }: ChatFileViewProps) => {
    * The code-editor extension listens for this event.
    */
   const handleApplyCode = useCallback((code: string) => {
-    window.dispatchEvent(new CustomEvent('xplorer-apply-to-editor', { detail: { code } }));
+    window.dispatchEvent(new CustomEvent('wisp-apply-to-editor', { detail: { code } }));
   }, []);
 
   /**
@@ -86,7 +86,7 @@ const ChatFileView = ({ filePath }: ChatFileViewProps) => {
    * This is checked at render time so the button disappears once the selection is cleared.
    */
   const hasEditorSelection = Boolean(
-    (window as unknown as { __xplorer_state__?: { editorSelection?: unknown } }).__xplorer_state__
+    (window as unknown as { __wisp_state__?: { editorSelection?: unknown } }).__wisp_state__
       ?.editorSelection,
   );
 

@@ -1,4 +1,4 @@
-//! Shared error types for the Xplorer backend.
+//! Shared error types for the Wisp backend.
 //!
 //! Provides `AppError` — a typed error enum that replaces ad-hoc `String`
 //! errors.  Implements `Into<String>` so existing `Result<T, String>` Tauri

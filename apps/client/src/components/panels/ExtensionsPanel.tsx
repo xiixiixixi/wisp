@@ -42,8 +42,8 @@ const ExtensionsPanel = ({ themes, theme, applyTheme }: ExtensionsPanelProps) =>
         description: `${name}`,
       });
     };
-    window.addEventListener('xplorer:extension-dev-reloaded', handler);
-    return () => window.removeEventListener('xplorer:extension-dev-reloaded', handler);
+    window.addEventListener('wisp:extension-dev-reloaded', handler);
+    return () => window.removeEventListener('wisp:extension-dev-reloaded', handler);
   }, [toast, t]);
 
   // Agent enabled state — single source synced with AgentService backend

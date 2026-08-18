@@ -2,29 +2,29 @@
  * Tests for the high-level extension registration APIs:
  *   Theme, Sidebar, Command, ContextMenu, Preview
  *
- * These APIs call `window.__xplorer_register__()` internally, so we mock that
+ * These APIs call `window.__wisp_register__()` internally, so we mock that
  * global to capture the extension objects they produce. Then we invoke the
  * lifecycle methods (activate / deactivate) to verify DOM side-effects.
  */
 
 import { Theme, Sidebar, Command, ContextMenu, Preview } from '../api';
-import type { XplorerAPI } from '../types';
+import type { WispAPI } from '../types';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-/** Capture the object passed to `window.__xplorer_register__`. */
+/** Capture the object passed to `window.__wisp_register__`. */
 const captureRegistration = <T = unknown>(fn: () => void): T => {
   let captured: T | undefined;
-  (window as any).__xplorer_register__ = (ext: T) => {
+  (window as any).__wisp_register__ = (ext: T) => {
     captured = ext;
   };
   fn();
-  delete (window as any).__xplorer_register__;
+  delete (window as any).__wisp_register__;
   return captured as T;
 };
 
-/** Minimal mock of XplorerAPI with spies for the parts the SDK uses. */
-const createMockApi = (): XplorerAPI => ({
+/** Minimal mock of WispAPI with spies for the parts the SDK uses. */
+const createMockApi = (): WispAPI => ({
   files: {
     read: jest.fn(),
     readText: jest.fn(),
@@ -116,9 +116,9 @@ describe('Theme API', () => {
     expect(document.getElementById('theme-removable-theme')).toBeNull();
   });
 
-  it('dispatches xplorer-theme-register event on activate', () => {
+  it('dispatches wisp-theme-register event on activate', () => {
     const handler = jest.fn();
-    window.addEventListener('xplorer-theme-register', handler);
+    window.addEventListener('wisp-theme-register', handler);
 
     const ext = captureRegistration<Function>(() => {
       Theme.register({ id: 'event-theme', name: 'Event Theme', colors: validColors });
@@ -132,12 +132,12 @@ describe('Theme API', () => {
     expect(detail.name).toBe('Event Theme');
     expect(detail.primary).toBe('#7aa2f7');
 
-    window.removeEventListener('xplorer-theme-register', handler);
+    window.removeEventListener('wisp-theme-register', handler);
   });
 
-  it('dispatches xplorer-theme-unregister event on deactivate', () => {
+  it('dispatches wisp-theme-unregister event on deactivate', () => {
     const handler = jest.fn();
-    window.addEventListener('xplorer-theme-unregister', handler);
+    window.addEventListener('wisp-theme-unregister', handler);
 
     const ext = captureRegistration<Function>(() => {
       Theme.register({ id: 'unreg-theme', name: 'Unreg', colors: validColors });
@@ -150,7 +150,7 @@ describe('Theme API', () => {
     expect(handler).toHaveBeenCalledTimes(1);
     expect(handler.mock.calls[0][0].detail.id).toBe('unreg-theme');
 
-    window.removeEventListener('xplorer-theme-unregister', handler);
+    window.removeEventListener('wisp-theme-unregister', handler);
   });
 
   it('applies optional background override in generated CSS', () => {
@@ -575,7 +575,7 @@ describe('ContextMenu API', () => {
     expect(ext.manifest.permissions).toEqual(['file:read', 'ui:notifications']);
   });
 
-  it('reads selected files from __xplorer_state__ when invoked', async () => {
+  it('reads selected files from __wisp_state__ when invoked', async () => {
     const api = createMockApi();
     const action = jest.fn();
 
@@ -584,7 +584,7 @@ describe('ContextMenu API', () => {
     });
 
     // Set up the global state
-    (window as any).__xplorer_state__ = {
+    (window as any).__wisp_state__ = {
       selectedFiles: [{ name: 'test.txt', path: '/test.txt', is_dir: false }],
     };
 
@@ -599,7 +599,7 @@ describe('ContextMenu API', () => {
       api,
     );
 
-    delete (window as any).__xplorer_state__;
+    delete (window as any).__wisp_state__;
   });
 
   it('passes empty array when no files are selected', async () => {
@@ -610,7 +610,7 @@ describe('ContextMenu API', () => {
       ContextMenu.register({ id: 'ctx-empty', title: 'Empty', action });
     });
 
-    // No __xplorer_state__ set
+    // No __wisp_state__ set
     ext._setContext({}, api);
     await ext.activate();
 
@@ -804,11 +804,11 @@ describe('Preview API', () => {
 // ─── register() fallback ────────────────────────────────────────────────────
 
 describe('register() fallback when host not available', () => {
-  it('logs a warning if __xplorer_register__ is not set', () => {
+  it('logs a warning if __wisp_register__ is not set', () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-    // Make sure __xplorer_register__ is not set
-    delete (window as any).__xplorer_register__;
+    // Make sure __wisp_register__ is not set
+    delete (window as any).__wisp_register__;
 
     Theme.register({
       id: 'orphan',

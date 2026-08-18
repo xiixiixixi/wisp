@@ -88,13 +88,13 @@ export function Hero() {
           </a>
         </div>
 
-        {/* Real App Window — uses the actual Xplorer components */}
+        {/* Real App Window — uses the actual Wisp components */}
         <div className={`reveal ${inView ? 'visible' : ''} reveal-delay-4 mt-16 sm:mt-20 lg:mt-24`}>
           <div className="mx-auto max-w-6xl">
             <div className="window-glow gradient-border overflow-hidden rounded-xl">
               <Image
-                src="/xplorer.png"
-                alt="Xplorer file manager — home page with AI chat, extensions, and file browser"
+                src="/wisp.png"
+                alt="Wisp file manager — home page with AI chat, extensions, and file browser"
                 width={1920}
                 height={1080}
                 className="w-full"

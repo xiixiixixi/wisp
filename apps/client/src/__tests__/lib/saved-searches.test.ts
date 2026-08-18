@@ -43,17 +43,17 @@ describe('getSavedSearches', () => {
         created: 1000,
       },
     ];
-    store['xplorer:saved-searches'] = JSON.stringify(searches);
+    store['wisp:saved-searches'] = JSON.stringify(searches);
     expect(getSavedSearches()).toEqual(searches);
   });
 
   it('returns empty array for corrupted JSON', () => {
-    store['xplorer:saved-searches'] = '{not valid json';
+    store['wisp:saved-searches'] = '{not valid json';
     expect(getSavedSearches()).toEqual([]);
   });
 
   it('returns empty array when stored value is not an array', () => {
-    store['xplorer:saved-searches'] = '{"key": "value"}';
+    store['wisp:saved-searches'] = '{"key": "value"}';
     expect(getSavedSearches()).toEqual([]);
   });
 
@@ -65,7 +65,7 @@ describe('getSavedSearches', () => {
       filters: { fileTypes: [], dateRange: null, sizeRange: null, extensions: [] },
       created: i,
     }));
-    store['xplorer:saved-searches'] = JSON.stringify(searches);
+    store['wisp:saved-searches'] = JSON.stringify(searches);
     expect(getSavedSearches()).toHaveLength(20);
   });
 });
@@ -136,7 +136,7 @@ describe('saveSearch', () => {
       filters: { fileTypes: [], dateRange: null, sizeRange: null, extensions: [] },
     });
 
-    expect(localStorage.setItem).toHaveBeenCalledWith('xplorer:saved-searches', expect.any(String));
+    expect(localStorage.setItem).toHaveBeenCalledWith('wisp:saved-searches', expect.any(String));
   });
 });
 

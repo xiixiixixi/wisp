@@ -3,11 +3,11 @@ import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 /**
  * Supported open-with handler identifiers.
- * - `xplorer-editor`: open in the built-in code editor tab
+ * - `wisp-editor`: open in the built-in code editor tab
  * - `vscode`: launch VS Code via `code` CLI
  * - `system`: open with the OS-default application
  */
-export type OpenHandler = 'xplorer-editor' | 'vscode' | 'system';
+export type OpenHandler = 'wisp-editor' | 'vscode' | 'system';
 
 /** Map of file extension (without dot) -> chosen handler. */
 export type FileOpenPrefs = Record<string, OpenHandler>;

@@ -253,13 +253,13 @@ pub static OPERATION_HISTORY: LazyLock<Mutex<OperationHistory>> =
     LazyLock::new(|| Mutex::new(OperationHistory::new()));
 
 /// Get (or create) the staging directory for soft-deleted files.
-/// Located at <user data dir>/.xplorer_trash/
+/// Located at <user data dir>/.wisp_trash/
 #[allow(dead_code)]
 fn get_staging_dir() -> Result<PathBuf, String> {
     let base = dirs::data_local_dir()
         .or_else(dirs::home_dir)
         .ok_or_else(|| "Cannot determine user data directory".to_string())?;
-    let staging = base.join(".xplorer_trash");
+    let staging = base.join(".wisp_trash");
     if !staging.exists() {
         fs::create_dir_all(&staging)
             .map_err(|e| format!("Failed to create staging directory: {}", e))?;

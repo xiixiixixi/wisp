@@ -13,10 +13,10 @@ export function joinPath(...parts: string[]): string {
   }, '');
 }
 
-export const SITE_NAME = 'Xplorer';
+export const SITE_NAME = 'Wisp';
 export const SITE_DESCRIPTION =
   'A modern, AI-powered file explorer built with Rust, Tauri v2, and React. Blazing fast, fully extensible, and privacy-first.';
-export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://xplorer.dev';
+export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://wisp.dev';
 
 export const GITHUB_SPONSOR_URL = 'https://github.com/sponsors/kimlimjustin';
 

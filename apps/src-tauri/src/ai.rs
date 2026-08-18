@@ -352,7 +352,7 @@ async fn chat_with_claude(
         .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
 
     // Build system message
-    let mut system_message = "You are Copilot, an AI assistant integrated into the Xplorer file explorer. You help users with file management, code analysis, and development tasks. Be helpful, thorough, and practical. Provide detailed, comprehensive responses with specific examples and step-by-step guidance when appropriate. Include code examples, best practices, and additional context that would be valuable to the user.".to_string();
+    let mut system_message = "You are Copilot, an AI assistant integrated into the Wisp file explorer. You help users with file management, code analysis, and development tasks. Be helpful, thorough, and practical. Provide detailed, comprehensive responses with specific examples and step-by-step guidance when appropriate. Include code examples, best practices, and additional context that would be valuable to the user.".to_string();
 
     // Add file context to system message if provided
     if let Some(context) = &file_context {
@@ -491,7 +491,7 @@ async fn route_ai_request(
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Chat via OpenRouter. Uses the caller's `api_key` when provided, otherwise
-/// falls back to the `OPENROUTER_API_KEY` env var (for the hosted Xplorer Cloud service).
+/// falls back to the `OPENROUTER_API_KEY` env var (for the hosted Wisp Cloud service).
 async fn chat_with_openrouter(
     model: String,
     messages: Vec<ChatMessage>,
@@ -511,7 +511,7 @@ async fn chat_with_openrouter(
         .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
 
     // Build system message
-    let mut system_content = "You are Copilot, an AI assistant integrated into the Xplorer file explorer. You help users with file management, code analysis, and development tasks. Be helpful, thorough, and practical. Provide detailed, comprehensive responses with specific examples and step-by-step guidance when appropriate. Include code examples, best practices, and additional context that would be valuable to the user.".to_string();
+    let mut system_content = "You are Copilot, an AI assistant integrated into the Wisp file explorer. You help users with file management, code analysis, and development tasks. Be helpful, thorough, and practical. Provide detailed, comprehensive responses with specific examples and step-by-step guidance when appropriate. Include code examples, best practices, and additional context that would be valuable to the user.".to_string();
 
     if let Some(context) = &file_context {
         system_content.push_str(&format!(
@@ -559,7 +559,7 @@ async fn chat_with_openrouter(
         .post("https://openrouter.ai/api/v1/chat/completions")
         .header("Authorization", format!("Bearer {}", key))
         .header("HTTP-Referer", "https://xplorer.space")
-        .header("X-Title", "Xplorer")
+        .header("X-Title", "Wisp")
         .header("content-type", "application/json")
         .json(&body)
         .send()
@@ -785,7 +785,7 @@ pub async fn search_rerank_with_ai(
                 .post("https://openrouter.ai/api/v1/chat/completions")
                 .header("Authorization", format!("Bearer {}", key))
                 .header("HTTP-Referer", "https://xplorer.space")
-                .header("X-Title", "Xplorer")
+                .header("X-Title", "Wisp")
                 .header("content-type", "application/json")
                 .json(&body)
                 .send()
@@ -865,7 +865,7 @@ pub async fn detect_best_provider() -> Option<(String, Option<String>, String)> 
         return Some(("openai".into(), Some(key), "gpt-4o-mini".into()));
     }
 
-    // 4. Try OpenRouter (env var — used by Xplorer Cloud hosted service)
+    // 4. Try OpenRouter (env var — used by Wisp Cloud hosted service)
     if let Ok(key) = env::var("OPENROUTER_API_KEY") {
         return Some((
             "openrouter".into(),
@@ -1413,7 +1413,7 @@ async fn chat_with_ollama(
     let mut prompt = String::new();
 
     // Add system context
-    prompt.push_str("You are Copilot, an AI assistant integrated into the Xplorer file explorer. You help users with file management, code analysis, and development tasks. Be helpful, thorough, and practical. Provide detailed, comprehensive responses with specific examples and step-by-step guidance when appropriate. Include code examples, best practices, and additional context that would be valuable to the user.\n\n");
+    prompt.push_str("You are Copilot, an AI assistant integrated into the Wisp file explorer. You help users with file management, code analysis, and development tasks. Be helpful, thorough, and practical. Provide detailed, comprehensive responses with specific examples and step-by-step guidance when appropriate. Include code examples, best practices, and additional context that would be valuable to the user.\n\n");
 
     // Add file context if provided
     if let Some(context) = &file_context {

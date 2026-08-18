@@ -11,7 +11,7 @@ import {
   stopAgentSession,
   removeAgentSession,
 } from '@/lib/tauri-api/agent-sessions';
-import { listenToEvent } from '@xplorer/sdk';
+import { listenToEvent } from '@wisp/sdk';
 
 const POLL_INTERVAL_MS = 2000;
 

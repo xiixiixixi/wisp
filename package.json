@@ -1,7 +1,7 @@
 {
-  "name": "xplorer",
+  "name": "wisp",
   "version": "1.0.0-alpha.1",
-  "description": "Xplorer - A modern, AI-powered file explorer built with Tauri and React",
+  "description": "Wisp - A modern, AI-powered file explorer built with Tauri and React",
   "type": "module",
   "license": "AGPL-3.0",
   "engines": {
@@ -17,7 +17,7 @@
     "extensions:build": "node scripts/build-extensions.mjs",
     "extensions:sign": "node scripts/sign-all-extensions.mjs",
     "extensions:dev": "node scripts/build-extensions.mjs --watch",
-    "marketplace:dev": "pnpm --filter xplorer-web run dev",
+    "marketplace:dev": "pnpm --filter wisp-web run dev",
     "marketplace:db": "docker compose -f infra/docker-compose.yml up -d postgres",
     "build": "pnpm frontend:build && pnpm tauri:build",
     "tauri": "tauri",

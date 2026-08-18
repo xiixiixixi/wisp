@@ -18,7 +18,7 @@ const EXT_DIR = join(ROOT, 'packages', 'extensions');
 const WATCH = process.argv.includes('--watch');
 const FILTER = process.argv.slice(2).find((a) => a !== '--watch');
 
-const EXTERNAL = ['react', 'react-dom', '@xplorer/extension-sdk'];
+const EXTERNAL = ['react', 'react-dom', '@wisp/extension-sdk'];
 
 // Find the Tauri data/extensions dir for hot reload copy
 const DATA_EXT_DIR = join(ROOT, 'apps', 'src-tauri', 'data', 'extensions');
@@ -44,7 +44,7 @@ const getManifestId = (dir) => {
   if (!existsSync(pkgPath)) return null;
   try {
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-    return pkg.xplorer?.id || null;
+    return pkg.wisp?.id || null;
   } catch {
     return null;
   }

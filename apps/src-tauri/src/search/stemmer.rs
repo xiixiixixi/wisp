@@ -1,4 +1,4 @@
-// Xplorer Search Engine — Snowball Stemming Module
+// Wisp Search Engine — Snowball Stemming Module
 //
 // Wraps the `rust-stemmers` crate to provide language-aware stemming
 // for the search pipeline.  Includes a lightweight bigram/trigram

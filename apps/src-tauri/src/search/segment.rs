@@ -1,4 +1,4 @@
-// Xplorer Search Engine -- Segment-Based Incremental Indexing
+// Wisp Search Engine -- Segment-Based Incremental Indexing
 //
 // Divides the inverted index into immutable segments that can be built
 // incrementally and merged in the background. Each segment holds a partial

@@ -5,7 +5,7 @@ const config: Config = {
   content: [
     './src/**/*.{js,ts,jsx,tsx,mdx}',
     './content/**/*.{md,mdx}',
-    // Include real Xplorer client components for class scanning
+    // Include real Wisp client components for class scanning
     '../client/src/components/**/*.{ts,tsx}',
   ],
   theme: {
@@ -24,7 +24,7 @@ const config: Config = {
           900: '#312e81',
           950: '#1e1b4b',
         },
-        // Xplorer Glass theme colors (CSS variable-based, matching the real app)
+        // Wisp Glass theme colors (CSS variable-based, matching the real app)
         xp: {
           bg: 'var(--xp-bg)',
           surface: 'var(--xp-surface)',

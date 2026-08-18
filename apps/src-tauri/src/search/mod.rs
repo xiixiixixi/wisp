@@ -1,4 +1,4 @@
-// Xplorer Search Engine v2
+// Wisp Search Engine v2
 // Modular search pipeline: stemming, BM25F, FST fuzzy, bitmap filters,
 // incremental indexing, hybrid retrieval, multi-signal reranking.
 

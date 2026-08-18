@@ -6,7 +6,7 @@ const SPONSOR_URL = 'https://github.com/sponsors/kimlimjustin';
 
 export const metadata: Metadata = {
   title: `Pricing | ${SITE_NAME}`,
-  description: 'Xplorer pricing plans - Coming soon.',
+  description: 'Wisp pricing plans - Coming soon.',
 };
 
 export default function PricingPage() {
@@ -17,7 +17,7 @@ export default function PricingPage() {
       </div>
       <h1 className="mb-4 text-4xl font-bold text-gray-900 dark:text-white">Pricing Coming Soon</h1>
       <p className="mx-auto mb-8 max-w-xl text-lg text-gray-500 dark:text-gray-400">
-        Xplorer is currently <strong>free and open source</strong>. Pro plans with premium features
+        Wisp is currently <strong>free and open source</strong>. Pro plans with premium features
         are being designed and will launch soon.
       </p>
 

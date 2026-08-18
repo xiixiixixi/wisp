@@ -1,5 +1,5 @@
 /**
- * SSH Manager Extension for Xplorer
+ * SSH Manager Extension for Wisp
  *
  * Provides SSH connection management and SFTP file browsing via a native plugin.
  * All SSH operations go through api.nativeInvoke() which calls the compiled
@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Sidebar, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Sidebar, type WispAPI } from '@wisp/extension-sdk';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -44,7 +44,7 @@ interface SSHConnectionResult {
 }
 
 // ExtensionAPI alias for backward compat within this file
-type ExtensionAPI = XplorerAPI;
+type ExtensionAPI = WispAPI;
 
 // ─── Utility Functions ─────────────────────────────────────────────────────────
 
@@ -1120,7 +1120,7 @@ function SSHPanel({ api }: { api: ExtensionAPI }) {
 let extensionApi: ExtensionAPI | null = null;
 
 Sidebar.register({
-  id: 'xplorer-ssh',
+  id: 'wisp-ssh',
   title: 'SSH Manager',
   icon: 'monitor',
 

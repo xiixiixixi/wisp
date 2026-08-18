@@ -37,7 +37,7 @@ const nextConfig: NextConfig = {
     config.resolve.alias['@client'] = fs.existsSync(clientDir) ? clientDir : monorepoClientDir;
 
     // The @/ alias inside copied components must resolve to .client-components/
-    // (the real components use @/ to reference other Xplorer files)
+    // (the real components use @/ to reference other Wisp files)
     if (fs.existsSync(clientDir)) {
       config.resolve.alias['@'] = [clientDir, path.resolve(__dirname, 'src')];
     }

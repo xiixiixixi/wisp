@@ -1,4 +1,4 @@
-//! Collaboration Plugin — Native extension for Xplorer
+//! Collaboration Plugin — Native extension for Wisp
 //!
 //! Embeds a WebSocket server (host mode) or client (member mode) for real-time
 //! multi-user collaboration: presence, navigation sync, file transfer, chat,

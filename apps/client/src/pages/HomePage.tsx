@@ -626,7 +626,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
               );
             })}
             <button
-              onClick={() => handleNavigate('xplorer://trash')}
+              onClick={() => handleNavigate('wisp://trash')}
               className="bg-xp-surface/50 border-xp-border hover:border-xp-text-muted hover:bg-xp-surface group flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 transition-all duration-150"
             >
               <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-red-500 to-red-600">

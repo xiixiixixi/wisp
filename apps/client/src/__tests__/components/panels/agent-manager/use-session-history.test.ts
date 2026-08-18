@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 
 vi.mock('@/lib/storage-keys', () => ({
   STORAGE_KEYS: {
-    AGENT_SESSION_HISTORY: 'xplorer:agent-session-history',
+    AGENT_SESSION_HISTORY: 'wisp:agent-session-history',
   },
 }));
 
@@ -83,7 +83,7 @@ describe('useSessionHistory', () => {
           errorMessage: null,
         },
       ];
-      store['xplorer:agent-session-history'] = JSON.stringify(existing);
+      store['wisp:agent-session-history'] = JSON.stringify(existing);
 
       const { result } = renderHook(() => useSessionHistory([]));
       expect(result.current.entries).toHaveLength(1);
@@ -158,7 +158,7 @@ describe('useSessionHistory', () => {
         costUsd: null,
         errorMessage: null,
       }));
-      store['xplorer:agent-session-history'] = JSON.stringify(existing);
+      store['wisp:agent-session-history'] = JSON.stringify(existing);
 
       // Add 3 new terminal sessions (total would be 52, trimmed to 50)
       const newSessions = [
@@ -196,7 +196,7 @@ describe('useSessionHistory', () => {
           errorMessage: null,
         },
       ];
-      store['xplorer:agent-session-history'] = JSON.stringify(existing);
+      store['wisp:agent-session-history'] = JSON.stringify(existing);
 
       const { result } = renderHook(() => useSessionHistory([]));
 
@@ -208,7 +208,7 @@ describe('useSessionHistory', () => {
 
       expect(result.current.entries).toEqual([]);
       expect(result.current.totalCount).toBe(0);
-      const stored = JSON.parse(store['xplorer:agent-session-history']);
+      const stored = JSON.parse(store['wisp:agent-session-history']);
       expect(stored).toEqual([]);
     });
   });
@@ -253,7 +253,7 @@ describe('useSessionHistory', () => {
           errorMessage: null,
         },
       ];
-      store['xplorer:agent-session-history'] = JSON.stringify(existing);
+      store['wisp:agent-session-history'] = JSON.stringify(existing);
 
       const { result } = renderHook(() => useSessionHistory([]));
 

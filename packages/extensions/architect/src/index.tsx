@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { SidebarTab, Editor, Command, useCurrentPath, type XplorerAPI } from '@xplorer/extension-sdk';
+import { SidebarTab, Editor, Command, useCurrentPath, type WispAPI } from '@wisp/extension-sdk';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,7 +33,7 @@ type AiApi = {
   getProvider: () => Promise<{ model: string; provider: string }>;
 };
 
-type ExtendedAPI = XplorerAPI & { ai: AiApi };
+type ExtendedAPI = WispAPI & { ai: AiApi };
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -97,7 +97,7 @@ const notifyListeners = () => {
 // ── Scanner ──────────────────────────────────────────────────────────────────
 
 const scanDirectory = async (
-  api: XplorerAPI,
+  api: WispAPI,
   dirPath: string,
   depth: number,
   maxDepth: number,
@@ -174,7 +174,7 @@ const buildTextTree = (nodes: ArchNode[], indent: string = ''): string => {
 // ── Read config files for LLM context ───────────────────────────────────────
 
 const readConfigFiles = async (
-  api: XplorerAPI,
+  api: WispAPI,
   rootPath: string,
 ): Promise<Array<{ name: string; content: string }>> => {
   const results: Array<{ name: string; content: string }> = [];
@@ -945,7 +945,7 @@ const ArchitectEditor: React.FC<{ filePath: string }> = ({ filePath }) => {
 // ── Extension Registration ───────────────────────────────────────────────────
 
 SidebarTab.register({
-  id: 'xplorer-architect',
+  id: 'wisp-architect',
   title: 'Architecture',
   icon: 'network',
   permissions: ['file:read', 'directory:list', 'ui:panels', 'ai:chat'],
@@ -956,7 +956,7 @@ SidebarTab.register({
 });
 
 Editor.register({
-  id: 'xplorer-architect-editor',
+  id: 'wisp-architect-editor',
   title: 'Architecture View',
   extensions: ['xparch'],
   priority: 50,
@@ -968,7 +968,7 @@ Editor.register({
 });
 
 Command.register({
-  id: 'xplorer-architect.generate',
+  id: 'wisp-architect.generate',
   title: 'Generate Architecture',
   shortcut: 'ctrl+shift+a',
   permissions: ['file:read', 'directory:list'],

@@ -200,8 +200,8 @@ export interface BackupManifest {
   backup_type: 'full' | 'incremental';
 }
 
-// API interfaces for interacting with Xplorer
-export interface XplorerAPI {
+// API interfaces for interacting with Wisp
+export interface WispAPI {
   // File operations
   files: {
     read(path: string): Promise<ArrayBuffer>;

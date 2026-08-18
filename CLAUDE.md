@@ -1,4 +1,4 @@
-# Xplorer
+# Wisp
 
 Tauri 2.x desktop file manager. React 18 + TypeScript frontend, Rust backend, pnpm monorepo.
 
@@ -7,8 +7,8 @@ Tauri 2.x desktop file manager. React 18 + TypeScript frontend, Rust backend, pn
 - `apps/client/` -- React frontend (Vite + TypeScript + Tailwind CSS)
 - `apps/src-tauri/` -- Rust backend (Tauri 2.x commands + operations)
 - `apps/web/` -- Next.js marketplace server (Prisma, Stripe billing, admin dashboard)
-- `packages/sdk/` -- Internal service layer (`@xplorer/sdk`), wraps Tauri invoke()
-- `packages/extension-sdk/` -- Sandboxed extension SDK (`@xplorer/extension-sdk`)
+- `packages/sdk/` -- Internal service layer (`@wisp/sdk`), wraps Tauri invoke()
+- `packages/extension-sdk/` -- Sandboxed extension SDK (`@wisp/extension-sdk`)
 - `packages/create-extension/` -- Extension scaffolder CLI
 - `packages/extensions/` -- Built-in extension packages
 - `e2e/` -- Playwright end-to-end tests
@@ -18,8 +18,8 @@ Tauri 2.x desktop file manager. React 18 + TypeScript frontend, Rust backend, pn
 ## Path aliases
 
 - `@/` -> `apps/client/src/`
-- `@xplorer/sdk` -> `packages/sdk/src/index.ts`
-- `@xplorer/extension-sdk` -> `packages/extension-sdk/src/index.ts`
+- `@wisp/sdk` -> `packages/sdk/src/index.ts`
+- `@wisp/extension-sdk` -> `packages/extension-sdk/src/index.ts`
 
 ## Commands
 
@@ -48,12 +48,12 @@ Do NOT run the full test suite unless asked. Prefer running single test files fo
 
 ## Architecture rules
 
-- **TauriAPI facade**: `apps/client/src/lib/tauri-api.ts` delegates to `@xplorer/sdk`. Add new Tauri commands through SDK services, NEVER call `invoke()` directly from components.
+- **TauriAPI facade**: `apps/client/src/lib/tauri-api.ts` delegates to `@wisp/sdk`. Add new Tauri commands through SDK services, NEVER call `invoke()` directly from components.
 - **Rust commands**: Register in `apps/src-tauri/src/main.rs`. Logic goes in `apps/src-tauri/src/operations/` modules.
 - **Context menus**: Define in `apps/client/src/lib/context-menu-factory.ts` using `i18n.t()` for labels.
-- **State**: React hooks + localStorage (`xplorer:settings` key). No Redux/Zustand.
-- **Routing**: wouter (not react-router). Protocol URLs: `xplorer://home`, `xplorer://trash`, etc.
-- **Extensions**: Sandboxed, access `window.XplorerSDK`. Use JSX + inline styles + CSS variables in extensions. NEVER use Tailwind inside extensions.
+- **State**: React hooks + localStorage (`wisp:settings` key). No Redux/Zustand.
+- **Routing**: wouter (not react-router). Protocol URLs: `wisp://home`, `wisp://trash`, etc.
+- **Extensions**: Sandboxed, access `window.WispSDK`. Use JSX + inline styles + CSS variables in extensions. NEVER use Tailwind inside extensions.
 
 ## Code style
 
@@ -79,7 +79,7 @@ Do NOT run the full test suite unless asked. Prefer running single test files fo
 - Tailwind CSS with `--xp-*` CSS variables (defined in `apps/client/src/styles/tokyo-night.css`).
 - Utility classes: `.bg-xp-*`, `.text-xp-*`, `.border-xp-*`.
 - Theme classes on `document.documentElement`: `.theme-glass` (default), `.theme-tokyo-night`, `.theme-dracula`, `.theme-nord`, `.theme-catppuccin`.
-- Default: Xplorer Glass (semi-transparent RGBA + backdrop-filter blur).
+- Default: Wisp Glass (semi-transparent RGBA + backdrop-filter blur).
 - Toggle via `applyTheme()` in `apps/client/src/lib/utils.ts`.
 
 ## Rust conventions

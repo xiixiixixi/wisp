@@ -368,14 +368,14 @@ mod tests {
 
     #[test]
     fn test_count_files_nonexistent() {
-        let count = count_files(&["/tmp/nonexistent_xplorer_test_file_12345".to_string()]);
+        let count = count_files(&["/tmp/nonexistent_wisp_test_file_12345".to_string()]);
         assert_eq!(count, 0);
     }
 
     #[test]
     fn test_calculate_total_bytes_nonexistent() {
         let total =
-            calculate_total_bytes(&["/tmp/nonexistent_xplorer_test_file_12345".to_string()]);
+            calculate_total_bytes(&["/tmp/nonexistent_wisp_test_file_12345".to_string()]);
         assert_eq!(total, 0);
     }
 }

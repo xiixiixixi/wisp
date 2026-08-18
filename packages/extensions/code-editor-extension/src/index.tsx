@@ -1,5 +1,5 @@
 /**
- * Xplorer Code Editor Extension
+ * Wisp Code Editor Extension
  *
  * A syntax-highlighted code editor powered by CodeMirror 6.
  * Registers via Editor.register() to provide the default editor for text/code files.
@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { Editor, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Editor, type WispAPI } from '@wisp/extension-sdk';
 import { basicSetup } from 'codemirror';
 import { EditorState, Compartment, RangeSetBuilder } from '@codemirror/state';
 import { EditorView, keymap, ViewPlugin, Decoration, drawSelection, type DecorationSet, type ViewUpdate } from '@codemirror/view';
@@ -130,7 +130,7 @@ const indentationGuides = ViewPlugin.fromClass(
 
 // ── CodeMirror Theme (CSS variable-based) ────────────────────────────────────
 
-const xplorerTheme = EditorView.theme({
+const wispTheme = EditorView.theme({
   '&': {
     backgroundColor: 'var(--xp-bg)',
     color: 'var(--xp-text)',
@@ -405,7 +405,7 @@ const makeFontSizeTheme = (size: number) =>
 
 // ── CodeMirrorEditor Component ───────────────────────────────────────────────
 
-function CodeMirrorEditor(props: { filePath: string; api: XplorerAPI }) {
+function CodeMirrorEditor(props: { filePath: string; api: WispAPI }) {
   const { filePath, api } = props;
 
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -517,7 +517,7 @@ function CodeMirrorEditor(props: { filePath: string; api: XplorerAPI }) {
     }).catch(() => {/* ignore */});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Listen for "xplorer-apply-to-editor" events from the AI chat and replace the current selection
+  // Listen for "wisp-apply-to-editor" events from the AI chat and replace the current selection
   React.useEffect(() => {
     const handleApply = (e: Event) => {
       const view = viewRef.current;
@@ -535,8 +535,8 @@ function CodeMirrorEditor(props: { filePath: string; api: XplorerAPI }) {
       setDirty(true);
     };
 
-    window.addEventListener('xplorer-apply-to-editor', handleApply);
-    return () => window.removeEventListener('xplorer-apply-to-editor', handleApply);
+    window.addEventListener('wisp-apply-to-editor', handleApply);
+    return () => window.removeEventListener('wisp-apply-to-editor', handleApply);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Create / recreate editor when filePath changes
@@ -580,7 +580,7 @@ function CodeMirrorEditor(props: { filePath: string; api: XplorerAPI }) {
         extensions: [
           basicSetup,
           drawSelection(),
-          xplorerTheme,
+          wispTheme,
           syntaxHighlighting(highlightStyle),
           langComp.of(getLanguageExtension(filePath)),
           wrapC.of(wordWrap ? EditorView.lineWrapping : []),
@@ -612,7 +612,7 @@ function CodeMirrorEditor(props: { filePath: string; api: XplorerAPI }) {
 
               // Publish selection to host app so AI chat can use it as context
               const xState = (window as unknown as {
-                __xplorer_state__?: {
+                __wisp_state__?: {
                   editorSelection?: {
                     text: string;
                     filePath: string;
@@ -620,7 +620,7 @@ function CodeMirrorEditor(props: { filePath: string; api: XplorerAPI }) {
                     endLine: number;
                   } | null;
                 };
-              }).__xplorer_state__;
+              }).__wisp_state__;
               if (xState) {
                 if (!sel.empty) {
                   const selectedText = update.state.sliceDoc(sel.from, sel.to);
@@ -840,7 +840,7 @@ function CodeMirrorEditor(props: { filePath: string; api: XplorerAPI }) {
 
 // ── Register Editor ──────────────────────────────────────────────────────────
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 Editor.register({
   id: 'code-editor',

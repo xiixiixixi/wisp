@@ -1,4 +1,4 @@
-// BM25F field-weighted scoring engine for Xplorer search.
+// BM25F field-weighted scoring engine for Wisp search.
 //
 // BM25F extends BM25 by treating documents as having multiple fields
 // (filename, path, content head, content body, AI description) with

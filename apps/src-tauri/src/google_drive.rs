@@ -125,7 +125,7 @@ static GDRIVE_POOL: LazyLock<GoogleDrivePool> = LazyLock::new(GoogleDrivePool::n
 fn get_storage_path() -> Result<PathBuf, String> {
     let dir = dirs::data_dir()
         .ok_or("Failed to get data directory")?
-        .join("com.xplorer.app");
+        .join("com.wisp.app");
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     Ok(dir.join("google_drive_accounts.json"))
 }
@@ -240,7 +240,7 @@ pub struct GoogleDriveSettings {
 fn gdrive_settings_path() -> Result<PathBuf, String> {
     let dir = dirs::data_local_dir()
         .ok_or("Failed to get local data directory")?
-        .join("xplorer");
+        .join("wisp");
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     Ok(dir.join("google_drive_settings.json"))
 }
@@ -532,7 +532,7 @@ pub async fn gdrive_authenticate() -> Result<GDriveAccountInfo, String> {
                 }
 
                 // Send a success response to the browser
-                let response = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nConnection: close\r\n\r\n<html><body style=\"font-family:sans-serif;text-align:center;padding-top:60px;\"><h2>Authentication successful!</h2><p>You can close this window and return to Xplorer.</p></body></html>";
+                let response = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nConnection: close\r\n\r\n<html><body style=\"font-family:sans-serif;text-align:center;padding-top:60px;\"><h2>Authentication successful!</h2><p>You can close this window and return to Wisp.</p></body></html>";
                 let _ = stream.write_all(response.as_bytes()).await;
                 let _ = stream.shutdown().await;
                 return Ok::<String, String>(code);
@@ -622,7 +622,7 @@ pub async fn gdrive_disconnect(account_id: String) -> Result<(), String> {
     save_accounts()?;
 
     // Also delete the refresh token from the OS keychain
-    if let Err(e) = keyring::Entry::new("xplorer-gdrive", &account_id)
+    if let Err(e) = keyring::Entry::new("wisp-gdrive", &account_id)
         .and_then(|entry| entry.delete_credential())
     {
         warn!("Failed to delete keychain credential: {}", e);
@@ -771,7 +771,7 @@ pub async fn gdrive_upload_file(
     let boundary = {
         use rand::Rng;
         let rand_bytes: [u8; 16] = rand::thread_rng().gen();
-        format!("xplorer_{}", URL_SAFE_NO_PAD.encode(rand_bytes))
+        format!("wisp_{}", URL_SAFE_NO_PAD.encode(rand_bytes))
     };
 
     let mut body = Vec::new();

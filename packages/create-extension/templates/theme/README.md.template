@@ -4,14 +4,14 @@
 
 ## Features
 
-- Custom color scheme for Xplorer
+- Custom color scheme for Wisp
 - File type-specific colors
 - Custom scrollbar styling
 
 ## Installation
 
 1. Build the extension: `npm run build`
-2. Open Xplorer
+2. Open Wisp
 3. Go to Extensions > Install from Folder
 4. Select this extension's directory
 5. Activate the theme from the Theme Manager
@@ -35,5 +35,5 @@ MIT
 
 ---
 
-Built with the Xplorer Extension SDK
+Built with the Wisp Extension SDK
 

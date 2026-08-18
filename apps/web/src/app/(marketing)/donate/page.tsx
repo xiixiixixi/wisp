@@ -5,8 +5,8 @@ import { SITE_NAME } from '@/lib/constants';
 const SPONSOR_URL = 'https://github.com/sponsors/kimlimjustin';
 
 export const metadata: Metadata = {
-  title: `Support Xplorer | ${SITE_NAME}`,
-  description: 'Support Xplorer development by becoming a GitHub Sponsor.',
+  title: `Support Wisp | ${SITE_NAME}`,
+  description: 'Support Wisp development by becoming a GitHub Sponsor.',
 };
 
 export default function DonatePage() {
@@ -16,9 +16,9 @@ export default function DonatePage() {
         <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-pink-50 dark:bg-pink-500/10">
           <Heart className="h-8 w-8 text-pink-500" />
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Support Xplorer</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Support Wisp</h1>
         <p className="mx-auto mt-3 max-w-lg text-gray-500 dark:text-gray-400">
-          Xplorer is free, open source, and built with love. Your sponsorship helps us cover
+          Wisp is free, open source, and built with love. Your sponsorship helps us cover
           infrastructure costs, fund development, and keep improving the project for everyone.
         </p>
       </div>
@@ -30,7 +30,7 @@ export default function DonatePage() {
           </h2>
           <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
             Support us with a monthly sponsorship or a one-time donation directly through GitHub.
-            Sponsors automatically get Pro access in Xplorer!
+            Sponsors automatically get Pro access in Wisp!
           </p>
           <a
             href={SPONSOR_URL}

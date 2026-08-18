@@ -37,11 +37,11 @@ jobs:
           node -e "
             const fs = require('fs');
             const pkg = JSON.parse(fs.readFileSync('ext/package.json', 'utf8'));
-            if (!pkg.xplorer?.id || !pkg.xplorer?.name || !pkg.xplorer?.version) {
+            if (!pkg.wisp?.id || !pkg.wisp?.name || !pkg.wisp?.version) {
               console.error('Invalid extension manifest');
               process.exit(1);
             }
-            console.log('Extension:', pkg.xplorer.id, 'v' + pkg.xplorer.version);
+            console.log('Extension:', pkg.wisp.id, 'v' + pkg.wisp.version);
           "
 
       - name: Generate checksum and sign
@@ -91,7 +91,7 @@ jobs:
 
             const sig = {
               hash,
-              signer: 'Xplorer Marketplace',
+              signer: 'Wisp Marketplace',
               timestamp: new Date().toISOString(),
               verified: true,
               ed25519_signature: signature.toString('hex')

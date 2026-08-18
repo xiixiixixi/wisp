@@ -187,7 +187,7 @@ const StatusBar = ({ files, selectedFiles, currentPath, activeTab, vimState }: S
 
   // Fetch git info (branch + file status counts)
   const refreshGitInfo = useCallback(async () => {
-    if (currentPath.startsWith('xplorer://')) return;
+    if (currentPath.startsWith('wisp://')) return;
     try {
       const repoPath = await TauriAPI.findGitRepository(currentPath);
       if (repoPath) {
@@ -208,7 +208,7 @@ const StatusBar = ({ files, selectedFiles, currentPath, activeTab, vimState }: S
 
   // Refresh when path changes
   useEffect(() => {
-    if (currentPath.startsWith('xplorer://') || currentPath === prevPathRef.current) return;
+    if (currentPath.startsWith('wisp://') || currentPath === prevPathRef.current) return;
     prevPathRef.current = currentPath;
     refreshGitInfo();
   }, [currentPath, refreshGitInfo]);
@@ -224,7 +224,7 @@ const StatusBar = ({ files, selectedFiles, currentPath, activeTab, vimState }: S
 
   // Fetch free disk space when currentPath changes
   useEffect(() => {
-    if (currentPath.startsWith('xplorer://')) {
+    if (currentPath.startsWith('wisp://')) {
       setFreeSpace(null);
       return;
     }
@@ -315,7 +315,7 @@ const StatusBar = ({ files, selectedFiles, currentPath, activeTab, vimState }: S
 
   // Truncate path for display
   const displayPath = React.useMemo(() => {
-    if (currentPath.startsWith('xplorer://')) return currentPath.replace('xplorer://', '');
+    if (currentPath.startsWith('wisp://')) return currentPath.replace('wisp://', '');
     const maxLen = 60;
     if (currentPath.length <= maxLen) return currentPath;
     const sep = currentPath.includes('\\') ? '\\' : '/';
@@ -348,7 +348,7 @@ const StatusBar = ({ files, selectedFiles, currentPath, activeTab, vimState }: S
   const handleGitClick = useCallback(() => {
     if (extensionHost.isExtensionActive('git')) {
       // Open the git extension's bottom tab panel
-      window.dispatchEvent(new CustomEvent('xplorer-set-bottom-tab', { detail: { tab: 'git' } }));
+      window.dispatchEvent(new CustomEvent('wisp-set-bottom-tab', { detail: { tab: 'git' } }));
     } else {
       toast({
         title: t('statusBar.gitNotInstalled'),

@@ -33,7 +33,7 @@ export const useNavigation = ({ currentPath, splitLayout, activeGroup }: UseNavi
         ? extensionHost.getTabRenderer(activeTabObj.type) !== null
         : false;
       const isLocalPath =
-        !extensionHost.isExtensionScheme(newPath) && !newPath.startsWith('xplorer://');
+        !extensionHost.isExtensionScheme(newPath) && !newPath.startsWith('wisp://');
 
       if (isExtensionTab && isLocalPath) {
         const folderTab = activeGroup.tabs.find((t) => t.type === 'folder' || t.type === undefined);
@@ -62,7 +62,7 @@ export const useNavigation = ({ currentPath, splitLayout, activeGroup }: UseNavi
       }
 
       if (
-        !newPath.startsWith('xplorer://') &&
+        !newPath.startsWith('wisp://') &&
         !newPath.startsWith('comparison://') &&
         !extensionHost.isExtensionScheme(newPath)
       ) {
@@ -90,7 +90,7 @@ export const useNavigation = ({ currentPath, splitLayout, activeGroup }: UseNavi
   );
 
   const navigateUp = useCallback(() => {
-    if (currentPath === 'xplorer://home') return;
+    if (currentPath === 'wisp://home') return;
     if (extensionHost.isExtensionScheme(currentPath)) return;
     if (currentPath.startsWith('/')) {
       const parts = currentPath.split('/').filter(Boolean);
@@ -113,7 +113,7 @@ export const useNavigation = ({ currentPath, splitLayout, activeGroup }: UseNavi
   );
 
   const navigateToHome = useCallback(() => {
-    navigateWithHistory('xplorer://home');
+    navigateWithHistory('wisp://home');
   }, [navigateWithHistory]);
 
   const navigateFromHome = useCallback(

@@ -1,5 +1,5 @@
-import { ActionExtension, ExtensionContext, ActionMenuItem, FileEntry } from '@xplorer/extension-sdk';
-import { registerExtension } from '@xplorer/extension-sdk';
+import { ActionExtension, ExtensionContext, ActionMenuItem, FileEntry } from '@wisp/extension-sdk';
+import { registerExtension } from '@wisp/extension-sdk';
 
 export class {{displayName}}Extension extends ActionExtension {
   constructor() {
@@ -77,7 +77,7 @@ export class {{displayName}}Extension extends ActionExtension {
   }
 }
 
-// Register the extension with Xplorer
+// Register the extension with Wisp
 const extension = new {{displayName}}Extension();
 registerExtension(extension);
 

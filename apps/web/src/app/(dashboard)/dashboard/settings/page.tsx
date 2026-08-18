@@ -70,7 +70,7 @@ const SettingsPage = () => {
           <div>
             <h2 className="text-lg font-semibold">CLI Token</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Authenticate the Xplorer CLI to publish extensions
+              Authenticate the Wisp CLI to publish extensions
             </p>
           </div>
         </div>
@@ -99,7 +99,7 @@ const SettingsPage = () => {
             <p className="text-xs text-gray-500 dark:text-gray-400">
               Run:{' '}
               <code className="rounded bg-gray-100 px-1.5 py-0.5 dark:bg-gray-800">
-                xplorer login
+                wisp login
               </code>{' '}
               and paste this token.
             </p>

@@ -256,7 +256,7 @@ impl AIPipeline {
 /// Path to the on-disk AI index file.
 fn ai_index_path() -> PathBuf {
     let base = dirs::data_local_dir().unwrap_or_else(|| PathBuf::from("."));
-    base.join("xplorer").join("ai_index.json")
+    base.join("wisp").join("ai_index.json")
 }
 
 /// Atomically write the AI index to disk (write to temp, then rename).
@@ -296,7 +296,7 @@ pub(super) fn load_ai_index() -> HashMap<String, AIIndexEntry> {
 /// Path to the on-disk embeddings file.
 fn embeddings_path() -> PathBuf {
     let base = dirs::data_local_dir().unwrap_or_else(|| PathBuf::from("."));
-    base.join("xplorer").join("vector_embeddings.json")
+    base.join("wisp").join("vector_embeddings.json")
 }
 
 /// Atomically write embeddings to disk.
@@ -523,7 +523,7 @@ mod tests {
     #[test]
     fn test_content_hash() {
         // Write a temp file, hash it, and verify determinism.
-        let dir = std::env::temp_dir().join("xplorer_test_hash");
+        let dir = std::env::temp_dir().join("wisp_test_hash");
         let _ = std::fs::create_dir_all(&dir);
         let file_path = dir.join("hashtest.txt");
         std::fs::write(&file_path, b"hello world").unwrap();

@@ -39,11 +39,11 @@ interface ReferenceResult {
 
 /**
  * Dispatch a request to the AI chat panel.
- * The chat panel listens for `xplorer-ai-chat-request` events.
+ * The chat panel listens for `wisp-ai-chat-request` events.
  */
 const sendToChatPanel = (prompt: string): void => {
   window.dispatchEvent(
-    new CustomEvent('xplorer-ai-chat-request', {
+    new CustomEvent('wisp-ai-chat-request', {
       detail: { prompt },
     }),
   );

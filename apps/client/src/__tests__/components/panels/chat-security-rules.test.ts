@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/storage-keys', () => ({
   STORAGE_KEYS: {
-    AI_SECURITY_RULES: 'xplorer:ai-security-rules',
-    AI_AUDIT_LOG: 'xplorer:ai-audit-log',
+    AI_SECURITY_RULES: 'wisp:ai-security-rules',
+    AI_AUDIT_LOG: 'wisp:ai-audit-log',
   },
 }));
 
@@ -55,7 +55,7 @@ describe('loadSecurityRules', () => {
   });
 
   it('returns defaults for corrupt data', () => {
-    localStorage.setItem('xplorer:ai-security-rules', 'not-json');
+    localStorage.setItem('wisp:ai-security-rules', 'not-json');
     const rules = loadSecurityRules();
     expect(rules.enabled).toBe(true);
   });
@@ -192,7 +192,7 @@ describe('checkSecurity — rate limiting', () => {
       result: 'success',
       approvedBy: 'user',
     }));
-    localStorage.setItem('xplorer:ai-audit-log', JSON.stringify(entries));
+    localStorage.setItem('wisp:ai-audit-log', JSON.stringify(entries));
 
     const result = checkSecurity('create_file', '/home/user/new.txt');
     expect(result.allowed).toBe(false);
@@ -209,7 +209,7 @@ describe('checkSecurity — rate limiting', () => {
       result: 'success',
       approvedBy: 'user',
     }));
-    localStorage.setItem('xplorer:ai-audit-log', JSON.stringify(entries));
+    localStorage.setItem('wisp:ai-audit-log', JSON.stringify(entries));
 
     // list_directory is read-only and not in MUTATING_ACTIONS
     const result = checkSecurity('list_directory', '/home/user');

@@ -1,7 +1,7 @@
 /**
  * Generates a standalone HTML report from chat messages.
  * The HTML is self-contained with inline CSS, syntax highlighting,
- * and a dark theme matching Xplorer's look.
+ * and a dark theme matching Wisp's look.
  */
 import type { RuntimeChatMessage } from './ChatMessageBubble';
 
@@ -357,7 +357,7 @@ export const exportChatAsHtml = ({ messages, currentPath, model }: HtmlExportOpt
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Xplorer Chat - ${escapeHtml(dateStr)}</title>
+<title>Wisp Chat - ${escapeHtml(dateStr)}</title>
 <style>
   :root {
     --bg: #1a1b26;
@@ -652,7 +652,7 @@ export const exportChatAsHtml = ({ messages, currentPath, model }: HtmlExportOpt
 <body>
 <div class="container">
   <div class="report-header">
-    <h1>Xplorer Chat Report</h1>
+    <h1>Wisp Chat Report</h1>
     <p class="subtitle">AI Conversation Export</p>
     <div class="meta-row">
       <span class="meta-tag"><span class="label">Date:</span> ${escapeHtml(dateStr)} ${escapeHtml(timeStr)}</span>
@@ -665,7 +665,7 @@ export const exportChatAsHtml = ({ messages, currentPath, model }: HtmlExportOpt
   ${messageHtmlParts.join('\n\n')}
 
   <div class="report-footer">
-    Exported from <a href="https://xplorer.space">Xplorer</a> on ${escapeHtml(dateStr)}
+    Exported from <a href="https://xplorer.space">Wisp</a> on ${escapeHtml(dateStr)}
   </div>
 </div>
 </body>
@@ -675,7 +675,7 @@ export const exportChatAsHtml = ({ messages, currentPath, model }: HtmlExportOpt
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `xplorer-chat-${dateStr}.html`;
+  a.download = `wisp-chat-${dateStr}.html`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

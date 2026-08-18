@@ -1,4 +1,4 @@
-// Xplorer Search Engine — Core Search Index
+// Wisp Search Engine — Core Search Index
 //
 // Central data structure that coordinates the FST term dictionary, compressed
 // posting lists, BM25F scoring, bitmap filters, stemming, synonym expansion,

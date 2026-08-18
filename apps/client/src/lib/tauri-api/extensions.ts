@@ -140,7 +140,7 @@ export const sshReadDirectory = async (sshUrl: string): Promise<FileEntry[]> => 
   if (!parsed) return [];
 
   const storedRaw = await transport('get_extension_storage', {
-    extensionId: 'xplorer-ssh',
+    extensionId: 'wisp-ssh',
     key: 'connections',
   }).catch(() => null);
 
@@ -163,7 +163,7 @@ export const sshReadDirectory = async (sshUrl: string): Promise<FileEntry[]> => 
     }
   }
 
-  const result = (await nativePluginInvoke('xplorer-ssh', 'xplorer-ssh', 'read_directory', {
+  const result = (await nativePluginInvoke('wisp-ssh', 'wisp-ssh', 'read_directory', {
     host: parsed.host,
     port: parsed.port,
     username: parsed.username,

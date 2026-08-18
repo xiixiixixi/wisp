@@ -5,21 +5,21 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "build": "esbuild src/index.tsx --bundle --format=iife --jsx=transform --outfile=dist/index.js --external:react --external:react-dom --external:@xplorer/extension-sdk --target=es2020",
-    "dev": "touch .hotreload && esbuild src/index.tsx --bundle --outfile=dist/index.js --watch --format=iife --external:react --external:react-dom --external:@xplorer/extension-sdk --define:process.env.NODE_ENV=\\\"development\\\"; rm -f .hotreload"
+    "build": "esbuild src/index.tsx --bundle --format=iife --jsx=transform --outfile=dist/index.js --external:react --external:react-dom --external:@wisp/extension-sdk --target=es2020",
+    "dev": "touch .hotreload && esbuild src/index.tsx --bundle --outfile=dist/index.js --watch --format=iife --external:react --external:react-dom --external:@wisp/extension-sdk --define:process.env.NODE_ENV=\\\"development\\\"; rm -f .hotreload"
   },
   "devDependencies": {
     "esbuild": "^0.20.0",
     "typescript": "^5.2.0",
     "@types/react": "^18.0.0"
   },
-  "xplorer": {
+  "wisp": {
     "id": "3d-viewer",
     "name": "3D Model Viewer",
     "displayName": "3D Model Viewer",
     "description": "View STL and OBJ 3D models with rotation and zoom",
     "version": "1.0.0",
-    "author": "Xplorer Team",
+    "author": "Wisp Team",
     "category": "preview",
     "permissions": ["file:read"],
     "icon": "box",

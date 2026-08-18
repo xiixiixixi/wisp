@@ -1,4 +1,4 @@
-// Xplorer Search Engine -- Memory-Mapped FST Index
+// Wisp Search Engine -- Memory-Mapped FST Index
 //
 // Provides a persistent FST (Finite State Transducer) term dictionary that
 // can be built from a sorted list of terms, saved to disk, and later loaded
@@ -474,7 +474,7 @@ mod tests {
     fn save_and_load_round_trip() {
         let idx = build_test_index();
 
-        let dir = std::env::temp_dir().join("xplorer_test_fst_index");
+        let dir = std::env::temp_dir().join("wisp_test_fst_index");
         let _ = std::fs::create_dir_all(&dir);
         let fst_path = dir.join("test.fst");
 
@@ -522,7 +522,7 @@ mod tests {
     #[test]
     fn save_empty_index_is_noop() {
         let idx = FstIndex::new();
-        let dir = std::env::temp_dir().join("xplorer_test_fst_empty");
+        let dir = std::env::temp_dir().join("wisp_test_fst_empty");
         let fst_path = dir.join("empty.fst");
 
         // Should succeed without creating a file.
@@ -554,7 +554,7 @@ mod tests {
     fn resave_from_mmap() {
         let idx = build_test_index();
 
-        let dir = std::env::temp_dir().join("xplorer_test_fst_resave");
+        let dir = std::env::temp_dir().join("wisp_test_fst_resave");
         let _ = std::fs::create_dir_all(&dir);
 
         let path1 = dir.join("original.fst");

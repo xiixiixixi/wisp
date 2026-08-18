@@ -25,7 +25,7 @@ const FEATURES: Feature[] = [
       'Grid, list, and column views with instant directory switching. Multi-selection, drag-and-drop, tabbed browsing, split panes, and an address bar that keeps up with you.',
     iconBg: 'bg-blue-500/10 text-blue-500 dark:bg-blue-500/20 dark:text-blue-400',
     image: '/demo1.png',
-    imageAlt: 'Xplorer split view with AI chat analyzing project structure',
+    imageAlt: 'Wisp split view with AI chat analyzing project structure',
   },
   {
     icon: Eye,

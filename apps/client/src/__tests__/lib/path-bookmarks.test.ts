@@ -200,12 +200,12 @@ describe('path-bookmarks', () => {
 
   describe('storage edge cases', () => {
     it('handles corrupted JSON', () => {
-      store['xplorer:path-bookmarks'] = '{{bad';
+      store['wisp:path-bookmarks'] = '{{bad';
       expect(getPathBookmarks()).toEqual([]);
     });
 
     it('handles non-array JSON', () => {
-      store['xplorer:path-bookmarks'] = '42';
+      store['wisp:path-bookmarks'] = '42';
       expect(getPathBookmarks()).toEqual([]);
     });
   });

@@ -87,7 +87,7 @@ export const createExtensionApi = (manifest: ExtensionManifest, deps: ExtensionA
     ui: {
       showMessage: (message: string, type: 'info' | 'warning' | 'error' = 'info') => {
         window.dispatchEvent(
-          new CustomEvent('xplorer:extension-toast', {
+          new CustomEvent('wisp:extension-toast', {
             detail: {
               title: manifest.display_name || manifest.name,
               description: message,
@@ -106,20 +106,20 @@ export const createExtensionApi = (manifest: ExtensionManifest, deps: ExtensionA
       },
     },
     navigation: {
-      getCurrentPath: () => window.__xplorer_state__?.currentPath || '',
+      getCurrentPath: () => window.__wisp_state__?.currentPath || '',
       navigateTo: (path: string) => {
         if (!hasPermission(manifest, 'ui:modify')) {
           console.warn(`[${manifest.name}] navigateTo blocked: missing ui:modify permission`);
           return;
         }
-        window.__xplorer_state__?.navigateTo?.(path);
+        window.__wisp_state__?.navigateTo?.(path);
       },
       openInEditor: (path: string) => {
         if (!hasPermission(manifest, 'file:read')) {
           console.warn(`[${manifest.name}] openInEditor blocked: missing file:read permission`);
           return;
         }
-        window.dispatchEvent(new CustomEvent('xplorer-open-in-editor', { detail: { path } }));
+        window.dispatchEvent(new CustomEvent('wisp-open-in-editor', { detail: { path } }));
       },
       openTab: (options: {
         type: string;
@@ -131,7 +131,7 @@ export const createExtensionApi = (manifest: ExtensionManifest, deps: ExtensionA
           console.warn(`[${manifest.name}] openTab blocked: missing ui:modify permission`);
           return;
         }
-        window.dispatchEvent(new CustomEvent('xplorer-open-tab', { detail: options }));
+        window.dispatchEvent(new CustomEvent('wisp-open-tab', { detail: options }));
       },
     },
     settings: {
@@ -223,7 +223,7 @@ export const createExtensionApi = (manifest: ExtensionManifest, deps: ExtensionA
       on: (event: string, callback: EventCallback): { dispose: () => void } => {
         const ownPrefix = `${manifest.id}:`;
         const isOwn = event === manifest.id || event.startsWith(ownPrefix);
-        const isSystem = event.startsWith('system:') || event.startsWith('xplorer:');
+        const isSystem = event.startsWith('system:') || event.startsWith('wisp:');
         if (!isOwn && !isSystem) {
           console.warn(
             `[Security] Extension "${manifest.id}" tried to listen to event "${event}" outside its namespace`,

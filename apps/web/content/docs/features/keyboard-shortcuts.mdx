@@ -6,7 +6,7 @@ sidebar_position: 8
 
 # Keyboard Shortcuts
 
-Xplorer is designed for keyboard-driven workflows with extensive, fully customizable shortcut support.
+Wisp is designed for keyboard-driven workflows with extensive, fully customizable shortcut support.
 
 ## Default Shortcuts
 
@@ -102,7 +102,7 @@ Open **Settings > Shortcuts** (`Ctrl+,` then click the Shortcuts tab) to manage 
 
 ### Shortcut Profiles
 
-Xplorer supports multiple shortcut profiles. Each profile contains a complete set of key bindings.
+Wisp supports multiple shortcut profiles. Each profile contains a complete set of key bindings.
 
 - Switch between profiles via `TauriAPI.switchShortcutProfile(profileId)`
 - All profiles are persisted to `shortcuts.json` in the app data directory
@@ -119,7 +119,7 @@ Declare shortcuts statically in the extension's `package.json`:
 
 ```json
 {
-  "xplorer": {
+  "wisp": {
     "contributes": {
       "keybindings": [
         {
@@ -162,7 +162,7 @@ Extension shortcuts appear in the Settings UI with a badge showing their source 
 
 ## Conflict Detection
 
-When adding or modifying a shortcut, Xplorer checks for conflicts:
+When adding or modifying a shortcut, Wisp checks for conflicts:
 
 - Same key combination already bound to another action in the same context
 - Conflicts are shown inline in the settings UI with the name of the conflicting action

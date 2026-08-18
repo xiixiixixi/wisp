@@ -41,7 +41,7 @@ if (!SIGNING_KEY_HEX) {
   process.exit(1);
 }
 
-const SIGNER = 'Xplorer Team';
+const SIGNER = 'Wisp Team';
 
 /**
  * Recursively hash all files in a directory (excluding .sig).

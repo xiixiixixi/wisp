@@ -8,7 +8,7 @@ import {
   type CompressionOptions,
   type ExtractionOptions,
   type OrganizationPlan,
-} from '@xplorer/sdk';
+} from '@wisp/sdk';
 import { isPathAllowed, type ExtensionManifest, type EventCallback } from './extension-host-types';
 import { createSandboxedEnvironment, BLOCKED_GLOBALS } from './extension-sandbox-env';
 
@@ -386,9 +386,9 @@ export const createExtensionApi = (
       },
     },
     navigation: {
-      getCurrentPath: () => window.__xplorer_state__?.currentPath || '',
+      getCurrentPath: () => window.__wisp_state__?.currentPath || '',
       navigateTo: (path: string) => {
-        window.__xplorer_state__?.navigateTo?.(path);
+        window.__wisp_state__?.navigateTo?.(path);
       },
       openFile: (path: string) => {
         TauriAPI.openFile(path).catch((err) =>
@@ -396,10 +396,10 @@ export const createExtensionApi = (
         );
       },
       openInNewTab: (path: string) => {
-        window.dispatchEvent(new CustomEvent('xplorer-open-in-editor', { detail: { path } }));
+        window.dispatchEvent(new CustomEvent('wisp-open-in-editor', { detail: { path } }));
       },
       openInEditor: (path: string) => {
-        window.dispatchEvent(new CustomEvent('xplorer-open-in-editor', { detail: { path } }));
+        window.dispatchEvent(new CustomEvent('wisp-open-in-editor', { detail: { path } }));
       },
       openTab: (options: {
         type: string;
@@ -408,7 +408,7 @@ export const createExtensionApi = (
         data?: Record<string, unknown>;
       }) => {
         window.dispatchEvent(
-          new CustomEvent('xplorer-open-extension-tab', {
+          new CustomEvent('wisp-open-extension-tab', {
             detail: {
               type: options.type,
               name: options.name,
@@ -455,7 +455,7 @@ export const createExtensionApi = (
       on: (event: string, callback: EventCallback): { dispose: () => void } => {
         const ownPrefix = `${manifest.id}:`;
         const isOwn = event === manifest.id || event.startsWith(ownPrefix);
-        const isSystem = event.startsWith('system:') || event.startsWith('xplorer:');
+        const isSystem = event.startsWith('system:') || event.startsWith('wisp:');
         if (!isOwn && !isSystem) {
           console.warn(
             `[Security] Extension "${manifest.id}" tried to listen to event "${event}" outside its namespace`,

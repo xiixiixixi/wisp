@@ -29,19 +29,19 @@ describe('usePaneSync', () => {
     });
 
     it('reads enabled state from localStorage', () => {
-      mockStorage['xplorer:pane-sync-enabled'] = 'true';
+      mockStorage['wisp:pane-sync-enabled'] = 'true';
       const { result } = renderHook(() => usePaneSync());
       expect(result.current.enabled).toBe(true);
     });
 
     it('reads sync mode from localStorage', () => {
-      mockStorage['xplorer:pane-sync-mode'] = 'relative';
+      mockStorage['wisp:pane-sync-mode'] = 'relative';
       const { result } = renderHook(() => usePaneSync());
       expect(result.current.syncMode).toBe('relative');
     });
 
     it('falls back to mirror for invalid stored mode', () => {
-      mockStorage['xplorer:pane-sync-mode'] = 'invalid';
+      mockStorage['wisp:pane-sync-mode'] = 'invalid';
       const { result } = renderHook(() => usePaneSync());
       expect(result.current.syncMode).toBe('mirror');
     });
@@ -59,7 +59,7 @@ describe('usePaneSync', () => {
     });
 
     it('toggles enabled state from true to false', () => {
-      mockStorage['xplorer:pane-sync-enabled'] = 'true';
+      mockStorage['wisp:pane-sync-enabled'] = 'true';
       const { result } = renderHook(() => usePaneSync());
 
       act(() => {
@@ -76,7 +76,7 @@ describe('usePaneSync', () => {
         result.current.toggle();
       });
 
-      expect(mockStorage['xplorer:pane-sync-enabled']).toBe('true');
+      expect(mockStorage['wisp:pane-sync-enabled']).toBe('true');
     });
   });
 
@@ -92,7 +92,7 @@ describe('usePaneSync', () => {
     });
 
     it('updates sync mode to mirror', () => {
-      mockStorage['xplorer:pane-sync-mode'] = 'relative';
+      mockStorage['wisp:pane-sync-mode'] = 'relative';
       const { result } = renderHook(() => usePaneSync());
 
       act(() => {
@@ -109,7 +109,7 @@ describe('usePaneSync', () => {
         result.current.setSyncMode('relative');
       });
 
-      expect(mockStorage['xplorer:pane-sync-mode']).toBe('relative');
+      expect(mockStorage['wisp:pane-sync-mode']).toBe('relative');
     });
   });
 });

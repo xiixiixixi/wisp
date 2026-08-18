@@ -1,5 +1,5 @@
 /**
- * Problems Panel Extension for Xplorer
+ * Problems Panel Extension for Wisp
  *
  * Directory diagnostics with customizable problem detection rules.
  * Scans the current directory for common issues (empty files, broken
@@ -12,8 +12,8 @@
 import {
   BottomTab,
   Command,
-  type XplorerAPI,
-} from '@xplorer/extension-sdk';
+  type WispAPI,
+} from '@wisp/extension-sdk';
 
 const React = (window as any).React;
 const { useState, useEffect, useCallback, useRef, useMemo } = React;
@@ -536,7 +536,7 @@ function ProblemsPanel({
   api,
   currentPath,
 }: {
-  api: XplorerAPI;
+  api: WispAPI;
   currentPath?: string;
 }) {
   const [problems, setProblems] = useState<DirectoryProblem[]>([]);
@@ -593,7 +593,7 @@ function ProblemsPanel({
     async (path: string, hidden = skipHidden, gitignored = skipGitignored) => {
       if (
         !path ||
-        path.startsWith('xplorer://') ||
+        path.startsWith('wisp://') ||
         path.startsWith('gdrive://') ||
         path.startsWith('comparison://')
       ) {
@@ -795,7 +795,7 @@ function ProblemsPanel({
 
 // ── Registration ────────────────────────────────────────────────────
 
-let problemsApi: XplorerAPI;
+let problemsApi: WispAPI;
 
 BottomTab.register({
   id: 'problems',
@@ -813,7 +813,7 @@ Command.register({
   title: 'Problems: Open Panel',
   action: (_api) => {
     window.dispatchEvent(
-      new CustomEvent('xplorer-set-bottom-tab', { detail: { tab: 'problems' } }),
+      new CustomEvent('wisp-set-bottom-tab', { detail: { tab: 'problems' } }),
     );
   },
 });
@@ -823,7 +823,7 @@ Command.register({
   title: 'Problems: Scan Current Directory',
   action: (_api) => {
     window.dispatchEvent(
-      new CustomEvent('xplorer-set-bottom-tab', { detail: { tab: 'problems' } }),
+      new CustomEvent('wisp-set-bottom-tab', { detail: { tab: 'problems' } }),
     );
   },
 });

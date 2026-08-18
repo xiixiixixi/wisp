@@ -49,10 +49,10 @@ Object.defineProperty(window, 'open', {
 // Mock marketplace API response data
 const MOCK_EXTENSIONS = [
   {
-    id: 'xplorer-tokyo-night-theme',
+    id: 'wisp-tokyo-night-theme',
     name: 'Tokyo Night Theme',
     displayName: 'Tokyo Night',
-    slug: 'xplorer-tokyo-night-theme',
+    slug: 'wisp-tokyo-night-theme',
     description: 'A beautiful dark theme inspired by the lights of downtown Tokyo',
     version: '1.0.0',
     checksum: '',
@@ -60,15 +60,15 @@ const MOCK_EXTENSIONS = [
     downloadCount: 100,
     averageRating: 4.5,
     reviewCount: 10,
-    author: { username: 'xplorer', name: 'Xplorer' },
+    author: { username: 'wisp', name: 'Wisp' },
     categories: [{ name: 'Theme', slug: 'theme' }],
     downloadUrl: '',
   },
   {
-    id: 'xplorer-dracula-theme',
+    id: 'wisp-dracula-theme',
     name: 'Dracula Theme',
     displayName: 'Dracula',
-    slug: 'xplorer-dracula-theme',
+    slug: 'wisp-dracula-theme',
     description: 'A dark theme inspired by Dracula',
     version: '1.0.0',
     checksum: '',
@@ -76,7 +76,7 @@ const MOCK_EXTENSIONS = [
     downloadCount: 80,
     averageRating: 4.2,
     reviewCount: 5,
-    author: { username: 'xplorer', name: 'Xplorer' },
+    author: { username: 'wisp', name: 'Wisp' },
     categories: [{ name: 'Theme', slug: 'theme' }],
     downloadUrl: '',
   },
@@ -92,7 +92,7 @@ const MOCK_EXTENSIONS = [
     downloadCount: 200,
     averageRating: 4.8,
     reviewCount: 20,
-    author: { username: 'xplorer', name: 'Xplorer' },
+    author: { username: 'wisp', name: 'Wisp' },
     categories: [{ name: 'Editor', slug: 'editor' }],
     downloadUrl: '',
   },
@@ -228,7 +228,7 @@ describe('MarketplacePanel', () => {
 
   it('shows installed status for installed extensions', async () => {
     (TauriAPI.getInstalledExtensions as ReturnType<typeof vi.fn>).mockResolvedValue([
-      { manifest: { id: 'xplorer-tokyo-night-theme' } },
+      { manifest: { id: 'wisp-tokyo-night-theme' } },
     ]);
 
     await act(async () => {
@@ -247,7 +247,7 @@ describe('MarketplacePanel', () => {
   it('handles extension installation via web API', async () => {
     (TauriAPI.downloadAndInstallExtension as ReturnType<typeof vi.fn>).mockResolvedValue({
       manifest: {
-        id: 'xplorer-tokyo-night-theme',
+        id: 'wisp-tokyo-night-theme',
         name: 'Tokyo Night Theme',
         display_name: 'Tokyo Night',
       },

@@ -129,7 +129,7 @@ describe('Extension Loading Integration', () => {
   describe('Extension Load Lifecycle', () => {
     it('loads an extension and registers it in the extensions map', async () => {
       const bundleCode = `
-        window.__xplorer_register__({
+        window.__wisp_register__({
           manifest: { id: 'lifecycle-load', name: 'Lifecycle Test', version: '1.0.0', author: 'Test', category: 'utility' },
           activate() {},
           deactivate() {},
@@ -152,7 +152,7 @@ describe('Extension Loading Integration', () => {
 
     it('skips re-loading an already loaded extension', async () => {
       const bundleCode = `
-        window.__xplorer_register__({
+        window.__wisp_register__({
           manifest: { id: 'skip-reload', name: 'Skip Reload', version: '1.0.0', author: 'Test', category: 'utility' },
           activate() {},
           deactivate() {},
@@ -170,7 +170,7 @@ describe('Extension Loading Integration', () => {
 
     it('activates an extension and marks it as active', async () => {
       const bundleCode = `
-        window.__xplorer_register__({
+        window.__wisp_register__({
           manifest: { id: 'act-test', name: 'Activate Test', version: '1.0.0', author: 'Test', category: 'utility' },
           activate() {},
           deactivate() {},
@@ -192,7 +192,7 @@ describe('Extension Loading Integration', () => {
 
     it('deactivates an active extension', async () => {
       const bundleCode = `
-        window.__xplorer_register__({
+        window.__wisp_register__({
           manifest: { id: 'deact-test', name: 'Deactivate Test', version: '1.0.0', author: 'Test', category: 'utility' },
           activate() {},
           deactivate() {},
@@ -267,7 +267,7 @@ describe('Extension Loading Integration', () => {
     it('registers a panel with a manifest contributes section', async () => {
       const extId = `panel-contrib-${Date.now()}`;
       const bundleCode = `
-        window.__xplorer_register__({
+        window.__wisp_register__({
           manifest: {
             id: '${extId}',
             name: 'Panel Contrib',
@@ -349,7 +349,7 @@ describe('Extension Loading Integration', () => {
     it('registers an editor and matches it to file extensions', async () => {
       const extId = `editor-ext-${Date.now()}`;
       const bundleCode = `
-        window.__xplorer_register__({
+        window.__wisp_register__({
           manifest: {
             id: '${extId}',
             name: 'Editor Extension',

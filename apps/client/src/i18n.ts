@@ -10,8 +10,8 @@ import { STORAGE_KEYS } from './lib/storage-keys';
 
 const SETTINGS_KEY = STORAGE_KEYS.SETTINGS;
 
-const xplorerSettingsDetector = {
-  name: 'xplorerSettings',
+const wispSettingsDetector = {
+  name: 'wispSettings',
   lookup(): string | undefined {
     try {
       const saved = localStorage.getItem(SETTINGS_KEY);
@@ -37,7 +37,7 @@ const xplorerSettingsDetector = {
 };
 
 const languageDetector = new LanguageDetector();
-languageDetector.addDetector(xplorerSettingsDetector);
+languageDetector.addDetector(wispSettingsDetector);
 
 i18n
   .use(languageDetector)
@@ -51,8 +51,8 @@ i18n
     },
     fallbackLng: 'en',
     detection: {
-      order: ['xplorerSettings', 'navigator'],
-      caches: ['xplorerSettings'],
+      order: ['wispSettings', 'navigator'],
+      caches: ['wispSettings'],
     },
     interpolation: {
       escapeValue: false,

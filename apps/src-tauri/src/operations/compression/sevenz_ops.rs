@@ -62,7 +62,7 @@ pub(crate) async fn compress_to_7z(
         .await
         .map_err(|e| format!("Task join error: {}", e))??;
     } else {
-        let temp_base = std::env::temp_dir().join(format!("xplorer_7z_{}", std::process::id()));
+        let temp_base = std::env::temp_dir().join(format!("wisp_7z_{}", std::process::id()));
         fs::create_dir_all(&temp_base)
             .map_err(|e| format!("Failed to create temp directory: {}", e))?;
 

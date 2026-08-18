@@ -18,7 +18,7 @@ Count words, lines, characters, and paragraphs in text files.
 - **File reading** (`api.files.readText`)
 - **UI notifications** (`api.ui.showMessage`)
 - **Settings persistence** (`api.settings.set/get`)
-- **Global state access** (`window.__xplorer_state__`)
+- **Global state access** (`window.__wisp_state__`)
 
 ## Build
 
@@ -29,7 +29,7 @@ npm run build
 
 ## Install
 
-Copy this folder to your Xplorer extensions directory, or install via:
+Copy this folder to your Wisp extensions directory, or install via:
 ```bash
-xplorer-sdk install --dev .
+wisp-sdk install --dev .
 ```

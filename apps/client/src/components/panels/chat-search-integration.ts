@@ -10,7 +10,7 @@
  * Exposed via the /find slash command and the search_index agent action.
  */
 import { TauriAPI } from '@/lib/tauri-api';
-import { getXplorerState } from './chat-context-helpers';
+import { getWispState } from './chat-context-helpers';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -74,7 +74,7 @@ export const performAISearch = async (
   searchPath?: string,
 ): Promise<AISearchReport> => {
   const startTime = Date.now();
-  const xState = getXplorerState();
+  const xState = getWispState();
   const effectivePath = searchPath ?? xState?.currentPath ?? '/';
 
   const results: SearchResultEntry[] = [];

@@ -11,7 +11,7 @@
  * Extracted from StandaloneChatPanel to keep it under the 1000-line limit.
  */
 import { FILE_OPS_SYSTEM_PROMPT } from './chat-file-actions';
-import { type XplorerState, type FileContext, buildDirectoryContext } from './chat-context-helpers';
+import { type WispState, type FileContext, buildDirectoryContext } from './chat-context-helpers';
 import { type WorkspaceContext, buildWorkspacePrompt } from './chat-workspace-awareness';
 import { buildMemoryPrompt } from './chat-agent-memory';
 import { buildFeedbackPrompt } from './chat-correction-learning';
@@ -33,7 +33,7 @@ import {
 // ---------------------------------------------------------------------------
 
 export interface SystemPromptOptions {
-  xState: XplorerState | undefined;
+  xState: WispState | undefined;
   fileContexts: FileContext[];
   workspaceCtx: WorkspaceContext | null;
   includeSelection: boolean;
@@ -142,7 +142,7 @@ export const buildSystemPrompt = async (opts: SystemPromptOptions): Promise<stri
   const { xState, fileContexts, workspaceCtx, includeSelection, agentLoopContext } = opts;
 
   let systemContent =
-    "You are an AI agent inside the Xplorer file manager. You can observe the user's filesystem, understand their context, and take actions to help them manage files.\n\n" +
+    "You are an AI agent inside the Wisp file manager. You can observe the user's filesystem, understand their context, and take actions to help them manage files.\n\n" +
     'BEHAVIOR RULES — read carefully:\n' +
     "1. ACT, don't ASK. When the user asks you to do something, JUST DO IT. Don't say 'Would you like me to...' or 'Should I...' — read the file, run the command, make the change. The user will be prompted to approve any action that needs permission, so you don't need to ask first.\n" +
     "2. BE CONCISE. Don't write 'Step 1, Step 2' explanations. Don't restate what you're about to do. Just do it and report results in 1-3 sentences.\n" +

@@ -140,7 +140,7 @@ const GalleryView = ({
   }, [files, preloadThumbnails]);
   const bgDropRef = useDroppable(
     currentPath,
-    currentPath.startsWith('xplorer://') || currentPath.startsWith('gdrive://'),
+    currentPath.startsWith('wisp://') || currentPath.startsWith('gdrive://'),
   );
 
   // Reset focused file when files change (navigated to a new folder)

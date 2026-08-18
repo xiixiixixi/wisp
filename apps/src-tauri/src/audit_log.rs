@@ -46,7 +46,7 @@ impl AuditLog {
     }
 
     fn log_file_path() -> Option<PathBuf> {
-        dirs::data_local_dir().map(|d| d.join("com.xplorer.app").join(AUDIT_LOG_FILE))
+        dirs::data_local_dir().map(|d| d.join("com.wisp.app").join(AUDIT_LOG_FILE))
     }
 
     fn load_from_disk(&mut self) {

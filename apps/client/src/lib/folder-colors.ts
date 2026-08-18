@@ -1,7 +1,7 @@
 /**
  * Folder Color Coding — assign color labels to folders, persisted in localStorage.
  *
- * Colors are stored under the key `xplorer:folder-colors` as a JSON array of FolderColor entries.
+ * Colors are stored under the key `wisp:folder-colors` as a JSON array of FolderColor entries.
  * Mutations dispatch a `folder-colors-changed` CustomEvent on window so listeners can re-render.
  */
 

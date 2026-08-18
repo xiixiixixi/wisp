@@ -1631,9 +1631,9 @@ pub async fn diagnose_directory(
     Ok(result)
 }
 
-/// Install the `xplorer` CLI command to the system PATH.
-/// macOS/Linux: /usr/local/bin/xplorer (shell script)
-/// Windows: %LOCALAPPDATA%\Xplorer\xplorer.cmd (batch file + add to PATH via registry)
+/// Install the `wisp` CLI command to the system PATH.
+/// macOS/Linux: /usr/local/bin/wisp (shell script)
+/// Windows: %LOCALAPPDATA%\Wisp\wisp.cmd (batch file + add to PATH via registry)
 #[command]
 pub async fn install_cli() -> Result<String, String> {
     tokio::task::spawn_blocking(|| {
@@ -1643,21 +1643,21 @@ pub async fn install_cli() -> Result<String, String> {
 
             let local_app_data = std::env::var("LOCALAPPDATA")
                 .map_err(|_| "LOCALAPPDATA not set".to_string())?;
-            let cli_dir = PathBuf::from(&local_app_data).join("Xplorer");
+            let cli_dir = PathBuf::from(&local_app_data).join("Wisp");
             std::fs::create_dir_all(&cli_dir)
                 .map_err(|e| format!("Failed to create CLI directory: {}", e))?;
 
-            // Write xplorer.cmd
-            let cmd_path = cli_dir.join("xplorer.cmd");
+            // Write wisp.cmd
+            let cmd_path = cli_dir.join("wisp.cmd");
             let script = r#"@echo off
 where node >nul 2>nul
 if %errorlevel% equ 0 (
-    node "%~dp0xplorer.mjs" %*
+    node "%~dp0wisp.mjs" %*
 ) else (
     if "%~1"=="" (
-        start "" "xplorer://"
+        start "" "wisp://"
     ) else (
-        start "" "xplorer://%~1"
+        start "" "wisp://%~1"
     )
 )
 "#;
@@ -1669,9 +1669,9 @@ if %errorlevel% equ 0 (
                 .ok()
                 .and_then(|p| p.parent().map(|d| d.to_path_buf()));
             if let Some(ref exe) = exe_dir {
-                let src_mjs = exe.join("resources").join("xplorer.mjs");
+                let src_mjs = exe.join("resources").join("wisp.mjs");
                 if src_mjs.exists() {
-                    let _ = std::fs::copy(&src_mjs, cli_dir.join("xplorer.mjs"));
+                    let _ = std::fs::copy(&src_mjs, cli_dir.join("wisp.mjs"));
                 }
             }
 
@@ -1708,7 +1708,7 @@ if %errorlevel% equ 0 (
 
                 // Broadcast environment change
                 let _ = std::process::Command::new("cmd")
-                    .args(["/c", "setx", "XPLORER_CLI_INSTALLED", "1"])
+                    .args(["/c", "setx", "WISP_CLI_INSTALLED", "1"])
                     .status();
             }
 
@@ -1717,20 +1717,20 @@ if %errorlevel% equ 0 (
 
         #[cfg(target_os = "macos")]
         {
-            let target = std::path::Path::new("/usr/local/bin/xplorer");
+            let target = std::path::Path::new("/usr/local/bin/wisp");
 
             let script = r#"#!/bin/bash
-APP_PATH="/Applications/Xplorer.app"
-CLI_SCRIPT="$APP_PATH/Contents/Resources/xplorer.mjs"
+APP_PATH="/Applications/Wisp.app"
+CLI_SCRIPT="$APP_PATH/Contents/Resources/wisp.mjs"
 if [ -f "$CLI_SCRIPT" ] && command -v node &>/dev/null; then
     exec node "$CLI_SCRIPT" "$@"
 fi
 if [ $# -eq 0 ]; then open "$APP_PATH"
-elif [ -d "$1" ] || [ -f "$1" ]; then open -a Xplorer "$1"
+elif [ -d "$1" ] || [ -f "$1" ]; then open -a Wisp "$1"
 else echo "Node.js required for full CLI features."; exit 1; fi
 "#;
 
-            let tmp = std::env::temp_dir().join("xplorer-cli-install.sh");
+            let tmp = std::env::temp_dir().join("wisp-cli-install.sh");
             std::fs::write(&tmp, script)
                 .map_err(|e| format!("Failed to write temp script: {}", e))?;
 
@@ -1746,7 +1746,7 @@ else echo "Node.js required for full CLI features."; exit 1; fi
             let _ = std::fs::remove_file(&tmp);
 
             if status.success() {
-                Ok("CLI installed to /usr/local/bin/xplorer".to_string())
+                Ok("CLI installed to /usr/local/bin/wisp".to_string())
             } else {
                 Err("Failed to install CLI — admin permission denied.".to_string())
             }
@@ -1754,26 +1754,26 @@ else echo "Node.js required for full CLI features."; exit 1; fi
 
         #[cfg(target_os = "linux")]
         {
-            let target = std::path::Path::new("/usr/local/bin/xplorer");
+            let target = std::path::Path::new("/usr/local/bin/wisp");
 
             // On Linux, the app could be in various locations
             let script = r#"#!/bin/bash
 CLI_LOCATIONS=(
-    "/opt/Xplorer/resources/xplorer.mjs"
-    "$HOME/.local/share/Xplorer/xplorer.mjs"
-    "/usr/share/xplorer/xplorer.mjs"
+    "/opt/Wisp/resources/wisp.mjs"
+    "$HOME/.local/share/Wisp/wisp.mjs"
+    "/usr/share/wisp/wisp.mjs"
 )
 for loc in "${CLI_LOCATIONS[@]}"; do
     if [ -f "$loc" ] && command -v node &>/dev/null; then
         exec node "$loc" "$@"
     fi
 done
-if [ $# -eq 0 ]; then xdg-open "xplorer://" 2>/dev/null || echo "Xplorer not found"
-elif [ -d "$1" ] || [ -f "$1" ]; then xdg-open "xplorer://$(realpath "$1")" 2>/dev/null
+if [ $# -eq 0 ]; then xdg-open "wisp://" 2>/dev/null || echo "Wisp not found"
+elif [ -d "$1" ] || [ -f "$1" ]; then xdg-open "wisp://$(realpath "$1")" 2>/dev/null
 else echo "Node.js required for full CLI features."; exit 1; fi
 "#;
 
-            let tmp = std::env::temp_dir().join("xplorer-cli-install.sh");
+            let tmp = std::env::temp_dir().join("wisp-cli-install.sh");
             std::fs::write(&tmp, script)
                 .map_err(|e| format!("Failed to write temp script: {}", e))?;
 
@@ -1789,7 +1789,7 @@ else echo "Node.js required for full CLI features."; exit 1; fi
             let _ = std::fs::remove_file(&tmp);
 
             if status.success() {
-                Ok("CLI installed to /usr/local/bin/xplorer".to_string())
+                Ok("CLI installed to /usr/local/bin/wisp".to_string())
             } else {
                 Err("Failed to install CLI — admin permission denied.".to_string())
             }

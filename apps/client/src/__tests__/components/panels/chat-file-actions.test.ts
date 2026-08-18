@@ -20,7 +20,7 @@ vi.mock('@/lib/tauri-api', () => ({
 
 vi.mock('@/lib/storage-keys', () => ({
   STORAGE_KEYS: {
-    AI_FILE_ACCESS_GRANTED: 'xplorer:ai-file-access-granted',
+    AI_FILE_ACCESS_GRANTED: 'wisp:ai-file-access-granted',
   },
 }));
 

@@ -51,7 +51,7 @@
     }
   },
   "updater": {
-    "available": "Xplorer {{version}} 已可用",
+    "available": "Wisp {{version}} 已可用",
     "install": "立即更新",
     "dismiss": "稍后",
     "downloading": "正在下载更新..."
@@ -75,7 +75,7 @@
     "navigateTo": "导航到{{label}}文件夹"
   },
   "topBar": {
-    "appTitle": "Xplorer",
+    "appTitle": "Wisp",
     "toggleSidebar": "切换侧边栏",
     "toggleSidebarShortcut": "切换侧边栏 (Ctrl+B)",
     "goBack": "返回上一页",
@@ -208,7 +208,7 @@
   },
   "settings": {
     "title": "设置",
-    "subtitle": "自定义您的 Xplorer 体验",
+    "subtitle": "自定义您的 Wisp 体验",
     "backToApp": "返回主页",
     "resetAll": "重置所有设置",
     "tabs": {
@@ -275,12 +275,12 @@
       "autoSaveDesc": "自动保存文件更改",
       "systemIntegration": "系统集成",
       "defaultExplorer": "默认文件管理器",
-      "defaultExplorerDesc": "双击文件夹时使用 Xplorer 而非 Windows 资源管理器",
+      "defaultExplorerDesc": "双击文件夹时使用 Wisp 而非 Windows 资源管理器",
       "defaultExplorerToggle": "默认管理器",
       "folderContextMenu": "文件夹右键菜单",
-      "folderContextMenuDesc": "在文件夹右键菜单中添加「用 Xplorer 打开」",
+      "folderContextMenuDesc": "在文件夹右键菜单中添加「用 Wisp 打开」",
       "contextMenuToggle": "右键菜单",
-      "explorerWarning": "文件夹将在 Xplorer 中打开。禁用以恢复 Windows 资源管理器。",
+      "explorerWarning": "文件夹将在 Wisp 中打开。禁用以恢复 Windows 资源管理器。",
       "help": "帮助",
       "onboardingTour": "引导教程",
       "onboardingTourDesc": "重新播放应用交互式引导教程",
@@ -354,11 +354,11 @@
       "mistralApiKey": "Mistral API Key",
       "mistralApiKeyDesc": "Required for Mistral models",
       "serviceMode": "AI 服务",
-      "serviceModeDesc": "使用 Xplorer 云服务（免费托管）或使用您自己的 API 密钥",
-      "cloudMode": "Xplorer 云（免费）",
+      "serviceModeDesc": "使用 Wisp 云服务（免费托管）或使用您自己的 API 密钥",
+      "cloudMode": "Wisp 云（免费）",
       "customMode": "自定义提供商",
       "cloudModel": "云端模型",
-      "cloudModelDesc": "Xplorer 云服务使用的 OpenRouter 模型",
+      "cloudModelDesc": "Wisp 云服务使用的 OpenRouter 模型",
       "cloudModelHint": "例如 anthropic/claude-sonnet-4, openai/gpt-4o, google/gemini-2.5-flash",
       "customProvider": "提供商",
       "customProviderDesc": "使用您自己的密钥连接的 AI 提供商",
@@ -555,7 +555,7 @@
       "importSuccessDesc_other": "Restored {{count}} settings. Reloading...",
       "exportFailed": "Failed to export settings.",
       "invalidBackupStructure": "Invalid backup file structure. Expected version, exportDate, and settings fields.",
-      "invalidJson": "Invalid JSON file. Please select a valid Xplorer settings backup.",
+      "invalidJson": "Invalid JSON file. Please select a valid Wisp settings backup.",
       "readFileFailed": "Failed to read file."
     },
     "audit": {
@@ -641,20 +641,20 @@
     "about": {
       "description": "一款现代化的 AI 驱动文件管理器。使用风险自负。",
       "links": "链接",
-      "sponsorTitle": "支持 Xplorer",
-      "sponsorDescription": "Xplorer 是免费开源的。如果您觉得有用，请考虑赞助该项目以帮助持续开发。每一份贡献，无论大小，都意义非凡。",
+      "sponsorTitle": "支持 Wisp",
+      "sponsorDescription": "Wisp 是免费开源的。如果您觉得有用，请考虑赞助该项目以帮助持续开发。每一份贡献，无论大小，都意义非凡。",
       "sponsorButton": "在 GitHub 上赞助",
       "license": "基于 AGPL-3.0 许可证。用心制作。"
     }
   },
   "tour": {
     "welcome": {
-      "title": "欢迎使用 Xplorer！",
+      "title": "欢迎使用 Wisp！",
       "description": "让我们带您了解一下。这个快速导览将介绍应用的主要功能区域。您可以随时退出或稍后从设置中重新播放。"
     },
     "fullDiskAccess": {
       "title": "授予完全磁盘访问权限",
-      "description": "要无提示地浏览所有文件，请授予 Xplorer 完全磁盘访问权限：\n\n1. 打开系统设置 → 隐私与安全性 → 完全磁盘访问权限\n2. 开启 Xplorer\n3. 重新启动 Xplorer\n\n如果不授权，macOS 每次打开照片、文稿或 iCloud 云盘等受保护文件夹时都会弹出提示。"
+      "description": "要无提示地浏览所有文件，请授予 Wisp 完全磁盘访问权限：\n\n1. 打开系统设置 → 隐私与安全性 → 完全磁盘访问权限\n2. 开启 Wisp\n3. 重新启动 Wisp\n\n如果不授权，macOS 每次打开照片、文稿或 iCloud 云盘等受保护文件夹时都会弹出提示。"
     },
     "sidebar": {
       "title": "侧边栏导航",
@@ -674,11 +674,11 @@
     },
     "terminal": {
       "title": "终端和输出",
-      "description": "在 Xplorer 内打开集成终端、查看输出日志和管理 Git 操作。点击此按钮或按 Ctrl+`。"
+      "description": "在 Wisp 内打开集成终端、查看输出日志和管理 Git 操作。点击此按钮或按 Ctrl+`。"
     },
     "shortcuts": {
       "title": "键盘快捷键",
-      "description": "Xplorer 专为键盘驱动的工作流而设计。前往设置 > 快捷键查看和自定义所有键位绑定。"
+      "description": "Wisp 专为键盘驱动的工作流而设计。前往设置 > 快捷键查看和自定义所有键位绑定。"
     },
     "commandPalette": {
       "title": "命令面板",
@@ -686,7 +686,7 @@
     },
     "extensionPacks": {
       "title": "扩展包",
-      "description": "使用扩展包增强 Xplorer！打开扩展市场浏览开发工具、生产力、媒体等精选集合。一键安装整个扩展包。"
+      "description": "使用扩展包增强 Wisp！打开扩展市场浏览开发工具、生产力、媒体等精选集合。一键安装整个扩展包。"
     },
     "allSet": {
       "title": "一切就绪！",
@@ -985,10 +985,10 @@
         "directory_list": "View files inside folders",
         "directory_create": "Create new folders",
         "directory_delete": "Delete folders and their contents",
-        "xplorer_settings": "Read and modify Xplorer settings",
-        "xplorer_extensions": "Install, disable, or remove other extensions",
-        "xplorer_themes": "Add custom color themes",
-        "xplorer_history": "Read browsing and navigation history"
+        "wisp_settings": "Read and modify Wisp settings",
+        "wisp_extensions": "Install, disable, or remove other extensions",
+        "wisp_themes": "Add custom color themes",
+        "wisp_history": "Read browsing and navigation history"
       }
     },
     "notes": {
@@ -1030,14 +1030,14 @@
     "beta": {
       "title": "Early Beta",
       "subtitle": "v0.1.0 — Preview Release",
-      "intro": "Welcome to Xplorer! This is an early beta release.",
+      "intro": "Welcome to Wisp! This is an early beta release.",
       "bullet1": "You may encounter bugs, crashes, or unexpected behavior",
       "bullet2": "Features may change or break between updates",
       "bullet3": "Back up your files — use this app at your own risk",
       "bugReport": "Found a bug? Report it on",
       "githubIssues": "GitHub Issues",
       "supportTitle": "Support Development",
-      "supportDesc": "Xplorer is free and open source. If you find it useful, consider sponsoring to help keep development going.",
+      "supportDesc": "Wisp is free and open source. If you find it useful, consider sponsoring to help keep development going.",
       "becomeSponsor": "Become a Sponsor",
       "showAgainHint": "You can show this again in Settings",
       "iUnderstand": "I Understand"
@@ -1255,8 +1255,8 @@
   },
   "openWith": {
     "title": "打开方式",
-    "xplorerEditor": "Xplorer 编辑器",
-    "xplorerEditorDesc": "在内置代码编辑器中打开",
+    "wispEditor": "Wisp 编辑器",
+    "wispEditorDesc": "在内置代码编辑器中打开",
     "vscode": "VS Code",
     "vscodeDesc": "在 Visual Studio Code 中打开",
     "systemDefault": "系统默认",
@@ -1400,7 +1400,7 @@
     "macintoshHD": "Macintosh HD",
     "themeChanged": "主题已更改",
     "themeApplied": "已应用 {{theme}} 主题",
-    "agentTitle": "Xplorer 助手",
+    "agentTitle": "Wisp 助手",
     "agentDescription": "让我帮您整理文件、查找文档、运行命令或管理工作区。",
     "approve": "批准",
     "thisTime": "本次允许",
@@ -1575,7 +1575,7 @@
       "noCredentialsTitle": "Configure API credentials first",
       "noCredentialsDesc": "Set up your Google Cloud OAuth credentials above to start connecting Google Drive accounts.",
       "noAccountsTitle": "Connect your Google Drive",
-      "noAccountsDesc": "Sign in with your Google account to browse and manage your Drive files directly from Xplorer.",
+      "noAccountsDesc": "Sign in with your Google account to browse and manage your Drive files directly from Wisp.",
       "signInWithGoogle": "Sign in with Google",
       "openAccount": "Open",
       "disconnect": "Disconnect",
@@ -2188,7 +2188,7 @@
       "start": "启动代理",
       "launch": "启动",
       "launching": "启动中...",
-      "typeCloud": "Xplorer 云端",
+      "typeCloud": "Wisp 云端",
       "typeClaudeCode": "Claude Code",
       "typeCodex": "Codex",
       "typeCustomCli": "自定义 CLI"
@@ -2550,7 +2550,7 @@
       "copied": "分享链接已复制到剪贴板！",
       "copyFailed": "无法复制到剪贴板。",
       "shared": "对话已分享！",
-      "openInXplorer": "在另一个 Xplorer 实例中打开此链接以恢复对话。"
+      "openInWisp": "在另一个 Wisp 实例中打开此链接以恢复对话。"
     },
     "clipboard": {
       "pasteImage": "粘贴图片",

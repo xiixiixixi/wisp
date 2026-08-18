@@ -59,7 +59,7 @@ for (const dir of readdirSync(EXT_DIR, { withFileTypes: true })
   if (FILTER && !dir.includes(FILTER)) continue;
 
   const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-  const manifest = pkg.xplorer;
+  const manifest = pkg.wisp;
   if (!manifest?.id) continue;
 
   const version = manifest.version || '1.0.0';

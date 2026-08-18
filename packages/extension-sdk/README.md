@@ -1,13 +1,13 @@
-# Xplorer Extension SDK
+# Wisp Extension SDK
 
-The Xplorer Extension SDK allows developers to create custom extensions for the Xplorer file manager. Extensions can add new functionality, themes, file previews, sidebar panels, commands, and context menu actions.
+The Wisp Extension SDK allows developers to create custom extensions for the Wisp file manager. Extensions can add new functionality, themes, file previews, sidebar panels, commands, and context menu actions.
 
 ## Quick Start
 
 ### Creating a Theme
 
 ```typescript
-import { Theme } from '@xplorer/extension-sdk';
+import { Theme } from '@wisp/extension-sdk';
 
 Theme.register({
   id: 'my-theme',
@@ -25,9 +25,9 @@ Theme.register({
 ### Creating a Sidebar Panel
 
 ```typescript
-import { Sidebar, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Sidebar, type WispAPI } from '@wisp/extension-sdk';
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 Sidebar.register({
   id: 'my-panel',
@@ -41,7 +41,7 @@ Sidebar.register({
 ### Creating a Command
 
 ```typescript
-import { Command, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Command, type WispAPI } from '@wisp/extension-sdk';
 
 Command.register({
   id: 'my-command',
@@ -92,7 +92,7 @@ Sidebar.register({
   id: string;           // unique panel ID
   title: string;        // panel title
   icon?: string;        // icon name or emoji
-  onActivate?: (api: XplorerAPI) => void;  // called when API is available
+  onActivate?: (api: WispAPI) => void;  // called when API is available
   render: (props: { currentPath?: string; selectedFiles?: unknown[]; }) => React.ReactElement;
 });
 ```
@@ -108,7 +108,7 @@ Preview.register({
   permissions?: string[];
   canPreview: (file: { path: string; is_dir: boolean }) => boolean;
   priority?: number;    // higher = preferred (default: 0)
-  onActivate?: (api: XplorerAPI) => void;
+  onActivate?: (api: WispAPI) => void;
   render: (props: { selectedFiles?: unknown[]; currentPath?: string; }) => React.ReactElement;
 });
 ```
@@ -120,7 +120,7 @@ Command.register({
   id: string;           // unique command ID
   title: string;        // display name
   shortcut?: string;    // e.g. 'ctrl+shift+w'
-  action: async (api: XplorerAPI) => void;
+  action: async (api: WispAPI) => void;
 });
 ```
 
@@ -132,16 +132,16 @@ ContextMenu.register({
   title: string;        // menu item label
   icon?: string;
   when?: 'always' | 'singleFileSelected' | 'multipleFilesSelected' | 'directorySelected';
-  action: async (files: FileEntry[], api: XplorerAPI) => void;
+  action: async (files: FileEntry[], api: WispAPI) => void;
 });
 ```
 
 ## Hooks
 
-React hooks for reading Xplorer state from within extension components.
+React hooks for reading Wisp state from within extension components.
 
 ```typescript
-import { useCurrentPath, useSelectedFiles, navigateTo } from '@xplorer/extension-sdk';
+import { useCurrentPath, useSelectedFiles, navigateTo } from '@wisp/extension-sdk';
 
 function MyComponent() {
   const currentPath = useCurrentPath();           // reactive current directory
@@ -152,10 +152,10 @@ function MyComponent() {
 
 ## UI Components
 
-Pre-built React components styled with Xplorer's CSS variables. They automatically match the active theme.
+Pre-built React components styled with Wisp's CSS variables. They automatically match the active theme.
 
 ```typescript
-import { Button, Input, Select, Toggle, Spinner, Panel, Card } from '@xplorer/extension-sdk';
+import { Button, Input, Select, Toggle, Spinner, Panel, Card } from '@wisp/extension-sdk';
 ```
 
 | Component | Props |
@@ -192,8 +192,8 @@ my-extension/
 For complex extensions that need full lifecycle control, you can use the base classes directly:
 
 ```typescript
-import { Extension, PanelExtension, PreviewExtension, ThemeExtension, ActionExtension } from '@xplorer/extension-sdk';
-import { registerExtension, createExtension } from '@xplorer/extension-sdk';
+import { Extension, PanelExtension, PreviewExtension, ThemeExtension, ActionExtension } from '@wisp/extension-sdk';
+import { registerExtension, createExtension } from '@wisp/extension-sdk';
 ```
 
 See the [Extension SDK API](#high-level-apis) section above for full class documentation.
@@ -206,7 +206,7 @@ Extensions run in a sandboxed environment. The following globals are blocked:
 - `eval` (code generation)
 - `__TAURI__`, `__TAURI_INTERNALS__`, `__TAURI_IPC__` (Tauri IPC bypass)
 
-Extensions access functionality through the `XplorerAPI` object provided via `onActivate`.
+Extensions access functionality through the `WispAPI` object provided via `onActivate`.
 
 ## Examples
 

@@ -6,7 +6,7 @@ sidebar_position: 1
 
 # Extension System
 
-Xplorer's extension system lets you add custom panels, file preview handlers, context menu actions, themes, file decorators, and scoped commands — all driven by a manifest and a sandboxed runtime API.
+Wisp's extension system lets you add custom panels, file preview handlers, context menu actions, themes, file decorators, and scoped commands — all driven by a manifest and a sandboxed runtime API.
 
 ![Extensions panel](/screenshots/extensions-panel.png)
 
@@ -25,7 +25,7 @@ The **Extension Host** (`extension-host.ts`) is a singleton that manages the ful
 
 ### Sandboxed API
 
-Every extension receives a **XplorerAPI** object whose methods are gated by the permissions declared in the extension's manifest. Attempting to call `files.write()` without the `file:write` permission throws an error immediately.
+Every extension receives a **WispAPI** object whose methods are gated by the permissions declared in the extension's manifest. Attempting to call `files.write()` without the `file:write` permission throws an error immediately.
 
 ### Backend
 
@@ -46,7 +46,7 @@ Install  →  Load  →  Activate  →  Running  →  Deactivate  →  Uninstall
 
 1. **Install** — extension folder is copied into the app data extensions directory
 2. **Load** — the Extension Host reads the manifest and registers declared contributions (panels, commands, menus)
-3. **Activate** — the extension's code runs, receiving the sandboxed `XplorerAPI`
+3. **Activate** — the extension's code runs, receiving the sandboxed `WispAPI`
 4. **Running** — the extension's panels render, commands respond, decorators apply
 5. **Deactivate** — cleanup; panels and commands are hidden but not removed
 6. **Uninstall** — all files and registrations are permanently removed
@@ -55,7 +55,7 @@ Install  →  Load  →  Activate  →  Running  →  Deactivate  →  Uninstall
 
 | Capability                 | SDK API                  | Permission Required       |
 | -------------------------- | ------------------------ | ------------------------- |
-| Custom color themes        | `Theme.register()`       | `xplorer:themes`          |
+| Custom color themes        | `Theme.register()`       | `wisp:themes`          |
 | Right sidebar panels       | `Sidebar.register()`     | `ui:panels`               |
 | Left sidebar tabs          | `SidebarTab.register()`  | `ui:panels`               |
 | Bottom panel tabs          | `BottomTab.register()`   | `ui:panels`               |
@@ -70,7 +70,7 @@ Install  →  Load  →  Activate  →  Running  →  Deactivate  →  Uninstall
 
 ## Bundled Extensions
 
-Xplorer ships with 25 extensions that use the same extension APIs as third-party extensions. They are active by default but can be toggled on or off.
+Wisp ships with 25 extensions that use the same extension APIs as third-party extensions. They are active by default but can be toggled on or off.
 
 ### Themes (5)
 
@@ -124,7 +124,7 @@ Xplorer ships with 25 extensions that use the same extension APIs as third-party
 
 ### Built-in Panels (8)
 
-In addition to the 25 extensions above, Xplorer includes 8 built-in panel extensions:
+In addition to the 25 extensions above, Wisp includes 8 built-in panel extensions:
 
 | Panel             | Description                       |
 | ----------------- | --------------------------------- |
@@ -144,7 +144,7 @@ Extensions are stored in the app data directory:
 ```
 {app_data}/extensions/
 ├── my-extension/
-│   ├── package.json      ← manifest lives in "xplorer" field
+│   ├── package.json      ← manifest lives in "wisp" field
 │   └── dist/
 │       └── index.js      ← compiled entry point
 └── another-extension/

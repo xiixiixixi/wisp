@@ -26,7 +26,7 @@ const COLUMNS = [
     title: 'Connect',
     links: [
       { label: 'GitHub', href: 'https://github.com/kimlimjustin/xplorer' },
-      { label: 'Twitter', href: 'https://twitter.com/xplorer_app' },
+      { label: 'Twitter', href: 'https://twitter.com/wisp_app' },
       { label: 'Donate', href: '/donate' },
     ],
   },
@@ -122,7 +122,7 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2">
-              <img src="/logo.svg" alt="Xplorer" className="h-8 w-8 rounded-lg" />
+              <img src="/logo.svg" alt="Wisp" className="h-8 w-8 rounded-lg" />
               <span className="text-lg font-bold text-gray-900 dark:text-white">{SITE_NAME}</span>
             </Link>
             <p className="mt-3 max-w-xs text-sm text-gray-500 dark:text-gray-400">
@@ -140,7 +140,7 @@ export function Footer() {
                 <Github className="h-4 w-4" />
               </a>
               <a
-                href="https://twitter.com/xplorer_app"
+                href="https://twitter.com/wisp_app"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"

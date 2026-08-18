@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, Clock, X } from 'lucide-react';
-import { getXplorerState } from '@/components/panels/chat-context-helpers';
+import { getWispState } from '@/components/panels/chat-context-helpers';
 import {
   createSchedule,
   updateSchedule,
@@ -82,7 +82,7 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
   useEffect(() => {
     if (!initial) {
       // Default working directory to current path
-      const xs = getXplorerState();
+      const xs = getWispState();
       if (xs?.currentPath) setWorkingDir(xs.currentPath);
       return;
     }

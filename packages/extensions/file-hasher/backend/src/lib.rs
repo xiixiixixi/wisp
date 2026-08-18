@@ -1,6 +1,6 @@
 //! File Hasher WASM Backend
 //!
-//! Compiled to `wasm32-unknown-unknown` and loaded by the Xplorer wasmi runtime.
+//! Compiled to `wasm32-unknown-unknown` and loaded by the Wisp wasmi runtime.
 //! Provides file hashing operations (SHA-256, SHA-1, MD5) by reading files
 //! through the `host_read_file` host function and computing hashes in pure Rust.
 //!

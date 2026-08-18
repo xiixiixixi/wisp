@@ -14,7 +14,7 @@ import { handleSpecialSlashCommand } from './chat-special-commands';
 import { handleTemplateSlashCommand } from './chat-action-templates';
 import {
   type FileContext,
-  getXplorerState,
+  getWispState,
   readFileForAIContext,
   readMultipleFilesForAIContext,
   IMAGE_EXTENSIONS,
@@ -207,7 +207,7 @@ export const useSaveCodeAsFile = (
   useCallback(
     async (code: string, language: string) => {
       const ext = (LANG_EXTENSIONS[language.toLowerCase()] ?? language) || 'txt';
-      const xState = getXplorerState();
+      const xState = getWispState();
       const dir = xState?.currentPath ?? '';
       if (!dir) {
         console.warn('No current directory to save file in');
@@ -237,11 +237,11 @@ export const buildDroppedFiles = (
 ): Array<{ name: string; path: string; is_dir: boolean }> => {
   let files: Array<{ name: string; path: string; is_dir: boolean }> = [];
 
-  // Xplorer internal drag format
-  const xplorerData = e.dataTransfer.getData('application/xplorer-files');
-  if (xplorerData) {
+  // Wisp internal drag format
+  const wispData = e.dataTransfer.getData('application/wisp-files');
+  if (wispData) {
     try {
-      const parsed: unknown = JSON.parse(xplorerData);
+      const parsed: unknown = JSON.parse(wispData);
       if (Array.isArray(parsed)) {
         files = parsed.map((f: { name?: string; path?: string; is_dir?: boolean }) => ({
           name: String(f.name ?? basename(String(f.path ?? ''))),

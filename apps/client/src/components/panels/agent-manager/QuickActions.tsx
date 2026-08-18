@@ -1,6 +1,6 @@
 /**
  * Quick Actions grid — one-click common AI tasks.
- * Each action dispatches a prompt to the AI chat via the xplorer-ai-chat-request event.
+ * Each action dispatches a prompt to the AI chat via the wisp-ai-chat-request event.
  */
 import { useTranslation } from 'react-i18next';
 import { FolderTree, Search, FileDown, PenLine, FileText, Trash2 } from 'lucide-react';

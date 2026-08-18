@@ -1,4 +1,4 @@
-const { showNotification, readFile } = require('@xplorer/extension-sdk');
+const { showNotification, readFile } = require('@wisp/extension-sdk');
 
 function activate() {
     console.log('Test Fixture Extension activated');

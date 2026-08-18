@@ -25,7 +25,7 @@ interface FolderViewSettingsResult {
 
 // ── Defaults ──────────────────────────────────────────────────────────────────
 
-const DEFAULT_VIEW_MODE = 'medium';
+const DEFAULT_VIEW_MODE = 'details';
 const DEFAULT_SORT_BY: SortField = 'name';
 const DEFAULT_SORT_ORDER: 'asc' | 'desc' = 'asc';
 const DEFAULT_GROUP_BY_DATE = false;

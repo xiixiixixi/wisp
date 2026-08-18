@@ -1,6 +1,6 @@
 # Agent Manager Panel
 
-Architecture reference for the Xplorer Agent Manager — the right-sidebar panel and full-screen workspace for managing AI agent sessions.
+Architecture reference for the Wisp Agent Manager — the right-sidebar panel and full-screen workspace for managing AI agent sessions.
 
 ## File Map
 
@@ -93,7 +93,7 @@ Detection flow:
 5. After 30 seconds of silence, status transitions to `idle`
 6. On PTY exit, status transitions to `exited`
 
-Events are broadcast via `window.dispatchEvent(new CustomEvent('xplorer-external-agent', ...))`.
+Events are broadcast via `window.dispatchEvent(new CustomEvent('wisp-external-agent', ...))`.
 
 ## Cost Tracking
 
@@ -109,7 +109,7 @@ Events are broadcast via `window.dispatchEvent(new CustomEvent('xplorer-external
 | o4-mini | 1.10 | 4.40 |
 | Local models | 0.00 | 0.00 |
 
-Token estimation uses a rough heuristic of ~4 characters per token. Daily totals are persisted to `localStorage` under `xplorer:agent-cost-history` with a 30-day rolling window.
+Token estimation uses a rough heuristic of ~4 characters per token. Daily totals are persisted to `localStorage` under `wisp:agent-cost-history` with a 30-day rolling window.
 
 ## MCP Host Tool List
 

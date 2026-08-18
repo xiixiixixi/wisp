@@ -76,7 +76,7 @@ describe('useTour', () => {
         endTour();
       });
 
-      expect(localStorage.getItem('xplorer:tour-completed')).toBe('true');
+      expect(localStorage.getItem('wisp:tour-completed')).toBe('true');
     });
 
     it('does not mark completed when markCompleted=false', () => {
@@ -87,7 +87,7 @@ describe('useTour', () => {
         endTour(false);
       });
 
-      expect(localStorage.getItem('xplorer:tour-completed')).toBeNull();
+      expect(localStorage.getItem('wisp:tour-completed')).toBeNull();
     });
   });
 

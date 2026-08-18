@@ -1,6 +1,6 @@
 # AI Chat Agent -- Architecture & Reference
 
-The AI chat agent is a standalone panel in Xplorer that provides conversational file management powered by LLM. Users can ask the agent to create, edit, move, delete, and organize files, run terminal commands, compare files, scan for duplicates, summarize documents, manage workflows, share conversations, and more.
+The AI chat agent is a standalone panel in Wisp that provides conversational file management powered by LLM. Users can ask the agent to create, edit, move, delete, and organize files, run terminal commands, compare files, scan for duplicates, summarize documents, manage workflows, share conversations, and more.
 
 ## File Map
 
@@ -36,7 +36,7 @@ The AI chat agent is a standalone panel in Xplorer that provides conversational 
 | File | Purpose |
 |------|---------|
 | `chat-file-actions.tsx` | Action types, JSON parsing from AI responses, execution via TauriAPI, undo logic, command safety, system prompt. |
-| `chat-context-helpers.ts` | File reading for AI context (text, images, directories), Xplorer state access. |
+| `chat-context-helpers.ts` | File reading for AI context (text, images, directories), Wisp state access. |
 | `chat-system-prompt.ts` | Assembles the full system prompt from all context sources with TTL caching. |
 | `chat-slash-commands.ts` | Core slash command definitions (23 commands) and matching. Language extension map. |
 | `chat-slash-commands-extra.ts` | Additional slash commands (/commit-message, /share, /workflows). Merged at runtime. |

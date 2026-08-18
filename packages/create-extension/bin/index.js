@@ -12,8 +12,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 program
-  .name('create-xplorer-extension')
-  .description('Create a new Xplorer extension')
+  .name('create-wisp-extension')
+  .description('Create a new Wisp extension')
   .version('1.0.0');
 
 program
@@ -21,7 +21,7 @@ program
   .option('-t, --template <template>', 'template to use', 'basic')
   .option('--skip-install', 'skip npm install')
   .action(async (extensionName, options) => {
-    console.log(chalk.blue.bold('🚀 Create Xplorer Extension'));
+    console.log(chalk.blue.bold('🚀 Create Wisp Extension'));
     console.log();
 
     let name = extensionName;
@@ -58,7 +58,7 @@ program
         type: 'input',
         name: 'description',
         message: 'Description:',
-        default: `A Xplorer extension for ${name}`,
+        default: `A Wisp extension for ${name}`,
       },
       {
         type: 'input',
@@ -144,7 +144,7 @@ program
       }
       console.log('  npm run dev');
       console.log();
-      console.log(chalk.gray('For more information, visit: https://docs.xplorer.com/extensions'));
+      console.log(chalk.gray('For more information, visit: https://docs.wisp.com/extensions'));
     } catch (error) {
       spinner.fail('Failed to create extension');
       console.error(chalk.red(error.message));

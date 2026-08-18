@@ -130,12 +130,12 @@ describe('collections CRUD', () => {
 
 describe('collections storage edge cases', () => {
   it('handles corrupted JSON in localStorage', () => {
-    store['xplorer:collections'] = 'not-json!!';
+    store['wisp:collections'] = 'not-json!!';
     expect(getCollections()).toEqual([]);
   });
 
   it('handles non-array JSON in localStorage', () => {
-    store['xplorer:collections'] = '{"id": "oops"}';
+    store['wisp:collections'] = '{"id": "oops"}';
     expect(getCollections()).toEqual([]);
   });
 });

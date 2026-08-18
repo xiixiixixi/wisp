@@ -177,8 +177,8 @@ describe('StatusBar', () => {
       expect(screen.getByText('C:\\Short')).toBeInTheDocument();
     });
 
-    it('strips xplorer:// prefix for display', () => {
-      render(<StatusBar {...defaultProps} currentPath="xplorer://favorites" />);
+    it('strips wisp:// prefix for display', () => {
+      render(<StatusBar {...defaultProps} currentPath="wisp://favorites" />);
 
       expect(screen.getByText('favorites')).toBeInTheDocument();
     });
@@ -226,7 +226,7 @@ describe('StatusBar', () => {
 
       expect(dispatchSpy).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'xplorer-set-bottom-tab',
+          type: 'wisp-set-bottom-tab',
           detail: { tab: 'git' },
         }),
       );
@@ -269,8 +269,8 @@ describe('StatusBar', () => {
       });
     });
 
-    it('does not fetch git info for xplorer:// paths', () => {
-      render(<StatusBar {...defaultProps} currentPath="xplorer://favorites" />);
+    it('does not fetch git info for wisp:// paths', () => {
+      render(<StatusBar {...defaultProps} currentPath="wisp://favorites" />);
 
       expect(TauriAPI.findGitRepository).not.toHaveBeenCalled();
     });
@@ -297,8 +297,8 @@ describe('StatusBar', () => {
       });
     });
 
-    it('does not show free space for xplorer:// paths', () => {
-      render(<StatusBar {...defaultProps} currentPath="xplorer://favorites" />);
+    it('does not show free space for wisp:// paths', () => {
+      render(<StatusBar {...defaultProps} currentPath="wisp://favorites" />);
 
       expect(TauriAPI.listDrives).not.toHaveBeenCalled();
     });

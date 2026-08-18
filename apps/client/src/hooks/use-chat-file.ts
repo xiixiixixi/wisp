@@ -202,7 +202,7 @@ export const useChatFile = ({ filePath }: UseChatFileOptions) => {
     // Include currently selected text from the code editor, if any
     const editorSelection = (
       window as unknown as {
-        __xplorer_state__?: {
+        __wisp_state__?: {
           editorSelection?: {
             text: string;
             filePath: string;
@@ -211,7 +211,7 @@ export const useChatFile = ({ filePath }: UseChatFileOptions) => {
           } | null;
         };
       }
-    ).__xplorer_state__?.editorSelection;
+    ).__wisp_state__?.editorSelection;
 
     if (editorSelection) {
       contextParts.push(

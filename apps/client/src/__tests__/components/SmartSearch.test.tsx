@@ -415,11 +415,11 @@ describe('SmartSearch', () => {
       expect(TauriAPI.findFiles).not.toHaveBeenCalled();
     });
 
-    it('does not use xplorer:// path for filesystem search', async () => {
+    it('does not use wisp:// path for filesystem search', async () => {
       vi.mocked(TauriAPI.findFiles).mockResolvedValue([]);
 
       await act(async () => {
-        render(<SmartSearch currentPath="xplorer://favorites" />);
+        render(<SmartSearch currentPath="wisp://favorites" />);
       });
 
       const input = screen.getByPlaceholderText('Search files and content...');
@@ -427,7 +427,7 @@ describe('SmartSearch', () => {
         fireEvent.change(input, { target: { value: 'test' } });
       });
 
-      // findFiles should not be called with xplorer:// path
+      // findFiles should not be called with wisp:// path
       await waitFor(() => {
         expect(TauriAPI.findFiles).not.toHaveBeenCalled();
       });

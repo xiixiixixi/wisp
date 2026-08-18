@@ -707,7 +707,7 @@ export class ContextMenuFactory {
                 const lines = content.split('\n').length;
                 const chars = content.length;
                 window.dispatchEvent(
-                  new CustomEvent('xplorer:extension-toast', {
+                  new CustomEvent('wisp:extension-toast', {
                     detail: {
                       title: file.name,
                       description: `${words.toLocaleString()} words · ${lines.toLocaleString()} lines · ${chars.toLocaleString()} chars`,
@@ -735,7 +735,7 @@ export class ContextMenuFactory {
                 .join('');
               await navigator.clipboard.writeText(sha256);
               window.dispatchEvent(
-                new CustomEvent('xplorer:extension-toast', {
+                new CustomEvent('wisp:extension-toast', {
                   detail: {
                     title: 'File Hash',
                     description: `SHA-256: ${sha256} — copied to clipboard`,

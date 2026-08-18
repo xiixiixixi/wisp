@@ -70,10 +70,10 @@ const sectionHeaderStyle: React.CSSProperties = {
 
 /**
  * Dispatch a prompt to the AI chat panel via the established event bridge.
- * The `use-xplorer-effects` hook listens for this and opens the chat panel.
+ * The `use-wisp-effects` hook listens for this and opens the chat panel.
  */
 const dispatchChatPrompt = (prompt: string): void => {
-  window.dispatchEvent(new CustomEvent('xplorer-ai-chat-request', { detail: { prompt } }));
+  window.dispatchEvent(new CustomEvent('wisp-ai-chat-request', { detail: { prompt } }));
 };
 
 // ---------------------------------------------------------------------------
@@ -171,13 +171,13 @@ const AgentManagerPanel = () => {
       }
     };
 
-    window.addEventListener('xplorer-agent-update', handleAgentUpdate);
-    window.addEventListener('xplorer-agent-start', handleAgentStart);
-    window.addEventListener('xplorer-agent-end', handleAgentEnd);
+    window.addEventListener('wisp-agent-update', handleAgentUpdate);
+    window.addEventListener('wisp-agent-start', handleAgentStart);
+    window.addEventListener('wisp-agent-end', handleAgentEnd);
     return () => {
-      window.removeEventListener('xplorer-agent-update', handleAgentUpdate);
-      window.removeEventListener('xplorer-agent-start', handleAgentStart);
-      window.removeEventListener('xplorer-agent-end', handleAgentEnd);
+      window.removeEventListener('wisp-agent-update', handleAgentUpdate);
+      window.removeEventListener('wisp-agent-start', handleAgentStart);
+      window.removeEventListener('wisp-agent-end', handleAgentEnd);
     };
   }, []);
 
@@ -190,14 +190,14 @@ const AgentManagerPanel = () => {
       }
     };
 
-    window.addEventListener('xplorer-agent-queue-task', handleQueueTask);
-    return () => window.removeEventListener('xplorer-agent-queue-task', handleQueueTask);
+    window.addEventListener('wisp-agent-queue-task', handleQueueTask);
+    return () => window.removeEventListener('wisp-agent-queue-task', handleQueueTask);
   }, []);
 
   // Stop an active agent
   const handleStopAgent = useCallback((_id: string) => {
     // Dispatch stop event for the chat panel to handle
-    window.dispatchEvent(new CustomEvent('xplorer-agent-stop', { detail: { agentId: _id } }));
+    window.dispatchEvent(new CustomEvent('wisp-agent-stop', { detail: { agentId: _id } }));
     setActiveAgents((prev) => prev.filter((a) => a.id !== _id));
   }, []);
 
@@ -261,7 +261,7 @@ const AgentManagerPanel = () => {
   // Broadcast active count so the VerticalExtensionsBar status indicator stays in sync
   useEffect(() => {
     window.dispatchEvent(
-      new CustomEvent('xplorer-agent-active-count', { detail: { count: totalActiveCount } }),
+      new CustomEvent('wisp-agent-active-count', { detail: { count: totalActiveCount } }),
     );
   }, [totalActiveCount]);
 

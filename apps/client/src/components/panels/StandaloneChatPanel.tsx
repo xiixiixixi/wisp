@@ -11,7 +11,7 @@ import {
   saveChatHistory,
 } from './chat-history';
 import { QUICK_ACTIONS, QuickActionsBar, type QuickAction } from './chat-quick-actions';
-import { type XplorerState, type FileContext, getXplorerState } from './chat-context-helpers';
+import { type WispState, type FileContext, getWispState } from './chat-context-helpers';
 import ChatContextHeader from './ChatContextHeader';
 import ChatModelPicker from './ChatModelPicker';
 import ChatWelcome from './ChatWelcome';
@@ -111,12 +111,12 @@ const StandaloneChatPanel = () => {
     Array<{ name: string; path: string; is_dir: boolean }>
   >([]);
 
-  // File context state -- updated from __xplorer_state__
+  // File context state -- updated from __wisp_state__
   const [currentPath, setCurrentPath] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<
     Array<{ name: string; path: string; is_dir: boolean }>
   >([]);
-  const [editorSelection, setEditorSelection] = useState<XplorerState['editorSelection']>(null);
+  const [editorSelection, setEditorSelection] = useState<WispState['editorSelection']>(null);
   const [includeSelection, setIncludeSelection] = useState(true);
 
   // Workspace awareness state
@@ -191,10 +191,10 @@ const StandaloneChatPanel = () => {
       });
   }, []);
 
-  // Sync file context from __xplorer_state__
+  // Sync file context from __wisp_state__
   useEffect(() => {
     const syncState = () => {
-      const xState = getXplorerState();
+      const xState = getWispState();
       if (!xState) return;
       setCurrentPath(xState.currentPath || '');
       setSelectedFiles(xState.selectedFiles || []);
@@ -202,10 +202,10 @@ const StandaloneChatPanel = () => {
     };
     syncState();
     const onStateChange = () => syncState();
-    window.addEventListener('xplorer-state-change', onStateChange);
+    window.addEventListener('wisp-state-change', onStateChange);
     const interval = setInterval(syncState, 1000);
     return () => {
-      window.removeEventListener('xplorer-state-change', onStateChange);
+      window.removeEventListener('wisp-state-change', onStateChange);
       clearInterval(interval);
     };
   }, []);
@@ -346,7 +346,7 @@ const StandaloneChatPanel = () => {
 
   const buildSystemPrompt = useCallback(
     async (
-      xState: XplorerState | undefined,
+      xState: WispState | undefined,
       fileContexts: FileContext[],
       agentLoopContext?: string,
     ): Promise<string> =>
@@ -421,7 +421,7 @@ const StandaloneChatPanel = () => {
         return;
       }
 
-      const xState = getXplorerState();
+      const xState = getWispState();
 
       // Detect user corrections and learn preferences
       {
@@ -433,7 +433,7 @@ const StandaloneChatPanel = () => {
         }
       }
 
-      // Dropped files take priority over xplorer selection
+      // Dropped files take priority over wisp selection
       const filesToRead =
         droppedFiles.length > 0 ? [...droppedFiles] : [...(xState?.selectedFiles ?? [])];
 
@@ -551,12 +551,11 @@ const StandaloneChatPanel = () => {
     [currentConversationId, clearChat],
   );
 
-  // File path click handler — navigate to file in Xplorer
+  // File path click handler — navigate to file in Wisp
 
   const navigateToFile = useCallback((filePath: string) => {
-    const xState = (
-      window as unknown as { __xplorer_state__?: { navigateTo: (p: string) => void } }
-    ).__xplorer_state__;
+    const xState = (window as unknown as { __wisp_state__?: { navigateTo: (p: string) => void } })
+      .__wisp_state__;
     if (!xState?.navigateTo) return;
     // Navigate to the parent directory so the file is visible
     const parts = filePath.split(/[/\\]/);

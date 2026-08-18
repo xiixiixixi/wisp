@@ -14,8 +14,8 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use std::{fs, path::Path};
 use tempfile::TempDir;
-use xplorer::duplicate_finder::DuplicateFinder;
-use xplorer::shortcuts::{manager::*, types::*};
+use wisp::duplicate_finder::DuplicateFinder;
+use wisp::shortcuts::{manager::*, types::*};
 
 fn create_test_files(dir: &Path, count: usize) {
     for i in 0..count {

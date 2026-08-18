@@ -1,4 +1,4 @@
-// Xplorer Search Engine — Core Engine Implementation
+// Wisp Search Engine — Core Engine Implementation
 //
 // Contains the `SearchEngine` struct and its methods: indexing,
 // searching, recommendations, PRF, context boost, watcher management.

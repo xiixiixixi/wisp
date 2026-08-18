@@ -1,8 +1,8 @@
 /**
- * Xplorer SDK — Internal service layer.
+ * Wisp SDK — Internal service layer.
  *
  * Re-exports every service module and all shared types.
- * Core app components import from `@xplorer/sdk` instead of TauriAPI directly.
+ * Core app components import from `@wisp/sdk` instead of TauriAPI directly.
  */
 
 // ── Types ─────────────────────────────────────────────────────────────────────

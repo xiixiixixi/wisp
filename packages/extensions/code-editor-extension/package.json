@@ -1,14 +1,14 @@
 {
-  "name": "xplorer-code-editor",
+  "name": "wisp-code-editor",
   "version": "3.0.1",
   "description": "Syntax-highlighted code editor powered by CodeMirror 6. Registers as the default editor for text/code files.",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "build": "esbuild src/index.tsx --bundle --format=iife --outfile=dist/index.js --external:react --external:react-dom --external:@xplorer/extension-sdk --target=es2020 --jsx=transform",
-    "watch": "esbuild src/index.tsx --bundle --format=iife --outfile=dist/index.js --external:react --external:react-dom --external:@xplorer/extension-sdk --target=es2020 --jsx=transform --watch",
+    "build": "esbuild src/index.tsx --bundle --format=iife --outfile=dist/index.js --external:react --external:react-dom --external:@wisp/extension-sdk --target=es2020 --jsx=transform",
+    "watch": "esbuild src/index.tsx --bundle --format=iife --outfile=dist/index.js --external:react --external:react-dom --external:@wisp/extension-sdk --target=es2020 --jsx=transform --watch",
     "package": "npm run build && cd .. && node -e \"const{execSync}=require('child_process');execSync('tar -cf code-editor-extension.zip -C code-editor-extension .');\"",
-    "dev": "touch .hotreload && esbuild src/index.tsx --bundle --outfile=dist/index.js --watch --format=iife --external:react --external:react-dom --external:@xplorer/extension-sdk --define:process.env.NODE_ENV=\\\"development\\\"; rm -f .hotreload"
+    "dev": "touch .hotreload && esbuild src/index.tsx --bundle --outfile=dist/index.js --watch --format=iife --external:react --external:react-dom --external:@wisp/extension-sdk --define:process.env.NODE_ENV=\\\"development\\\"; rm -f .hotreload"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.1",
@@ -36,13 +36,13 @@
     "esbuild": "^0.20.0",
     "typescript": "^5.2.0"
   },
-  "xplorer": {
+  "wisp": {
     "id": "code-editor",
     "name": "Code Editor",
     "displayName": "Code Editor",
     "description": "Syntax-highlighted code editor powered by CodeMirror 6. Registers as the default editor for text/code files.",
     "version": "3.0.0",
-    "author": "Xplorer Team",
+    "author": "Wisp Team",
     "category": "editor",
     "icon": "file-code-2",
     "keywords": [

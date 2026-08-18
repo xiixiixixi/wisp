@@ -147,13 +147,13 @@ describe('useCollectionFiles', () => {
   });
 
   describe('Special Protocol Paths', () => {
-    it('returns empty files when basePath starts with xplorer://', async () => {
+    it('returns empty files when basePath starts with wisp://', async () => {
       const collection = {
         id: 'col-4',
         name: 'Proto',
         icon: '',
         filters: [],
-        basePath: 'xplorer://home',
+        basePath: 'wisp://home',
         createdAt: 1000,
         updatedAt: 1000,
       };

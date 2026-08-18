@@ -6,7 +6,7 @@ import { STORAGE_KEYS } from '@/lib/storage-keys';
 /** Emit a message to the Activity Log */
 const logOutput = (msg: string) => {
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('xplorer-output', { detail: msg }));
+    window.dispatchEvent(new CustomEvent('wisp-output', { detail: msg }));
   }
 };
 

@@ -410,7 +410,7 @@ fn extension_storage_dir(extension_id: &str) -> Result<std::path::PathBuf, Strin
     let data_dir =
         dirs::data_dir().ok_or_else(|| "Could not determine app data directory".to_string())?;
     let storage_dir = data_dir
-        .join("com.xplorer.app")
+        .join("com.wisp.app")
         .join("extension_storage")
         .join(extension_id);
     std::fs::create_dir_all(&storage_dir)
@@ -832,7 +832,7 @@ fn validate_read_path(path: &str, extension_id: &str) -> Result<(), String> {
     let data_dir =
         dirs::data_dir().ok_or_else(|| "Could not determine app data directory".to_string())?;
     let ext_data_base = data_dir
-        .join("com.xplorer.app")
+        .join("com.wisp.app")
         .join("extension_data")
         .join(extension_id);
     if let Ok(canonical_base) = std::fs::canonicalize(&ext_data_base) {
@@ -845,7 +845,7 @@ fn validate_read_path(path: &str, extension_id: &str) -> Result<(), String> {
 
     // Also allow reads within extension storage directory.
     let ext_storage_base = data_dir
-        .join("com.xplorer.app")
+        .join("com.wisp.app")
         .join("extension_storage")
         .join(extension_id);
     if let Ok(canonical_base) = std::fs::canonicalize(&ext_storage_base) {
@@ -926,7 +926,7 @@ fn validate_write_path(path: &str, extension_id: &str) -> Result<(), String> {
     let data_dir =
         dirs::data_dir().ok_or_else(|| "Could not determine app data directory".to_string())?;
     let allowed_base = data_dir
-        .join("com.xplorer.app")
+        .join("com.wisp.app")
         .join("extension_data")
         .join(extension_id);
 

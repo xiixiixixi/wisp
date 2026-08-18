@@ -14,8 +14,8 @@ mod windows_impl {
     use winreg::enums::*;
     use winreg::RegKey;
 
-    const VERB: &str = "OpenWithXplorer";
-    const DISPLAY_NAME: &str = "Open with Xplorer";
+    const VERB: &str = "OpenWithWisp";
+    const DISPLAY_NAME: &str = "Open with Wisp";
 
     fn get_exe_path() -> Result<String, String> {
         std::env::current_exe()

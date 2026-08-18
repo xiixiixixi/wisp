@@ -12,7 +12,7 @@ const CATEGORIES = [
   {
     name: 'Themes',
     slug: 'themes',
-    description: 'Visual themes and color schemes for Xplorer',
+    description: 'Visual themes and color schemes for Wisp',
     icon: 'palette',
   },
   {
@@ -120,7 +120,7 @@ function readExtensionManifests(): { dirName: string; manifest: ExtensionManifes
 
       try {
         const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-        const manifest = pkg.xplorer as ExtensionManifest | undefined;
+        const manifest = pkg.wisp as ExtensionManifest | undefined;
         if (!manifest || !manifest.id || !manifest.description) continue;
         results.push({ dirName: dir, manifest });
       } catch (err) {
@@ -162,25 +162,25 @@ async function main() {
   }
   console.log(`[seed] Upserted ${CATEGORIES.length} categories.`);
 
-  // 2. Upsert system user (Xplorer Team)
+  // 2. Upsert system user (Wisp Team)
   // Try by email first, then by username
-  let systemUser = await prisma.user.findUnique({ where: { email: 'team@xplorer.app' } });
+  let systemUser = await prisma.user.findUnique({ where: { email: 'team@wisp.app' } });
   if (!systemUser) {
-    systemUser = await prisma.user.findUnique({ where: { username: 'xplorer-team' } });
+    systemUser = await prisma.user.findUnique({ where: { username: 'wisp-team' } });
   }
   if (!systemUser) {
     systemUser = await prisma.user.create({
       data: {
-        email: 'team@xplorer.app',
-        name: 'Xplorer Team',
-        username: 'xplorer-team',
+        email: 'team@wisp.app',
+        name: 'Wisp Team',
+        username: 'wisp-team',
         role: 'ADMIN',
       },
     });
   } else {
     systemUser = await prisma.user.update({
       where: { id: systemUser.id },
-      data: { name: 'Xplorer Team', role: 'ADMIN' },
+      data: { name: 'Wisp Team', role: 'ADMIN' },
     });
   }
   console.log(`[seed] System user: ${systemUser.name} (${systemUser.id})`);
@@ -237,7 +237,7 @@ async function main() {
             isFeatured: [
               'ai-chat',
               'code-editor',
-              'xplorer-dracula-theme',
+              'wisp-dracula-theme',
               'duplicate-finder',
               'git',
             ].includes(manifest.id),

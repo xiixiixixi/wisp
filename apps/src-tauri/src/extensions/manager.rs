@@ -518,7 +518,7 @@ impl ExtensionManager {
         let content = fs::read_to_string(file_path).map_err(|e| e.to_string())?;
 
         // These patterns indicate code that attempts to break out of the extension sandbox.
-        // Extensions should use the Xplorer Extension SDK APIs (api.files, api.ui, etc.) instead.
+        // Extensions should use the Wisp Extension SDK APIs (api.files, api.ui, etc.) instead.
         let dangerous_patterns: &[(&str, &str)] = &[
             ("require(\"child_process\")", "Use api.nativeInvoke() with a native plugin instead of child_process"),
             ("require('child_process')",   "Use api.nativeInvoke() with a native plugin instead of child_process"),

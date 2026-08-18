@@ -31,7 +31,7 @@ const KNOWN_KEYS = [
   'gdrive-file-cache',
 ];
 
-const KNOWN_PREFIXES = ['xplorer:', 'xplorer_', 'xplorer-', 'gdrive-'];
+const KNOWN_PREFIXES = ['wisp:', 'wisp_', 'wisp-', 'gdrive-'];
 
 interface ExportPayload {
   version: string;
@@ -126,7 +126,7 @@ const downloadJson = (payload: ExportPayload) => {
   const a = document.createElement('a');
   a.href = url;
   const date = new Date().toISOString().slice(0, 10);
-  a.download = `xplorer-settings-${date}.json`;
+  a.download = `wisp-settings-${date}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

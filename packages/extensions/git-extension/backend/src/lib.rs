@@ -1,6 +1,6 @@
 //! Git Extension WASM Backend
 //!
-//! Compiled to `wasm32-unknown-unknown` and loaded by the Xplorer wasmi runtime.
+//! Compiled to `wasm32-unknown-unknown` and loaded by the Wisp wasmi runtime.
 //! Provides git operations by calling the `host_git_exec` host function which
 //! runs sanitized `git` CLI commands.
 //!

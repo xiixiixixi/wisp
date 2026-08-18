@@ -3,7 +3,7 @@
  * in VerticalExtensionsBar. Shows count of active agents plus a pulsing
  * dot when any agent is currently running.
  *
- * Fully event-driven: listens for the `xplorer-agent-active-count` event
+ * Fully event-driven: listens for the `wisp-agent-active-count` event
  * dispatched by AgentManagerPanel whenever the total active count changes.
  *
  * Usage: wrap the Bot icon in VerticalExtensionsBar with this component.
@@ -33,9 +33,9 @@ const AgentStatusIndicator = ({ children }: AgentStatusIndicatorProps) => {
       }
     };
 
-    window.addEventListener('xplorer-agent-active-count', handleCountUpdate);
+    window.addEventListener('wisp-agent-active-count', handleCountUpdate);
     return () => {
-      window.removeEventListener('xplorer-agent-active-count', handleCountUpdate);
+      window.removeEventListener('wisp-agent-active-count', handleCountUpdate);
     };
   }, []);
 

@@ -1,9 +1,9 @@
 {
-  "id": "xplorer-collaboration",
-  "name": "Xplorer Collaboration",
+  "id": "wisp-collaboration",
+  "name": "Wisp Collaboration",
   "displayName": "Collaboration",
   "version": "1.0.0",
-  "author": "Xplorer Team",
+  "author": "Wisp Team",
   "category": "tool",
   "description": "Multi-user collaboration: shared file browsing, file transfer, chat, and team workspace with company/organization support.",
   "icon": "users",

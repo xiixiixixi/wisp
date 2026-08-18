@@ -1,4 +1,4 @@
-// Xplorer Search Engine — Backward-Compatible API Layer
+// Wisp Search Engine — Backward-Compatible API Layer
 //
 // Thin module that re-exports public types and `SearchEngine` from
 // `compat_engine` so that code like `search::compat::SearchEngine` still works.

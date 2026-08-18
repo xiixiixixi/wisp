@@ -1,4 +1,4 @@
-// Xplorer Search Engine — Filesystem Change Watcher
+// Wisp Search Engine — Filesystem Change Watcher
 //
 // Watches whitelisted directories for file-system changes and emits
 // batched `FileChangeEvent`s that the incremental indexer consumes

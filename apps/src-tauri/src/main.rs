@@ -3,28 +3,28 @@
 
 use tauri::{Emitter, Listener, Manager, WindowEvent};
 
-// All modules are declared in lib.rs (the `xplorer` library crate).
+// All modules are declared in lib.rs (the `wisp` library crate).
 // Import them here so the binary can register Tauri commands.
-use xplorer::agent;
-use xplorer::agent_sessions;
-use xplorer::ai;
-use xplorer::duplicate_finder;
-use xplorer::extensions;
-use xplorer::file_organizer;
-use xplorer::file_watcher;
-use xplorer::git;
-use xplorer::google_drive;
-use xplorer::mcp_host;
-use xplorer::mcp_server;
-use xplorer::operations;
-use xplorer::pty;
-use xplorer::shortcuts;
-use xplorer::storage;
+use wisp::agent;
+use wisp::agent_sessions;
+use wisp::ai;
+use wisp::duplicate_finder;
+use wisp::extensions;
+use wisp::file_organizer;
+use wisp::file_watcher;
+use wisp::git;
+use wisp::google_drive;
+use wisp::mcp_host;
+use wisp::mcp_server;
+use wisp::operations;
+use wisp::pty;
+use wisp::shortcuts;
+use wisp::storage;
 // git_integration is consolidated into git module
-use xplorer::audit_log;
-use xplorer::backup;
-use xplorer::file_versions;
-use xplorer::sync;
+use wisp::audit_log;
+use wisp::backup;
+use wisp::file_versions;
+use wisp::sync;
 
 use tracing::warn;
 
@@ -36,7 +36,7 @@ fn main() {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("xplorer=info,warn")),
+                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("wisp=info,warn")),
         )
         .with_target(true)
         .init();
@@ -94,7 +94,7 @@ fn main() {
                         if let Ok(raw) = std::fs::read_to_string(&pkg_path) {
                             if let Ok(pkg) = serde_json::from_str::<serde_json::Value>(&raw) {
                                 if let Some(id) = pkg
-                                    .get("xplorer")
+                                    .get("wisp")
                                     .and_then(|x| x.get("id"))
                                     .and_then(|v| v.as_str())
                                 {
@@ -145,7 +145,7 @@ fn main() {
                 }
             }
 
-            // Check CLI args for folder path (opened via "Open with Xplorer" or set-as-default)
+            // Check CLI args for folder path (opened via "Open with Wisp" or set-as-default)
             for arg in &args[1..] {
                 let path = std::path::Path::new(arg);
                 if path.is_dir() {
@@ -190,26 +190,26 @@ fn main() {
                 if let Some(window) = app.get_webview_window("main") {
                     window.open_devtools();
                 } else {
-                    warn!("[Xplorer] could not find 'main' webview window to open devtools");
+                    warn!("[Wisp] could not find 'main' webview window to open devtools");
                 }
             }
             // Auto-install CLI on first launch
             #[cfg(not(target_os = "windows"))]
             {
-                let cli_target = std::path::Path::new("/usr/local/bin/xplorer");
+                let cli_target = std::path::Path::new("/usr/local/bin/wisp");
                 if !cli_target.exists() {
                     if let Ok(exe) = std::env::current_exe() {
                         let cli_src = exe.parent().map(|p| {
-                            // In .app bundle: Contents/MacOS/xplorer → Contents/Resources/xplorer.mjs
+                            // In .app bundle: Contents/MacOS/wisp → Contents/Resources/wisp.mjs
                             let resources = p
                                 .parent()
                                 .unwrap_or(p)
                                 .join("Resources")
-                                .join("xplorer.mjs");
+                                .join("wisp.mjs");
                             if resources.exists() {
                                 resources
                             } else {
-                                p.join("xplorer.mjs")
+                                p.join("wisp.mjs")
                             }
                         });
                         if let Some(src) = cli_src {
@@ -217,7 +217,7 @@ fn main() {
                                 let src_str = src.to_string_lossy().to_string();
                                 let script =
                                     format!("#!/bin/bash\nexec node '{}' \"$@\"\n", src_str);
-                                let tmp = std::env::temp_dir().join("xplorer-cli-auto.sh");
+                                let tmp = std::env::temp_dir().join("wisp-cli-auto.sh");
                                 if std::fs::write(&tmp, &script).is_ok() {
                                     let _ = std::process::Command::new("sh")
                                         .args([
@@ -329,32 +329,32 @@ fn main() {
             // Native plugin invoke (for extensions with native code)
             extensions::native_plugin_invoke,
             // Search engine v2 (replaces old tokenizer commands)
-            xplorer::search::compat_commands::set_tokenizer_settings,
-            xplorer::search::compat_commands::get_tokenizer_settings,
-            xplorer::search::compat_commands::rebuild_token_index,
-            xplorer::search::compat_commands::search_tokens,
-            xplorer::search::compat_commands::natural_language_search,
-            xplorer::search::compat_commands::get_tokenizer_stats,
-            xplorer::search::compat_commands::is_tokenizer_indexing,
-            xplorer::search::compat_commands::get_file_tokens,
-            xplorer::search::compat_commands::add_path_to_tokenizer,
-            xplorer::search::compat_commands::get_file_recommendations,
-            xplorer::search::compat_commands::parse_search_query,
-            xplorer::search::compat_commands::enhanced_search,
+            wisp::search::compat_commands::set_tokenizer_settings,
+            wisp::search::compat_commands::get_tokenizer_settings,
+            wisp::search::compat_commands::rebuild_token_index,
+            wisp::search::compat_commands::search_tokens,
+            wisp::search::compat_commands::natural_language_search,
+            wisp::search::compat_commands::get_tokenizer_stats,
+            wisp::search::compat_commands::is_tokenizer_indexing,
+            wisp::search::compat_commands::get_file_tokens,
+            wisp::search::compat_commands::add_path_to_tokenizer,
+            wisp::search::compat_commands::get_file_recommendations,
+            wisp::search::compat_commands::parse_search_query,
+            wisp::search::compat_commands::enhanced_search,
             // Auto-index and context-aware search
-            xplorer::search::compat_commands::index_directory,
-            xplorer::search::compat_commands::set_search_context,
-            xplorer::search::compat_commands::add_whitelisted_path,
-            xplorer::search::compat_commands::ai_search,
-            xplorer::search::compat_commands::smart_search,
+            wisp::search::compat_commands::index_directory,
+            wisp::search::compat_commands::set_search_context,
+            wisp::search::compat_commands::add_whitelisted_path,
+            wisp::search::compat_commands::ai_search,
+            wisp::search::compat_commands::smart_search,
             // AI indexing (new search engine v2 pipeline)
-            xplorer::search::compat_commands::get_ai_index_status,
-            xplorer::search::compat_commands::trigger_ai_indexing,
-            xplorer::search::compat_commands::get_ai_index_entry,
+            wisp::search::compat_commands::get_ai_index_status,
+            wisp::search::compat_commands::trigger_ai_indexing,
+            wisp::search::compat_commands::get_ai_index_entry,
             // Semantic / hybrid search (new search engine v2 pipeline)
-            xplorer::search::compat_commands::semantic_search,
-            xplorer::search::compat_commands::find_similar_files,
-            xplorer::search::compat_commands::hybrid_search,
+            wisp::search::compat_commands::semantic_search,
+            wisp::search::compat_commands::find_similar_files,
+            wisp::search::compat_commands::hybrid_search,
             // Shortcut operations
             shortcuts::get_shortcuts,
             shortcuts::get_shortcuts_by_category,

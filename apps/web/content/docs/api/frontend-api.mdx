@@ -9,7 +9,7 @@ sidebar_position: 2
 The frontend API is centralized in `client/src/lib/tauri-api.ts` as the `TauriAPI` object. Every backend call goes through this module.
 
 :::info
-As of the two-layer SDK architecture, `TauriAPI` is a thin facade that delegates to `@xplorer/sdk` service modules (16 modules wrapping Tauri `invoke()` calls) rather than making direct `invoke()` calls itself. The internal SDK lives at `xplorer-sdk/` and the external extension SDK at `extension-sdk/`.
+As of the two-layer SDK architecture, `TauriAPI` is a thin facade that delegates to `@wisp/sdk` service modules (16 modules wrapping Tauri `invoke()` calls) rather than making direct `invoke()` calls itself. The internal SDK lives at `wisp-sdk/` and the external extension SDK at `extension-sdk/`.
 :::
 
 ## Usage

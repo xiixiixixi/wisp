@@ -1,6 +1,6 @@
-# Xplorer Extensions
+# Wisp Extensions
 
-A collection of 25 extensions for [Xplorer](https://github.com/kimlimjustin/xplorer), the modern file explorer.
+A collection of 25 extensions for [Wisp](https://github.com/kimlimjustin/xplorer), the modern file explorer.
 
 > **Note:** All of these extensions are vibe coded. They were built rapidly with AI assistance and may contain rough edges. Contributions and bug reports are welcome!
 
@@ -74,12 +74,12 @@ pnpm install
 pnpm dev
 ```
 
-This creates a `.hotreload` sentinel file, starts esbuild in watch mode, and Xplorer will automatically detect and hot-reload the extension on every change (~600ms reload time).
+This creates a `.hotreload` sentinel file, starts esbuild in watch mode, and Wisp will automatically detect and hot-reload the extension on every change (~600ms reload time).
 
 ### Creating a New Extension
 
 ```bash
-pnpm create @xplorer/extension my-extension
+pnpm create @wisp/extension my-extension
 cd my-extension
 pnpm dev
 ```
@@ -97,10 +97,10 @@ pnpm run build:extensions
 
 ## Architecture
 
-Extensions are sandboxed JavaScript bundles executed via `new Function()` in the Xplorer webview. They communicate with the host app through the `@xplorer/extension-sdk` API:
+Extensions are sandboxed JavaScript bundles executed via `new Function()` in the Wisp webview. They communicate with the host app through the `@wisp/extension-sdk` API:
 
 ```typescript
-import { Extension, Sidebar, Command } from '@xplorer/extension-sdk';
+import { Extension, Sidebar, Command } from '@wisp/extension-sdk';
 
 const MyExtension = Extension.create({
   name: 'my-extension',
@@ -116,4 +116,4 @@ export default MyExtension;
 
 ## License
 
-AGPL-3.0 - Same as Xplorer.
+AGPL-3.0 - Same as Wisp.

@@ -24,9 +24,9 @@
 
   <line x1="340" y1="116" x2="340" y2="130" stroke="#475569" stroke-width="1"/>
 
-  <!-- Xplorer Page -->
+  <!-- Wisp Page -->
   <rect x="240" y="130" width="200" height="32" rx="8" fill="#172554" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow)"/>
-  <text x="340" y="150" text-anchor="middle" fill="#bfdbfe" font-size="12" font-weight="500">XplorerPage  (main state)</text>
+  <text x="340" y="150" text-anchor="middle" fill="#bfdbfe" font-size="12" font-weight="500">WispPage  (main state)</text>
 
   <!-- Lines to 3 columns -->
   <line x1="340" y1="162" x2="110" y2="184" stroke="#475569" stroke-width="1"/>

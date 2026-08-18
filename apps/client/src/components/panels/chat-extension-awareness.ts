@@ -80,7 +80,7 @@ const MARKETPLACE_EXTENSIONS: MarketplaceSuggestion[] = [
   {
     keyword: 'terminal',
     extensionName: 'Integrated Terminal',
-    description: 'Full terminal emulator inside Xplorer',
+    description: 'Full terminal emulator inside Wisp',
   },
   {
     keyword: 'archive',
@@ -375,9 +375,8 @@ export const executeOpenExtension = async (
   // Try to open via the extension's editor if a file path is provided
   if (filePath) {
     // Navigate to the file so the extension editor can pick it up
-    const xState = (
-      window as unknown as { __xplorer_state__?: { navigateTo?: (p: string) => void } }
-    ).__xplorer_state__;
+    const xState = (window as unknown as { __wisp_state__?: { navigateTo?: (p: string) => void } })
+      .__wisp_state__;
     if (xState?.navigateTo) {
       // Navigate to the parent directory
       const parts = filePath.split(/[/\\]/);
@@ -386,7 +385,7 @@ export const executeOpenExtension = async (
       xState.navigateTo(parentDir);
 
       // Emit an event so the extension host knows to open this file
-      extensionHost.emitEvent('xplorer:open-file-with-extension', {
+      extensionHost.emitEvent('wisp:open-file-with-extension', {
         extensionId,
         filePath,
         fileName,
@@ -399,7 +398,7 @@ export const executeOpenExtension = async (
   // Try to open via the extension's panel
   const panels = ext.manifest.contributes?.panels;
   if (panels && panels.length > 0) {
-    extensionHost.emitEvent('xplorer:open-panel', { panelId: panels[0].id });
+    extensionHost.emitEvent('wisp:open-panel', { panelId: panels[0].id });
     return `Opened ${ext.manifest.display_name ?? ext.manifest.name} panel.`;
   }
 
@@ -428,7 +427,7 @@ export const buildMarketplaceSuggestionText = (userMessage: string): string => {
   const lines: string[] = [];
   for (const s of suggestions) {
     lines.push(
-      `There's a **${s.extensionName}** extension available in the Xplorer marketplace that could help: ${s.description}. The user can install it from the Extensions panel.`,
+      `There's a **${s.extensionName}** extension available in the Wisp marketplace that could help: ${s.description}. The user can install it from the Extensions panel.`,
     );
   }
   return lines.join('\n');

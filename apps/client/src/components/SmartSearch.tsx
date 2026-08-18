@@ -277,7 +277,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
           // Determine the path to search — respects scope toggle
           const resolvedSearchPath = (() => {
             if (searchScope === 'everywhere') return undefined;
-            return currentPath && !currentPath.startsWith('xplorer://') ? currentPath : undefined;
+            return currentPath && !currentPath.startsWith('wisp://') ? currentPath : undefined;
           })();
 
           try {
@@ -480,7 +480,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
 
     const handleGrepSearch = async () => {
       const searchPath =
-        currentPath && !currentPath.startsWith('xplorer://') ? currentPath : undefined;
+        currentPath && !currentPath.startsWith('wisp://') ? currentPath : undefined;
       if (!searchPath || !query.trim()) return;
 
       setIsGrepSearching(true);
@@ -762,7 +762,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
             </div>
 
             {/* Scope toggle: This Folder / Everywhere */}
-            {currentPath && !currentPath.startsWith('xplorer://') && (
+            {currentPath && !currentPath.startsWith('wisp://') && (
               <button
                 onClick={() => {
                   const next: SearchScope = searchScope === 'folder' ? 'everywhere' : 'folder';
@@ -1086,7 +1086,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                   </p>
                   {searchProvider === 'local' &&
                     currentPath &&
-                    !currentPath.startsWith('xplorer://') && (
+                    !currentPath.startsWith('wisp://') && (
                       <button
                         onClick={handleGrepSearch}
                         disabled={isGrepSearching}

@@ -18,9 +18,9 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: xplorer
-          POSTGRES_PASSWORD: xplorer
-          POSTGRES_DB: xplorer_test
+          POSTGRES_USER: wisp
+          POSTGRES_PASSWORD: wisp
+          POSTGRES_DB: wisp_test
         ports: ['5432:5432']
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
@@ -39,12 +39,12 @@ jobs:
       - name: Push database schema
         run: cd apps/web && pnpm db:push
         env:
-          DATABASE_URL: postgresql://xplorer:xplorer@localhost:5432/xplorer_test
+          DATABASE_URL: postgresql://wisp:wisp@localhost:5432/wisp_test
 
       - name: Run tests
         run: cd apps/web && pnpm test:run
         env:
-          DATABASE_URL: postgresql://xplorer:xplorer@localhost:5432/xplorer_test
+          DATABASE_URL: postgresql://wisp:wisp@localhost:5432/wisp_test
           NEXTAUTH_SECRET: test-secret
           NEXTAUTH_URL: http://localhost:3000
 

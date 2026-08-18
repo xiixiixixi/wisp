@@ -35,24 +35,24 @@ const basePackageJson = (
   const needsReact = ['panel', 'preview', 'tab'].includes(vars.type);
 
   return {
-    name: `xplorer-${vars.name}`,
+    name: `wisp-${vars.name}`,
     version: '1.0.0',
     description: vars.description,
     main: 'dist/index.js',
     type: 'module',
     scripts: {
       build:
-        'esbuild src/index.tsx --bundle --format=esm --outfile=dist/index.js --external:react --external:react-dom --external:@xplorer/extension-sdk --target=es2020 --jsx=transform',
+        'esbuild src/index.tsx --bundle --format=esm --outfile=dist/index.js --external:react --external:react-dom --external:@wisp/extension-sdk --target=es2020 --jsx=transform',
       watch:
-        'esbuild src/index.tsx --bundle --format=esm --outfile=dist/index.js --external:react --external:react-dom --external:@xplorer/extension-sdk --target=es2020 --jsx=transform --watch',
-      dev: "node -e \"require('fs').writeFileSync('.hotreload',String(Date.now()))\" && esbuild src/index.tsx --bundle --format=esm --outfile=dist/index.js --external:react --external:react-dom --external:@xplorer/extension-sdk --target=es2020 --jsx=transform --watch; node -e \"try{require('fs').unlinkSync('.hotreload')}catch{}\"",
+        'esbuild src/index.tsx --bundle --format=esm --outfile=dist/index.js --external:react --external:react-dom --external:@wisp/extension-sdk --target=es2020 --jsx=transform --watch',
+      dev: "node -e \"require('fs').writeFileSync('.hotreload',String(Date.now()))\" && esbuild src/index.tsx --bundle --format=esm --outfile=dist/index.js --external:react --external:react-dom --external:@wisp/extension-sdk --target=es2020 --jsx=transform --watch; node -e \"try{require('fs').unlinkSync('.hotreload')}catch{}\"",
     },
     devDependencies: {
       esbuild: '^0.20.0',
       ...(needsReact ? { '@types/react': '^18.2.0' } : {}),
       typescript: '^5.2.0',
     },
-    xplorer: {
+    wisp: {
       id: vars.name,
       name: vars.displayName,
       displayName: vars.displayName,
@@ -106,7 +106,7 @@ npm run watch     # rebuild on file changes (without hot-reload)
 ## Installation
 
 1. Build the extension: \`npm run build\`
-2. Open Xplorer
+2. Open Wisp
 3. Go to Settings > Extensions > Install from Folder
 4. Select this extension's directory
 
@@ -116,7 +116,7 @@ MIT
 
 ---
 
-Built with the Xplorer Extension SDK
+Built with the Wisp Extension SDK
 `;
 };
 
@@ -126,12 +126,12 @@ const panelTemplate = (vars: TemplateVars): TemplateOutput => {
   const source = `/**
  * ${vars.displayName} Extension
  *
- * A sidebar panel extension for Xplorer.
+ * A sidebar panel extension for Wisp.
  * Registers via Sidebar.register() and renders in the right sidebar.
  */
 
 import React, { useState, useCallback } from 'react';
-import { Sidebar, type XplorerAPI, type SidebarRenderProps } from '@xplorer/extension-sdk';
+import { Sidebar, type WispAPI, type SidebarRenderProps } from '@wisp/extension-sdk';
 
 // ── Inline SVG Icon ─────────────────────────────────────────────────────────
 
@@ -209,7 +209,7 @@ const s = {
 
 // ── Panel Component ─────────────────────────────────────────────────────────
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 function ${vars.displayName.replace(/\s+/g, '')}Panel({ currentPath }: SidebarRenderProps) {
   const [items, setItems] = useState<string[]>([]);
@@ -254,8 +254,8 @@ Sidebar.register({
   icon: '${vars.icon}',
   permissions: ${JSON.stringify(vars.permissions)},
   render: (props) => <${vars.displayName.replace(/\s+/g, '')}Panel {...props} />,
-  onActivate: (xplorerApi) => {
-    api = xplorerApi;
+  onActivate: (wispApi) => {
+    api = wispApi;
   },
 });
 `;
@@ -289,11 +289,11 @@ const themeTemplate = (vars: TemplateVars): TemplateOutput => {
   const source = `/**
  * ${vars.displayName} Theme Extension
  *
- * A custom color theme for Xplorer.
+ * A custom color theme for Wisp.
  * Registers via Theme.register() with color tokens and optional CSS overrides.
  */
 
-import { Theme } from '@xplorer/extension-sdk';
+import { Theme } from '@wisp/extension-sdk';
 
 Theme.register({
   id: '${vars.name}',
@@ -360,7 +360,7 @@ Theme.register({
       'Custom color theme with full token support',
       'Background gradient',
       'Scrollbar, selection, and focus styling',
-      'CSS variable integration with the Xplorer theme system',
+      'CSS variable integration with the Wisp theme system',
     ]),
   };
 };
@@ -371,16 +371,16 @@ const actionTemplate = (vars: TemplateVars): TemplateOutput => {
   const source = `/**
  * ${vars.displayName} Extension
  *
- * A context menu action for Xplorer.
+ * A context menu action for Wisp.
  * Registers via ContextMenu.register() and appears in the right-click menu.
  */
 
-import { ContextMenu, Command, type XplorerAPI, type ContextMenuFile } from '@xplorer/extension-sdk';
+import { ContextMenu, Command, type WispAPI, type ContextMenuFile } from '@wisp/extension-sdk';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function getSelectedFile(): { name: string; path: string; is_dir: boolean } | null {
-  const state = (window as Record<string, unknown>).__xplorer_state__ as
+  const state = (window as Record<string, unknown>).__wisp_state__ as
     { selectedFiles?: Array<{ name: string; path: string; is_dir: boolean }> } | undefined;
   const files = state?.selectedFiles || [];
   return files.length > 0 ? files[0] : null;
@@ -388,7 +388,7 @@ function getSelectedFile(): { name: string; path: string; is_dir: boolean } | nu
 
 // ── Core Logic ──────────────────────────────────────────────────────────────
 
-async function processFile(filePath: string, api: XplorerAPI): Promise<void> {
+async function processFile(filePath: string, api: WispAPI): Promise<void> {
   try {
     const content = await api.files.readText(filePath);
     const filename = filePath.split(/[/\\\\]/).pop() || '';
@@ -413,7 +413,7 @@ ContextMenu.register({
   title: '${vars.displayName}: Process File',
   when: 'singleFileSelected',
   permissions: ${JSON.stringify(vars.permissions)},
-  action: async (files: ContextMenuFile[], api: XplorerAPI) => {
+  action: async (files: ContextMenuFile[], api: WispAPI) => {
     if (files.length === 0 || files[0].is_dir) {
       api.ui.showMessage('Select a file first.', 'warning');
       return;
@@ -427,7 +427,7 @@ Command.register({
   id: '${vars.name}.run',
   title: '${vars.displayName}: Process Selected File',
   permissions: ${JSON.stringify(vars.permissions)},
-  action: async (api: XplorerAPI) => {
+  action: async (api: WispAPI) => {
     const file = getSelectedFile();
     if (!file || file.is_dir) {
       api.ui.showMessage('Select a file first.', 'warning');
@@ -473,12 +473,12 @@ const previewTemplate = (vars: TemplateVars): TemplateOutput => {
   const source = `/**
  * ${vars.displayName} Extension
  *
- * A file preview handler for Xplorer.
+ * A file preview handler for Wisp.
  * Registers via Preview.register() and renders a custom preview for matching files.
  */
 
 import React, { useState, useEffect } from 'react';
-import { Preview, type XplorerAPI, type PreviewRenderProps, type PreviewFile } from '@xplorer/extension-sdk';
+import { Preview, type WispAPI, type PreviewRenderProps, type PreviewFile } from '@wisp/extension-sdk';
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
@@ -532,7 +532,7 @@ const s = {
 
 // ── Preview Component ───────────────────────────────────────────────────────
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 function FilePreview({ selectedFiles }: PreviewRenderProps) {
   const [content, setContent] = useState<string | null>(null);
@@ -604,8 +604,8 @@ Preview.register({
   },
   priority: 15, // Higher than default (10) to take precedence
   render: (props) => <FilePreview {...props} />,
-  onActivate: (xplorerApi) => {
-    api = xplorerApi;
+  onActivate: (wispApi) => {
+    api = wispApi;
   },
 });
 `;
@@ -640,18 +640,18 @@ const commandTemplate = (vars: TemplateVars): TemplateOutput => {
   const source = `/**
  * ${vars.displayName} Extension
  *
- * A command palette command for Xplorer.
+ * A command palette command for Wisp.
  * Registers via Command.register() with an optional keyboard shortcut.
  *
  * Usage: Open the command palette (Ctrl+Shift+P) and search for "${vars.displayName}".
  */
 
-import { Command, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Command, type WispAPI } from '@wisp/extension-sdk';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function getSelectedFile(): { name: string; path: string; is_dir: boolean } | null {
-  const state = (window as Record<string, unknown>).__xplorer_state__ as
+  const state = (window as Record<string, unknown>).__wisp_state__ as
     { selectedFiles?: Array<{ name: string; path: string; is_dir: boolean }> } | undefined;
   const files = state?.selectedFiles || [];
   return files.length > 0 ? files[0] : null;
@@ -664,7 +664,7 @@ Command.register({
   title: '${vars.displayName}',
   shortcut: 'ctrl+shift+alt+x', // TODO: Customize your keyboard shortcut
   permissions: ${JSON.stringify(vars.permissions)},
-  action: async (api: XplorerAPI) => {
+  action: async (api: WispAPI) => {
     const file = getSelectedFile();
 
     if (!file) {
@@ -742,12 +742,12 @@ const tabTemplate = (vars: TemplateVars): TemplateOutput => {
   const source = `/**
  * ${vars.displayName} Extension
  *
- * A sidebar tab for Xplorer. Appears in the left sidebar tab bar
+ * A sidebar tab for Wisp. Appears in the left sidebar tab bar
  * alongside Explorer and Search.
  */
 
 import React, { useState, useCallback } from 'react';
-import { SidebarTab, Command, useCurrentPath, type XplorerAPI } from '@xplorer/extension-sdk';
+import { SidebarTab, Command, useCurrentPath, type WispAPI } from '@wisp/extension-sdk';
 
 // ── Styles ──────────────────────────────────────────────────────────────────
 
@@ -795,7 +795,7 @@ const s = {
 
 // ── Component ───────────────────────────────────────────────────────────────
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 function ${componentName}Content() {
   const currentPath = useCurrentPath();
@@ -835,8 +835,8 @@ SidebarTab.register({
   icon: '${vars.icon}',
   permissions: ${JSON.stringify(vars.permissions)},
   render: () => <${componentName}Content />,
-  onActivate: (xplorerApi) => {
-    api = xplorerApi;
+  onActivate: (wispApi) => {
+    api = wispApi;
   },
 });
 `;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Sidebar, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Sidebar, type WispAPI } from '@wisp/extension-sdk';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -710,7 +710,7 @@ const styles = {
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 const SoftwareFinderPanel = () => {
   const [query, setQuery] = useState('');
@@ -901,7 +901,7 @@ const SoftwareFinderPanel = () => {
 /* ------------------------------------------------------------------ */
 
 Sidebar.register({
-  id: 'xplorer-software-finder',
+  id: 'wisp-software-finder',
   title: 'Software Finder',
   description: 'Find installation paths of popular software',
   icon: 'app-window',

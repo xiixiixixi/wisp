@@ -1,7 +1,7 @@
 use std::fs::{self, File};
 use std::io::Write;
 use tempfile::tempdir;
-use xplorer::operations::*;
+use wisp::operations::*;
 
 #[tokio::test]
 async fn test_read_directory() {

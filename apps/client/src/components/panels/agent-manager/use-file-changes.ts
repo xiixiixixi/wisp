@@ -1,7 +1,7 @@
 /**
  * Hook for tracking file changes per agent session.
  *
- * Subscribes to Tauri `fs-change` events and the `xplorer-external-agent`
+ * Subscribes to Tauri `fs-change` events and the `wisp-external-agent`
  * custom DOM events, grouping every change by the agent session that is
  * most likely responsible (based on working directory overlap and timing).
  *
@@ -135,8 +135,8 @@ export const useFileChanges = (
       }
     };
 
-    window.addEventListener('xplorer-external-agent', handleExternalAgent);
-    return () => window.removeEventListener('xplorer-external-agent', handleExternalAgent);
+    window.addEventListener('wisp-external-agent', handleExternalAgent);
+    return () => window.removeEventListener('wisp-external-agent', handleExternalAgent);
   }, []);
 
   // ------- Initialise entries for cloud sessions -------

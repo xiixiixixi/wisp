@@ -63,10 +63,10 @@ export const DISCOVERY_TYPE_ICONS: Record<DiscoveryType, string> = {
 // In-memory store + localStorage persistence
 // ---------------------------------------------------------------------------
 
-const STORAGE_KEY = 'xplorer:agent-shared-discoveries';
+const STORAGE_KEY = 'wisp:agent-shared-discoveries';
 
 /** Event name dispatched when discoveries change */
-const DISCOVERY_CHANGE_EVENT = 'xplorer-discoveries-changed';
+const DISCOVERY_CHANGE_EVENT = 'wisp-discoveries-changed';
 
 let discoveryStore: Map<string, Discovery> = new Map();
 
@@ -135,7 +135,7 @@ export const addDiscovery = (
 
   // Also dispatch a typed event so agent sessions can react
   window.dispatchEvent(
-    new CustomEvent('xplorer-discovery-broadcast', {
+    new CustomEvent('wisp-discovery-broadcast', {
       detail: { discovery },
     }),
   );

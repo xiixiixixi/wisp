@@ -12,7 +12,7 @@ const PublishPage = () => {
       </div>
       <h1 className="mb-3 text-3xl font-bold">Publish via CLI</h1>
       <p className="mx-auto mb-8 max-w-md text-gray-500 dark:text-gray-400">
-        Extensions are now published through the Xplorer CLI for a better developer experience.
+        Extensions are now published through the Wisp CLI for a better developer experience.
       </p>
 
       <div className="mx-auto max-w-md space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-6 text-left dark:border-gray-800 dark:bg-gray-900">
@@ -23,7 +23,7 @@ const PublishPage = () => {
           <div>
             <p className="font-medium">Install the CLI</p>
             <code className="mt-1 block rounded bg-gray-100 px-2 py-1 text-sm dark:bg-gray-800">
-              npm i -g @xplorer/cli
+              npm i -g @wisp/cli
             </code>
           </div>
         </div>
@@ -35,7 +35,7 @@ const PublishPage = () => {
           <div>
             <p className="font-medium">Login to your account</p>
             <code className="mt-1 block rounded bg-gray-100 px-2 py-1 text-sm dark:bg-gray-800">
-              xplorer login
+              wisp login
             </code>
           </div>
         </div>
@@ -47,7 +47,7 @@ const PublishPage = () => {
           <div>
             <p className="font-medium">Publish from your extension directory</p>
             <code className="mt-1 block rounded bg-gray-100 px-2 py-1 text-sm dark:bg-gray-800">
-              cd my-extension && xplorer publish
+              cd my-extension && wisp publish
             </code>
           </div>
         </div>

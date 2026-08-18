@@ -200,7 +200,7 @@ const TopBar = React.memo(
                     />
                   </svg>
                 </button>
-                <h1 className="text-sm font-medium">Xplorer</h1>
+                <h1 className="text-sm font-medium">Wisp</h1>
               </div>
             </div>
             {/* Spacer — search is in the left sidebar */}
@@ -292,7 +292,7 @@ const TopBar = React.memo(
             )}
 
             {/* New Chat button — available in any folder */}
-            {!currentPath.startsWith('xplorer://') && (
+            {!currentPath.startsWith('wisp://') && (
               <button
                 onClick={async () => {
                   try {

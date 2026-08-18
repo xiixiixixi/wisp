@@ -6,13 +6,13 @@ sidebar_position: 6
 
 # Permissions
 
-Xplorer uses a permission system to control what extensions can access. Extensions must declare their required permissions in the manifest. The backend validates all permissions during installation, and the frontend enforces them at runtime through the sandboxed XplorerAPI.
+Wisp uses a permission system to control what extensions can access. Extensions must declare their required permissions in the manifest. The backend validates all permissions during installation, and the frontend enforces them at runtime through the sandboxed WispAPI.
 
 ## How Permissions Work
 
-1. **Declaration** — extensions list required permissions in `package.json` under `xplorer.permissions`
+1. **Declaration** — extensions list required permissions in `package.json` under `wisp.permissions`
 2. **Validation** — the Rust backend checks that all permission strings are recognized
-3. **Enforcement** — the `XplorerAPI` checks permissions before every method call
+3. **Enforcement** — the `WispAPI` checks permissions before every method call
 4. **Failure** — calling an API method without the required permission throws an error:
 
 ```
@@ -50,14 +50,14 @@ Error: Extension "my-extension" lacks permission "file:write"
 | Network Access   | `system:network`  | Network | Make HTTP/HTTPS requests                       |
 | System Info      | `system:info`     | Read    | Access system information (OS, drives, memory) |
 
-### Xplorer-Specific
+### Wisp-Specific
 
 | Permission | String               | Access     | Description                         |
 | ---------- | -------------------- | ---------- | ----------------------------------- |
-| Settings   | `xplorer:settings`   | Read/Write | Access Xplorer application settings |
-| Themes     | `xplorer:themes`     | Modify     | Register and modify themes          |
-| History    | `xplorer:history`    | Read       | Access navigation and file history  |
-| Extensions | `xplorer:extensions` | Read       | Query other installed extensions    |
+| Settings   | `wisp:settings`   | Read/Write | Access Wisp application settings |
+| Themes     | `wisp:themes`     | Modify     | Register and modify themes          |
+| History    | `wisp:history`    | Read       | Access navigation and file history  |
+| Extensions | `wisp:extensions` | Read       | Query other installed extensions    |
 
 ### AI
 
@@ -238,7 +238,7 @@ async activate(context: ExtensionContext): Promise<void> {
 | File editor          | `file:read`, `file:write`                                      |
 | Panel extension      | `ui:panels`                                                    |
 | Workspace scanner    | `file:read`, `directory:list`, `ui:notifications`              |
-| Theme extension      | `xplorer:themes`                                               |
+| Theme extension      | `wisp:themes`                                               |
 | Full-featured tool   | `file:read`, `directory:list`, `ui:notifications`, `ui:panels` |
 | AI-powered extension | `ai:read`, `ai:chat`, `file:read`                              |
 | Search extension     | `search:read`, `search:duplicates`                             |
@@ -247,7 +247,7 @@ async activate(context: ExtensionContext): Promise<void> {
 
 ## Security Model
 
-Extensions run in the same renderer process as Xplorer — there is no iframe or Worker sandbox. The permission system is a **trust boundary**, not a security boundary. It prevents accidental misuse and makes extension capabilities transparent to users, but it does not protect against intentionally malicious code.
+Extensions run in the same renderer process as Wisp — there is no iframe or Worker sandbox. The permission system is a **trust boundary**, not a security boundary. It prevents accidental misuse and makes extension capabilities transparent to users, but it does not protect against intentionally malicious code.
 
 :::caution
 Only install extensions from sources you trust. Always review an extension's declared permissions before installation.

@@ -303,7 +303,7 @@ const PaneTabBar = ({
   // Cross-tab file drop handlers for individual tab headers
   const handleCrossTabDragOver = useCallback((e: React.DragEvent, tabId: string) => {
     // Only react if we have cross-tab data in the drag
-    if (e.dataTransfer.types.includes('application/x-xplorer-cross-tab-files')) {
+    if (e.dataTransfer.types.includes('application/x-wisp-cross-tab-files')) {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'copy';
       setCrossTabDropTarget(tabId);
@@ -317,7 +317,7 @@ const PaneTabBar = ({
   const handleCrossTabFileDrop = useCallback(
     (e: React.DragEvent, tab: TabItem) => {
       setCrossTabDropTarget(null);
-      const raw = e.dataTransfer.getData('application/x-xplorer-cross-tab-files');
+      const raw = e.dataTransfer.getData('application/x-wisp-cross-tab-files');
       if (!raw) return;
       try {
         const files = JSON.parse(raw) as { path: string; name: string }[];
@@ -478,7 +478,7 @@ const PaneTabBar = ({
               }}
               data-tab-item
               data-drop-target={
-                tab.type === 'folder' && tab.path && !tab.path.startsWith('xplorer://')
+                tab.type === 'folder' && tab.path && !tab.path.startsWith('wisp://')
                   ? tab.path
                   : undefined
               }

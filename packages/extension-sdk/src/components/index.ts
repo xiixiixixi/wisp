@@ -7,7 +7,7 @@
  *
  * @example
  * ```ts
- * import { Button, Input, Panel, Card, Spinner } from '@xplorer/extension-sdk';
+ * import { Button, Input, Panel, Card, Spinner } from '@wisp/extension-sdk';
  *
  * function MyPanel() {
  *   return Panel({ title: 'My Panel', children: [
@@ -227,13 +227,10 @@ export const Spinner = (props: SpinnerProps) => {
   const color = props.color || 'var(--xp-blue, #7aa2f7)';
 
   // Inject keyframes if not already present
-  if (
-    typeof document !== 'undefined' &&
-    !document.getElementById('xplorer-sdk-spinner-keyframes')
-  ) {
+  if (typeof document !== 'undefined' && !document.getElementById('wisp-sdk-spinner-keyframes')) {
     const style = document.createElement('style');
-    style.id = 'xplorer-sdk-spinner-keyframes';
-    style.textContent = '@keyframes xplorer-sdk-spin { to { transform: rotate(360deg); } }';
+    style.id = 'wisp-sdk-spinner-keyframes';
+    style.textContent = '@keyframes wisp-sdk-spin { to { transform: rotate(360deg); } }';
     document.head.appendChild(style);
   }
 
@@ -244,7 +241,7 @@ export const Spinner = (props: SpinnerProps) => {
       border: `2px solid transparent`,
       borderTopColor: color,
       borderRadius: '50%',
-      animation: 'xplorer-sdk-spin 0.6s linear infinite',
+      animation: 'wisp-sdk-spin 0.6s linear infinite',
       display: 'inline-block',
     },
   });

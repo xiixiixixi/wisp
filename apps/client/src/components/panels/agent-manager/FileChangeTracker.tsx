@@ -348,9 +348,8 @@ const FileChangeTracker = ({
         return;
       }
       // Fallback: navigate via the extension host bridge
-      const state = (
-        window as unknown as { __xplorer_state__?: { navigateTo?: (p: string) => void } }
-      ).__xplorer_state__;
+      const state = (window as unknown as { __wisp_state__?: { navigateTo?: (p: string) => void } })
+        .__wisp_state__;
       state?.navigateTo?.(filePath);
     },
     [onNavigateToFile],

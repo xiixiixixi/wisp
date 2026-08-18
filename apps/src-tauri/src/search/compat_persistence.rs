@@ -1,4 +1,4 @@
-// Xplorer Search Engine — Compatibility Layer Persistence
+// Wisp Search Engine — Compatibility Layer Persistence
 //
 // Disk persistence helpers for SearchEngine settings and file I/O
 // utilities used during indexing (content reading, metadata extraction).
@@ -15,7 +15,7 @@ use super::compat_types::TokenizerSettings;
 fn data_dir() -> PathBuf {
     let dir = dirs::data_local_dir()
         .unwrap_or_else(|| PathBuf::from("."))
-        .join("xplorer");
+        .join("wisp");
     fs::create_dir_all(&dir).ok();
     dir
 }

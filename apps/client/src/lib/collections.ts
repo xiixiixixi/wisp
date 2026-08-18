@@ -1,7 +1,7 @@
 /**
  * Smart File Collections — saved filter groups that act as virtual directories.
  *
- * Collections are persisted in localStorage under the key `xplorer:collections`.
+ * Collections are persisted in localStorage under the key `wisp:collections`.
  * Each collection stores a list of filters that are ANDed together at query time.
  */
 

@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # Frontend Architecture
 
-The Xplorer frontend is a React 18 single-page application bundled with Vite and rendered inside a Tauri WebView.
+The Wisp frontend is a React 18 single-page application bundled with Vite and rendered inside a Tauri WebView.
 
 ## Technology Stack
 
@@ -22,7 +22,7 @@ The Xplorer frontend is a React 18 single-page application bundled with Vite and
 
 ## Routing
 
-Xplorer uses [Wouter](https://github.com/molefrog/wouter) for routing, defined in `App.tsx`:
+Wisp uses [Wouter](https://github.com/molefrog/wouter) for routing, defined in `App.tsx`:
 
 | Route       | Component         | Description             |
 | ----------- | ----------------- | ----------------------- |
@@ -37,11 +37,11 @@ Xplorer uses [Wouter](https://github.com/molefrog/wouter) for routing, defined i
 
 ## State Management
 
-Xplorer uses a combination of:
+Wisp uses a combination of:
 
 ### Local State (useState)
 
-The main `xplorer.tsx` component manages ~40 state variables for UI state like current path, selected files, sidebar visibility, etc. UI state is persisted to `localStorage` across sessions.
+The main `wisp.tsx` component manages ~40 state variables for UI state like current path, selected files, sidebar visibility, etc. UI state is persisted to `localStorage` across sessions.
 
 ### TanStack React Query
 
@@ -92,7 +92,7 @@ See [Frontend API Reference](/docs/api/frontend-api) for the complete list.
 
 ## File Preview System
 
-Xplorer uses a **preview factory pattern** to dynamically load preview components based on file type:
+Wisp uses a **preview factory pattern** to dynamically load preview components based on file type:
 
 ```
 preview-factory.ts
@@ -114,7 +114,7 @@ preview-factory.ts
 
 ## Styling
 
-Xplorer uses a custom glassmorphic dark theme built on Tailwind CSS:
+Wisp uses a custom glassmorphic dark theme built on Tailwind CSS:
 
 - **Base theme**: Tokyo Night inspired color palette
 - **Glass effects**: `backdrop-blur` and semi-transparent backgrounds

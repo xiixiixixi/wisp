@@ -1,9 +1,9 @@
-// Google Drive Extension for Xplorer
+// Google Drive Extension for Wisp
 // Provides file browsing, account management, and sidebar navigation for Google Drive.
 
 import { useState, useEffect, useCallback, createElement } from 'react';
-import { Tab, Navigation, ContextMenu, Command } from '@xplorer/extension-sdk';
-import type { XplorerAPI } from '@xplorer/extension-sdk';
+import { Tab, Navigation, ContextMenu, Command } from '@wisp/extension-sdk';
+import type { WispAPI } from '@wisp/extension-sdk';
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -33,7 +33,7 @@ interface CacheEntry {
 
 // ── Shared State ──────────────────────────────────────────────────────────
 
-let api: XplorerAPI;
+let api: WispAPI;
 const FILE_CACHE = new Map<string, CacheEntry>();
 const ACCOUNTS = new Map<string, GoogleDriveAccount>();
 
@@ -635,8 +635,8 @@ Tab.register({
     if (!accountId) return createElement('div', { style: { ...s.p4, ...s.textMuted } }, 'No Google Drive account specified.');
     return createElement(GDriveFileBrowser, { accountId, path: props.path, onNavigate: props.onNavigate });
   },
-  onActivate: (xplorerApi) => {
-    api = xplorerApi;
+  onActivate: (wispApi) => {
+    api = wispApi;
     loadAccounts();
     syncAccounts();
   },
@@ -651,8 +651,8 @@ Tab.register({
   render: () => {
     return createElement(GDriveAccountsPage);
   },
-  onActivate: (xplorerApi) => {
-    api = xplorerApi;
+  onActivate: (wispApi) => {
+    api = wispApi;
   },
 });
 
@@ -663,8 +663,8 @@ Navigation.register({
   icon: 'cloud',
   permissions: ['gdrive:access', 'ui:panels'],
   updateEvent: 'gdrive-accounts-changed',
-  getEntries: async (xplorerApi) => {
-    api = xplorerApi;
+  getEntries: async (wispApi) => {
+    api = wispApi;
     try {
       const backendAccounts = await api.gdrive.listAccounts();
       return backendAccounts.map(account => ({
@@ -683,11 +683,11 @@ Navigation.register({
       return [];
     }
   },
-  onManage: async (xplorerApi) => {
-    xplorerApi.navigation.openTab({
+  onManage: async (wispApi) => {
+    wispApi.navigation.openTab({
       type: 'gdrive-manager',
       name: 'Google Drive Settings',
-      path: 'xplorer://gdrive-manager',
+      path: 'wisp://gdrive-manager',
     });
   },
 });
@@ -697,11 +697,11 @@ Command.register({
   id: 'gdrive-open-manager',
   title: 'Google Drive: Manage Accounts',
   permissions: ['gdrive:access', 'ui:panels'],
-  action: async (xplorerApi) => {
-    xplorerApi.navigation.openTab({
+  action: async (wispApi) => {
+    wispApi.navigation.openTab({
       type: 'gdrive-manager',
       name: 'Google Drive Settings',
-      path: 'xplorer://gdrive-manager',
+      path: 'wisp://gdrive-manager',
     });
   },
 });

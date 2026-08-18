@@ -181,7 +181,7 @@ export const SystemIntegrationSettings = () => {
       <SettingRow
         icon={Monitor}
         label="Default File Explorer"
-        description="Double-clicking folders opens Xplorer instead of Windows Explorer"
+        description="Double-clicking folders opens Wisp instead of Windows Explorer"
       >
         <Toggle
           id="defaultExplorer"
@@ -203,7 +203,7 @@ export const SystemIntegrationSettings = () => {
       <SettingRow
         icon={FolderOpen}
         label="Folder Context Menu"
-        description="Add 'Open with Xplorer' to folder right-click menu"
+        description="Add 'Open with Wisp' to folder right-click menu"
       >
         <Toggle
           id="contextMenu"
@@ -230,7 +230,7 @@ export const SystemIntegrationSettings = () => {
       {isDefaultHandler && (
         <div className="flex items-center gap-2 px-4 py-2 text-xs text-amber-400">
           <AlertTriangle size={12} />
-          Folders will open in Xplorer. Disable to restore Windows Explorer.
+          Folders will open in Wisp. Disable to restore Windows Explorer.
         </div>
       )}
     </>

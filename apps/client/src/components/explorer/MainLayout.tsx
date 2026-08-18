@@ -364,8 +364,8 @@ const MainLayout = (props: MainLayoutProps) => {
     const handleOpenWorkspace = () => {
       setAgentWorkspaceOpen(true);
     };
-    window.addEventListener('xplorer-open-agent-workspace', handleOpenWorkspace);
-    return () => window.removeEventListener('xplorer-open-agent-workspace', handleOpenWorkspace);
+    window.addEventListener('wisp-open-agent-workspace', handleOpenWorkspace);
+    return () => window.removeEventListener('wisp-open-agent-workspace', handleOpenWorkspace);
   }, []);
 
   // ── Build ExplorerContext value ───────────────────────────────────────────
@@ -393,7 +393,7 @@ const MainLayout = (props: MainLayoutProps) => {
           const newTab: TabItem = {
             id: `tab-${Date.now()}`,
             name: 'Home',
-            path: 'xplorer://home',
+            path: 'wisp://home',
             type: 'folder',
           };
           splitLayout.addTab(groupId, newTab, true);
@@ -492,7 +492,7 @@ const MainLayout = (props: MainLayoutProps) => {
               const newTab: TabItem = {
                 id: `tab-${Date.now()}`,
                 name: 'Home',
-                path: 'xplorer://home',
+                path: 'wisp://home',
                 type: 'folder',
               };
               splitLayout.addTab(activeGroup.id, newTab, true);

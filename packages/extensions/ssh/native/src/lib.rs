@@ -1,6 +1,6 @@
-//! SSH Plugin — Native extension plugin for Xplorer
+//! SSH Plugin — Native extension plugin for Wisp
 //!
-//! Implements the Xplorer native plugin ABI to provide SSH connection management
+//! Implements the Wisp native plugin ABI to provide SSH connection management
 //! and SFTP file operations via a compiled shared library (.dll/.so/.dylib).
 
 use std::collections::HashMap;
@@ -166,7 +166,7 @@ lazy_static::lazy_static! {
     static ref RUNTIME: RwLock<Option<tokio::runtime::Runtime>> = RwLock::new(None);
     static ref PLUGIN_INFO: CString = CString::new(
         serde_json::json!({
-            "id": "xplorer-ssh",
+            "id": "wisp-ssh",
             "name": "SSH Manager",
             "version": "1.0.0"
         }).to_string()

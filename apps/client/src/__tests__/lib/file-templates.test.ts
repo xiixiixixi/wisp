@@ -265,12 +265,12 @@ describe('getDefaultVariables', () => {
 
 describe('storage edge cases', () => {
   it('handles corrupted custom templates JSON', () => {
-    store['xplorer:custom-templates'] = '{bad json';
+    store['wisp:custom-templates'] = '{bad json';
     expect(getCustomTemplates()).toEqual([]);
   });
 
   it('handles non-array custom templates', () => {
-    store['xplorer:custom-templates'] = '"string"';
+    store['wisp:custom-templates'] = '"string"';
     expect(getCustomTemplates()).toEqual([]);
   });
 });

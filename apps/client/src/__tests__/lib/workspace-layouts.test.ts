@@ -7,10 +7,10 @@ vi.mock('@/types/split-view', () => ({
     groups: {
       default: {
         id: 'default',
-        tabs: [{ id: 'tab-home-default', name: 'Home', path: 'xplorer://home', type: 'folder' }],
+        tabs: [{ id: 'tab-home-default', name: 'Home', path: 'wisp://home', type: 'folder' }],
         activeTabId: 'tab-home-default',
-        currentPath: 'xplorer://home',
-        pathHistory: ['xplorer://home'],
+        currentPath: 'wisp://home',
+        pathHistory: ['wisp://home'],
         historyIndex: 0,
       },
     },
@@ -257,12 +257,12 @@ describe('workspace-layouts', () => {
 
   describe('storage edge cases', () => {
     it('handles corrupted JSON', () => {
-      store['xplorer:workspace-layouts'] = 'bad{';
+      store['wisp:workspace-layouts'] = 'bad{';
       expect(getLayouts()).toEqual([]);
     });
 
     it('handles non-array JSON', () => {
-      store['xplorer:workspace-layouts'] = '{"id": "oops"}';
+      store['wisp:workspace-layouts'] = '{"id": "oops"}';
       expect(getLayouts()).toEqual([]);
     });
   });

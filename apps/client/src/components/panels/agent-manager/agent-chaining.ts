@@ -296,7 +296,7 @@ export const getAllChains = (): AgentChain[] => {
 // Custom chain persistence
 // ---------------------------------------------------------------------------
 
-const CUSTOM_CHAINS_KEY = 'xplorer:agent-custom-chains';
+const CUSTOM_CHAINS_KEY = 'wisp:agent-custom-chains';
 
 const loadCustomChains = (): AgentChain[] => {
   try {

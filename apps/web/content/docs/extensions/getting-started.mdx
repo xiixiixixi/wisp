@@ -6,20 +6,20 @@ sidebar_position: 2
 
 # Getting Started
 
-This guide walks you through creating, building, and installing your first Xplorer extension.
+This guide walks you through creating, building, and installing your first Wisp extension.
 
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) v18 or later
 - npm, yarn, or pnpm
-- Xplorer installed on your machine
+- Wisp installed on your machine
 
 ## Scaffold a New Extension
 
 The quickest way to start is with the scaffolding CLI:
 
 ```bash
-npx create-xplorer-extension my-first-extension
+npx create-wisp-extension my-first-extension
 ```
 
 The interactive wizard prompts you for:
@@ -48,7 +48,7 @@ After scaffolding, your extension looks like this:
 
 ```
 my-first-extension/
-├── package.json          ← npm config + xplorer manifest
+├── package.json          ← npm config + wisp manifest
 ├── src/
 │   └── index.ts          ← entry point
 ├── vite.config.ts        ← build configuration
@@ -57,7 +57,7 @@ my-first-extension/
 
 ### The Manifest
 
-Extension metadata lives in the `xplorer` field of `package.json`:
+Extension metadata lives in the `wisp` field of `package.json`:
 
 ```json
 {
@@ -65,15 +65,15 @@ Extension metadata lives in the `xplorer` field of `package.json`:
   "version": "1.0.0",
   "main": "dist/index.js",
   "dependencies": {
-    "xplorer-extension-sdk": "^1.0.0"
+    "wisp-extension-sdk": "^1.0.0"
   },
-  "xplorer": {
+  "wisp": {
     "id": "my-first-extension",
     "displayName": "My First Extension",
     "category": "tool",
     "version": "1.0.0",
     "author": "Your Name",
-    "description": "A simple Xplorer extension",
+    "description": "A simple Wisp extension",
     "icon": "🔧",
     "permissions": ["file:read", "ui:notifications"]
   }
@@ -87,7 +87,7 @@ See the [Manifest Reference](./manifest) for all available fields.
 Your extension's `src/index.ts` exports a class that extends one of the SDK base classes:
 
 ```typescript
-import { Extension, ExtensionContext } from '@xplorer/extension-sdk';
+import { Extension, ExtensionContext } from '@wisp/extension-sdk';
 
 export class MyExtension extends Extension {
   constructor() {
@@ -136,7 +136,7 @@ export default defineConfig({
       formats: ['es'],
     },
     rollupOptions: {
-      external: ['xplorer-extension-sdk'],
+      external: ['wisp-extension-sdk'],
     },
     target: 'esnext',
     minify: false,
@@ -152,13 +152,13 @@ For iterative development, use watch mode:
 npm run dev
 ```
 
-This rebuilds automatically when you save changes. Combined with Xplorer's hot reload, you can see changes without restarting the app.
+This rebuilds automatically when you save changes. Combined with Wisp's hot reload, you can see changes without restarting the app.
 
 ## Install Your Extension
 
 ### From the UI
 
-1. Open Xplorer
+1. Open Wisp
 2. Click the **Extensions** icon (🧩) in the right sidebar
 3. Click **"+ Install from Folder"** at the bottom
 4. Select your extension directory (the folder containing `package.json`)
@@ -166,7 +166,7 @@ This rebuilds automatically when you save changes. Combined with Xplorer's hot r
 
 ### What Happens During Installation
 
-1. Xplorer copies your extension files into its extensions directory
+1. Wisp copies your extension files into its extensions directory
 2. The manifest is validated — unrecognized permissions cause an error
 3. The extension is loaded into the Extension Host
 4. If activation is successful, it appears as "On" in the Extensions panel
@@ -207,5 +207,5 @@ This creates a `.spx` file (a zip archive) containing `dist/`, `package.json`, a
 Now that you have a working extension, dive deeper:
 
 - [Creating Extensions](./creating-extensions) — build panels, previews, themes, and actions
-- [SDK Reference](./sdk) — `Extension` base class, `XplorerAPI`, and utilities
+- [SDK Reference](./sdk) — `Extension` base class, `WispAPI`, and utilities
 - [Permissions](./permissions) — understand what each permission grants

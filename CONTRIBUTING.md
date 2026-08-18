@@ -1,6 +1,6 @@
-# Contributing to Xplorer
+# Contributing to Wisp
 
-Thank you for your interest in contributing to Xplorer!
+Thank you for your interest in contributing to Wisp!
 
 ## System Dependencies
 
@@ -39,7 +39,7 @@ sudo pacman -S webkit2gtk-4.1 gtk3 libsoup3 libappindicator-gtk3 librsvg
 
 ```bash
 git clone https://github.com/kimlimjustin/xplorer.git -b next
-cd xplorer
+cd wisp
 pnpm install
 pnpm dev
 ```
@@ -70,7 +70,7 @@ pnpm check        # TypeScript type checking
 
 ```bash
 # Create a new extension
-npx @xplorer/create-extension my-extension
+npx @wisp/create-extension my-extension
 
 # Build an existing extension
 cd packages/extensions/my-extension

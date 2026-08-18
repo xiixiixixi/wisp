@@ -58,15 +58,15 @@ describe('useSplitLayout', () => {
       const group = result.current.activeGroup;
       expect(group.tabs).toHaveLength(1);
       expect(group.tabs[0].name).toBe('Home');
-      expect(group.tabs[0].path).toBe('xplorer://home');
-      expect(group.currentPath).toBe('xplorer://home');
+      expect(group.tabs[0].path).toBe('wisp://home');
+      expect(group.currentPath).toBe('wisp://home');
     });
 
     it('has correct initial path history', () => {
       const { result } = renderHook(() => useSplitLayout());
 
       const group = result.current.activeGroup;
-      expect(group.pathHistory).toEqual(['xplorer://home']);
+      expect(group.pathHistory).toEqual(['wisp://home']);
       expect(group.historyIndex).toBe(0);
     });
   });
@@ -95,7 +95,7 @@ describe('useSplitLayout', () => {
         result.current.navigateBack(groupId);
       });
 
-      expect(result.current.activeGroup.currentPath).toBe('xplorer://home');
+      expect(result.current.activeGroup.currentPath).toBe('wisp://home');
     });
 
     it('can navigate forward after going back', () => {
@@ -152,7 +152,7 @@ describe('useSplitLayout', () => {
 
   describe('Corrupted localStorage', () => {
     it('handles corrupted JSON in localStorage gracefully', () => {
-      localStorageMock.setItem('xplorer:split-layout', 'not valid json {{');
+      localStorageMock.setItem('wisp:split-layout', 'not valid json {{');
 
       const { result } = renderHook(() => useSplitLayout());
 
@@ -162,7 +162,7 @@ describe('useSplitLayout', () => {
     });
 
     it('handles invalid object shape in localStorage gracefully', () => {
-      localStorageMock.setItem('xplorer:split-layout', JSON.stringify({ foo: 'bar' }));
+      localStorageMock.setItem('wisp:split-layout', JSON.stringify({ foo: 'bar' }));
 
       const { result } = renderHook(() => useSplitLayout());
 
@@ -172,7 +172,7 @@ describe('useSplitLayout', () => {
     });
 
     it('handles null value in localStorage gracefully', () => {
-      localStorageMock.setItem('xplorer:split-layout', 'null');
+      localStorageMock.setItem('wisp:split-layout', 'null');
 
       const { result } = renderHook(() => useSplitLayout());
 
@@ -219,7 +219,7 @@ describe('useSplitLayout', () => {
       });
 
       expect(result.current.activeGroup.activeTabId).toBe(homeTabId);
-      expect(result.current.activeGroup.currentPath).toBe('xplorer://home');
+      expect(result.current.activeGroup.currentPath).toBe('wisp://home');
     });
 
     it('closes a tab', () => {
@@ -258,7 +258,7 @@ describe('useSplitLayout', () => {
       });
 
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        'xplorer:split-layout',
+        'wisp:split-layout',
         expect.any(String),
       );
     });

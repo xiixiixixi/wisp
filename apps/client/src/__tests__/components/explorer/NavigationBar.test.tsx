@@ -76,18 +76,18 @@ describe('NavigationBar', () => {
   });
 
   describe('Special paths', () => {
-    it('displays "Home" label for xplorer://home', () => {
-      render(<NavigationBar {...defaultProps} currentPath="xplorer://home" />);
+    it('displays "Home" label for wisp://home', () => {
+      render(<NavigationBar {...defaultProps} currentPath="wisp://home" />);
       expect(screen.getByText('home')).toBeInTheDocument();
     });
 
-    it('displays "Trash" label for xplorer://trash', () => {
-      render(<NavigationBar {...defaultProps} currentPath="xplorer://trash" />);
+    it('displays "Trash" label for wisp://trash', () => {
+      render(<NavigationBar {...defaultProps} currentPath="wisp://trash" />);
       expect(screen.getByText('trash')).toBeInTheDocument();
     });
 
-    it('displays "Google Drive" label for xplorer://gdrive-manager', () => {
-      render(<NavigationBar {...defaultProps} currentPath="xplorer://gdrive-manager" />);
+    it('displays "Google Drive" label for wisp://gdrive-manager', () => {
+      render(<NavigationBar {...defaultProps} currentPath="wisp://gdrive-manager" />);
       expect(screen.getByText('googleDrive')).toBeInTheDocument();
     });
   });

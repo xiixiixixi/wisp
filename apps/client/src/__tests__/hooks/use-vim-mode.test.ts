@@ -78,12 +78,12 @@ describe('Vim mode utility functions', () => {
     });
 
     it('returns true when set to "true"', () => {
-      localStorage.setItem('xplorer-vim-mode', 'true');
+      localStorage.setItem('wisp-vim-mode', 'true');
       expect(isVimModeEnabled()).toBe(true);
     });
 
     it('returns false for other values', () => {
-      localStorage.setItem('xplorer-vim-mode', 'false');
+      localStorage.setItem('wisp-vim-mode', 'false');
       expect(isVimModeEnabled()).toBe(false);
     });
   });
@@ -91,12 +91,12 @@ describe('Vim mode utility functions', () => {
   describe('setVimModeSetting', () => {
     it('sets localStorage to "true"', () => {
       setVimModeSetting(true);
-      expect(localStorage.getItem('xplorer-vim-mode')).toBe('true');
+      expect(localStorage.getItem('wisp-vim-mode')).toBe('true');
     });
 
     it('sets localStorage to "false"', () => {
       setVimModeSetting(false);
-      expect(localStorage.getItem('xplorer-vim-mode')).toBe('false');
+      expect(localStorage.getItem('wisp-vim-mode')).toBe('false');
     });
   });
 
@@ -106,7 +106,7 @@ describe('Vim mode utility functions', () => {
     });
 
     it('returns true when set', () => {
-      localStorage.setItem('xplorer-vim-learning-mode', 'true');
+      localStorage.setItem('wisp-vim-learning-mode', 'true');
       expect(isVimLearningModeEnabled()).toBe(true);
     });
   });
@@ -114,7 +114,7 @@ describe('Vim mode utility functions', () => {
   describe('setVimLearningModeSetting', () => {
     it('persists the value', () => {
       setVimLearningModeSetting(true);
-      expect(localStorage.getItem('xplorer-vim-learning-mode')).toBe('true');
+      expect(localStorage.getItem('wisp-vim-learning-mode')).toBe('true');
     });
   });
 });

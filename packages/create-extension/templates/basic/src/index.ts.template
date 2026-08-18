@@ -1,5 +1,5 @@
-import { Extension, ExtensionContext } from '@xplorer/extension-sdk';
-import { registerExtension } from '@xplorer/extension-sdk';
+import { Extension, ExtensionContext } from '@wisp/extension-sdk';
+import { registerExtension } from '@wisp/extension-sdk';
 
 export class {{displayName}}Extension extends Extension {
   constructor() {
@@ -36,7 +36,7 @@ export class {{displayName}}Extension extends Extension {
   }
 }
 
-// Register the extension with Xplorer
+// Register the extension with Wisp
 const extension = new {{displayName}}Extension();
 registerExtension(extension);
 

@@ -107,7 +107,7 @@ const BottomPanel = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [extRefreshKey]);
 
-  // Listen for xplorer-set-bottom-tab events (dispatched by extensions/commands)
+  // Listen for wisp-set-bottom-tab events (dispatched by extensions/commands)
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail;
@@ -115,8 +115,8 @@ const BottomPanel = ({
         setBottomPanelTab(detail.tab as BottomPanelTab);
       }
     };
-    window.addEventListener('xplorer-set-bottom-tab', handler);
-    return () => window.removeEventListener('xplorer-set-bottom-tab', handler);
+    window.addEventListener('wisp-set-bottom-tab', handler);
+    return () => window.removeEventListener('wisp-set-bottom-tab', handler);
   }, [setBottomPanelTab]);
 
   if (bottomPanelCollapsed) return null;
@@ -295,7 +295,7 @@ const BottomPanel = ({
                   sessions={[]}
                   onStopSession={() => {}}
                   onOpenWorkspace={() => {
-                    window.dispatchEvent(new CustomEvent('xplorer-open-agent-workspace'));
+                    window.dispatchEvent(new CustomEvent('wisp-open-agent-workspace'));
                   }}
                 />
               )}

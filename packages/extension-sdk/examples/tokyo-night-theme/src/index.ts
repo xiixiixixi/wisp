@@ -1,4 +1,4 @@
-import { ThemeExtension } from '@xplorer/extension-sdk';
+import { ThemeExtension } from '@wisp/extension-sdk';
 
 export class TokyoNightTheme extends ThemeExtension {
   constructor() {
@@ -6,7 +6,7 @@ export class TokyoNightTheme extends ThemeExtension {
       id: 'tokyo-night-theme',
       name: 'Tokyo Night Theme',
       version: '1.0.0',
-      author: 'Xplorer Team',
+      author: 'Wisp Team',
       description: 'A beautiful dark theme inspired by Tokyo Night',
       keywords: ['theme', 'dark', 'tokyo', 'night'],
       icon: '🌃',

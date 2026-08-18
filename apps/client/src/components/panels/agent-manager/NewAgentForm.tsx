@@ -1,7 +1,7 @@
 /**
  * Inline form for creating a new multi-session agent.
  * Collects agent type, name, prompt, model selection, and scope configuration.
- * Supports Xplorer Cloud agents and launching external CLI agents
+ * Supports Wisp Cloud agents and launching external CLI agents
  * (Claude Code, Codex, or a custom command).
  */
 import { useState, useEffect, useCallback } from 'react';
@@ -10,7 +10,7 @@ import type {
   CreateSessionParams,
   AgentScopeConfig as ScopeConfigType,
 } from '@/lib/tauri-api-types';
-import { getXplorerState } from '@/components/panels/chat-context-helpers';
+import { getWispState } from '@/components/panels/chat-context-helpers';
 import {
   detectWorkspaceContext,
   buildWorkspacePrompt,
@@ -57,9 +57,9 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
   const [showScope, setShowScope] = useState(false);
   const [isLaunching, setIsLaunching] = useState(false);
 
-  // Auto-detect context from Xplorer state on mount
+  // Auto-detect context from Wisp state on mount
   useEffect(() => {
-    const xState = getXplorerState();
+    const xState = getWispState();
     if (xState?.currentPath) {
       setWorkingDirectory(xState.currentPath);
     }

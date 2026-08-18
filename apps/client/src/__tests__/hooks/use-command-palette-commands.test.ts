@@ -59,7 +59,7 @@ describe('useCommandPaletteCommands', () => {
   });
 
   describe('navigation commands', () => {
-    it('Go Home navigates to xplorer://home', () => {
+    it('Go Home navigates to wisp://home', () => {
       const navigateWithHistory = vi.fn();
       const opts = makeOptions({ navigateWithHistory });
       const { result } = renderHook(() =>
@@ -69,7 +69,7 @@ describe('useCommandPaletteCommands', () => {
       const homeCmd = result.current.find((c) => c.id === 'home');
       expect(homeCmd).toBeDefined();
       homeCmd!.action();
-      expect(navigateWithHistory).toHaveBeenCalledWith('xplorer://home');
+      expect(navigateWithHistory).toHaveBeenCalledWith('wisp://home');
     });
 
     it('Go Up navigates to parent directory', () => {
@@ -355,7 +355,7 @@ describe('useCommandPaletteCommands', () => {
 
       const cmd = result.current.find((c) => c.id === 'settings');
       cmd!.action();
-      expect(navigateWithHistory).toHaveBeenCalledWith('xplorer://settings');
+      expect(navigateWithHistory).toHaveBeenCalledWith('wisp://settings');
     });
 
     it('Open Trash navigates to trash', () => {
@@ -367,7 +367,7 @@ describe('useCommandPaletteCommands', () => {
 
       const cmd = result.current.find((c) => c.id === 'trash');
       cmd!.action();
-      expect(navigateWithHistory).toHaveBeenCalledWith('xplorer://trash');
+      expect(navigateWithHistory).toHaveBeenCalledWith('wisp://trash');
     });
 
     it('Keyboard Shortcuts opens shortcuts dialog', () => {

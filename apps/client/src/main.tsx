@@ -9,16 +9,16 @@ import './index.css';
 (window as unknown as Record<string, unknown>).React = React;
 (window as unknown as Record<string, unknown>).ReactDOM = ReactDOM;
 
-// Expose the Extension SDK so extensions can import from '@xplorer/extension-sdk'
-import * as XplorerSDK from '@xplorer/extension-sdk';
-(window as unknown as Record<string, unknown>).XplorerSDK = XplorerSDK;
+// Expose the Extension SDK so extensions can import from '@wisp/extension-sdk'
+import * as WispSDK from '@wisp/extension-sdk';
+(window as unknown as Record<string, unknown>).WispSDK = WispSDK;
 
 // Install theme event bridge so extension themes register in the theme picker
 import { installThemeEventBridge } from './lib/theme-registry';
 installThemeEventBridge();
 
 import { toast } from './hooks/use-toast';
-window.addEventListener('xplorer:extension-toast', ((e: CustomEvent) => {
+window.addEventListener('wisp:extension-toast', ((e: CustomEvent) => {
   const { title, description, variant } = e.detail;
   toast({ title, description, variant });
 }) as EventListener);

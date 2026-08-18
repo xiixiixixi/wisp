@@ -13,7 +13,7 @@ use super::cosine_similarity;
 
 // ---------------------------------------------------------------------------
 // EmbeddingEntry — re-declared here to avoid cross-module dependency on
-// vector_store.  Layout matches `~/.local/share/xplorer/vector_embeddings.json`.
+// vector_store.  Layout matches `~/.local/share/wisp/vector_embeddings.json`.
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -312,13 +312,13 @@ pub fn search_embeddings(
 // Disk loading
 // ---------------------------------------------------------------------------
 
-/// Load persisted embeddings from `~/.local/share/xplorer/vector_embeddings.json`.
+/// Load persisted embeddings from `~/.local/share/wisp/vector_embeddings.json`.
 ///
 /// Returns an empty vec on any I/O or parse error (graceful degradation).
 pub fn load_embeddings_from_disk() -> Vec<EmbeddingEntry> {
     let path = dirs::data_dir()
         .unwrap_or_else(|| std::path::PathBuf::from("."))
-        .join("xplorer")
+        .join("wisp")
         .join("vector_embeddings.json");
 
     match std::fs::read_to_string(&path) {

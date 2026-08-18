@@ -111,17 +111,17 @@ export const createDefaultGroup = (id?: string): EditorGroup => {
   const homeTab: TabItem = {
     id: `tab-home-${groupId}`,
     name: 'Home',
-    path: 'xplorer://home',
+    path: 'wisp://home',
     type: 'folder',
-    pathHistory: ['xplorer://home'],
+    pathHistory: ['wisp://home'],
     historyIndex: 0,
   };
   return {
     id: groupId,
     tabs: [homeTab],
     activeTabId: homeTab.id,
-    currentPath: 'xplorer://home',
-    pathHistory: ['xplorer://home'],
+    currentPath: 'wisp://home',
+    pathHistory: ['wisp://home'],
     historyIndex: 0,
   };
 };

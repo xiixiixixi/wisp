@@ -7,7 +7,7 @@ Recommended resolution: 1280x800 or 1920x1080, then crop to the relevant area.
 
 ### 1. `main-interface.png`
 **Used in**: Introduction page
-**What to capture**: Full Xplorer window showing the glassmorphic theme with files visible in the main grid, left sidebar, and top bar. Pick a directory with varied file types (images, folders, documents) for visual interest.
+**What to capture**: Full Wisp window showing the glassmorphic theme with files visible in the main grid, left sidebar, and top bar. Pick a directory with varied file types (images, folders, documents) for visual interest.
 
 ### 2. `file-browser.png`
 **Used in**: File Browsing page

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/storage-keys', () => ({
   STORAGE_KEYS: {
-    AI_AUDIT_LOG: 'xplorer:ai-audit-log',
+    AI_AUDIT_LOG: 'wisp:ai-audit-log',
   },
 }));
 

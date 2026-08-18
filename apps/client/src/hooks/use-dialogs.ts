@@ -421,7 +421,7 @@ export const useDialogs = (): DialogState => {
   // This is a no-op in production (no overhead beyond the property assignment)
   if (
     typeof window !== 'undefined' &&
-    (window as unknown as Record<string, unknown>).__XPLORER_E2E__
+    (window as unknown as Record<string, unknown>).__WISP_E2E__
   ) {
     (window as unknown as Record<string, unknown>).__dialogStates__ = {
       setCommandPaletteOpen,

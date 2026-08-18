@@ -1,4 +1,4 @@
-// Xplorer Search Engine — Search Pipeline Stages
+// Wisp Search Engine — Search Pipeline Stages
 //
 // Extracted from `index.rs`'s monolithic `search()` function to improve
 // testability and maintainability. Each stage operates on shared state

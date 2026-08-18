@@ -19,8 +19,8 @@
     "types": ["node", "vite/client"],
     "paths": {
       "@/*": ["./apps/client/src/*"],
-      "@xplorer/sdk": ["./packages/sdk/src/index.ts"],
-      "@xplorer/extension-sdk": ["./packages/extension-sdk/src/index.ts"]
+      "@wisp/sdk": ["./packages/sdk/src/index.ts"],
+      "@wisp/extension-sdk": ["./packages/extension-sdk/src/index.ts"]
     }
   }
 }

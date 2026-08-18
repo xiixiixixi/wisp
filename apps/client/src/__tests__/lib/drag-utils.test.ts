@@ -6,7 +6,7 @@ import {
   validateDrop,
   buildDestinationPath,
   getParentPath,
-  XPLORER_DND_MIME,
+  WISP_DND_MIME,
 } from '@/lib/drag-utils';
 import type { FileEntry } from '@/lib/tauri-api';
 
@@ -232,9 +232,9 @@ describe('drag-utils', () => {
     });
   });
 
-  describe('XPLORER_DND_MIME', () => {
+  describe('WISP_DND_MIME', () => {
     it('has the correct MIME type', () => {
-      expect(XPLORER_DND_MIME).toBe('application/x-xplorer-files');
+      expect(WISP_DND_MIME).toBe('application/x-wisp-files');
     });
   });
 });

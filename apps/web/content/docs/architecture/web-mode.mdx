@@ -6,7 +6,7 @@ sidebar_position: 5
 
 # Web App Mode
 
-Xplorer can run as either a **Tauri desktop app** (default) or a **standalone web app** backed by any HTTP server that implements the API contract described below.
+Wisp can run as either a **Tauri desktop app** (default) or a **standalone web app** backed by any HTTP server that implements the API contract described below.
 
 ## Architecture
 
@@ -49,7 +49,7 @@ Your backend must implement the API contract below. See the [Command Reference](
 
 ### Commands
 
-Every Xplorer command is called via:
+Every Wisp command is called via:
 
 ```
 POST /api/{command_name}
@@ -186,7 +186,7 @@ Below are the most commonly used commands grouped by category. Refer to `tauri-a
 
 ## Implementing a Compatible Backend
 
-If you want to build a backend that works with Xplorer's web mode:
+If you want to build a backend that works with Wisp's web mode:
 
 1. **Start with the command list** in `client/src/lib/tauri-api.ts`. Each `transport('command_name', { args })` call is an endpoint you need.
 2. **Match the Rust types** in `src-tauri/src/` for request/response shapes.

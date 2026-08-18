@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Editor, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Editor, type WispAPI } from '@wisp/extension-sdk';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -265,7 +265,7 @@ function ImageEditorView({ filePath }: { filePath: string }) {
     const ext = getExtension(currentPath);
     const stem = getStem(currentPath);
     const sep = currentPath.includes('/') ? '/' : '\\';
-    return `${dir}${sep}${stem}_xplorer_edit_tmp.${ext}`;
+    return `${dir}${sep}${stem}_wisp_edit_tmp.${ext}`;
   }
 
   // Apply an edit operation, reload the image from the result path, then
@@ -786,7 +786,7 @@ function ImageEditorView({ filePath }: { filePath: string }) {
 
 // ── Extension Registration ───────────────────────────────────────────────────
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 Editor.register({
   id: 'image-editor',

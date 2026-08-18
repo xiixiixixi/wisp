@@ -41,7 +41,7 @@ export const useFocusChangeTracker = (currentPath: string) => {
   const takeSnapshot = useCallback(async (path: string) => {
     if (
       !path ||
-      path.startsWith('xplorer://') ||
+      path.startsWith('wisp://') ||
       path.startsWith('gdrive://') ||
       path.startsWith('comparison://')
     ) {

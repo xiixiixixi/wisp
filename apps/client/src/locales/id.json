@@ -51,7 +51,7 @@
     }
   },
   "updater": {
-    "available": "Xplorer {{version}} tersedia",
+    "available": "Wisp {{version}} tersedia",
     "install": "Perbarui sekarang",
     "dismiss": "Nanti",
     "downloading": "Mengunduh pembaruan..."
@@ -75,7 +75,7 @@
     "navigateTo": "Navigasi ke folder {{label}}"
   },
   "topBar": {
-    "appTitle": "Xplorer",
+    "appTitle": "Wisp",
     "toggleSidebar": "Tampilkan/sembunyikan sidebar",
     "toggleSidebarShortcut": "Tampilkan/sembunyikan sidebar (Ctrl+B)",
     "goBack": "Kembali ke halaman sebelumnya",
@@ -208,7 +208,7 @@
   },
   "settings": {
     "title": "Pengaturan",
-    "subtitle": "Sesuaikan pengalaman Xplorer Anda",
+    "subtitle": "Sesuaikan pengalaman Wisp Anda",
     "backToApp": "Kembali ke Beranda",
     "resetAll": "Atur ulang semua pengaturan",
     "tabs": {
@@ -275,12 +275,12 @@
       "autoSaveDesc": "Otomatis menyimpan perubahan file",
       "systemIntegration": "Integrasi Sistem",
       "defaultExplorer": "File Explorer Default",
-      "defaultExplorerDesc": "Klik dua kali folder membuka Xplorer alih-alih Windows Explorer",
+      "defaultExplorerDesc": "Klik dua kali folder membuka Wisp alih-alih Windows Explorer",
       "defaultExplorerToggle": "Explorer Default",
       "folderContextMenu": "Menu Konteks Folder",
-      "folderContextMenuDesc": "Tambah 'Buka dengan Xplorer' ke menu klik kanan folder",
+      "folderContextMenuDesc": "Tambah 'Buka dengan Wisp' ke menu klik kanan folder",
       "contextMenuToggle": "Menu Konteks",
-      "explorerWarning": "Folder akan dibuka di Xplorer. Nonaktifkan untuk mengembalikan Windows Explorer.",
+      "explorerWarning": "Folder akan dibuka di Wisp. Nonaktifkan untuk mengembalikan Windows Explorer.",
       "help": "Bantuan",
       "onboardingTour": "Tur Pengenalan",
       "onboardingTourDesc": "Putar ulang tur panduan interaktif aplikasi",
@@ -354,11 +354,11 @@
       "mistralApiKey": "Mistral API Key",
       "mistralApiKeyDesc": "Required for Mistral models",
       "serviceMode": "Layanan AI",
-      "serviceModeDesc": "Gunakan Xplorer Cloud (gratis, di-hosting) atau gunakan kunci API Anda sendiri",
-      "cloudMode": "Xplorer Cloud (gratis)",
+      "serviceModeDesc": "Gunakan Wisp Cloud (gratis, di-hosting) atau gunakan kunci API Anda sendiri",
+      "cloudMode": "Wisp Cloud (gratis)",
       "customMode": "Penyedia Kustom",
       "cloudModel": "Model Cloud",
-      "cloudModelDesc": "Model OpenRouter yang digunakan dengan Xplorer Cloud",
+      "cloudModelDesc": "Model OpenRouter yang digunakan dengan Wisp Cloud",
       "cloudModelHint": "misalnya anthropic/claude-sonnet-4, openai/gpt-4o, google/gemini-2.5-flash",
       "customProvider": "Penyedia",
       "customProviderDesc": "Penyedia AI untuk dihubungkan dengan kunci Anda sendiri",
@@ -555,7 +555,7 @@
       "importSuccessDesc_other": "Restored {{count}} settings. Reloading...",
       "exportFailed": "Failed to export settings.",
       "invalidBackupStructure": "Invalid backup file structure. Expected version, exportDate, and settings fields.",
-      "invalidJson": "Invalid JSON file. Please select a valid Xplorer settings backup.",
+      "invalidJson": "Invalid JSON file. Please select a valid Wisp settings backup.",
       "readFileFailed": "Failed to read file."
     },
     "audit": {
@@ -641,20 +641,20 @@
     "about": {
       "description": "Penjelajah file modern bertenaga AI. Gunakan dengan risiko sendiri.",
       "links": "Tautan",
-      "sponsorTitle": "Dukung Xplorer",
-      "sponsorDescription": "Xplorer gratis dan open source. Jika Anda merasa berguna, pertimbangkan untuk mensponsori proyek ini agar pengembangan tetap berjalan. Setiap kontribusi, sekecil apa pun, sangat berarti.",
+      "sponsorTitle": "Dukung Wisp",
+      "sponsorDescription": "Wisp gratis dan open source. Jika Anda merasa berguna, pertimbangkan untuk mensponsori proyek ini agar pengembangan tetap berjalan. Setiap kontribusi, sekecil apa pun, sangat berarti.",
       "sponsorButton": "Sponsor di GitHub",
       "license": "Berlisensi AGPL-3.0. Dibuat dengan cinta."
     }
   },
   "tour": {
     "welcome": {
-      "title": "Selamat Datang di Xplorer!",
+      "title": "Selamat Datang di Wisp!",
       "description": "Mari kami tunjukkan. Tur singkat ini menyoroti area utama aplikasi. Anda bisa keluar kapan saja atau memutar ulang dari Pengaturan."
     },
     "fullDiskAccess": {
       "title": "Berikan Akses Disk Penuh",
-      "description": "Untuk menjelajahi semua file tanpa permintaan akses, berikan Xplorer Akses Disk Penuh:\n\n1. Buka Pengaturan Sistem → Privasi & Keamanan → Akses Disk Penuh\n2. Aktifkan Xplorer\n3. Mulai ulang Xplorer\n\nTanpa ini, macOS akan meminta izin setiap kali Anda membuka folder yang dilindungi seperti Foto, Dokumen, atau iCloud Drive."
+      "description": "Untuk menjelajahi semua file tanpa permintaan akses, berikan Wisp Akses Disk Penuh:\n\n1. Buka Pengaturan Sistem → Privasi & Keamanan → Akses Disk Penuh\n2. Aktifkan Wisp\n3. Mulai ulang Wisp\n\nTanpa ini, macOS akan meminta izin setiap kali Anda membuka folder yang dilindungi seperti Foto, Dokumen, atau iCloud Drive."
     },
     "sidebar": {
       "title": "Navigasi Sidebar",
@@ -674,11 +674,11 @@
     },
     "terminal": {
       "title": "Terminal & Output",
-      "description": "Buka terminal terintegrasi, lihat log output, dan kelola operasi Git langsung di dalam Xplorer. Klik tombol ini atau tekan Ctrl+`."
+      "description": "Buka terminal terintegrasi, lihat log output, dan kelola operasi Git langsung di dalam Wisp. Klik tombol ini atau tekan Ctrl+`."
     },
     "shortcuts": {
       "title": "Pintasan Keyboard",
-      "description": "Xplorer dibangun untuk alur kerja berbasis keyboard. Buka Pengaturan > Pintasan untuk melihat dan menyesuaikan semua pengikatan tombol."
+      "description": "Wisp dibangun untuk alur kerja berbasis keyboard. Buka Pengaturan > Pintasan untuk melihat dan menyesuaikan semua pengikatan tombol."
     },
     "commandPalette": {
       "title": "Palet Perintah",
@@ -686,7 +686,7 @@
     },
     "extensionPacks": {
       "title": "Paket Ekstensi",
-      "description": "Tingkatkan Xplorer dengan paket ekstensi! Buka Marketplace untuk menjelajahi koleksi kurasi seperti Alat Pengembang, Produktivitas, dan Media. Pasang seluruh paket dengan satu klik."
+      "description": "Tingkatkan Wisp dengan paket ekstensi! Buka Marketplace untuk menjelajahi koleksi kurasi seperti Alat Pengembang, Produktivitas, dan Media. Pasang seluruh paket dengan satu klik."
     },
     "allSet": {
       "title": "Anda Siap!",
@@ -985,10 +985,10 @@
         "directory_list": "View files inside folders",
         "directory_create": "Create new folders",
         "directory_delete": "Delete folders and their contents",
-        "xplorer_settings": "Read and modify Xplorer settings",
-        "xplorer_extensions": "Install, disable, or remove other extensions",
-        "xplorer_themes": "Add custom color themes",
-        "xplorer_history": "Read browsing and navigation history"
+        "wisp_settings": "Read and modify Wisp settings",
+        "wisp_extensions": "Install, disable, or remove other extensions",
+        "wisp_themes": "Add custom color themes",
+        "wisp_history": "Read browsing and navigation history"
       }
     },
     "notes": {
@@ -1030,14 +1030,14 @@
     "beta": {
       "title": "Early Beta",
       "subtitle": "v0.1.0 — Preview Release",
-      "intro": "Welcome to Xplorer! This is an early beta release.",
+      "intro": "Welcome to Wisp! This is an early beta release.",
       "bullet1": "You may encounter bugs, crashes, or unexpected behavior",
       "bullet2": "Features may change or break between updates",
       "bullet3": "Back up your files — use this app at your own risk",
       "bugReport": "Found a bug? Report it on",
       "githubIssues": "GitHub Issues",
       "supportTitle": "Support Development",
-      "supportDesc": "Xplorer is free and open source. If you find it useful, consider sponsoring to help keep development going.",
+      "supportDesc": "Wisp is free and open source. If you find it useful, consider sponsoring to help keep development going.",
       "becomeSponsor": "Become a Sponsor",
       "showAgainHint": "You can show this again in Settings",
       "iUnderstand": "I Understand"
@@ -1255,8 +1255,8 @@
   },
   "openWith": {
     "title": "Buka Dengan",
-    "xplorerEditor": "Editor Xplorer",
-    "xplorerEditorDesc": "Buka di editor kode bawaan",
+    "wispEditor": "Editor Wisp",
+    "wispEditorDesc": "Buka di editor kode bawaan",
     "vscode": "VS Code",
     "vscodeDesc": "Buka di Visual Studio Code",
     "systemDefault": "Default Sistem",
@@ -1400,7 +1400,7 @@
     "macintoshHD": "Macintosh HD",
     "themeChanged": "Tema Diubah",
     "themeApplied": "Tema {{theme}} diterapkan",
-    "agentTitle": "Agen Xplorer",
+    "agentTitle": "Agen Wisp",
     "agentDescription": "Minta saya mengatur file, mencari dokumen, menjalankan perintah, atau mengelola ruang kerja Anda.",
     "approve": "Setujui",
     "thisTime": "Kali Ini",
@@ -1575,7 +1575,7 @@
       "noCredentialsTitle": "Configure API credentials first",
       "noCredentialsDesc": "Set up your Google Cloud OAuth credentials above to start connecting Google Drive accounts.",
       "noAccountsTitle": "Connect your Google Drive",
-      "noAccountsDesc": "Sign in with your Google account to browse and manage your Drive files directly from Xplorer.",
+      "noAccountsDesc": "Sign in with your Google account to browse and manage your Drive files directly from Wisp.",
       "signInWithGoogle": "Sign in with Google",
       "openAccount": "Open",
       "disconnect": "Disconnect",
@@ -2188,7 +2188,7 @@
       "start": "Mulai Agen",
       "launch": "Luncurkan",
       "launching": "Meluncurkan...",
-      "typeCloud": "Xplorer Cloud",
+      "typeCloud": "Wisp Cloud",
       "typeClaudeCode": "Claude Code",
       "typeCodex": "Codex",
       "typeCustomCli": "CLI Kustom"
@@ -2531,7 +2531,7 @@
       "copied": "Tautan berbagi disalin ke clipboard!",
       "copyFailed": "Tidak dapat menyalin ke clipboard.",
       "shared": "Percakapan dibagikan!",
-      "openInXplorer": "Buka tautan ini di Xplorer lain untuk memulihkan percakapan."
+      "openInWisp": "Buka tautan ini di Wisp lain untuk memulihkan percakapan."
     },
     "clipboard": {
       "pasteImage": "Tempel gambar",

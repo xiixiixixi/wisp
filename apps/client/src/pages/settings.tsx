@@ -397,7 +397,7 @@ const Settings = () => {
         return (
           <div className="space-y-6 px-4 py-2">
             <div className="border-xp-border rounded-lg border p-6 text-center">
-              <h2 className="text-xp-text mb-1 text-2xl font-bold">Xplorer</h2>
+              <h2 className="text-xp-text mb-1 text-2xl font-bold">Wisp</h2>
               <p className="text-xp-text-muted text-sm">v1.0.0-alpha.1</p>
               <p className="text-xp-text-secondary mt-3 text-sm">
                 {t('settings.about.description')}

@@ -2,7 +2,7 @@
   "app": {
     "windows": [
       {
-        "title": "Xplorer - File Explorer",
+        "title": "Wisp - File Explorer",
         "width": 1200,
         "height": 800,
         "minWidth": 800,

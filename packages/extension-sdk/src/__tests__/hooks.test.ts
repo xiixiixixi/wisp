@@ -3,7 +3,7 @@
  *   useCurrentPath, useSelectedFiles, navigateTo
  *
  * The hooks rely on the global `React` object (declared but not imported in
- * the hooks module) and `window.__xplorer_state__` / CustomEvent dispatching.
+ * the hooks module) and `window.__wisp_state__` / CustomEvent dispatching.
  *
  * We use @testing-library/react's renderHook + act to exercise them in a real
  * React render cycle.
@@ -22,7 +22,7 @@ import { useCurrentPath, useSelectedFiles, navigateTo } from '../hooks';
 
 describe('useCurrentPath', () => {
   beforeEach(() => {
-    delete (window as any).__xplorer_state__;
+    delete (window as any).__wisp_state__;
   });
 
   it('returns initial empty string when no state exists', () => {
@@ -30,20 +30,20 @@ describe('useCurrentPath', () => {
     expect(result.current).toBe('');
   });
 
-  it('returns initial path from __xplorer_state__', () => {
-    (window as any).__xplorer_state__ = { currentPath: '/home/user', selectedFiles: [] };
+  it('returns initial path from __wisp_state__', () => {
+    (window as any).__wisp_state__ = { currentPath: '/home/user', selectedFiles: [] };
 
     const { result } = renderHook(() => useCurrentPath());
     expect(result.current).toBe('/home/user');
   });
 
-  it('updates on xplorer-state-change event with type=currentPath', () => {
+  it('updates on wisp-state-change event with type=currentPath', () => {
     const { result } = renderHook(() => useCurrentPath());
     expect(result.current).toBe('');
 
     act(() => {
       window.dispatchEvent(
-        new CustomEvent('xplorer-state-change', {
+        new CustomEvent('wisp-state-change', {
           detail: { type: 'currentPath', value: '/new/path' },
         }),
       );
@@ -57,7 +57,7 @@ describe('useCurrentPath', () => {
 
     act(() => {
       window.dispatchEvent(
-        new CustomEvent('xplorer-state-change', {
+        new CustomEvent('wisp-state-change', {
           detail: { type: 'currentPath', value: '/first' },
         }),
       );
@@ -66,7 +66,7 @@ describe('useCurrentPath', () => {
 
     act(() => {
       window.dispatchEvent(
-        new CustomEvent('xplorer-state-change', {
+        new CustomEvent('wisp-state-change', {
           detail: { type: 'currentPath', value: '/second' },
         }),
       );
@@ -79,7 +79,7 @@ describe('useCurrentPath', () => {
 
     act(() => {
       window.dispatchEvent(
-        new CustomEvent('xplorer-state-change', {
+        new CustomEvent('wisp-state-change', {
           detail: { type: 'selectedFiles', value: [{ name: 'a', path: '/a', is_dir: false }] },
         }),
       );
@@ -93,7 +93,7 @@ describe('useCurrentPath', () => {
 
     act(() => {
       window.dispatchEvent(
-        new CustomEvent('xplorer-state-change', {
+        new CustomEvent('wisp-state-change', {
           detail: { type: 'currentPath', value: 123 },
         }),
       );
@@ -106,7 +106,7 @@ describe('useCurrentPath', () => {
     const { result } = renderHook(() => useCurrentPath());
 
     act(() => {
-      window.dispatchEvent(new CustomEvent('xplorer-state-change'));
+      window.dispatchEvent(new CustomEvent('wisp-state-change'));
     });
 
     expect(result.current).toBe('');
@@ -116,7 +116,7 @@ describe('useCurrentPath', () => {
     const { result } = renderHook(() => useCurrentPath());
 
     act(() => {
-      window.dispatchEvent(new CustomEvent('xplorer-state-change', { detail: null }));
+      window.dispatchEvent(new CustomEvent('wisp-state-change', { detail: null }));
     });
 
     expect(result.current).toBe('');
@@ -126,7 +126,7 @@ describe('useCurrentPath', () => {
     const { result } = renderHook(() => useCurrentPath());
 
     act(() => {
-      window.dispatchEvent(new CustomEvent('xplorer-state-change', { detail: 'bad' }));
+      window.dispatchEvent(new CustomEvent('wisp-state-change', { detail: 'bad' }));
     });
 
     // 'bad' is typeof 'string', which is not 'object', so the handler returns early
@@ -139,7 +139,7 @@ describe('useCurrentPath', () => {
 
     unmount();
 
-    expect(removeListenerSpy).toHaveBeenCalledWith('xplorer-state-change', expect.any(Function));
+    expect(removeListenerSpy).toHaveBeenCalledWith('wisp-state-change', expect.any(Function));
 
     removeListenerSpy.mockRestore();
   });
@@ -149,7 +149,7 @@ describe('useCurrentPath', () => {
 
 describe('useSelectedFiles', () => {
   beforeEach(() => {
-    delete (window as any).__xplorer_state__;
+    delete (window as any).__wisp_state__;
   });
 
   it('returns initial empty array when no state exists', () => {
@@ -157,18 +157,18 @@ describe('useSelectedFiles', () => {
     expect(result.current).toEqual([]);
   });
 
-  it('returns initial files from __xplorer_state__', () => {
+  it('returns initial files from __wisp_state__', () => {
     const files = [
       { name: 'a.txt', path: '/a.txt', is_dir: false },
       { name: 'b', path: '/b', is_dir: true },
     ];
-    (window as any).__xplorer_state__ = { currentPath: '/', selectedFiles: files };
+    (window as any).__wisp_state__ = { currentPath: '/', selectedFiles: files };
 
     const { result } = renderHook(() => useSelectedFiles());
     expect(result.current).toEqual(files);
   });
 
-  it('updates on xplorer-state-change event with type=selectedFiles', () => {
+  it('updates on wisp-state-change event with type=selectedFiles', () => {
     const { result } = renderHook(() => useSelectedFiles());
     expect(result.current).toEqual([]);
 
@@ -176,7 +176,7 @@ describe('useSelectedFiles', () => {
 
     act(() => {
       window.dispatchEvent(
-        new CustomEvent('xplorer-state-change', {
+        new CustomEvent('wisp-state-change', {
           detail: { type: 'selectedFiles', value: newFiles },
         }),
       );
@@ -190,7 +190,7 @@ describe('useSelectedFiles', () => {
 
     act(() => {
       window.dispatchEvent(
-        new CustomEvent('xplorer-state-change', {
+        new CustomEvent('wisp-state-change', {
           detail: { type: 'currentPath', value: '/path' },
         }),
       );
@@ -204,7 +204,7 @@ describe('useSelectedFiles', () => {
 
     act(() => {
       window.dispatchEvent(
-        new CustomEvent('xplorer-state-change', {
+        new CustomEvent('wisp-state-change', {
           detail: { type: 'selectedFiles', value: 'not-an-array' },
         }),
       );
@@ -218,7 +218,7 @@ describe('useSelectedFiles', () => {
 
     act(() => {
       window.dispatchEvent(
-        new CustomEvent('xplorer-state-change', {
+        new CustomEvent('wisp-state-change', {
           detail: { type: 'selectedFiles', value: { name: 'fake' } },
         }),
       );
@@ -231,7 +231,7 @@ describe('useSelectedFiles', () => {
     const { result } = renderHook(() => useSelectedFiles());
 
     act(() => {
-      window.dispatchEvent(new CustomEvent('xplorer-state-change', { detail: null }));
+      window.dispatchEvent(new CustomEvent('wisp-state-change', { detail: null }));
     });
 
     expect(result.current).toEqual([]);
@@ -243,7 +243,7 @@ describe('useSelectedFiles', () => {
     // First set some files
     act(() => {
       window.dispatchEvent(
-        new CustomEvent('xplorer-state-change', {
+        new CustomEvent('wisp-state-change', {
           detail: { type: 'selectedFiles', value: [{ name: 'x', path: '/x', is_dir: false }] },
         }),
       );
@@ -253,7 +253,7 @@ describe('useSelectedFiles', () => {
     // Then clear them
     act(() => {
       window.dispatchEvent(
-        new CustomEvent('xplorer-state-change', {
+        new CustomEvent('wisp-state-change', {
           detail: { type: 'selectedFiles', value: [] },
         }),
       );
@@ -267,7 +267,7 @@ describe('useSelectedFiles', () => {
 
     unmount();
 
-    expect(removeListenerSpy).toHaveBeenCalledWith('xplorer-state-change', expect.any(Function));
+    expect(removeListenerSpy).toHaveBeenCalledWith('wisp-state-change', expect.any(Function));
 
     removeListenerSpy.mockRestore();
   });
@@ -277,12 +277,12 @@ describe('useSelectedFiles', () => {
 
 describe('navigateTo', () => {
   beforeEach(() => {
-    delete (window as any).__xplorer_state__;
+    delete (window as any).__wisp_state__;
   });
 
-  it('calls __xplorer_state__.navigateTo when available', () => {
+  it('calls __wisp_state__.navigateTo when available', () => {
     const navFn = jest.fn();
-    (window as any).__xplorer_state__ = {
+    (window as any).__wisp_state__ = {
       currentPath: '/',
       selectedFiles: [],
       navigateTo: navFn,
@@ -293,13 +293,13 @@ describe('navigateTo', () => {
     expect(navFn).toHaveBeenCalledWith('/new/dir');
   });
 
-  it('does nothing when __xplorer_state__ is not set', () => {
+  it('does nothing when __wisp_state__ is not set', () => {
     // Should not throw
     expect(() => navigateTo('/some/path')).not.toThrow();
   });
 
   it('does nothing when navigateTo function is not on state', () => {
-    (window as any).__xplorer_state__ = {
+    (window as any).__wisp_state__ = {
       currentPath: '/',
       selectedFiles: [],
       // no navigateTo

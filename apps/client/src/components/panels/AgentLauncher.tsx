@@ -13,7 +13,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Rocket, ChevronDown, Clock, X, Folder, FolderOpen } from 'lucide-react';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
-import { getXplorerState } from '@/components/panels/chat-context-helpers';
+import { getWispState } from '@/components/panels/chat-context-helpers';
 import {
   detectWorkspaceContext,
   buildWorkspacePrompt,
@@ -94,7 +94,7 @@ const saveRecentPrompts = (prompts: RecentPrompt[]): void => {
 };
 
 const dispatchChatPrompt = (prompt: string): void => {
-  window.dispatchEvent(new CustomEvent('xplorer-ai-chat-request', { detail: { prompt } }));
+  window.dispatchEvent(new CustomEvent('wisp-ai-chat-request', { detail: { prompt } }));
 };
 
 const getScopeDisplay = (
@@ -277,8 +277,8 @@ const AgentLauncher = ({
       scopeContext = `Selected ${selectedFileCount} file(s) in ${workingDir}`;
     }
 
-    // Gather selected file paths from Xplorer state
-    const xState = getXplorerState();
+    // Gather selected file paths from Wisp state
+    const xState = getWispState();
     const selectedPaths = xState?.selectedFiles?.map((f) => f.path) ?? [];
 
     // Detect workspace context asynchronously then dispatch

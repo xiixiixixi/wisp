@@ -1,5 +1,5 @@
-use xplorer::extensions::permissions::*;
-use xplorer::extensions::types::*;
+use wisp::extensions::permissions::*;
+use wisp::extensions::types::*;
 
 #[test]
 fn test_extension_manifest_parsing() {
@@ -128,7 +128,7 @@ fn test_parse_manifest_from_package_json_nested() {
         "version": "1.0.0",
         "main": "dist/index.js",
         "description": "Top-level description",
-        "xplorer": {
+        "wisp": {
             "id": "nested-ext",
             "name": "Nested Extension",
             "version": "1.0.0",

@@ -43,6 +43,6 @@ Email **kimlimjustin@gmail.com** with:
 
 ## General Guidance
 
-- Keep your Xplorer installation up to date.
+- Keep your Wisp installation up to date.
 - Review extension permissions before granting access.
 - Do not install extensions from untrusted sources.

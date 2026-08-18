@@ -45,7 +45,7 @@ pub enum ExtensionPermission {
     // Google Drive permissions
     GDriveAccess,
 
-    // Xplorer-specific permissions
+    // Wisp-specific permissions
     AccessSettings,
     ModifyThemes,
     AccessHistory,
@@ -79,10 +79,10 @@ impl ExtensionPermission {
             "git:read" => Some(Self::GitRead),
             "git:write" => Some(Self::GitWrite),
             "gdrive:access" => Some(Self::GDriveAccess),
-            "xplorer:settings" => Some(Self::AccessSettings),
-            "xplorer:themes" => Some(Self::ModifyThemes),
-            "xplorer:history" => Some(Self::AccessHistory),
-            "xplorer:extensions" => Some(Self::AccessExtensions),
+            "wisp:settings" => Some(Self::AccessSettings),
+            "wisp:themes" => Some(Self::ModifyThemes),
+            "wisp:history" => Some(Self::AccessHistory),
+            "wisp:extensions" => Some(Self::AccessExtensions),
             _ => None,
         }
     }

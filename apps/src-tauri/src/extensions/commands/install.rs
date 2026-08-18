@@ -303,7 +303,7 @@ pub async fn download_extension(
 
     safe_extract_zip(&zip_path, &extract_dir)?;
 
-    // 4. Verify the extension manifest (package.json with xplorer field)
+    // 4. Verify the extension manifest (package.json with wisp field)
     let manifest_path = extract_dir.join("package.json");
     if !manifest_path.exists() {
         let _ = std::fs::remove_file(&zip_path);

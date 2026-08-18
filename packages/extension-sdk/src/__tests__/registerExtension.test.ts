@@ -1,14 +1,14 @@
 /**
  * Tests for the registerExtension utility function and the Extension base class.
  *
- * registerExtension() delegates to `window.__xplorer_register__` if present,
+ * registerExtension() delegates to `window.__wisp_register__` if present,
  * otherwise logs a warning. These tests also exercise the Extension base class
  * helper methods (getContext, getAPI, registerCommand, etc.).
  */
 
 import { Extension } from '../core/Extension';
 import { registerExtension } from '../utils/registerExtension';
-import type { ExtensionManifest, ExtensionContext, XplorerAPI } from '../types';
+import type { ExtensionManifest, ExtensionContext, WispAPI } from '../types';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -37,7 +37,7 @@ const createMockContext = (): ExtensionContext => ({
   asAbsolutePath: jest.fn((rel: string) => `/extensions/test-ext/${rel}`),
 });
 
-const createMockApi = (): XplorerAPI => ({
+const createMockApi = (): WispAPI => ({
   files: {
     read: jest.fn(),
     readText: jest.fn(),
@@ -140,12 +140,12 @@ class TestExtension extends Extension {
 
 describe('registerExtension', () => {
   afterEach(() => {
-    delete (window as any).__xplorer_register__;
+    delete (window as any).__wisp_register__;
   });
 
-  it('calls __xplorer_register__ when available', () => {
+  it('calls __wisp_register__ when available', () => {
     const registerFn = jest.fn();
-    (window as any).__xplorer_register__ = registerFn;
+    (window as any).__wisp_register__ = registerFn;
 
     const ext = new TestExtension();
     registerExtension(ext);
@@ -153,10 +153,10 @@ describe('registerExtension', () => {
     expect(registerFn).toHaveBeenCalledWith(ext);
   });
 
-  it('logs a warning when __xplorer_register__ is not available', () => {
+  it('logs a warning when __wisp_register__ is not available', () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-    delete (window as any).__xplorer_register__;
+    delete (window as any).__wisp_register__;
 
     const ext = new TestExtension(createManifest({ name: 'My Ext' }));
     registerExtension(ext);
@@ -169,7 +169,7 @@ describe('registerExtension', () => {
 
   it('passes the exact extension instance to the register callback', () => {
     let captured: any;
-    (window as any).__xplorer_register__ = (ext: any) => {
+    (window as any).__wisp_register__ = (ext: any) => {
       captured = ext;
     };
 

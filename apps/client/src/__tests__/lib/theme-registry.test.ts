@@ -13,7 +13,7 @@ import { renderHook, act } from '@testing-library/react';
 vi.mock('@/lib/utils', () => ({
   themes: {
     glass: {
-      name: 'Xplorer Glass',
+      name: 'Wisp Glass',
       primary: '#6366f1',
       bg: 'transparent',
       surface: 'rgba(255,255,255,0.06)',
@@ -46,7 +46,7 @@ describe('theme-registry', () => {
     it('includes built-in themes', () => {
       const themes = getAllThemes();
       expect(themes.glass).toBeDefined();
-      expect(themes.glass.name).toBe('Xplorer Glass');
+      expect(themes.glass.name).toBe('Wisp Glass');
       expect(themes.light).toBeDefined();
       expect(themes.light.name).toBe('Light');
     });
@@ -165,13 +165,13 @@ describe('theme-registry', () => {
       expect(() => installThemeEventBridge()).not.toThrow();
     });
 
-    it('registers themes from xplorer-theme-register event', () => {
+    it('registers themes from wisp-theme-register event', () => {
       // Install the bridge (idempotent)
       installThemeEventBridge();
 
       act(() => {
         window.dispatchEvent(
-          new CustomEvent('xplorer-theme-register', {
+          new CustomEvent('wisp-theme-register', {
             detail: {
               id: 'event-theme',
               name: 'Event Theme',
@@ -189,13 +189,13 @@ describe('theme-registry', () => {
       expect(themes['event-theme'].name).toBe('Event Theme');
     });
 
-    it('unregisters themes from xplorer-theme-unregister event', () => {
+    it('unregisters themes from wisp-theme-unregister event', () => {
       installThemeEventBridge();
 
       // First register
       act(() => {
         window.dispatchEvent(
-          new CustomEvent('xplorer-theme-register', {
+          new CustomEvent('wisp-theme-register', {
             detail: {
               id: 'to-unregister',
               name: 'Temp',
@@ -212,7 +212,7 @@ describe('theme-registry', () => {
       // Then unregister
       act(() => {
         window.dispatchEvent(
-          new CustomEvent('xplorer-theme-unregister', {
+          new CustomEvent('wisp-theme-unregister', {
             detail: { id: 'to-unregister' },
           }),
         );

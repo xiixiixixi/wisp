@@ -77,7 +77,7 @@ const ChatModelPicker = ({ currentModel, onModelChange }: ChatModelPickerProps) 
       s.aiServiceMode = 'cloud';
       s.aiCloudModel = modelId;
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(s));
-      window.dispatchEvent(new CustomEvent('xplorer-settings-changed'));
+      window.dispatchEvent(new CustomEvent('wisp-settings-changed'));
     } catch (err) {
       console.warn('[ChatModelPicker] Failed to persist model:', err);
     }

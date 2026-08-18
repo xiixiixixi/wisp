@@ -17,12 +17,12 @@
     "vitest": "^1.0.0"
   },
   "dependencies": {
-    "@xplorer/extension-sdk": "^1.0.0"
+    "@wisp/extension-sdk": "^1.0.0"
   },
-  "keywords": ["xplorer", "extension", "processor", "files"],
+  "keywords": ["wisp", "extension", "processor", "files"],
   "author": "{{author}}",
   "license": "MIT",
-  "xplorer": {
+  "wisp": {
     "id": "{{name}}",
     "displayName": "{{displayName}}",
     "category": "action",

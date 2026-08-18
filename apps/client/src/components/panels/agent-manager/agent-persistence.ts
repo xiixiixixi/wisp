@@ -1,12 +1,12 @@
 /**
  * Agent Persistence — saves running agent sessions to localStorage so they
- * survive Xplorer restarts. Terminal sessions (done/error/cancelled) are
+ * survive Wisp restarts. Terminal sessions (done/error/cancelled) are
  * already saved to session history; this module handles in-flight sessions.
  *
  * - Periodically snapshots RUNNING agent state every 30 seconds
  * - On startup, checks for interrupted sessions and exposes them for resume
  * - Max 5 interrupted sessions saved
- * - Storage key: `xplorer:agent-interrupted-sessions`
+ * - Storage key: `wisp:agent-interrupted-sessions`
  */
 
 import type {
@@ -19,7 +19,7 @@ import type {
 // Constants
 // ---------------------------------------------------------------------------
 
-const STORAGE_KEY = 'xplorer:agent-interrupted-sessions';
+const STORAGE_KEY = 'wisp:agent-interrupted-sessions';
 const SAVE_INTERVAL_MS = 30_000;
 const MAX_INTERRUPTED_SESSIONS = 5;
 const MAX_MESSAGES_SAVED = 20;

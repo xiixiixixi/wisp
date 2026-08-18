@@ -24,9 +24,9 @@ interface HandlerOption {
 
 const HANDLER_OPTIONS: HandlerOption[] = [
   {
-    id: 'xplorer-editor',
-    labelKey: 'openWith.xplorerEditor',
-    descriptionKey: 'openWith.xplorerEditorDesc',
+    id: 'wisp-editor',
+    labelKey: 'openWith.wispEditor',
+    descriptionKey: 'openWith.wispEditorDesc',
     Icon: FileCode,
   },
   {
@@ -45,7 +45,7 @@ const HANDLER_OPTIONS: HandlerOption[] = [
 
 const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogProps) => {
   const { t } = useTranslation();
-  const [selected, setSelected] = useState<OpenHandler>('xplorer-editor');
+  const [selected, setSelected] = useState<OpenHandler>('wisp-editor');
   const [rememberChoice, setRememberChoice] = useState(false);
 
   const ext = getFileExtension(filePath);
@@ -61,7 +61,7 @@ const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogP
   }, [rememberChoice, ext, selected, onChoose, onClose]);
 
   const handleClose = useCallback(() => {
-    setSelected('xplorer-editor');
+    setSelected('wisp-editor');
     setRememberChoice(false);
     onClose();
   }, [onClose]);
@@ -81,9 +81,7 @@ const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogP
 
   // For non-code files, fall through — this dialog is code-file specific.
   // The caller should not open this for non-code files, but guard just in case.
-  const options = isCode
-    ? HANDLER_OPTIONS
-    : HANDLER_OPTIONS.filter((o) => o.id !== 'xplorer-editor');
+  const options = isCode ? HANDLER_OPTIONS : HANDLER_OPTIONS.filter((o) => o.id !== 'wisp-editor');
 
   return (
     <div

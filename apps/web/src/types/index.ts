@@ -6,7 +6,7 @@ export interface Extension {
   description: string;
   longDescription: string | null;
   version: string;
-  minimumXplorerVersion: string;
+  minimumWispVersion: string;
   icon: string | null;
   screenshots: string | null;
   downloadCount: number;

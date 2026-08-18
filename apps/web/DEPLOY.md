@@ -1,6 +1,6 @@
-# Deploying Xplorer Web
+# Deploying Wisp Web
 
-The Xplorer website (docs + marketplace + billing) is a Next.js 15 app deployed to **Vercel** with **Neon PostgreSQL** and **Vercel Blob** storage.
+The Wisp website (docs + marketplace + billing) is a Next.js 15 app deployed to **Vercel** with **Neon PostgreSQL** and **Vercel Blob** storage.
 
 Pro subscriptions are managed via **GitHub Sponsors** (automatic status checking). Stripe is used only for **paid extension purchases** (Stripe Connect for author payouts).
 
@@ -19,7 +19,7 @@ Pro subscriptions are managed via **GitHub Sponsors** (automatic status checking
 ## Step 1 — Create the Database (Neon)
 
 1. Go to [neon.tech](https://neon.tech) and create a new project
-2. Name it `xplorer-web` (or whatever you want)
+2. Name it `wisp-web` (or whatever you want)
 3. Copy the **connection string** — it looks like:
    ```
    postgresql://user:password@ep-xxx.us-east-2.aws.neon.tech/neondb?sslmode=require
@@ -33,7 +33,7 @@ Pro subscriptions are managed via **GitHub Sponsors** (automatic status checking
 1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
 2. Click **New OAuth App**
 3. Fill in:
-   - **Application name**: `Xplorer`
+   - **Application name**: `Wisp`
    - **Homepage URL**: `https://your-domain.vercel.app` (update later)
    - **Authorization callback URL**: `https://your-domain.vercel.app/api/auth/callback/github`
 4. Click **Register application**
@@ -50,7 +50,7 @@ This token is used to check if users are sponsoring you on GitHub (for Pro tier)
 
 1. Go to [GitHub → Settings → Tokens](https://github.com/settings/tokens)
 2. Click **Generate new token (classic)**
-3. Name it `xplorer-sponsor-check`
+3. Name it `wisp-sponsor-check`
 4. Select the `read:org` scope (needed for sponsor queries)
 5. Generate and copy the token → `GITHUB_PAT`
 
@@ -84,7 +84,7 @@ You'll set this up after deploying — see Step 7.
    ```
 
 2. Go to [vercel.com/new](https://vercel.com/new)
-3. Import the `xplorer` repo
+3. Import the `wisp` repo
 4. Set the **Root Directory** to `apps/web`
 5. Vercel auto-detects Next.js — the `vercel.json` handles build config
 5. Add **Environment Variables** (all required):
@@ -121,7 +121,7 @@ npx vercel --prod
 
 1. In Vercel Dashboard → your project → **Storage** tab
 2. Click **Create Database** → select **Blob**
-3. Name it `xplorer-extensions`
+3. Name it `wisp-extensions`
 4. The `BLOB_READ_WRITE_TOKEN` is auto-added to your project env vars
 
 ---
@@ -189,7 +189,7 @@ Now that you have your Vercel URL:
 ## Step 9 — Custom Domain (Optional)
 
 1. In Vercel Dashboard → your project → **Domains**
-2. Add your domain (e.g., `xplorer.app`)
+2. Add your domain (e.g., `wisp.app`)
 3. Update DNS records as Vercel instructs
 4. Update these env vars with the new domain:
    - `NEXTAUTH_URL`

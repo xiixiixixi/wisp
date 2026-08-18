@@ -34,7 +34,7 @@ export abstract class ThemeExtension extends Extension {
   async activate(_context: ExtensionContext): Promise<void> {
     this.theme = this.getTheme();
 
-    // Register the theme with Xplorer
+    // Register the theme with Wisp
     await this.registerTheme();
 
     // Register theme variants if available
@@ -62,8 +62,8 @@ export abstract class ThemeExtension extends Extension {
     if (!this.theme) return;
 
     try {
-      // Register theme with Xplorer's theme manager
-      await this.executeCommand('xplorer.themes.register', {
+      // Register theme with Wisp's theme manager
+      await this.executeCommand('wisp.themes.register', {
         id: this.manifest.id,
         theme: this.theme,
         extensionId: this.manifest.id,
@@ -75,7 +75,7 @@ export abstract class ThemeExtension extends Extension {
 
   private async unregisterTheme(): Promise<void> {
     try {
-      await this.executeCommand('xplorer.themes.unregister', this.manifest.id);
+      await this.executeCommand('wisp.themes.unregister', this.manifest.id);
     } catch (error) {
       this.logError(`Failed to unregister theme: ${error}`);
     }
@@ -87,7 +87,7 @@ export abstract class ThemeExtension extends Extension {
     const variants = this.getThemeVariants();
     for (const [variantId, variantTheme] of Object.entries(variants)) {
       try {
-        await this.executeCommand('xplorer.themes.register', {
+        await this.executeCommand('wisp.themes.register', {
           id: `${this.manifest.id}-${variantId}`,
           theme: variantTheme,
           extensionId: this.manifest.id,
@@ -132,7 +132,7 @@ export abstract class ThemeExtension extends Extension {
    */
   protected async isThemeActive(): Promise<boolean> {
     try {
-      const activeThemeId = await this.getConfig<string>('xplorer.theme.active');
+      const activeThemeId = await this.getConfig<string>('wisp.theme.active');
       return activeThemeId === this.manifest.id;
     } catch {
       return false;
@@ -144,7 +144,7 @@ export abstract class ThemeExtension extends Extension {
    */
   protected async activateTheme(): Promise<void> {
     try {
-      await this.executeCommand('xplorer.themes.activate', this.manifest.id);
+      await this.executeCommand('wisp.themes.activate', this.manifest.id);
       this.showMessage(`Theme "${this.theme?.name}" activated`);
     } catch (error) {
       this.logError(`Failed to activate theme: ${error}`);

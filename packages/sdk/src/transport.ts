@@ -1,5 +1,5 @@
 /**
- * Transport abstraction layer for the Xplorer SDK.
+ * Transport abstraction layer for the Wisp SDK.
  *
  * Auto-detects whether the app is running inside Tauri (desktop) or a plain
  * browser (web app mode). In Tauri mode every call is forwarded to the native

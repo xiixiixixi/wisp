@@ -106,7 +106,7 @@ const SidebarFileTree = ({
   );
 
   const getRootPath = useCallback(() => {
-    if (currentPath.startsWith('xplorer://')) return ROOT_PATH;
+    if (currentPath.startsWith('wisp://')) return ROOT_PATH;
     if (currentPath.startsWith('/')) return '/';
     const pathParts = currentPath.split(/[\\/]/).filter((p) => p);
     return pathParts.length > 0 ? pathParts[0] + PATH_SEPARATOR : ROOT_PATH;

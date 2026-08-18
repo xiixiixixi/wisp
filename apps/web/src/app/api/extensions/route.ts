@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
           description: data.description,
           longDescription: data.longDescription || null,
           version: data.version,
-          minimumXplorerVersion: data.minimumXplorerVersion,
+          minimumWispVersion: data.minimumWispVersion,
           licenseType: data.licenseType,
           repositoryUrl: data.repositoryUrl || null,
           homepageUrl: data.homepageUrl || null,

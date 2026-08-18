@@ -1,5 +1,5 @@
 /**
- * Collaboration Extension for Xplorer
+ * Collaboration Extension for Wisp
  *
  * Multi-user collaboration: host/join sessions via WebSocket,
  * presence tracking, shared workspace, file transfer, and chat.
@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Sidebar, Command, ContextMenu, useCurrentPath, useSelectedFiles, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Sidebar, Command, ContextMenu, useCurrentPath, useSelectedFiles, type WispAPI } from '@wisp/extension-sdk';
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 
@@ -186,7 +186,7 @@ function Avatar({ username, color, size = 28 }: { username: string; color: strin
 
 // ─── Main Panel Component ───────────────────────────────────────────────────────
 
-function CollabPanel({ api }: { api: XplorerAPI }) {
+function CollabPanel({ api }: { api: WispAPI }) {
   // State
   const [view, setView] = useState<View>('main');
   const [status, setStatus] = useState<StatusInfo | null>(null);
@@ -765,7 +765,7 @@ function CollabPanel({ api }: { api: XplorerAPI }) {
 
 // ─── Register Extension ─────────────────────────────────────────────────────────
 
-let globalApi: XplorerAPI | null = null;
+let globalApi: WispAPI | null = null;
 
 Sidebar.register({
   id: 'collab-panel',

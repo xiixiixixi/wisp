@@ -27,7 +27,7 @@ const CACHE_EXPIRATION_SECONDS: u64 = 300;
 // Maximum number of entries in the cache before eviction
 const CACHE_MAX_ENTRIES: usize = 1000;
 
-/// Helper function to send output to Xplorer's terminal
+/// Helper function to send output to Wisp's terminal
 fn send_terminal_output(app_handle: &tauri::AppHandle, message: &str) {
     if let Err(e) = app_handle.emit("terminal-output", message) {
         warn!("Failed to emit terminal output: {}", e);

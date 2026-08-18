@@ -290,7 +290,7 @@ const ChatPanel = ({
 
     const editorSelection = (
       window as unknown as {
-        __xplorer_state__?: {
+        __wisp_state__?: {
           editorSelection?: {
             text: string;
             filePath: string;
@@ -299,7 +299,7 @@ const ChatPanel = ({
           } | null;
         };
       }
-    ).__xplorer_state__?.editorSelection;
+    ).__wisp_state__?.editorSelection;
 
     if (editorSelection) {
       contextParts.push(
@@ -455,11 +455,11 @@ const ChatPanel = ({
   };
 
   const handleApplyCode = useCallback((code: string) => {
-    window.dispatchEvent(new CustomEvent('xplorer-apply-to-editor', { detail: { code } }));
+    window.dispatchEvent(new CustomEvent('wisp-apply-to-editor', { detail: { code } }));
   }, []);
 
   const hasEditorSelection = Boolean(
-    (window as unknown as { __xplorer_state__?: { editorSelection?: unknown } }).__xplorer_state__
+    (window as unknown as { __wisp_state__?: { editorSelection?: unknown } }).__wisp_state__
       ?.editorSelection,
   );
 
@@ -476,13 +476,13 @@ const ChatPanel = ({
         overflow: 'hidden',
       }}
       role="region"
-      aria-label={state.agentEnabled ? 'Xplorer Agent chat' : 'Copilot Assistant chat'}
+      aria-label={state.agentEnabled ? 'Wisp Agent chat' : 'Copilot Assistant chat'}
     >
       {/* Header */}
       <div className="border-xp-border flex-shrink-0 border-b px-3 py-3">
         <div className="mb-2 flex items-center justify-between gap-2">
           <h3 className="truncate text-sm font-medium">
-            {state.agentEnabled ? 'Xplorer Agent' : 'Copilot Assistant'}
+            {state.agentEnabled ? 'Wisp Agent' : 'Copilot Assistant'}
           </h3>
           <div className="flex flex-shrink-0 items-center gap-1.5">
             {onNewSession && (

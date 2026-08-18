@@ -4,7 +4,7 @@ import { useOpenWithPrefs, type OpenHandler } from '@/hooks/use-open-with-prefs'
 import { SectionTitle, Divider } from './shared';
 
 const HANDLER_LABELS: Record<OpenHandler, string> = {
-  'xplorer-editor': 'openWith.xplorerEditor',
+  'wisp-editor': 'openWith.wispEditor',
   vscode: 'openWith.vscode',
   system: 'openWith.systemDefault',
 };

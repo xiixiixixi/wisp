@@ -164,7 +164,7 @@ export function safeImageUrl(url: string | null | undefined): string {
   }
 }
 
-// Stub for renderIcon used by copied Xplorer components
+// Stub for renderIcon used by copied Wisp components
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const renderIcon = (
   name: string,

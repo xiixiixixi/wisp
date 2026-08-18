@@ -579,7 +579,7 @@ export const EmptyState = ({ agentEnabled }: EmptyStateProps) => {
           clipRule="evenodd"
         />
       </svg>
-      <p className="font-medium">{agentEnabled ? 'Xplorer Agent' : 'Copilot Assistant'}</p>
+      <p className="font-medium">{agentEnabled ? 'Wisp Agent' : 'Copilot Assistant'}</p>
       <p className="mt-1 text-xs">
         {agentEnabled
           ? 'Ask me to manage files, search, organize, or run commands'

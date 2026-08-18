@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: `Extensions Marketplace | ${SITE_NAME}`,
   description:
-    'Browse and install extensions for Xplorer. Themes, previews, productivity tools, and more.',
+    'Browse and install extensions for Wisp. Themes, previews, productivity tools, and more.',
 };
 
 async function getExtensions() {
@@ -76,7 +76,7 @@ export default async function ExtensionsPage() {
         </h1>
         <p className="mx-auto mt-3 max-w-2xl text-lg text-gray-500 dark:text-gray-400">
           Discover themes, previews, and tools built by the community to customize and extend your
-          Xplorer experience.
+          Wisp experience.
         </p>
         <div className="mt-4 flex items-center justify-center gap-6 text-sm text-gray-400 dark:text-gray-500">
           <span>{extensions.length} extensions</span>

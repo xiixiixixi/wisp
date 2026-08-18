@@ -1,23 +1,23 @@
 {
   "name": "workflow-automation-extension",
   "version": "1.0.0",
-  "description": "Workflow automation extension for Xplorer - detects package manager conflicts and more",
+  "description": "Workflow automation extension for Wisp - detects package manager conflicts and more",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "package": "xplorer-sdk package"
+    "package": "wisp-sdk package"
   },
   "devDependencies": {
-    "@xplorer/extension-sdk": "file:../..",
+    "@wisp/extension-sdk": "file:../..",
     "typescript": "^5.0.0"
   },
-  "xplorer": {
+  "wisp": {
     "id": "workflow-automation",
     "displayName": "Workflow Automation",
     "category": "tool",
     "version": "1.0.0",
-    "author": "Xplorer Team",
+    "author": "Wisp Team",
     "description": "Automated workflow checks and warnings for common development issues",
     "keywords": [
       "workflow",

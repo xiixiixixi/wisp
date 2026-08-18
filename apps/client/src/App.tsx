@@ -4,7 +4,7 @@ import { Switch, Route } from 'wouter';
 import { queryClient } from './lib/queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import ExplorerUnified from '@/pages/xplorer';
+import ExplorerUnified from '@/pages/wisp';
 import NotFound from '@/pages/not-found';
 import { TauriAPI } from '@/lib/tauri-api';
 import { extensionHost } from '@/lib/extension-host';

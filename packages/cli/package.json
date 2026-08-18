@@ -1,21 +1,21 @@
 {
-  "name": "@xplorer/cli",
+  "name": "@wisp/cli",
   "version": "1.0.0",
-  "description": "Xplorer CLI — open folders, login, and publish extensions to xplorer.space",
+  "description": "Wisp CLI — open folders, login, and publish extensions to xplorer.space",
   "type": "module",
   "bin": {
-    "xplorer": "./bin/xplorer.mjs"
+    "wisp": "./bin/wisp.mjs"
   },
   "scripts": {
     "build": "echo 'No build needed — pure JS'",
-    "start": "node bin/xplorer.mjs"
+    "start": "node bin/wisp.mjs"
   },
   "files": [
     "bin/",
     "src/"
   ],
   "keywords": [
-    "xplorer",
+    "wisp",
     "file-manager",
     "cli",
     "marketplace"

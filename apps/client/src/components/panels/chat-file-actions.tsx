@@ -519,9 +519,8 @@ export const executeFileAction = async (action: FileAction): Promise<string | un
     }
     case 'open_file': {
       // Trigger navigation via the global state
-      const xState = (
-        window as unknown as { __xplorer_state__?: { navigateTo: (p: string) => void } }
-      ).__xplorer_state__;
+      const xState = (window as unknown as { __wisp_state__?: { navigateTo: (p: string) => void } })
+        .__wisp_state__;
       if (xState?.navigateTo) {
         // If it looks like a directory, navigate to it
         try {
@@ -538,7 +537,7 @@ export const executeFileAction = async (action: FileAction): Promise<string | un
         xState.navigateTo(parentDir);
         return `Navigated to ${parentDir} (file: ${basename(action.path)})`;
       }
-      return `Cannot navigate: Xplorer state not available`;
+      return `Cannot navigate: Wisp state not available`;
     }
     case 'open_extension': {
       // Dynamically import to avoid circular dependency
@@ -646,7 +645,7 @@ const getOSName = (): string => {
 };
 
 export const FILE_OPS_SYSTEM_PROMPT = `
-You are an AI agent inside the Xplorer file manager. You can observe the filesystem and take actions on it.
+You are an AI agent inside the Wisp file manager. You can observe the filesystem and take actions on it.
 The user is running ${getOSName()}.
 
 ## Available Actions

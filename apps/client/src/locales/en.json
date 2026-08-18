@@ -51,7 +51,7 @@
     }
   },
   "updater": {
-    "available": "Xplorer {{version}} is available",
+    "available": "Wisp {{version}} is available",
     "install": "Update now",
     "dismiss": "Later",
     "downloading": "Downloading update..."
@@ -75,7 +75,7 @@
     "navigateTo": "Navigate to {{label}} folder"
   },
   "topBar": {
-    "appTitle": "Xplorer",
+    "appTitle": "Wisp",
     "toggleSidebar": "Toggle sidebar",
     "toggleSidebarShortcut": "Toggle sidebar (Ctrl+B)",
     "goBack": "Go back in history",
@@ -208,7 +208,7 @@
   },
   "settings": {
     "title": "Settings",
-    "subtitle": "Customize your Xplorer experience",
+    "subtitle": "Customize your Wisp experience",
     "backToApp": "Back to Home",
     "resetAll": "Reset all settings to defaults",
     "tabs": {
@@ -275,12 +275,12 @@
       "autoSaveDesc": "Automatically save changes to files",
       "systemIntegration": "System Integration",
       "defaultExplorer": "Default File Explorer",
-      "defaultExplorerDesc": "Double-clicking folders opens Xplorer instead of Windows Explorer",
+      "defaultExplorerDesc": "Double-clicking folders opens Wisp instead of Windows Explorer",
       "defaultExplorerToggle": "Default Explorer",
       "folderContextMenu": "Folder Context Menu",
-      "folderContextMenuDesc": "Add 'Open with Xplorer' to folder right-click menu",
+      "folderContextMenuDesc": "Add 'Open with Wisp' to folder right-click menu",
       "contextMenuToggle": "Context Menu",
-      "explorerWarning": "Folders will open in Xplorer. Disable to restore Windows Explorer.",
+      "explorerWarning": "Folders will open in Wisp. Disable to restore Windows Explorer.",
       "help": "Help",
       "onboardingTour": "Onboarding Tour",
       "onboardingTourDesc": "Replay the interactive guided tour of the app",
@@ -354,11 +354,11 @@
       "mistralApiKey": "Mistral API Key",
       "mistralApiKeyDesc": "Required for Mistral models",
       "serviceMode": "AI Service",
-      "serviceModeDesc": "Use Xplorer Cloud (free, hosted) or bring your own API key",
-      "cloudMode": "Xplorer Cloud (free)",
+      "serviceModeDesc": "Use Wisp Cloud (free, hosted) or bring your own API key",
+      "cloudMode": "Wisp Cloud (free)",
       "customMode": "Custom Provider",
       "cloudModel": "Cloud Model",
-      "cloudModelDesc": "OpenRouter model to use with Xplorer Cloud",
+      "cloudModelDesc": "OpenRouter model to use with Wisp Cloud",
       "cloudModelHint": "e.g. anthropic/claude-sonnet-4, openai/gpt-4o, google/gemini-2.5-flash",
       "customProvider": "Provider",
       "customProviderDesc": "Which AI provider to connect with your own key",
@@ -555,7 +555,7 @@
       "importSuccessDesc_other": "Restored {{count}} settings. Reloading...",
       "exportFailed": "Failed to export settings.",
       "invalidBackupStructure": "Invalid backup file structure. Expected version, exportDate, and settings fields.",
-      "invalidJson": "Invalid JSON file. Please select a valid Xplorer settings backup.",
+      "invalidJson": "Invalid JSON file. Please select a valid Wisp settings backup.",
       "readFileFailed": "Failed to read file."
     },
     "audit": {
@@ -641,20 +641,20 @@
     "about": {
       "description": "A modern, AI-powered file explorer. Use at your own risk.",
       "links": "Links",
-      "sponsorTitle": "Support Xplorer",
-      "sponsorDescription": "Xplorer is free and open source. If you find it useful, please consider sponsoring the project to help keep development going. Every contribution, no matter how small, makes a difference.",
+      "sponsorTitle": "Support Wisp",
+      "sponsorDescription": "Wisp is free and open source. If you find it useful, please consider sponsoring the project to help keep development going. Every contribution, no matter how small, makes a difference.",
       "sponsorButton": "Sponsor on GitHub",
       "license": "Licensed under AGPL-3.0. Made with love."
     }
   },
   "tour": {
     "welcome": {
-      "title": "Welcome to Xplorer!",
+      "title": "Welcome to Wisp!",
       "description": "Let us show you around. This quick tour highlights the key areas of the app. You can exit anytime or replay later from Settings."
     },
     "fullDiskAccess": {
       "title": "Grant Full Disk Access",
-      "description": "To browse all your files without access prompts, grant Xplorer Full Disk Access:\n\n1. Open System Settings → Privacy & Security → Full Disk Access\n2. Toggle Xplorer ON\n3. Restart Xplorer\n\nWithout this, macOS will prompt you each time you open protected folders like Photos, Documents, or iCloud Drive."
+      "description": "To browse all your files without access prompts, grant Wisp Full Disk Access:\n\n1. Open System Settings → Privacy & Security → Full Disk Access\n2. Toggle Wisp ON\n3. Restart Wisp\n\nWithout this, macOS will prompt you each time you open protected folders like Photos, Documents, or iCloud Drive."
     },
     "sidebar": {
       "title": "Sidebar Navigation",
@@ -674,11 +674,11 @@
     },
     "terminal": {
       "title": "Terminal & Output",
-      "description": "Open the integrated terminal, view output logs, and manage Git operations right inside Xplorer. Click this button or press Ctrl+`."
+      "description": "Open the integrated terminal, view output logs, and manage Git operations right inside Wisp. Click this button or press Ctrl+`."
     },
     "shortcuts": {
       "title": "Keyboard Shortcuts",
-      "description": "Xplorer is built for keyboard-driven workflows. Head to Settings > Shortcuts to view and customize all key bindings."
+      "description": "Wisp is built for keyboard-driven workflows. Head to Settings > Shortcuts to view and customize all key bindings."
     },
     "commandPalette": {
       "title": "Command Palette",
@@ -686,7 +686,7 @@
     },
     "extensionPacks": {
       "title": "Extension Packs",
-      "description": "Supercharge Xplorer with extension packs! Open the Marketplace to browse curated collections like Developer Tools, Productivity, and Media. Install a whole pack with one click."
+      "description": "Supercharge Wisp with extension packs! Open the Marketplace to browse curated collections like Developer Tools, Productivity, and Media. Install a whole pack with one click."
     },
     "allSet": {
       "title": "You're All Set!",
@@ -923,10 +923,10 @@
         "directory_list": "View files inside folders",
         "directory_create": "Create new folders",
         "directory_delete": "Delete folders and their contents",
-        "xplorer_settings": "Read and modify Xplorer settings",
-        "xplorer_extensions": "Install, disable, or remove other extensions",
-        "xplorer_themes": "Add custom color themes",
-        "xplorer_history": "Read browsing and navigation history"
+        "wisp_settings": "Read and modify Wisp settings",
+        "wisp_extensions": "Install, disable, or remove other extensions",
+        "wisp_themes": "Add custom color themes",
+        "wisp_history": "Read browsing and navigation history"
       }
     },
     "secureDelete": {
@@ -1030,14 +1030,14 @@
     "beta": {
       "title": "Early Beta",
       "subtitle": "v0.1.0 — Preview Release",
-      "intro": "Welcome to Xplorer! This is an early beta release.",
+      "intro": "Welcome to Wisp! This is an early beta release.",
       "bullet1": "You may encounter bugs, crashes, or unexpected behavior",
       "bullet2": "Features may change or break between updates",
       "bullet3": "Back up your files — use this app at your own risk",
       "bugReport": "Found a bug? Report it on",
       "githubIssues": "GitHub Issues",
       "supportTitle": "Support Development",
-      "supportDesc": "Xplorer is free and open source. If you find it useful, consider sponsoring to help keep development going.",
+      "supportDesc": "Wisp is free and open source. If you find it useful, consider sponsoring to help keep development going.",
       "becomeSponsor": "Become a Sponsor",
       "showAgainHint": "You can show this again in Settings",
       "iUnderstand": "I Understand"
@@ -1255,8 +1255,8 @@
   },
   "openWith": {
     "title": "Open With",
-    "xplorerEditor": "Xplorer Editor",
-    "xplorerEditorDesc": "Open in the built-in code editor",
+    "wispEditor": "Wisp Editor",
+    "wispEditorDesc": "Open in the built-in code editor",
     "vscode": "VS Code",
     "vscodeDesc": "Open in Visual Studio Code",
     "systemDefault": "System Default",
@@ -1400,7 +1400,7 @@
     "macintoshHD": "Macintosh HD",
     "themeChanged": "Theme Changed",
     "themeApplied": "Applied {{theme}} theme",
-    "agentTitle": "Xplorer Agent",
+    "agentTitle": "Wisp Agent",
     "agentDescription": "Ask me to organize files, find documents, run commands, or manage your workspace.",
     "approve": "Approve",
     "thisTime": "This Time",
@@ -1575,7 +1575,7 @@
       "noCredentialsTitle": "Configure API credentials first",
       "noCredentialsDesc": "Set up your Google Cloud OAuth credentials above to start connecting Google Drive accounts.",
       "noAccountsTitle": "Connect your Google Drive",
-      "noAccountsDesc": "Sign in with your Google account to browse and manage your Drive files directly from Xplorer.",
+      "noAccountsDesc": "Sign in with your Google account to browse and manage your Drive files directly from Wisp.",
       "signInWithGoogle": "Sign in with Google",
       "openAccount": "Open",
       "disconnect": "Disconnect",
@@ -2204,7 +2204,7 @@
       "start": "Start Agent",
       "launch": "Launch",
       "launching": "Launching...",
-      "typeCloud": "Xplorer Cloud",
+      "typeCloud": "Wisp Cloud",
       "typeClaudeCode": "Claude Code",
       "typeCodex": "Codex",
       "typeCustomCli": "Custom CLI"
@@ -2566,7 +2566,7 @@
       "copied": "Share link copied to clipboard!",
       "copyFailed": "Could not copy to clipboard.",
       "shared": "Conversation shared!",
-      "openInXplorer": "Open this link in another Xplorer instance to restore the conversation."
+      "openInWisp": "Open this link in another Wisp instance to restore the conversation."
     },
     "clipboard": {
       "pasteImage": "Paste image",

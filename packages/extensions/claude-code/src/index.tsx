@@ -1,7 +1,7 @@
 import React from 'react';
-import { Sidebar, Command, useCurrentPath, useSelectedFiles, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Sidebar, Command, useCurrentPath, useSelectedFiles, type WispAPI } from '@wisp/extension-sdk';
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 interface Msg { id: string; role: 'user' | 'assistant'; content: string; done?: boolean; }
 
@@ -128,7 +128,7 @@ const ClaudeCodePanel = () => {
     if (!prompt || _loading) return;
     // Add structured context about current location and selected files
     const contextParts: string[] = [];
-    if (currentPath && currentPath !== '.' && !currentPath.startsWith('xplorer://')) {
+    if (currentPath && currentPath !== '.' && !currentPath.startsWith('wisp://')) {
       contextParts.push(`[Working directory: ${currentPath}]`);
     }
     if (selectedFiles.length > 0) {
@@ -219,7 +219,7 @@ Sidebar.register({
   location: 'right',
   permissions: ['file:read', 'ui:panels', 'system:exec'],
   render: () => <ClaudeCodePanel />,
-  onActivate: (xplorerApi) => { api = xplorerApi; },
+  onActivate: (wispApi) => { api = wispApi; },
 });
 
 Command.register({

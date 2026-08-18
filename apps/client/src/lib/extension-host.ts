@@ -114,13 +114,13 @@ class ExtensionHost {
   /** Emit a message to the Activity Log output panel */
   private log(msg: string) {
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('xplorer-output', { detail: msg }));
+      window.dispatchEvent(new CustomEvent('wisp-output', { detail: msg }));
     }
   }
 
   constructor() {
     if (typeof window !== 'undefined') {
-      Object.defineProperty(window, '__xplorer_register__', {
+      Object.defineProperty(window, '__wisp_register__', {
         value: (extension: unknown) => {
           void this.registerExternalExtension(extension);
         },
@@ -142,7 +142,7 @@ class ExtensionHost {
       console.warn(`[ExtensionHost] Dev reload triggered for: ${id}`);
       await this.reloadExtension(id);
       window.dispatchEvent(
-        new CustomEvent('xplorer:extension-dev-reloaded', {
+        new CustomEvent('wisp:extension-dev-reloaded', {
           detail: { id },
         }),
       );
@@ -432,7 +432,7 @@ class ExtensionHost {
 
   /**
    * Load and execute an extension's JS bundle from its installation path.
-   * The JS is expected to call window.__xplorer_register__ with either:
+   * The JS is expected to call window.__wisp_register__ with either:
    * - A factory function: (api) => ({ activate, deactivate })
    * - An object: { activate, deactivate, render, _setContext }
    */
@@ -480,12 +480,12 @@ class ExtensionHost {
     // No preprocessing needed — extensions are built as IIFE bundles.
     // The IIFE uses require() for externals, which we provide in the sandbox.
 
-    // Temporarily override __xplorer_register__ to capture ALL registrations
+    // Temporarily override __wisp_register__ to capture ALL registrations
     // (extensions can call register() multiple times, e.g. BottomTab + Command)
     const capturedAll: unknown[] = [];
-    const prevRegister = window.__xplorer_register__;
+    const prevRegister = window.__wisp_register__;
     this.expectedExtensionId = pkg.manifest.id;
-    window.__xplorer_register__ = (ext: unknown) => {
+    window.__wisp_register__ = (ext: unknown) => {
       capturedAll.push(ext);
     };
 
@@ -500,7 +500,7 @@ class ExtensionHost {
         react: (window as unknown as Record<string, unknown>).React,
         'react-dom': (window as unknown as Record<string, unknown>).ReactDOM,
         'react-dom/client': (window as unknown as Record<string, unknown>).ReactDOM,
-        '@xplorer/extension-sdk': (window as unknown as Record<string, unknown>).XplorerSDK,
+        '@wisp/extension-sdk': (window as unknown as Record<string, unknown>).WispSDK,
       };
       const sandboxRequire = (moduleId: string): unknown => {
         if (ALLOWED_MODULES[moduleId] !== undefined) return ALLOWED_MODULES[moduleId];
@@ -536,7 +536,7 @@ class ExtensionHost {
 
       // Use blob: URL to execute extension JS, avoiding CSP 'unsafe-eval' restriction.
       // The sandbox parameters are passed via a temporary global that the wrapper reads and deletes.
-      const sandboxKey = `__xplorer_ext_sandbox_${extId.replace(/[^a-zA-Z0-9_]/g, '_')}__`;
+      const sandboxKey = `__wisp_ext_sandbox_${extId.replace(/[^a-zA-Z0-9_]/g, '_')}__`;
       (window as unknown as Record<string, unknown>)[sandboxKey] = paramValues;
 
       const wrappedCode = `(function(){var __s=window['${sandboxKey}'];delete window['${sandboxKey}'];(function(${paramNames.join(',')}){${jsContent}}).apply(null,__s);})();`;
@@ -565,7 +565,7 @@ class ExtensionHost {
 
     // Restore original handler and clear expected ID
     this.expectedExtensionId = null;
-    window.__xplorer_register__ = prevRegister;
+    window.__wisp_register__ = prevRegister;
 
     if (capturedAll.length === 0) {
       this.log(`[WARN] ${pkg.manifest.id}: no registrations captured`);
@@ -1041,7 +1041,7 @@ class ExtensionHost {
         ext.manifest.permissions?.filter((p) => dangerousPermissions.includes(p)) || [];
       if (requestedDangerous.length > 0) {
         // Check if user previously granted consent
-        const consentKey = `xplorer:ext-consent:${id}`;
+        const consentKey = `wisp:ext-consent:${id}`;
         const previouslyConsented =
           typeof window !== 'undefined' && localStorage.getItem(consentKey) === 'granted';
 

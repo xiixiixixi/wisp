@@ -193,7 +193,7 @@ pub fn emit_event(app: &tauri::AppHandle, event: &AgentEvent) {
 fn settings_path() -> std::path::PathBuf {
     let dir = dirs::data_local_dir()
         .unwrap_or_else(|| std::path::PathBuf::from("."))
-        .join("xplorer");
+        .join("wisp");
     std::fs::create_dir_all(&dir).ok();
     dir.join("agent_settings.json")
 }
@@ -260,7 +260,7 @@ fn save_settings(settings: &AgentSettings) -> Result<(), String> {
 fn permissions_path() -> std::path::PathBuf {
     let dir = dirs::data_local_dir()
         .unwrap_or_else(|| std::path::PathBuf::from("."))
-        .join("xplorer");
+        .join("wisp");
     std::fs::create_dir_all(&dir).ok();
     dir.join("agent_permissions.json")
 }
@@ -310,7 +310,7 @@ fn build_system_prompt(current_path: &str, filesystem_context: &Option<String>) 
         .unwrap_or_default();
 
     format!(
-        "You are Xplorer Agent, an autonomous AI assistant built into the Xplorer file manager. \
+        "You are Wisp Agent, an autonomous AI assistant built into the Wisp file manager. \
         You help users manage files, search, organize, and automate tasks on their computer.\n\n\
         Rules:\n\
         - The user's current working directory is: {}\n\
@@ -1109,7 +1109,7 @@ mod tests {
     fn test_build_system_prompt_contains_path() {
         let prompt = build_system_prompt("/home/user", &None);
         assert!(prompt.contains("/home/user"));
-        assert!(prompt.contains("Xplorer Agent"));
+        assert!(prompt.contains("Wisp Agent"));
     }
 
     #[test]

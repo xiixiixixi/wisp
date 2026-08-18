@@ -54,7 +54,7 @@ export type {
   ActionMenuItem,
   PreviewProps,
   PanelProps,
-  XplorerAPI,
+  WispAPI,
   DockerContainerInfo,
   DockerImageInfo,
   ImageInfo,

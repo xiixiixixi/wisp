@@ -6,7 +6,7 @@
 
 import { ThemeExtension } from '../core/ThemeExtension';
 import { Theme as ThemeAPI } from '../api';
-import type { Theme as ThemeType, ExtensionContext, ExtensionManifest, XplorerAPI } from '../types';
+import type { Theme as ThemeType, ExtensionContext, ExtensionManifest, WispAPI } from '../types';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -20,7 +20,7 @@ const createMockContext = (): ExtensionContext => ({
   asAbsolutePath: jest.fn((rel: string) => `/extensions/test-theme/${rel}`),
 });
 
-const createMockApi = (): XplorerAPI => ({
+const createMockApi = (): WispAPI => ({
   files: {
     read: jest.fn(),
     readText: jest.fn(),
@@ -74,14 +74,14 @@ const validColors = {
   purple: '#bb9af7',
 };
 
-/** Capture the object passed to window.__xplorer_register__. */
+/** Capture the object passed to window.__wisp_register__. */
 const captureRegistration = <T = unknown>(fn: () => void): T => {
   let captured: T | undefined;
-  (window as any).__xplorer_register__ = (ext: T) => {
+  (window as any).__wisp_register__ = (ext: T) => {
     captured = ext;
   };
   fn();
-  delete (window as any).__xplorer_register__;
+  delete (window as any).__wisp_register__;
   return captured as T;
 };
 

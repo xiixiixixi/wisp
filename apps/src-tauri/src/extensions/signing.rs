@@ -17,7 +17,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use tracing::{error, warn};
 
-// Public key for verifying official Xplorer extensions.
+// Public key for verifying official Wisp extensions.
 // To generate a new keypair: run `cargo test generate_signing_keypair -- --nocapture`
 // Store the private key as EXTENSION_SIGNING_KEY in GitHub Secrets. NEVER commit it.
 const OFFICIAL_PUBLIC_KEY: [u8; 32] = [
@@ -613,7 +613,7 @@ mod tests {
             let path = entry.path();
             if path.is_dir() && path.join("package.json").exists() {
                 let ext_name = path.file_name().unwrap().to_string_lossy().to_string();
-                sign_extension(&path, "Xplorer Team", Some(&test_signing_key())).unwrap();
+                sign_extension(&path, "Wisp Team", Some(&test_signing_key())).unwrap();
                 let info = verify_extension_with_key(&path, &test_public_key())
                     .unwrap()
                     .unwrap();

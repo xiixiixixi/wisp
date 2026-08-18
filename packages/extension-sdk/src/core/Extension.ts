@@ -1,12 +1,12 @@
-import { ExtensionManifest, ExtensionContext, ExtensionLifecycle, XplorerAPI } from '../types';
+import { ExtensionManifest, ExtensionContext, ExtensionLifecycle, WispAPI } from '../types';
 
 /**
- * Base class for all Xplorer extensions
+ * Base class for all Wisp extensions
  */
 export abstract class Extension implements ExtensionLifecycle {
   public readonly manifest: ExtensionManifest;
   protected context?: ExtensionContext;
-  protected api?: XplorerAPI;
+  protected api?: WispAPI;
 
   constructor(manifest: ExtensionManifest) {
     this.manifest = manifest;
@@ -33,19 +33,19 @@ export abstract class Extension implements ExtensionLifecycle {
   }
 
   /**
-   * Get the Xplorer API
+   * Get the Wisp API
    */
-  protected getAPI(): XplorerAPI {
+  protected getAPI(): WispAPI {
     if (!this.api) {
-      throw new Error('Xplorer API not available. Make sure the extension is activated.');
+      throw new Error('Wisp API not available. Make sure the extension is activated.');
     }
     return this.api;
   }
 
   /**
-   * Internal method to set context and API (called by Xplorer)
+   * Internal method to set context and API (called by Wisp)
    */
-  public _setContext(context: ExtensionContext, api: XplorerAPI): void {
+  public _setContext(context: ExtensionContext, api: WispAPI): void {
     this.context = context;
     this.api = api;
   }

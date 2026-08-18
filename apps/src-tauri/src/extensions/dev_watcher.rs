@@ -44,7 +44,7 @@ fn read_extension_id(extension_dir: &Path) -> String {
     if let Ok(raw) = std::fs::read_to_string(&pkg_path) {
         if let Ok(pkg) = serde_json::from_str::<serde_json::Value>(&raw) {
             if let Some(id) = pkg
-                .get("xplorer")
+                .get("wisp")
                 .and_then(|x| x.get("id"))
                 .and_then(|v| v.as_str())
             {
@@ -66,9 +66,9 @@ fn read_main_file(extension_dir: &Path) -> String {
             if let Some(main) = pkg.get("main").and_then(|v| v.as_str()) {
                 return main.to_string();
             }
-            // Also check xplorer.main
+            // Also check wisp.main
             if let Some(main) = pkg
-                .get("xplorer")
+                .get("wisp")
                 .and_then(|x| x.get("main"))
                 .and_then(|v| v.as_str())
             {

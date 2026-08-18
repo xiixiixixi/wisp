@@ -2,7 +2,7 @@
 
 ## v2.0.0 (Unreleased)
 
-Complete ground-up rewrite of Xplorer.
+Complete ground-up rewrite of Wisp.
 
 ### Architecture
 - Migrated from Tauri 1.x to **Tauri 2**
@@ -40,8 +40,8 @@ Complete ground-up rewrite of Xplorer.
 - **Vim mode** — keyboard navigation for power users
 
 ### Developer Experience
-- **Extension SDK** (`@xplorer/extension-sdk`) — public API for building extensions
-- **Create Extension CLI** (`@xplorer/create-extension`) — scaffold new extensions
+- **Extension SDK** (`@wisp/extension-sdk`) — public API for building extensions
+- **Create Extension CLI** (`@wisp/create-extension`) — scaffold new extensions
 - **IIFE extension format** — sandboxed execution with require() shim
 - **28 free extensions** included (themes, tools, previews)
 - **CI/CD** — GitHub Actions for lint, test, build across Windows/macOS/Linux

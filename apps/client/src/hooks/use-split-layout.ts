@@ -132,13 +132,13 @@ const splitLayoutReducer = (
           {
             id: `tab-home-${newGroupId}`,
             name: 'Home',
-            path: sourceGroup?.currentPath ?? 'xplorer://home',
+            path: sourceGroup?.currentPath ?? 'wisp://home',
             type: 'folder',
           },
         ],
         activeTabId: `tab-home-${newGroupId}`,
-        currentPath: sourceGroup?.currentPath ?? 'xplorer://home',
-        pathHistory: [sourceGroup?.currentPath ?? 'xplorer://home'],
+        currentPath: sourceGroup?.currentPath ?? 'wisp://home',
+        pathHistory: [sourceGroup?.currentPath ?? 'wisp://home'],
         historyIndex: 0,
       };
 
@@ -639,9 +639,9 @@ const splitLayoutReducer = (
         const homeTab: TabItem = {
           id: `tab-home-${groupId}-${Date.now()}`,
           name: 'Home',
-          path: 'xplorer://home',
+          path: 'wisp://home',
           type: 'folder',
-          pathHistory: ['xplorer://home'],
+          pathHistory: ['wisp://home'],
           historyIndex: 0,
         };
         return {
@@ -652,8 +652,8 @@ const splitLayoutReducer = (
               ...group,
               tabs: [homeTab],
               activeTabId: homeTab.id,
-              currentPath: 'xplorer://home',
-              pathHistory: ['xplorer://home'],
+              currentPath: 'wisp://home',
+              pathHistory: ['wisp://home'],
               historyIndex: 0,
             },
           },

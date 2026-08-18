@@ -43,7 +43,7 @@ mod inner {
             if items.is_empty() {
                 return Ok(vec![TrashItem {
                     name: "🗑️ Recycle Bin".to_string(),
-                    original_path: "Note: Direct recycle bin access may require administrator privileges. Files moved to trash using Xplorer will still be properly deleted.".to_string(),
+                    original_path: "Note: Direct recycle bin access may require administrator privileges. Files moved to trash using Wisp will still be properly deleted.".to_string(),
                     deletion_date: SystemTime::now()
                         .duration_since(SystemTime::UNIX_EPOCH)
                         .unwrap_or_default()

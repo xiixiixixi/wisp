@@ -7,7 +7,7 @@
  * Usage: Select a text file, then press Ctrl+Shift+W or run the "Count Words" command.
  */
 
-import { Command, useSelectedFiles, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Command, useSelectedFiles, type WispAPI } from '@wisp/extension-sdk';
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
@@ -43,12 +43,12 @@ function formatNumber(n: number): string {
 // ── Registration ────────────────────────────────────────────────────────────
 
 Command.register({
-  id: 'xplorer-word-counter.count',
+  id: 'wisp-word-counter.count',
   title: 'Count Words in File',
   shortcut: 'ctrl+shift+w',
   permissions: ['file:read', 'ui:notifications'],
-  action: async (api: XplorerAPI) => {
-    const state = (window as Record<string, unknown>).__xplorer_state__ as
+  action: async (api: WispAPI) => {
+    const state = (window as Record<string, unknown>).__wisp_state__ as
       { selectedFiles?: Array<{ name: string; path: string; is_dir: boolean }> } | undefined;
     const selectedFiles = state?.selectedFiles || [];
 

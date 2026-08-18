@@ -1,26 +1,26 @@
 {
-  "name": "xplorer-architect",
+  "name": "wisp-architect",
   "version": "1.0.0",
   "description": "Interactive architecture visualizer - node graph for project structure, plan mode, and AI-driven vibe coding",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "build": "esbuild src/index.tsx --bundle --format=iife --outfile=dist/index.js --external:react --external:react-dom --external:@xplorer/extension-sdk --target=es2020 --jsx=transform",
-    "watch": "esbuild src/index.tsx --bundle --format=iife --outfile=dist/index.js --external:react --external:react-dom --external:@xplorer/extension-sdk --target=es2020 --jsx=transform --watch",
-    "dev": "touch .hotreload && esbuild src/index.tsx --bundle --outfile=dist/index.js --watch --format=iife --external:react --external:react-dom --external:@xplorer/extension-sdk --define:process.env.NODE_ENV=\\\"development\\\"; rm -f .hotreload"
+    "build": "esbuild src/index.tsx --bundle --format=iife --outfile=dist/index.js --external:react --external:react-dom --external:@wisp/extension-sdk --target=es2020 --jsx=transform",
+    "watch": "esbuild src/index.tsx --bundle --format=iife --outfile=dist/index.js --external:react --external:react-dom --external:@wisp/extension-sdk --target=es2020 --jsx=transform --watch",
+    "dev": "touch .hotreload && esbuild src/index.tsx --bundle --outfile=dist/index.js --watch --format=iife --external:react --external:react-dom --external:@wisp/extension-sdk --define:process.env.NODE_ENV=\\\"development\\\"; rm -f .hotreload"
   },
   "devDependencies": {
     "esbuild": "^0.20.0",
     "@types/react": "^18.2.0",
     "typescript": "^5.2.0"
   },
-  "xplorer": {
-    "id": "xplorer-architect",
+  "wisp": {
+    "id": "wisp-architect",
     "name": "Architecture Visualizer",
     "displayName": "Architecture Visualizer",
     "description": "Visualize project architecture as a sidebar tree and interactive graph. Scan your project structure and see it as navigable modules.",
     "version": "2.0.0",
-    "author": "Xplorer Team",
+    "author": "Wisp Team",
     "category": "tool",
     "icon": "network",
     "keywords": ["architecture", "visualizer", "tree", "graph", "structure"],
@@ -29,14 +29,14 @@
     "contributes": {
       "commands": [
         {
-          "id": "xplorer-architect.generate",
+          "id": "wisp-architect.generate",
           "title": "Generate Architecture",
           "shortcut": "ctrl+shift+a"
         }
       ],
       "editors": [
         {
-          "id": "xplorer-architect-editor",
+          "id": "wisp-architect-editor",
           "extensions": ["xparch"],
           "priority": 50
         }

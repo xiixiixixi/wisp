@@ -22,7 +22,7 @@ export const useTerminal = (deps: UseTerminalDeps) => {
   const { currentPath, setCurrentPath, refetch } = deps;
 
   const [terminalHistory, setTerminalHistory] = useState<string[]>([
-    'Welcome to Xplorer Terminal',
+    'Welcome to Wisp Terminal',
     'Type "help" to see available commands',
     '',
   ]);
@@ -36,7 +36,7 @@ export const useTerminal = (deps: UseTerminalDeps) => {
 
   // Update terminal working directory when path changes
   useEffect(() => {
-    if (currentPath !== 'xplorer://home' && currentPath !== 'xplorer://gdrive-manager') {
+    if (currentPath !== 'wisp://home' && currentPath !== 'wisp://gdrive-manager') {
       setTerminalCwd(currentPath);
     }
   }, [currentPath]);
@@ -92,8 +92,8 @@ export const useTerminal = (deps: UseTerminalDeps) => {
         });
       }
     };
-    window.addEventListener('xplorer-output', handler);
-    return () => window.removeEventListener('xplorer-output', handler);
+    window.addEventListener('wisp-output', handler);
+    return () => window.removeEventListener('wisp-output', handler);
   }, []);
 
   return {

@@ -17,12 +17,12 @@
     "vitest": "^1.0.0"
   },
   "dependencies": {
-    "@xplorer/extension-sdk": "^1.0.0"
+    "@wisp/extension-sdk": "^1.0.0"
   },
-  "keywords": ["xplorer", "extension", "theme"],
+  "keywords": ["wisp", "extension", "theme"],
   "author": "{{author}}",
   "license": "MIT",
-  "xplorer": {
+  "wisp": {
     "id": "{{name}}",
     "displayName": "{{displayName}}",
     "category": "theme",
@@ -31,7 +31,7 @@
     "description": "{{description}}",
     "icon": "🎨",
     "permissions": [
-      "xplorer:themes"
+      "wisp:themes"
     ],
     "contributes": {
       "themes": ["{{name}}"]

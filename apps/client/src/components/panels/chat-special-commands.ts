@@ -12,7 +12,7 @@ import {
   normalizePath,
   loadMemoryStore,
 } from './chat-agent-memory';
-import { getXplorerState } from './chat-context-helpers';
+import { getWispState } from './chat-context-helpers';
 import { loadFeedbackEntries } from './chat-feedback-store';
 import { formatAuditLogDisplay } from './chat-audit-log';
 import { formatSecurityRulesDisplay } from './chat-security-rules';
@@ -91,7 +91,7 @@ export const handleSpecialSlashCommand = (
 
   // /compare selected files
   if (prompt === '__COMPARE_SELECTED__') {
-    const xState = getXplorerState();
+    const xState = getWispState();
     const sel = xState?.selectedFiles ?? [];
     if (sel.length === 2 && !sel[0].is_dir && !sel[1].is_dir) {
       return {

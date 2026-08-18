@@ -17,11 +17,11 @@ try {
   const hash = createHash('sha256').update(bundle).digest('hex');
 
   const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-  if (!pkg.xplorer) pkg.xplorer = {};
-  pkg.xplorer.checksum = hash;
+  if (!pkg.wisp) pkg.wisp = {};
+  pkg.wisp.checksum = hash;
 
   writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
-  console.log(`[sign] ${pkg.xplorer.id || pkg.name}: checksum = ${hash}`);
+  console.log(`[sign] ${pkg.wisp.id || pkg.name}: checksum = ${hash}`);
 } catch (err) {
   console.error(`Failed to sign extension: ${err.message}`);
   process.exit(1);

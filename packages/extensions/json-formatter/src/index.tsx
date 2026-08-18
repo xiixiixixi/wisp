@@ -7,12 +7,12 @@
  * Usage: Right-click a .json file → "Format JSON" / "Minify JSON" / "Validate JSON"
  */
 
-import { Command, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Command, type WispAPI } from '@wisp/extension-sdk';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function getSelectedJsonFile(): { name: string; path: string } | null {
-  const state = (window as Record<string, unknown>).__xplorer_state__ as
+  const state = (window as Record<string, unknown>).__wisp_state__ as
     { selectedFiles?: Array<{ name: string; path: string; is_dir: boolean }> } | undefined;
   const files = state?.selectedFiles || [];
 
@@ -27,10 +27,10 @@ function getSelectedJsonFile(): { name: string; path: string } | null {
 // ── Registration ────────────────────────────────────────────────────────────
 
 Command.register({
-  id: 'xplorer-json-formatter.format',
+  id: 'wisp-json-formatter.format',
   title: 'Format JSON',
   permissions: ['file:read', 'file:write', 'ui:notifications'],
-  action: async (api: XplorerAPI) => {
+  action: async (api: WispAPI) => {
     const file = getSelectedJsonFile();
     if (!file) { api.ui.showMessage('Select a .json file first.', 'warning'); return; }
 
@@ -59,10 +59,10 @@ Command.register({
 });
 
 Command.register({
-  id: 'xplorer-json-formatter.minify',
+  id: 'wisp-json-formatter.minify',
   title: 'Minify JSON',
   permissions: ['file:read', 'file:write', 'ui:notifications'],
-  action: async (api: XplorerAPI) => {
+  action: async (api: WispAPI) => {
     const file = getSelectedJsonFile();
     if (!file) { api.ui.showMessage('Select a .json file first.', 'warning'); return; }
 
@@ -90,10 +90,10 @@ Command.register({
 });
 
 Command.register({
-  id: 'xplorer-json-formatter.validate',
+  id: 'wisp-json-formatter.validate',
   title: 'Validate JSON',
   permissions: ['file:read', 'ui:notifications'],
-  action: async (api: XplorerAPI) => {
+  action: async (api: WispAPI) => {
     const file = getSelectedJsonFile();
     if (!file) { api.ui.showMessage('Select a .json file first.', 'warning'); return; }
 

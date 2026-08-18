@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/storage-keys', () => ({
   STORAGE_KEYS: {
-    AI_AGENT_MEMORY: 'xplorer:ai-agent-memory',
+    AI_AGENT_MEMORY: 'wisp:ai-agent-memory',
   },
 }));
 
@@ -65,14 +65,14 @@ describe('loadMemoryStore', () => {
   });
 
   it('returns default store when localStorage has corrupt data', () => {
-    localStorage.setItem('xplorer:ai-agent-memory', 'not-json');
+    localStorage.setItem('wisp:ai-agent-memory', 'not-json');
     const store = loadMemoryStore();
     expect(store.version).toBe(1);
   });
 
   it('loads a saved store correctly', () => {
     const saved = { version: 1, folders: {}, globalPreferences: [] };
-    localStorage.setItem('xplorer:ai-agent-memory', JSON.stringify(saved));
+    localStorage.setItem('wisp:ai-agent-memory', JSON.stringify(saved));
     const store = loadMemoryStore();
     expect(store.version).toBe(1);
   });

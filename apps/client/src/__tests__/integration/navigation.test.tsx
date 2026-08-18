@@ -115,7 +115,7 @@ import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 describe('Navigation Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorage.removeItem('xplorer:auto-whitelist-visited');
+    localStorage.removeItem('wisp:auto-whitelist-visited');
   });
 
   afterEach(() => {
@@ -203,7 +203,7 @@ describe('Navigation Integration', () => {
       expect(mockStartWatching).toHaveBeenCalledWith('D:\\Projects');
     });
 
-    it('does not index xplorer:// protocol paths', () => {
+    it('does not index wisp:// protocol paths', () => {
       const deps = createNavigationDeps();
       const { result } = renderHook(() => useNavigation(deps));
 
@@ -232,8 +232,8 @@ describe('Navigation Integration', () => {
       );
     });
 
-    it('does not navigate up when at xplorer://home', () => {
-      const deps = createNavigationDeps({ currentPath: 'xplorer://home' });
+    it('does not navigate up when at wisp://home', () => {
+      const deps = createNavigationDeps({ currentPath: 'wisp://home' });
       const { result } = renderHook(() => useNavigation(deps));
 
       act(() => {
@@ -262,7 +262,7 @@ describe('Navigation Integration', () => {
         result.current.navigateToHome();
       });
 
-      expect(deps.splitLayout.navigate).toHaveBeenCalledWith('default', 'xplorer://home', 'home');
+      expect(deps.splitLayout.navigate).toHaveBeenCalledWith('default', 'wisp://home', 'home');
     });
   });
 
@@ -423,14 +423,14 @@ describe('Navigation Integration', () => {
       expect(navigateToPath).toHaveBeenCalledWith(expect.stringMatching(/^C:\\?/));
     });
 
-    it('renders special label for xplorer://home', () => {
-      render(<NavigationBar currentPath="xplorer://home" navigateToPath={vi.fn()} />);
+    it('renders special label for wisp://home', () => {
+      render(<NavigationBar currentPath="wisp://home" navigateToPath={vi.fn()} />);
 
       expect(screen.getByText('home')).toBeInTheDocument();
     });
 
-    it('renders special label for xplorer://trash', () => {
-      render(<NavigationBar currentPath="xplorer://trash" navigateToPath={vi.fn()} />);
+    it('renders special label for wisp://trash', () => {
+      render(<NavigationBar currentPath="wisp://trash" navigateToPath={vi.fn()} />);
 
       expect(screen.getByText('trash')).toBeInTheDocument();
     });
@@ -608,7 +608,7 @@ describe('Navigation Integration', () => {
   describe('navigateFromHome', () => {
     it('creates a new folder tab when navigating from home', () => {
       const deps = {
-        currentPath: 'xplorer://home',
+        currentPath: 'wisp://home',
         splitLayout: {
           navigate: vi.fn(),
           navigateBack: vi.fn(),
@@ -618,9 +618,9 @@ describe('Navigation Integration', () => {
         },
         activeGroup: {
           id: 'default',
-          tabs: [{ id: 'tab-home', name: 'Home', path: 'xplorer://home', type: 'folder' }],
+          tabs: [{ id: 'tab-home', name: 'Home', path: 'wisp://home', type: 'folder' }],
           activeTabId: 'tab-home',
-          pathHistory: ['xplorer://home'],
+          pathHistory: ['wisp://home'],
           historyIndex: 0,
         },
       };

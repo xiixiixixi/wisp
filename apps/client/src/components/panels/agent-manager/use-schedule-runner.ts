@@ -5,7 +5,7 @@
  * schedule whose nextRunAt is in the past. Fires create real agent sessions
  * via TauriAPI.createAgentSession.
  *
- * Schedules only fire while Xplorer is open. For OS-level scheduling that
+ * Schedules only fire while Wisp is open. For OS-level scheduling that
  * survives reboots, we'd need a Tauri-side cron daemon (future work).
  */
 import { useEffect, useRef, useState } from 'react';
@@ -82,11 +82,11 @@ export const useSchedules = (): ScheduledAgent[] => {
 
   useEffect(() => {
     const handler = () => setSchedules(loadSchedules());
-    window.addEventListener('xplorer-schedules-changed', handler);
+    window.addEventListener('wisp-schedules-changed', handler);
     // Refresh every 60s so nextRunAt countdowns update
     const interval = setInterval(handler, 60_000);
     return () => {
-      window.removeEventListener('xplorer-schedules-changed', handler);
+      window.removeEventListener('wisp-schedules-changed', handler);
       clearInterval(interval);
     };
   }, []);

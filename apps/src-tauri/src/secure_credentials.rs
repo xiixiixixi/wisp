@@ -1,7 +1,7 @@
 use keyring::Entry;
 use tracing::{info, warn};
 
-const SERVICE_NAME: &str = "xplorer-file-manager";
+const SERVICE_NAME: &str = "wisp-file-manager";
 
 /// Store a secret in the OS keychain
 pub fn store_secret(key: &str, value: &str) -> Result<(), String> {

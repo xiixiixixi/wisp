@@ -27,7 +27,7 @@ const PLANS: Plan[] = [
     name: 'Free',
     price: '$0',
     period: 'forever',
-    description: 'Everything you need to get started with Xplorer.',
+    description: 'Everything you need to get started with Wisp.',
     features: [
       { text: 'Full desktop app', included: true },
       { text: 'All built-in features', included: true },

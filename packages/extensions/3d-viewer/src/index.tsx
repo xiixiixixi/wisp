@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Preview, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Preview, type WispAPI } from '@wisp/extension-sdk';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -1028,7 +1028,7 @@ function ModelViewer({ filePath }: { filePath: string }) {
 
 // ── Extension Registration ──────────────────────────────────────────────────
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 Preview.register({
   id: '3d-viewer',

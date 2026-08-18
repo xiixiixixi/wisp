@@ -1,23 +1,23 @@
-# create-xplorer-extension
+# create-wisp-extension
 
-Scaffold a new Xplorer extension in seconds.
+Scaffold a new Wisp extension in seconds.
 
 ## Usage
 
 ```bash
-npx create-xplorer-extension
+npx create-wisp-extension
 ```
 
 Or with a name:
 
 ```bash
-npx create-xplorer-extension my-extension
+npx create-wisp-extension my-extension
 ```
 
 Or non-interactively:
 
 ```bash
-npx create-xplorer-extension my-extension --type panel --skip-install
+npx create-wisp-extension my-extension --type panel --skip-install
 ```
 
 ## Extension Types
@@ -38,7 +38,7 @@ my-extension/
   src/
     index.tsx       # Extension source code
   dist/             # Build output (after npm run build)
-  package.json      # With xplorer manifest metadata
+  package.json      # With wisp manifest metadata
   tsconfig.json     # TypeScript configuration
   README.md         # Extension documentation
   .gitignore
@@ -47,7 +47,7 @@ my-extension/
 Each generated extension:
 
 - Uses `esbuild` for fast builds (no Vite/Webpack overhead)
-- Imports from `@xplorer/extension-sdk` (externalized at build time)
+- Imports from `@wisp/extension-sdk` (externalized at build time)
 - Uses JSX with `--jsx=transform` (no React import needed at runtime)
 - Uses inline styles with CSS variables (`--xp-*`) for theme support
 - Uses inline SVG icons (no external icon library dependencies)
@@ -57,7 +57,7 @@ Each generated extension:
 To work on the CLI tool itself:
 
 ```bash
-cd create-xplorer-extension
+cd create-wisp-extension
 npm install
 npm run build     # build the CLI
 npm run watch     # rebuild on changes

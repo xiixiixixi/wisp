@@ -1,4 +1,4 @@
-// Xplorer Search Engine — Compatibility Types
+// Wisp Search Engine — Compatibility Types
 //
 // Frontend-compatible types mirroring the old `tokenizer.rs` serialization
 // so that the Tauri command signatures remain identical.

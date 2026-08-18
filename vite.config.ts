@@ -13,8 +13,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, 'apps', 'client', 'src'),
-      '@xplorer/sdk': path.resolve(import.meta.dirname, 'packages', 'sdk', 'src', 'index.ts'),
-      '@xplorer/extension-sdk': path.resolve(
+      '@wisp/sdk': path.resolve(import.meta.dirname, 'packages', 'sdk', 'src', 'index.ts'),
+      '@wisp/extension-sdk': path.resolve(
         import.meta.dirname,
         'packages',
         'extension-sdk',

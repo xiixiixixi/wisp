@@ -411,7 +411,7 @@ describe('themes', () => {
   });
 
   it('glass theme has expected structure', () => {
-    expect(themes.glass.name).toBe('Xplorer Glass');
+    expect(themes.glass.name).toBe('Wisp Glass');
     expect(themes.glass.primary).toBeTruthy();
     expect(themes.glass.bg).toBeDefined();
     expect(themes.glass.surface).toBeDefined();
@@ -456,12 +456,12 @@ describe('loadCustomThemes', () => {
 
   it('returns parsed themes from localStorage', () => {
     const data = { 'my-theme': { name: 'My Theme' } };
-    store['xplorer:custom-themes'] = JSON.stringify(data);
+    store['wisp:custom-themes'] = JSON.stringify(data);
     expect(loadCustomThemes()).toEqual(data);
   });
 
   it('returns empty object for corrupted JSON', () => {
-    store['xplorer:custom-themes'] = 'not json!';
+    store['wisp:custom-themes'] = 'not json!';
     expect(loadCustomThemes()).toEqual({});
   });
 });
@@ -472,10 +472,7 @@ describe('saveCustomThemes', () => {
       'my-theme': { name: 'My Theme' },
     } as unknown as Record<string, CustomThemeColors>;
     saveCustomThemes(data);
-    expect(localStorage.setItem).toHaveBeenCalledWith(
-      'xplorer:custom-themes',
-      JSON.stringify(data),
-    );
+    expect(localStorage.setItem).toHaveBeenCalledWith('wisp:custom-themes', JSON.stringify(data));
   });
 });
 
@@ -497,13 +494,13 @@ describe('applyFontSize', () => {
 
   it('saves the font size to localStorage', () => {
     applyFontSize('small');
-    expect(localStorage.setItem).toHaveBeenCalledWith('xplorer:font-size', 'small');
+    expect(localStorage.setItem).toHaveBeenCalledWith('wisp:font-size', 'small');
   });
 });
 
 describe('loadFontSize', () => {
   it('loads saved font size from localStorage', () => {
-    store['xplorer:font-size'] = 'xl';
+    store['wisp:font-size'] = 'xl';
     loadFontSize();
     expect(document.documentElement.classList.add).toHaveBeenCalledWith('font-xl');
   });

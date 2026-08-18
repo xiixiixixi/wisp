@@ -54,7 +54,7 @@ vi.mock('@radix-ui/react-select', async () => {
 vi.mock('@/lib/theme-registry', () => ({
   useAllThemes: vi.fn(() => ({
     glass: {
-      name: 'Xplorer Glass',
+      name: 'Wisp Glass',
       primary: '#7c3aed',
       bg: '#0a0a1a',
       surface: '#1a1a2e',
@@ -181,7 +181,7 @@ describe('Settings Page', () => {
       render(<Settings />);
 
       await waitFor(() => {
-        expect(screen.getByText('Customize your Xplorer experience')).toBeInTheDocument();
+        expect(screen.getByText('Customize your Wisp experience')).toBeInTheDocument();
       });
     });
 
@@ -717,14 +717,14 @@ describe('Settings Page', () => {
 
       // Wait for useEffect to persist
       await waitFor(() => {
-        const saved = JSON.parse(localStorage.getItem('xplorer:settings') || '{}');
+        const saved = JSON.parse(localStorage.getItem('wisp:settings') || '{}');
         expect(saved.enableAnimations).toBe(false);
       });
     });
 
     it('loads saved settings from localStorage on mount', async () => {
       localStorage.setItem(
-        'xplorer:settings',
+        'wisp:settings',
         JSON.stringify({
           theme: 'tokyo-night',
           showHiddenFiles: true,

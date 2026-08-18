@@ -146,7 +146,7 @@ const AISettings = ({
         </Select>
       </SettingRow>
 
-      {/* ── Xplorer Cloud mode ── */}
+      {/* ── Wisp Cloud mode ── */}
       {(settings.aiServiceMode || 'cloud') === 'cloud' && (
         <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
           <div className="mb-2 flex items-center gap-3">

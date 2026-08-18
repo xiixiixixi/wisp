@@ -1,5 +1,5 @@
-import { ThemeExtension, Theme } from '@xplorer/extension-sdk';
-import { registerExtension } from '@xplorer/extension-sdk';
+import { ThemeExtension, Theme } from '@wisp/extension-sdk';
+import { registerExtension } from '@wisp/extension-sdk';
 
 export class {{displayName}}Theme extends ThemeExtension {
   constructor() {
@@ -113,7 +113,7 @@ export class {{displayName}}Theme extends ThemeExtension {
   }
 }
 
-// Register the extension with Xplorer
+// Register the extension with Wisp
 const extension = new {{displayName}}Theme();
 registerExtension(extension);
 

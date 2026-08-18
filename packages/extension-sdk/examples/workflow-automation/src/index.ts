@@ -1,4 +1,4 @@
-import { Extension, ExtensionContext, XplorerAPI } from '@xplorer/extension-sdk';
+import { Extension, ExtensionContext, WispAPI } from '@wisp/extension-sdk';
 
 interface WorkflowIssue {
   id: string;
@@ -27,7 +27,7 @@ export class WorkflowAutomationExtension extends Extension {
       id: 'workflow-automation',
       name: 'Workflow Automation',
       version: '1.0.0',
-      author: 'Xplorer Team',
+      author: 'Wisp Team',
       category: 'tool',
       description: 'Automated workflow checks and warnings for development issues',
     });

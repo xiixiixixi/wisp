@@ -11,7 +11,7 @@ use super::index_types::{DocId, IndexCache, PostingEntry, INDEX_CACHE_VERSION};
 /// Path to the on-disk index cache file.
 fn index_cache_path() -> PathBuf {
     let base = dirs::data_local_dir().unwrap_or_else(|| PathBuf::from("."));
-    base.join("xplorer").join("search_index.bin")
+    base.join("wisp").join("search_index.bin")
 }
 
 impl SearchIndex {

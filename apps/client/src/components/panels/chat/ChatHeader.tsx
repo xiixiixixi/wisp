@@ -56,7 +56,7 @@ const ChatHeader = ({
     <div className="border-xp-border flex-shrink-0 border-b px-3 py-3">
       <div className="mb-2 flex items-center justify-between gap-2">
         <h3 className="truncate text-sm font-medium">
-          {state.agentEnabled ? 'Xplorer Agent' : 'Copilot Assistant'}
+          {state.agentEnabled ? 'Wisp Agent' : 'Copilot Assistant'}
         </h3>
         <div className="flex flex-shrink-0 items-center gap-1.5">
           {onNewSession && (

@@ -1,38 +1,36 @@
 /**
  * React hooks for extensions.
  *
- * These hooks provide reactive access to Xplorer state from within
+ * These hooks provide reactive access to Wisp state from within
  * extension panel/preview components rendered via `Sidebar.register()`
  * or `Preview.register()`.
  *
- * They listen for `xplorer-state-change` CustomEvents dispatched by the host,
+ * They listen for `wisp-state-change` CustomEvents dispatched by the host,
  * so they react instantly without polling.
  */
 
 // React is available as a global in the extension runtime
 declare const React: typeof import('react');
 
-interface XplorerFile {
+interface WispFile {
   name: string;
   path: string;
   is_dir: boolean;
 }
 
-interface XplorerState {
+interface WispState {
   currentPath: string;
-  selectedFiles: XplorerFile[];
+  selectedFiles: WispFile[];
   navigateTo?: (path: string) => void;
 }
 
-const getState = (): XplorerState | undefined => {
-  return (window as unknown as Record<string, unknown>).__xplorer_state__ as
-    | XplorerState
-    | undefined;
+const getState = (): WispState | undefined => {
+  return (window as unknown as Record<string, unknown>).__wisp_state__ as WispState | undefined;
 };
 
 /**
  * Returns the current directory path and re-renders when it changes.
- * Listens for `xplorer-state-change` events dispatched by the host.
+ * Listens for `wisp-state-change` events dispatched by the host.
  */
 export const useCurrentPath = (): string => {
   const { useState: _useState, useEffect: _useEffect } = React;
@@ -46,8 +44,8 @@ export const useCurrentPath = (): string => {
         setPath(detail.value);
       }
     };
-    window.addEventListener('xplorer-state-change', handler);
-    return () => window.removeEventListener('xplorer-state-change', handler);
+    window.addEventListener('wisp-state-change', handler);
+    return () => window.removeEventListener('wisp-state-change', handler);
   }, []);
 
   return path;
@@ -55,11 +53,11 @@ export const useCurrentPath = (): string => {
 
 /**
  * Returns the currently selected files and re-renders when they change.
- * Listens for `xplorer-state-change` events dispatched by the host.
+ * Listens for `wisp-state-change` events dispatched by the host.
  */
-export const useSelectedFiles = (): XplorerFile[] => {
+export const useSelectedFiles = (): WispFile[] => {
   const { useState: _useState, useEffect: _useEffect } = React;
-  const [files, setFiles] = _useState<XplorerFile[]>(() => getState()?.selectedFiles || []);
+  const [files, setFiles] = _useState<WispFile[]>(() => getState()?.selectedFiles || []);
 
   _useEffect(() => {
     const handler = (e: Event) => {
@@ -69,8 +67,8 @@ export const useSelectedFiles = (): XplorerFile[] => {
         setFiles(detail.value);
       }
     };
-    window.addEventListener('xplorer-state-change', handler);
-    return () => window.removeEventListener('xplorer-state-change', handler);
+    window.addEventListener('wisp-state-change', handler);
+    return () => window.removeEventListener('wisp-state-change', handler);
   }, []);
 
   return files;

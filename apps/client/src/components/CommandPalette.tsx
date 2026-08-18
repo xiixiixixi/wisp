@@ -259,7 +259,7 @@ const CommandPaletteInner = ({
         trimmedQ.startsWith('/') ||
         trimmedQ.startsWith('~') ||
         /^[A-Za-z]:[/\\]/.test(trimmedQ) ||
-        trimmedQ.startsWith('xplorer://');
+        trimmedQ.startsWith('wisp://');
       if (looksLikePath && onFileSelect) {
         items.push({
           type: 'command',
@@ -409,7 +409,7 @@ const CommandPaletteInner = ({
             /* ignore */
           }
         }
-        if (results.length === 0 && currentPath && !currentPath.startsWith('xplorer://')) {
+        if (results.length === 0 && currentPath && !currentPath.startsWith('wisp://')) {
           try {
             const paths = await TauriAPI.findFiles(q, currentPath);
             results = paths.slice(0, 10).map((p) => ({

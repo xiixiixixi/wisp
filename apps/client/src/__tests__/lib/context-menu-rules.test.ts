@@ -61,12 +61,12 @@ describe('getContextMenuRules', () => {
         enabled: true,
       },
     ];
-    store['xplorer:context-menu-rules'] = JSON.stringify(rules);
+    store['wisp:context-menu-rules'] = JSON.stringify(rules);
     expect(getContextMenuRules()).toEqual(rules);
   });
 
   it('returns empty array for corrupted JSON', () => {
-    store['xplorer:context-menu-rules'] = 'not-valid-json!!!';
+    store['wisp:context-menu-rules'] = 'not-valid-json!!!';
     expect(getContextMenuRules()).toEqual([]);
   });
 });
@@ -194,7 +194,7 @@ describe('resetRules', () => {
 
     resetRules();
     expect(getContextMenuRules()).toEqual([]);
-    expect(localStorage.removeItem).toHaveBeenCalledWith('xplorer:context-menu-rules');
+    expect(localStorage.removeItem).toHaveBeenCalledWith('wisp:context-menu-rules');
   });
 });
 

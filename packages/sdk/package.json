@@ -1,7 +1,7 @@
 {
-  "name": "@xplorer/sdk",
+  "name": "@wisp/sdk",
   "version": "1.0.0-alpha.1",
-  "description": "Xplorer internal SDK - core service modules for the Xplorer file manager",
+  "description": "Wisp internal SDK - core service modules for the Wisp file manager",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",

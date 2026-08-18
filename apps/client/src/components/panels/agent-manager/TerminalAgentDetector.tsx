@@ -1,6 +1,6 @@
 /**
  * Terminal Agent Detector — monitors PTY terminal output for
- * Claude Code, Codex, and other AI agents running in Xplorer's
+ * Claude Code, Codex, and other AI agents running in Wisp's
  * integrated terminal tabs.
  *
  * When an external agent is detected, it emits events so the
@@ -129,7 +129,7 @@ const TerminalAgentDetector = ({ hidden }: TerminalAgentDetectorProps) => {
   const emitAgentUpdate = useCallback(
     (agent: ExternalAgent, action: 'detected' | 'updated' | 'exited') => {
       window.dispatchEvent(
-        new CustomEvent('xplorer-external-agent', {
+        new CustomEvent('wisp-external-agent', {
           detail: { agent, action },
         }),
       );

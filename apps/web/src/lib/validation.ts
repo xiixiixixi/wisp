@@ -23,7 +23,7 @@ export const publishExtensionSchema = z
       .max(10000, 'Long description must be at most 10000 characters')
       .optional(),
     version: z.string().regex(/^\d+\.\d+\.\d+$/, 'Version must follow semver (e.g., 1.0.0)'),
-    minimumXplorerVersion: z
+    minimumWispVersion: z
       .string()
       .regex(/^\d+\.\d+\.\d+$/, 'Minimum version must follow semver')
       .default('0.1.0'),

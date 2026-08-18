@@ -51,7 +51,7 @@
     }
   },
   "updater": {
-    "available": "Xplorer {{version}} が利用可能です",
+    "available": "Wisp {{version}} が利用可能です",
     "install": "今すぐ更新",
     "dismiss": "後で",
     "downloading": "アップデートをダウンロード中..."
@@ -75,7 +75,7 @@
     "navigateTo": "{{label}}フォルダに移動"
   },
   "topBar": {
-    "appTitle": "Xplorer",
+    "appTitle": "Wisp",
     "toggleSidebar": "サイドバーを切り替え",
     "toggleSidebarShortcut": "サイドバーを切り替え (Ctrl+B)",
     "goBack": "前のページに戻る",
@@ -208,7 +208,7 @@
   },
   "settings": {
     "title": "設定",
-    "subtitle": "Xplorer をカスタマイズ",
+    "subtitle": "Wisp をカスタマイズ",
     "backToApp": "ホームに戻る",
     "resetAll": "すべての設定をリセット",
     "tabs": {
@@ -275,12 +275,12 @@
       "autoSaveDesc": "ファイルの変更を自動保存",
       "systemIntegration": "システム統合",
       "defaultExplorer": "デフォルトファイルエクスプローラー",
-      "defaultExplorerDesc": "フォルダをダブルクリックした時に Windows エクスプローラーの代わりに Xplorer で開く",
+      "defaultExplorerDesc": "フォルダをダブルクリックした時に Windows エクスプローラーの代わりに Wisp で開く",
       "defaultExplorerToggle": "デフォルトエクスプローラー",
       "folderContextMenu": "フォルダコンテキストメニュー",
-      "folderContextMenuDesc": "フォルダの右クリックメニューに「Xplorer で開く」を追加",
+      "folderContextMenuDesc": "フォルダの右クリックメニューに「Wisp で開く」を追加",
       "contextMenuToggle": "コンテキストメニュー",
-      "explorerWarning": "フォルダは Xplorer で開きます。Windows エクスプローラーに戻すには無効にしてください。",
+      "explorerWarning": "フォルダは Wisp で開きます。Windows エクスプローラーに戻すには無効にしてください。",
       "help": "ヘルプ",
       "onboardingTour": "ガイドツアー",
       "onboardingTourDesc": "アプリのインタラクティブガイドツアーを再生",
@@ -354,11 +354,11 @@
       "mistralApiKey": "Mistral API Key",
       "mistralApiKeyDesc": "Required for Mistral models",
       "serviceMode": "AI サービス",
-      "serviceModeDesc": "Xplorer クラウド（無料ホスティング）を使用するか、独自の API キーを使用",
-      "cloudMode": "Xplorer クラウド（無料）",
+      "serviceModeDesc": "Wisp クラウド（無料ホスティング）を使用するか、独自の API キーを使用",
+      "cloudMode": "Wisp クラウド（無料）",
       "customMode": "カスタムプロバイダー",
       "cloudModel": "クラウドモデル",
-      "cloudModelDesc": "Xplorer クラウドで使用する OpenRouter モデル",
+      "cloudModelDesc": "Wisp クラウドで使用する OpenRouter モデル",
       "cloudModelHint": "例: anthropic/claude-sonnet-4, openai/gpt-4o, google/gemini-2.5-flash",
       "customProvider": "プロバイダー",
       "customProviderDesc": "独自のキーで接続する AI プロバイダー",
@@ -555,7 +555,7 @@
       "importSuccessDesc_other": "Restored {{count}} settings. Reloading...",
       "exportFailed": "Failed to export settings.",
       "invalidBackupStructure": "Invalid backup file structure. Expected version, exportDate, and settings fields.",
-      "invalidJson": "Invalid JSON file. Please select a valid Xplorer settings backup.",
+      "invalidJson": "Invalid JSON file. Please select a valid Wisp settings backup.",
       "readFileFailed": "Failed to read file."
     },
     "audit": {
@@ -641,20 +641,20 @@
     "about": {
       "description": "モダンなAI搭載ファイルエクスプローラー。ご利用は自己責任で。",
       "links": "リンク",
-      "sponsorTitle": "Xplorer を応援する",
-      "sponsorDescription": "Xplorer は無料のオープンソースです。便利だと感じたら、開発を継続するためにプロジェクトのスポンサーになることをご検討ください。",
+      "sponsorTitle": "Wisp を応援する",
+      "sponsorDescription": "Wisp は無料のオープンソースです。便利だと感じたら、開発を継続するためにプロジェクトのスポンサーになることをご検討ください。",
       "sponsorButton": "GitHub でスポンサーになる",
       "license": "AGPL-3.0 ライセンス。愛を込めて制作。"
     }
   },
   "tour": {
     "welcome": {
-      "title": "Xplorer へようこそ！",
+      "title": "Wisp へようこそ！",
       "description": "アプリを紹介します。このクイックツアーではアプリの主要な機能を紹介します。いつでも終了でき、設定から後で再生できます。"
     },
     "fullDiskAccess": {
       "title": "フルディスクアクセスを許可",
-      "description": "すべてのファイルをアクセス許可なしで閲覧するには、Xplorer にフルディスクアクセスを許可してください：\n\n1. システム設定 → プライバシーとセキュリティ → フルディスクアクセスを開く\n2. Xplorer をオンにする\n3. Xplorer を再起動する\n\nこれを許可しないと、写真、書類、iCloud Drive などの保護されたフォルダを開くたびに macOS がアクセス許可を求めます。"
+      "description": "すべてのファイルをアクセス許可なしで閲覧するには、Wisp にフルディスクアクセスを許可してください：\n\n1. システム設定 → プライバシーとセキュリティ → フルディスクアクセスを開く\n2. Wisp をオンにする\n3. Wisp を再起動する\n\nこれを許可しないと、写真、書類、iCloud Drive などの保護されたフォルダを開くたびに macOS がアクセス許可を求めます。"
     },
     "sidebar": {
       "title": "サイドバーナビゲーション",
@@ -674,11 +674,11 @@
     },
     "terminal": {
       "title": "ターミナルと出力",
-      "description": "Xplorer 内で統合ターミナルを開き、出力ログを確認し、Git 操作を管理できます。このボタンをクリックするか Ctrl+` を押してください。"
+      "description": "Wisp 内で統合ターミナルを開き、出力ログを確認し、Git 操作を管理できます。このボタンをクリックするか Ctrl+` を押してください。"
     },
     "shortcuts": {
       "title": "キーボードショートカット",
-      "description": "Xplorer はキーボード中心のワークフロー向けに設計されています。設定 > ショートカットですべてのキーバインドを表示・カスタマイズできます。"
+      "description": "Wisp はキーボード中心のワークフロー向けに設計されています。設定 > ショートカットですべてのキーバインドを表示・カスタマイズできます。"
     },
     "commandPalette": {
       "title": "コマンドパレット",
@@ -686,7 +686,7 @@
     },
     "extensionPacks": {
       "title": "拡張機能パック",
-      "description": "拡張機能パックで Xplorer をパワーアップ！マーケットプレイスで開発ツール、生産性、メディアなどのキュレーションコレクションを閲覧。ワンクリックでパック全体をインストール。"
+      "description": "拡張機能パックで Wisp をパワーアップ！マーケットプレイスで開発ツール、生産性、メディアなどのキュレーションコレクションを閲覧。ワンクリックでパック全体をインストール。"
     },
     "allSet": {
       "title": "準備完了！",
@@ -985,10 +985,10 @@
         "directory_list": "View files inside folders",
         "directory_create": "Create new folders",
         "directory_delete": "Delete folders and their contents",
-        "xplorer_settings": "Read and modify Xplorer settings",
-        "xplorer_extensions": "Install, disable, or remove other extensions",
-        "xplorer_themes": "Add custom color themes",
-        "xplorer_history": "Read browsing and navigation history"
+        "wisp_settings": "Read and modify Wisp settings",
+        "wisp_extensions": "Install, disable, or remove other extensions",
+        "wisp_themes": "Add custom color themes",
+        "wisp_history": "Read browsing and navigation history"
       }
     },
     "notes": {
@@ -1030,14 +1030,14 @@
     "beta": {
       "title": "Early Beta",
       "subtitle": "v0.1.0 — Preview Release",
-      "intro": "Welcome to Xplorer! This is an early beta release.",
+      "intro": "Welcome to Wisp! This is an early beta release.",
       "bullet1": "You may encounter bugs, crashes, or unexpected behavior",
       "bullet2": "Features may change or break between updates",
       "bullet3": "Back up your files — use this app at your own risk",
       "bugReport": "Found a bug? Report it on",
       "githubIssues": "GitHub Issues",
       "supportTitle": "Support Development",
-      "supportDesc": "Xplorer is free and open source. If you find it useful, consider sponsoring to help keep development going.",
+      "supportDesc": "Wisp is free and open source. If you find it useful, consider sponsoring to help keep development going.",
       "becomeSponsor": "Become a Sponsor",
       "showAgainHint": "You can show this again in Settings",
       "iUnderstand": "I Understand"
@@ -1255,8 +1255,8 @@
   },
   "openWith": {
     "title": "プログラムから開く",
-    "xplorerEditor": "Xplorer エディタ",
-    "xplorerEditorDesc": "内蔵コードエディタで開く",
+    "wispEditor": "Wisp エディタ",
+    "wispEditorDesc": "内蔵コードエディタで開く",
     "vscode": "VS Code",
     "vscodeDesc": "Visual Studio Code で開く",
     "systemDefault": "システムデフォルト",
@@ -1400,7 +1400,7 @@
     "macintoshHD": "Macintosh HD",
     "themeChanged": "テーマが変更されました",
     "themeApplied": "{{theme}} テーマを適用しました",
-    "agentTitle": "Xplorer エージェント",
+    "agentTitle": "Wisp エージェント",
     "agentDescription": "ファイルの整理、ドキュメントの検索、コマンドの実行、ワークスペースの管理をお手伝いします。",
     "approve": "承認",
     "thisTime": "今回のみ",
@@ -1575,7 +1575,7 @@
       "noCredentialsTitle": "Configure API credentials first",
       "noCredentialsDesc": "Set up your Google Cloud OAuth credentials above to start connecting Google Drive accounts.",
       "noAccountsTitle": "Connect your Google Drive",
-      "noAccountsDesc": "Sign in with your Google account to browse and manage your Drive files directly from Xplorer.",
+      "noAccountsDesc": "Sign in with your Google account to browse and manage your Drive files directly from Wisp.",
       "signInWithGoogle": "Sign in with Google",
       "openAccount": "Open",
       "disconnect": "Disconnect",
@@ -2188,7 +2188,7 @@
       "start": "エージェント起動",
       "launch": "起動",
       "launching": "起動中...",
-      "typeCloud": "Xplorer クラウド",
+      "typeCloud": "Wisp クラウド",
       "typeClaudeCode": "Claude Code",
       "typeCodex": "Codex",
       "typeCustomCli": "カスタム CLI"
@@ -2531,7 +2531,7 @@
       "copied": "共有リンクがクリップボードにコピーされました！",
       "copyFailed": "クリップボードにコピーできませんでした。",
       "shared": "会話が共有されました！",
-      "openInXplorer": "別の Xplorer インスタンスでこのリンクを開くと会話が復元されます。"
+      "openInWisp": "別の Wisp インスタンスでこのリンクを開くと会話が復元されます。"
     },
     "clipboard": {
       "pasteImage": "画像を貼り付け",

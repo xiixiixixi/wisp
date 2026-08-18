@@ -1,22 +1,22 @@
 {
-  "name": "create-xplorer-extension",
+  "name": "create-wisp-extension",
   "version": "1.0.0",
-  "description": "CLI tool to bootstrap Xplorer extensions",
+  "description": "CLI tool to bootstrap Wisp extensions",
   "bin": {
-    "create-xplorer-extension": "./bin/index.js"
+    "create-wisp-extension": "./bin/index.js"
   },
   "type": "module",
   "license": "MIT",
   "keywords": [
-    "xplorer",
+    "wisp",
     "extension",
     "cli",
     "template"
   ],
-  "author": "Xplorer Team",
+  "author": "Wisp Team",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-repo/xplorer"
+    "url": "https://github.com/your-repo/wisp"
   },
   "dependencies": {
     "chalk": "^5.3.0",

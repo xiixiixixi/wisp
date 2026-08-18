@@ -48,7 +48,7 @@ const normalize = (p: string): string => {
 };
 
 /** MIME type for internal drag data */
-export const XPLORER_DND_MIME = 'application/x-xplorer-files';
+export const WISP_DND_MIME = 'application/x-wisp-files';
 
 /** Serialize file paths for dataTransfer */
 export const serializeDragData = (files: FileEntry[]): string => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Editor, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Editor, type WispAPI } from '@wisp/extension-sdk';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -648,7 +648,7 @@ function SchemaPanel(props: {
 
 // ── Main SQLite Browser Component ────────────────────────────────────────────
 
-function SQLiteBrowser(props: { filePath: string; api: XplorerAPI }) {
+function SQLiteBrowser(props: { filePath: string; api: WispAPI }) {
   const { filePath, api } = props;
 
   const [tables, setTables] = React.useState<TableInfo[]>([]);
@@ -884,7 +884,7 @@ function SQLiteBrowser(props: { filePath: string; api: XplorerAPI }) {
 
 // ── Register Editor ──────────────────────────────────────────────────────────
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 Editor.register({
   id: 'sqlite-browser',

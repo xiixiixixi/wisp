@@ -371,7 +371,7 @@ const MarketplacePanel = () => {
     try {
       const files = await TauriAPI.showOpenDialog({
         multiple: false,
-        filters: [{ name: 'Xplorer Extension', extensions: ['xtension'] }],
+        filters: [{ name: 'Wisp Extension', extensions: ['xtension'] }],
       });
       if (!files || files.length === 0) return;
 

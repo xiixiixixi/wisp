@@ -265,9 +265,9 @@ describe('Search Integration', () => {
   });
 
   describe('Search Filters', () => {
-    it('does not perform filesystem search when currentPath is xplorer:// URI', async () => {
+    it('does not perform filesystem search when currentPath is wisp:// URI', async () => {
       await act(async () => {
-        render(<SmartSearch currentPath="xplorer://home" />);
+        render(<SmartSearch currentPath="wisp://home" />);
       });
 
       const input = screen.getByPlaceholderText('Search files and content...');

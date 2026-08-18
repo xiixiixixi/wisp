@@ -6,11 +6,11 @@ sidebar_position: 9
 
 # Onboarding Tour
 
-Xplorer includes an interactive guided tour that introduces new users to the key areas of the application.
+Wisp includes an interactive guided tour that introduces new users to the key areas of the application.
 
 ## Automatic First Launch
 
-The tour appears automatically the first time you open Xplorer. It walks you through 8 steps covering the sidebar, file browser, top bar, extensions, terminal, and keyboard shortcuts.
+The tour appears automatically the first time you open Wisp. It walks you through 8 steps covering the sidebar, file browser, top bar, extensions, terminal, and keyboard shortcuts.
 
 ## Replaying the Tour
 
@@ -20,7 +20,7 @@ You can replay the tour at any time from **Settings > General > Replay Tour**.
 
 | Step | Area           | What You'll Learn                       |
 | ---- | -------------- | --------------------------------------- |
-| 1    | Welcome        | Introduction to Xplorer                 |
+| 1    | Welcome        | Introduction to Wisp                 |
 | 2    | Sidebar        | File tree, bookmarks, SSH connections   |
 | 3    | File Browser   | Grid/list/detail views, file operations |
 | 4    | Top Bar        | Tabs, breadcrumbs, smart search         |
@@ -49,7 +49,7 @@ You can also click the step dots at the bottom of the tooltip to jump to any ste
 
 ## Implementation Details
 
-The tour uses a lightweight, zero-dependency overlay built with SVG masking for the spotlight effect. Tour state is stored in `localStorage` under the `xplorer:tour-completed` key. The tour overlay renders at `z-index: 60`, above all other UI layers.
+The tour uses a lightweight, zero-dependency overlay built with SVG masking for the spotlight effect. Tour state is stored in `localStorage` under the `wisp:tour-completed` key. The tour overlay renders at `z-index: 60`, above all other UI layers.
 
 ### Tour Targets
 

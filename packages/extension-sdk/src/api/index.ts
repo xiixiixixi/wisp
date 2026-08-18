@@ -1,13 +1,13 @@
 /**
  * High-level extension registration APIs.
  *
- * These provide the simplest possible DX for creating Xplorer extensions.
+ * These provide the simplest possible DX for creating Wisp extensions.
  * Each `*.register()` call internally creates the appropriate Extension
  * subclass, wires up boilerplate, and calls `registerExtension()`.
  *
  * @example
  * ```ts
- * import { Theme, Sidebar, Command, ContextMenu, Preview } from '@xplorer/extension-sdk';
+ * import { Theme, Sidebar, Command, ContextMenu, Preview } from '@wisp/extension-sdk';
  *
  * Theme.register({ id: 'my-theme', name: 'My Theme', colors: { bg: '#1a1a2e', surface: '#16213e', ... } });
  * Sidebar.register({ id: 'my-panel', title: 'My Panel', icon: 'chart', render: (props) => ... });
@@ -15,21 +15,21 @@
  * ```
  */
 
-import type { XplorerAPI } from '../types';
+import type { WispAPI } from '../types';
 
 // ─── Shared internals ──────────────────────────────────────────────────────
 
 declare global {
   interface Window {
-    __xplorer_register__?: (extension: unknown) => void;
+    __wisp_register__?: (extension: unknown) => void;
   }
 }
 
 const register = (extension: unknown): void => {
-  if (typeof window !== 'undefined' && window.__xplorer_register__) {
-    window.__xplorer_register__(extension);
+  if (typeof window !== 'undefined' && window.__wisp_register__) {
+    window.__wisp_register__(extension);
   } else {
-    console.warn('[SDK] Could not register extension: Xplorer host not available.');
+    console.warn('[SDK] Could not register extension: Wisp host not available.');
   }
 };
 
@@ -212,7 +212,7 @@ export const Theme = {
         document.head.appendChild(styleEl);
 
         window.dispatchEvent(
-          new CustomEvent('xplorer-theme-register', {
+          new CustomEvent('wisp-theme-register', {
             detail: {
               id: config.id,
               name: config.name,
@@ -231,7 +231,7 @@ export const Theme = {
           styleEl = null;
         }
         window.dispatchEvent(
-          new CustomEvent('xplorer-theme-unregister', {
+          new CustomEvent('wisp-theme-unregister', {
             detail: { id: config.id },
           }),
         );
@@ -255,7 +255,7 @@ export interface SidebarConfig {
   /** Render the panel UI. Receives props from the host. */
   render: (props: SidebarRenderProps) => unknown; // React.ReactElement
   /** Called when the extension is activated */
-  onActivate?: (api: XplorerAPI) => void | Promise<void>;
+  onActivate?: (api: WispAPI) => void | Promise<void>;
   /** Called when the extension is deactivated */
   onDeactivate?: () => void | Promise<void>;
 }
@@ -268,7 +268,7 @@ export interface SidebarRenderProps {
 
 export const Sidebar = {
   register(config: SidebarConfig): void {
-    let api: XplorerAPI;
+    let api: WispAPI;
 
     const extension = {
       manifest: {
@@ -293,7 +293,7 @@ export const Sidebar = {
         },
       },
 
-      _setContext(_ctx: unknown, injectedApi: XplorerAPI) {
+      _setContext(_ctx: unknown, injectedApi: WispAPI) {
         api = injectedApi;
       },
 
@@ -325,7 +325,7 @@ export interface SidebarTabConfig {
   /** Render the sidebar tab content. Receives props from the host. */
   render: (props: SidebarTabRenderProps) => unknown; // React.ReactElement
   /** Called when the extension is activated */
-  onActivate?: (api: XplorerAPI) => void | Promise<void>;
+  onActivate?: (api: WispAPI) => void | Promise<void>;
   /** Called when the extension is deactivated */
   onDeactivate?: () => void | Promise<void>;
 }
@@ -338,7 +338,7 @@ export interface SidebarTabRenderProps {
 
 export const SidebarTab = {
   register(config: SidebarTabConfig): void {
-    let api: XplorerAPI;
+    let api: WispAPI;
 
     const extension = {
       manifest: {
@@ -353,7 +353,7 @@ export const SidebarTab = {
         permissions: config.permissions || ['ui:panels'],
       },
 
-      _setContext(_ctx: unknown, injectedApi: XplorerAPI) {
+      _setContext(_ctx: unknown, injectedApi: WispAPI) {
         api = injectedApi;
       },
 
@@ -391,12 +391,12 @@ export interface CommandConfig {
   shortcut?: string;
   permissions?: string[];
   /** The action to execute */
-  action: (api: XplorerAPI) => void | Promise<void>;
+  action: (api: WispAPI) => void | Promise<void>;
 }
 
 export const Command = {
   register(config: CommandConfig): void {
-    let api: XplorerAPI;
+    let api: WispAPI;
     const disposables: Array<{ dispose(): void }> = [];
 
     const extension = {
@@ -411,7 +411,7 @@ export const Command = {
         permissions: config.permissions || ['ui:notifications'],
       },
 
-      _setContext(_ctx: unknown, injectedApi: XplorerAPI) {
+      _setContext(_ctx: unknown, injectedApi: WispAPI) {
         api = injectedApi;
       },
 
@@ -469,7 +469,7 @@ export interface ContextMenuConfig {
     | ((files: ContextMenuFile[]) => boolean);
   permissions?: string[];
   /** The action to execute when the menu item is clicked */
-  action: (files: ContextMenuFile[], api: XplorerAPI) => void | Promise<void>;
+  action: (files: ContextMenuFile[], api: WispAPI) => void | Promise<void>;
 }
 
 export interface ContextMenuFile {
@@ -480,7 +480,7 @@ export interface ContextMenuFile {
 
 export const ContextMenu = {
   register(config: ContextMenuConfig): void {
-    let api: XplorerAPI;
+    let api: WispAPI;
     const disposables: Array<{ dispose(): void }> = [];
 
     const extension = {
@@ -495,14 +495,14 @@ export const ContextMenu = {
         permissions: config.permissions || ['file:read', 'ui:notifications'],
       },
 
-      _setContext(_ctx: unknown, injectedApi: XplorerAPI) {
+      _setContext(_ctx: unknown, injectedApi: WispAPI) {
         api = injectedApi;
       },
 
       async activate() {
         const cmd = api.commands.register(config.id, async () => {
           try {
-            const state = (window as unknown as Record<string, unknown>).__xplorer_state__ as
+            const state = (window as unknown as Record<string, unknown>).__wisp_state__ as
               | { selectedFiles?: ContextMenuFile[] }
               | undefined;
             const files = state?.selectedFiles || [];
@@ -538,7 +538,7 @@ export interface PreviewConfig {
   priority?: number;
   /** Render the preview for the selected file */
   render: (props: PreviewRenderProps) => unknown; // React.ReactElement
-  onActivate?: (api: XplorerAPI) => void | Promise<void>;
+  onActivate?: (api: WispAPI) => void | Promise<void>;
   onDeactivate?: () => void | Promise<void>;
 }
 
@@ -568,14 +568,14 @@ export interface EditorConfig {
   /** Render the editor UI for the given file */
   render: (props: { filePath: string }) => unknown; // React.ReactElement
   /** Called when the extension is activated */
-  onActivate?: (api: XplorerAPI) => void | Promise<void>;
+  onActivate?: (api: WispAPI) => void | Promise<void>;
   /** Called when the extension is deactivated */
   onDeactivate?: () => void | Promise<void>;
 }
 
 export const Editor = {
   register(config: EditorConfig): void {
-    let api: XplorerAPI;
+    let api: WispAPI;
 
     const extension = {
       manifest: {
@@ -598,7 +598,7 @@ export const Editor = {
         },
       },
 
-      _setContext(_ctx: unknown, injectedApi: XplorerAPI) {
+      _setContext(_ctx: unknown, injectedApi: WispAPI) {
         api = injectedApi;
       },
 
@@ -630,7 +630,7 @@ export interface BottomTabConfig {
   /** Render the bottom tab content. */
   render: (props: BottomTabRenderProps) => unknown; // React.ReactElement
   /** Called when the extension is activated */
-  onActivate?: (api: XplorerAPI) => void | Promise<void>;
+  onActivate?: (api: WispAPI) => void | Promise<void>;
   /** Called when the extension is deactivated */
   onDeactivate?: () => void | Promise<void>;
 }
@@ -643,7 +643,7 @@ export interface BottomTabRenderProps {
 
 export const BottomTab = {
   register(config: BottomTabConfig): void {
-    let api: XplorerAPI;
+    let api: WispAPI;
 
     const extension = {
       manifest: {
@@ -658,7 +658,7 @@ export const BottomTab = {
         permissions: config.permissions || ['ui:panels'],
       },
 
-      _setContext(_ctx: unknown, injectedApi: XplorerAPI) {
+      _setContext(_ctx: unknown, injectedApi: WispAPI) {
         api = injectedApi;
       },
 
@@ -691,7 +691,7 @@ export const BottomTab = {
 
 export const Preview = {
   register(config: PreviewConfig): void {
-    let api: XplorerAPI;
+    let api: WispAPI;
 
     const extension = {
       manifest: {
@@ -716,7 +716,7 @@ export const Preview = {
         },
       },
 
-      _setContext(_ctx: unknown, injectedApi: XplorerAPI) {
+      _setContext(_ctx: unknown, injectedApi: WispAPI) {
         api = injectedApi;
       },
 

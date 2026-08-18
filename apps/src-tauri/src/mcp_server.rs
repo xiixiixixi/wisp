@@ -1,11 +1,11 @@
 //! MCP Server — JSON-RPC 2.0 over stdio for external AI clients.
 //!
-//! When Xplorer is launched with `--mcp-server`, it starts a headless
+//! When Wisp is launched with `--mcp-server`, it starts a headless
 //! MCP server that reads JSON-RPC requests from stdin and writes
 //! responses to stdout.  This allows Claude Code (and other MCP
 //! clients) to connect:
 //!
-//!     claude --mcp-server "xplorer --mcp-server"
+//!     claude --mcp-server "wisp --mcp-server"
 //!
 //! Supported methods:
 //!   - `initialize`  — handshake, returns server capabilities
@@ -59,7 +59,7 @@ const INTERNAL_ERROR: i64 = -32603;
 // ─── MCP Protocol Constants ──────────────────────────────────────────────────
 
 const MCP_PROTOCOL_VERSION: &str = "2024-11-05";
-const SERVER_NAME: &str = "xplorer";
+const SERVER_NAME: &str = "wisp";
 const SERVER_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // ─── Response Builders ───────────────────────────────────────────────────────
@@ -210,7 +210,7 @@ async fn dispatch(req: JsonRpcRequest) -> Option<JsonRpcResponse> {
 /// to be called from `main()` when `--mcp-server` is passed.
 pub fn run_mcp_server() {
     info!(
-        "[MCP Server] Starting Xplorer MCP server v{}",
+        "[MCP Server] Starting Wisp MCP server v{}",
         SERVER_VERSION
     );
 

@@ -1,11 +1,11 @@
 {
-  "name": "@xplorer/extension-sdk",
+  "name": "@wisp/extension-sdk",
   "version": "1.0.0",
-  "description": "SDK for creating Xplorer file manager extensions",
+  "description": "SDK for creating Wisp file manager extensions",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "xplorer-sdk": "bin/cli.js"
+    "wisp-sdk": "bin/cli.js"
   },
   "scripts": {
     "build": "tsc",
@@ -14,13 +14,13 @@
     "prepublishOnly": "npm run build"
   },
   "keywords": [
-    "xplorer",
+    "wisp",
     "file-manager",
     "extension",
     "sdk",
     "theme"
   ],
-  "author": "Xplorer Team",
+  "author": "Wisp Team",
   "license": "MIT",
   "dependencies": {
     "@types/react": "^19.0.0",

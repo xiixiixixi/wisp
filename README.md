@@ -1,8 +1,8 @@
 <div align="center">
 
-<img height="120" src="apps/src-tauri/icons/icon.png" alt="Xplorer" />
+<img height="120" src="apps/src-tauri/icons/icon.png" alt="Wisp" />
 
-# Xplorer
+# Wisp
 
 **A modern, AI-powered file manager built with Rust and React.**
 
@@ -18,12 +18,12 @@ Cross-platform. AI-integrated. Extensible. One app for all your files.
 ---
 
 <div align="center">
-<img src="images/xplorer.png" alt="Xplorer — File Manager" width="100%" />
+<img src="images/wisp.png" alt="Wisp — File Manager" width="100%" />
 </div>
 
-## Why Xplorer?
+## Why Wisp?
 
-Most file managers haven't changed in decades. Xplorer is a ground-up rethink: a Tauri 2 desktop app with a Rust backend for speed and a React frontend for flexibility. It ships with AI chat, Git integration, an extension marketplace, and themeable UI out of the box.
+Most file managers haven't changed in decades. Wisp is a ground-up rethink: a Tauri 2 desktop app with a Rust backend for speed and a React frontend for flexibility. It ships with AI chat, Git integration, an extension marketplace, and themeable UI out of the box.
 
 > **Note:** This is the `next` branch -- a full rewrite using Tauri 2, React 18, and a new extension system. Not yet production-ready, but actively developed. Feedback welcome!
 
@@ -78,17 +78,17 @@ Most file managers haven't changed in decades. Xplorer is a ground-up rethink: a
 ### For Developers
 Split-pane file browsing with integrated Git status, terminal, and code editor. Stage commits, view diffs, and manage branches without leaving the file manager.
 
-<img src="images/xplorerfordeveloper.png" alt="Developer workflow with Git integration and terminal" width="100%" />
+<img src="images/wispfordeveloper.png" alt="Developer workflow with Git integration and terminal" width="100%" />
 
 ### For Researchers and Students
 AI chat that understands your files. Ask questions about documents, get summaries, and search by meaning — not just filename.
 
-<img src="images/xplorerforstudents.png" alt="AI chat analyzing documents with context" width="100%" />
+<img src="images/wispforstudents.png" alt="AI chat analyzing documents with context" width="100%" />
 
 ### For Power Users
 Command palette, vim keybindings, custom keyboard shortcuts, and per-folder view settings. Six view modes, smart search with filters, and bulk file operations.
 
-<img src="images/xplorerforpowerusers.png" alt="Command palette and advanced file operations" width="100%" />
+<img src="images/wispforpowerusers.png" alt="Command palette and advanced file operations" width="100%" />
 
 ## Screenshots
 
@@ -127,7 +127,7 @@ Download the latest release for your platform from the [Releases page](https://g
 
 ```bash
 git clone https://github.com/kimlimjustin/xplorer.git -b next
-cd xplorer
+cd wisp
 pnpm install
 pnpm dev:app
 ```
@@ -147,14 +147,14 @@ pnpm run test:tauri      # Rust backend tests
 ## Architecture
 
 ```
-xplorer/
+wisp/
 ├── apps/
 │   ├── client/           # React 18 + TypeScript + Vite frontend
 │   ├── src-tauri/        # Rust backend (Tauri 2, Tokio, Rayon)
 │   └── web/              # Next.js marketplace (Prisma, Stripe)
 ├── packages/
-│   ├── sdk/              # @xplorer/sdk — internal service layer
-│   ├── extension-sdk/    # @xplorer/extension-sdk — public extension API
+│   ├── sdk/              # @wisp/sdk — internal service layer
+│   ├── extension-sdk/    # @wisp/extension-sdk — public extension API
 │   ├── create-extension/ # CLI scaffolder for new extensions
 │   └── extensions/       # Built-in extension packages
 ├── e2e/                  # Playwright end-to-end tests

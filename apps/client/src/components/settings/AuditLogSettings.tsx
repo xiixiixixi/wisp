@@ -114,7 +114,7 @@ const AuditLogSettings = () => {
     try {
       const { save } = await import('@tauri-apps/plugin-dialog');
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      const defaultName = `xplorer_audit_log_${timestamp}.csv`;
+      const defaultName = `wisp_audit_log_${timestamp}.csv`;
       const outputPath = await save({
         defaultPath: defaultName,
         filters: [{ name: 'CSV', extensions: ['csv'] }],

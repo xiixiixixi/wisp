@@ -2,7 +2,7 @@
  * Scheduled agent definitions and storage.
  * Lets users schedule agents to run on a recurring or one-time basis.
  *
- * Schedules fire while Xplorer is open — the runner hook checks every 30s.
+ * Schedules fire while Wisp is open — the runner hook checks every 30s.
  * Each schedule tracks last_run timestamp to avoid duplicate fires.
  */
 import { STORAGE_KEYS } from '@/lib/storage-keys';
@@ -63,7 +63,7 @@ export const loadSchedules = (): ScheduledAgent[] => {
 export const saveSchedules = (schedules: ScheduledAgent[]): void => {
   try {
     localStorage.setItem(STORAGE_KEYS.AGENT_SCHEDULES, JSON.stringify(schedules));
-    window.dispatchEvent(new CustomEvent('xplorer-schedules-changed'));
+    window.dispatchEvent(new CustomEvent('wisp-schedules-changed'));
   } catch (err) {
     console.warn('[ScheduledAgents] Failed to save schedules:', err);
   }

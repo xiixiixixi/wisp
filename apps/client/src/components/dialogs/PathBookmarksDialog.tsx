@@ -309,7 +309,7 @@ const PathBookmarksDialog = React.memo(
           onClose();
         } else {
           // Assign current path to this slot
-          if (currentPath && !currentPath.startsWith('xplorer://')) {
+          if (currentPath && !currentPath.startsWith('wisp://')) {
             setPathBookmark(slot, currentPath);
           }
         }
@@ -325,7 +325,7 @@ const PathBookmarksDialog = React.memo(
 
     const handleAssignCurrent = useCallback(
       (slot: number) => {
-        if (currentPath && !currentPath.startsWith('xplorer://')) {
+        if (currentPath && !currentPath.startsWith('wisp://')) {
           setPathBookmark(slot, currentPath);
         }
         setContextMenu(null);

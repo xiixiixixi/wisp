@@ -14,7 +14,7 @@ export const POST = async () => {
   }
 
   const raw = randomBytes(32).toString('base64url');
-  const token = `xplorer_${raw}`;
+  const token = `wisp_${raw}`;
 
   await prisma.user.update({
     where: { id: session.user.id },

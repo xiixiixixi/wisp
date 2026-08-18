@@ -93,10 +93,10 @@ describe('FeatureShowcase', () => {
   it('renders feature demo windows with title bars', () => {
     const { container } = render(<FeatureShowcase />);
     // Each feature renders an interactive demo inside a window frame
-    // with macOS-style traffic light dots and "Xplorer" title
-    const xplorerTitles = screen.getAllByText('Xplorer');
+    // with macOS-style traffic light dots and "Wisp" title
+    const wispTitles = screen.getAllByText('Wisp');
     // There should be 6 features, each with a window frame
-    expect(xplorerTitles.length).toBe(6);
+    expect(wispTitles.length).toBe(6);
   });
 });
 
@@ -141,12 +141,12 @@ describe('Cta', () => {
 
   it('renders the description text', () => {
     render(<Cta />);
-    expect(screen.getByText(/Download Xplorer for free/)).toBeInTheDocument();
+    expect(screen.getByText(/Download Wisp for free/)).toBeInTheDocument();
   });
 
   it('renders the download link', () => {
     render(<Cta />);
-    const link = screen.getByText('Download Xplorer');
+    const link = screen.getByText('Download Wisp');
     expect(link).toBeInTheDocument();
     expect(link.closest('a')).toHaveAttribute('href', '/docs/getting-started/installation');
   });

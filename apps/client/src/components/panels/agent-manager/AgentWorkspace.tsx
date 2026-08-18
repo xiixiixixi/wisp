@@ -9,7 +9,7 @@
  * Header: agent name, model, elapsed time, cost, [Pause] [Stop] [Close] buttons
  *
  * Activated via Cmd+Shift+A (registered in MainLayout) or a button.
- * Escape to close, returns to normal Xplorer view.
+ * Escape to close, returns to normal Wisp view.
  */
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';

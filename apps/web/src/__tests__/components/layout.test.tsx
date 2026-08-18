@@ -8,14 +8,14 @@ import { ThemeToggle } from '@/components/layout/ThemeToggle';
 // Navbar
 // ---------------------------------------------------------------------------
 describe('Navbar', () => {
-  it('renders the brand name "Xplorer"', () => {
+  it('renders the brand name "Wisp"', () => {
     render(<Navbar />);
-    expect(screen.getByText('Xplorer')).toBeInTheDocument();
+    expect(screen.getByText('Wisp')).toBeInTheDocument();
   });
 
   it('renders a link to the home page', () => {
     render(<Navbar />);
-    const brandLink = screen.getByText('Xplorer').closest('a');
+    const brandLink = screen.getByText('Wisp').closest('a');
     expect(brandLink).toHaveAttribute('href', '/');
   });
 
@@ -155,7 +155,7 @@ describe('ThemeToggle', () => {
 describe('Footer', () => {
   it('renders the brand name', () => {
     render(<Footer />);
-    expect(screen.getByText('Xplorer')).toBeInTheDocument();
+    expect(screen.getByText('Wisp')).toBeInTheDocument();
   });
 
   it('renders the brand description', () => {
@@ -216,7 +216,7 @@ describe('Footer', () => {
   it('renders the Twitter link with correct external URL', () => {
     render(<Footer />);
     const twitterLink = screen.getByText('Twitter').closest('a');
-    expect(twitterLink).toHaveAttribute('href', 'https://twitter.com/xplorer_app');
+    expect(twitterLink).toHaveAttribute('href', 'https://twitter.com/wisp_app');
   });
 
   it('renders copyright text with the current year', () => {
@@ -225,9 +225,9 @@ describe('Footer', () => {
     expect(screen.getByText(new RegExp(`${year}`))).toBeInTheDocument();
   });
 
-  it('renders copyright text mentioning "Xplorer"', () => {
+  it('renders copyright text mentioning "Wisp"', () => {
     render(<Footer />);
-    expect(screen.getByText(/Xplorer\. All rights reserved/)).toBeInTheDocument();
+    expect(screen.getByText(/Wisp\. All rights reserved/)).toBeInTheDocument();
   });
 
   it('renders footer as a footer element', () => {

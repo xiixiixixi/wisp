@@ -6,7 +6,7 @@ import { SITE_NAME } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: `Documentation | ${SITE_NAME}`,
-  description: 'Xplorer documentation - learn how to install, configure, and extend Xplorer.',
+  description: 'Wisp documentation - learn how to install, configure, and extend Wisp.',
 };
 
 export default function DocsIndexPage() {
@@ -15,7 +15,7 @@ export default function DocsIndexPage() {
   if (!doc) {
     return (
       <div>
-        <h1>Welcome to Xplorer Docs</h1>
+        <h1>Welcome to Wisp Docs</h1>
         <p>Documentation is coming soon.</p>
       </div>
     );

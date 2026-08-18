@@ -107,13 +107,13 @@ fn unique_file_path(directory: &Path, stem: &str) -> PathBuf {
 
 // ─── Commands ───────────────────────────────────────────────────────────────
 
-/// Returns the default chats directory (`~/Documents/Xplorer Chats/`),
+/// Returns the default chats directory (`~/Documents/Wisp Chats/`),
 /// creating it if it does not already exist.
 #[tauri::command]
 pub async fn get_chats_directory() -> Result<String, String> {
     let docs_dir = dirs::document_dir()
         .ok_or_else(|| "Could not determine Documents directory".to_string())?;
-    let chats_dir = docs_dir.join("Xplorer Chats");
+    let chats_dir = docs_dir.join("Wisp Chats");
 
     std::fs::create_dir_all(&chats_dir)
         .map_err(|e| format!("Failed to create chats directory: {}", e))?;

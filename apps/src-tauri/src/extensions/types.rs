@@ -80,7 +80,7 @@ pub struct ContextMenuContribution {
 
 /// Parse an ExtensionManifest from a package.json string.
 /// Supports two formats:
-/// 1. NPM-style package.json with an `xplorer` key containing manifest fields
+/// 1. NPM-style package.json with an `wisp` key containing manifest fields
 /// 2. Flat manifest where all fields are at the top level
 pub fn parse_manifest_from_package_json(content: &str) -> Result<ExtensionManifest, String> {
     let raw: serde_json::Value =
@@ -90,14 +90,14 @@ pub fn parse_manifest_from_package_json(content: &str) -> Result<ExtensionManife
         .as_object()
         .ok_or_else(|| "package.json must be a JSON object".to_string())?;
 
-    // If there's an `xplorer` key, extract manifest fields from it
-    if let Some(xplorer_val) = obj.get("xplorer") {
-        let mut manifest_obj = xplorer_val
+    // If there's an `wisp` key, extract manifest fields from it
+    if let Some(wisp_val) = obj.get("wisp") {
+        let mut manifest_obj = wisp_val
             .as_object()
-            .ok_or_else(|| "xplorer field must be a JSON object".to_string())?
+            .ok_or_else(|| "wisp field must be a JSON object".to_string())?
             .clone();
 
-        // Merge top-level `main` into the xplorer object if not already present
+        // Merge top-level `main` into the wisp object if not already present
         if !manifest_obj.contains_key("main") {
             if let Some(main_val) = obj.get("main") {
                 manifest_obj.insert("main".to_string(), main_val.clone());
@@ -113,11 +113,11 @@ pub fn parse_manifest_from_package_json(content: &str) -> Result<ExtensionManife
 
         let manifest: ExtensionManifest =
             serde_json::from_value(serde_json::Value::Object(manifest_obj))
-                .map_err(|e| format!("Invalid manifest in xplorer field: {}", e))?;
+                .map_err(|e| format!("Invalid manifest in wisp field: {}", e))?;
         return Ok(manifest);
     }
 
-    // No xplorer key — try direct deserialization
+    // No wisp key — try direct deserialization
     let manifest: ExtensionManifest =
         serde_json::from_value(raw).map_err(|e| format!("Invalid manifest JSON: {}", e))?;
     Ok(manifest)

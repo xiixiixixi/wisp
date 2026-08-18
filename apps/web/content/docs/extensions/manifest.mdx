@@ -6,7 +6,7 @@ sidebar_position: 5
 
 # Manifest Reference
 
-Every Xplorer extension declares its metadata, permissions, and contributions in the `xplorer` field of `package.json`.
+Every Wisp extension declares its metadata, permissions, and contributions in the `wisp` field of `package.json`.
 
 ## Full Schema
 
@@ -17,9 +17,9 @@ Every Xplorer extension declares its metadata, permissions, and contributions in
   "main": "dist/index.js",
   "type": "module",
   "dependencies": {
-    "@xplorer/extension-sdk": "^1.0.0"
+    "@wisp/extension-sdk": "^1.0.0"
   },
-  "xplorer": {
+  "wisp": {
     "id": "my-extension",
     "displayName": "My Extension",
     "category": "panel",
@@ -119,7 +119,7 @@ Determines the extension's base class and what it can contribute:
 
 ## Contributions
 
-The `contributes` object declares what the extension provides to Xplorer.
+The `contributes` object declares what the extension provides to Wisp.
 
 ### contributes.panels
 
@@ -247,7 +247,7 @@ Control when your extension is activated. If empty, the extension activates imme
 
 ## Entry Point
 
-The `main` field in the top-level `package.json` (not inside `xplorer`) specifies the compiled entry point:
+The `main` field in the top-level `package.json` (not inside `wisp`) specifies the compiled entry point:
 
 ```json
 {
@@ -280,9 +280,9 @@ This file must be an ES module that either:
   "main": "dist/index.js",
   "type": "module",
   "dependencies": {
-    "@xplorer/extension-sdk": "^1.0.0"
+    "@wisp/extension-sdk": "^1.0.0"
   },
-  "xplorer": {
+  "wisp": {
     "id": "hello-panel",
     "displayName": "Hello Panel",
     "category": "panel",
@@ -312,9 +312,9 @@ This file must be an ES module that either:
   "main": "dist/index.js",
   "type": "module",
   "dependencies": {
-    "@xplorer/extension-sdk": "^1.0.0"
+    "@wisp/extension-sdk": "^1.0.0"
   },
-  "xplorer": {
+  "wisp": {
     "id": "workspace-linter",
     "displayName": "Workspace Linter",
     "category": "tool",

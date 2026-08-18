@@ -27,7 +27,7 @@ export function Cta() {
         <p
           className={`reveal ${inView ? 'visible' : ''} reveal-delay-1 mx-auto mt-5 max-w-xl text-lg text-gray-500 dark:text-gray-400`}
         >
-          Download Xplorer for free. Open source, privacy-first, and built to make file management
+          Download Wisp for free. Open source, privacy-first, and built to make file management
           fast and delightful.
         </p>
 
@@ -41,7 +41,7 @@ export function Cta() {
             className="group inline-flex items-center gap-2 rounded-xl bg-brand-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-brand-600/25 transition-all hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-brand-600/40"
           >
             <Download className="h-5 w-5" />
-            Download Xplorer
+            Download Wisp
           </a>
           <a
             href="https://github.com/kimlimjustin/xplorer"

@@ -48,7 +48,7 @@ export const useCollectionFiles = (
     }
 
     const basePath = col.basePath || fallbackBasePath;
-    if (!basePath || basePath.startsWith('xplorer://') || basePath.startsWith('collection://')) {
+    if (!basePath || basePath.startsWith('wisp://') || basePath.startsWith('collection://')) {
       setFiles([]);
       return;
     }

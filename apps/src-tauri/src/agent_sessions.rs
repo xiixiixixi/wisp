@@ -313,7 +313,7 @@ pub async fn remove_agent_session(
 
 // ─── Agent Loop Runner ──────────────────────────────────────────────────────
 
-/// Build a context preamble from Xplorer state to prepend to the user prompt.
+/// Build a context preamble from Wisp state to prepend to the user prompt.
 fn build_session_context(
     working_directory: &str,
     selected_files: &[String],
@@ -322,7 +322,7 @@ fn build_session_context(
 ) -> String {
     let mut lines: Vec<String> = Vec::new();
 
-    lines.push("You are an AI agent running inside Xplorer file manager.".to_string());
+    lines.push("You are an AI agent running inside Wisp file manager.".to_string());
     lines.push(format!("Working directory: {}", working_directory));
 
     if let Some(ref ctx) = project_context {

@@ -100,7 +100,7 @@ const FileGrid = ({
   }, []);
 
   useEffect(() => {
-    if (!currentPath || currentPath.startsWith('xplorer://')) {
+    if (!currentPath || currentPath.startsWith('wisp://')) {
       setGitStatusMap(new Map());
       return;
     }
@@ -155,7 +155,7 @@ const FileGrid = ({
     if (files.length === 0) return;
 
     // Only fetch tags when on a real filesystem path (not special pages)
-    if (currentPath.startsWith('xplorer://') || currentPath.startsWith('gdrive://')) return;
+    if (currentPath.startsWith('wisp://') || currentPath.startsWith('gdrive://')) return;
 
     let cancelled = false;
     const loadAllTags = async () => {
@@ -290,7 +290,7 @@ const FileGrid = ({
     setRenamingPath(null);
   }, [currentPath, setRenamingPath]);
 
-  // Listen for global inline-rename events (dispatched by F2 shortcut in xplorer.tsx)
+  // Listen for global inline-rename events (dispatched by F2 shortcut in wisp.tsx)
   useEffect(() => {
     if (!onRenameFile) return;
     const handler = (e: Event) => {
@@ -415,7 +415,7 @@ const FileGrid = ({
   );
 
   // Background drop target — the whole grid accepts drops into currentPath
-  const isSpecialPage = currentPath.startsWith('xplorer://') || currentPath.startsWith('gdrive://');
+  const isSpecialPage = currentPath.startsWith('wisp://') || currentPath.startsWith('gdrive://');
   const bgDropRef = useDroppable(currentPath, isSpecialPage);
 
   // ─── Virtual scrolling hooks (must be called before any early returns) ───

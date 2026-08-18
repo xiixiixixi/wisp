@@ -1,5 +1,5 @@
 /**
- * Xplorer IDE Mode Extension — Project Explorer Sidebar
+ * Wisp IDE Mode Extension — Project Explorer Sidebar
  *
  * Provides an IDE-like project sidebar with:
  * - Project type detection (Node, Rust, Python, Go, Java, .NET, Ruby)
@@ -12,7 +12,7 @@
  */
 
 import React from 'react';
-import { Sidebar, Command, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Sidebar, Command, type WispAPI } from '@wisp/extension-sdk';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -75,8 +75,8 @@ const PROJECT_TYPE_COLORS: Record<ProjectInfo['type'], string> = {
   unknown: '#565f89',
 };
 
-async function detectProject(api: XplorerAPI, path: string): Promise<ProjectInfo | null> {
-  if (!path || path.startsWith('xplorer://') || path.startsWith('gdrive://')) {
+async function detectProject(api: WispAPI, path: string): Promise<ProjectInfo | null> {
+  if (!path || path.startsWith('wisp://') || path.startsWith('gdrive://')) {
     return null;
   }
 
@@ -520,7 +520,7 @@ function FileTreeNode({
   hiddenDirs,
 }: {
   entry: FileEntry;
-  api: XplorerAPI;
+  api: WispAPI;
   depth: number;
   hiddenDirs: Set<string>;
 }) {
@@ -700,7 +700,7 @@ function FileTreeNode({
 
 // ── ProjectSidebar Component ────────────────────────────────────────────────
 
-function ProjectSidebar({ currentPath, api }: { currentPath: string; api: XplorerAPI }) {
+function ProjectSidebar({ currentPath, api }: { currentPath: string; api: WispAPI }) {
   const [project, setProject] = React.useState<ProjectInfo | null>(null);
   const [rootEntries, setRootEntries] = React.useState<FileEntry[] | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -711,7 +711,7 @@ function ProjectSidebar({ currentPath, api }: { currentPath: string; api: Xplore
 
   // Detect project and load root entries when currentPath changes
   React.useEffect(() => {
-    if (!currentPath || currentPath.startsWith('xplorer://') || currentPath.startsWith('gdrive://')) {
+    if (!currentPath || currentPath.startsWith('wisp://') || currentPath.startsWith('gdrive://')) {
       setProject(null);
       setRootEntries(null);
       setError(null);
@@ -788,7 +788,7 @@ function ProjectSidebar({ currentPath, api }: { currentPath: string; api: Xplore
   }, [currentPath, api, hiddenDirs]);
 
   // ── Empty state ──
-  if (!currentPath || currentPath.startsWith('xplorer://')) {
+  if (!currentPath || currentPath.startsWith('wisp://')) {
     return React.createElement('div', {
       style: {
         display: 'flex',
@@ -1118,7 +1118,7 @@ function HiddenDirsConfig({
 
 // ── Extension Registration ──────────────────────────────────────────────────
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 Sidebar.register({
   id: 'ide-mode',
@@ -1128,7 +1128,7 @@ Sidebar.register({
   location: 'right',
   permissions: ['file:read', 'directory:list', 'ui:panels'],
 
-  onActivate: async (injectedApi: XplorerAPI) => {
+  onActivate: async (injectedApi: WispAPI) => {
     api = injectedApi;
   },
 
@@ -1146,7 +1146,7 @@ Command.register({
   id: 'ide-mode.toggle',
   title: 'Toggle IDE Mode',
   shortcut: 'ctrl+shift+i',
-  action: async (cmdApi: XplorerAPI) => {
+  action: async (cmdApi: WispAPI) => {
     cmdApi.ui.showMessage('IDE Mode panel toggled', 'info');
   },
 });
@@ -1154,7 +1154,7 @@ Command.register({
 Command.register({
   id: 'ide-mode.refreshTree',
   title: 'Refresh Project Tree',
-  action: async (cmdApi: XplorerAPI) => {
+  action: async (cmdApi: WispAPI) => {
     cmdApi.ui.showMessage('Project tree refreshed', 'info');
   },
 });

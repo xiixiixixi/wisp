@@ -1,4 +1,4 @@
-//! FST-backed fuzzy and prefix search module for the Xplorer search engine.
+//! FST-backed fuzzy and prefix search module for the Wisp search engine.
 //!
 //! Uses the `fst` crate to provide fast fuzzy matching (Levenshtein automaton)
 //! and prefix search over the term dictionary.

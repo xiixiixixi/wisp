@@ -1,7 +1,7 @@
 /**
  * Path Bookmarks — assign number keys (1-9) to frequently used directories.
  *
- * Stored in localStorage under `xplorer:path-bookmarks`.
+ * Stored in localStorage under `wisp:path-bookmarks`.
  * Emits a `path-bookmarks-changed` CustomEvent on every mutation so that
  * any listening component can stay in sync.
  */

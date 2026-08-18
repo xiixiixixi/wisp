@@ -39,7 +39,7 @@ describe('PricingCards', () => {
   it('renders Free tier description', () => {
     render(<PricingCards />);
     expect(
-      screen.getByText('Everything you need to get started with Xplorer.'),
+      screen.getByText('Everything you need to get started with Wisp.'),
     ).toBeInTheDocument();
   });
 

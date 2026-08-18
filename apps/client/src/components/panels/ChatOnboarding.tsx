@@ -2,7 +2,7 @@
  * First-time onboarding card for the AI chat panel.
  * Shows a dismissible welcome message with capability cards and
  * a clickable example prompt. Displayed only once — persists
- * dismissal via localStorage (`xplorer:ai-onboarding-done`).
+ * dismissal via localStorage (`wisp:ai-onboarding-done`).
  */
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';

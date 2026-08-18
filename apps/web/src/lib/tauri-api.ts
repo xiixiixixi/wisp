@@ -1,5 +1,5 @@
 // Mock TauriAPI for web landing page — provides types and demo data
-// so the real Xplorer components can render in a Next.js context.
+// so the real Wisp components can render in a Next.js context.
 
 export interface FileEntry {
   name: string;
@@ -206,8 +206,8 @@ export class TauriAPI {
   static async getBookmarks(): Promise<BookmarkEntry[]> {
     return [
       {
-        path: 'C:\\Projects\\xplorer',
-        name: 'xplorer',
+        path: 'C:\\Projects\\wisp',
+        name: 'wisp',
         added_at: '2026-03-01T00:00:00Z',
         is_dir: true,
       },
@@ -227,14 +227,14 @@ export class TauriAPI {
   static async getRecentFiles(_limit?: number): Promise<RecentFile[]> {
     return [
       {
-        path: 'C:\\Projects\\xplorer\\package.json',
+        path: 'C:\\Projects\\wisp\\package.json',
         name: 'package.json',
         accessed_at: Date.now() - 3600000,
         file_type: 'json',
         size: 2100,
       },
       {
-        path: 'C:\\Projects\\xplorer\\README.md',
+        path: 'C:\\Projects\\wisp\\README.md',
         name: 'README.md',
         accessed_at: Date.now() - 7200000,
         file_type: 'md',
@@ -244,12 +244,12 @@ export class TauriAPI {
   }
 
   static async findGitRepository(_path: string) {
-    return 'C:\\Projects\\xplorer';
+    return 'C:\\Projects\\wisp';
   }
 
   static async getRepositoryInfo(_path: string): Promise<GitRepositoryInfo> {
     return {
-      root_path: 'C:\\Projects\\xplorer',
+      root_path: 'C:\\Projects\\wisp',
       current_branch: 'main',
       total_commits: 142,
       total_contributors: 3,

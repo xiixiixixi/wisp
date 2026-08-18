@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Sidebar, type XplorerAPI, type SidebarRenderProps } from '@xplorer/extension-sdk';
+import { Sidebar, type WispAPI, type SidebarRenderProps } from '@wisp/extension-sdk';
 
 interface BackupFileEntry {
   path: string;
@@ -140,7 +140,7 @@ const TrashIcon = () => (
   </svg>
 );
 
-function BackupPanel({ currentPath, api }: { currentPath: string; api: XplorerAPI }) {
+function BackupPanel({ currentPath, api }: { currentPath: string; api: WispAPI }) {
   const [sourceDir, setSourceDir] = useState(currentPath || '');
   const [backupDir, setBackupDir] = useState('');
   const [backupName, setBackupName] = useState('my-backup');
@@ -490,7 +490,7 @@ function BackupPanel({ currentPath, api }: { currentPath: string; api: XplorerAP
   );
 }
 
-let api: XplorerAPI;
+let api: WispAPI;
 
 Sidebar.register({
   id: 'backup',
@@ -500,5 +500,5 @@ Sidebar.register({
   location: 'right',
   permissions: ['file:read', 'file:write', 'ui:panels'],
   render: (props: SidebarRenderProps) => React.createElement(BackupPanel, { currentPath: (props.currentPath as string) || '', api }),
-  onActivate: (injectedApi: XplorerAPI) => { api = injectedApi; },
+  onActivate: (injectedApi: WispAPI) => { api = injectedApi; },
 });

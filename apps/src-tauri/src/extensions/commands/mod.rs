@@ -45,7 +45,7 @@ pub fn init_extension_manager(data_dir: &str) {
 /// contain path separators, `..`, or other characters that could lead to
 /// path traversal attacks. Only lowercase alphanumeric, hyphens, dots,
 /// underscores, and the `@` / `/` characters used by scoped npm package
-/// names (e.g., `@xplorer/theme-dark`) are permitted — but `..` sequences
+/// names (e.g., `@wisp/theme-dark`) are permitted — but `..` sequences
 /// and leading/trailing separators are still rejected.
 ///
 /// Allowed charset: `[a-zA-Z0-9._@/-]` with additional structural rules.
@@ -661,13 +661,13 @@ mod tests {
     #[test]
     fn test_validate_extension_id_accepts_valid_ids() {
         assert!(validate_extension_id("my-extension").is_ok());
-        assert!(validate_extension_id("xplorer-theme-dark").is_ok());
+        assert!(validate_extension_id("wisp-theme-dark").is_ok());
         assert!(validate_extension_id("my_extension_v2").is_ok());
         assert!(validate_extension_id("ext.plugin.v1").is_ok());
         assert!(validate_extension_id("a").is_ok());
         assert!(validate_extension_id("extension-123").is_ok());
         // Scoped npm-style names
-        assert!(validate_extension_id("@xplorer/theme-dark").is_ok());
+        assert!(validate_extension_id("@wisp/theme-dark").is_ok());
     }
 
     #[test]

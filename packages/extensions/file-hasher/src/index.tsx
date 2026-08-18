@@ -7,7 +7,7 @@
  * Usage: Right-click any file → "Calculate SHA-256 Hash" (or run via command).
  */
 
-import { Command, type XplorerAPI } from '@xplorer/extension-sdk';
+import { Command, type WispAPI } from '@wisp/extension-sdk';
 
 // ── Hash Utilities ──────────────────────────────────────────────────────────
 
@@ -121,13 +121,13 @@ function formatSize(bytes: number): string {
 }
 
 function getSelectedFile(): { name: string; path: string; is_dir: boolean } | null {
-  const state = (window as Record<string, unknown>).__xplorer_state__ as
+  const state = (window as Record<string, unknown>).__wisp_state__ as
     { selectedFiles?: Array<{ name: string; path: string; is_dir: boolean }> } | undefined;
   const files = state?.selectedFiles || [];
   return files.length > 0 ? files[0] : null;
 }
 
-async function hashFile(algorithm: 'SHA-256' | 'SHA-1' | 'MD5', api: XplorerAPI): Promise<void> {
+async function hashFile(algorithm: 'SHA-256' | 'SHA-1' | 'MD5', api: WispAPI): Promise<void> {
   const file = getSelectedFile();
 
   if (!file) {
@@ -163,21 +163,21 @@ async function hashFile(algorithm: 'SHA-256' | 'SHA-1' | 'MD5', api: XplorerAPI)
 // ── Registration ────────────────────────────────────────────────────────────
 
 Command.register({
-  id: 'xplorer-file-hasher.sha256',
+  id: 'wisp-file-hasher.sha256',
   title: 'Calculate SHA-256 Hash',
   permissions: ['file:read', 'ui:notifications'],
   action: (api) => hashFile('SHA-256', api),
 });
 
 Command.register({
-  id: 'xplorer-file-hasher.sha1',
+  id: 'wisp-file-hasher.sha1',
   title: 'Calculate SHA-1 Hash',
   permissions: ['file:read', 'ui:notifications'],
   action: (api) => hashFile('SHA-1', api),
 });
 
 Command.register({
-  id: 'xplorer-file-hasher.md5',
+  id: 'wisp-file-hasher.md5',
   title: 'Calculate MD5 Hash',
   permissions: ['file:read', 'ui:notifications'],
   action: (api) => hashFile('MD5', api),
