@@ -53,8 +53,12 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
       mouseDownRef.current = null;
 
       // Web mode has no native drag channel: without Tauri's drag events the
-      // internal drag state could never be ended, so skip drags entirely.
-      if (!isTauri()) return;
+      // internal drag state could never be ended, so skip drags entirely and
+      // surface a hint that drag & drop needs the desktop app.
+      if (!isTauri()) {
+        window.dispatchEvent(new CustomEvent('web-drag-attempt'));
+        return;
+      }
 
       // Determine which files to drag
       let pathsToDrag: string[];

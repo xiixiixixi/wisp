@@ -119,10 +119,13 @@ describe('useDraggable in web mode', () => {
     mockEndInternalDrag.mockClear();
   });
 
-  it('skips drags entirely so the overlay can never get stuck', async () => {
+  it('skips drags entirely and surfaces a hint so the overlay can never get stuck', async () => {
     vi.doMock('@/lib/transport', () => ({ isTauri: () => false }));
     vi.resetModules();
     const { useDraggable: webUseDraggable } = await import('@/hooks/use-draggable');
+
+    const attemptListener = vi.fn();
+    window.addEventListener('web-drag-attempt', attemptListener);
 
     const WebProbe = () => {
       const handlers = webUseDraggable({
@@ -139,5 +142,8 @@ describe('useDraggable in web mode', () => {
 
     expect(mockStartDrag).not.toHaveBeenCalled();
     expect(mockStartInternalDrag).not.toHaveBeenCalled();
+    expect(attemptListener).toHaveBeenCalled();
+
+    window.removeEventListener('web-drag-attempt', attemptListener);
   });
 });

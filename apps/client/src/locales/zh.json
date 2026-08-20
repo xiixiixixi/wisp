@@ -3215,7 +3215,8 @@
     "copy": "复制",
     "move": "移动",
     "link": "创建链接",
-    "files": "{{count}} 个文件"
+    "files": "{{count}} 个文件",
+    "webModeHint": "文件拖拽需在桌面版应用中使用"
   },
   "conflict": {
     "title": "文件冲突",

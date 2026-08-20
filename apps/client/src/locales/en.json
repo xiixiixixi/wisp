@@ -3215,7 +3215,8 @@
     "copy": "Copy",
     "move": "Move",
     "link": "Link",
-    "files": "{{count}} files"
+    "files": "{{count}} files",
+    "webModeHint": "File drag & drop requires the desktop app"
   },
   "conflict": {
     "title": "File conflict",

@@ -125,6 +125,23 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
   const [conflictRequest, setConflictRequest] = useState<ConflictRequest | null>(null);
   const [activeTransfer, setActiveTransfer] = useState<ActiveTransfer | null>(null);
 
+  // Web-mode hint: file drags need the desktop app
+  const { t } = useTranslation();
+  const [webHint, setWebHint] = useState(false);
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const handleWebDragAttempt = () => {
+      setWebHint(true);
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => setWebHint(false), 4000);
+    };
+    window.addEventListener('web-drag-attempt', handleWebDragAttempt);
+    return () => {
+      window.removeEventListener('web-drag-attempt', handleWebDragAttempt);
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
+
   const runTransfer = useCallback(
     async (
       sources: string[],
@@ -552,6 +569,27 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
     >
       {children}
       {dragState.isDragging && <DragOverlay state={dragState} overlayRef={overlayRef} />}
+      {webHint && (
+        <div
+          role="status"
+          style={{
+            position: 'fixed',
+            top: 16,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 99999,
+            padding: '8px 14px',
+            borderRadius: '8px',
+            backgroundColor: 'var(--xp-surface)',
+            border: '1px solid var(--xp-yellow, #e2b340)',
+            color: 'var(--xp-text)',
+            fontSize: '12px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+          }}
+        >
+          {t('dragOverlay.webModeHint')}
+        </div>
+      )}
       {conflictRequest && (
         <ConflictResolutionDialog
           conflicts={conflictRequest.conflicts}
