@@ -3,6 +3,7 @@ import { startDrag } from '@crabnebula/tauri-plugin-drag';
 import { resolveResource } from '@tauri-apps/api/path';
 import type { FileEntry } from '@/lib/tauri-api';
 import { isTauri } from '@/lib/transport';
+import { modifierDragOperation } from '@/lib/drag-utils';
 import { useDragDropContext } from '@/contexts/DragDropContext';
 
 interface UseDraggableOptions {
@@ -37,6 +38,9 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
 
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return; // only left button
+    // Don't hijack existing text selections — starting a drag would abort them
+    const selection = window.getSelection();
+    if (selection && selection.toString().length > 0) return;
     mouseDownRef.current = { x: e.clientX, y: e.clientY };
     draggingRef.current = false;
   }, []);
@@ -68,9 +72,10 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
         pathsToDrag = [file.path];
       }
 
-      // ⌘+drag: drag the paths as plain text instead of files, so terminals
-      // and plain-text editors receive the paths directly.
-      if (e.metaKey) {
+      // ⌘+drag (without ⌥): drag the paths as plain text instead of files, so
+      // terminals and plain-text editors receive the paths directly.
+      // ⌘⌥+drag stays a file drag and becomes a symbolic link (INT-03).
+      if (e.metaKey && !e.altKey) {
         getDragIconPath().then((icon) => {
           startDrag(
             {
@@ -86,8 +91,10 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
         return;
       }
 
-      // Notify context this is an internal drag (default: move operation)
-      startInternalDrag(pathsToDrag);
+      // Notify context this is an internal drag. Modifiers already held when
+      // the drag starts decide the initial operation (macOS habit: hold ⌥
+      // first, then drag).
+      startInternalDrag(pathsToDrag, modifierDragOperation(e.altKey, e.metaKey));
 
       // Start native Tauri drag — OS handles visuals + drop
       // When dropped back in our window, onDragDropEvent fires

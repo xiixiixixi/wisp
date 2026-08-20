@@ -523,7 +523,7 @@ const EditorGroupPane = ({
       (activeTab?.type === 'gdrive' && activeTab.gdriveData)
     ) {
       return (
-        <div className="text-xp-text-muted flex flex-1 items-center justify-center overflow-auto text-sm">
+        <div className="flex flex-1 items-center justify-center overflow-auto text-sm text-xp-text-muted">
           Install the Google Drive extension
         </div>
       );
@@ -545,7 +545,7 @@ const EditorGroupPane = ({
         <div className="flex-1 overflow-auto">
           <React.Suspense
             fallback={
-              <div className="text-xp-text-muted flex h-full items-center justify-center">
+              <div className="flex h-full items-center justify-center text-xp-text-muted">
                 Loading chat...
               </div>
             }
@@ -570,7 +570,7 @@ const EditorGroupPane = ({
         <div className="flex flex-1 flex-col overflow-hidden">
           <React.Suspense
             fallback={
-              <div className="text-xp-text-muted flex h-full items-center justify-center">
+              <div className="flex h-full items-center justify-center text-xp-text-muted">
                 Loading editor...
               </div>
             }
@@ -634,6 +634,7 @@ const EditorGroupPane = ({
     <div
       className={`flex h-full flex-col overflow-hidden ${isActive ? 'ring-xp-blue/30 ring-1' : ''}`}
       data-drop-target={isDroppablePath ? currentPath : undefined}
+      data-is-folder={isDroppablePath ? 'true' : undefined}
       onMouseDown={() => {
         if (!isActive) onSetActiveGroup(group.id);
       }}

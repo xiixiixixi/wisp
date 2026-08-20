@@ -50,7 +50,8 @@ const TreeRow = ({
         aria-label={`${file.name}${file.is_dir ? ', folder' : ', file'}`}
         tabIndex={0}
         data-drop-target={file.is_dir ? file.path : undefined}
-        className={`flex min-w-0 cursor-pointer select-none items-center overflow-hidden rounded px-2 py-1 transition-colors hover:bg-xp-surface-light ${
+        data-is-folder={file.is_dir ? 'true' : undefined}
+        className={`flex min-w-0 cursor-pointer items-center overflow-hidden rounded px-2 py-1 transition-colors hover:bg-xp-surface-light ${
           selectedFiles.has(file.path)
             ? 'bg-xp-purple/20 border-xp-purple/40 border'
             : 'border border-transparent text-xp-text'

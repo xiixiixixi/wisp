@@ -122,4 +122,18 @@ describe('planTransfer', () => {
     expect(plan.items).toEqual([{ source: '/src/a.txt', dest: '/dst/a.txt', overwrite: true }]);
     expect(plan.skippedCount).toBe(1);
   });
+
+  it('skips sources already inside the target dir (self-conflict)', async () => {
+    const conflicts = [conflictInfo('/dst/a.txt', '/dst/a.txt')];
+    const plan = await planTransfer(
+      ['/dst/a.txt', '/src/b.txt'],
+      '/dst',
+      conflicts,
+      overwrite,
+      async () => '',
+    );
+
+    expect(plan.items).toEqual([{ source: '/src/b.txt', dest: '/dst/b.txt' }]);
+    expect(plan.skippedCount).toBe(1);
+  });
 });

@@ -11,7 +11,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { isTauri } from '@/lib/transport';
 import { TauriAPI, type ConflictInfo } from '@/lib/tauri-api';
-import { validateDrop, buildDestinationPath } from '@/lib/drag-utils';
+import { validateDrop, buildDestinationPath, modifierDragOperation } from '@/lib/drag-utils';
 import { planTransfer, type ConflictPolicy, type TransferPlan } from '@/lib/drag-transfer';
 import { parseBrowserDrop, uniqueDroppedName } from '@/lib/drag-drop-content';
 import { undoLastTransfer } from '@/hooks/use-transfer-history';
@@ -26,12 +26,21 @@ interface DragState {
   draggedPaths: string[];
   hoveredDropTarget: string | null; // path from data-drop-target
   operation: 'copy' | 'move' | 'link';
+  /** Operation implied by the modifiers held at drag start. Cross-volume only
+   * overrides the operation while baseOperation is 'move' (no modifiers). */
+  baseOperation: 'copy' | 'move' | 'link';
 }
 
 type DragAction =
-  | { type: 'START_DRAG'; paths: string[]; source: 'internal' | 'external'; op: 'copy' | 'move' }
+  | {
+      type: 'START_DRAG';
+      paths: string[];
+      source: 'internal' | 'external';
+      op: 'copy' | 'move' | 'link';
+    }
   | { type: 'SET_HOVER'; targetPath: string | null }
   | { type: 'SET_OPERATION'; op: 'copy' | 'move' | 'link' }
+  | { type: 'SET_BASE_OPERATION'; op: 'copy' | 'move' | 'link' }
   | { type: 'END_DRAG' };
 
 interface DragDropContextValue {
@@ -39,7 +48,7 @@ interface DragDropContextValue {
   /** Register an element as a drop target. Returns cleanup function. */
   registerDropTarget: (path: string, element: HTMLElement) => () => void;
   /** Notify context that an internal drag is starting (from useDraggable) */
-  startInternalDrag: (paths: string[]) => void;
+  startInternalDrag: (paths: string[], op: 'copy' | 'move' | 'link') => void;
   /** End the internal drag state (drag finished outside the window, etc.) */
   endInternalDrag: () => void;
 }
@@ -67,6 +76,7 @@ const initialState: DragState = {
   draggedPaths: [],
   hoveredDropTarget: null,
   operation: 'move',
+  baseOperation: 'move',
 };
 
 const dragReducer = (state: DragState, action: DragAction): DragState => {
@@ -78,6 +88,7 @@ const dragReducer = (state: DragState, action: DragAction): DragState => {
         draggedPaths: action.paths,
         hoveredDropTarget: null,
         operation: action.op,
+        baseOperation: action.op,
       };
     case 'SET_HOVER':
       if (state.hoveredDropTarget === action.targetPath) return state;
@@ -85,18 +96,14 @@ const dragReducer = (state: DragState, action: DragAction): DragState => {
     case 'SET_OPERATION':
       if (state.operation === action.op) return state;
       return { ...state, operation: action.op };
+    case 'SET_BASE_OPERATION':
+      if (state.baseOperation === action.op) return state;
+      return { ...state, baseOperation: action.op };
     case 'END_DRAG':
       return initialState;
     default:
       return state;
   }
-};
-
-/** macOS drag semantics: Option = copy, ⌘+Option = symbolic link, none = move. */
-const operationFromModifiers = (altKey: boolean, metaKey: boolean): 'copy' | 'move' | 'link' => {
-  if (altKey && metaKey) return 'link';
-  if (altKey) return 'copy';
-  return 'move';
 };
 
 /** Whether a hovered drop target accepts the current drag. */
@@ -142,6 +149,24 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
     };
   }, []);
 
+  // Cross-volume lookups, cached by (source, targetDir) pair
+  const volumeCacheRef = useRef<Map<string, boolean>>(new Map());
+
+  const resolveSameVolume = useCallback(async (source: string, targetDir: string) => {
+    const key = `${source}|${targetDir}`;
+    const cached = volumeCacheRef.current.get(key);
+    if (cached !== undefined) return cached;
+    try {
+      const same = await TauriAPI.sameVolume(source, targetDir);
+      volumeCacheRef.current.set(key, same);
+      return same;
+    } catch {
+      // Volume detection failed; keep default move semantics
+      volumeCacheRef.current.set(key, true);
+      return true;
+    }
+  }, []);
+
   const runTransfer = useCallback(
     async (
       sources: string[],
@@ -171,7 +196,12 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
         for (const item of plan.items) {
           if (item.merge) {
             await TauriAPI.copyDirMerge(item.source, item.dest);
-          } else if (mode === 'copy') {
+            continue;
+          }
+          // Cross-volume sources degrade to copy per item (macOS convention)
+          const itemMode =
+            mode === 'copy' || !(await resolveSameVolume(item.source, targetDir)) ? 'copy' : 'move';
+          if (itemMode === 'copy') {
             ids.push(
               await TauriAPI.copyWithProgress(item.source, item.dest, item.overwrite === true),
             );
@@ -201,7 +231,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
         window.dispatchEvent(new CustomEvent('files-changed'));
       }
     },
-    [],
+    [resolveSameVolume],
   );
 
   // Track the currently highlighted element for cleanup
@@ -310,6 +340,27 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
                     target.element.setAttribute('data-drop-hover', 'true');
                     target.element.classList.add('xp-drop-folder-highlight');
 
+                    // macOS: moving across volumes degrades to copy. Update the
+                    // badge as soon as the target's volume is known (only when
+                    // no modifier overrides the operation).
+                    if (
+                      !target.action &&
+                      stateRef.current.dragSource === 'internal' &&
+                      stateRef.current.baseOperation === 'move'
+                    ) {
+                      const source = stateRef.current.draggedPaths[0];
+                      if (source) {
+                        void resolveSameVolume(source, target.path).then((same) => {
+                          const s = stateRef.current;
+                          if (!s.isDragging || s.baseOperation !== 'move') return;
+                          const want: 'copy' | 'move' = same ? 'move' : 'copy';
+                          if (s.operation !== want) {
+                            dispatch({ type: 'SET_OPERATION', op: want });
+                          }
+                        });
+                      }
+                    }
+
                     // Spring-loaded folder: if hovering a valid folder drop
                     // target for 500ms, navigate into it automatically.
                     if (isFolder) {
@@ -396,17 +447,9 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
                           window.dispatchEvent(new CustomEvent('files-changed'));
                           return;
                         }
-                        // Default is move; copy on Option, on external drags, or when
-                        // source and target live on different volumes (macOS convention).
-                        let mode: 'copy' | 'move' = op === 'copy' || isExternal ? 'copy' : 'move';
-                        if (mode === 'move') {
-                          try {
-                            const sameVol = await TauriAPI.sameVolume(paths[0], target.path);
-                            if (!sameVol) mode = 'copy';
-                          } catch {
-                            // Volume detection failed; keep the default move semantics
-                          }
-                        }
+                        // Default is move; copy on Option or external drags. Cross-volume
+                        // sources degrade to copy per item inside runTransfer.
+                        const mode: 'copy' | 'move' = op === 'copy' || isExternal ? 'copy' : 'move';
                         // Ask about name conflicts before transferring
                         const conflicts = await TauriAPI.checkConflicts(paths, target.path);
                         if (conflicts.length > 0) {
@@ -449,14 +492,16 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
       unlisten?.();
       cancelAnimationFrame(rafIdRef.current);
     };
-  }, [findDropTarget, clearHighlight, runTransfer]);
+  }, [findDropTarget, clearHighlight, runTransfer, resolveSameVolume]);
 
   // Listen for Option/⌘ during drag to switch move / copy / link (macOS semantics)
   useEffect(() => {
     const handleModifierChange = (e: KeyboardEvent) => {
       if (e.key !== 'Alt' && e.key !== 'Meta') return;
       if (!stateRef.current.isDragging || stateRef.current.dragSource !== 'internal') return;
-      dispatch({ type: 'SET_OPERATION', op: operationFromModifiers(e.altKey, e.metaKey) });
+      const op = modifierDragOperation(e.altKey, e.metaKey);
+      dispatch({ type: 'SET_OPERATION', op });
+      dispatch({ type: 'SET_BASE_OPERATION', op });
     };
     window.addEventListener('keydown', handleModifierChange);
     window.addEventListener('keyup', handleModifierChange);
@@ -485,9 +530,10 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
 
   // HTML5 drag events for non-file content (text / URLs / image blobs from
   // browsers). Real file drags stay on the native onDragDropEvent path.
+  // Registered in both modes: on macOS Tauri the native handler swallows
+  // non-file drags before they reach the page; in web mode these events work
+  // (saving still needs a backend).
   useEffect(() => {
-    if (!isTauri()) return;
-
     const isContentDrag = (dt: DataTransfer): boolean => {
       const types = Array.from(dt.types).map((t) => t.toLowerCase());
       if (
@@ -555,8 +601,8 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
     return () => {};
   }, []);
 
-  const startInternalDrag = useCallback((paths: string[]) => {
-    dispatch({ type: 'START_DRAG', paths, source: 'internal', op: 'move' });
+  const startInternalDrag = useCallback((paths: string[], op: 'copy' | 'move' | 'link') => {
+    dispatch({ type: 'START_DRAG', paths, source: 'internal', op });
   }, []);
 
   const endInternalDrag = useCallback(() => {

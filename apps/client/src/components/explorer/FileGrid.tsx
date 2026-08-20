@@ -416,7 +416,7 @@ const FileGrid = ({
 
   // Background drop target — the whole grid accepts drops into currentPath
   const isSpecialPage = currentPath.startsWith('wisp://') || currentPath.startsWith('gdrive://');
-  const bgDropRef = useDroppable(currentPath, isSpecialPage);
+  const bgDropRef = useDroppable(currentPath, isSpecialPage, true);
 
   // ─── Virtual scrolling hooks (must be called before any early returns) ───
   const parentRef = useRef<HTMLDivElement>(null);

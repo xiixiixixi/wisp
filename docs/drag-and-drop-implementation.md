@@ -60,6 +60,16 @@ Phase 3 进度（2026-08-20 完成）：
 - ⚠️ 平台限制结论（真机探针实测）：macOS Tauri 下 WRY 原生拖拽处理器吞掉所有非文件拖拽，HTML5 drop 事件不会到达页面 → 浏览器拖入代码在 macOS 桌面端不触发（web 模式仍可用）。后续支持需 Rust 侧扩展 WRY drag handler
 - 待手工验收：⌘+拖文本拖出（自动化验证到 startDrag 载荷为止）、全部交互项见 §6.2
 
+评审修复（2026-08-20，代码审查后）：
+- P0-1 补上所有目录落点的 `data-is-folder`（FileGrid/GalleryView 背景、EditorGroupPane、PaneTabBar 文件夹标签、DetailsView/TreeView 行），修复 Phase 0.4 校验引入的"背景落点全废"回归
+- P0-2 拖拽启动时已按住的修饰键生效：`useDraggable` 把启动时 op 传入 `startInternalDrag`，`DragState` 新增 `baseOperation`
+- P0-2 附带：`⌘⌥` 同时按住起步不再被文本拖拽分支吞掉（`metaKey && !altKey` 才走文本拖出），INT-03 符号链接可正常触发
+- P1-3 撤销计数改为实际 `Completed` 的操作数（Rust 只在成功时入撤销栈；merge 项不计），全失败/取消时不记录
+- P1-4 HTML5 拖入处理改为两种模式都注册（见 §7-2）
+- P2-5 `planTransfer` 过滤 `dest === source` 的自冲突项，避免覆盖策略删除源文件
+- P2-6 跨卷判定补齐：悬停时 badge 即时切换 + drop 逐项判定（带缓存），替代原先仅 drop 时查首个路径
+- 次要：进度条改为按操作均值（不回退）；DetailsView/TreeView 行移除 `select-none`，改为"存在文本选择时不启动拖拽"；§4.6 i18n 键表对齐实际代码
+
 ## 3. 分阶段实施细节
 
 ### 3.1 Phase 0 — 修复现有问题
@@ -219,9 +229,12 @@ drop 校验通过
 
 ### 4.3 跨卷判定
 
-- Rust：`std::fs::metadata(path)?.dev()`（`std::os::unix::fs::MetadataExt`），两路径设备号不同即为跨卷
-- 前端：拖动启动时查一次，hover 目标变化时按缓存增量更新；无缓存才发命令
-- 跨卷时 `move` 语义在 UI 上即时降级为 `copy`
+- Rust：`same_volume` 命令（unix 用 `st_dev`、windows 用卷序列号），两路径设备号不同即为跨卷
+- 前端：`DragDropContext` 维护 `volumeCacheRef` 按 `(source, targetDir)` 缓存结果
+  - 拖拽启动：`useDraggable` 把启动时修饰键决定的 op（move/copy/link）传入 `START_DRAG`，存入 `baseOperation`
+  - 悬停：`baseOperation === 'move'` 且目标为目录落点时异步查卷，跨卷即时把 badge 切为复制（`SET_OPERATION`），悬停回同卷目标时还原
+  - drop：`runTransfer` 逐项判定（缓存命中），跨卷项用复制、同卷项用移动
+- 修饰键（⌥=复制、⌘⌥=链接）优先于跨卷语义：`baseOperation` 非 move 时不做跨卷覆盖
 
 ### 4.4 撤销
 
@@ -235,7 +248,7 @@ drop 校验通过
 - 取消：`cancel_file_operation(operation_id)`；Rust 侧会清理半成品文件并记录审计日志
 - UI 阈值：> 10 项或 > 100MB；低于阈值静默传输
 
-### 4.6 i18n 新增键（en.json / zh.json，仅这两个语言）
+### 4.6 i18n 键（en.json / zh.json，仅这两个语言，实际落地键）
 
 | 键 | 英文 | 中文 |
 |---|---|---|
@@ -243,15 +256,20 @@ drop 校验通过
 | `dragOverlay.move` | Move | 移动 |
 | `dragOverlay.link` | Link | 创建链接 |
 | `dragOverlay.files` | {{count}} files | {{count}} 个文件 |
+| `dragOverlay.webModeHint` | File drag & drop requires the desktop app | 文件拖拽需在桌面版应用中使用 |
 | `conflict.title` | File conflict | 文件冲突 |
 | `conflict.overwrite` | Overwrite | 覆盖 |
 | `conflict.skip` | Skip | 跳过 |
 | `conflict.keepBoth` | Keep both | 保留两者 |
-| `conflict.merge` | Merge folders | 合并文件夹 |
-| `conflict.applyToAll` | Apply to all | 应用到全部 |
-| `transfer.undoToast` | Moved {{count}} items — Undo | 已移动 {{count}} 项 — 撤销 |
-| `transfer.errorToast` | {{count}} items failed | {{count}} 项失败 |
+| `conflict.merge` | Merge | 合并 |
+| `conflict.applyToAll` | Apply to all: | 应用到全部： |
+| `conflict.confirm` | Apply | 应用 |
+| `conflict.cancel` | Cancel | 取消 |
 | `transfer.progressTitle` | Transferring… | 正在传输… |
+| `transfer.doneMove` | Moved {{count}} items | 已移动 {{count}} 项 |
+| `transfer.doneCopy` | Copied {{count}} items | 已复制 {{count}} 项 |
+| `transfer.failed` | {{count}} failed | {{count}} 项失败 |
+| `transfer.undo` | Undo | 撤销 |
 | `transfer.cancel` | Cancel | 取消 |
 
 ### 4.7 边缘自动滚动（UX-04）
@@ -356,7 +374,7 @@ drop 校验通过
 ## 7. 风险与 POC 结论
 
 1. **tauri-plugin-drag 多数据类型**（DRO-05）：✅ 已确认插件 v2.1.0 支持 `{ data, types }` 自定义类型；⌘+拖文本已实现并有单测，端到端行为待手工验收（清单 #4）。
-2. **WKWebView 非文件拖入**（DRI-04/05）：❌ 已探针实测确认——macOS Tauri 下 HTML5 drop 事件不达页面，浏览器文本/图片拖入在桌面端不触发；代码保留（web 模式可用），后续如需支持须扩展 WRY Rust 侧 drag handler。
+2. **WKWebView 非文件拖入**（DRI-04/05）：❌ 已探针实测确认——macOS Tauri 下 HTML5 drop 事件不达页面。HTML5 处理现在**两种模式都注册**：桌面端被 WRY 拦截不触发；网页版事件可到达、解析逻辑生效，但落盘依赖后端（当前网页版无文件后端）。后续如需桌面端支持须扩展 WRY Rust 侧 drag handler。
 3. **原生拖拽期间键盘事件**（INT-02）：系统接管拖拽后 keydown 可能到不了 webview，修饰键实时切换需手工确认（清单 #11）；fallback 用拖拽启动时的修饰键状态定 op。
 4. **overwrite 参数改动**：`copy_with_progress` 默认 `overwrite: false`，现有调用方（paste-helpers 等）行为不变。
 5. **symlink 与 Finder 替身差异**：v1 明确做 symlink 并统一文案，真替身后续用 core-foundation 补。

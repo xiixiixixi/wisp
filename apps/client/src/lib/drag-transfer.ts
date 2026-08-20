@@ -1,4 +1,4 @@
-import { buildDestinationPath } from '@/lib/drag-utils';
+import { buildDestinationPath, isSamePath } from '@/lib/drag-utils';
 import type { ConflictInfo } from '@/lib/tauri-api';
 
 export type ConflictPolicy = 'overwrite' | 'skip' | 'keepBoth' | 'merge';
@@ -37,6 +37,12 @@ export const planTransfer = async (
 
   for (const source of sources) {
     const dest = buildDestinationPath(source, targetDir);
+    // A source already living in the target dir would "conflict" with itself;
+    // skipping avoids the overwrite policy deleting the source file.
+    if (isSamePath(dest, source)) {
+      skippedCount += 1;
+      continue;
+    }
     const policy = conflictIsFolder.has(source) ? policyFor(source) : null;
 
     if (policy === 'skip') {

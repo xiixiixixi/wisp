@@ -36,7 +36,7 @@ const GalleryStripThumb = React.memo(
     const [dimensions, setDimensions] = useState<{ w: number; h: number } | null>(null);
     const isImage = isImageFile(file);
     const dragHandlers = useDraggable({ file, selectedFiles, allFiles });
-    const dropRef = useDroppable(file.path, !file.is_dir);
+    const dropRef = useDroppable(file.path, !file.is_dir, file.is_dir);
 
     const dimensionOverlayStyle: React.CSSProperties = {
       position: 'absolute',
@@ -91,7 +91,7 @@ const GalleryStripThumb = React.memo(
             )}
           </>
         ) : (
-          <div className="bg-xp-surface-light flex h-full w-full items-center justify-center">
+          <div className="flex h-full w-full items-center justify-center bg-xp-surface-light">
             <span className="text-xl opacity-60">{getFileIcon(file)}</span>
           </div>
         )}
@@ -141,6 +141,7 @@ const GalleryView = ({
   const bgDropRef = useDroppable(
     currentPath,
     currentPath.startsWith('wisp://') || currentPath.startsWith('gdrive://'),
+    true,
   );
 
   // Reset focused file when files change (navigated to a new folder)
@@ -300,7 +301,7 @@ const GalleryView = ({
       >
         {(() => {
           if (!displayFile) {
-            return <div className="text-xp-text-muted text-sm">No files</div>;
+            return <div className="text-sm text-xp-text-muted">No files</div>;
           }
           if (isDisplayImage && !previewError) {
             return (
@@ -340,7 +341,7 @@ const GalleryView = ({
             );
           }
           return (
-            <div className="text-xp-text-muted flex flex-col items-center gap-3">
+            <div className="flex flex-col items-center gap-3 text-xp-text-muted">
               <span className="text-7xl opacity-50">{getFileIcon(displayFile)}</span>
               <span className="text-sm font-medium">{displayFile.name}</span>
               <span className="text-xs">
@@ -381,7 +382,7 @@ const GalleryView = ({
       </div>
 
       {/* -- Horizontal filmstrip (virtualized) -- */}
-      <div className="border-xp-border bg-xp-surface flex-shrink-0 border-t">
+      <div className="flex-shrink-0 border-t border-xp-border bg-xp-surface">
         <div
           ref={stripRef}
           className="gallery-filmstrip overflow-x-auto p-2"

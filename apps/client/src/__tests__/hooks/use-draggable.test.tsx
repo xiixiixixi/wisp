@@ -71,7 +71,31 @@ describe('useDraggable', () => {
       expect.objectContaining({ item: ['/Users/test/note.txt'] }),
       expect.any(Function),
     );
-    expect(mockStartInternalDrag).toHaveBeenCalledWith(['/Users/test/note.txt']);
+    expect(mockStartInternalDrag).toHaveBeenCalledWith(['/Users/test/note.txt'], 'move');
+  });
+
+  it('starts a copy drag when ⌥ is already held', async () => {
+    const { getByTestId } = render(<Probe />);
+    const el = getByTestId('probe');
+    fireEvent.mouseDown(el, { clientX: 100, clientY: 100, button: 0 });
+    fireEvent.mouseMove(el, { clientX: 120, clientY: 112, altKey: true });
+    await waitFor(() => expect(mockStartDrag).toHaveBeenCalled());
+
+    expect(mockStartInternalDrag).toHaveBeenCalledWith(['/Users/test/note.txt'], 'copy');
+  });
+
+  it('starts a link drag when ⌘⌥ are held (not a text drag)', async () => {
+    const { getByTestId } = render(<Probe />);
+    const el = getByTestId('probe');
+    fireEvent.mouseDown(el, { clientX: 100, clientY: 100, button: 0 });
+    fireEvent.mouseMove(el, { clientX: 120, clientY: 112, metaKey: true, altKey: true });
+    await waitFor(() => expect(mockStartDrag).toHaveBeenCalled());
+
+    expect(mockStartDrag).toHaveBeenCalledWith(
+      expect.objectContaining({ item: ['/Users/test/note.txt'] }),
+      expect.any(Function),
+    );
+    expect(mockStartInternalDrag).toHaveBeenCalledWith(['/Users/test/note.txt'], 'link');
   });
 
   it('starts a plain-text drag with ⌘ held (terminal path paste)', async () => {

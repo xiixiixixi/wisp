@@ -17,6 +17,11 @@ interface TransferProgressToastProps {
   onDismiss: () => void;
 }
 
+interface OpState {
+  status: string;
+  percent: number;
+}
+
 const TERMINAL_STATUSES = new Set(['Completed', 'Failed', 'Cancelled']);
 
 const AUTO_DISMISS_MS = 8000;
@@ -31,29 +36,45 @@ export const TransferProgressToast = ({
   onDismiss,
 }: TransferProgressToastProps) => {
   const { t } = useTranslation();
-  const [statusMap, setStatusMap] = useState<Map<string, string>>(new Map());
-  const [percent, setPercent] = useState(0);
+  const [opStates, setOpStates] = useState<Map<string, OpState>>(new Map());
   const [currentFile, setCurrentFile] = useState('');
   const [undoing, setUndoing] = useState(false);
   const recordedRef = useRef(false);
 
-  const failedCount = [...statusMap.values()].filter((s) => s === 'Failed').length;
-  const allSettled = ids.every((id) => TERMINAL_STATUSES.has(statusMap.get(id) ?? ''));
+  const states = [...opStates.values()];
+  const failedCount = states.filter((o) => o.status === 'Failed').length;
+  const completedCount = states.filter((o) => o.status === 'Completed').length;
+  const allSettled = ids.every((id) => TERMINAL_STATUSES.has(opStates.get(id)?.status ?? ''));
   const phase = allSettled ? 'done' : 'running';
+
+  // Average across operations; completed ones count as 100%. Per-op progress
+  // only increases, so the overall bar never regresses.
+  const percent =
+    ids.length === 0
+      ? 0
+      : Math.round(
+          states.reduce((sum, o) => sum + (o.status === 'Completed' ? 100 : o.percent), 0) /
+            ids.length,
+        );
 
   // Track operation statuses via the file-operation-progress event stream
   useEffect(() => {
     let unlisten: (() => void) | null = null;
     void TauriAPI.listenToFileOperationProgress((progress: FileOperationProgress) => {
       if (!ids.includes(progress.operation_id)) return;
-      setStatusMap((prev) => {
-        if (prev.get(progress.operation_id) === progress.status) return prev;
+      setOpStates((prev) => {
+        const cur = prev.get(progress.operation_id);
+        if (cur?.status === progress.status && cur.percent === progress.progress_percentage) {
+          return prev;
+        }
         const next = new Map(prev);
-        next.set(progress.operation_id, progress.status);
+        next.set(progress.operation_id, {
+          status: progress.status,
+          percent: progress.progress_percentage,
+        });
         return next;
       });
       if (progress.current_file) setCurrentFile(progress.current_file);
-      setPercent((prev) => Math.max(prev, progress.progress_percentage));
     }).then((fn) => {
       unlisten = fn;
     });
@@ -64,16 +85,21 @@ export const TransferProgressToast = ({
 
   // Record the transfer once settled, then auto-dismiss the toast (which also
   // clears the undo record — Cmd+Z only works while the toast is visible).
+  // Only actually-completed operations are recorded: Rust only pushes to the
+  // undo stack on success, so the undo count must match or Cmd+Z would pop
+  // unrelated history.
   useEffect(() => {
     if (phase !== 'done' || recordedRef.current) return;
     recordedRef.current = true;
-    recordTransfer({ count: itemCount, mode, destDir, timestamp: Date.now() });
+    if (completedCount > 0) {
+      recordTransfer({ count: completedCount, mode, destDir, timestamp: Date.now() });
+    }
     const timer = setTimeout(() => {
       clearTransferRecord();
       onDismiss();
     }, AUTO_DISMISS_MS);
     return () => clearTimeout(timer);
-  }, [phase, itemCount, mode, destDir, onDismiss]);
+  }, [phase, completedCount, mode, destDir, onDismiss]);
 
   const handleCancel = async () => {
     await Promise.all(ids.map((id) => TauriAPI.cancelFileOperation(id)));
@@ -93,6 +119,7 @@ export const TransferProgressToast = ({
   const doneLabel = t(mode === 'move' ? 'transfer.doneMove' : 'transfer.doneCopy', {
     count: itemCount,
   });
+  const canUndo = !undoing && completedCount > 0;
 
   return (
     <div
@@ -119,7 +146,7 @@ export const TransferProgressToast = ({
         <>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontWeight: 600 }}>{t('transfer.progressTitle')}</span>
-            <span style={{ color: 'var(--xp-text-muted)' }}>{Math.round(percent)}%</span>
+            <span style={{ color: 'var(--xp-text-muted)' }}>{percent}%</span>
           </div>
           <div
             style={{
@@ -187,7 +214,7 @@ export const TransferProgressToast = ({
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <button
               type="button"
-              disabled={undoing || failedCount >= itemCount}
+              disabled={!canUndo}
               onClick={handleUndo}
               style={{
                 padding: '4px 12px',
@@ -196,8 +223,8 @@ export const TransferProgressToast = ({
                 border: '1px solid var(--xp-blue)',
                 background: 'transparent',
                 color: 'var(--xp-blue)',
-                cursor: undoing || failedCount >= itemCount ? 'default' : 'pointer',
-                opacity: undoing || failedCount >= itemCount ? 0.5 : 1,
+                cursor: canUndo ? 'pointer' : 'default',
+                opacity: canUndo ? 1 : 0.5,
               }}
             >
               {t('transfer.undo')}

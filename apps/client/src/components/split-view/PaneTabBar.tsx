@@ -482,6 +482,11 @@ const PaneTabBar = ({
                   ? tab.path
                   : undefined
               }
+              data-is-folder={
+                tab.type === 'folder' && tab.path && !tab.path.startsWith('wisp://')
+                  ? 'true'
+                  : undefined
+              }
               draggable
               onDragStart={(e) => handleDragStart(e, index)}
               onDragEnd={handleDragEnd}

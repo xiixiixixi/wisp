@@ -48,9 +48,22 @@ export const getParentPath = (filePath: string): string => {
   return parts.join('/') || '/';
 };
 
+/** macOS drag semantics: Option = copy, ⌘+Option = symbolic link, none = move. */
+export const modifierDragOperation = (
+  altKey: boolean,
+  metaKey: boolean,
+): 'copy' | 'move' | 'link' => {
+  if (altKey && metaKey) return 'link';
+  if (altKey) return 'copy';
+  return 'move';
+};
+
 const normalize = (p: string): string => {
   return p.replace(/\\/g, '/').replace(/\/+$/, '').toLowerCase();
 };
+
+/** Case-insensitive, slash-normalized path equality. */
+export const isSamePath = (a: string, b: string): boolean => normalize(a) === normalize(b);
 
 /** MIME type for internal drag data */
 export const WISP_DND_MIME = 'application/x-wisp-files';

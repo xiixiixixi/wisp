@@ -237,7 +237,7 @@ mousedown（记录坐标）
 ## 7. 风险与已知限制
 
 1. **tauri-plugin-drag 多数据类型**（DRO-05 终端路径文本）：✅ 已确认插件 API 支持 `{ data, types }` 自定义数据类型（v2.1.0），⌘+拖 已实现并有单测；真机端到端行为待用户手工验证。
-2. **WKWebView 对浏览器文本/图片拖入**（DRI-04/05）：❌ 已实测确认——macOS Tauri 下 WRY 的原生拖拽处理器会吞掉所有非文件拖拽，HTML5 drop 事件不会到达页面（探针验证：窗口级 drop 监听器收不到任何事件）。因此浏览器拖入代码虽已实现（有单测，web 模式可用），在 macOS 桌面端不会触发。后续若需支持，需要 Rust 侧扩展 WRY 的 drag handler。
+2. **WKWebView 对浏览器文本/图片拖入**（DRI-04/05）：❌ 已实测确认——macOS Tauri 下 WRY 的原生拖拽处理器会吞掉所有非文件拖拽，HTML5 drop 事件不会到达页面（探针验证：窗口级 drop 监听器收不到任何事件）。HTML5 处理在两种模式下都注册：桌面端不触发；网页版解析逻辑生效但落盘依赖后端（当前无）。后续若需桌面端支持，需要 Rust 侧扩展 WRY 的 drag handler。
 3. **原生拖拽期间的键盘事件**：系统接管拖拽后 webview 能否收到 keydown（INT-02 实时切换修饰键）未验证；fallback 方案为按拖拽启动时的修饰键状态决定操作。
 4. **符号链接 vs Finder 替身**：v1 用 symlink（终端可见的符号链接），Finder 原生「替身」文件（alias）需引 core-foundation，列为后续项。
 5. 原生拖拽由系统接管，Esc 行为与拖拽光标样式部分不可控。

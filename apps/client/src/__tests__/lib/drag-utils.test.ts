@@ -6,6 +6,7 @@ import {
   validateDrop,
   buildDestinationPath,
   getParentPath,
+  isSamePath,
   WISP_DND_MIME,
 } from '@/lib/drag-utils';
 import type { FileEntry } from '@/lib/tauri-api';
@@ -245,6 +246,24 @@ describe('drag-utils', () => {
 
     it('handles Windows paths', () => {
       expect(getParentPath('C:\\Users\\Test\\file.txt')).toBe('C:/Users/Test');
+    });
+  });
+
+  describe('isSamePath', () => {
+    it('compares paths case-insensitively', () => {
+      expect(isSamePath('/Home/User/Docs', '/home/user/docs')).toBe(true);
+    });
+
+    it('ignores trailing slashes', () => {
+      expect(isSamePath('/home/user/docs/', '/home/user/docs')).toBe(true);
+    });
+
+    it('returns false for different paths', () => {
+      expect(isSamePath('/home/user/docs', '/home/user/other')).toBe(false);
+    });
+
+    it('normalizes Windows separators', () => {
+      expect(isSamePath('C:\\Users\\Test\\file.txt', 'C:/Users/Test/file.txt')).toBe(true);
     });
   });
 
