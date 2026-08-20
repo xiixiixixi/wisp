@@ -5,6 +5,7 @@ import React from 'react';
 
 const mockStartDrag = vi.fn().mockResolvedValue(undefined);
 const mockStartInternalDrag = vi.fn();
+const mockEndInternalDrag = vi.fn();
 
 vi.mock('@crabnebula/tauri-plugin-drag', () => ({
   startDrag: (...args: unknown[]) => mockStartDrag(...args),
@@ -12,8 +13,14 @@ vi.mock('@crabnebula/tauri-plugin-drag', () => ({
 vi.mock('@tauri-apps/api/path', () => ({
   resolveResource: vi.fn().mockResolvedValue('/icons/icon.png'),
 }));
+vi.mock('@/lib/transport', () => ({
+  isTauri: () => true,
+}));
 vi.mock('@/contexts/DragDropContext', () => ({
-  useDragDropContext: () => ({ startInternalDrag: mockStartInternalDrag }),
+  useDragDropContext: () => ({
+    startInternalDrag: mockStartInternalDrag,
+    endInternalDrag: mockEndInternalDrag,
+  }),
 }));
 
 import { useDraggable } from '@/hooks/use-draggable';
@@ -54,6 +61,7 @@ describe('useDraggable', () => {
   beforeEach(() => {
     mockStartDrag.mockClear();
     mockStartInternalDrag.mockClear();
+    mockEndInternalDrag.mockClear();
   });
 
   it('starts a file drag without modifiers', async () => {
@@ -61,6 +69,7 @@ describe('useDraggable', () => {
 
     expect(mockStartDrag).toHaveBeenCalledWith(
       expect.objectContaining({ item: ['/Users/test/note.txt'] }),
+      expect.any(Function),
     );
     expect(mockStartInternalDrag).toHaveBeenCalledWith(['/Users/test/note.txt']);
   });
@@ -72,8 +81,25 @@ describe('useDraggable', () => {
       expect.objectContaining({
         item: { data: '/Users/test/note.txt', types: ['public.utf8-plain-text'] },
       }),
+      expect.any(Function),
     );
     expect(mockStartInternalDrag).not.toHaveBeenCalled();
+  });
+
+  it('ends the internal drag when the native drag finishes', async () => {
+    await startDragOnProbe(false);
+
+    const onEvent = mockStartDrag.mock.calls[0][1] as () => void;
+    onEvent();
+
+    expect(mockEndInternalDrag).toHaveBeenCalled();
+  });
+
+  it('ends the internal drag if startDrag rejects', async () => {
+    mockStartDrag.mockRejectedValueOnce(new Error('no tauri'));
+    await startDragOnProbe(false);
+
+    await waitFor(() => expect(mockEndInternalDrag).toHaveBeenCalled());
   });
 
   it('does not start a drag below the movement threshold', async () => {
@@ -83,5 +109,35 @@ describe('useDraggable', () => {
     fireEvent.mouseMove(el, { clientX: 102, clientY: 101 });
 
     expect(mockStartDrag).not.toHaveBeenCalled();
+  });
+});
+
+describe('useDraggable in web mode', () => {
+  beforeEach(() => {
+    mockStartDrag.mockClear();
+    mockStartInternalDrag.mockClear();
+    mockEndInternalDrag.mockClear();
+  });
+
+  it('skips drags entirely so the overlay can never get stuck', async () => {
+    vi.doMock('@/lib/transport', () => ({ isTauri: () => false }));
+    vi.resetModules();
+    const { useDraggable: webUseDraggable } = await import('@/hooks/use-draggable');
+
+    const WebProbe = () => {
+      const handlers = webUseDraggable({
+        file,
+        selectedFiles: new Set(),
+        allFiles: [file],
+      });
+      return <div data-testid="web-probe" {...handlers} />;
+    };
+    const { getByTestId } = render(<WebProbe />);
+    const el = getByTestId('web-probe');
+    fireEvent.mouseDown(el, { clientX: 100, clientY: 100, button: 0 });
+    fireEvent.mouseMove(el, { clientX: 130, clientY: 130 });
+
+    expect(mockStartDrag).not.toHaveBeenCalled();
+    expect(mockStartInternalDrag).not.toHaveBeenCalled();
   });
 });

@@ -40,6 +40,8 @@ interface DragDropContextValue {
   registerDropTarget: (path: string, element: HTMLElement) => () => void;
   /** Notify context that an internal drag is starting (from useDraggable) */
   startInternalDrag: (paths: string[]) => void;
+  /** End the internal drag state (drag finished outside the window, etc.) */
+  endInternalDrag: () => void;
 }
 
 interface ConflictRequest {
@@ -540,8 +542,14 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
     dispatch({ type: 'START_DRAG', paths, source: 'internal', op: 'move' });
   }, []);
 
+  const endInternalDrag = useCallback(() => {
+    dispatch({ type: 'END_DRAG' });
+  }, []);
+
   return (
-    <DragDropContext.Provider value={{ dragState, registerDropTarget, startInternalDrag }}>
+    <DragDropContext.Provider
+      value={{ dragState, registerDropTarget, startInternalDrag, endInternalDrag }}
+    >
       {children}
       {dragState.isDragging && <DragOverlay state={dragState} overlayRef={overlayRef} />}
       {conflictRequest && (

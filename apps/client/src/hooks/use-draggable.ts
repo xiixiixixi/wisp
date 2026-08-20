@@ -2,6 +2,7 @@ import { useCallback, useRef } from 'react';
 import { startDrag } from '@crabnebula/tauri-plugin-drag';
 import { resolveResource } from '@tauri-apps/api/path';
 import type { FileEntry } from '@/lib/tauri-api';
+import { isTauri } from '@/lib/transport';
 import { useDragDropContext } from '@/contexts/DragDropContext';
 
 interface UseDraggableOptions {
@@ -32,7 +33,7 @@ const getDragIconPath = async (): Promise<string> => {
 export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOptions) => {
   const mouseDownRef = useRef<{ x: number; y: number } | null>(null);
   const draggingRef = useRef(false);
-  const { startInternalDrag } = useDragDropContext();
+  const { startInternalDrag, endInternalDrag } = useDragDropContext();
 
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return; // only left button
@@ -51,6 +52,10 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
       draggingRef.current = true;
       mouseDownRef.current = null;
 
+      // Web mode has no native drag channel: without Tauri's drag events the
+      // internal drag state could never be ended, so skip drags entirely.
+      if (!isTauri()) return;
+
       // Determine which files to drag
       let pathsToDrag: string[];
       if (selectedFiles.has(file.path) && selectedFiles.size > 1) {
@@ -63,11 +68,15 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
       // and plain-text editors receive the paths directly.
       if (e.metaKey) {
         getDragIconPath().then((icon) => {
-          startDrag({
-            item: { data: pathsToDrag.join('\n'), types: ['public.utf8-plain-text'] },
-            icon,
-          }).catch((err) => {
+          startDrag(
+            {
+              item: { data: pathsToDrag.join('\n'), types: ['public.utf8-plain-text'] },
+              icon,
+            },
+            () => endInternalDrag(),
+          ).catch((err) => {
             console.error('startDrag failed:', err);
+            endInternalDrag();
           });
         });
         return;
@@ -80,12 +89,13 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
       // When dropped back in our window, onDragDropEvent fires
       // When dropped on desktop/another app, OS handles it
       getDragIconPath().then((icon) => {
-        startDrag({ item: pathsToDrag, icon }).catch((err) => {
+        startDrag({ item: pathsToDrag, icon }, () => endInternalDrag()).catch((err) => {
           console.error('startDrag failed:', err);
+          endInternalDrag();
         });
       });
     },
-    [file.path, selectedFiles, allFiles, startInternalDrag],
+    [file.path, selectedFiles, allFiles, startInternalDrag, endInternalDrag],
   );
 
   const onMouseUp = useCallback(() => {
