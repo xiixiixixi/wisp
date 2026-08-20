@@ -3210,5 +3210,29 @@
     "hintReasoningCheap": "Reasoning · cheap",
     "hintOpenLarge": "Open · large",
     "hintXai": "xAI"
+  },
+  "dragOverlay": {
+    "copy": "Copy",
+    "move": "Move",
+    "link": "Link",
+    "files": "{{count}} files"
+  },
+  "conflict": {
+    "title": "File conflict",
+    "overwrite": "Overwrite",
+    "skip": "Skip",
+    "keepBoth": "Keep both",
+    "merge": "Merge",
+    "applyToAll": "Apply to all:",
+    "confirm": "Apply",
+    "cancel": "Cancel"
+  },
+  "transfer": {
+    "progressTitle": "Transferring…",
+    "doneMove": "Moved {{count}} items",
+    "doneCopy": "Copied {{count}} items",
+    "failed": "{{count}} failed",
+    "undo": "Undo",
+    "cancel": "Cancel"
   }
 }

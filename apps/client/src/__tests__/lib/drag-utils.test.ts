@@ -199,6 +199,22 @@ describe('drag-utils', () => {
       const result = validateDrop(['/home/docs/file.txt'], '/home/other');
       expect(result.valid).toBe(true);
     });
+
+    it('returns invalid when target is not a folder', () => {
+      const result = validateDrop(['/home/docs/file.txt'], '/home/other/file.txt', false);
+      expect(result.valid).toBe(false);
+      expect(result.reason).toContain('folder');
+    });
+
+    it('returns valid for a folder target when targetIsDir is true', () => {
+      const result = validateDrop(['/home/docs/file.txt'], '/home/other', true);
+      expect(result.valid).toBe(true);
+    });
+
+    it('defaults targetIsDir to true and skips the folder check', () => {
+      const result = validateDrop(['/home/docs/file.txt'], '/home/other');
+      expect(result.valid).toBe(true);
+    });
   });
 
   describe('buildDestinationPath', () => {

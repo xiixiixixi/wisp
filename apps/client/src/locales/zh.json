@@ -3210,5 +3210,29 @@
     "hintReasoningCheap": "推理 · 便宜",
     "hintOpenLarge": "开放 · 大参数",
     "hintXai": "xAI"
+  },
+  "dragOverlay": {
+    "copy": "复制",
+    "move": "移动",
+    "link": "创建链接",
+    "files": "{{count}} 个文件"
+  },
+  "conflict": {
+    "title": "文件冲突",
+    "overwrite": "覆盖",
+    "skip": "跳过",
+    "keepBoth": "保留两者",
+    "merge": "合并",
+    "applyToAll": "应用到全部：",
+    "confirm": "应用",
+    "cancel": "取消"
+  },
+  "transfer": {
+    "progressTitle": "正在传输…",
+    "doneMove": "已移动 {{count}} 项",
+    "doneCopy": "已复制 {{count}} 项",
+    "failed": "{{count}} 项失败",
+    "undo": "撤销",
+    "cancel": "取消"
   }
 }

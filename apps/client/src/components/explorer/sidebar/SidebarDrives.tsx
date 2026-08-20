@@ -120,6 +120,8 @@ const SidebarDrives = ({
               <div key={drive.path} className="group relative">
                 <button
                   onClick={() => navigateToPath(drive.path)}
+                  data-drop-target={drive.path}
+                  data-is-folder="true"
                   className="w-full rounded px-2 py-1.5 text-left text-xs transition-colors hover:bg-xp-surface-light"
                   aria-label={t('navigation.navigateTo', {
                     name: drive.letter ? `${drive.letter}:` : drive.label,
@@ -166,6 +168,8 @@ const SidebarDrives = ({
           {!isWindows && homePath && (
             <button
               onClick={() => navigateToPath(homePath)}
+              data-drop-target={homePath}
+              data-is-folder="true"
               className="flex w-full items-center rounded px-2 py-1.5 text-xs transition-colors hover:bg-xp-surface-light"
             >
               <User size={15} className="mr-2.5 flex-shrink-0 text-xp-cyan" />{' '}

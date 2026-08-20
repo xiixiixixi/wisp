@@ -183,8 +183,14 @@ export const createFile = async (path: string): Promise<void> =>
 export const createFileWithContent = async (path: string, content: string): Promise<void> =>
   await transport('create_file_with_content', { path, content });
 
+export const writeBinaryFile = async (path: string, data: number[]): Promise<void> =>
+  await transport('write_binary_file', { path, data });
+
 export const createSymlink = async (target: string, linkPath: string): Promise<void> =>
   await transport('create_symlink', { target, link_path: linkPath });
+
+export const sameVolume = async (a: string, b: string): Promise<boolean> =>
+  await transport('same_volume', { a, b });
 
 export const getDirSize = async (path: string): Promise<DirectorySize> =>
   await transport('get_dir_size', { path });
@@ -277,11 +283,20 @@ export const showInFolder = async (path: string): Promise<void> =>
 
 // ── Progress-aware file operations ──────────────────────────────────────────
 
-export const copyWithProgress = async (source: string, destination: string): Promise<string> =>
-  await transport('copy_with_progress', { source, destination });
+export const copyWithProgress = async (
+  source: string,
+  destination: string,
+  overwrite = false,
+): Promise<string> => await transport('copy_with_progress', { source, destination, overwrite });
 
-export const moveWithProgress = async (source: string, destination: string): Promise<string> =>
-  await transport('move_with_progress', { source, destination });
+export const moveWithProgress = async (
+  source: string,
+  destination: string,
+  overwrite = false,
+): Promise<string> => await transport('move_with_progress', { source, destination, overwrite });
+
+export const copyDirMerge = async (source: string, destination: string): Promise<void> =>
+  await transport('copy_dir_merge', { source, destination });
 
 export const cancelFileOperation = async (operationId: string): Promise<boolean> =>
   await transport('cancel_file_operation', { operationId });

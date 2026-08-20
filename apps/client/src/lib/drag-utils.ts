@@ -12,7 +12,12 @@ export const isDescendantPath = (parent: string, child: string): boolean => {
 export const validateDrop = (
   draggedPaths: string[],
   targetPath: string,
+  targetIsDir = true,
 ): { valid: boolean; reason?: string } => {
+  // Can't drop onto a non-folder target (e.g. a file row)
+  if (!targetIsDir) {
+    return { valid: false, reason: 'Target is not a folder' };
+  }
   // Can't drop onto the same file
   if (draggedPaths.some((p) => normalize(p) === normalize(targetPath))) {
     return { valid: false, reason: 'Cannot drop a file onto itself' };

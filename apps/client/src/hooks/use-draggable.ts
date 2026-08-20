@@ -59,6 +59,20 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
         pathsToDrag = [file.path];
       }
 
+      // ⌘+drag: drag the paths as plain text instead of files, so terminals
+      // and plain-text editors receive the paths directly.
+      if (e.metaKey) {
+        getDragIconPath().then((icon) => {
+          startDrag({
+            item: { data: pathsToDrag.join('\n'), types: ['public.utf8-plain-text'] },
+            icon,
+          }).catch((err) => {
+            console.error('startDrag failed:', err);
+          });
+        });
+        return;
+      }
+
       // Notify context this is an internal drag (default: move operation)
       startInternalDrag(pathsToDrag);
 

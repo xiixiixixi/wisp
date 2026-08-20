@@ -62,6 +62,35 @@ pub async fn create_file_with_content(path: String, content: String) -> Result<(
 }
 
 #[command]
+pub async fn write_binary_file(path: String, data: Vec<u8>) -> Result<(), String> {
+    use std::io::Write;
+
+    validate_file_path(&path)?;
+
+    tokio::task::spawn_blocking(move || {
+        let file_path = Path::new(&path);
+
+        if file_path.exists() {
+            return Err(format!("File already exists: {}", path));
+        }
+
+        if let Some(parent) = file_path.parent() {
+            fs::create_dir_all(parent)
+                .map_err(|e| format!("Failed to create parent directory: {}", e))?;
+        }
+
+        let mut file =
+            fs::File::create(file_path).map_err(|e| format!("Failed to create file: {}", e))?;
+        file.write_all(&data)
+            .map_err(|e| format!("Failed to write file: {}", e))?;
+
+        Ok(())
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[command]
 pub async fn get_file_templates() -> Result<Vec<FileTemplate>, String> {
     Ok(vec![
         FileTemplate {
@@ -318,6 +347,33 @@ mod tests {
             "data.json".to_string(),
         )
         .await;
+
+        assert!(result.is_err(), "should fail when file already exists");
+        assert!(result.unwrap_err().contains("already exists"));
+    }
+
+    #[tokio::test]
+    async fn test_write_binary_file_basic() {
+        let temp = tempdir().expect("Failed to create temp dir");
+        let file_path = temp.path().join("blob.bin");
+
+        let result =
+            write_binary_file(file_path.to_string_lossy().to_string(), vec![0x89, 0x50, 0x4e, 0x47])
+                .await;
+
+        assert!(result.is_ok(), "write_binary_file should succeed");
+        let bytes = fs::read(&file_path).expect("read back written file");
+        assert_eq!(bytes, vec![0x89, 0x50, 0x4e, 0x47]);
+    }
+
+    #[tokio::test]
+    async fn test_write_binary_file_rejects_existing() {
+        let temp = tempdir().expect("Failed to create temp dir");
+        let file_path = temp.path().join("blob.bin");
+        fs::write(&file_path, b"old").expect("seed existing file");
+
+        let result =
+            write_binary_file(file_path.to_string_lossy().to_string(), vec![1, 2, 3]).await;
 
         assert!(result.is_err(), "should fail when file already exists");
         assert!(result.unwrap_err().contains("already exists"));

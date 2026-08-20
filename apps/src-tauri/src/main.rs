@@ -281,6 +281,7 @@ fn main() {
             operations::create_dir_recursive,
             operations::create_file,
             operations::create_file_with_content,
+            operations::write_binary_file,
             operations::bulk_rename,
             operations::open_in_terminal,
             operations::execute_command,
@@ -326,6 +327,10 @@ fn main() {
             operations::file_ops::get_directory_sizes,
             // Symlink creation
             operations::file_ops::create_symlink,
+            // Cross-volume detection (drag & drop semantics)
+            operations::file_ops::same_volume,
+            // Merge-copy for drag & drop conflict resolution
+            operations::file_ops::copy_dir_merge,
             // Native plugin invoke (for extensions with native code)
             extensions::native_plugin_invoke,
             // Search engine v2 (replaces old tokenizer commands)

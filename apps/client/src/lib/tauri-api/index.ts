@@ -74,7 +74,9 @@ export class TauriAPI {
   static createDirRecursive = fileSystem.createDirRecursive;
   static createFile = fileSystem.createFile;
   static createFileWithContent = fileSystem.createFileWithContent;
+  static writeBinaryFile = fileSystem.writeBinaryFile;
   static createSymlink = fileSystem.createSymlink;
+  static sameVolume = fileSystem.sameVolume;
   static getDirSize = fileSystem.getDirSize;
   static readTextFile = fileSystem.readTextFile;
   static extractDocumentText = fileSystem.extractDocumentText;
@@ -94,6 +96,7 @@ export class TauriAPI {
   static showInFolder = fileSystem.showInFolder;
   static copyWithProgress = fileSystem.copyWithProgress;
   static moveWithProgress = fileSystem.moveWithProgress;
+  static copyDirMerge = fileSystem.copyDirMerge;
   static cancelFileOperation = fileSystem.cancelFileOperation;
   static acceleratedCopyFile = fileSystem.acceleratedCopyFile;
   static acceleratedCopyDirectory = fileSystem.acceleratedCopyDirectory;

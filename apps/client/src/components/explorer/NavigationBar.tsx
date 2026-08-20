@@ -421,9 +421,9 @@ const NavigationBar = ({ currentPath, navigateToPath, refetch: _refetch }: Navig
   }, [currentPath, t]);
 
   return (
-    <div className="bg-xp-surface border-xp-border border-b px-3 py-1">
+    <div className="border-b border-xp-border bg-xp-surface px-3 py-1">
       <div
-        className="bg-xp-bg border-xp-border relative flex min-w-0 items-center rounded border px-2 py-0.5"
+        className="relative flex min-w-0 items-center rounded border border-xp-border bg-xp-bg px-2 py-0.5"
         style={
           isEditingPath && validationBorderColor
             ? {
@@ -613,7 +613,7 @@ const NavigationBar = ({ currentPath, navigateToPath, refetch: _refetch }: Navig
                     {i > 0 && (
                       <ChevronRight
                         size={12}
-                        className="text-xp-text-muted flex-shrink-0 opacity-60"
+                        className="flex-shrink-0 text-xp-text-muted opacity-60"
                       />
                     )}
                     <button
@@ -621,9 +621,11 @@ const NavigationBar = ({ currentPath, navigateToPath, refetch: _refetch }: Navig
                         e.stopPropagation();
                         navigateToPath?.(seg.fullPath);
                       }}
-                      className={`hover:bg-xp-surface-light max-w-[160px] flex-shrink-0 truncate rounded px-1.5 py-0.5 text-sm transition-colors ${
+                      data-drop-target={i === segments.length - 1 ? undefined : seg.fullPath}
+                      data-is-folder={i === segments.length - 1 ? undefined : 'true'}
+                      className={`max-w-[160px] flex-shrink-0 truncate rounded px-1.5 py-0.5 text-sm transition-colors hover:bg-xp-surface-light ${
                         i === segments.length - 1
-                          ? 'text-xp-text font-semibold'
+                          ? 'font-semibold text-xp-text'
                           : 'text-xp-text-muted hover:text-xp-text'
                       }`}
                       title={seg.fullPath}
@@ -640,7 +642,7 @@ const NavigationBar = ({ currentPath, navigateToPath, refetch: _refetch }: Navig
                   e.stopPropagation();
                   setIsEditingPath(true);
                 }}
-                className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-text ml-1 flex-shrink-0 rounded p-0.5 opacity-60 transition-all hover:opacity-100"
+                className="ml-1 flex-shrink-0 rounded p-0.5 text-xp-text-muted opacity-60 transition-all hover:bg-xp-surface-light hover:text-xp-text hover:opacity-100"
                 title={t('navigation.editPath')}
                 aria-label={t('navigation.editPath')}
               >

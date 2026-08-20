@@ -58,6 +58,8 @@ const SidebarBookmarks = ({
       role="region"
       aria-label="Favorites"
       data-sidebar-section="favorites"
+      data-drop-target=""
+      data-drop-action="bookmark-add"
     >
       <button
         className="hover:bg-xp-surface-light/50 flex w-full items-center px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted transition-colors"
@@ -85,6 +87,8 @@ const SidebarBookmarks = ({
                 <div
                   key={bookmark.path}
                   className="group flex w-full cursor-pointer items-center rounded px-2 py-1 text-xs transition-colors hover:bg-xp-surface-light"
+                  data-drop-target={bookmark.is_dir ? bookmark.path : undefined}
+                  data-is-folder={bookmark.is_dir ? 'true' : undefined}
                   onClick={() => navigateToPath(bookmark.path)}
                   onContextMenu={(e) => {
                     e.preventDefault();

@@ -1,6 +1,7 @@
 import React, { useRef, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { useDraggable } from '@/hooks/use-draggable';
 import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
 import { ViewComponentProps } from './FileGridTypes';
 import type { FileGroup } from '@/lib/utils';
@@ -20,6 +21,7 @@ type FlatItem =
 interface FileRowProps {
   file: FileEntry;
   selectedFiles: Set<string>;
+  allFiles: FileEntry[];
   getFileIcon: (file: FileEntry) => React.ReactNode;
   formatFileSize: (bytes: number) => string;
   formatFolderSize: (folderSizeInfo: FolderSizeInfo | null, isCalculating?: boolean) => string;
@@ -36,6 +38,7 @@ const FileRow = React.memo(
   ({
     file,
     selectedFiles,
+    allFiles,
     getFileIcon,
     formatFileSize,
     formatFolderSize,
@@ -48,6 +51,7 @@ const FileRow = React.memo(
     onCalculateFolderSize,
   }: FileRowProps) => {
     const { t } = useTranslation();
+    const dragHandlers = useDraggable({ file, selectedFiles, allFiles });
     const handleClick = useCallback(
       (e: React.MouseEvent) => onFileClick(file.path, e),
       [onFileClick, file.path],
@@ -93,11 +97,12 @@ const FileRow = React.memo(
         tabIndex={0}
         data-file-path={file.path}
         data-drop-target={file.is_dir ? file.path : undefined}
-        className={`hover:bg-xp-surface-light grid cursor-pointer grid-cols-12 items-center gap-3 px-3 py-2.5 transition-colors ${
+        className={`grid cursor-pointer select-none grid-cols-12 items-center gap-3 px-3 py-2.5 transition-colors hover:bg-xp-surface-light ${
           selectedFiles.has(file.path)
             ? 'bg-xp-purple/20 border-xp-purple/40 border'
-            : 'text-xp-text border border-transparent'
+            : 'border border-transparent text-xp-text'
         } `}
+        {...dragHandlers}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
@@ -109,7 +114,7 @@ const FileRow = React.memo(
         <div className="col-span-5 min-w-0">
           <div className="truncate font-medium">{file.name}</div>
         </div>
-        <div className="text-xp-text-muted col-span-2 text-right text-xs">
+        <div className="col-span-2 text-right text-xs text-xp-text-muted">
           {(() => {
             if (!file.is_dir) return formatFileSize(file.size);
             if (getFolderSize(file.path) || isCalculatingSize(file.path)) {
@@ -117,7 +122,7 @@ const FileRow = React.memo(
             }
             return (
               <button
-                className="text-xp-text-muted hover:text-xp-accent underline decoration-dotted transition-colors"
+                className="text-xp-text-muted underline decoration-dotted transition-colors hover:text-xp-accent"
                 onClick={handleCalculateClick}
                 title={t('explorer.details.calculateTitle')}
               >
@@ -126,12 +131,12 @@ const FileRow = React.memo(
             );
           })()}
         </div>
-        <div className="text-xp-text-muted col-span-2 text-center text-xs">
-          <span className="bg-xp-surface inline-block rounded px-2 py-1 font-mono text-xs capitalize">
+        <div className="col-span-2 text-center text-xs text-xp-text-muted">
+          <span className="inline-block rounded bg-xp-surface px-2 py-1 font-mono text-xs capitalize">
             {file.is_dir ? t('common.folder') : file.file_type}
           </span>
         </div>
-        <div className="text-xp-text-muted col-span-2 text-right font-mono text-xs">
+        <div className="col-span-2 text-right font-mono text-xs text-xp-text-muted">
           {formatDate(file.modified)}
         </div>
       </div>
@@ -141,13 +146,13 @@ const FileRow = React.memo(
 
 const GroupHeader = React.memo(({ name, count }: { name: string; count: number }) => (
   <div
-    className="bg-xp-surface-secondary border-xp-border flex items-center border-b px-3 py-2"
+    className="bg-xp-surface-secondary flex items-center border-b border-xp-border px-3 py-2"
     style={{ height: GROUP_HEADER_HEIGHT }}
   >
-    <span className="text-xp-text-secondary text-xs font-semibold uppercase tracking-wide">
+    <span className="text-xs font-semibold uppercase tracking-wide text-xp-text-secondary">
       {name}
     </span>
-    <span className="text-xp-text-muted ml-2 text-xs">({count})</span>
+    <span className="ml-2 text-xs text-xp-text-muted">({count})</span>
   </div>
 ));
 
@@ -186,6 +191,8 @@ const DetailsView = (props: DetailsViewProps) => {
     }
     return map;
   }, [files, fileGroups]);
+
+  const allFiles = useMemo(() => Array.from(filesByPath.values()), [filesByPath]);
 
   const onFileClick = useCallback(
     (filePath: string, event: React.MouseEvent) => {
@@ -244,8 +251,8 @@ const DetailsView = (props: DetailsViewProps) => {
   });
 
   const header = (
-    <div className="bg-xp-surface border-xp-border sticky top-0 z-20 border-b" role="row">
-      <div className="text-xp-text-muted grid grid-cols-12 items-center gap-3 px-3 py-3 text-xs font-medium">
+    <div className="sticky top-0 z-20 border-b border-xp-border bg-xp-surface" role="row">
+      <div className="grid grid-cols-12 items-center gap-3 px-3 py-3 text-xs font-medium text-xp-text-muted">
         <div
           className="col-span-1"
           role="columnheader"
@@ -269,6 +276,7 @@ const DetailsView = (props: DetailsViewProps) => {
 
   const stableRowProps = {
     selectedFiles,
+    allFiles,
     getFileIcon,
     formatFileSize,
     formatFolderSize,
@@ -297,7 +305,7 @@ const DetailsView = (props: DetailsViewProps) => {
         onContextMenu={handleBackgroundRightClick || undefined}
       >
         {header}
-        <div className="divide-xp-border divide-y divide-opacity-30" role="rowgroup">
+        <div className="divide-y divide-xp-border divide-opacity-30" role="rowgroup">
           {flatItems.map((item) => (
             <div key={item.type === 'header' ? `group-${item.group.name}` : item.file.path}>
               {renderFlatItem(item)}

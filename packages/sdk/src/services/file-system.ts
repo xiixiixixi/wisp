@@ -113,12 +113,28 @@ export const removeFile = async (path: string): Promise<void> => {
   return await transport('remove_file', { path });
 };
 
-export const copyWithProgress = async (source: string, destination: string): Promise<string> => {
-  return await transport('copy_with_progress', { source, destination });
+export const copyWithProgress = async (
+  source: string,
+  destination: string,
+  overwrite = false,
+): Promise<string> => {
+  return await transport('copy_with_progress', { source, destination, overwrite });
 };
 
-export const moveWithProgress = async (source: string, destination: string): Promise<string> => {
-  return await transport('move_with_progress', { source, destination });
+export const moveWithProgress = async (
+  source: string,
+  destination: string,
+  overwrite = false,
+): Promise<string> => {
+  return await transport('move_with_progress', { source, destination, overwrite });
+};
+
+export const copyDirMerge = async (source: string, destination: string): Promise<void> => {
+  return await transport('copy_dir_merge', { source, destination });
+};
+
+export const sameVolume = async (a: string, b: string): Promise<boolean> => {
+  return await transport('same_volume', { a, b });
 };
 
 export const acceleratedCopyFile = async (source: string, destination: string): Promise<string> => {

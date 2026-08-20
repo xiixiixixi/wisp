@@ -218,16 +218,20 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
   const isAllSelected = selectedItems.size === trashItems.length && trashItems.length > 0;
 
   return (
-    <div className="bg-xp-bg text-xp-text flex h-full flex-col">
+    <div
+      className="flex h-full flex-col bg-xp-bg text-xp-text"
+      data-drop-target=""
+      data-drop-action="trash"
+    >
       {/* Header */}
-      <div className="border-xp-border flex items-center justify-between border-b p-4">
-        <h2 className="text-xp-text flex items-center gap-2 text-xl font-semibold">
+      <div className="flex items-center justify-between border-b border-xp-border p-4">
+        <h2 className="flex items-center gap-2 text-xl font-semibold text-xp-text">
           <Trash2 size={20} /> {t('pages.trash.title')}
         </h2>
         <div className="flex items-center space-x-2">
           <button
             onClick={handleSelectAll}
-            className="bg-xp-surface hover:bg-xp-surface-light border-xp-border rounded border px-3 py-1 text-sm"
+            className="rounded border border-xp-border bg-xp-surface px-3 py-1 text-sm hover:bg-xp-surface-light"
             aria-label={
               isAllSelected ? t('pages.trash.ariaDeselectAll') : t('pages.trash.ariaSelectAll')
             }
@@ -237,7 +241,7 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
           <button
             onClick={() => handleRestore()}
             disabled={selectedItems.size === 0}
-            className="bg-xp-blue rounded px-3 py-1 text-sm text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded bg-xp-blue px-3 py-1 text-sm text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={t('pages.trash.ariaRestoreCount', { count: selectedItems.size })}
           >
             {t('pages.trash.restoreCount', { count: selectedItems.size })}
@@ -245,7 +249,7 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
           <button
             onClick={() => handlePermanentDelete()}
             disabled={selectedItems.size === 0}
-            className="bg-xp-red rounded px-3 py-1 text-sm text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded bg-xp-red px-3 py-1 text-sm text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={t('pages.trash.ariaDeleteCount', { count: selectedItems.size })}
           >
             {t('pages.trash.deletePermanentlyCount', { count: selectedItems.size })}
@@ -253,7 +257,7 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
           <button
             onClick={handleEmptyTrash}
             disabled={trashItems.length === 0}
-            className="bg-xp-red rounded px-3 py-1 text-sm text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded bg-xp-red px-3 py-1 text-sm text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={t('pages.trash.ariaEmptyBin')}
           >
             {t('pages.trash.emptyRecycleBin')}
@@ -261,7 +265,7 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
           {onClose && (
             <button
               onClick={onClose}
-              className="bg-xp-surface hover:bg-xp-surface-light border-xp-border rounded border px-3 py-1 text-sm"
+              className="rounded border border-xp-border bg-xp-surface px-3 py-1 text-sm hover:bg-xp-surface-light"
               aria-label={t('pages.trash.ariaBackToHome')}
             >
               {t('pages.trash.backToHome')}
@@ -283,9 +287,9 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
           if (trashItems.length === 0) {
             return (
               <div className="flex h-full items-center justify-center">
-                <div className="text-xp-text-muted text-center">
+                <div className="text-center text-xp-text-muted">
                   <div className="mb-4 text-4xl">
-                    <Trash2 size="1em" className="text-xp-text-muted inline-block" />
+                    <Trash2 size="1em" className="inline-block text-xp-text-muted" />
                   </div>
                   <div className="text-lg">{t('pages.trash.empty')}</div>
                   <div className="mt-2 text-sm">{t('pages.trash.emptyHint')}</div>
@@ -299,7 +303,7 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
                 <div
                   key={item.original_path}
                   onClick={(e) => handleSelectItem(item.original_path, e)}
-                  className={`hover:bg-xp-surface flex cursor-pointer items-center rounded p-3 ${
+                  className={`flex cursor-pointer items-center rounded p-3 hover:bg-xp-surface ${
                     selectedItems.has(item.original_path) ? 'bg-xp-accent bg-opacity-20' : ''
                   }`}
                 >
@@ -316,15 +320,15 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
                       })}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-xp-text truncate font-medium">{item.name}</div>
-                      <div className="text-xp-text-muted truncate text-sm">
+                      <div className="truncate font-medium text-xp-text">{item.name}</div>
+                      <div className="truncate text-sm text-xp-text-muted">
                         {item.original_path}
                       </div>
                     </div>
-                    <div className="text-xp-text-muted ml-4 text-sm">
+                    <div className="ml-4 text-sm text-xp-text-muted">
                       {!item.is_dir && formatFileSize(item.size)}
                     </div>
-                    <div className="text-xp-text-muted ml-4 text-sm">
+                    <div className="ml-4 text-sm text-xp-text-muted">
                       {formatDate(item.deletion_date * 1000)}
                     </div>
                     <div className="ml-4 flex space-x-2">
@@ -333,7 +337,7 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
                           e.stopPropagation();
                           handleRestore(item.original_path);
                         }}
-                        className="bg-xp-blue rounded px-2 py-1 text-xs text-white hover:opacity-80"
+                        className="rounded bg-xp-blue px-2 py-1 text-xs text-white hover:opacity-80"
                         aria-label={t('pages.trash.ariaRestoreItem', { name: item.name })}
                       >
                         {t('pages.trash.restore')}
@@ -343,7 +347,7 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
                           e.stopPropagation();
                           handlePermanentDelete(item.original_path);
                         }}
-                        className="bg-xp-red rounded px-2 py-1 text-xs text-white hover:opacity-80"
+                        className="rounded bg-xp-red px-2 py-1 text-xs text-white hover:opacity-80"
                         aria-label={t('pages.trash.ariaDeleteItem', { name: item.name })}
                       >
                         {t('common.delete')}
@@ -358,7 +362,7 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
       </div>
 
       {/* Footer */}
-      <div className="border-xp-border text-xp-text-muted border-t p-4 text-sm">
+      <div className="border-t border-xp-border p-4 text-sm text-xp-text-muted">
         {t('pages.trash.footer', {
           count: trashItems.length,
           defaultValue: `${trashItems.length} item${trashItems.length !== 1 ? 's' : ''} in recycle bin`,

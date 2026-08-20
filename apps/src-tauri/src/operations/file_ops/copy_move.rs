@@ -3,7 +3,7 @@ use crate::operations::progress::{generate_operation_id, ProgressManager};
 use crate::operations::undo_redo::{record_operation, FileOperation};
 use crate::operations::validate_file_path;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
@@ -22,6 +22,7 @@ pub async fn cancel_file_operation(
 pub async fn copy_with_progress(
     source: String,
     destination: String,
+    overwrite: bool,
     progress_manager: tauri::State<'_, Arc<ProgressManager>>,
 ) -> Result<String, String> {
     validate_file_path(&source)?;
@@ -31,9 +32,7 @@ pub async fn copy_with_progress(
         return Err("Source file does not exist".to_string());
     }
 
-    if Path::new(&destination).exists() {
-        return Err(format!("Destination already exists: {}", destination));
-    }
+    prepare_destination(Path::new(&destination), overwrite)?;
 
     let progress_manager = progress_manager.inner().clone();
     let operation_id_clone = operation_id.clone();
@@ -123,6 +122,7 @@ pub async fn copy_with_progress(
 pub async fn move_with_progress(
     source: String,
     destination: String,
+    overwrite: bool,
     progress_manager: tauri::State<'_, Arc<ProgressManager>>,
 ) -> Result<String, String> {
     validate_file_path(&source)?;
@@ -132,9 +132,7 @@ pub async fn move_with_progress(
         return Err("Source file does not exist".to_string());
     }
 
-    if Path::new(&destination).exists() {
-        return Err(format!("Destination already exists: {}", destination));
-    }
+    prepare_destination(Path::new(&destination), overwrite)?;
 
     let progress_manager = progress_manager.inner().clone();
     let operation_id_clone = operation_id.clone();
@@ -216,6 +214,70 @@ pub async fn move_with_progress(
     });
 
     Ok(operation_id)
+}
+
+/// Volume identifier used for cross-volume comparisons.
+#[cfg(unix)]
+fn volume_id(path: &Path) -> Result<u64, String> {
+    use std::os::unix::fs::MetadataExt;
+    fs::metadata(path)
+        .map(|m| m.dev())
+        .map_err(|e| format!("Failed to stat {}: {}", path.display(), e))
+}
+
+/// Volume identifier used for cross-volume comparisons.
+#[cfg(windows)]
+fn volume_id(path: &Path) -> Result<u64, String> {
+    use std::os::windows::fs::MetadataExt;
+    fs::metadata(path)
+        .map(|m| m.volume_serial_number().unwrap_or(0) as u64)
+        .map_err(|e| format!("Failed to stat {}: {}", path.display(), e))
+}
+
+/// Whether two paths live on the same volume. macOS drag semantics default
+/// to copy when source and target are on different volumes.
+#[command]
+pub async fn same_volume(a: String, b: String) -> Result<bool, String> {
+    validate_file_path(&a)?;
+    validate_file_path(&b)?;
+    Ok(volume_id(Path::new(&a))? == volume_id(Path::new(&b))?)
+}
+
+/// Remove an existing path (file or directory) so a transfer can replace it.
+fn remove_existing(path: &Path) -> Result<(), String> {
+    if path.is_dir() {
+        fs::remove_dir_all(path)
+            .map_err(|e| format!("Failed to remove existing directory {}: {}", path.display(), e))
+    } else {
+        fs::remove_file(path)
+            .map_err(|e| format!("Failed to remove existing file {}: {}", path.display(), e))
+    }
+}
+
+/// Validate the destination before a transfer: missing destinations pass,
+/// existing ones require the overwrite flag (and get removed first).
+fn prepare_destination(dest: &Path, overwrite: bool) -> Result<(), String> {
+    if !dest.exists() {
+        return Ok(());
+    }
+    if !overwrite {
+        return Err(format!("Destination already exists: {}", dest.display()));
+    }
+    remove_existing(dest)
+}
+
+/// Merge-copy the contents of `source` into `destination`, which may already
+/// exist. Same-named children are overwritten. Used by the drag & drop
+/// conflict dialog's "merge folders" strategy.
+#[command]
+pub async fn copy_dir_merge(source: String, destination: String) -> Result<(), String> {
+    validate_file_path(&source)?;
+    validate_file_path(&destination)?;
+    let src = PathBuf::from(&source);
+    let dst = PathBuf::from(&destination);
+    tokio::task::spawn_blocking(move || copy_dir_recursive(&src, &dst))
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 fn copy_file_with_progress(
@@ -820,5 +882,64 @@ mod tests {
         .await;
 
         assert!(result.is_err(), "move of nonexistent file should fail");
+    }
+
+    #[tokio::test]
+    async fn test_same_volume_true_for_paths_in_one_temp_dir() {
+        let temp = tempdir().expect("Failed to create temp dir");
+        let a = temp.path().join("a.txt");
+        let b = temp.path().join("b.txt");
+        fs::write(&a, b"a").expect("write a");
+        fs::write(&b, b"b").expect("write b");
+
+        let result = same_volume(
+            a.to_string_lossy().to_string(),
+            b.to_string_lossy().to_string(),
+        )
+        .await;
+
+        assert!(result.unwrap(), "paths in the same dir share a volume");
+    }
+
+    #[tokio::test]
+    async fn test_same_volume_rejects_missing_paths() {
+        let temp = tempdir().expect("Failed to create temp dir");
+        let missing = temp.path().join("missing.txt");
+
+        let result = same_volume(
+            temp.path().to_string_lossy().to_string(),
+            missing.to_string_lossy().to_string(),
+        )
+        .await;
+
+        assert!(result.is_err(), "missing path should fail");
+    }
+
+    #[test]
+    fn test_prepare_destination_overwrites_existing_file() {
+        let temp = tempdir().expect("Failed to create temp dir");
+        let dest = temp.path().join("dest.txt");
+        fs::write(&dest, b"old").expect("write dest");
+
+        prepare_destination(&dest, true).expect("overwrite should succeed");
+        assert!(!dest.exists(), "existing dest should be removed");
+    }
+
+    #[test]
+    fn test_prepare_destination_rejects_existing_without_overwrite() {
+        let temp = tempdir().expect("Failed to create temp dir");
+        let dest = temp.path().join("dest.txt");
+        fs::write(&dest, b"old").expect("write dest");
+
+        assert!(prepare_destination(&dest, false).is_err());
+        assert!(dest.exists(), "dest should be untouched on rejection");
+    }
+
+    #[test]
+    fn test_prepare_destination_accepts_missing_dest() {
+        let temp = tempdir().expect("Failed to create temp dir");
+        let dest = temp.path().join("missing.txt");
+
+        assert!(prepare_destination(&dest, false).is_ok());
     }
 }

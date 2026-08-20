@@ -19,6 +19,14 @@ vi.mock('@/lib/tauri-api', () => ({
   FileEntry: {},
 }));
 
+vi.mock('@/hooks/use-draggable', () => ({
+  useDraggable: () => ({
+    onMouseDown: vi.fn(),
+    onMouseMove: vi.fn(),
+    onMouseUp: vi.fn(),
+  }),
+}));
+
 describe('DetailsView', () => {
   const mockHandleFileClick = vi.fn();
   const mockHandleFileDoubleClick = vi.fn();
