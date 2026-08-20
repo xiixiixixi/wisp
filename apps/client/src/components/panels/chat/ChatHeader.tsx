@@ -1,4 +1,5 @@
 // AIModel and FileContext types removed — no longer used directly
+import i18n from '@/i18n';
 import type { ChatState } from '@/hooks/use-chat-state';
 import { AgentService } from '@/lib/agent-service';
 import { FolderOpen, FolderClosed, FileText } from 'lucide-react';
@@ -53,10 +54,10 @@ const ChatHeader = ({
   filteredContextFiles,
 }: ChatHeaderProps) => {
   return (
-    <div className="border-xp-border flex-shrink-0 border-b px-3 py-3">
+    <div className="flex-shrink-0 border-b border-xp-border px-3 py-3">
       <div className="mb-2 flex items-center justify-between gap-2">
         <h3 className="truncate text-sm font-medium">
-          {state.agentEnabled ? 'Wisp Agent' : 'Copilot Assistant'}
+          {state.agentEnabled ? i18n.t('chat.wispAgent') : i18n.t('chat.copilotAssistant')}
         </h3>
         <div className="flex flex-shrink-0 items-center gap-1.5">
           {onNewSession && (
@@ -64,7 +65,7 @@ const ChatHeader = ({
               onClick={() => {
                 onNewSession();
               }}
-              className="hover:bg-xp-surface-light rounded p-1 text-xs transition-colors"
+              className="rounded p-1 text-xs transition-colors hover:bg-xp-surface-light"
               title="New chat"
               aria-label="Start new chat session"
             >
@@ -83,7 +84,7 @@ const ChatHeader = ({
             <button
               onClick={onToggleHistory}
               className={`rounded p-1 text-xs transition-colors ${showHistory ? 'bg-xp-blue text-white' : 'hover:bg-xp-surface-light'}`}
-              title="Chat history"
+              title={i18n.t('chat.chatHistory')}
               aria-label="Toggle chat history"
             >
               <svg
@@ -103,10 +104,16 @@ const ChatHeader = ({
           )}
           <button
             onClick={() => setIsSettingsMinimized(!state.isSettingsMinimized)}
-            className="hover:bg-xp-surface-light rounded p-1 text-xs transition-colors"
-            title={state.isSettingsMinimized ? 'Expand settings' : 'Minimize settings'}
+            className="rounded p-1 text-xs transition-colors hover:bg-xp-surface-light"
+            title={
+              state.isSettingsMinimized
+                ? i18n.t('chat.expandSettings')
+                : i18n.t('chat.minimizeSettings')
+            }
             aria-label={
-              state.isSettingsMinimized ? 'Expand chat settings' : 'Minimize chat settings'
+              state.isSettingsMinimized
+                ? i18n.t('chat.expandChatSettings')
+                : i18n.t('chat.minimizeChatSettings')
             }
             aria-expanded={!state.isSettingsMinimized}
           >
@@ -118,11 +125,11 @@ const ChatHeader = ({
             else if (state.ollamaStatus) dotClass = 'bg-xp-green';
             return <div className={`h-2 w-2 flex-shrink-0 rounded-full ${dotClass}`} />;
           })()}
-          <span className="text-xp-text-muted whitespace-nowrap text-xs">
+          <span className="whitespace-nowrap text-xs text-xp-text-muted">
             {(() => {
-              if (state.agentEnabled) return 'Agent Mode';
+              if (state.agentEnabled) return i18n.t('chat.agentMode');
               if (state.ollamaStatus) return 'AI Connected';
-              return 'Limited AI';
+              return i18n.t('chat.limitedAi');
             })()}
           </span>
         </div>
@@ -132,15 +139,15 @@ const ChatHeader = ({
       {!state.isSettingsMinimized && (
         <div className="space-y-3">
           {/* Model Display (configured in Settings > AI) */}
-          <div className="bg-xp-bg border-xp-border flex items-center justify-between rounded border px-3 py-2 text-xs">
+          <div className="flex items-center justify-between rounded border border-xp-border bg-xp-bg px-3 py-2 text-xs">
             <span className="text-xp-text-muted">Model:</span>
             <span className="truncate">{state.selectedModel}</span>
           </div>
-          <p className="text-xp-text-muted text-[10px]">Change model in Settings &gt; AI</p>
+          <p className="text-[10px] text-xp-text-muted">Change model in Settings &gt; AI</p>
 
           {/* Agent Mode Toggle */}
           <div className="flex items-center justify-between">
-            <span className="text-xp-text-muted text-xs">Agent Mode:</span>
+            <span className="text-xs text-xp-text-muted">Agent Mode:</span>
             <button
               onClick={() => setAgentEnabled(!state.agentEnabled)}
               className={`rounded px-3 py-1 text-xs transition-colors ${
@@ -159,11 +166,11 @@ const ChatHeader = ({
           {state.agentEnabled && (
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <span className="text-xp-text-muted text-xs">Auto-Approve</span>
-                <p className="text-xp-text-muted truncate text-[10px]">
+                <span className="text-xs text-xp-text-muted">Auto-Approve</span>
+                <p className="truncate text-[10px] text-xp-text-muted">
                   {state.autoApprove
-                    ? 'All actions run automatically'
-                    : 'Asks before writes/deletes'}
+                    ? i18n.t('chat.allActionsAuto')
+                    : i18n.t('chat.asksBeforeWrites')}
                 </p>
               </div>
               <button
@@ -195,9 +202,11 @@ const ChatHeader = ({
           {state.agentEnabled && (
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <span className="text-xp-text-muted text-xs">Thinking</span>
-                <p className="text-xp-text-muted truncate text-[10px]">
-                  {state.thinkingEnabled ? 'Extended reasoning enabled' : 'Standard responses'}
+                <span className="text-xs text-xp-text-muted">Thinking</span>
+                <p className="truncate text-[10px] text-xp-text-muted">
+                  {state.thinkingEnabled
+                    ? i18n.t('chat.extendedReasoning')
+                    : i18n.t('chat.standardResponses')}
                 </p>
               </div>
               <button
@@ -230,21 +239,21 @@ const ChatHeader = ({
       {/* Compact mode info */}
       {state.isSettingsMinimized && (
         <div className="flex items-center justify-between gap-2 text-xs">
-          <span className="text-xp-text-muted truncate">
+          <span className="truncate text-xp-text-muted">
             Model: {state.selectedModel.replace('claude-', '').substring(0, 14)}
           </span>
           {state.agentEnabled && (
             <div className="flex flex-shrink-0 items-center gap-1">
-              <span className="bg-xp-purple rounded px-1.5 py-0.5 text-[11px] text-white">
+              <span className="rounded bg-xp-purple px-1.5 py-0.5 text-[11px] text-white">
                 Agent
               </span>
               {state.autoApprove && (
-                <span className="bg-xp-orange rounded px-1.5 py-0.5 text-[11px] text-white">
+                <span className="rounded bg-xp-orange px-1.5 py-0.5 text-[11px] text-white">
                   Auto
                 </span>
               )}
               {state.thinkingEnabled && (
-                <span className="bg-xp-cyan rounded px-1.5 py-0.5 text-[11px] text-white">
+                <span className="rounded bg-xp-cyan px-1.5 py-0.5 text-[11px] text-white">
                   Think
                 </span>
               )}
@@ -256,7 +265,7 @@ const ChatHeader = ({
       {/* Context */}
       <div className="mt-2">
         <div className="mb-1 flex items-center justify-between">
-          <span className="text-xp-text-muted text-xs">
+          <span className="text-xs text-xp-text-muted">
             Context
             {(() => {
               if (state.contextFiles.length > 0) {
@@ -270,7 +279,7 @@ const ChatHeader = ({
           {(state.contextFiles.length > 0 || !state.includeCurrentFolder) && (
             <button
               onClick={resetContext}
-              className="text-xp-text-muted hover:text-xp-text text-xs transition-colors"
+              className="text-xs text-xp-text-muted transition-colors hover:text-xp-text"
             >
               Reset
             </button>
@@ -279,17 +288,17 @@ const ChatHeader = ({
         <div className="max-h-24 space-y-1 overflow-y-auto">
           {/* Current folder -- always shown, removable */}
           {state.includeCurrentFolder ? (
-            <div className="bg-xp-blue border-xp-blue flex items-center justify-between rounded border border-opacity-20 bg-opacity-10 p-1.5 text-xs">
+            <div className="flex items-center justify-between rounded border border-xp-blue border-opacity-20 bg-xp-blue bg-opacity-10 p-1.5 text-xs">
               <span className="flex flex-1 items-center gap-1.5 truncate">
-                <FolderOpen size={14} className="text-xp-blue flex-shrink-0" />
-                <span className="text-xp-text truncate">
+                <FolderOpen size={14} className="flex-shrink-0 text-xp-blue" />
+                <span className="truncate text-xp-text">
                   {currentPath.split(/[/\\]/).pop() || currentPath}
                 </span>
-                <span className="text-xp-text-muted shrink-0 text-[10px]">current folder</span>
+                <span className="shrink-0 text-[10px] text-xp-text-muted">current folder</span>
               </span>
               <button
                 onClick={() => setIncludeCurrentFolder(false)}
-                className="text-xp-text-muted hover:text-xp-text ml-1.5 shrink-0 transition-colors"
+                className="ml-1.5 shrink-0 text-xp-text-muted transition-colors hover:text-xp-text"
                 title="Remove current folder from context"
               >
                 {'\u00D7'}
@@ -298,7 +307,7 @@ const ChatHeader = ({
           ) : (
             <button
               onClick={() => setIncludeCurrentFolder(true)}
-              className="text-xp-text-muted hover:text-xp-text hover:bg-xp-surface-light flex w-full items-center gap-1.5 rounded p-1.5 text-xs transition-colors"
+              className="flex w-full items-center gap-1.5 rounded p-1.5 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             >
               <span>+</span>
               <span>Re-add current folder</span>
@@ -308,12 +317,12 @@ const ChatHeader = ({
           {state.contextFiles.map((file) => (
             <div
               key={file.path}
-              className="bg-xp-bg flex items-center justify-between rounded p-1.5 text-xs"
+              className="flex items-center justify-between rounded bg-xp-bg p-1.5 text-xs"
             >
               <span className="flex-1 truncate">{file.name}</span>
               <button
                 onClick={() => removeContextFile(file.path)}
-                className="text-xp-text-muted hover:text-xp-text ml-1.5 transition-colors"
+                className="ml-1.5 text-xp-text-muted transition-colors hover:text-xp-text"
               >
                 {'\u00D7'}
               </button>
@@ -324,21 +333,21 @@ const ChatHeader = ({
         <div className="relative mt-1.5">
           <button
             onClick={() => setIsContextDropdownOpen(!state.isContextDropdownOpen)}
-            className="bg-xp-bg border-xp-border hover:bg-xp-surface-light flex w-full items-center gap-2 rounded border px-3 py-1.5 text-xs transition-colors"
+            className="flex w-full items-center gap-2 rounded border border-xp-border bg-xp-bg px-3 py-1.5 text-xs transition-colors hover:bg-xp-surface-light"
             aria-label="Add context files"
             aria-expanded={state.isContextDropdownOpen}
           >
             <span>+ Add context files</span>
           </button>
           {state.isContextDropdownOpen && (
-            <div className="bg-xp-popover border-xp-border absolute left-0 right-0 top-full z-50 mt-1 max-h-60 rounded border shadow-xl backdrop-blur-xl">
-              <div className="border-xp-border border-b p-2">
+            <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 rounded border border-xp-border bg-xp-popover shadow-xl backdrop-blur-xl">
+              <div className="border-b border-xp-border p-2">
                 <input
                   type="text"
-                  placeholder="Search files..."
+                  placeholder={i18n.t('chat.searchFilesPlaceholder')}
                   value={state.contextSearchQuery}
                   onChange={(e) => setContextSearchQuery(e.target.value)}
-                  className="bg-xp-bg border-xp-border w-full rounded border px-2 py-1 text-xs"
+                  className="w-full rounded border border-xp-border bg-xp-bg px-2 py-1 text-xs"
                   aria-label="Search context files"
                 />
               </div>
@@ -348,7 +357,7 @@ const ChatHeader = ({
                     <button
                       key={file.path}
                       onClick={() => addContextFileFromList(file)}
-                      className="hover:bg-xp-surface-light flex w-full items-center px-3 py-2 text-left text-xs transition-colors"
+                      className="flex w-full items-center px-3 py-2 text-left text-xs transition-colors hover:bg-xp-surface-light"
                       disabled={state.contextFiles.some((f) => f.path === file.path)}
                     >
                       <span className="mr-2 inline-flex">
@@ -358,12 +367,12 @@ const ChatHeader = ({
                         <div className="truncate font-medium">{file.name}</div>
                       </div>
                       {state.contextFiles.some((f) => f.path === file.path) && (
-                        <span className="text-xp-green ml-1">{'\u2713'}</span>
+                        <span className="ml-1 text-xp-green">{'\u2713'}</span>
                       )}
                     </button>
                   ))
                 ) : (
-                  <div className="text-xp-text-muted px-3 py-2 text-xs">No files available</div>
+                  <div className="px-3 py-2 text-xs text-xp-text-muted">No files available</div>
                 )}
               </div>
             </div>

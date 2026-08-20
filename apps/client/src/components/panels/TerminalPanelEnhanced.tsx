@@ -130,7 +130,7 @@ const TerminalPanel = ({
 
   return (
     <div
-      className="bg-xp-bg flex h-full cursor-text flex-col font-mono text-xs"
+      className="flex h-full cursor-text flex-col bg-xp-bg font-mono text-xs"
       onClick={handleTerminalClick}
     >
       {/* Terminal Output */}
@@ -158,7 +158,7 @@ const TerminalPanel = ({
 
       {/* Terminal Input */}
       <div className="border-xp-border/50 flex items-center border-t px-3 py-1.5">
-        <span className="text-xp-green mr-2 select-none">
+        <span className="mr-2 select-none text-xp-green">
           {terminalCwd.split(/[\\/]/).pop() || terminalCwd}
           {'>'}
         </span>
@@ -168,13 +168,13 @@ const TerminalPanel = ({
           value={terminalInput}
           onChange={(e) => setTerminalInput(e.target.value)}
           onKeyDown={handleTerminalKeyDown}
-          className="text-xp-text flex-1 bg-transparent font-mono text-xs outline-none"
+          className="flex-1 bg-transparent font-mono text-xs text-xp-text outline-none"
           placeholder={t('panels.terminal.placeholder')}
           spellCheck={false}
         />
         <button
           onClick={() => executeTerminalCommand('clear')}
-          className="text-xp-text-muted hover:text-xp-text ml-2 px-1.5"
+          className="ml-2 px-1.5 text-xp-text-muted hover:text-xp-text"
           title={t('panels.terminal.clearTitle')}
         >
           {t('panels.terminal.clear')}

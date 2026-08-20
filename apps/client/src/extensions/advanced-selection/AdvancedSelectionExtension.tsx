@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { FileEntry } from '@/lib/tauri-api';
+import i18n from '@/i18n';
 import {
   ContextMenuExtension,
   ContextMenuItem,
@@ -61,13 +62,16 @@ export const AdvancedSelectionExtension = ({
       if (matched.length > 0) {
         setSelectedFiles(new Set(matched));
         showToast({
-          title: 'Selection Updated',
-          description: `Selected ${matched.length} file${matched.length !== 1 ? 's' : ''} with extension${extensions.length > 1 ? 's' : ''}: ${extensions.map((e) => `.${e}`).join(', ')}`,
+          title: i18n.t('advancedSelection.toast.selectionUpdated'),
+          description: i18n.t('advancedSelection.toast.selectedExtensions', {
+            count: matched.length,
+            exts: extensions.map((e) => `.${e}`).join(', '),
+          }),
         });
       } else {
         showToast({
-          title: 'No Files Found',
-          description: `No files found with the selected extension${extensions.length > 1 ? 's' : ''}`,
+          title: i18n.t('advancedSelection.toast.noFilesFound'),
+          description: i18n.t('advancedSelection.toast.noFilesWithExtension'),
           variant: 'destructive',
         });
       }
@@ -81,13 +85,17 @@ export const AdvancedSelectionExtension = ({
       if (matched.length > 0) {
         setSelectedFiles(new Set(matched));
         showToast({
-          title: 'Selection Updated',
-          description: `Selected ${matched.length} file${matched.length !== 1 ? 's' : ''} modified between ${dateFrom.toLocaleDateString()} and ${dateTo.toLocaleDateString()}`,
+          title: i18n.t('advancedSelection.toast.selectionUpdated'),
+          description: i18n.t('advancedSelection.toast.selectedDateRange', {
+            count: matched.length,
+            from: dateFrom.toLocaleDateString(),
+            to: dateTo.toLocaleDateString(),
+          }),
         });
       } else {
         showToast({
-          title: 'No Files Found',
-          description: 'No files found in the selected date range',
+          title: i18n.t('advancedSelection.toast.noFilesFound'),
+          description: i18n.t('advancedSelection.toast.noFilesInDateRange'),
           variant: 'destructive',
         });
       }
@@ -100,18 +108,24 @@ export const AdvancedSelectionExtension = ({
       const matched = selectBySizeRange(files, minSize, maxSize);
       if (matched.length > 0) {
         setSelectedFiles(new Set(matched));
-        const sizeDesc =
-          maxSize === Infinity
-            ? `larger than ${formatSize(minSize)}`
-            : `between ${formatSize(minSize)} and ${formatSize(maxSize)}`;
         showToast({
-          title: 'Selection Updated',
-          description: `Selected ${matched.length} file${matched.length !== 1 ? 's' : ''} ${sizeDesc}`,
+          title: i18n.t('advancedSelection.toast.selectionUpdated'),
+          description:
+            maxSize === Infinity
+              ? i18n.t('advancedSelection.toast.selectedLargerThan', {
+                  count: matched.length,
+                  size: formatSize(minSize),
+                })
+              : i18n.t('advancedSelection.toast.selectedBetween', {
+                  count: matched.length,
+                  min: formatSize(minSize),
+                  max: formatSize(maxSize),
+                }),
         });
       } else {
         showToast({
-          title: 'No Files Found',
-          description: 'No files found in the selected size range',
+          title: i18n.t('advancedSelection.toast.noFilesFound'),
+          description: i18n.t('advancedSelection.toast.noFilesInSizeRange'),
           variant: 'destructive',
         });
       }
@@ -126,8 +140,11 @@ export const AdvancedSelectionExtension = ({
       const allMatched = [file.path, ...matched];
       setSelectedFiles(new Set(allMatched));
       showToast({
-        title: 'Selection Updated',
-        description: `Selected ${allMatched.length} similar file${allMatched.length !== 1 ? 's' : ''} (same type: ${file.file_type})`,
+        title: i18n.t('advancedSelection.toast.selectionUpdated'),
+        description: i18n.t('advancedSelection.toast.selectedSimilar', {
+          count: allMatched.length,
+          type: file.file_type,
+        }),
       });
     },
     [files, setSelectedFiles, showToast],
@@ -137,8 +154,8 @@ export const AdvancedSelectionExtension = ({
     const matched = invertSelection(files, selectedFiles);
     setSelectedFiles(new Set(matched));
     showToast({
-      title: 'Selection Inverted',
-      description: `Now selecting ${matched.length} file${matched.length !== 1 ? 's' : ''}`,
+      title: i18n.t('advancedSelection.toast.selectionInverted'),
+      description: i18n.t('advancedSelection.toast.nowSelecting', { count: matched.length }),
     });
   }, [files, selectedFiles, setSelectedFiles, showToast]);
 
@@ -148,13 +165,16 @@ export const AdvancedSelectionExtension = ({
       if (matched.length > 0) {
         setSelectedFiles(new Set(matched));
         showToast({
-          title: 'Selection Updated',
-          description: `Selected ${matched.length} file${matched.length !== 1 ? 's' : ''} matching pattern "${pattern}"`,
+          title: i18n.t('advancedSelection.toast.selectionUpdated'),
+          description: i18n.t('advancedSelection.toast.selectedPattern', {
+            count: matched.length,
+            pattern,
+          }),
         });
       } else {
         showToast({
-          title: 'No Files Found',
-          description: `No files match the pattern "${pattern}"`,
+          title: i18n.t('advancedSelection.toast.noFilesFound'),
+          description: i18n.t('advancedSelection.toast.noFilesMatchPattern', { pattern }),
           variant: 'destructive',
         });
       }
@@ -166,7 +186,7 @@ export const AdvancedSelectionExtension = ({
   useEffect(() => {
     const advancedSelectionExtension: ContextMenuExtension = {
       id: 'advanced-selection',
-      name: 'Advanced Selection',
+      name: i18n.t('advancedSelection.menu.menuName'),
 
       getFileActions: (file: FileEntry, _selectedFiles: Set<string>) => {
         const items: ContextMenuItem[] = [];
@@ -174,7 +194,7 @@ export const AdvancedSelectionExtension = ({
         // Add "Select Similar" option
         items.push({
           id: 'select-similar',
-          label: `Select Similar Files`,
+          label: i18n.t('advancedSelection.menu.selectSimilar'),
           icon: <Link size={14} className="inline-block" />,
           action: () => handleSelectSimilar(file),
         });
@@ -188,24 +208,24 @@ export const AdvancedSelectionExtension = ({
         // Add Advanced Selection submenu
         items.push({
           id: 'advanced-selection',
-          label: 'Advanced Selection',
+          label: i18n.t('advancedSelection.menu.menuName'),
           icon: <Sparkles size={14} className="inline-block" />,
           submenu: [
             {
               id: 'select-by-extension',
-              label: 'Select by File Type...',
+              label: i18n.t('advancedSelection.menu.selectByFileType'),
               icon: <FileText size={14} className="inline-block" />,
               action: () => setExtensionDialogOpen(true),
             },
             {
               id: 'select-by-date',
-              label: 'Select by Date...',
+              label: i18n.t('advancedSelection.menu.selectByDate'),
               icon: <Calendar size={14} className="inline-block" />,
               action: () => setDateDialogOpen(true),
             },
             {
               id: 'select-by-size',
-              label: 'Select by Size...',
+              label: i18n.t('advancedSelection.menu.selectBySize'),
               icon: <BarChart3 size={14} className="inline-block" />,
               action: () => setSizeDialogOpen(true),
             },
@@ -216,7 +236,7 @@ export const AdvancedSelectionExtension = ({
             },
             {
               id: 'invert-selection',
-              label: 'Invert Selection',
+              label: i18n.t('advancedSelection.menu.invertSelection'),
               icon: <RotateCcw size={14} className="inline-block" />,
               shortcut: 'Ctrl+I',
               action: handleInvertSelection,
@@ -228,27 +248,27 @@ export const AdvancedSelectionExtension = ({
             },
             {
               id: 'select-all-images',
-              label: 'Select All Images',
+              label: i18n.t('advancedSelection.menu.selectAllImages'),
               icon: <ImageIcon size={14} className="inline-block" />,
               action: () =>
                 handleSelectByExtension(['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp']),
             },
             {
               id: 'select-all-documents',
-              label: 'Select All Documents',
+              label: i18n.t('advancedSelection.menu.selectAllDocuments'),
               icon: <StickyNote size={14} className="inline-block" />,
               action: () => handleSelectByExtension(['doc', 'docx', 'pdf', 'txt', 'rtf', 'odt']),
             },
             {
               id: 'select-all-videos',
-              label: 'Select All Videos',
+              label: i18n.t('advancedSelection.menu.selectAllVideos'),
               icon: <Film size={14} className="inline-block" />,
               action: () =>
                 handleSelectByExtension(['mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv', 'webm']),
             },
             {
               id: 'select-all-audio',
-              label: 'Select All Audio',
+              label: i18n.t('advancedSelection.menu.selectAllAudio'),
               icon: <Music size={14} className="inline-block" />,
               action: () =>
                 handleSelectByExtension(['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma', 'm4a']),
@@ -320,7 +340,7 @@ export const AdvancedSelectionExtension = ({
 // Helper function for size formatting
 const formatSize = (bytes: number): string => {
   if (bytes === 0) return '0 B';
-  if (bytes === Infinity) return 'Unlimited';
+  if (bytes === Infinity) return i18n.t('advancedSelection.size.unlimited');
 
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(1024));

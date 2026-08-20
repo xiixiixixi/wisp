@@ -2,6 +2,7 @@
  * Shared keyboard shortcut utilities.
  * Used by both the `useShortcuts` hook and the KeyboardShortcutsSettings UI.
  */
+import i18n from '@/i18n';
 
 /** Normalize a KeyboardEvent into a string like "ctrl+shift+b" */
 export const getKeyString = (event: KeyboardEvent): string => {
@@ -215,5 +216,5 @@ export const getLabelForAction = (action: string | Record<string, unknown>): str
     }
     return String(action);
   }
-  return ACTION_LABELS[action] || action;
+  return i18n.t(`shortcutActions.${action}`, { defaultValue: ACTION_LABELS[action] || action });
 };

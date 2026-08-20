@@ -508,7 +508,7 @@ const FileGrid = ({
         role="status"
         aria-label={t('fileGrid.emptyFolder')}
       >
-        <div className="text-xp-text-secondary text-center">
+        <div className="text-center text-xp-text-secondary">
           <svg
             className="mx-auto mb-4 h-12 w-12"
             fill="currentColor"
@@ -522,7 +522,7 @@ const FileGrid = ({
             />
           </svg>
           <p>{t('fileGrid.emptyFolder')}</p>
-          <p className="text-xp-text-muted mt-2 text-xs">{t('fileGrid.emptyFolderHint')}</p>
+          <p className="mt-2 text-xs text-xp-text-muted">{t('fileGrid.emptyFolderHint')}</p>
         </div>
       </div>
     );
@@ -652,11 +652,11 @@ const FileGrid = ({
         >
           {fileGroups.map((group) => (
             <div key={group.group}>
-              <div className="bg-xp-surface/80 border-xp-border sticky top-0 z-10 border-b px-3 py-2 backdrop-blur-sm">
-                <span className="text-xp-text-muted text-xs font-semibold uppercase tracking-wide">
+              <div className="bg-xp-surface/80 sticky top-0 z-10 border-b border-xp-border px-3 py-2 backdrop-blur-sm">
+                <span className="text-xs font-semibold uppercase tracking-wide text-xp-text-muted">
                   {group.group}
                 </span>
-                <span className="text-xp-text-muted ml-2 text-xs">({group.files.length})</span>
+                <span className="ml-2 text-xs text-xp-text-muted">({group.files.length})</span>
               </div>
               <div className={`${getGridLayout()} p-2`}>{group.files.map(renderFileItem)}</div>
             </div>

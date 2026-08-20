@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FileEntry } from '@/lib/tauri-api';
 import { DATE_RANGE_PRESETS } from './types';
 import { getFileDateRange } from './selection-utils';
@@ -16,6 +17,7 @@ export const SelectByDateDialog = ({
   onSelect,
   files,
 }: SelectByDateDialogProps) => {
+  const { t } = useTranslation();
   const dateRange = useMemo(() => getFileDateRange(files), [files]);
 
   const [dateFrom, setDateFrom] = useState<string>('');
@@ -68,11 +70,13 @@ export const SelectByDateDialog = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-xp-surface border-xp-border flex max-h-[80vh] w-[450px] flex-col rounded-lg border shadow-xl">
+      <div className="flex max-h-[80vh] w-[450px] flex-col rounded-lg border border-xp-border bg-xp-surface shadow-xl">
         {/* Header */}
-        <div className="border-xp-border flex items-center justify-between border-b p-4">
-          <h2 className="text-xp-text text-lg font-semibold">Select by Date</h2>
-          <button onClick={onClose} className="hover:bg-xp-surface-light rounded p-1">
+        <div className="flex items-center justify-between border-b border-xp-border p-4">
+          <h2 className="text-lg font-semibold text-xp-text">
+            {t('advancedSelection.dialog.titleByDate')}
+          </h2>
+          <button onClick={onClose} className="rounded p-1 hover:bg-xp-surface-light">
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -87,20 +91,22 @@ export const SelectByDateDialog = ({
         {/* Content */}
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
           {/* File Date Info */}
-          <div className="bg-xp-bg rounded-md p-3 text-sm">
-            <div className="text-xp-text-muted flex justify-between">
-              <span>Oldest file:</span>
+          <div className="rounded-md bg-xp-bg p-3 text-sm">
+            <div className="flex justify-between text-xp-text-muted">
+              <span>{t('advancedSelection.dialog.oldestFile')}</span>
               <span>{dateRange.oldest.toLocaleDateString()}</span>
             </div>
-            <div className="text-xp-text-muted flex justify-between">
-              <span>Newest file:</span>
+            <div className="flex justify-between text-xp-text-muted">
+              <span>{t('advancedSelection.dialog.newestFile')}</span>
               <span>{dateRange.newest.toLocaleDateString()}</span>
             </div>
           </div>
 
           {/* Presets */}
           <div>
-            <h3 className="text-xp-text-muted mb-2 text-sm font-medium">Quick Select</h3>
+            <h3 className="mb-2 text-sm font-medium text-xp-text-muted">
+              {t('advancedSelection.dialog.quickSelect')}
+            </h3>
             <div className="grid grid-cols-2 gap-2">
               {DATE_RANGE_PRESETS.map((preset) => (
                 <button
@@ -109,7 +115,7 @@ export const SelectByDateDialog = ({
                   className={`rounded-md px-3 py-2 text-sm transition-colors ${
                     selectedPreset === preset.label
                       ? 'bg-xp-primary text-white'
-                      : 'bg-xp-bg hover:bg-xp-surface-light border-xp-border border'
+                      : 'border border-xp-border bg-xp-bg hover:bg-xp-surface-light'
                   }`}
                 >
                   {preset.label}
@@ -120,10 +126,14 @@ export const SelectByDateDialog = ({
 
           {/* Custom Date Range */}
           <div>
-            <h3 className="text-xp-text-muted mb-2 text-sm font-medium">Custom Range</h3>
+            <h3 className="mb-2 text-sm font-medium text-xp-text-muted">
+              {t('advancedSelection.dialog.customRange')}
+            </h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-xp-text-muted mb-1 block text-xs">From</label>
+                <label className="mb-1 block text-xs text-xp-text-muted">
+                  {t('advancedSelection.dialog.from')}
+                </label>
                 <input
                   type="date"
                   value={dateFrom}
@@ -132,11 +142,13 @@ export const SelectByDateDialog = ({
                     setSelectedPreset(null);
                   }}
                   max={dateTo || undefined}
-                  className="bg-xp-bg border-xp-border w-full rounded-md border px-3 py-2 text-sm"
+                  className="w-full rounded-md border border-xp-border bg-xp-bg px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <label className="text-xp-text-muted mb-1 block text-xs">To</label>
+                <label className="mb-1 block text-xs text-xp-text-muted">
+                  {t('advancedSelection.dialog.to')}
+                </label>
                 <input
                   type="date"
                   value={dateTo}
@@ -145,7 +157,7 @@ export const SelectByDateDialog = ({
                     setSelectedPreset(null);
                   }}
                   min={dateFrom || undefined}
-                  className="bg-xp-bg border-xp-border w-full rounded-md border px-3 py-2 text-sm"
+                  className="w-full rounded-md border border-xp-border bg-xp-bg px-3 py-2 text-sm"
                 />
               </div>
             </div>
@@ -154,30 +166,32 @@ export const SelectByDateDialog = ({
           {/* Preview Count */}
           {dateFrom && dateTo && (
             <div className="bg-xp-primary/10 border-xp-primary/30 flex items-center justify-between rounded-md border p-3">
-              <span className="text-xp-text text-sm">Files matching:</span>
+              <span className="text-sm text-xp-text">
+                {t('advancedSelection.dialog.filesMatching')}
+              </span>
               <span className="text-xp-primary text-lg font-semibold">{matchCount}</span>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="border-xp-border flex items-center justify-between border-t p-4">
-          <button onClick={clearDates} className="text-xp-text-muted hover:text-xp-text text-sm">
-            Clear
+        <div className="flex items-center justify-between border-t border-xp-border p-4">
+          <button onClick={clearDates} className="text-sm text-xp-text-muted hover:text-xp-text">
+            {t('advancedSelection.dialog.clear')}
           </button>
           <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="text-xp-text-muted hover:text-xp-text px-4 py-2 text-sm"
+              className="px-4 py-2 text-sm text-xp-text-muted hover:text-xp-text"
             >
-              Cancel
+              {t('advancedSelection.dialog.cancel')}
             </button>
             <button
               onClick={handleSelect}
               disabled={!dateFrom || !dateTo || matchCount === 0}
               className="bg-xp-primary rounded-md px-4 py-2 text-sm text-white disabled:opacity-50"
             >
-              Select {matchCount} Files
+              {t('advancedSelection.dialog.selectNFiles', { count: matchCount })}
             </button>
           </div>
         </div>

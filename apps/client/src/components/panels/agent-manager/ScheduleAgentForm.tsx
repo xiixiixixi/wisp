@@ -40,18 +40,17 @@ const labelStyle: React.CSSProperties = {
   display: 'block',
 };
 
-const dayOptions: ReadonlyArray<{ value: number; label: string }> = [
-  { value: 0, label: 'Sun' },
-  { value: 1, label: 'Mon' },
-  { value: 2, label: 'Tue' },
-  { value: 3, label: 'Wed' },
-  { value: 4, label: 'Thu' },
-  { value: 5, label: 'Fri' },
-  { value: 6, label: 'Sat' },
-];
-
 const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
   const { t } = useTranslation();
+  const dayOptions: ReadonlyArray<{ value: number; label: string }> = [
+    { value: 0, label: t('agentManager.schedule.days.sun') },
+    { value: 1, label: t('agentManager.schedule.days.mon') },
+    { value: 2, label: t('agentManager.schedule.days.tue') },
+    { value: 3, label: t('agentManager.schedule.days.wed') },
+    { value: 4, label: t('agentManager.schedule.days.thu') },
+    { value: 5, label: t('agentManager.schedule.days.fri') },
+    { value: 6, label: t('agentManager.schedule.days.sat') },
+  ];
   const [name, setName] = useState(initial?.name ?? '');
   const [prompt, setPrompt] = useState(initial?.prompt ?? '');
   const [model, setModel] = useState(initial?.model ?? 'openrouter:anthropic/claude-sonnet-4');
@@ -173,7 +172,7 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
             cursor: 'pointer',
             padding: '2px',
           }}
-          aria-label="Close"
+          aria-label={t('agentManager.schedule.close')}
         >
           <X size={14} />
         </button>
@@ -187,7 +186,9 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Weekly cleanup"
+          placeholder={t('agentManager.schedule.namePlaceholder', {
+            defaultValue: 'Weekly cleanup',
+          })}
           style={inputStyle}
         />
       </div>
@@ -200,7 +201,9 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Organize files in Downloads by type..."
+          placeholder={t('agentManager.schedule.promptPlaceholder', {
+            defaultValue: 'Organize files in Downloads by type...',
+          })}
           rows={3}
           style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}
         />
@@ -244,12 +247,12 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
           onChange={(e) => setFreqType(e.target.value as FrequencyType)}
           style={inputStyle}
         >
-          <option value="once">Once</option>
-          <option value="interval">Every N minutes</option>
-          <option value="hourly">Hourly</option>
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
+          <option value="once">{t('agentManager.schedule.freqOnce')}</option>
+          <option value="interval">{t('agentManager.schedule.freqInterval')}</option>
+          <option value="hourly">{t('agentManager.schedule.freqHourly')}</option>
+          <option value="daily">{t('agentManager.schedule.freqDaily')}</option>
+          <option value="weekly">{t('agentManager.schedule.freqWeekly')}</option>
+          <option value="monthly">{t('agentManager.schedule.freqMonthly')}</option>
         </select>
       </div>
 
@@ -271,7 +274,7 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
 
         {freqType === 'once' && (
           <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Run at</label>
+            <label style={labelStyle}>{t('agentManager.schedule.runAt')}</label>
             <input
               type="datetime-local"
               value={onceDateTime}
@@ -283,7 +286,7 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
 
         {freqType === 'interval' && (
           <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Every</label>
+            <label style={labelStyle}>{t('agentManager.schedule.every')}</label>
             <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
               <input
                 type="number"
@@ -293,14 +296,16 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
                 onChange={(e) => setEveryMinutes(Math.max(1, parseInt(e.target.value) || 1))}
                 style={inputStyle}
               />
-              <span style={{ fontSize: '11px', color: 'var(--xp-text-muted)' }}>minutes</span>
+              <span style={{ fontSize: '11px', color: 'var(--xp-text-muted)' }}>
+                {t('agentManager.schedule.minutes')}
+              </span>
             </div>
           </div>
         )}
 
         {freqType === 'hourly' && (
           <div style={{ flex: 1 }}>
-            <label style={labelStyle}>At minute</label>
+            <label style={labelStyle}>{t('agentManager.schedule.atMinute')}</label>
             <input
               type="number"
               min={0}
@@ -317,7 +322,7 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
         {freqType === 'daily' && (
           <>
             <div style={{ flex: 1 }}>
-              <label style={labelStyle}>Hour</label>
+              <label style={labelStyle}>{t('agentManager.schedule.hour')}</label>
               <input
                 type="number"
                 min={0}
@@ -333,7 +338,7 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
               />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={labelStyle}>Minute</label>
+              <label style={labelStyle}>{t('agentManager.schedule.minute')}</label>
               <input
                 type="number"
                 min={0}
@@ -354,7 +359,7 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
         {freqType === 'weekly' && (
           <>
             <div style={{ flex: 1 }}>
-              <label style={labelStyle}>Day</label>
+              <label style={labelStyle}>{t('agentManager.schedule.day')}</label>
               <select
                 value={weekly.dayOfWeek}
                 onChange={(e) => setWeekly({ ...weekly, dayOfWeek: parseInt(e.target.value) })}
@@ -368,7 +373,7 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
               </select>
             </div>
             <div style={{ width: '60px' }}>
-              <label style={labelStyle}>Hour</label>
+              <label style={labelStyle}>{t('agentManager.schedule.hour')}</label>
               <input
                 type="number"
                 min={0}
@@ -384,7 +389,7 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
               />
             </div>
             <div style={{ width: '60px' }}>
-              <label style={labelStyle}>Min</label>
+              <label style={labelStyle}>{t('agentManager.schedule.min')}</label>
               <input
                 type="number"
                 min={0}
@@ -405,7 +410,7 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
         {freqType === 'monthly' && (
           <>
             <div style={{ flex: 1 }}>
-              <label style={labelStyle}>Day</label>
+              <label style={labelStyle}>{t('agentManager.schedule.day')}</label>
               <input
                 type="number"
                 min={1}
@@ -421,7 +426,7 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
               />
             </div>
             <div style={{ width: '60px' }}>
-              <label style={labelStyle}>Hour</label>
+              <label style={labelStyle}>{t('agentManager.schedule.hour')}</label>
               <input
                 type="number"
                 min={0}
@@ -437,7 +442,7 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
               />
             </div>
             <div style={{ width: '60px' }}>
-              <label style={labelStyle}>Min</label>
+              <label style={labelStyle}>{t('agentManager.schedule.min')}</label>
               <input
                 type="number"
                 min={0}

@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
@@ -121,8 +122,8 @@ const ExtensionsContent = ({
   if (isLoading) {
     return (
       <div className="flex h-32 flex-col items-center justify-center gap-2">
-        <Loader2 className="text-xp-blue h-6 w-6 animate-spin" />
-        <span className="text-xp-text-muted text-xs">Loading extensions...</span>
+        <Loader2 className="h-6 w-6 animate-spin text-xp-blue" />
+        <span className="text-xs text-xp-text-muted">Loading extensions...</span>
       </div>
     );
   }
@@ -130,12 +131,12 @@ const ExtensionsContent = ({
   if (error) {
     return (
       <div className="flex h-32 flex-col items-center justify-center gap-2 px-4">
-        <AlertCircle className="text-xp-red h-6 w-6" />
-        <span className="text-xp-text-muted text-center text-xs">Failed to load extensions</span>
-        <span className="text-xp-red break-all text-center text-xs">{error}</span>
+        <AlertCircle className="h-6 w-6 text-xp-red" />
+        <span className="text-center text-xs text-xp-text-muted">Failed to load extensions</span>
+        <span className="break-all text-center text-xs text-xp-red">{error}</span>
         <button
           onClick={() => loadExtensions(1)}
-          className="bg-xp-surface border-xp-border hover:bg-xp-surface-light text-xp-text mt-1 rounded border px-3 py-1 text-xs transition-colors"
+          className="mt-1 rounded border border-xp-border bg-xp-surface px-3 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
         >
           Retry
         </button>
@@ -146,15 +147,15 @@ const ExtensionsContent = ({
   if (extensions.length === 0) {
     return (
       <div className="flex h-32 flex-col items-center justify-center gap-2">
-        <Inbox className="text-xp-text-muted h-6 w-6" />
-        <span className="text-xp-text-muted text-xs">No extensions found</span>
+        <Inbox className="h-6 w-6 text-xp-text-muted" />
+        <span className="text-xs text-xp-text-muted">No extensions found</span>
         {(debouncedSearch || selectedCategory) && (
           <button
             onClick={() => {
               setSearchTerm('');
               setSelectedCategory('');
             }}
-            className="text-xp-blue text-xs hover:underline"
+            className="text-xs text-xp-blue hover:underline"
           >
             Clear filters
           </button>
@@ -296,9 +297,7 @@ const MarketplacePanel = () => {
           },
         );
       } catch {
-        setError(
-          'Marketplace is currently unavailable. Already-installed extensions continue to work offline.',
-        );
+        setError(i18n.t('marketplace.unavailable'));
         setExtensions([]);
       } finally {
         setIsLoading(false);
@@ -543,18 +542,18 @@ const MarketplacePanel = () => {
   };
 
   return (
-    <div className="bg-xp-bg text-xp-text flex h-full w-full flex-col overflow-hidden">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-xp-bg text-xp-text">
       {/* Header */}
-      <div className="border-xp-border flex items-center justify-between border-b px-3 py-2">
+      <div className="flex items-center justify-between border-b border-xp-border px-3 py-2">
         <h3 className="flex items-center gap-2 text-sm font-semibold">
-          <Package className="text-xp-blue h-4 w-4" />
+          <Package className="h-4 w-4 text-xp-blue" />
           Extension Marketplace
         </h3>
         <div className="flex items-center gap-1">
           <button
             onClick={handleInstallFromFile}
             disabled={!!installingId}
-            className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-text rounded p-1.5 transition-colors"
+            className="rounded p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             title="Install from .xtension file"
           >
             <FolderOpen className="h-3.5 w-3.5" />
@@ -562,15 +561,15 @@ const MarketplacePanel = () => {
           <button
             onClick={() => loadExtensions(pagination.page)}
             disabled={isLoading}
-            className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-text rounded p-1.5 transition-colors"
+            className="rounded p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             title="Refresh"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={() => TauriAPI.openUrl('https://xplorer.space')}
-            className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-text rounded p-1.5 transition-colors"
-            title="Open Marketplace Website"
+            className="rounded p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            title={i18n.t('marketplace.openWebsite')}
           >
             <ExternalLink className="h-3.5 w-3.5" />
           </button>
@@ -578,15 +577,15 @@ const MarketplacePanel = () => {
       </div>
 
       {/* Search */}
-      <div className="border-xp-border border-b px-3 py-2">
+      <div className="border-b border-xp-border px-3 py-2">
         <div className="relative">
-          <Search className="text-xp-text-muted absolute left-2.5 top-2 h-4 w-4" />
+          <Search className="absolute left-2.5 top-2 h-4 w-4 text-xp-text-muted" />
           <input
             type="text"
-            placeholder="Search extensions..."
+            placeholder={i18n.t('marketplace.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-xp-surface border-xp-border text-xp-text placeholder:text-xp-text-muted focus:border-xp-blue w-full rounded-md border py-1.5 pl-9 pr-3 text-sm transition-colors focus:outline-none"
+            className="w-full rounded-md border border-xp-border bg-xp-surface py-1.5 pl-9 pr-3 text-sm text-xp-text transition-colors placeholder:text-xp-text-muted focus:border-xp-blue focus:outline-none"
           />
         </div>
       </div>
@@ -709,7 +708,7 @@ const MarketplacePanel = () => {
                             ) : (
                               <>
                                 <Download className="h-3.5 w-3.5" />
-                                {installedCount > 0 ? 'Install Rest' : 'Install Pack'}
+                                {installedCount > 0 ? i18n.t('marketplace.installRest') : i18n.t('marketplace.installPack')}
                               </>
                             )}
                           </button>
@@ -718,7 +717,7 @@ const MarketplacePanel = () => {
                               onClick={() => handleUninstallPack(pack)}
                               disabled={isInstalling || !!installingPackId}
                               className="text-xp-text-muted hover:text-xp-red hover:bg-xp-red/10 flex items-center rounded p-1.5 text-xs transition-colors"
-                              title="Uninstall pack"
+                              title={i18n.t('marketplace.uninstallPack')}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
@@ -761,10 +760,10 @@ const MarketplacePanel = () => {
       )}
 
       {/* Footer */}
-      <div className="border-xp-border border-t px-3 py-1.5">
+      <div className="border-t border-xp-border px-3 py-1.5">
         <button
           onClick={() => TauriAPI.openUrl('https://xplorer.space/publish')}
-          className="text-xp-blue hover:text-xp-blue/80 w-full text-center text-xs transition-colors"
+          className="hover:text-xp-blue/80 w-full text-center text-xs text-xp-blue transition-colors"
         >
           Publish Your Extension
         </button>

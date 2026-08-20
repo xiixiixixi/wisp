@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import React, { useState, useCallback } from 'react';
 import { TauriAPI } from '@/lib/tauri-api';
 import { ChevronDown, ChevronRight } from 'lucide-react';
@@ -110,7 +111,7 @@ const PerformanceDashboard = React.memo(
                   opacity: 0.7,
                   transition: 'opacity 0.15s',
                 }}
-                title="Collapse all sections"
+                title={i18n.t('performanceDashboard.collapseAll')}
               >
                 collapse all
               </button>

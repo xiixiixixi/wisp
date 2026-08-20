@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import i18n from '@/i18n';
 import { convertAssetUrl } from '@/lib/transport';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -61,7 +62,8 @@ const FileComparisonDialog = ({
           : 'summary',
       );
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Comparison failed';
+      const errorMessage =
+        error instanceof Error ? error.message : i18n.t('dialogs.fileComparison.failed');
       onError?.(errorMessage);
       console.error('File comparison error:', error);
     } finally {

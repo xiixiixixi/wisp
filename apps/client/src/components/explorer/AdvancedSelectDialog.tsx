@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import { FileEntry } from '@/lib/tauri-api';
 import {
   Select,
@@ -315,11 +316,11 @@ const AdvancedSelectDialog = ({
       onClick={onClose}
     >
       <div
-        className="bg-xp-surface border-xp-border flex max-h-[85vh] w-[600px] flex-col rounded-lg border shadow-xl"
+        className="flex max-h-[85vh] w-[600px] flex-col rounded-lg border border-xp-border bg-xp-surface shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="border-xp-border flex items-center justify-between border-b p-4">
+        <div className="flex items-center justify-between border-b border-xp-border p-4">
           <div className="flex items-center gap-2">
             <svg
               className="text-xp-primary h-5 w-5"
@@ -334,13 +335,13 @@ const AdvancedSelectDialog = ({
                 d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
               />
             </svg>
-            <h2 className="text-xp-text text-lg font-semibold">
+            <h2 className="text-lg font-semibold text-xp-text">
               {t('explorer.advancedSelect.title')}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-text rounded p-1"
+            className="rounded p-1 text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text"
             aria-label={t('explorer.advancedSelect.closeAria')}
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -358,7 +359,7 @@ const AdvancedSelectDialog = ({
         <div className="flex-1 space-y-5 overflow-y-auto p-4">
           {/* Selection Mode */}
           <div>
-            <h3 className="text-xp-text-muted mb-2 text-sm font-medium">
+            <h3 className="mb-2 text-sm font-medium text-xp-text-muted">
               {t('explorer.advancedSelect.selectionMode')}
             </h3>
             <div className="flex gap-2">
@@ -382,7 +383,7 @@ const AdvancedSelectDialog = ({
                   className={`flex-1 rounded-md border px-3 py-2 text-sm transition-colors ${
                     selectionMode === opt.value
                       ? 'bg-xp-primary border-xp-primary text-white'
-                      : 'bg-xp-bg border-xp-border hover:bg-xp-surface-light text-xp-text'
+                      : 'border-xp-border bg-xp-bg text-xp-text hover:bg-xp-surface-light'
                   }`}
                 >
                   {opt.label}
@@ -408,7 +409,7 @@ const AdvancedSelectDialog = ({
                     onChange={(e) => setExtensionInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && addExtensionsFromInput()}
                     placeholder="jpg, png, gif"
-                    className="bg-xp-bg border-xp-border text-xp-text placeholder-xp-text-muted focus:ring-xp-blue focus:border-xp-blue flex-1 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                    className="flex-1 rounded-md border border-xp-border bg-xp-bg px-3 py-2 text-sm text-xp-text placeholder-xp-text-muted focus:border-xp-blue focus:outline-none focus:ring-2 focus:ring-xp-blue"
                   />
                   <button
                     onClick={addExtensionsFromInput}
@@ -426,7 +427,7 @@ const AdvancedSelectDialog = ({
                     <button
                       key={type.label}
                       onClick={() => selectQuickType(type.extensions)}
-                      className="bg-xp-bg hover:bg-xp-primary/20 border-xp-border text-xp-text rounded border px-2 py-1 text-xs transition-colors"
+                      className="hover:bg-xp-primary/20 rounded border border-xp-border bg-xp-bg px-2 py-1 text-xs text-xp-text transition-colors"
                     >
                       {type.label}
                     </button>
@@ -447,7 +448,7 @@ const AdvancedSelectDialog = ({
                         )}
                         <button
                           onClick={() => removeExtension(ext)}
-                          className="hover:text-xp-text ml-0.5"
+                          className="ml-0.5 hover:text-xp-text"
                         >
                           <svg
                             className="h-3 w-3"
@@ -467,7 +468,7 @@ const AdvancedSelectDialog = ({
                     ))}
                     <button
                       onClick={() => setSelectedExtensions(new Set())}
-                      className="text-xp-text-muted hover:text-xp-text px-1 text-xs"
+                      className="px-1 text-xs text-xp-text-muted hover:text-xp-text"
                     >
                       {t('common.clear')}
                     </button>
@@ -482,7 +483,7 @@ const AdvancedSelectDialog = ({
                 onToggle={setSizeEnabled}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-xp-text-muted w-8 text-xs">
+                  <span className="w-8 text-xs text-xp-text-muted">
                     {t('explorer.advancedSelect.min')}
                   </span>
                   <input
@@ -491,7 +492,7 @@ const AdvancedSelectDialog = ({
                     onChange={(e) => setMinSizeValue(e.target.value)}
                     min="0"
                     placeholder="0"
-                    className="bg-xp-bg border-xp-border text-xp-text focus:ring-xp-blue focus:border-xp-blue flex-1 rounded-md border px-3 py-1.5 text-sm focus:outline-none focus:ring-2"
+                    className="flex-1 rounded-md border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text focus:border-xp-blue focus:outline-none focus:ring-2 focus:ring-xp-blue"
                   />
                   <Select value={minSizeUnit} onValueChange={(v) => setMinSizeUnit(v as SizeUnit)}>
                     <SelectTrigger className="h-8 w-20">
@@ -505,7 +506,7 @@ const AdvancedSelectDialog = ({
                   </Select>
                 </div>
                 <div className="mt-2 flex items-center gap-2">
-                  <span className="text-xp-text-muted w-8 text-xs">
+                  <span className="w-8 text-xs text-xp-text-muted">
                     {t('explorer.advancedSelect.max')}
                   </span>
                   <input
@@ -514,7 +515,7 @@ const AdvancedSelectDialog = ({
                     onChange={(e) => setMaxSizeValue(e.target.value)}
                     min="0"
                     placeholder={t('explorer.advancedSelect.noLimit')}
-                    className="bg-xp-bg border-xp-border text-xp-text focus:ring-xp-blue focus:border-xp-blue flex-1 rounded-md border px-3 py-1.5 text-sm focus:outline-none focus:ring-2"
+                    className="flex-1 rounded-md border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text focus:border-xp-blue focus:outline-none focus:ring-2 focus:ring-xp-blue"
                   />
                   <Select value={maxSizeUnit} onValueChange={(v) => setMaxSizeUnit(v as SizeUnit)}>
                     <SelectTrigger className="h-8 w-20">
@@ -537,37 +538,42 @@ const AdvancedSelectDialog = ({
               >
                 <div className="mb-3 grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xp-text-muted mb-1 block text-xs">
+                    <label className="mb-1 block text-xs text-xp-text-muted">
                       {t('explorer.advancedSelect.modifiedAfter')}
                     </label>
                     <input
                       type="date"
                       value={dateAfter}
                       onChange={(e) => setDateAfter(e.target.value)}
-                      className="bg-xp-bg border-xp-border text-xp-text focus:ring-xp-blue focus:border-xp-blue w-full rounded-md border px-3 py-1.5 text-sm focus:outline-none focus:ring-2"
+                      className="w-full rounded-md border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text focus:border-xp-blue focus:outline-none focus:ring-2 focus:ring-xp-blue"
                     />
                   </div>
                   <div>
-                    <label className="text-xp-text-muted mb-1 block text-xs">
+                    <label className="mb-1 block text-xs text-xp-text-muted">
                       {t('explorer.advancedSelect.modifiedBefore')}
                     </label>
                     <input
                       type="date"
                       value={dateBefore}
                       onChange={(e) => setDateBefore(e.target.value)}
-                      className="bg-xp-bg border-xp-border text-xp-text focus:ring-xp-blue focus:border-xp-blue w-full rounded-md border px-3 py-1.5 text-sm focus:outline-none focus:ring-2"
+                      className="w-full rounded-md border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text focus:border-xp-blue focus:outline-none focus:ring-2 focus:ring-xp-blue"
                     />
                   </div>
                 </div>
                 {/* Quick date buttons */}
                 <div className="flex flex-wrap gap-1.5">
                   {DATE_RANGE_PRESETS.filter((p) =>
-                    ['Today', 'Last 7 days', 'Last 30 days', 'This year'].includes(p.label),
+                    [
+                      i18n.t('advancedSelection.presets.today'),
+                      i18n.t('advancedSelection.presets.last7days'),
+                      i18n.t('advancedSelection.presets.last30days'),
+                      i18n.t('advancedSelection.presets.thisYear'),
+                    ].includes(p.label),
                   ).map((preset) => (
                     <button
                       key={preset.label}
                       onClick={() => applyDatePreset(preset)}
-                      className="bg-xp-bg hover:bg-xp-primary/20 border-xp-border text-xp-text rounded border px-2 py-1 text-xs transition-colors"
+                      className="hover:bg-xp-primary/20 rounded border border-xp-border bg-xp-bg px-2 py-1 text-xs text-xp-text transition-colors"
                     >
                       {preset.label}
                     </button>
@@ -587,9 +593,9 @@ const AdvancedSelectDialog = ({
                     value={namePattern}
                     onChange={(e) => setNamePattern(e.target.value)}
                     placeholder={patternMode === 'glob' ? '*.txt' : '.*\\.txt$'}
-                    className="bg-xp-bg border-xp-border text-xp-text placeholder-xp-text-muted focus:ring-xp-blue focus:border-xp-blue flex-1 rounded-md border px-3 py-1.5 font-mono text-sm focus:outline-none focus:ring-2"
+                    className="flex-1 rounded-md border border-xp-border bg-xp-bg px-3 py-1.5 font-mono text-sm text-xp-text placeholder-xp-text-muted focus:border-xp-blue focus:outline-none focus:ring-2 focus:ring-xp-blue"
                   />
-                  <div className="border-xp-border flex overflow-hidden rounded-md border">
+                  <div className="flex overflow-hidden rounded-md border border-xp-border">
                     <button
                       onClick={() => setPatternMode('glob')}
                       className={`px-2 py-1.5 text-xs transition-colors ${
@@ -641,7 +647,7 @@ const AdvancedSelectDialog = ({
                       className={`flex-1 rounded-md border px-2 py-1.5 text-xs transition-colors ${
                         hiddenFileMode === opt.value
                           ? 'bg-xp-primary border-xp-primary text-white'
-                          : 'bg-xp-bg border-xp-border hover:bg-xp-surface-light text-xp-text'
+                          : 'border-xp-border bg-xp-bg text-xp-text hover:bg-xp-surface-light'
                       }`}
                     >
                       {opt.label}
@@ -654,17 +660,17 @@ const AdvancedSelectDialog = ({
         </div>
 
         {/* Footer with preview + actions */}
-        <div className="border-xp-border border-t p-4">
+        <div className="border-t border-xp-border p-4">
           {/* Match preview */}
           <div className="bg-xp-primary/10 border-xp-primary/30 mb-3 flex items-center justify-between rounded-md border px-3 py-2">
-            <span className="text-xp-text text-sm">
+            <span className="text-sm text-xp-text">
               {selectionMode === 'invert'
                 ? t('explorer.advancedSelect.filesAfterInvert')
                 : t('explorer.advancedSelect.filesMatching')}
             </span>
             <span className="text-xp-primary text-lg font-semibold">
               {matchCount}{' '}
-              <span className="text-xp-text-muted text-sm font-normal">
+              <span className="text-sm font-normal text-xp-text-muted">
                 {t('explorer.advancedSelect.ofTotal', { total: files.length })}
               </span>
             </span>
@@ -674,7 +680,7 @@ const AdvancedSelectDialog = ({
           <div className="flex justify-end gap-2">
             <button
               onClick={onClose}
-              className="text-xp-text-muted hover:text-xp-text border-xp-border hover:bg-xp-surface-light rounded-md border px-4 py-2 text-sm transition-colors"
+              className="rounded-md border border-xp-border px-4 py-2 text-sm text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               aria-label={t('explorer.advancedSelect.cancelAria')}
             >
               {t('common.cancel')}
@@ -707,7 +713,7 @@ const FilterSection = ({ title, enabled, onToggle, children }: FilterSectionProp
   return (
     <div
       className={`rounded-lg border transition-colors ${
-        enabled ? 'border-xp-primary/40 bg-xp-primary/5' : 'border-xp-border bg-xp-bg/30'
+        enabled ? 'border-xp-primary/40 bg-xp-primary/5' : 'bg-xp-bg/30 border-xp-border'
       }`}
     >
       <label className="flex cursor-pointer select-none items-center gap-2 p-3">
@@ -715,7 +721,7 @@ const FilterSection = ({ title, enabled, onToggle, children }: FilterSectionProp
           type="checkbox"
           checked={enabled}
           onChange={(e) => onToggle(e.target.checked)}
-          className="border-xp-border accent-xp-primary rounded"
+          className="accent-xp-primary rounded border-xp-border"
         />
         <span className={`text-sm font-medium ${enabled ? 'text-xp-text' : 'text-xp-text-muted'}`}>
           {title}

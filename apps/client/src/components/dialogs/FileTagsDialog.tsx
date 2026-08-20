@@ -4,12 +4,12 @@ import { TauriAPI, type FileTag } from '@/lib/tauri-api';
 import { Tag, X, Plus, Check } from 'lucide-react';
 
 const PRESET_COLORS: { label: string; value: string }[] = [
-  { label: 'Blue', value: '#7aa2f7' },
-  { label: 'Green', value: '#9ece6a' },
-  { label: 'Red', value: '#f7768e' },
-  { label: 'Orange', value: '#ff9e64' },
-  { label: 'Purple', value: '#bb9af7' },
-  { label: 'Yellow', value: '#e0af68' },
+  { label: 'dialogs.colors.blue', value: '#7aa2f7' },
+  { label: 'dialogs.colors.green', value: '#9ece6a' },
+  { label: 'dialogs.colors.red', value: '#f7768e' },
+  { label: 'dialogs.colors.orange', value: '#ff9e64' },
+  { label: 'dialogs.colors.purple', value: '#bb9af7' },
+  { label: 'dialogs.colors.yellow', value: '#e0af68' },
 ];
 
 interface FileTagsDialogProps {
@@ -107,21 +107,21 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
       }}
     >
       {/* Dialog */}
-      <div className="bg-xp-surface border-xp-border mx-4 flex w-full max-w-md flex-col overflow-hidden rounded-lg border shadow-2xl">
+      <div className="mx-4 flex w-full max-w-md flex-col overflow-hidden rounded-lg border border-xp-border bg-xp-surface shadow-2xl">
         {/* Header */}
-        <div className="border-xp-border flex items-center justify-between border-b px-4 py-3">
+        <div className="flex items-center justify-between border-b border-xp-border px-4 py-3">
           <div className="flex items-center space-x-2">
-            <Tag className="text-xp-text-muted h-4 w-4" />
+            <Tag className="h-4 w-4 text-xp-text-muted" />
             <div>
-              <h2 className="text-xp-text text-sm font-semibold">{t('dialogs.tags.title')}</h2>
-              <p className="text-xp-text-muted max-w-xs truncate text-xs" title={filePath}>
+              <h2 className="text-sm font-semibold text-xp-text">{t('dialogs.tags.title')}</h2>
+              <p className="max-w-xs truncate text-xs text-xp-text-muted" title={filePath}>
                 {fileName}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-text rounded p-1 transition-colors"
+            className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             aria-label={t('dialogs.tags.closeAria')}
           >
             <X className="h-4 w-4" />
@@ -132,16 +132,16 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
         <div className="space-y-4 px-4 py-3">
           {/* Current tags */}
           <div>
-            <p className="text-xp-text-muted mb-2 text-xs font-medium uppercase tracking-wide">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-xp-text-muted">
               {t('dialogs.tags.currentTags')}
             </p>
             {(() => {
               if (loading) {
-                return <p className="text-xp-text-muted text-sm">{t('common.loading')}</p>;
+                return <p className="text-sm text-xp-text-muted">{t('common.loading')}</p>;
               }
               if (tags.length === 0) {
                 return (
-                  <p className="text-xp-text-muted text-sm italic">{t('dialogs.tags.empty')}</p>
+                  <p className="text-sm italic text-xp-text-muted">{t('dialogs.tags.empty')}</p>
                 );
               }
               return (
@@ -170,11 +170,11 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
           </div>
 
           {/* Divider */}
-          <div className="border-xp-border border-t" />
+          <div className="border-t border-xp-border" />
 
           {/* Add new tag */}
           <div>
-            <p className="text-xp-text-muted mb-2 text-xs font-medium uppercase tracking-wide">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-xp-text-muted">
               {t('dialogs.tags.addTag')}
             </p>
 
@@ -190,8 +190,8 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
                     borderColor: selectedColor === c.value ? 'white' : 'transparent',
                     boxShadow: selectedColor === c.value ? `0 0 0 1px ${c.value}` : 'none',
                   }}
-                  title={c.label}
-                  aria-label={t('dialogs.tags.selectColor', { color: c.label })}
+                  title={t(c.label)}
+                  aria-label={t('dialogs.tags.selectColor', { color: t(c.label) })}
                 >
                   {selectedColor === c.value && (
                     <Check className="h-2.5 w-2.5 text-white drop-shadow" />
@@ -218,13 +218,13 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
                   onKeyDown={handleKeyDown}
                   placeholder={t('dialogs.tags.tagNamePlaceholder')}
                   maxLength={32}
-                  className="bg-xp-bg border-xp-border text-xp-text placeholder-xp-text-muted focus:ring-xp-blue focus:border-xp-blue w-full rounded border py-1.5 pl-7 pr-3 text-sm transition-colors focus:outline-none focus:ring-2"
+                  className="w-full rounded border border-xp-border bg-xp-bg py-1.5 pl-7 pr-3 text-sm text-xp-text placeholder-xp-text-muted transition-colors focus:border-xp-blue focus:outline-none focus:ring-2 focus:ring-xp-blue"
                 />
               </div>
               <button
                 onClick={handleAddTag}
                 disabled={!newTagName.trim()}
-                className="bg-xp-blue flex items-center space-x-1 rounded px-2.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex items-center space-x-1 rounded bg-xp-blue px-2.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                 aria-label={t('dialogs.tags.addTagAria')}
               >
                 <Plus className="h-3.5 w-3.5" />
@@ -243,10 +243,10 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
         </div>
 
         {/* Footer */}
-        <div className="border-xp-border flex items-center justify-end space-x-2 border-t px-4 py-3">
+        <div className="flex items-center justify-end space-x-2 border-t border-xp-border px-4 py-3">
           <button
             onClick={onClose}
-            className="text-xp-text-muted hover:text-xp-text hover:bg-xp-surface-light rounded px-3 py-1.5 text-sm transition-colors"
+            className="rounded px-3 py-1.5 text-sm text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             aria-label={t('dialogs.tags.cancelAria')}
           >
             {t('common.cancel')}
@@ -254,7 +254,7 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
           <button
             onClick={handleSave}
             disabled={saving || loading}
-            className="bg-xp-blue flex items-center space-x-1.5 rounded px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center space-x-1.5 rounded bg-xp-blue px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={t('dialogs.tags.saveAria')}
           >
             {saving ? (

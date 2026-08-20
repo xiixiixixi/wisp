@@ -1,5 +1,6 @@
 import React, { useMemo, useSyncExternalStore } from 'react';
 import { useLocation } from 'wouter';
+import i18n from '@/i18n';
 import { extensionHost } from '@/lib/extension-host';
 import {
   Eye,
@@ -49,9 +50,9 @@ const VerticalExtensionsBar = ({
 
   // Core panels (always shown, part of the app core)
   const corePanels = [
-    { id: 'preview', icon: <Eye size={18} />, label: 'File Preview' },
-    { id: 'tokenizer', icon: <Search size={18} />, label: 'Content Search' },
-    { id: 'chat', icon: <MessageSquare size={18} />, label: 'AI Chat' },
+    { id: 'preview', icon: <Eye size={18} />, label: i18n.t('panels.core.preview') },
+    { id: 'tokenizer', icon: <Search size={18} />, label: i18n.t('panels.core.tokenizer') },
+    { id: 'chat', icon: <MessageSquare size={18} />, label: i18n.t('panels.core.chat') },
     {
       id: 'agent-manager',
       icon: (
@@ -59,15 +60,19 @@ const VerticalExtensionsBar = ({
           <Bot size={18} />
         </AgentStatusIndicator>
       ),
-      label: 'Agent Manager',
+      label: i18n.t('panels.core.agentManager'),
     },
   ];
 
   // System panels (always shown, not extension-managed)
   const systemPanels = [
-    { id: 'performance', icon: <Activity size={18} />, label: 'Performance' },
-    { id: 'extensions', icon: <Puzzle size={18} />, label: 'Extensions' },
-    { id: 'marketplace', icon: <ShoppingCart size={18} />, label: 'Marketplace' },
+    { id: 'performance', icon: <Activity size={18} />, label: i18n.t('panels.core.performance') },
+    { id: 'extensions', icon: <Puzzle size={18} />, label: i18n.t('panels.core.extensions') },
+    {
+      id: 'marketplace',
+      icon: <ShoppingCart size={18} />,
+      label: i18n.t('panels.core.marketplace'),
+    },
   ];
 
   const handlePanelClick = (id: string) => {
@@ -87,7 +92,7 @@ const VerticalExtensionsBar = ({
   return (
     <div
       data-tour={dataTour}
-      className="bg-xp-surface border-xp-border flex w-12 flex-col border-l"
+      className="flex w-12 flex-col border-l border-xp-border bg-xp-surface"
     >
       <div className="flex flex-col py-2">
         {/* Core panels (always available) */}
@@ -103,7 +108,7 @@ const VerticalExtensionsBar = ({
         ))}
 
         {/* Separator between core and extension panels */}
-        {registeredPanels.length > 0 && <div className="border-xp-border mx-2 my-1 border-t" />}
+        {registeredPanels.length > 0 && <div className="mx-2 my-1 border-t border-xp-border" />}
 
         {/* Extension-managed panel icons */}
         {registeredPanels.map((panel) => (
@@ -118,7 +123,7 @@ const VerticalExtensionsBar = ({
         ))}
 
         {/* Separator before system panels */}
-        <div className="border-xp-border mx-2 my-1 border-t" />
+        <div className="mx-2 my-1 border-t border-xp-border" />
 
         {/* System panels */}
         {systemPanels.map(({ id, icon, label }) => (
@@ -137,11 +142,11 @@ const VerticalExtensionsBar = ({
       <div className="flex-1" />
 
       {/* Settings */}
-      <div className="border-xp-border border-t p-2">
+      <div className="border-t border-xp-border py-2">
         <button
           onClick={() => setLocation('/settings')}
-          className="hover:bg-xp-surface-light mx-1 mb-1 flex h-10 w-10 items-center justify-center rounded"
-          title="Settings"
+          className="mx-1 mb-1 flex h-10 w-10 items-center justify-center rounded text-lg transition-colors hover:bg-xp-surface-light"
+          title={i18n.t('settings.title')}
         >
           <Settings size={18} />
         </button>

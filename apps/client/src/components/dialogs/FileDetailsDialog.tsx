@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   TauriAPI,
   type FileNote,
@@ -66,18 +67,18 @@ const FileDetailsDialog = ({
         <div className="border-xp-border/40 flex flex-shrink-0 items-center justify-between border-b px-5 py-3.5">
           <div className="flex min-w-0 items-center space-x-2.5">
             <div className="bg-xp-blue/10 rounded-md p-1.5">
-              <FileText className="text-xp-blue h-4 w-4" />
+              <FileText className="h-4 w-4 text-xp-blue" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-xp-text text-sm font-semibold">File Details</h2>
-              <p className="text-xp-text-muted max-w-[280px] truncate text-xs" title={filePath}>
+              <h2 className="text-sm font-semibold text-xp-text">File Details</h2>
+              <p className="max-w-[280px] truncate text-xs text-xp-text-muted" title={filePath}>
                 {fileName}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-xp-text-muted hover:text-xp-text rounded-md p-1.5 transition-colors hover:bg-white/5"
+            className="rounded-md p-1.5 text-xp-text-muted transition-colors hover:bg-white/5 hover:text-xp-text"
           >
             <X className="h-4 w-4" />
           </button>
@@ -106,6 +107,7 @@ const TabBar = ({
   setActiveTab: (tab: FileDetailsTab) => void;
   filePath: string;
 }) => {
+  const { t } = useTranslation();
   const [counts, setCounts] = useState({ notes: 0, annotations: 0, metadata: 0 });
 
   useEffect(() => {
@@ -126,19 +128,19 @@ const TabBar = ({
   const tabs: { id: FileDetailsTab; label: string; icon: React.ReactNode; count: number }[] = [
     {
       id: 'notes',
-      label: 'Notes',
+      label: t('dialogs.fileDetails.notes'),
       icon: <StickyNote className="h-3.5 w-3.5" />,
       count: counts.notes,
     },
     {
       id: 'annotations',
-      label: 'Annotations',
+      label: t('dialogs.fileDetails.annotations'),
       icon: <MessageSquare className="h-3.5 w-3.5" />,
       count: counts.annotations,
     },
     {
       id: 'metadata',
-      label: 'Metadata',
+      label: t('dialogs.fileDetails.metadata'),
       icon: <Database className="h-3.5 w-3.5" />,
       count: counts.metadata,
     },
@@ -152,8 +154,8 @@ const TabBar = ({
           onClick={() => setActiveTab(tab.id)}
           className={`relative flex items-center gap-1.5 rounded-t-md px-3 py-2 text-xs font-medium transition-all ${
             activeTab === tab.id
-              ? 'text-xp-blue bg-xp-blue/[0.08]'
-              : 'text-xp-text-muted hover:text-xp-text hover:bg-white/[0.03]'
+              ? 'bg-xp-blue/[0.08] text-xp-blue'
+              : 'text-xp-text-muted hover:bg-white/[0.03] hover:text-xp-text'
           }`}
         >
           {tab.icon}
@@ -163,14 +165,14 @@ const TabBar = ({
               className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none ${
                 activeTab === tab.id
                   ? 'bg-xp-blue/20 text-xp-blue'
-                  : 'text-xp-text-muted bg-white/5'
+                  : 'bg-white/5 text-xp-text-muted'
               }`}
             >
               {tab.count}
             </span>
           )}
           {activeTab === tab.id && (
-            <div className="bg-xp-blue absolute bottom-0 left-2 right-2 h-[2px] rounded-full" />
+            <div className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full bg-xp-blue" />
           )}
         </button>
       ))}
@@ -181,6 +183,7 @@ const TabBar = ({
 // ── Notes Tab ───────────────────────────────────────────────────────────────
 
 const NotesTab = ({ filePath }: { filePath: string }) => {
+  const { t } = useTranslation();
   const [notes, setNotes] = useState<FileNote[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -276,23 +279,23 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
         {/* eslint-disable-next-line no-nested-ternary */}
         {loading ? (
-          <p className="text-xp-text-muted text-sm">Loading...</p>
+          <p className="text-sm text-xp-text-muted">Loading...</p>
         ) : notes.length === 0 && !showAddForm ? (
-          <p className="text-xp-text-muted text-sm italic">No notes yet — add one below.</p>
+          <p className="text-sm italic text-xp-text-muted">No notes yet — add one below.</p>
         ) : (
           notes.map((note) => (
-            <div key={note.id} className="border-xp-border overflow-hidden rounded-md border">
+            <div key={note.id} className="overflow-hidden rounded-md border border-xp-border">
               <button
-                className="hover:bg-xp-surface-light flex w-full items-center justify-between px-3 py-2 text-left transition-colors"
+                className="flex w-full items-center justify-between px-3 py-2 text-left transition-colors hover:bg-xp-surface-light"
                 onClick={() => setExpandedNoteId(expandedNoteId === note.id ? null : note.id)}
               >
                 <div className="flex min-w-0 items-center space-x-2">
                   {expandedNoteId === note.id ? (
-                    <ChevronDown className="text-xp-text-muted h-3.5 w-3.5 flex-shrink-0" />
+                    <ChevronDown className="h-3.5 w-3.5 flex-shrink-0 text-xp-text-muted" />
                   ) : (
-                    <ChevronRight className="text-xp-text-muted h-3.5 w-3.5 flex-shrink-0" />
+                    <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-xp-text-muted" />
                   )}
-                  <span className="text-xp-text truncate text-sm font-medium">{note.title}</span>
+                  <span className="truncate text-sm font-medium text-xp-text">{note.title}</span>
                 </div>
                 <div className="ml-2 flex flex-shrink-0 items-center space-x-1">
                   <button
@@ -300,7 +303,7 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
                       e.stopPropagation();
                       startEditing(note);
                     }}
-                    className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-blue rounded p-1 transition-colors"
+                    className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-blue"
                     title="Edit"
                   >
                     <Pencil className="h-3 w-3" />
@@ -310,7 +313,7 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
                       e.stopPropagation();
                       handleDeleteNote(note.id);
                     }}
-                    className="hover:bg-xp-surface-light text-xp-text-muted rounded p-1 transition-colors hover:text-red-400"
+                    className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-red-400"
                     title="Delete"
                   >
                     <Trash2 className="h-3 w-3" />
@@ -319,34 +322,34 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
               </button>
 
               {expandedNoteId === note.id && (
-                <div className="border-xp-border border-t px-3 pb-3">
+                <div className="border-t border-xp-border px-3 pb-3">
                   {editingNoteId === note.id ? (
                     <div className="space-y-2 pt-2">
                       <input
                         type="text"
                         value={editTitle}
                         onChange={(e) => setEditTitle(e.target.value)}
-                        className="bg-xp-bg border-xp-border text-xp-text focus:border-xp-blue w-full rounded border px-3 py-1.5 text-sm transition-colors focus:outline-none"
-                        placeholder="Title"
+                        className="w-full rounded border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text transition-colors focus:border-xp-blue focus:outline-none"
+                        placeholder={t('dialogs.fileDetails.noteTitlePlaceholder')}
                       />
                       <textarea
                         value={editContent}
                         onChange={(e) => setEditContent(e.target.value)}
                         rows={5}
-                        className="bg-xp-bg border-xp-border text-xp-text focus:border-xp-blue w-full resize-y rounded border px-3 py-1.5 text-sm transition-colors focus:outline-none"
-                        placeholder="Note content (markdown supported)..."
+                        className="w-full resize-y rounded border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text transition-colors focus:border-xp-blue focus:outline-none"
+                        placeholder={t('dialogs.fileDetails.noteContentPlaceholder')}
                       />
                       <div className="flex items-center justify-end space-x-2">
                         <button
                           onClick={() => setEditingNoteId(null)}
-                          className="text-xp-text-muted hover:text-xp-text rounded px-2.5 py-1 text-xs transition-colors"
+                          className="rounded px-2.5 py-1 text-xs text-xp-text-muted transition-colors hover:text-xp-text"
                         >
                           Cancel
                         </button>
                         <button
                           onClick={() => handleUpdateNote(note.id)}
                           disabled={saving || !editTitle.trim()}
-                          className="bg-xp-blue flex items-center space-x-1 rounded px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-opacity-90 disabled:opacity-40"
+                          className="flex items-center space-x-1 rounded bg-xp-blue px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-opacity-90 disabled:opacity-40"
                         >
                           <Check className="h-3 w-3" />
                           <span>Save</span>
@@ -355,12 +358,12 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
                     </div>
                   ) : (
                     <div className="pt-2">
-                      <p className="text-xp-text whitespace-pre-wrap text-sm">
+                      <p className="whitespace-pre-wrap text-sm text-xp-text">
                         {note.content || (
-                          <span className="text-xp-text-muted italic">No content</span>
+                          <span className="italic text-xp-text-muted">No content</span>
                         )}
                       </p>
-                      <p className="text-xp-text-muted mt-2 text-xs">
+                      <p className="mt-2 text-xs text-xp-text-muted">
                         Updated {new Date(note.updated_at).toLocaleString()}
                       </p>
                     </div>
@@ -372,7 +375,7 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
         )}
 
         {showAddForm && (
-          <div className="border-xp-blue space-y-2 rounded-md border border-opacity-50 p-3">
+          <div className="space-y-2 rounded-md border border-xp-blue border-opacity-50 p-3">
             <input
               ref={titleInputRef}
               type="text"
@@ -381,28 +384,28 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
               onKeyDown={(e) => {
                 if (e.key === 'Escape') setShowAddForm(false);
               }}
-              className="bg-xp-bg border-xp-border text-xp-text placeholder-xp-text-muted focus:border-xp-blue w-full rounded border px-3 py-1.5 text-sm transition-colors focus:outline-none"
-              placeholder="Note title..."
+              className="w-full rounded border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text placeholder-xp-text-muted transition-colors focus:border-xp-blue focus:outline-none"
+              placeholder={t('dialogs.fileDetails.noteTitlePlaceholder')}
               maxLength={100}
             />
             <textarea
               value={newContent}
               onChange={(e) => setNewContent(e.target.value)}
               rows={4}
-              className="bg-xp-bg border-xp-border text-xp-text placeholder-xp-text-muted focus:border-xp-blue w-full resize-y rounded border px-3 py-1.5 text-sm transition-colors focus:outline-none"
-              placeholder="Note content (markdown supported)..."
+              className="w-full resize-y rounded border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text placeholder-xp-text-muted transition-colors focus:border-xp-blue focus:outline-none"
+              placeholder={t('dialogs.fileDetails.noteContentPlaceholder')}
             />
             <div className="flex items-center justify-end space-x-2">
               <button
                 onClick={() => setShowAddForm(false)}
-                className="text-xp-text-muted hover:text-xp-text rounded px-2.5 py-1 text-xs transition-colors"
+                className="rounded px-2.5 py-1 text-xs text-xp-text-muted transition-colors hover:text-xp-text"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddNote}
                 disabled={saving || !newTitle.trim()}
-                className="bg-xp-blue flex items-center space-x-1 rounded px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-opacity-90 disabled:opacity-40"
+                className="flex items-center space-x-1 rounded bg-xp-blue px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-opacity-90 disabled:opacity-40"
               >
                 {saving ? (
                   <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -423,14 +426,14 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
       </div>
 
       {/* Footer */}
-      <div className="border-xp-border flex flex-shrink-0 items-center justify-between border-t px-4 py-3">
-        <span className="text-xp-text-muted text-xs">
+      <div className="flex flex-shrink-0 items-center justify-between border-t border-xp-border px-4 py-3">
+        <span className="text-xs text-xp-text-muted">
           {notes.length} note{notes.length !== 1 ? 's' : ''}
         </span>
         {!showAddForm && (
           <button
             onClick={() => setShowAddForm(true)}
-            className="bg-xp-blue flex items-center space-x-1.5 rounded px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-opacity-90"
+            className="flex items-center space-x-1.5 rounded bg-xp-blue px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-opacity-90"
           >
             <Plus className="h-3.5 w-3.5" />
             <span>Add Note</span>
@@ -444,6 +447,7 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
 // ── Annotations Tab ─────────────────────────────────────────────────────────
 
 const AnnotationsTab = ({ filePath }: { filePath: string }) => {
+  const { t } = useTranslation();
   const [annotations, setAnnotations] = useState<FileAnnotation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -512,10 +516,10 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
     <>
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
         {(() => {
-          if (loading) return <p className="text-xp-text-muted text-sm">Loading...</p>;
+          if (loading) return <p className="text-sm text-xp-text-muted">Loading...</p>;
           if (annotations.length === 0) {
             return (
-              <p className="text-xp-text-muted text-sm italic">
+              <p className="text-sm italic text-xp-text-muted">
                 No annotations yet — add one below.
               </p>
             );
@@ -527,24 +531,24 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
                   {activeAnnotations.map((a) => (
                     <div
                       key={a.id}
-                      className="hover:bg-xp-surface-light group flex items-start space-x-2 rounded px-2 py-2 transition-colors"
+                      className="group flex items-start space-x-2 rounded px-2 py-2 transition-colors hover:bg-xp-surface-light"
                     >
                       <button
                         onClick={() => handleToggleResolved(a.id)}
-                        className="text-xp-text-muted mt-0.5 flex-shrink-0 transition-colors hover:text-green-400"
-                        title="Mark as resolved"
+                        className="mt-0.5 flex-shrink-0 text-xp-text-muted transition-colors hover:text-green-400"
+                        title={t('dialogs.fileDetails.markResolved')}
                       >
                         <Circle className="h-4 w-4" />
                       </button>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xp-text text-sm">{a.text}</p>
-                        <p className="text-xp-text-muted mt-0.5 text-xs">
+                        <p className="text-sm text-xp-text">{a.text}</p>
+                        <p className="mt-0.5 text-xs text-xp-text-muted">
                           {a.author} &middot; {new Date(a.created_at).toLocaleString()}
                         </p>
                       </div>
                       <button
                         onClick={() => handleDelete(a.id)}
-                        className="hover:bg-xp-surface-light text-xp-text-muted flex-shrink-0 rounded p-1 opacity-0 transition-all hover:text-red-400 group-hover:opacity-100"
+                        className="flex-shrink-0 rounded p-1 text-xp-text-muted opacity-0 transition-all hover:bg-xp-surface-light hover:text-red-400 group-hover:opacity-100"
                         title="Delete"
                       >
                         <Trash2 className="h-3 w-3" />
@@ -556,30 +560,30 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
 
               {resolvedAnnotations.length > 0 && (
                 <div className="space-y-1">
-                  <p className="text-xp-text-muted pt-1 text-xs font-medium uppercase tracking-wide">
+                  <p className="pt-1 text-xs font-medium uppercase tracking-wide text-xp-text-muted">
                     Resolved ({resolvedAnnotations.length})
                   </p>
                   {resolvedAnnotations.map((a) => (
                     <div
                       key={a.id}
-                      className="hover:bg-xp-surface-light group flex items-start space-x-2 rounded px-2 py-2 opacity-60 transition-colors"
+                      className="group flex items-start space-x-2 rounded px-2 py-2 opacity-60 transition-colors hover:bg-xp-surface-light"
                     >
                       <button
                         onClick={() => handleToggleResolved(a.id)}
-                        className="hover:text-xp-text-muted mt-0.5 flex-shrink-0 text-green-400 transition-colors"
-                        title="Unresolve"
+                        className="mt-0.5 flex-shrink-0 text-green-400 transition-colors hover:text-xp-text-muted"
+                        title={t('dialogs.fileDetails.unresolve')}
                       >
                         <CheckCircle className="h-4 w-4" />
                       </button>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xp-text text-sm line-through">{a.text}</p>
-                        <p className="text-xp-text-muted mt-0.5 text-xs">
+                        <p className="text-sm text-xp-text line-through">{a.text}</p>
+                        <p className="mt-0.5 text-xs text-xp-text-muted">
                           {a.author} &middot; {new Date(a.created_at).toLocaleString()}
                         </p>
                       </div>
                       <button
                         onClick={() => handleDelete(a.id)}
-                        className="hover:bg-xp-surface-light text-xp-text-muted flex-shrink-0 rounded p-1 opacity-0 transition-all hover:text-red-400 group-hover:opacity-100"
+                        className="flex-shrink-0 rounded p-1 text-xp-text-muted opacity-0 transition-all hover:bg-xp-surface-light hover:text-red-400 group-hover:opacity-100"
                         title="Delete"
                       >
                         <Trash2 className="h-3 w-3" />
@@ -600,7 +604,7 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
       </div>
 
       {/* Add annotation form in footer */}
-      <div className="border-xp-border flex-shrink-0 border-t px-4 py-3">
+      <div className="flex-shrink-0 border-t border-xp-border px-4 py-3">
         <div className="flex items-center space-x-2">
           <input
             ref={inputRef}
@@ -616,14 +620,14 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
                 handleAdd();
               }
             }}
-            placeholder="Add an annotation..."
+            placeholder={t('dialogs.fileDetails.addAnnotation')}
             maxLength={500}
-            className="bg-xp-bg border-xp-border text-xp-text placeholder-xp-text-muted focus:border-xp-blue flex-1 rounded border px-3 py-1.5 text-sm transition-colors focus:outline-none"
+            className="flex-1 rounded border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text placeholder-xp-text-muted transition-colors focus:border-xp-blue focus:outline-none"
           />
           <button
             onClick={handleAdd}
             disabled={saving || !newText.trim()}
-            className="bg-xp-blue flex items-center space-x-1 rounded px-2.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex items-center space-x-1 rounded bg-xp-blue px-2.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {saving ? (
               <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -641,11 +645,11 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
 // ── Metadata Tab ────────────────────────────────────────────────────────────
 
 const FIELD_TYPES = [
-  { value: 'text', label: 'Text' },
-  { value: 'number', label: 'Number' },
-  { value: 'date', label: 'Date' },
-  { value: 'url', label: 'URL' },
-  { value: 'boolean', label: 'Boolean' },
+  { value: 'text', labelKey: 'dialogs.fileDetails.typeText' },
+  { value: 'number', labelKey: 'dialogs.fileDetails.typeNumber' },
+  { value: 'date', labelKey: 'dialogs.fileDetails.typeDate' },
+  { value: 'url', labelKey: 'dialogs.fileDetails.typeUrl' },
+  { value: 'boolean', labelKey: 'dialogs.fileDetails.typeBoolean' },
 ];
 
 interface EditableField extends CustomMetadataField {
@@ -655,6 +659,7 @@ interface EditableField extends CustomMetadataField {
 let nextLocalId = 0;
 
 const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => void }) => {
+  const { t } = useTranslation();
   const [fields, setFields] = useState<EditableField[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -732,10 +737,10 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
     <>
       <div className="flex-1 space-y-2 overflow-y-auto px-4 py-3">
         {(() => {
-          if (loading) return <p className="text-xp-text-muted text-sm">Loading...</p>;
+          if (loading) return <p className="text-sm text-xp-text-muted">Loading...</p>;
           if (fields.length === 0) {
             return (
-              <p className="text-xp-text-muted text-sm italic">
+              <p className="text-sm italic text-xp-text-muted">
                 No metadata fields — click Add Field below.
               </p>
             );
@@ -743,13 +748,13 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
           return (
             <>
               <div className="grid grid-cols-[1fr_1fr_90px_28px] gap-2 px-1">
-                <span className="text-xp-text-muted text-xs font-medium uppercase tracking-wide">
+                <span className="text-xs font-medium uppercase tracking-wide text-xp-text-muted">
                   Key
                 </span>
-                <span className="text-xp-text-muted text-xs font-medium uppercase tracking-wide">
+                <span className="text-xs font-medium uppercase tracking-wide text-xp-text-muted">
                   Value
                 </span>
-                <span className="text-xp-text-muted text-xs font-medium uppercase tracking-wide">
+                <span className="text-xs font-medium uppercase tracking-wide text-xp-text-muted">
                   Type
                 </span>
                 <span />
@@ -771,8 +776,8 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
                       onChange={(e) => handleFieldChange(field._localId, 'key', e.target.value)}
                       onFocus={() => setShowKeySuggestions(field._localId)}
                       onBlur={() => setTimeout(() => setShowKeySuggestions(null), 150)}
-                      className="bg-xp-bg border-xp-border text-xp-text focus:border-xp-blue w-full rounded border px-2 py-1.5 text-sm transition-colors focus:outline-none"
-                      placeholder="Key"
+                      className="w-full rounded border border-xp-border bg-xp-bg px-2 py-1.5 text-sm text-xp-text transition-colors focus:border-xp-blue focus:outline-none"
+                      placeholder={t('dialogs.fileDetails.metadataKey')}
                       maxLength={50}
                     />
                     {showKeySuggestions === field._localId &&
@@ -780,7 +785,7 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
                         const suggestions = getFilteredSuggestions(field.key);
                         if (suggestions.length === 0) return null;
                         return (
-                          <div className="bg-xp-popover border-xp-border absolute left-0 right-0 top-full z-10 mt-0.5 max-h-32 overflow-y-auto rounded border shadow-xl backdrop-blur-xl">
+                          <div className="absolute left-0 right-0 top-full z-10 mt-0.5 max-h-32 overflow-y-auto rounded border border-xp-border bg-xp-popover shadow-xl backdrop-blur-xl">
                             {suggestions.map((key) => (
                               <button
                                 key={key}
@@ -789,7 +794,7 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
                                   handleFieldChange(field._localId, 'key', key);
                                   setShowKeySuggestions(null);
                                 }}
-                                className="text-xp-text hover:bg-xp-surface-light w-full px-2 py-1 text-left text-sm transition-colors"
+                                className="w-full px-2 py-1 text-left text-sm text-xp-text transition-colors hover:bg-xp-surface-light"
                               >
                                 {key}
                               </button>
@@ -805,7 +810,7 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
                       onValueChange={(v) => handleFieldChange(field._localId, 'value', v)}
                     >
                       <SelectTrigger className="h-8 w-full">
-                        <SelectValue placeholder="Select..." />
+                        <SelectValue placeholder={t('dialogs.fileDetails.select')} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="true">True</SelectItem>
@@ -824,8 +829,8 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
                       }
                       value={field.value}
                       onChange={(e) => handleFieldChange(field._localId, 'value', e.target.value)}
-                      className="bg-xp-bg border-xp-border text-xp-text focus:border-xp-blue w-full rounded border px-2 py-1.5 text-sm transition-colors focus:outline-none"
-                      placeholder="Value"
+                      className="w-full rounded border border-xp-border bg-xp-bg px-2 py-1.5 text-sm text-xp-text transition-colors focus:border-xp-blue focus:outline-none"
+                      placeholder={t('dialogs.fileDetails.metadataValue')}
                     />
                   )}
 
@@ -837,9 +842,9 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {FIELD_TYPES.map((t) => (
-                        <SelectItem key={t.value} value={t.value}>
-                          {t.label}
+                      {FIELD_TYPES.map((ft) => (
+                        <SelectItem key={ft.value} value={ft.value}>
+                          {t(ft.labelKey)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -847,8 +852,8 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
 
                   <button
                     onClick={() => handleRemoveField(field._localId)}
-                    className="hover:bg-xp-surface-light text-xp-text-muted rounded p-1.5 transition-colors hover:text-red-400"
-                    title="Remove field"
+                    className="rounded p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-red-400"
+                    title={t('dialogs.fileDetails.removeField')}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -860,7 +865,7 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
 
         <button
           onClick={handleAddField}
-          className="text-xp-blue hover:bg-xp-surface-light border-xp-border flex w-full items-center justify-center space-x-1.5 rounded border border-dashed px-2 py-1.5 text-sm transition-colors"
+          className="flex w-full items-center justify-center space-x-1.5 rounded border border-dashed border-xp-border px-2 py-1.5 text-sm text-xp-blue transition-colors hover:bg-xp-surface-light"
         >
           <Plus className="h-3.5 w-3.5" />
           <span>Add Field</span>
@@ -874,17 +879,17 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
       </div>
 
       {/* Footer */}
-      <div className="border-xp-border flex flex-shrink-0 items-center justify-end space-x-2 border-t px-4 py-3">
+      <div className="flex flex-shrink-0 items-center justify-end space-x-2 border-t border-xp-border px-4 py-3">
         <button
           onClick={onClose}
-          className="text-xp-text-muted hover:text-xp-text hover:bg-xp-surface-light rounded px-3 py-1.5 text-sm transition-colors"
+          className="rounded px-3 py-1.5 text-sm text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
         >
           Cancel
         </button>
         <button
           onClick={handleSave}
           disabled={saving || loading || !dirty}
-          className="bg-xp-blue flex items-center space-x-1.5 rounded px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex items-center space-x-1.5 rounded bg-xp-blue px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {saving ? (
             <>

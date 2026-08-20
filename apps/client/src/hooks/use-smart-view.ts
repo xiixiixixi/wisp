@@ -22,6 +22,29 @@ interface SmartViewResult {
 const STORAGE_KEY = STORAGE_KEYS.SMART_VIEW;
 const MAX_ENTRIES = 500;
 
+// Settings "default view" option → explorer view mode
+const DEFAULT_VIEW_MODE_MAP: Record<string, ViewMode> = {
+  grid: 'medium',
+  list: 'list',
+  details: 'details',
+};
+
+/** Read the default-view setting; returns null when smart auto-detection applies. */
+const loadDefaultViewSetting = (): ViewMode | null => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+    if (raw) {
+      const settings = JSON.parse(raw) as { defaultView?: string };
+      if (typeof settings.defaultView === 'string' && settings.defaultView !== 'auto') {
+        return DEFAULT_VIEW_MODE_MAP[settings.defaultView] ?? null;
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+};
+
 const loadFolderViews = (): Record<string, ViewMode> => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -131,7 +154,15 @@ export const useSmartView = (files: FileEntry[], currentPath: string): SmartView
       return;
     }
 
-    // Priority 2: Auto-detect based on contents (only when files are loaded)
+    // Priority 2: The "default view" setting (explicit user choice wins over detection)
+    const defaultView = loadDefaultViewSetting();
+    if (defaultView) {
+      setSuggestedView(defaultView);
+      setIsAutoDetected(false);
+      return;
+    }
+
+    // Priority 3: Auto-detect based on contents (only when files are loaded)
     if (files.length > 0 && !userOverrodeRef.current) {
       const detected = detectOptimalView(files, currentPath);
       setSuggestedView(detected);
@@ -139,7 +170,7 @@ export const useSmartView = (files: FileEntry[], currentPath: string): SmartView
       return;
     }
 
-    // Priority 3: Global default
+    // Priority 4: Fallback grid
     if (!userOverrodeRef.current) {
       setSuggestedView('medium');
       setIsAutoDetected(false);

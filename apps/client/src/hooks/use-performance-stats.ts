@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import i18n from '@/i18n';
 import {
   TauriAPI,
   type FileEntry,
@@ -144,10 +145,10 @@ export const usePerformanceStats = (
         );
         newSuggestions.push({
           id: 'trash',
-          title: `Trash: ${trashList.length} items`,
-          description: `Recycle bin contains ${trashList.length} item${trashList.length !== 1 ? 's' : ''}`,
+          title: i18n.t('performance.suggestions.trashTitle', { count: trashList.length }),
+          description: i18n.t('performance.suggestions.trashDesc', { count: trashList.length }),
           estimatedSize: trashSize,
-          actionLabel: 'Empty Trash',
+          actionLabel: i18n.t('performance.suggestions.emptyTrash'),
           actionType: 'action',
         });
       }
@@ -158,10 +159,10 @@ export const usePerformanceStats = (
         const largeSize = largeFiles.reduce((sum, f) => sum + f.size, 0);
         newSuggestions.push({
           id: 'large-files',
-          title: `Large files: ${largeFiles.length} files`,
-          description: `Files larger than 100 MB in this folder`,
+          title: i18n.t('performance.suggestions.largeFilesTitle', { count: largeFiles.length }),
+          description: i18n.t('performance.suggestions.largeFilesDesc'),
           estimatedSize: largeSize,
-          actionLabel: 'Show Large Files',
+          actionLabel: i18n.t('performance.suggestions.showLargeFiles'),
           actionType: 'navigate',
         });
       }
@@ -183,10 +184,13 @@ export const usePerformanceStats = (
           if (untaggedCount > 0) {
             newSuggestions.push({
               id: 'untagged',
-              title: `Untagged files: ${untaggedCount}${samplePaths.length < files.filter((f) => !f.is_dir).length ? '+' : ''}`,
-              description: `Files without any tags in this folder`,
+              title: i18n.t('performance.suggestions.untaggedTitle', {
+                count: untaggedCount,
+                suffix: samplePaths.length < files.filter((f) => !f.is_dir).length ? '+' : '',
+              }),
+              description: i18n.t('performance.suggestions.untaggedDesc'),
               estimatedSize: 0,
-              actionLabel: 'Tag Files',
+              actionLabel: i18n.t('performance.suggestions.tagFiles'),
               actionType: 'navigate',
             });
           }

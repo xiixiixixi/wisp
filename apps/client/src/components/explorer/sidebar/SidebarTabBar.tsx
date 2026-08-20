@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { FolderTree, Search } from 'lucide-react';
 
 interface SidebarTab {
@@ -17,6 +18,7 @@ const TAB_CLASS_ACTIVE = 'bg-xp-blue/15 text-xp-blue';
 const TAB_CLASS_INACTIVE = 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text';
 
 const SidebarTabBar = ({ activeTabId, onTabClick, extensionTabs }: SidebarTabBarProps) => {
+  const { t } = useTranslation();
   const tabClass = (tabId: string) =>
     `flex items-center justify-center rounded transition-colors ${
       activeTabId === tabId ? TAB_CLASS_ACTIVE : TAB_CLASS_INACTIVE
@@ -24,7 +26,7 @@ const SidebarTabBar = ({ activeTabId, onTabClick, extensionTabs }: SidebarTabBar
 
   return (
     <div
-      className="border-xp-border border-b"
+      className="border-b border-xp-border"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -33,7 +35,7 @@ const SidebarTabBar = ({ activeTabId, onTabClick, extensionTabs }: SidebarTabBar
         flexShrink: 0,
       }}
       role="tablist"
-      aria-label="Sidebar tabs"
+      aria-label={t('sidebar.tabs.tablistAria')}
     >
       {/* Explorer tab */}
       <button
@@ -41,9 +43,9 @@ const SidebarTabBar = ({ activeTabId, onTabClick, extensionTabs }: SidebarTabBar
         onClick={() => onTabClick('__explorer__')}
         className={tabClass('__explorer__')}
         style={{ width: 28, height: 28, padding: 0 }}
-        aria-label="File explorer"
+        aria-label={t('sidebar.tabs.explorerAria')}
         aria-selected={activeTabId === '__explorer__'}
-        title="File Explorer"
+        title={t('sidebar.tabs.explorerTitle')}
       >
         <FolderTree size={15} />
       </button>
@@ -54,9 +56,9 @@ const SidebarTabBar = ({ activeTabId, onTabClick, extensionTabs }: SidebarTabBar
         onClick={() => onTabClick('__search__')}
         className={tabClass('__search__')}
         style={{ width: 28, height: 28, padding: 0 }}
-        aria-label="Search files (Ctrl+Shift+F)"
+        aria-label={t('sidebar.tabs.searchAria')}
         aria-selected={activeTabId === '__search__'}
-        title="Search (Ctrl+Shift+F)"
+        title={t('sidebar.tabs.searchTitle')}
       >
         <Search size={15} />
       </button>

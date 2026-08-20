@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TauriAPI, type TagCategory } from '@/lib/tauri-api';
 import { Tags, X, Plus, Check, Pencil, Trash2, ChevronRight } from 'lucide-react';
 import {
@@ -10,12 +11,12 @@ import {
 } from '@/components/ui/select';
 
 const PRESET_COLORS = [
-  { label: 'Blue', value: '#7aa2f7' },
-  { label: 'Green', value: '#9ece6a' },
-  { label: 'Red', value: '#f7768e' },
-  { label: 'Orange', value: '#ff9e64' },
-  { label: 'Purple', value: '#bb9af7' },
-  { label: 'Yellow', value: '#e0af68' },
+  { label: 'dialogs.colors.blue', value: '#7aa2f7' },
+  { label: 'dialogs.colors.green', value: '#9ece6a' },
+  { label: 'dialogs.colors.red', value: '#f7768e' },
+  { label: 'dialogs.colors.orange', value: '#ff9e64' },
+  { label: 'dialogs.colors.purple', value: '#bb9af7' },
+  { label: 'dialogs.colors.yellow', value: '#e0af68' },
 ];
 
 interface TagCategoryDialogProps {
@@ -72,6 +73,7 @@ const flattenTree = (nodes: TreeNode[]): TreeNode[] => {
 };
 
 const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<TagCategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -190,16 +192,16 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-xp-surface border-xp-border mx-4 flex max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-lg border shadow-2xl">
+      <div className="mx-4 flex max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-lg border border-xp-border bg-xp-surface shadow-2xl">
         {/* Header */}
-        <div className="border-xp-border flex flex-shrink-0 items-center justify-between border-b px-4 py-3">
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-xp-border px-4 py-3">
           <div className="flex items-center space-x-2">
-            <Tags className="text-xp-text-muted h-4 w-4" />
-            <h2 className="text-xp-text text-sm font-semibold">Tag Categories</h2>
+            <Tags className="h-4 w-4 text-xp-text-muted" />
+            <h2 className="text-sm font-semibold text-xp-text">Tag Categories</h2>
           </div>
           <button
             onClick={onClose}
-            className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-text rounded p-1 transition-colors"
+            className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             aria-label="Close tag categories dialog"
           >
             <X className="h-4 w-4" />
@@ -210,9 +212,9 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
         <div className="flex-1 space-y-2 overflow-y-auto px-4 py-3">
           {/* eslint-disable-next-line no-nested-ternary */}
           {loading ? (
-            <p className="text-xp-text-muted text-sm">Loading...</p>
+            <p className="text-sm text-xp-text-muted">Loading...</p>
           ) : flatNodes.length === 0 && !showAddForm ? (
-            <p className="text-xp-text-muted text-sm italic">
+            <p className="text-sm italic text-xp-text-muted">
               No tag categories yet — add one below.
             </p>
           ) : (
@@ -220,7 +222,7 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
               {flatNodes.map((node) => (
                 <li
                   key={node.category.id}
-                  className="hover:bg-xp-surface-light group flex items-center justify-between rounded px-2 py-1.5 transition-colors"
+                  className="group flex items-center justify-between rounded px-2 py-1.5 transition-colors hover:bg-xp-surface-light"
                   style={{ paddingLeft: `${8 + node.depth * 20}px` }}
                 >
                   {editingId === node.category.id ? (
@@ -232,8 +234,8 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
                           const idx = PRESET_COLORS.findIndex((c) => c.value === editColor);
                           setEditColor(PRESET_COLORS[(idx + 1) % PRESET_COLORS.length].value);
                         }}
-                        title="Click to cycle color"
-                        aria-label="Cycle through color options"
+                        title={t('dialogs.tagCategory.clickToCycle')}
+                        aria-label={t('dialogs.tagCategory.cycleAria')}
                       />
                       <input
                         type="text"
@@ -243,18 +245,18 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
                           if (e.key === 'Enter') handleUpdate(node.category.id);
                           if (e.key === 'Escape') setEditingId(null);
                         }}
-                        className="bg-xp-bg border-xp-border text-xp-text focus:ring-xp-blue focus:border-xp-blue flex-1 rounded border px-2 py-0.5 text-sm focus:outline-none focus:ring-2"
+                        className="flex-1 rounded border border-xp-border bg-xp-bg px-2 py-0.5 text-sm text-xp-text focus:border-xp-blue focus:outline-none focus:ring-2 focus:ring-xp-blue"
                         autoFocus
                       />
                       <button
                         onClick={() => handleUpdate(node.category.id)}
-                        className="hover:bg-xp-surface-light rounded p-1 text-green-400 transition-colors"
+                        className="rounded p-1 text-green-400 transition-colors hover:bg-xp-surface-light"
                       >
                         <Check className="h-3 w-3" />
                       </button>
                       <button
                         onClick={() => setEditingId(null)}
-                        className="text-xp-text-muted hover:bg-xp-surface-light rounded p-1 transition-colors"
+                        className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -263,18 +265,18 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
                     <>
                       <div className="flex min-w-0 items-center space-x-2">
                         {node.children.length > 0 && (
-                          <ChevronRight className="text-xp-text-muted h-3 w-3 flex-shrink-0" />
+                          <ChevronRight className="h-3 w-3 flex-shrink-0 text-xp-text-muted" />
                         )}
                         <span
                           className="h-3 w-3 flex-shrink-0 rounded-full border border-black border-opacity-20"
                           style={{ backgroundColor: node.category.color }}
                         />
-                        <span className="text-xp-text truncate text-sm">{node.category.name}</span>
+                        <span className="truncate text-sm text-xp-text">{node.category.name}</span>
                       </div>
                       <div className="ml-2 flex flex-shrink-0 items-center space-x-1 opacity-0 transition-opacity group-hover:opacity-100">
                         <button
                           onClick={() => startEditing(node.category)}
-                          className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-blue rounded p-1 transition-colors"
+                          className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-blue"
                           title="Edit"
                           aria-label={`Edit category ${node.category.name}`}
                         >
@@ -282,7 +284,7 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
                         </button>
                         <button
                           onClick={() => handleDelete(node.category.id)}
-                          className="hover:bg-xp-surface-light text-xp-text-muted rounded p-1 transition-colors hover:text-red-400"
+                          className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-red-400"
                           title="Delete"
                           aria-label={`Delete category ${node.category.name}`}
                         >
@@ -298,7 +300,7 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
 
           {/* Add form */}
           {showAddForm && (
-            <div className="border-xp-blue space-y-2 rounded-md border border-opacity-50 p-3">
+            <div className="space-y-2 rounded-md border border-xp-blue border-opacity-50 p-3">
               <input
                 ref={nameInputRef}
                 type="text"
@@ -311,8 +313,8 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
                   if (e.key === 'Enter') handleAdd();
                   if (e.key === 'Escape') setShowAddForm(false);
                 }}
-                className="bg-xp-bg border-xp-border text-xp-text placeholder-xp-text-muted focus:ring-xp-blue focus:border-xp-blue w-full rounded border px-3 py-1.5 text-sm transition-colors focus:outline-none focus:ring-2"
-                placeholder="Category name..."
+                className="w-full rounded border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text placeholder-xp-text-muted transition-colors focus:border-xp-blue focus:outline-none focus:ring-2 focus:ring-xp-blue"
+                placeholder={t('dialogs.tagCategory.categoryNamePlaceholder')}
                 maxLength={50}
               />
 
@@ -328,8 +330,8 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
                       borderColor: newColor === c.value ? 'white' : 'transparent',
                       boxShadow: newColor === c.value ? `0 0 0 1px ${c.value}` : 'none',
                     }}
-                    title={c.label}
-                    aria-label={`Select ${c.label} color`}
+                    title={t(c.label)}
+                    aria-label={t('dialogs.tagCategory.selectColor', { color: t(c.label) })}
                   >
                     {newColor === c.value && (
                       <Check className="h-2.5 w-2.5 text-white drop-shadow" />
@@ -344,10 +346,10 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
                 onValueChange={(v) => setNewParentId(v === '__none__' ? '' : v)}
               >
                 <SelectTrigger className="h-8 w-full">
-                  <SelectValue placeholder="No parent (root category)" />
+                  <SelectValue placeholder={t('dialogs.tagCategory.noParent')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">No parent (root category)</SelectItem>
+                  <SelectItem value="__none__">{t('dialogs.tagCategory.noParent')}</SelectItem>
                   {categories.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}
@@ -359,14 +361,14 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
               <div className="flex items-center justify-end space-x-2">
                 <button
                   onClick={() => setShowAddForm(false)}
-                  className="text-xp-text-muted hover:text-xp-text rounded px-2.5 py-1 text-xs transition-colors"
+                  className="rounded px-2.5 py-1 text-xs text-xp-text-muted transition-colors hover:text-xp-text"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAdd}
                   disabled={saving || !newName.trim()}
-                  className="bg-xp-blue flex items-center space-x-1 rounded px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-opacity-90 disabled:opacity-40"
+                  className="flex items-center space-x-1 rounded bg-xp-blue px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-opacity-90 disabled:opacity-40"
                 >
                   {saving ? (
                     <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -388,15 +390,15 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
         </div>
 
         {/* Footer */}
-        <div className="border-xp-border flex flex-shrink-0 items-center justify-between border-t px-4 py-3">
-          <span className="text-xp-text-muted text-xs">
+        <div className="flex flex-shrink-0 items-center justify-between border-t border-xp-border px-4 py-3">
+          <span className="text-xs text-xp-text-muted">
             {categories.length} categor{categories.length !== 1 ? 'ies' : 'y'}
           </span>
           <div className="flex items-center space-x-2">
             {!showAddForm && (
               <button
                 onClick={() => setShowAddForm(true)}
-                className="bg-xp-blue flex items-center space-x-1.5 rounded px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-opacity-90"
+                className="flex items-center space-x-1.5 rounded bg-xp-blue px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-opacity-90"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>Add Category</span>
@@ -404,7 +406,7 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
             )}
             <button
               onClick={onClose}
-              className="text-xp-text-muted hover:text-xp-text hover:bg-xp-surface-light rounded px-3 py-1.5 text-sm transition-colors"
+              className="rounded px-3 py-1.5 text-sm text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             >
               Close
             </button>

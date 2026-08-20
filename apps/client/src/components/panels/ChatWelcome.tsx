@@ -3,6 +3,7 @@
  * Instead of a static empty state, shows a dynamic welcome
  * based on the current workspace context (project type, git status, etc.).
  */
+import i18n from '@/i18n';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FolderGit2, Package, GitBranch, FileCode2, Sparkles, Loader2 } from 'lucide-react';
@@ -55,7 +56,7 @@ const buildSuggestions = (ctx: WorkspaceContext): Suggestion[] => {
     switch (ctx.project.type) {
       case 'node':
         suggestions.push({
-          label: 'Check for outdated dependencies',
+          label: i18n.t('chat.checkDeps'),
           prompt:
             'Analyze the package.json in this project. Are there any dependencies that might be outdated or have known issues? What improvements would you suggest?',
           icon: <Package size={12} />,
@@ -63,7 +64,7 @@ const buildSuggestions = (ctx: WorkspaceContext): Suggestion[] => {
         break;
       case 'rust':
         suggestions.push({
-          label: 'Review Cargo.toml config',
+          label: i18n.t('chat.reviewCargo'),
           prompt:
             'Analyze the Cargo.toml in this project. Are the dependencies well-organized? Any suggestions for the project configuration?',
           icon: <Package size={12} />,
@@ -93,7 +94,7 @@ const buildSuggestions = (ctx: WorkspaceContext): Suggestion[] => {
   // Generic suggestions based on directory content
   if (ctx.fileCount > 20) {
     suggestions.push({
-      label: 'Organize this folder',
+      label: i18n.t('chat.organizeFolder'),
       prompt:
         'This folder has many files. Analyze them and suggest an organization structure — group related files into subfolders by type or purpose.',
       icon: <Sparkles size={12} />,

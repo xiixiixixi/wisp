@@ -1,4 +1,5 @@
 import React from 'react';
+import i18n from '@/i18n';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -38,24 +39,24 @@ const PermissionReviewDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-xp-bg border-xp-border max-w-lg">
+      <DialogContent className="max-w-lg border-xp-border bg-xp-bg">
         <DialogHeader>
-          <DialogTitle className="text-xp-text flex items-center gap-2">
-            <Puzzle className="text-xp-blue h-5 w-5" />
+          <DialogTitle className="flex items-center gap-2 text-xp-text">
+            <Puzzle className="h-5 w-5 text-xp-blue" />
             Review Extension
           </DialogTitle>
         </DialogHeader>
 
         {/* Extension Info */}
-        <div className="bg-xp-surface border-xp-border flex items-start gap-3 rounded-lg border p-3">
+        <div className="flex items-start gap-3 rounded-lg border border-xp-border bg-xp-surface p-3">
           <div className="bg-xp-blue/20 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
-            <Package className="text-xp-blue h-5 w-5" />
+            <Package className="h-5 w-5 text-xp-blue" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-xp-text truncate text-sm font-medium">
+            <div className="truncate text-sm font-medium text-xp-text">
               {manifest.display_name || manifest.name}
             </div>
-            <div className="text-xp-text-muted mt-0.5 flex items-center gap-2 text-xs">
+            <div className="mt-0.5 flex items-center gap-2 text-xs text-xp-text-muted">
               <span>v{manifest.version}</span>
               <span className="opacity-40">|</span>
               <span className="flex items-center gap-1">
@@ -64,7 +65,7 @@ const PermissionReviewDialog = ({
               </span>
             </div>
             {manifest.description && (
-              <p className="text-xp-text-muted mt-1.5 line-clamp-2 text-xs">
+              <p className="mt-1.5 line-clamp-2 text-xs text-xp-text-muted">
                 {manifest.description}
               </p>
             )}
@@ -75,8 +76,8 @@ const PermissionReviewDialog = ({
         <div
           className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium ${
             verified
-              ? 'bg-xp-green/10 text-xp-green border-xp-green/30 border'
-              : 'bg-xp-orange/10 text-xp-orange border-xp-orange/30 border'
+              ? 'bg-xp-green/10 border-xp-green/30 border text-xp-green'
+              : 'bg-xp-orange/10 border-xp-orange/30 border text-xp-orange'
           }`}
         >
           {verified ? (
@@ -95,11 +96,11 @@ const PermissionReviewDialog = ({
         {/* Permissions */}
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <h4 className="text-xp-text text-xs font-semibold uppercase tracking-wider">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-xp-text">
               Permissions ({permissions.length})
             </h4>
             {hasDanger && (
-              <span className="text-xp-red flex items-center gap-1 text-xs">
+              <span className="flex items-center gap-1 text-xs text-xp-red">
                 <ShieldAlert className="h-3 w-3" />
                 {counts.danger} dangerous
               </span>
@@ -107,7 +108,7 @@ const PermissionReviewDialog = ({
           </div>
 
           {permissions.length === 0 ? (
-            <div className="text-xp-text-muted bg-xp-surface border-xp-border rounded-lg border p-3 text-center text-xs">
+            <div className="rounded-lg border border-xp-border bg-xp-surface p-3 text-center text-xs text-xp-text-muted">
               This extension requests no special permissions.
             </div>
           ) : (
@@ -124,7 +125,7 @@ const PermissionReviewDialog = ({
                       <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${colors.text}`} />
                       <div className="min-w-0">
                         <div className={`text-xs font-medium ${colors.text}`}>{perm.label}</div>
-                        <div className="text-xp-text-muted text-xs">{perm.description}</div>
+                        <div className="text-xs text-xp-text-muted">{perm.description}</div>
                       </div>
                     </div>
                   );
@@ -135,12 +136,12 @@ const PermissionReviewDialog = ({
         </div>
 
         {/* Summary + Buttons */}
-        <div className="border-xp-border flex items-center justify-between border-t pt-2">
+        <div className="flex items-center justify-between border-t border-xp-border pt-2">
           <Button
             variant="outline"
             size="sm"
             onClick={onClose}
-            className="text-xp-text border-xp-border hover:bg-xp-surface-light"
+            className="border-xp-border text-xp-text hover:bg-xp-surface-light"
           >
             Cancel
           </Button>
@@ -150,8 +151,8 @@ const PermissionReviewDialog = ({
             disabled={installing}
             className={`gap-1.5 ${
               hasDanger
-                ? 'bg-xp-orange hover:bg-xp-orange/90 text-white'
-                : 'bg-xp-blue hover:bg-xp-blue/90 text-white'
+                ? 'hover:bg-xp-orange/90 bg-xp-orange text-white'
+                : 'hover:bg-xp-blue/90 bg-xp-blue text-white'
             }`}
           >
             {installing ? (
@@ -159,7 +160,9 @@ const PermissionReviewDialog = ({
             ) : (
               <ShieldCheck className="h-3.5 w-3.5" />
             )}
-            {installing ? 'Installing...' : 'Install & Activate'}
+            {installing
+              ? i18n.t('dialogs.permissionReview.installing')
+              : i18n.t('dialogs.permissionReview.installActivate')}
           </Button>
         </div>
       </DialogContent>

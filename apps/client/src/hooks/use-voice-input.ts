@@ -33,7 +33,7 @@ interface SpeechRecognitionInstance extends EventTarget {
 type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance;
 
 interface UseVoiceInputOptions {
-  /** BCP 47 language tag (e.g. 'en', 'zh', 'ja', 'id') */
+  /** BCP 47 language tag (e.g. 'en', 'zh') */
   lang: string;
   /** Called with the final transcript text */
   onResult: (text: string) => void;
@@ -60,8 +60,6 @@ const langToBcp47 = (lang: string): string => {
   const map: Record<string, string> = {
     en: 'en-US',
     zh: 'zh-CN',
-    ja: 'ja-JP',
-    id: 'id-ID',
   };
   return map[lang] ?? 'en-US';
 };

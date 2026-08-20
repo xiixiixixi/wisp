@@ -4,6 +4,7 @@
  * Uses inline styles with CSS variables (--xp-*) to match the rest of the app.
  */
 
+import i18n from '@/i18n';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   getLayouts,
@@ -538,7 +539,7 @@ const WorkspaceLayoutDialog = ({
                 type="text"
                 value={saveInput}
                 onChange={(e) => setSaveInput(e.target.value)}
-                placeholder="Layout name..."
+                placeholder={i18n.t('dialogs.workspaceLayout.namePlaceholder')}
                 style={{ ...s.nameInput, flex: 1 }}
                 maxLength={50}
               />
@@ -594,9 +595,9 @@ const WorkspaceLayoutDialog = ({
         <div style={s.body}>
           {layouts.length === 0 ? (
             <div style={s.emptyState}>
-              No saved layouts yet.
+              {i18n.t('dialogs.workspaceLayout.noSavedLayouts')}
               <br />
-              Click "Save Current" to save your current workspace arrangement.
+              {i18n.t('dialogs.workspaceLayout.noSavedLayoutsHint')}
             </div>
           ) : (
             layouts.map((wl) => {
@@ -654,8 +655,8 @@ const WorkspaceLayoutDialog = ({
                       {/* Load */}
                       <button
                         style={s.iconBtn}
-                        title="Load layout"
-                        aria-label={`Load ${wl.name}`}
+                        title={i18n.t('dialogs.workspaceLayout.loadLayout')}
+                        aria-label={i18n.t('dialogs.workspaceLayout.loadAria', { name: wl.name })}
                         onClick={() => handleLoad(wl)}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = 'var(--xp-surface-light)';

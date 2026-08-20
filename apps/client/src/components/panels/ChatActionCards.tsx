@@ -5,6 +5,7 @@
  * - FileActionCard: Single action with allow/reject/undo buttons + diff preview
  * - BatchActionCard: Batch permission card for multi-step operations
  */
+import i18n from '@/i18n';
 import { useState, useEffect, useMemo } from 'react';
 import {
   AlertTriangle,
@@ -46,18 +47,18 @@ import { scanContentForSecrets, type ScanResult } from './chat-content-scanner';
 // ---------------------------------------------------------------------------
 
 const ACTION_LABELS: Record<FileActionType, string> = {
-  create_file: 'Create file',
-  edit_file: 'Edit file',
-  delete_file: 'Delete file',
+  create_file: i18n.t('chat.createFile'),
+  edit_file: i18n.t('chat.editFile'),
+  delete_file: i18n.t('chat.deleteFile'),
   rename_file: 'Rename',
   move_file: 'Move',
   copy_file: 'Copy',
-  create_directory: 'Create folder',
-  list_directory: 'List directory',
-  search_files: 'Search files',
-  open_file: 'Open / navigate',
-  open_extension: 'Open in extension',
-  run_command: 'Run command',
+  create_directory: i18n.t('chat.createDirectory'),
+  list_directory: i18n.t('chat.listDirectory'),
+  search_files: i18n.t('chat.searchFiles'),
+  open_file: i18n.t('chat.openFile'),
+  open_extension: i18n.t('chat.openExtension'),
+  run_command: i18n.t('chat.runCommand'),
 };
 
 const ActionIcon = ({ action }: { action: FileActionType }) => {
@@ -223,7 +224,7 @@ export const FileActionCard = ({
           gap: '6px',
           opacity: isRejected ? 0.6 : 1,
         }}
-        title="Click to expand"
+        title={i18n.t('chat.clickToExpand')}
       >
         {isSuccess ? (
           pendingAction.undone ? (
@@ -272,7 +273,7 @@ export const FileActionCard = ({
               opacity: undoing ? 0.5 : 1,
               flexShrink: 0,
             }}
-            title="Undo this action"
+            title={i18n.t('chat.undoAction')}
           >
             <Undo2 size={10} />
             {undoing ? '...' : 'Undo'}
@@ -426,7 +427,7 @@ export const FileActionCard = ({
 
         {/* Diff preview for edit_file with existing file */}
         {showDiff && existingContent !== null && action.content !== undefined && (
-          <ChatErrorBoundary label="Diff preview">
+          <ChatErrorBoundary label={i18n.t('chat.diffPreview')}>
             <ChatDiffPreview previousContent={existingContent} newContent={action.content} />
           </ChatErrorBoundary>
         )}
@@ -453,7 +454,7 @@ export const FileActionCard = ({
           <div style={{ marginTop: '4px' }}>
             <div style={{ fontSize: '11px', color: 'var(--xp-text-muted)', marginBottom: '4px' }}>
               {action.action === 'edit_file' && existingContent === null
-                ? 'New file content:'
+                ? i18n.t('chat.newFileContent')
                 : 'Content:'}
             </div>
             <pre
@@ -680,7 +681,9 @@ export const FileActionCard = ({
                   }}
                 >
                   <CheckCircle2 size={14} />
-                  {action.action === 'delete_file' ? 'Moved to Trash' : 'Done'}
+                  {action.action === 'delete_file'
+                    ? i18n.t('chat.movedToTrash')
+                    : i18n.t('chat.done')}
                 </span>
                 {showUndo && (
                   <button
@@ -704,7 +707,7 @@ export const FileActionCard = ({
                     title="Undo this action"
                   >
                     <Undo2 size={11} />
-                    {undoing ? 'Undoing...' : 'Undo'}
+                    {undoing ? i18n.t('chat.undoing') : i18n.t('chat.undo')}
                   </button>
                 )}
               </>

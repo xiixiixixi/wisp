@@ -4,8 +4,6 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 import en from './locales/en.json';
 import zh from './locales/zh.json';
-import ja from './locales/ja.json';
-import id from './locales/id.json';
 import { STORAGE_KEYS } from './lib/storage-keys';
 
 const SETTINGS_KEY = STORAGE_KEYS.SETTINGS;
@@ -46,10 +44,10 @@ i18n
     resources: {
       en: { translation: en },
       zh: { translation: zh },
-      ja: { translation: ja },
-      id: { translation: id },
     },
     fallbackLng: 'en',
+    supportedLngs: ['en', 'zh'],
+    nonExplicitSupportedLngs: false,
     detection: {
       order: ['wispSettings', 'navigator'],
       caches: ['wispSettings'],

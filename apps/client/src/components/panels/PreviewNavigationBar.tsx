@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import type { FileEntry } from '@/lib/tauri-api';
 import { convertAssetUrl } from '@/lib/transport';
@@ -322,7 +323,7 @@ const PreviewNavigationBar = ({
           style={canPrev ? arrowBtnStyle : arrowBtnDisabledStyle}
           onClick={handlePrev}
           disabled={!canPrev}
-          title="Previous file (Left arrow)"
+          title={i18n.t('previewNav.prevFile')}
           aria-label="Previous file"
           onMouseEnter={(e) => {
             if (canPrev) {
@@ -344,7 +345,7 @@ const PreviewNavigationBar = ({
           style={canNext ? arrowBtnStyle : arrowBtnDisabledStyle}
           onClick={handleNext}
           disabled={!canNext}
-          title="Next file (Right arrow)"
+          title={i18n.t('previewNav.nextFile')}
           aria-label="Next file"
           onMouseEnter={(e) => {
             if (canNext) {
@@ -363,7 +364,7 @@ const PreviewNavigationBar = ({
           <button
             style={compareMode ? compareToggleActiveStyle : compareToggleStyle}
             onClick={onCompareToggle}
-            title="Compare with previous file"
+            title={i18n.t('previewNav.comparePrev')}
             aria-label="Compare with previous file"
             onMouseEnter={(e) => {
               if (!compareMode) {
@@ -392,7 +393,7 @@ const PreviewNavigationBar = ({
           <button
             style={recentDropdownBtnStyle}
             onClick={() => setRecentOpen(!recentOpen)}
-            title="Recently previewed files"
+            title={i18n.t('previewNav.recentPreviewed')}
             aria-label="Recently previewed files"
             onMouseEnter={(e) => {
               e.currentTarget.style.background = 'var(--xp-surface-light, rgba(255,255,255,0.06))';

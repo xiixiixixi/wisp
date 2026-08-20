@@ -1,5 +1,6 @@
 import React from 'react';
 import { formatFileSize, getFileIcon } from '@/lib/utils';
+import i18n from '@/i18n';
 import type { FileEntry, SearchResult } from '@/lib/tauri-api';
 import type { LiveSearchResult } from '@/hooks/use-live-search';
 
@@ -61,7 +62,7 @@ export const ResultRow = React.memo(
           borderRadius: '4px',
           transition: 'background 0.1s',
         }}
-        className="hover:bg-xp-surface-light text-xp-text"
+        className="text-xp-text hover:bg-xp-surface-light"
         onClick={() => onNavigate(item.parentDir, file)}
         onDoubleClick={() => onDoubleClick(file)}
         onKeyDown={(e) => {
@@ -144,7 +145,7 @@ export const AIResultRow = React.memo(({ result, query, onSelect }: AIResultRowP
         borderBottom: '1px solid var(--xp-border)',
         transition: 'background 0.1s',
       }}
-      className="hover:bg-xp-surface-light text-xp-text"
+      className="text-xp-text hover:bg-xp-surface-light"
       onClick={() => onSelect(result)}
       onKeyDown={(e) => {
         if (e.key === 'Enter') {
@@ -235,7 +236,9 @@ export const AIResultRow = React.memo(({ result, query, onSelect }: AIResultRowP
               }}
             >
               {match.token}
-              {match.context && match.context !== 'Filename match' ? ` - ${match.context}` : ''}
+              {match.context && match.context !== i18n.t('smartSearch.filenameMatch')
+                ? ` - ${match.context}`
+                : ''}
             </span>
           ))}
           {result.matches.length > 3 && (

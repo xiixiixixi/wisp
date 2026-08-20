@@ -1,3 +1,5 @@
+import i18n from '@/i18n';
+
 interface ChatSessionSummaryItem {
   id: string;
   title: string;
@@ -42,7 +44,7 @@ const ChatSessionSidebar = ({
     <div
       style={{ flex: '1 1 0%', minHeight: 0, minWidth: 0, overflowY: 'auto', overflowX: 'hidden' }}
     >
-      <div className="border-xp-border flex items-center justify-between border-b px-3 py-2">
+      <div className="flex items-center justify-between border-b border-xp-border px-3 py-2">
         <span className="text-xs font-medium">Chat History ({sessions.length})</span>
         {onClearHistory && sessions.length > 0 && (
           <button
@@ -50,7 +52,7 @@ const ChatSessionSidebar = ({
               onClearHistory();
               onClose();
             }}
-            className="text-xp-red text-[10px] hover:underline"
+            className="text-[10px] text-xp-red hover:underline"
           >
             Clear all
           </button>
@@ -58,7 +60,7 @@ const ChatSessionSidebar = ({
       </div>
       <div className="space-y-0.5">
         {sessions.length === 0 ? (
-          <div className="text-xp-text-muted px-3 py-6 text-center text-xs">No saved chats</div>
+          <div className="px-3 py-6 text-center text-xs text-xp-text-muted">No saved chats</div>
         ) : (
           [...sessions]
             .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
@@ -66,7 +68,7 @@ const ChatSessionSidebar = ({
               <div
                 key={session.id}
                 className={`hover:bg-xp-bg-hover group flex cursor-pointer items-center gap-2 px-3 py-2 text-xs transition-colors ${
-                  currentSessionId === session.id ? 'bg-xp-blue/10 border-xp-blue border-l-2' : ''
+                  currentSessionId === session.id ? 'bg-xp-blue/10 border-l-2 border-xp-blue' : ''
                 }`}
                 onClick={() => {
                   onLoadSession?.(session.id);
@@ -75,7 +77,7 @@ const ChatSessionSidebar = ({
               >
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-medium">{session.title}</div>
-                  <div className="text-xp-text-muted flex items-center gap-2 text-[10px]">
+                  <div className="flex items-center gap-2 text-[10px] text-xp-text-muted">
                     <span>{session.message_count} messages</span>
                     <span>{formatSessionDate(session.updated_at)}</span>
                   </div>
@@ -86,8 +88,8 @@ const ChatSessionSidebar = ({
                       e.stopPropagation();
                       onDeleteSession(session.id);
                     }}
-                    className="text-xp-text-muted hover:text-xp-red p-1 opacity-0 transition-all group-hover:opacity-100"
-                    title="Delete session"
+                    className="p-1 text-xp-text-muted opacity-0 transition-all hover:text-xp-red group-hover:opacity-100"
+                    title={i18n.t('chat.deleteSession')}
                   >
                     <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                       <path

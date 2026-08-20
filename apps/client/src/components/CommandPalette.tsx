@@ -265,8 +265,8 @@ const CommandPaletteInner = ({
           type: 'command',
           command: {
             id: '__go-to-path__',
-            title: `Go to ${trimmedQ}`,
-            category: 'Navigation',
+            title: t('commandPalette.goToFolder', { path: trimmedQ }),
+            category: t('commandPalette.goToCategory'),
             action: () => {
               onFileSelect(trimmedQ, true);
             },

@@ -43,7 +43,8 @@ import AISettings from '@/components/settings/AISettings';
 import PermissionsSettings from '@/components/settings/PermissionsSettings';
 import AccessibilitySettings from '@/components/settings/AccessibilitySettings';
 import FileAssociationsSettings from '@/components/settings/FileAssociationsSettings';
-import { loadFontSize } from '@/lib/utils';
+import { loadFontSize, applyTheme } from '@/lib/utils';
+import { resolveTheme } from '@/lib/ui-state';
 import {
   AppSettings,
   DEFAULT_SETTINGS,
@@ -168,7 +169,7 @@ const MarketplaceSettings = ({
 }) => (
   <div className="space-y-1">
     <div className="mb-1 px-4 pb-1 pt-2">
-      <h3 className="text-xp-text-secondary text-xs font-semibold uppercase tracking-wider">
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-xp-text-secondary">
         {t('settings.marketplace.updatesSection')}
       </h3>
     </div>
@@ -196,7 +197,12 @@ const Settings = () => {
   const [settings, setSettings] = useState<AppSettings>(() => {
     try {
       const saved = localStorage.getItem(SETTINGS_KEY);
-      if (saved) return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Align stored theme with the resolved theme (legacy values migrate to Rolex)
+        if (typeof parsed.theme === 'string') parsed.theme = resolveTheme();
+        return { ...DEFAULT_SETTINGS, ...parsed };
+      }
     } catch {
       /* ignore localStorage/parse errors */
     }
@@ -320,6 +326,7 @@ const Settings = () => {
 
   useEffect(() => {
     loadFontSize();
+    applyTheme(settings.theme);
     if (settings.reducedMotion) document.documentElement.classList.add('reduce-motion');
     if (settings.enhancedFocus) document.documentElement.classList.add('enhanced-focus');
     if (settings.highContrast) document.documentElement.classList.add('high-contrast');
@@ -396,51 +403,51 @@ const Settings = () => {
       case 'about':
         return (
           <div className="space-y-6 px-4 py-2">
-            <div className="border-xp-border rounded-lg border p-6 text-center">
-              <h2 className="text-xp-text mb-1 text-2xl font-bold">Wisp</h2>
-              <p className="text-xp-text-muted text-sm">v1.0.0-alpha.1</p>
-              <p className="text-xp-text-secondary mt-3 text-sm">
+            <div className="rounded-lg border border-xp-border p-6 text-center">
+              <h2 className="mb-1 text-2xl font-bold text-xp-text">Wisp</h2>
+              <p className="text-sm text-xp-text-muted">v1.0.0-alpha.1</p>
+              <p className="mt-3 text-sm text-xp-text-secondary">
                 {t('settings.about.description')}
               </p>
             </div>
 
-            <div className="border-xp-border rounded-lg border p-4">
-              <h3 className="text-xp-text mb-3 text-sm font-semibold">
+            <div className="rounded-lg border border-xp-border p-4">
+              <h3 className="mb-3 text-sm font-semibold text-xp-text">
                 {t('settings.about.links')}
               </h3>
               <div className="space-y-2">
                 <button
                   onClick={() => TauriAPI.openUrl('https://github.com/kimlimjustin/xplorer')}
-                  className="text-xp-text hover:bg-xp-surface-light flex w-full items-center gap-3 rounded-md p-2 text-left transition-colors"
+                  className="flex w-full items-center gap-3 rounded-md p-2 text-left text-xp-text transition-colors hover:bg-xp-surface-light"
                 >
                   <Github size={18} className="text-xp-text-muted" />
                   <span className="text-sm">GitHub Repository</span>
-                  <ExternalLink size={14} className="text-xp-text-muted ml-auto" />
+                  <ExternalLink size={14} className="ml-auto text-xp-text-muted" />
                 </button>
                 <button
                   onClick={() => TauriAPI.openUrl('https://xplorer.space')}
-                  className="text-xp-text hover:bg-xp-surface-light flex w-full items-center gap-3 rounded-md p-2 text-left transition-colors"
+                  className="flex w-full items-center gap-3 rounded-md p-2 text-left text-xp-text transition-colors hover:bg-xp-surface-light"
                 >
                   <ExternalLink size={18} className="text-xp-text-muted" />
                   <span className="text-sm">xplorer.space</span>
-                  <ExternalLink size={14} className="text-xp-text-muted ml-auto" />
+                  <ExternalLink size={14} className="ml-auto text-xp-text-muted" />
                 </button>
               </div>
             </div>
 
             <div className="border-xp-blue/30 bg-xp-blue/5 rounded-lg border p-5">
               <div className="flex items-start gap-3">
-                <Heart size={20} className="text-xp-blue mt-0.5 flex-shrink-0" />
+                <Heart size={20} className="mt-0.5 flex-shrink-0 text-xp-blue" />
                 <div>
-                  <h3 className="text-xp-text text-sm font-semibold">
+                  <h3 className="text-sm font-semibold text-xp-text">
                     {t('settings.about.sponsorTitle')}
                   </h3>
-                  <p className="text-xp-text-secondary mt-1 text-sm leading-relaxed">
+                  <p className="mt-1 text-sm leading-relaxed text-xp-text-secondary">
                     {t('settings.about.sponsorDescription')}
                   </p>
                   <button
                     onClick={() => TauriAPI.openUrl('https://github.com/sponsors/kimlimjustin')}
-                    className="bg-xp-blue hover:bg-xp-blue/80 mt-3 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-white transition-colors"
+                    className="hover:bg-xp-blue/80 mt-3 inline-flex items-center gap-2 rounded-md bg-xp-blue px-4 py-2 text-sm font-medium text-white transition-colors"
                   >
                     <Heart size={14} />
                     {t('settings.about.sponsorButton')}
@@ -449,29 +456,29 @@ const Settings = () => {
               </div>
             </div>
 
-            <p className="text-xp-text-muted text-center text-xs">{t('settings.about.license')}</p>
+            <p className="text-center text-xs text-xp-text-muted">{t('settings.about.license')}</p>
           </div>
         );
     }
   };
 
   return (
-    <div className="bg-xp-bg text-xp-text flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-xp-bg text-xp-text">
       {/* Header */}
       <div className="border-xp-border/50 bg-xp-bg/80 shrink-0 border-b backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-4">
           <button
             onClick={() => setLocation('/')}
-            className="text-xp-text-secondary hover:bg-xp-surface hover:text-xp-text flex h-8 w-8 items-center justify-center rounded-md transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-xp-surface hover:text-xp-text"
             title={t('settings.backToApp')}
           >
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-xp-text text-lg font-semibold leading-tight">
+            <h1 className="text-lg font-semibold leading-tight text-xp-text">
               {t('settings.title')}
             </h1>
-            <p className="text-xp-text-secondary text-xs">{t('settings.subtitle')}</p>
+            <p className="text-xs text-xp-text-secondary">{t('settings.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -518,10 +525,10 @@ const Settings = () => {
             <div className="max-w-2xl">
               {/* Tab heading */}
               <div className="mb-4 px-4">
-                <h2 className="text-xp-text text-xl font-semibold">
+                <h2 className="text-xl font-semibold text-xp-text">
                   {tabs.find((t) => t.id === activeTab)?.label}
                 </h2>
-                <p className="text-xp-text-secondary mt-0.5 text-sm">
+                <p className="mt-0.5 text-sm text-xp-text-secondary">
                   {tabs.find((t) => t.id === activeTab)?.description}
                 </p>
               </div>

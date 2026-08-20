@@ -14,7 +14,7 @@ body {
 }
 
 :root {
-  /* Glass theme defaults (boots glassmorphic before JS loads) */
+  /* Legacy glass theme defaults (the Rolex theme boots via html.theme-rolex before JS loads) */
   --background: transparent;
   --foreground: rgba(255, 255, 255, 0.92);
   --muted: rgba(255, 255, 255, 0.06);
@@ -50,6 +50,8 @@ body {
   --xp-surface-light: #161630;
   --xp-blue: #6366f1;
   --xp-blue-dark: #4f46e5;
+  --xp-accent: #6366f1;
+  --xp-accent-hover: #818cf8;
   --xp-purple: #a78bfa;
   --xp-pink: #f472b6;
   --xp-green: #34d399;
@@ -62,8 +64,6 @@ body {
   --xp-text-muted: rgba(255, 255, 255, 0.4);
   --xp-border: rgba(255, 255, 255, 0.1);
   --xp-border-light: rgba(255, 255, 255, 0.12);
-
-  /* Opaque popover/dropdown bg */
   --xp-popover: #1a1b2e;
 
   /* Glow Effects */
@@ -108,6 +108,8 @@ body {
   --xp-surface-light: #161630;
   --xp-blue: #6366f1;
   --xp-blue-dark: #4f46e5;
+  --xp-accent: #6366f1;
+  --xp-accent-hover: #818cf8;
   --xp-purple: #a78bfa;
   --xp-pink: #f472b6;
   --xp-green: #34d399;
@@ -166,6 +168,8 @@ body {
   --xp-surface-light: #f1f5f9;
   --xp-blue: #3b82f6;
   --xp-blue-dark: #2563eb;
+  --xp-accent: #3b82f6;
+  --xp-accent-hover: #60a5fa;
   --xp-purple: #8b5cf6;
   --xp-pink: #ec4899;
   --xp-green: #16a34a;
@@ -305,6 +309,138 @@ html.enhanced-focus *:focus-visible {
 .theme-light ::selection {
   background-color: rgba(59, 130, 246, 0.25);
   color: #1e293b;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ROLEX GREEN THEME (default)
+   Deep green dark theme inspired by the Rolex brand green (#006039).
+   ═══════════════════════════════════════════════════════════════════ */
+
+.theme-rolex {
+  /* shadcn/ui semantic tokens */
+  --background: #06130e;
+  --foreground: rgba(235, 255, 245, 0.92);
+  --muted: rgba(0, 160, 92, 0.1);
+  --muted-foreground: rgba(235, 255, 245, 0.62);
+  --popover: #0e2a1e;
+  --popover-foreground: rgba(235, 255, 245, 0.92);
+  --card: #0c231a;
+  --card-foreground: rgba(235, 255, 245, 0.92);
+  --border: rgba(0, 160, 92, 0.16);
+  --input: rgba(0, 160, 92, 0.16);
+  --primary: #00a05c;
+  --primary-foreground: #ffffff;
+  --secondary: rgba(0, 160, 92, 0.1);
+  --secondary-foreground: rgba(235, 255, 245, 0.92);
+  --accent: rgba(0, 160, 92, 0.14);
+  --accent-foreground: rgba(235, 255, 245, 0.92);
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
+  --ring: #00a05c;
+
+  /* Custom theme variables */
+  --xp-bg: #06130e;
+  --xp-bg-gradient: linear-gradient(135deg, #03100b 0%, #06241a 30%, #0a3322 55%, #04170f 100%);
+  --xp-surface: #0c231a;
+  --xp-surface-light: #113024;
+  --xp-blue: #00a05c;
+  --xp-blue-dark: #006039;
+  --xp-accent: #00a05c;
+  --xp-accent-hover: #00b96a;
+  --xp-purple: #a78bfa;
+  --xp-pink: #f472b6;
+  --xp-green: #2fbf71;
+  --xp-orange: #fb923c;
+  --xp-yellow: #fbbf24;
+  --xp-red: #f87171;
+  --xp-cyan: #22d3ee;
+  --xp-text: rgba(235, 255, 245, 0.92);
+  --xp-text-secondary: rgba(235, 255, 245, 0.62);
+  --xp-text-muted: rgba(235, 255, 245, 0.42);
+  --xp-border: rgba(0, 160, 92, 0.16);
+  --xp-border-light: rgba(0, 160, 92, 0.26);
+  --xp-popover: #0e2a1e;
+
+  /* Glow effects */
+  --glow-blue: 0 0 8px rgba(0, 160, 92, 0.35);
+  --glow-purple: 0 0 8px rgba(167, 139, 250, 0.3);
+  --glow-pink: 0 0 8px rgba(244, 114, 182, 0.3);
+  --glow-green: 0 0 8px rgba(47, 191, 113, 0.35);
+}
+
+/* Gradient background on the html element itself (Windows/Linux fallback) */
+html.theme-rolex {
+  background: linear-gradient(135deg, #03100b 0%, #06241a 30%, #0a3322 55%, #04170f 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+.theme-rolex body {
+  background: transparent !important;
+}
+
+/* ── Surface panels ──────────────────────────────────────────── */
+.theme-rolex .bg-xp-surface {
+  background-color: #0c231a;
+  border: 1px solid rgba(0, 160, 92, 0.1);
+}
+
+.theme-rolex .bg-xp-surface-light {
+  background-color: #113024;
+}
+
+/* Input fields */
+.theme-rolex input,
+.theme-rolex select,
+.theme-rolex textarea {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(0, 160, 92, 0.16) !important;
+}
+
+/* ── Interactive states ───────────────────────────────────────── */
+.theme-rolex .file-item:hover {
+  background-color: rgba(0, 160, 92, 0.08);
+}
+.theme-rolex .file-item.selected {
+  background-color: rgba(0, 160, 92, 0.25);
+  border: 1px solid rgba(0, 160, 92, 0.45);
+  color: rgba(235, 255, 245, 0.95);
+}
+.theme-rolex .sidebar-item:hover {
+  background-color: rgba(0, 160, 92, 0.08);
+}
+.theme-rolex .sidebar-item.active {
+  background-color: rgba(0, 160, 92, 0.3);
+}
+.theme-rolex .extension-card:hover {
+  border-color: rgba(0, 160, 92, 0.4);
+}
+.theme-rolex .tab-item.active {
+  background-color: rgba(0, 160, 92, 0.12);
+  border-bottom-color: #00a05c;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────── */
+.theme-rolex ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.theme-rolex ::-webkit-scrollbar-thumb {
+  background: rgba(0, 160, 92, 0.22);
+  border-radius: 4px;
+}
+.theme-rolex ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 160, 92, 0.35);
+}
+
+/* ── Borders ──────────────────────────────────────────────────── */
+.theme-rolex .border-xp-border {
+  border-color: rgba(0, 160, 92, 0.12);
+}
+
+/* ── Selection color ─────────────────────────────────────────── */
+.theme-rolex ::selection {
+  background-color: rgba(0, 160, 92, 0.4);
+  color: #ffffff;
 }
 
 /* ═══════════════════════════════════════════════════════════════════

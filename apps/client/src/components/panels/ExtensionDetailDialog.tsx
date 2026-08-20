@@ -30,7 +30,7 @@ const ExtensionDetailDialog = ({
         <Star
           key={i}
           className={`h-4 w-4 ${
-            i <= Math.round(rating) ? 'text-xp-yellow fill-xp-yellow' : 'text-xp-text-muted'
+            i <= Math.round(rating) ? 'fill-xp-yellow text-xp-yellow' : 'text-xp-text-muted'
           }`}
         />,
       );
@@ -45,12 +45,12 @@ const ExtensionDetailDialog = ({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-xp-surface border-xp-border flex max-h-[80vh] w-[480px] max-w-[90vw] flex-col rounded-lg border shadow-xl">
+      <div className="flex max-h-[80vh] w-[480px] max-w-[90vw] flex-col rounded-lg border border-xp-border bg-xp-surface shadow-xl">
         {/* Header */}
-        <div className="border-xp-border flex items-start justify-between border-b p-5">
+        <div className="flex items-start justify-between border-b border-xp-border p-5">
           <div className="flex min-w-0 items-start gap-3">
             {/* Icon */}
-            <div className="bg-xp-bg border-xp-border flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg border text-lg">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg border border-xp-border bg-xp-bg text-lg">
               {extension.icon ? (
                 extension.icon.trim().startsWith('<') ? (
                   <span
@@ -61,30 +61,30 @@ const ExtensionDetailDialog = ({
                   <span className="text-xl">{extension.icon}</span>
                 )
               ) : (
-                <span className="text-xp-blue text-xl font-bold">
+                <span className="text-xl font-bold text-xp-blue">
                   {extension.displayName.charAt(0).toUpperCase()}
                 </span>
               )}
             </div>
 
             <div className="min-w-0">
-              <h2 className="text-xp-text truncate text-lg font-semibold">
+              <h2 className="truncate text-lg font-semibold text-xp-text">
                 {extension.displayName}
               </h2>
               <div className="mt-0.5 flex items-center gap-2">
-                <span className="text-xp-text-muted flex items-center gap-1 text-xs">
+                <span className="flex items-center gap-1 text-xs text-xp-text-muted">
                   <User className="h-3 w-3" />
                   {extension.author.name || extension.author.username}
                 </span>
-                <span className="text-xp-text-muted text-xs">&middot;</span>
-                <span className="text-xp-text-muted text-xs">v{extension.version}</span>
+                <span className="text-xs text-xp-text-muted">&middot;</span>
+                <span className="text-xs text-xp-text-muted">v{extension.version}</span>
               </div>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-text flex-shrink-0 rounded p-1 transition-colors"
+            className="flex-shrink-0 rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
@@ -97,14 +97,14 @@ const ExtensionDetailDialog = ({
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1">
               {renderStars(extension.averageRating)}
-              <span className="text-xp-text ml-1 text-sm">
+              <span className="ml-1 text-sm text-xp-text">
                 {extension.averageRating.toFixed(1)}
               </span>
-              <span className="text-xp-text-muted text-xs">
+              <span className="text-xs text-xp-text-muted">
                 ({extension.reviewCount} review{extension.reviewCount !== 1 ? 's' : ''})
               </span>
             </div>
-            <span className="text-xp-text-muted flex items-center gap-1 text-sm">
+            <span className="flex items-center gap-1 text-sm text-xp-text-muted">
               <Download className="h-4 w-4" />
               {extension.downloadCount.toLocaleString()} downloads
             </span>
@@ -112,14 +112,14 @@ const ExtensionDetailDialog = ({
 
           {/* Description */}
           <div>
-            <h3 className="text-xp-text mb-1.5 text-sm font-medium">Description</h3>
-            <p className="text-xp-text-muted text-sm leading-relaxed">{extension.description}</p>
+            <h3 className="mb-1.5 text-sm font-medium text-xp-text">Description</h3>
+            <p className="text-sm leading-relaxed text-xp-text-muted">{extension.description}</p>
           </div>
 
           {/* Categories */}
           {extension.categories && extension.categories.length > 0 && (
             <div>
-              <h3 className="text-xp-text mb-1.5 flex items-center gap-1 text-sm font-medium">
+              <h3 className="mb-1.5 flex items-center gap-1 text-sm font-medium text-xp-text">
                 <Tag className="h-3.5 w-3.5" />
                 Categories
               </h3>
@@ -127,7 +127,7 @@ const ExtensionDetailDialog = ({
                 {extension.categories.map((cat) => (
                   <span
                     key={cat.slug}
-                    className="bg-xp-blue/10 text-xp-blue border-xp-blue/20 rounded-full border px-2 py-0.5 text-xs"
+                    className="bg-xp-blue/10 border-xp-blue/20 rounded-full border px-2 py-0.5 text-xs text-xp-blue"
                   >
                     {cat.name}
                   </span>
@@ -139,7 +139,7 @@ const ExtensionDetailDialog = ({
           {/* Permissions */}
           {extension.permissions && extension.permissions.length > 0 && (
             <div>
-              <h3 className="text-xp-text mb-1.5 flex items-center gap-1 text-sm font-medium">
+              <h3 className="mb-1.5 flex items-center gap-1 text-sm font-medium text-xp-text">
                 <Shield className="h-3.5 w-3.5" />
                 Permissions
               </h3>
@@ -147,9 +147,9 @@ const ExtensionDetailDialog = ({
                 {extension.permissions.map((perm) => (
                   <div
                     key={perm}
-                    className="bg-xp-bg border-xp-border text-xp-text-muted flex items-center gap-2 rounded border px-2.5 py-1.5 text-xs"
+                    className="flex items-center gap-2 rounded border border-xp-border bg-xp-bg px-2.5 py-1.5 text-xs text-xp-text-muted"
                   >
-                    <Shield className="text-xp-yellow h-3 w-3 flex-shrink-0" />
+                    <Shield className="h-3 w-3 flex-shrink-0 text-xp-yellow" />
                     {perm}
                   </div>
                 ))}
@@ -159,27 +159,27 @@ const ExtensionDetailDialog = ({
         </div>
 
         {/* Footer */}
-        <div className="border-xp-border flex items-center justify-between border-t p-4">
+        <div className="flex items-center justify-between border-t border-xp-border p-4">
           <button
             onClick={() => {
               const baseUrl = MARKETPLACE_API_URL.replace(/\/api$/, '');
               TauriAPI.openUrl(`${baseUrl}/extensions/${extension.slug || extension.id}`);
             }}
-            className="text-xp-text-muted hover:text-xp-text border-xp-border hover:bg-xp-surface-light flex items-center gap-1.5 rounded border px-3 py-1.5 text-sm transition-colors"
+            className="flex items-center gap-1.5 rounded border border-xp-border px-3 py-1.5 text-sm text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
           >
             <ExternalLink className="h-3.5 w-3.5" />
             View on Web
           </button>
 
           {isInstalled ? (
-            <span className="bg-xp-green/20 text-xp-green border-xp-green/30 rounded-md border px-4 py-1.5 text-sm">
+            <span className="bg-xp-green/20 border-xp-green/30 rounded-md border px-4 py-1.5 text-sm text-xp-green">
               Installed
             </span>
           ) : (
             <button
               onClick={() => onInstall(extension)}
               disabled={isInstalling}
-              className="bg-xp-blue hover:bg-xp-blue/80 flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm text-white transition-colors disabled:opacity-50"
+              className="hover:bg-xp-blue/80 flex items-center gap-1.5 rounded-md bg-xp-blue px-4 py-1.5 text-sm text-white transition-colors disabled:opacity-50"
             >
               {isInstalling ? (
                 <>

@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import React, { useState, useEffect, useCallback, useSyncExternalStore } from 'react';
 import { extensionHost, resolveIcon } from '@/lib/extension-host';
 import { TauriAPI, type ExtensionManifestInfo } from '@/lib/tauri-api';
@@ -92,7 +93,7 @@ const ExtensionsPanel = ({ themes, theme, applyTheme }: ExtensionsPanelProps) =>
         console.error('Failed to uninstall extension:', err);
         toast({
           variant: 'destructive',
-          title: 'Uninstall Failed',
+          title: i18n.t('extensionsPanel.uninstallFailed'),
           description: `Failed to uninstall extension: ${err}`,
         });
       }
@@ -160,7 +161,7 @@ const ExtensionsPanel = ({ themes, theme, applyTheme }: ExtensionsPanelProps) =>
       console.error('Failed to validate extension:', err);
       toast({
         variant: 'destructive',
-        title: 'Validation Failed',
+        title: i18n.t('extensionsPanel.validationFailed'),
         description: `Failed to validate extension: ${err}`,
       });
     }
@@ -177,7 +178,7 @@ const ExtensionsPanel = ({ themes, theme, applyTheme }: ExtensionsPanelProps) =>
       console.error('Failed to install extension:', err);
       toast({
         variant: 'destructive',
-        title: 'Install Failed',
+        title: i18n.t('extensionsPanel.installFailed'),
         description: `Failed to install extension: ${err}`,
       });
     } finally {
@@ -188,13 +189,13 @@ const ExtensionsPanel = ({ themes, theme, applyTheme }: ExtensionsPanelProps) =>
 
   return (
     <div className="h-full overflow-y-auto p-4">
-      <h3 className="text-xp-text mb-4 text-xs font-semibold uppercase tracking-wider">
+      <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-xp-text">
         Extensions
       </h3>
 
       {/* Claude Agent Extension — hardcoded system feature */}
       <div className="mb-4">
-        <div className="bg-xp-bg border-xp-border rounded-lg border p-3">
+        <div className="rounded-lg border border-xp-border bg-xp-bg p-3">
           <div className="mb-2 flex items-center justify-between">
             <h4 className="flex items-center text-sm font-medium">
               <Bot size={16} className="mr-2 inline-block" />
@@ -213,19 +214,21 @@ const ExtensionsPanel = ({ themes, theme, applyTheme }: ExtensionsPanelProps) =>
                     : 'bg-xp-border text-xp-text hover:bg-xp-surface-light'
                 }`}
               >
-                {agentEnabled ? 'Enabled' : 'Disabled'}
+                {agentEnabled
+                  ? i18n.t('settings.tokenizer.enabled')
+                  : i18n.t('settings.tokenizer.disabled')}
               </button>
             </div>
           </div>
-          <p className="text-xp-text-muted text-xs">Autonomous AI agent powered by Claude.</p>
+          <p className="text-xs text-xp-text-muted">Autonomous AI agent powered by Claude.</p>
         </div>
       </div>
 
       {/* Theme Manager */}
-      <div className="bg-xp-bg border-xp-border mb-4 rounded-lg border p-3">
+      <div className="mb-4 rounded-lg border border-xp-border bg-xp-bg p-3">
         <div className="mb-2 flex items-center justify-between">
           <h4 className="text-sm font-medium">Theme Manager</h4>
-          <div className="bg-xp-green h-2 w-2 rounded-full" />
+          <div className="h-2 w-2 rounded-full bg-xp-green" />
         </div>
         <div className="grid grid-cols-2 gap-2">
           {Object.entries(themes).map(([key, themeData]) => (
@@ -236,7 +239,7 @@ const ExtensionsPanel = ({ themes, theme, applyTheme }: ExtensionsPanelProps) =>
               aria-pressed={theme === key}
               className={`rounded p-2 text-left text-xs transition-colors ${
                 theme === key
-                  ? 'bg-xp-blue text-xp-blue border-xp-blue border bg-opacity-20'
+                  ? 'border border-xp-blue bg-xp-blue bg-opacity-20 text-xp-blue'
                   : 'hover:bg-xp-surface-light'
               }`}
             >
@@ -256,14 +259,14 @@ const ExtensionsPanel = ({ themes, theme, applyTheme }: ExtensionsPanelProps) =>
       {allExtensions.length > 0 && (
         <div className="mb-4">
           <div className="mb-2 flex items-center justify-between">
-            <h4 className="text-xp-text text-xs font-semibold uppercase tracking-wider">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-xp-text">
               Installed Extensions ({allExtensions.length})
             </h4>
             {extensionHost.hasUpdatesAvailable() && (
               <button
                 onClick={handleUpdateAll}
                 aria-label={t('extensions.updateAll')}
-                className="bg-xp-blue flex items-center gap-1 rounded px-2 py-0.5 text-xs text-white transition-colors hover:bg-opacity-90"
+                className="flex items-center gap-1 rounded bg-xp-blue px-2 py-0.5 text-xs text-white transition-colors hover:bg-opacity-90"
               >
                 <ArrowDownCircle size={12} />
                 {t('extensions.updateAll')}
@@ -277,14 +280,14 @@ const ExtensionsPanel = ({ themes, theme, applyTheme }: ExtensionsPanelProps) =>
               return (
                 <div
                   key={ext.id}
-                  className="hover:bg-xp-surface-light group flex items-center justify-between rounded p-2 transition-colors"
+                  className="group flex items-center justify-between rounded p-2 transition-colors hover:bg-xp-surface-light"
                 >
                   <div className="flex min-w-0 items-center space-x-2">
                     <span className="flex-shrink-0 text-base">
                       {resolveIcon(ext.manifest.icon)}
                     </span>
                     <div className="min-w-0">
-                      <p className="text-xp-text flex items-center gap-1.5 truncate text-sm">
+                      <p className="flex items-center gap-1.5 truncate text-sm text-xp-text">
                         {ext.manifest.display_name || ext.manifest.name}
                         {ext.isDev && (
                           <span
@@ -307,7 +310,7 @@ const ExtensionsPanel = ({ themes, theme, applyTheme }: ExtensionsPanelProps) =>
                           </span>
                         )}
                       </p>
-                      <p className="text-xp-text-muted text-xs">
+                      <p className="text-xs text-xp-text-muted">
                         v{ext.manifest.version} by {ext.manifest.author}
                       </p>
                     </div>
@@ -318,7 +321,7 @@ const ExtensionsPanel = ({ themes, theme, applyTheme }: ExtensionsPanelProps) =>
                         onClick={() => handleUpdateExtension(ext.id)}
                         disabled={isUpdatingExt}
                         aria-label={`${t('extensions.updateSingle')} ${ext.manifest.display_name || ext.manifest.name}`}
-                        className="bg-xp-blue flex items-center gap-1 rounded px-2 py-0.5 text-xs text-white transition-colors hover:bg-opacity-90 disabled:opacity-50"
+                        className="flex items-center gap-1 rounded bg-xp-blue px-2 py-0.5 text-xs text-white transition-colors hover:bg-opacity-90 disabled:opacity-50"
                       >
                         {isUpdatingExt ? (
                           <>
@@ -342,16 +345,16 @@ const ExtensionsPanel = ({ themes, theme, applyTheme }: ExtensionsPanelProps) =>
                       }
                       className={`rounded px-2 py-0.5 text-xs transition-colors ${
                         ext.isActive
-                          ? 'bg-xp-green text-xp-green bg-opacity-20'
+                          ? 'bg-xp-green bg-opacity-20 text-xp-green'
                           : 'bg-xp-border text-xp-text-muted'
                       }`}
                     >
-                      {ext.isActive ? 'On' : 'Off'}
+                      {ext.isActive ? i18n.t('common.on') : i18n.t('common.off')}
                     </button>
                     <button
                       onClick={() => handleUninstall(ext.id)}
                       aria-label={`Uninstall ${ext.manifest.display_name || ext.manifest.name}`}
-                      className="text-xp-red hover:bg-xp-red rounded px-2 py-0.5 text-xs opacity-0 transition-all hover:bg-opacity-10 group-hover:opacity-100"
+                      className="rounded px-2 py-0.5 text-xs text-xp-red opacity-0 transition-all hover:bg-xp-red hover:bg-opacity-10 group-hover:opacity-100"
                     >
                       Uninstall
                     </button>
@@ -364,12 +367,12 @@ const ExtensionsPanel = ({ themes, theme, applyTheme }: ExtensionsPanelProps) =>
       )}
 
       {/* Install Extension */}
-      <div className="border-xp-border border-t pt-3">
+      <div className="border-t border-xp-border pt-3">
         <button
           onClick={handleInstallFromFolder}
           disabled={installing}
           aria-label="Install extension from folder"
-          className="bg-xp-blue flex w-full items-center justify-center space-x-2 rounded px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-opacity-90 disabled:opacity-50"
+          className="flex w-full items-center justify-center space-x-2 rounded bg-xp-blue px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-opacity-90 disabled:opacity-50"
         >
           {installing ? (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

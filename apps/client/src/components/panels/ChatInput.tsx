@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import React from 'react';
 
 interface ChatInputProps {
@@ -36,16 +37,16 @@ const ChatInput = ({
   const tokenEstimate = estimateTokens(chatInput);
 
   return (
-    <div className="border-xp-border flex-shrink-0 border-t px-3 py-2.5">
+    <div className="flex-shrink-0 border-t border-xp-border px-3 py-2.5">
       <div className="flex gap-2">
         <textarea
           value={chatInput}
           onChange={(e) => setChatInput(e.target.value)}
           onKeyDown={handleKeyPress}
           placeholder={
-            agentEnabled ? 'Ask the agent to manage your files...' : 'Ask about your files...'
+            agentEnabled ? i18n.t('chat.agentPlaceholder') : i18n.t('chat.askPlaceholder')
           }
-          className="bg-xp-bg border-xp-border focus:ring-xp-blue flex-1 resize-none rounded border px-3 py-2 text-sm outline-none focus:ring-1"
+          className="flex-1 resize-none rounded border border-xp-border bg-xp-bg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xp-blue"
           disabled={isAiLoading || isAgentRunning}
           rows={1}
           aria-label={agentEnabled ? 'Ask the agent to manage your files' : 'Ask about your files'}
@@ -53,7 +54,7 @@ const ChatInput = ({
         {isAgentRunning ? (
           <button
             onClick={onCancel}
-            className="bg-xp-red flex items-center justify-center rounded px-4 py-2 text-xs font-medium text-white transition-colors hover:opacity-80"
+            className="flex items-center justify-center rounded bg-xp-red px-4 py-2 text-xs font-medium text-white transition-colors hover:opacity-80"
             aria-label="Stop agent"
           >
             Stop
@@ -62,7 +63,7 @@ const ChatInput = ({
           <button
             onClick={onSendMessage}
             disabled={!chatInput.trim() || isAiLoading}
-            className="bg-xp-blue flex items-center justify-center rounded px-4 py-2 text-white transition-colors hover:bg-opacity-80 disabled:opacity-50"
+            className="flex items-center justify-center rounded bg-xp-blue px-4 py-2 text-white transition-colors hover:bg-opacity-80 disabled:opacity-50"
             aria-label="Send message"
           >
             <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -71,7 +72,7 @@ const ChatInput = ({
           </button>
         )}
       </div>
-      <div className="text-xp-text-muted mt-1 flex items-center justify-between text-xs">
+      <div className="mt-1 flex items-center justify-between text-xs text-xp-text-muted">
         <span>Enter to send{agentEnabled ? ' \u2022 Agent mode' : ''}</span>
         {charCount > 0 && (
           <span>

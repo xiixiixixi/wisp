@@ -52,15 +52,15 @@ const MarketplaceFilters = React.memo(
     }, [showSortDropdown]);
 
     return (
-      <div className="border-xp-border space-y-2 border-b px-3 py-2">
+      <div className="space-y-2 border-b border-xp-border px-3 py-2">
         {categories.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             <button
               onClick={() => setSelectedCategory('')}
               className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
                 selectedCategory === ''
-                  ? 'bg-xp-blue border-xp-blue text-white'
-                  : 'bg-xp-surface border-xp-border text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
+                  ? 'border-xp-blue bg-xp-blue text-white'
+                  : 'border-xp-border bg-xp-surface text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
               }`}
             >
               All
@@ -71,8 +71,8 @@ const MarketplaceFilters = React.memo(
                 onClick={() => setSelectedCategory(cat.slug)}
                 className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
                   selectedCategory === cat.slug
-                    ? 'bg-xp-blue border-xp-blue text-white'
-                    : 'bg-xp-surface border-xp-border text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
+                    ? 'border-xp-blue bg-xp-blue text-white'
+                    : 'border-xp-border bg-xp-surface text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
                 }`}
               >
                 {cat.name}
@@ -82,20 +82,20 @@ const MarketplaceFilters = React.memo(
         )}
 
         <div className="flex items-center justify-between">
-          <span className="text-xp-text-muted text-xs">
+          <span className="text-xs text-xp-text-muted">
             {pagination.total} extension{pagination.total !== 1 ? 's' : ''}
           </span>
           <div className="relative" ref={sortRef}>
             <button
               onClick={() => setShowSortDropdown(!showSortDropdown)}
-              className="border-xp-border bg-xp-surface text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text flex items-center gap-1 rounded border px-2 py-1 text-xs transition-colors"
+              className="flex items-center gap-1 rounded border border-xp-border bg-xp-surface px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             >
               Sort: {SORT_LABELS[sortBy]}
               <ChevronDown className="h-3 w-3" />
             </button>
             {showSortDropdown && (
               <>
-                <div className="bg-xp-popover border-xp-border absolute right-0 top-full z-20 mt-1 min-w-[140px] rounded-md border py-1 shadow-xl backdrop-blur-xl">
+                <div className="absolute right-0 top-full z-20 mt-1 min-w-[140px] rounded-md border border-xp-border bg-xp-popover py-1 shadow-xl backdrop-blur-xl">
                   {(Object.keys(SORT_LABELS) as SortOption[]).map((option) => (
                     <button
                       key={option}
@@ -105,7 +105,7 @@ const MarketplaceFilters = React.memo(
                       }}
                       className={`w-full px-3 py-1.5 text-left text-xs transition-colors ${
                         sortBy === option
-                          ? 'text-xp-blue bg-xp-blue/10'
+                          ? 'bg-xp-blue/10 text-xp-blue'
                           : 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
                       }`}
                     >

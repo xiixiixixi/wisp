@@ -20,7 +20,7 @@ const renderStars = (rating: number) => {
       <Star
         key={i}
         className={`h-3 w-3 ${
-          i <= Math.round(rating) ? 'text-xp-yellow fill-xp-yellow' : 'text-xp-text-muted'
+          i <= Math.round(rating) ? 'fill-xp-yellow text-xp-yellow' : 'text-xp-text-muted'
         }`}
       />,
     );
@@ -44,7 +44,7 @@ const ExtensionCard = React.memo(
         onClick={() => onSelect(extension)}
       >
         <div className="flex min-w-0 items-start gap-2">
-          <div className="bg-xp-surface border-xp-border text-xp-blue flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-xp-border bg-xp-surface text-xp-blue">
             {extension.icon ? (
               extension.icon.trim().startsWith('<') ? (
                 <span
@@ -63,7 +63,7 @@ const ExtensionCard = React.memo(
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2">
-              <h4 className="text-xp-text truncate text-sm font-medium">{extension.displayName}</h4>
+              <h4 className="truncate text-sm font-medium text-xp-text">{extension.displayName}</h4>
               <div className="flex-shrink-0">
                 {isDev ? (
                   <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
@@ -76,7 +76,7 @@ const ExtensionCard = React.memo(
                       onUninstall(extension);
                     }}
                     disabled={isInstalling}
-                    className="text-xp-text-muted hover:text-xp-red hover:bg-xp-red/10 flex items-center rounded p-1 transition-colors disabled:opacity-50"
+                    className="hover:bg-xp-red/10 flex items-center rounded p-1 text-xp-text-muted transition-colors hover:text-xp-red disabled:opacity-50"
                     title="Uninstall"
                   >
                     {isInstalling ? (
@@ -92,7 +92,7 @@ const ExtensionCard = React.memo(
                       onInstall(extension);
                     }}
                     disabled={isInstalling}
-                    className="bg-xp-blue hover:bg-xp-blue/80 flex items-center gap-1 rounded px-2 py-0.5 text-[11px] text-white transition-colors disabled:opacity-50"
+                    className="hover:bg-xp-blue/80 flex items-center gap-1 rounded bg-xp-blue px-2 py-0.5 text-[11px] text-white transition-colors disabled:opacity-50"
                   >
                     {isInstalling ? (
                       <>
@@ -107,18 +107,18 @@ const ExtensionCard = React.memo(
               </div>
             </div>
 
-            <p className="text-xp-text-muted truncate text-[11px]">
+            <p className="truncate text-[11px] text-xp-text-muted">
               {extension.author.name || extension.author.username} &middot; v{extension.version}
             </p>
 
-            <p className="text-xp-text-muted mt-1 line-clamp-2 text-xs">{extension.description}</p>
+            <p className="mt-1 line-clamp-2 text-xs text-xp-text-muted">{extension.description}</p>
 
             <div className="mt-1.5 flex items-center gap-3">
-              <span className="text-xp-text-muted flex items-center gap-0.5 text-[11px]">
+              <span className="flex items-center gap-0.5 text-[11px] text-xp-text-muted">
                 <Download className="h-3 w-3 flex-shrink-0" />
                 {extension.downloadCount.toLocaleString()}
               </span>
-              <span className="text-xp-text-muted flex items-center gap-0.5 text-[11px]">
+              <span className="flex items-center gap-0.5 text-[11px] text-xp-text-muted">
                 {renderStars(extension.averageRating)}
                 <span className="ml-0.5">{extension.averageRating.toFixed(1)}</span>
               </span>

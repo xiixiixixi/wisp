@@ -4,6 +4,7 @@
  *
  * Extracted from ChatActionCards.tsx to stay under the 1000-line limit.
  */
+import i18n from '@/i18n';
 import { useState } from 'react';
 import {
   FolderOpen,
@@ -278,7 +279,7 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
             flexShrink: 0,
           }}
         >
-          {warningLevel === 'danger' ? 'Run!' : 'Run'}
+          {warningLevel === 'danger' ? i18n.t('chat.runDanger') : i18n.t('chat.run')}
         </button>
         <ChevronDown size={14} style={{ color: 'var(--xp-text-muted)', flexShrink: 0 }} />
       </div>
@@ -308,7 +309,7 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
           gap: '6px',
           opacity: isRejected ? 0.6 : 1,
         }}
-        title="Click to expand"
+        title={i18n.t('chat.clickToExpand')}
       >
         {isSuccess ? (
           <CheckCircle2 size={13} style={{ flexShrink: 0, color: 'var(--xp-green, #9ece6a)' }} />
@@ -381,7 +382,7 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
           }}
         />
         <span style={{ fontWeight: 600, color: 'var(--xp-text)' }}>
-          {isCompleted ? 'Command' : 'AI wants to run a command'}
+          {isCompleted ? i18n.t('chat.command') : i18n.t('chat.aiWantsToRun')}
         </span>
         {warningLevel === 'unknown' && !isCompleted && (
           <span
@@ -569,9 +570,9 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
               }}
             >
               {warningLevel === 'danger'
-                ? 'Run Anyway'
+                ? i18n.t('chat.runAnyway')
                 : warningLevel === 'unknown'
-                  ? 'Run (Unverified)'
+                  ? i18n.t('chat.runUnverified')
                   : 'Run'}
             </button>
           </>

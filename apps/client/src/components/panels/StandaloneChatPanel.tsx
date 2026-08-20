@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { useState, useRef, useCallback, useEffect, useMemo, lazy, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
@@ -909,10 +910,10 @@ const StandaloneChatPanel = () => {
             }}
           >
             <Loader2 size={12} style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />
-            {isReadingFile ? 'Reading file...' : agentStep || 'Thinking...'}
+            {isReadingFile ? i18n.t('chat.readingFile') : agentStep || i18n.t('chat.thinking')}
             <button
               onClick={stopAgent}
-              title="Stop agent"
+              title={i18n.t('chat.stopAgent')}
               aria-label="Stop AI agent"
               style={{
                 marginLeft: 'auto',

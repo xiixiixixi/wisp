@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import React, { useRef, useState, useMemo, useLayoutEffect, useEffect, useCallback } from 'react';
 import ExtensionPanelHost from './ExtensionPanelHost';
 import PreviewNavigationBar from './PreviewNavigationBar';
@@ -269,15 +270,15 @@ const RightSidebar = ({
 
   // Get panel title for header
   const getTabTitle = () => {
-    if (showCompare) return 'Compare Files';
-    if (scrubberCompareFiles) return 'Compare Files';
-    if (rightPanelTab === 'preview') return 'File Preview';
-    if (rightPanelTab === 'tokenizer') return 'Content Search';
+    if (showCompare) return i18n.t('dialogs.compareFiles.title');
+    if (scrubberCompareFiles) return i18n.t('dialogs.compareFiles.title');
+    if (rightPanelTab === 'preview') return i18n.t('panels.core.preview');
+    if (rightPanelTab === 'tokenizer') return i18n.t('panels.core.tokenizer');
     if (rightPanelTab === 'chat') return 'AI Chat';
-    if (rightPanelTab === 'agent-manager') return 'Agent Manager';
-    if (rightPanelTab === 'performance') return 'Performance';
-    if (rightPanelTab === 'extensions') return 'Extensions';
-    if (rightPanelTab === 'marketplace') return 'Marketplace';
+    if (rightPanelTab === 'agent-manager') return i18n.t('panels.core.agentManager');
+    if (rightPanelTab === 'performance') return i18n.t('panels.core.performance');
+    if (rightPanelTab === 'extensions') return i18n.t('panels.core.extensions');
+    if (rightPanelTab === 'marketplace') return i18n.t('panels.core.marketplace');
     const panel = extensionHost.getPanel(rightPanelTab);
     if (panel) return panel.title;
     return rightPanelTab;
@@ -286,7 +287,7 @@ const RightSidebar = ({
   return (
     <div
       ref={outerRef}
-      className="bg-xp-surface border-xp-border border-l"
+      className="border-l border-xp-border bg-xp-surface"
       style={{ width: width ?? 320, flexShrink: 0, minHeight: 0, overflow: 'hidden' }}
     >
       {/* Inner container with explicit measured height -- bypasses WebView2 flex height bug */}
@@ -300,13 +301,13 @@ const RightSidebar = ({
       >
         {/* Right Panel Header */}
         <div
-          className="border-xp-border flex items-center justify-between border-b px-3 py-2"
+          className="flex items-center justify-between border-b border-xp-border px-3 py-2"
           style={{ flexShrink: 0 }}
         >
           <h3 className="truncate text-sm font-medium">{getTabTitle()}</h3>
           <button
             onClick={() => setRightSidebarCollapsed(true)}
-            className="hover:bg-xp-surface-light ml-2 flex-shrink-0 rounded p-1"
+            className="ml-2 flex-shrink-0 rounded p-1 hover:bg-xp-surface-light"
             aria-label="Close panel"
           >
             <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -349,7 +350,7 @@ const RightSidebar = ({
         >
           <React.Suspense
             fallback={
-              <div className="text-xp-text-secondary flex flex-1 items-center justify-center text-xs">
+              <div className="flex flex-1 items-center justify-center text-xs text-xp-text-secondary">
                 Loading...
               </div>
             }

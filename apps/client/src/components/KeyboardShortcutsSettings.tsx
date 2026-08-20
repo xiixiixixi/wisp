@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TauriAPI, ShortcutBinding } from '@/lib/tauri-api';
 import {
   getKeyString,
@@ -29,17 +30,23 @@ interface CategoryDef {
 }
 
 const CATEGORIES: Record<string, CategoryDef> = {
-  'file-operations': { label: 'File Operations', icon: FileText },
-  navigation: { label: 'Navigation', icon: Navigation },
-  selection: { label: 'Selection', icon: CheckSquare },
-  search: { label: 'Search & Filter', icon: Search },
-  view: { label: 'View & Layout', icon: LayoutGrid },
-  application: { label: 'Application', icon: Settings2 },
-  terminal: { label: 'Terminal', icon: Terminal },
-  extensions: { label: 'Extensions', icon: Puzzle },
+  'file-operations': { label: 'fileOperations', icon: FileText },
+  navigation: { label: 'navigation', icon: Navigation },
+  selection: { label: 'selection', icon: CheckSquare },
+  search: { label: 'search', icon: Search },
+  view: { label: 'view', icon: LayoutGrid },
+  application: { label: 'application', icon: Settings2 },
+  terminal: { label: 'terminal', icon: Terminal },
+  extensions: { label: 'extensions', icon: Puzzle },
+};
+
+const categoryLabel = (t: (k: string) => string, cat: string): string => {
+  const key = CATEGORIES[cat]?.label;
+  return key ? t(`settings.shortcuts.categories.${key}`) : cat;
 };
 
 const KeyboardShortcutsSettings = () => {
+  const { t } = useTranslation();
   const [shortcuts, setShortcuts] = useState<ShortcutBinding[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -188,7 +195,7 @@ const KeyboardShortcutsSettings = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <div className="border-xp-accent h-6 w-6 animate-spin rounded-full border-b-2" />
+        <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-xp-accent" />
       </div>
     );
   }
@@ -199,19 +206,19 @@ const KeyboardShortcutsSettings = () => {
       <div className="relative">
         <Search
           size={16}
-          className="text-xp-text-secondary absolute left-3 top-1/2 -translate-y-1/2"
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-xp-text-secondary"
         />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search shortcuts..."
-          className="border-xp-border bg-xp-bg text-xp-text placeholder:text-xp-text-secondary/50 focus:border-xp-accent focus:ring-xp-accent h-9 w-full rounded-md border pl-9 pr-3 text-sm transition-colors focus:outline-none focus:ring-1"
+          placeholder={t('settings.shortcuts.searchPlaceholder')}
+          className="placeholder:text-xp-text-secondary/50 h-9 w-full rounded-md border border-xp-border bg-xp-bg pl-9 pr-3 text-sm text-xp-text transition-colors focus:border-xp-accent focus:outline-none focus:ring-1 focus:ring-xp-accent"
         />
         {searchQuery && (
           <button
             onClick={() => setSearchQuery('')}
-            className="text-xp-text-secondary hover:text-xp-text absolute right-2 top-1/2 -translate-y-1/2 rounded p-1"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-xp-text-secondary hover:text-xp-text"
           >
             <X size={14} />
           </button>
@@ -219,16 +226,17 @@ const KeyboardShortcutsSettings = () => {
       </div>
 
       {/* Shortcut count */}
-      <div className="text-xp-text-secondary px-1 text-xs">
-        {filtered.length} shortcut{filtered.length !== 1 ? 's' : ''}
-        {searchQuery ? ` matching "${searchQuery}"` : ''}
+      <div className="px-1 text-xs text-xp-text-secondary">
+        {searchQuery
+          ? t('settings.shortcuts.countMatching', { count: filtered.length, query: searchQuery })
+          : t('settings.shortcuts.count', { count: filtered.length })}
       </div>
 
       {/* Category groups */}
       <div className="space-y-2">
         {sortedCategories.map((cat) => {
-          const def = CATEGORIES[cat] || { label: cat, icon: Keyboard };
-          const Icon = def.icon;
+          const def = CATEGORIES[cat];
+          const Icon = def?.icon || Keyboard;
           const items = grouped.get(cat)!;
           const isCollapsed = collapsedCategories.has(cat);
 
@@ -237,12 +245,12 @@ const KeyboardShortcutsSettings = () => {
               {/* Category header */}
               <button
                 onClick={() => toggleCategory(cat)}
-                className="bg-xp-surface/50 hover:bg-xp-surface flex w-full items-center gap-2 px-4 py-2.5 text-left transition-colors"
+                className="bg-xp-surface/50 flex w-full items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-xp-surface"
               >
                 {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
                 <Icon size={15} className="text-xp-text-secondary" />
-                <span className="text-xp-text text-sm font-medium">{def.label}</span>
-                <span className="text-xp-text-secondary ml-auto text-xs">{items.length}</span>
+                <span className="text-sm font-medium text-xp-text">{categoryLabel(t, cat)}</span>
+                <span className="ml-auto text-xs text-xp-text-secondary">{items.length}</span>
               </button>
 
               {/* Shortcut rows */}
@@ -264,11 +272,17 @@ const KeyboardShortcutsSettings = () => {
                         {/* Label + description */}
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-xp-text truncate text-sm">
-                              {shortcut.description || getLabelForAction(shortcut.action)}
+                            <span className="truncate text-sm text-xp-text">
+                              {(() => {
+                                const actionLabel = getLabelForAction(shortcut.action);
+                                return typeof shortcut.action === 'string' &&
+                                  actionLabel !== shortcut.action
+                                  ? actionLabel
+                                  : shortcut.description || actionLabel;
+                              })()}
                             </span>
                             {isExtension && (
-                              <span className="bg-xp-purple/15 text-xp-purple inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium">
+                              <span className="bg-xp-purple/15 inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium text-xp-purple">
                                 <Puzzle size={10} />
                                 {extensionName}
                               </span>
@@ -289,10 +303,14 @@ const KeyboardShortcutsSettings = () => {
                               setConflict(null);
                             }
                           }}
-                          title={isEditing ? 'Cancel editing' : 'Click to edit shortcut'}
+                          title={
+                            isEditing
+                              ? t('settings.shortcuts.cancelEditing')
+                              : t('settings.shortcuts.clickToEdit')
+                          }
                           className={`inline-flex shrink-0 items-center gap-1 rounded-md border px-2.5 py-1 font-mono text-xs transition-all ${
                             isEditing
-                              ? 'border-xp-accent bg-xp-accent/10 text-xp-accent animate-pulse'
+                              ? 'bg-xp-accent/10 animate-pulse border-xp-accent text-xp-accent'
                               : 'border-xp-border bg-xp-bg text-xp-text-secondary hover:border-xp-text-secondary hover:text-xp-text'
                           }`}
                         >
@@ -300,9 +318,11 @@ const KeyboardShortcutsSettings = () => {
                             if (isEditing) {
                               return capturedCombo
                                 ? formatKeyComboForDisplay(capturedCombo)
-                                : 'Press keys...';
+                                : t('settings.shortcuts.pressKeys');
                             }
-                            return formatKeyComboForDisplay(combo) || 'Unbound';
+                            return (
+                              formatKeyComboForDisplay(combo) || t('settings.shortcuts.unbound')
+                            );
                           })()}
                         </button>
 
@@ -311,9 +331,9 @@ const KeyboardShortcutsSettings = () => {
                           <div className="flex items-center gap-1">
                             <button
                               onClick={handleConfirmEdit}
-                              className="bg-xp-accent hover:bg-xp-accent/80 shrink-0 rounded px-2 py-1 text-xs font-medium text-white transition-colors"
+                              className="hover:bg-xp-accent/80 shrink-0 rounded bg-xp-accent px-2 py-1 text-xs font-medium text-white transition-colors"
                             >
-                              Save
+                              {t('settings.shortcuts.save')}
                             </button>
                             <button
                               onClick={() => {
@@ -321,9 +341,9 @@ const KeyboardShortcutsSettings = () => {
                                 setCapturedCombo(null);
                                 setConflict(null);
                               }}
-                              className="text-xp-text-secondary hover:text-xp-text hover:bg-xp-surface-light shrink-0 rounded px-2 py-1 text-xs transition-colors"
+                              className="shrink-0 rounded px-2 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                             >
-                              Cancel
+                              {t('settings.shortcuts.cancel')}
                             </button>
                           </div>
                         ) : (
@@ -331,8 +351,8 @@ const KeyboardShortcutsSettings = () => {
                           !isExtension && (
                             <button
                               onClick={() => handleResetSingle(shortcut.id)}
-                              title="Reset to default"
-                              className="text-xp-text-secondary/40 hover:text-xp-text-secondary shrink-0 rounded p-1 transition-colors"
+                              title={t('settings.shortcuts.resetToDefault')}
+                              className="text-xp-text-secondary/40 shrink-0 rounded p-1 transition-colors hover:text-xp-text-secondary"
                             >
                               <RotateCcw size={13} />
                             </button>
@@ -351,18 +371,21 @@ const KeyboardShortcutsSettings = () => {
       {/* Conflict warning (shown when editing) */}
       {editingId && conflict && (
         <div className="border-xp-yellow/30 bg-xp-yellow/5 flex items-center gap-2 rounded-md border px-4 py-2.5 text-sm">
-          <AlertTriangle size={16} className="text-xp-yellow shrink-0" />
+          <AlertTriangle size={16} className="shrink-0 text-xp-yellow" />
           <span className="text-xp-text">
-            Conflicts with:{' '}
-            <span className="font-medium">{conflict.description || conflict.id}</span>
+            {t('settings.shortcuts.conflictsWith', {
+              name: conflict.description || conflict.id,
+            })}
           </span>
         </div>
       )}
 
       {/* Empty state */}
       {filtered.length === 0 && (
-        <div className="text-xp-text-secondary py-8 text-center">
-          {searchQuery ? `No shortcuts matching "${searchQuery}"` : 'No shortcuts configured'}
+        <div className="py-8 text-center text-xp-text-secondary">
+          {searchQuery
+            ? t('settings.shortcuts.noMatching', { query: searchQuery })
+            : t('settings.shortcuts.noShortcuts')}
         </div>
       )}
 
@@ -370,10 +393,10 @@ const KeyboardShortcutsSettings = () => {
       <div className="pt-2">
         <button
           onClick={handleResetAll}
-          className="text-xp-text-secondary hover:text-xp-red hover:bg-xp-red/5 flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors"
+          className="hover:bg-xp-red/5 flex items-center gap-2 rounded-md px-3 py-2 text-sm text-xp-text-secondary transition-colors hover:text-xp-red"
         >
           <RotateCcw size={14} />
-          Reset all shortcuts to defaults
+          {t('settings.shortcuts.resetAll')}
         </button>
       </div>
     </div>

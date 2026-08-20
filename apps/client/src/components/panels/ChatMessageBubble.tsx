@@ -2,6 +2,7 @@
  * Single chat message bubble with file action cards.
  * Extracted from StandaloneChatPanel to keep it under the 1000-line limit.
  */
+import i18n from '@/i18n';
 import React, { useState, useCallback } from 'react';
 import { FileText } from 'lucide-react';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
@@ -133,7 +134,7 @@ const ImageThumbnailStrip = ({
         >
           <img
             src={lightboxUrl}
-            alt="Full preview"
+            alt={i18n.t('chat.fullPreview')}
             style={{
               maxWidth: '90vw',
               maxHeight: '90vh',
@@ -241,7 +242,7 @@ const ChatMessageBubble = ({
           }}
         >
           {msg.role === 'assistant' ? (
-            <ChatErrorBoundary label="Message content">
+            <ChatErrorBoundary label={i18n.t('chat.messageContent')}>
               <MarkdownRenderer
                 content={displayText}
                 onSaveCodeAsFile={onSaveCodeAsFile}

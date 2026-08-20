@@ -1,4 +1,5 @@
 import { FileEntry } from '@/lib/tauri-api';
+import i18n from '@/i18n';
 
 export interface SelectionCriteria {
   type: 'extension' | 'dateRange' | 'sizeRange' | 'similar' | 'invert' | 'pattern';
@@ -29,7 +30,9 @@ export interface SizeRangePreset {
 
 export const DATE_RANGE_PRESETS: DateRangePreset[] = [
   {
-    label: 'Today',
+    get label() {
+      return i18n.t('advancedSelection.presets.today');
+    },
     getRange: () => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -39,7 +42,9 @@ export const DATE_RANGE_PRESETS: DateRangePreset[] = [
     },
   },
   {
-    label: 'Yesterday',
+    get label() {
+      return i18n.t('advancedSelection.presets.yesterday');
+    },
     getRange: () => {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
@@ -50,7 +55,9 @@ export const DATE_RANGE_PRESETS: DateRangePreset[] = [
     },
   },
   {
-    label: 'Last 7 days',
+    get label() {
+      return i18n.t('advancedSelection.presets.last7days');
+    },
     getRange: () => {
       const now = new Date();
       const weekAgo = new Date();
@@ -59,7 +66,9 @@ export const DATE_RANGE_PRESETS: DateRangePreset[] = [
     },
   },
   {
-    label: 'Last 30 days',
+    get label() {
+      return i18n.t('advancedSelection.presets.last30days');
+    },
     getRange: () => {
       const now = new Date();
       const monthAgo = new Date();
@@ -68,7 +77,9 @@ export const DATE_RANGE_PRESETS: DateRangePreset[] = [
     },
   },
   {
-    label: 'This month',
+    get label() {
+      return i18n.t('advancedSelection.presets.thisMonth');
+    },
     getRange: () => {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -76,7 +87,9 @@ export const DATE_RANGE_PRESETS: DateRangePreset[] = [
     },
   },
   {
-    label: 'Last month',
+    get label() {
+      return i18n.t('advancedSelection.presets.lastMonth');
+    },
     getRange: () => {
       const now = new Date();
       const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -85,7 +98,9 @@ export const DATE_RANGE_PRESETS: DateRangePreset[] = [
     },
   },
   {
-    label: 'This year',
+    get label() {
+      return i18n.t('advancedSelection.presets.thisYear');
+    },
     getRange: () => {
       const now = new Date();
       const startOfYear = new Date(now.getFullYear(), 0, 1);
@@ -95,25 +110,85 @@ export const DATE_RANGE_PRESETS: DateRangePreset[] = [
 ];
 
 export const SIZE_RANGE_PRESETS: SizeRangePreset[] = [
-  { label: 'Tiny (< 10 KB)', min: 0, max: 10 * 1024 },
-  { label: 'Small (10 KB - 100 KB)', min: 10 * 1024, max: 100 * 1024 },
-  { label: 'Medium (100 KB - 1 MB)', min: 100 * 1024, max: 1024 * 1024 },
-  { label: 'Large (1 MB - 10 MB)', min: 1024 * 1024, max: 10 * 1024 * 1024 },
-  { label: 'Very Large (10 MB - 100 MB)', min: 10 * 1024 * 1024, max: 100 * 1024 * 1024 },
-  { label: 'Huge (> 100 MB)', min: 100 * 1024 * 1024, max: Infinity },
+  {
+    get label() {
+      return i18n.t('advancedSelection.presets.tiny');
+    },
+    min: 0,
+    max: 10 * 1024,
+  },
+  {
+    get label() {
+      return i18n.t('advancedSelection.presets.small');
+    },
+    min: 10 * 1024,
+    max: 100 * 1024,
+  },
+  {
+    get label() {
+      return i18n.t('advancedSelection.presets.medium');
+    },
+    min: 100 * 1024,
+    max: 1024 * 1024,
+  },
+  {
+    get label() {
+      return i18n.t('advancedSelection.presets.large');
+    },
+    min: 1024 * 1024,
+    max: 10 * 1024 * 1024,
+  },
+  {
+    get label() {
+      return i18n.t('advancedSelection.presets.veryLarge');
+    },
+    min: 10 * 1024 * 1024,
+    max: 100 * 1024 * 1024,
+  },
+  {
+    get label() {
+      return i18n.t('advancedSelection.presets.huge');
+    },
+    min: 100 * 1024 * 1024,
+    max: Infinity,
+  },
 ];
 
 export const COMMON_FILE_TYPES: { label: string; extensions: string[] }[] = [
-  { label: 'Images', extensions: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp', 'ico'] },
   {
-    label: 'Documents',
+    get label() {
+      return i18n.t('advancedSelection.categories.images');
+    },
+    extensions: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp', 'ico'],
+  },
+  {
+    get label() {
+      return i18n.t('advancedSelection.categories.documents');
+    },
     extensions: ['doc', 'docx', 'pdf', 'txt', 'rtf', 'odt', 'xls', 'xlsx', 'ppt', 'pptx'],
   },
-  { label: 'Videos', extensions: ['mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv', 'webm'] },
-  { label: 'Audio', extensions: ['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma', 'm4a'] },
-  { label: 'Archives', extensions: ['zip', 'rar', '7z', 'tar', 'gz', 'bz2'] },
   {
-    label: 'Code',
+    get label() {
+      return i18n.t('advancedSelection.categories.videos');
+    },
+    extensions: ['mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv', 'webm'],
+  },
+  {
+    get label() {
+      return i18n.t('advancedSelection.categories.audio');
+    },
+    extensions: ['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma', 'm4a'],
+  },
+  {
+    get label() {
+      return i18n.t('advancedSelection.categories.archives');
+    },
+    extensions: ['zip', 'rar', '7z', 'tar', 'gz', 'bz2'],
+  },
+  {
+    get label() {
+      return i18n.t('advancedSelection.categories.code');
+    },
     extensions: [
       'js',
       'ts',
@@ -132,8 +207,15 @@ export const COMMON_FILE_TYPES: { label: string; extensions: string[] }[] = [
     ],
   },
   {
-    label: 'Web',
+    get label() {
+      return i18n.t('advancedSelection.categories.web');
+    },
     extensions: ['html', 'css', 'scss', 'sass', 'less', 'json', 'xml', 'yaml', 'yml'],
   },
-  { label: 'Executables', extensions: ['exe', 'msi', 'bat', 'cmd', 'sh', 'app', 'dmg'] },
+  {
+    get label() {
+      return i18n.t('advancedSelection.categories.executables');
+    },
+    extensions: ['exe', 'msi', 'bat', 'cmd', 'sh', 'app', 'dmg'],
+  },
 ];

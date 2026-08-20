@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface PasswordPromptDialogProps {
   isOpen: boolean;
@@ -27,18 +28,23 @@ export const PasswordPromptDialog = ({
   username,
   host,
 }: PasswordPromptDialogProps) => {
+  const { t } = useTranslation();
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
 
   // For backward compatibility, construct title and description from legacy props
-  const displayTitle = title || 'SSH Authentication Required';
+  const displayTitle = title || t('dialogs.passwordPrompt.sshTitle');
   const displayDescription =
     description ||
     (connectionName && username && host
-      ? `Please enter your password to connect to ${username}@${host} (${connectionName}).`
-      : 'Please enter your password to continue.');
+      ? t('dialogs.passwordPrompt.connectDesc', {
+          user: username,
+          host,
+          conn: connectionName,
+        })
+      : t('dialogs.passwordPrompt.continueDesc'));
 
   useEffect(() => {
     if (isOpen) {
@@ -81,7 +87,7 @@ export const PasswordPromptDialog = ({
         aria-describedby="password-dialog-description"
         aria-modal="true"
         tabIndex={-1}
-        className="bg-xp-surface border-xp-border w-96 max-w-full rounded-lg border p-6"
+        className="w-96 max-w-full rounded-lg border border-xp-border bg-xp-surface p-6"
         onKeyDown={(e) => {
           if (e.key === 'Escape' && !isLoading) {
             handleClose();
@@ -115,7 +121,7 @@ export const PasswordPromptDialog = ({
           <button
             onClick={handleClose}
             disabled={isLoading}
-            className="text-xp-text-muted hover:text-xp-text transition-colors disabled:opacity-50"
+            className="text-xp-text-muted transition-colors hover:text-xp-text disabled:opacity-50"
             aria-label="Close"
           >
             ✕
@@ -125,7 +131,7 @@ export const PasswordPromptDialog = ({
         <div className="mb-4">
           {/* Legacy SSH connection details for backward compatibility */}
           {connectionName && username && host && (
-            <div className="text-xp-text-muted mb-3 text-sm">
+            <div className="mb-3 text-sm text-xp-text-muted">
               <p>
                 <strong>Connection:</strong> {connectionName}
               </p>
@@ -134,7 +140,7 @@ export const PasswordPromptDialog = ({
               </p>
             </div>
           )}
-          <p id="password-dialog-description" className="text-xp-text text-sm">
+          <p id="password-dialog-description" className="text-sm text-xp-text">
             {displayDescription}
           </p>
         </div>
@@ -156,8 +162,8 @@ export const PasswordPromptDialog = ({
                     onSubmit(password, remember);
                   }
                 }}
-                className="bg-xp-bg border-xp-border focus:ring-xp-blue w-full rounded border px-3 py-2 pr-10 text-sm focus:border-transparent focus:outline-none focus:ring-2"
-                placeholder="Enter your password"
+                className="w-full rounded border border-xp-border bg-xp-bg px-3 py-2 pr-10 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-xp-blue"
+                placeholder={t('dialogs.passwordPrompt.passwordPlaceholder')}
                 autoFocus
                 required
                 disabled={isLoading}
@@ -165,7 +171,7 @@ export const PasswordPromptDialog = ({
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="text-xp-text-muted hover:text-xp-text absolute right-3 top-1/2 -translate-y-1/2 transform transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 transform text-xp-text-muted transition-colors hover:text-xp-text"
                 disabled={isLoading}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
@@ -202,7 +208,7 @@ export const PasswordPromptDialog = ({
                 className="rounded"
                 disabled={isLoading}
               />
-              <label htmlFor="remember" className="text-xp-text-muted text-sm">
+              <label htmlFor="remember" className="text-sm text-xp-text-muted">
                 Remember password for this session
               </label>
             </div>
@@ -240,7 +246,7 @@ export const PasswordPromptDialog = ({
               type="button"
               onClick={handleClose}
               disabled={isLoading}
-              className="border-xp-border hover:bg-xp-surface-light rounded border px-4 py-2 text-sm transition-colors disabled:opacity-50"
+              className="rounded border border-xp-border px-4 py-2 text-sm transition-colors hover:bg-xp-surface-light disabled:opacity-50"
               aria-label="Cancel authentication"
             >
               Cancel
@@ -248,13 +254,21 @@ export const PasswordPromptDialog = ({
             <button
               type="submit"
               disabled={isLoading || !password.trim()}
-              className="bg-xp-blue hover:bg-xp-blue-dark flex items-center space-x-2 rounded px-4 py-2 text-sm text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-              aria-label={isLoading ? 'Authenticating' : 'Continue with authentication'}
+              className="flex items-center space-x-2 rounded bg-xp-blue px-4 py-2 text-sm text-white transition-colors hover:bg-xp-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label={
+                isLoading
+                  ? t('dialogs.passwordPrompt.authenticating')
+                  : t('dialogs.passwordPrompt.continueAuthAria')
+              }
             >
               {isLoading && (
                 <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
               )}
-              <span>{isLoading ? 'Authenticating...' : 'Continue'}</span>
+              <span>
+                {isLoading
+                  ? t('dialogs.passwordPrompt.authenticating')
+                  : t('dialogs.passwordPrompt.continueAuth')}
+              </span>
             </button>
           </div>
         </form>

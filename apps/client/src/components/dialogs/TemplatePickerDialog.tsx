@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import i18n from '@/i18n';
 import {
   getAllTemplates,
   extractVariables,
@@ -489,8 +490,10 @@ const TemplatePickerDialog = ({
                         <button
                           style={s.deleteBtn}
                           onClick={(e) => handleDeleteCustom(e, template.id)}
-                          title="Delete custom template"
-                          aria-label={`Delete template ${template.name}`}
+                          title={i18n.t('dialogs.templatePicker.deleteCustom')}
+                          aria-label={i18n.t('dialogs.templatePicker.deleteAria', {
+                            name: template.name,
+                          })}
                         >
                           <svg
                             width="12"

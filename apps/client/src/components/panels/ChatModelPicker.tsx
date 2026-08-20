@@ -3,6 +3,7 @@
  * Lets users switch between popular OpenRouter models without opening Settings.
  * Persists selection to localStorage under aiCloudModel + aiServiceMode=cloud.
  */
+import i18n from '@/i18n';
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, Sparkles, Check } from 'lucide-react';
@@ -20,18 +21,90 @@ interface ModelOption {
 }
 
 const POPULAR_MODELS: ReadonlyArray<ModelOption> = [
-  { id: 'anthropic/claude-sonnet-4', label: 'Claude Sonnet 4', hint: 'Default · balanced' },
-  { id: 'anthropic/claude-opus-4', label: 'Claude Opus 4', hint: 'Most capable' },
-  { id: 'anthropic/claude-haiku-3.5', label: 'Claude Haiku 3.5', hint: 'Fast · cheap' },
-  { id: 'openai/gpt-4.1', label: 'GPT-4.1', hint: 'OpenAI flagship' },
-  { id: 'openai/o3', label: 'OpenAI o3', hint: 'Reasoning' },
-  { id: 'openai/o4-mini', label: 'o4-mini', hint: 'Fast reasoning' },
-  { id: 'google/gemini-2.5-pro', label: 'Gemini 2.5 Pro', hint: 'Long context' },
-  { id: 'google/gemini-2.5-flash', label: 'Gemini 2.5 Flash', hint: 'Cheap & fast' },
-  { id: 'meta-llama/llama-4-scout', label: 'Llama 4 Scout', hint: 'Open weight' },
-  { id: 'deepseek/deepseek-r1', label: 'DeepSeek R1', hint: 'Reasoning · cheap' },
-  { id: 'qwen/qwen3-235b', label: 'Qwen3 235B', hint: 'Open · large' },
-  { id: 'x-ai/grok-4', label: 'Grok 4', hint: 'xAI' },
+  {
+    id: 'anthropic/claude-sonnet-4',
+    label: 'Claude Sonnet 4',
+    get hint() {
+      return i18n.t('chatModel.hintDefault');
+    },
+  },
+  {
+    id: 'anthropic/claude-opus-4',
+    label: 'Claude Opus 4',
+    get hint() {
+      return i18n.t('chatModel.hintMostCapable');
+    },
+  },
+  {
+    id: 'anthropic/claude-haiku-3.5',
+    label: 'Claude Haiku 3.5',
+    get hint() {
+      return i18n.t('chatModel.hintFastCheap');
+    },
+  },
+  {
+    id: 'openai/gpt-4.1',
+    label: 'GPT-4.1',
+    get hint() {
+      return i18n.t('chatModel.hintOpenAIFlagship');
+    },
+  },
+  {
+    id: 'openai/o3',
+    label: 'OpenAI o3',
+    get hint() {
+      return i18n.t('chatModel.hintReasoning');
+    },
+  },
+  {
+    id: 'openai/o4-mini',
+    label: 'o4-mini',
+    get hint() {
+      return i18n.t('chatModel.hintFastReasoning');
+    },
+  },
+  {
+    id: 'google/gemini-2.5-pro',
+    label: 'Gemini 2.5 Pro',
+    get hint() {
+      return i18n.t('chatModel.hintLongContext');
+    },
+  },
+  {
+    id: 'google/gemini-2.5-flash',
+    label: 'Gemini 2.5 Flash',
+    get hint() {
+      return i18n.t('chatModel.hintCheapFast');
+    },
+  },
+  {
+    id: 'meta-llama/llama-4-scout',
+    label: 'Llama 4 Scout',
+    get hint() {
+      return i18n.t('chatModel.hintOpenWeight');
+    },
+  },
+  {
+    id: 'deepseek/deepseek-r1',
+    label: 'DeepSeek R1',
+    get hint() {
+      return i18n.t('chatModel.hintReasoningCheap');
+    },
+  },
+  {
+    id: 'qwen/qwen3-235b',
+    label: 'Qwen3 235B',
+    get hint() {
+      return i18n.t('chatModel.hintOpenLarge');
+    },
+  },
+  {
+    id: 'x-ai/grok-4',
+    label: 'Grok 4',
+    get hint() {
+      return i18n.t('chatModel.hintXai');
+    },
+  },
 ];
 
 const stripPrefix = (model: string): string => model.replace(/^openrouter:/, '');
@@ -42,7 +115,7 @@ const findLabel = (model: string): string => {
   if (match) return match.label;
   // Show short version of custom model
   const parts = stripped.split('/');
-  return parts[parts.length - 1] || stripped || 'Select model';
+  return parts[parts.length - 1] || stripped || i18n.t('chatModel.selectModel');
 };
 
 const ChatModelPicker = ({ currentModel, onModelChange }: ChatModelPickerProps) => {

@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
@@ -342,7 +343,7 @@ const XTermPanel = ({ cwd, collapsed }: XTermPanelProps) => {
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'transparent';
           }}
-          title="New Terminal"
+          title={i18n.t('xterm.newTerminal')}
         >
           <Plus size={14} />
         </button>

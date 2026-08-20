@@ -143,16 +143,11 @@ const PROVIDER_LABELS: Record<SearchProvider, string> = {
 
 const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
   (
-    {
-      className,
-      onFileSelect,
-      placeholder = 'Search files and content...',
-      maxResults = 50,
-      currentPath,
-    },
+    { className, onFileSelect, placeholder: placeholderProp, maxResults = 50, currentPath },
     ref,
   ) => {
     const { t } = useTranslation();
+    const placeholder = placeholderProp ?? t('smartSearch.placeholder');
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<SearchResult[]>([]);
     const [isSearching, setIsSearching] = useState(false);
@@ -349,7 +344,10 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                           path: p,
                           filename,
                           matches: [
-                            { token: effectiveQuery || searchQuery, context: 'Filename match' },
+                            {
+                              token: effectiveQuery || searchQuery,
+                              context: t('smartSearch.filenameMatch'),
+                            },
                           ],
                           score: computeFilesystemScore(filename, effectiveQuery || searchQuery),
                           relevance_type: 'exact',
@@ -407,7 +405,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
             }
           }
         }, SEARCH_DEBOUNCE_MS),
-      [maxResults, searchProvider, currentPath, searchContent, searchScope, toast],
+      [maxResults, searchProvider, currentPath, searchContent, searchScope, toast, t],
     );
 
     useEffect(() => {
@@ -541,57 +539,57 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
       switch (ext) {
         case 'js':
         case 'ts':
-          return <FileCode {...props} className="text-xp-yellow inline-block" />;
+          return <FileCode {...props} className="inline-block text-xp-yellow" />;
         case 'jsx':
         case 'tsx':
-          return <FileCode {...props} className="text-xp-cyan inline-block" />;
+          return <FileCode {...props} className="inline-block text-xp-cyan" />;
         case 'html':
-          return <Globe {...props} className="text-xp-orange inline-block" />;
+          return <Globe {...props} className="inline-block text-xp-orange" />;
         case 'css':
         case 'scss':
         case 'sass':
-          return <Palette {...props} className="text-xp-purple inline-block" />;
+          return <Palette {...props} className="inline-block text-xp-purple" />;
         case 'json':
         case 'xml':
         case 'yaml':
         case 'yml':
-          return <FileJson {...props} className="text-xp-green inline-block" />;
+          return <FileJson {...props} className="inline-block text-xp-green" />;
         case 'md':
-          return <BookOpen {...props} className="text-xp-blue inline-block" />;
+          return <BookOpen {...props} className="inline-block text-xp-blue" />;
         case 'txt':
-          return <FileText {...props} className="text-xp-text-muted inline-block" />;
+          return <FileText {...props} className="inline-block text-xp-text-muted" />;
         case 'log':
-          return <ScrollText {...props} className="text-xp-text-muted inline-block" />;
+          return <ScrollText {...props} className="inline-block text-xp-text-muted" />;
         case 'pdf':
-          return <BookMarked {...props} className="text-xp-red inline-block" />;
+          return <BookMarked {...props} className="inline-block text-xp-red" />;
         case 'docx':
-          return <FileText {...props} className="text-xp-blue inline-block" />;
+          return <FileText {...props} className="inline-block text-xp-blue" />;
         case 'xlsx':
-          return <FileSpreadsheet {...props} className="text-xp-green inline-block" />;
+          return <FileSpreadsheet {...props} className="inline-block text-xp-green" />;
         case 'pptx':
-          return <Presentation {...props} className="text-xp-orange inline-block" />;
+          return <Presentation {...props} className="inline-block text-xp-orange" />;
         case 'jpg':
         case 'jpeg':
         case 'png':
         case 'gif':
         case 'svg':
-          return <ImageIcon {...props} className="text-xp-purple inline-block" />;
+          return <ImageIcon {...props} className="inline-block text-xp-purple" />;
         case 'mp4':
         case 'avi':
         case 'mov':
         case 'mkv':
-          return <Film {...props} className="text-xp-red inline-block" />;
+          return <Film {...props} className="inline-block text-xp-red" />;
         case 'mp3':
         case 'wav':
         case 'flac':
-          return <Music {...props} className="text-xp-cyan inline-block" />;
+          return <Music {...props} className="inline-block text-xp-cyan" />;
         case 'zip':
         case 'rar':
         case 'tar':
         case 'gz':
-          return <Package {...props} className="text-xp-orange inline-block" />;
+          return <Package {...props} className="inline-block text-xp-orange" />;
         default:
-          return <FileIcon {...props} className="text-xp-text-muted inline-block" />;
+          return <FileIcon {...props} className="inline-block text-xp-text-muted" />;
       }
     };
 
@@ -665,14 +663,14 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
       if (pq.date_filter) {
         if (pq.date_filter.after) {
           const daysAgo = Math.round((Date.now() / 1000 - pq.date_filter.after) / 86400);
-          if (daysAgo <= 1) chips.push({ label: 'Today', type: 'date' });
-          else if (daysAgo <= 2) chips.push({ label: 'Yesterday', type: 'date' });
-          else if (daysAgo <= 7) chips.push({ label: 'Last Week', type: 'date' });
-          else if (daysAgo <= 30) chips.push({ label: 'Last Month', type: 'date' });
-          else if (daysAgo <= 365) chips.push({ label: 'This Year', type: 'date' });
+          if (daysAgo <= 1) chips.push({ label: t('smartSearch.today'), type: 'date' });
+          else if (daysAgo <= 2) chips.push({ label: t('smartSearch.yesterday'), type: 'date' });
+          else if (daysAgo <= 7) chips.push({ label: t('smartSearch.lastWeek'), type: 'date' });
+          else if (daysAgo <= 30) chips.push({ label: t('smartSearch.lastMonth'), type: 'date' });
+          else if (daysAgo <= 365) chips.push({ label: t('smartSearch.thisYear'), type: 'date' });
         }
         if (pq.date_filter.before && !pq.date_filter.after) {
-          chips.push({ label: 'Old', type: 'date' });
+          chips.push({ label: t('smartSearch.old'), type: 'date' });
         }
       }
       if (pq.extension_filter.length > 0) {
@@ -697,15 +695,15 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
             onFocus={handleFocus}
             onBlur={handleBlur}
             placeholder={placeholder}
-            className="bg-xp-bg border-xp-border focus:ring-xp-blue w-full rounded-lg border px-4 py-2 pl-10 pr-28 text-sm focus:border-transparent focus:outline-none focus:ring-2"
+            className="w-full rounded-lg border border-xp-border bg-xp-bg px-4 py-2 pl-10 pr-28 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-xp-blue"
           />
 
           {/* Search Icon */}
           <div className="absolute left-3 top-1/2 -translate-y-1/2 transform">
             {isSearching ? (
-              <div className="border-xp-blue h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-xp-blue border-t-transparent" />
             ) : (
-              <svg className="text-xp-text-muted h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="h-4 w-4 text-xp-text-muted" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
                   d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
@@ -738,7 +736,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
               {showProviderMenu && (
                 <>
                   <div
-                    className="bg-xp-popover border-xp-border absolute right-0 top-full z-50 mt-1 min-w-[120px] rounded border shadow-xl"
+                    className="absolute right-0 top-full z-50 mt-1 min-w-[120px] rounded border border-xp-border bg-xp-popover shadow-xl"
                     onMouseDown={(e) => e.preventDefault()}
                   >
                     {(Object.keys(PROVIDER_LABELS) as SearchProvider[]).map((p) => (
@@ -748,12 +746,12 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                           setSearchProvider(p);
                           setShowProviderMenu(false);
                         }}
-                        className={`hover:bg-xp-surface-light w-full px-3 py-1.5 text-left text-xs transition-colors ${
-                          searchProvider === p ? 'bg-xp-blue text-xp-blue bg-opacity-20' : ''
+                        className={`w-full px-3 py-1.5 text-left text-xs transition-colors hover:bg-xp-surface-light ${
+                          searchProvider === p ? 'bg-xp-blue bg-opacity-20 text-xp-blue' : ''
                         }`}
                       >
                         {PROVIDER_LABELS[p]}
-                        {p === 'local' && <span className="text-xp-text-muted ml-1">(BM25F)</span>}
+                        {p === 'local' && <span className="ml-1 text-xp-text-muted">(BM25F)</span>}
                       </button>
                     ))}
                   </div>
@@ -809,7 +807,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
 
             {/* Index Stats */}
             {indexedFileCount > 0 && (
-              <span className="text-xp-text-muted text-xs">
+              <span className="text-xs text-xp-text-muted">
                 {indexedFileCount.toLocaleString()}
               </span>
             )}
@@ -907,7 +905,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                   </span>
                 ))}
               {parsedQuery && parsedQuery.keywords.length > 0 && (
-                <span className="text-xp-text-muted px-1 text-xs">
+                <span className="px-1 text-xs text-xp-text-muted">
                   + &ldquo;{parsedQuery.keywords.join(' ')}&rdquo;
                 </span>
               )}
@@ -918,7 +916,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
         {showResults && results.length > 0 && (
           <div
             ref={resultsRef}
-            className="bg-xp-popover border-xp-border absolute left-0 right-0 top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-lg border shadow-xl backdrop-blur-xl"
+            className="absolute left-0 right-0 top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-lg border border-xp-border bg-xp-popover shadow-xl backdrop-blur-xl"
             style={{
               marginTop:
                 tokenChips.length > 0 || (parsedQuery && getFilterChips(parsedQuery).length > 0)
@@ -930,7 +928,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
               <button
                 key={result.path}
                 onClick={() => handleFileSelect(result)}
-                className={`hover:bg-xp-surface-light border-xp-border w-full border-b p-3 text-left transition-colors last:border-b-0 ${
+                className={`w-full border-b border-xp-border p-3 text-left transition-colors last:border-b-0 hover:bg-xp-surface-light ${
                   index === selectedIndex ? 'bg-xp-surface-light' : ''
                 }`}
               >
@@ -952,14 +950,14 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                             </span>
                           );
                         })()}
-                        <span className="bg-xp-blue text-xp-blue rounded bg-opacity-20 px-1.5 py-0.5 text-xs">
+                        <span className="rounded bg-xp-blue bg-opacity-20 px-1.5 py-0.5 text-xs text-xp-blue">
                           {result.score.toFixed(1)}
                         </span>
                       </div>
                     </div>
-                    <div className="text-xp-text-muted mb-1 truncate text-xs">{result.path}</div>
+                    <div className="mb-1 truncate text-xs text-xp-text-muted">{result.path}</div>
                     {result.snippet && (
-                      <div className="text-xp-text-secondary mb-1.5 line-clamp-2 text-xs italic opacity-80">
+                      <div className="mb-1.5 line-clamp-2 text-xs italic text-xp-text-secondary opacity-80">
                         &ldquo;{result.snippet}&rdquo;
                       </div>
                     )}
@@ -972,12 +970,12 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                               {match.token}
                             </span>
                             {match.context && (
-                              <span className="text-xp-text-muted ml-1">- {match.context}</span>
+                              <span className="ml-1 text-xp-text-muted">- {match.context}</span>
                             )}
                           </div>
                         ))}
                         {result.matches.length > 2 && (
-                          <div className="text-xp-text-muted text-xs">
+                          <div className="text-xs text-xp-text-muted">
                             +{result.matches.length - 2} more
                           </div>
                         )}
@@ -995,7 +993,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
               </button>
             ))}
 
-            <div className="bg-xp-bg border-xp-border text-xp-text-muted border-t p-3 text-center text-xs">
+            <div className="border-t border-xp-border bg-xp-bg p-3 text-center text-xs text-xp-text-muted">
               {t('smartSearch.foundResults', { count: results.length })}
               {results.length >= maxResults &&
                 ` ${t('smartSearch.showingFirst', { count: maxResults })}`}
@@ -1011,11 +1009,11 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
 
         {/* No Results / Grep Results */}
         {showResults && !isSearching && query.trim() && results.length === 0 && (
-          <div className="bg-xp-popover border-xp-border absolute left-0 right-0 top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-lg border shadow-xl backdrop-blur-xl">
+          <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-lg border border-xp-border bg-xp-popover shadow-xl backdrop-blur-xl">
             {/* Grep results */}
             {grepResults.length > 0 && (
               <div>
-                <div className="bg-xp-bg border-xp-border text-xp-text-muted border-b px-3 py-2 text-xs font-semibold uppercase tracking-wider">
+                <div className="border-b border-xp-border bg-xp-bg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-xp-text-muted">
                   {t('smartSearch.contentMatches', { count: grepResults.length })}
                 </div>
                 {grepResults.map((match) => (
@@ -1030,17 +1028,17 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                       setTokenChips([]);
                       onFileSelect?.(match.file, false);
                     }}
-                    className="hover:bg-xp-surface-light border-xp-border w-full border-b p-2 text-left transition-colors last:border-b-0"
+                    className="w-full border-b border-xp-border p-2 text-left transition-colors last:border-b-0 hover:bg-xp-surface-light"
                   >
                     <div className="flex items-baseline gap-2">
-                      <span className="text-xp-blue flex-shrink-0 text-xs font-medium">
+                      <span className="flex-shrink-0 text-xs font-medium text-xp-blue">
                         {match.filename}
                       </span>
-                      <span className="text-xp-text-muted flex-shrink-0 font-mono text-xs">
+                      <span className="flex-shrink-0 font-mono text-xs text-xp-text-muted">
                         :{match.line}
                       </span>
                     </div>
-                    <div className="text-xp-text mt-0.5 truncate font-mono text-xs">
+                    <div className="mt-0.5 truncate font-mono text-xs text-xp-text">
                       {(() => {
                         const trimmed = match.content.trim();
                         const queryLower = query.toLowerCase();
@@ -1070,7 +1068,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
               <div className="p-4 text-center">
                 <div className="text-xp-text-secondary">
                   <svg
-                    className="text-xp-text-muted mx-auto mb-2 h-8 w-8"
+                    className="mx-auto mb-2 h-8 w-8 text-xp-text-muted"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -1080,8 +1078,8 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                       clipRule="evenodd"
                     />
                   </svg>
-                  <p className="text-xp-text text-sm">{t('smartSearch.noResults', { query })}</p>
-                  <p className="text-xp-text-muted mt-1 text-xs">
+                  <p className="text-sm text-xp-text">{t('smartSearch.noResults', { query })}</p>
+                  <p className="mt-1 text-xs text-xp-text-muted">
                     {t('smartSearch.noResultsHint')}
                   </p>
                   {searchProvider === 'local' &&
@@ -1090,12 +1088,12 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                       <button
                         onClick={handleGrepSearch}
                         disabled={isGrepSearching}
-                        className="border-xp-border text-xp-blue mt-3 flex items-center gap-1.5 rounded border px-3 py-1.5 text-xs transition-colors hover:bg-blue-500 hover:bg-opacity-10 disabled:cursor-wait disabled:opacity-50"
+                        className="mt-3 flex items-center gap-1.5 rounded border border-xp-border px-3 py-1.5 text-xs text-xp-blue transition-colors hover:bg-blue-500 hover:bg-opacity-10 disabled:cursor-wait disabled:opacity-50"
                         style={{ margin: '12px auto 0' }}
                       >
                         {isGrepSearching ? (
                           <>
-                            <div className="border-xp-blue h-3 w-3 animate-spin rounded-full border-2 border-t-transparent" />
+                            <div className="h-3 w-3 animate-spin rounded-full border-2 border-xp-blue border-t-transparent" />
                             {t('smartSearch.searchingContents')}
                           </>
                         ) : (
@@ -1139,8 +1137,8 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
             {grepTriggered && !isGrepSearching && grepResults.length === 0 && (
               <div className="p-4 text-center">
                 <div className="text-xp-text-secondary">
-                  <p className="text-xp-text text-sm">{t('smartSearch.noResults', { query })}</p>
-                  <p className="text-xp-text-muted mt-1 text-xs">
+                  <p className="text-sm text-xp-text">{t('smartSearch.noResults', { query })}</p>
+                  <p className="mt-1 text-xs text-xp-text-muted">
                     {t('smartSearch.noContentResults')}
                   </p>
                   {searchProvider === 'local' && (
@@ -1161,8 +1159,8 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
             {/* Loading spinner for grep */}
             {isGrepSearching && (
               <div className="flex items-center justify-center gap-2 p-4">
-                <div className="border-xp-blue h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
-                <span className="text-xp-text-muted text-xs">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-xp-blue border-t-transparent" />
+                <span className="text-xs text-xp-text-muted">
                   {t('smartSearch.searchingContents')}
                 </span>
               </div>

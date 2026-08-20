@@ -1,6 +1,7 @@
 import { TauriAPI } from '@/lib/tauri-api';
 import { PATH_SEPARATOR, isWindows, joinPath } from '@/lib/constants';
 import { formatFileSize } from '@/lib/utils';
+import i18n from '@/i18n';
 
 const customCommands = new Set([
   'help',
@@ -72,33 +73,69 @@ async function executeCustomCommand(
     case 'help':
       setTerminalHistory((prev) => [
         ...prev,
-        'Wisp File Explorer Terminal',
+        i18n.t('terminal.helpTitle'),
         '─────────────────────────────────',
-        'Custom Commands:',
-        '  help           - Show this help',
-        '  clear          - Clear terminal',
-        '  ls, dir        - List directory contents',
-        '  cd <path>      - Change directory',
-        '  pwd            - Print working directory',
-        '  open <file>    - Open file with default application',
-        '  mkdir <name>   - Create directory',
-        '  explorer       - Open current directory in file explorer',
-        '  tree           - Display directory tree',
-        '  find <name>    - Find files by name',
-        '  size <path>    - Show size of a file or directory',
+        i18n.t('terminal.helpCustom'),
+        i18n.t('terminal.helpLine', { cmd: 'help', desc: i18n.t('terminal.helpDesc.showHelp') }),
+        i18n.t('terminal.helpLine', {
+          cmd: 'clear',
+          desc: i18n.t('terminal.helpDesc.clearTerminal'),
+        }),
+        i18n.t('terminal.helpLine', {
+          cmd: 'ls, dir',
+          desc: i18n.t('terminal.helpDesc.listContents'),
+        }),
+        i18n.t('terminal.helpLine', {
+          cmd: 'cd <path>',
+          desc: i18n.t('terminal.helpDesc.changeDir'),
+        }),
+        i18n.t('terminal.helpLine', { cmd: 'pwd', desc: i18n.t('terminal.helpDesc.printCwd') }),
+        i18n.t('terminal.helpLine', {
+          cmd: 'open <file>',
+          desc: i18n.t('terminal.helpDesc.openFile'),
+        }),
+        i18n.t('terminal.helpLine', {
+          cmd: 'mkdir <name>',
+          desc: i18n.t('terminal.helpDesc.createDir'),
+        }),
+        i18n.t('terminal.helpLine', {
+          cmd: 'explorer',
+          desc: i18n.t('terminal.helpDesc.openExplorer'),
+        }),
+        i18n.t('terminal.helpLine', { cmd: 'tree', desc: i18n.t('terminal.helpDesc.showTree') }),
+        i18n.t('terminal.helpLine', {
+          cmd: 'find <name>',
+          desc: i18n.t('terminal.helpDesc.findFiles'),
+        }),
+        i18n.t('terminal.helpLine', {
+          cmd: 'size <path>',
+          desc: i18n.t('terminal.helpDesc.showSize'),
+        }),
         '',
-        'System Commands:',
-        '  Any Windows command (dir, type, copy, move, del, etc.)',
-        '  PowerShell commands (Get-ChildItem, Copy-Item, etc.)',
-        '  Git commands (git status, git add, git commit, etc.)',
-        '  Node.js/npm commands (npm install, node script.js, etc.)',
-        '  Python commands (python script.py, pip install, etc.)',
+        i18n.t('terminal.helpSystem'),
+        i18n.t('terminal.helpSystemBody', { text: i18n.t('terminal.helpDesc.anyWindows') }),
+        i18n.t('terminal.helpSystemBody', { text: i18n.t('terminal.helpDesc.powershell') }),
+        i18n.t('terminal.helpSystemBody', { text: i18n.t('terminal.helpDesc.git') }),
+        i18n.t('terminal.helpSystemBody', { text: i18n.t('terminal.helpDesc.node') }),
+        i18n.t('terminal.helpSystemBody', { text: i18n.t('terminal.helpDesc.python') }),
         '',
-        'Examples:',
-        '  dir /b          - List files in brief format',
-        '  git status      - Check git repository status',
-        '  npm install     - Install npm dependencies',
-        '  python --version - Check Python version',
+        i18n.t('terminal.helpExamples'),
+        i18n.t('terminal.helpExample', {
+          cmd: 'dir /b',
+          desc: i18n.t('terminal.helpDesc.exampleDir'),
+        }),
+        i18n.t('terminal.helpExample', {
+          cmd: 'git status',
+          desc: i18n.t('terminal.helpDesc.exampleGit'),
+        }),
+        i18n.t('terminal.helpExample', {
+          cmd: 'npm install',
+          desc: i18n.t('terminal.helpDesc.exampleNpm'),
+        }),
+        i18n.t('terminal.helpExample', {
+          cmd: 'python --version',
+          desc: i18n.t('terminal.helpDesc.examplePy'),
+        }),
         '',
       ]);
       break;
@@ -109,14 +146,14 @@ async function executeCustomCommand(
         const dirFiles = await TauriAPI.readDirectory(terminalCwd);
         setTerminalHistory((prev) => [
           ...prev,
-          'Directory listing:',
+          i18n.t('terminal.directoryListing'),
           ...dirFiles.map(
             (f) => `${f.is_dir ? 'd' : '-'}  ${f.name.padEnd(30)} ${formatFileSize(f.size)}`,
           ),
           '',
         ]);
       } catch (error) {
-        setTerminalHistory((prev) => [...prev, `Error reading directory: ${error}`, '']);
+        setTerminalHistory((prev) => [...prev, i18n.t('terminal.errorReadingDir', { error }), '']);
       }
       break;
 

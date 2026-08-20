@@ -1,33 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { applyTheme } from '@/lib/utils';
 import { useAllThemes, installThemeEventBridge } from '@/lib/theme-registry';
-import { STORAGE_KEYS } from '@/lib/storage-keys';
+import { resolveTheme, markThemeChosen } from '@/lib/ui-state';
 
 // Install the event bridge once (listens for extension theme register/unregister)
 installThemeEventBridge();
-
-// ── Types ────────────────────────────────────────────────────────────────────
-
-const loadUiTheme = (): string => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.UI_STATE);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (typeof parsed === 'object' && parsed !== null && 'theme' in parsed) {
-        return parsed.theme as string;
-      }
-    }
-  } catch {
-    /* ignore */
-  }
-  return 'glass';
-};
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
 export const useThemeManager = () => {
   const themes = useAllThemes();
-  const [theme, setTheme] = useState(() => loadUiTheme());
+  const [theme, setTheme] = useState(() => resolveTheme());
 
   // Apply theme on mount
   useEffect(() => {
@@ -35,6 +18,7 @@ export const useThemeManager = () => {
   }, [theme]);
 
   const handleApplyTheme = useCallback((themeKey: string) => {
+    markThemeChosen();
     setTheme(themeKey);
     applyTheme(themeKey);
   }, []);

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
 // Auto-trigger content search when local filename search returns nothing
@@ -41,12 +42,42 @@ export interface SearchResultsPanelHandle {
 // ── Filter chips ─────────────────────────────────────────────────────────────
 
 const FILTERS: { key: SearchFilterType; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'files', label: 'Files' },
-  { key: 'folders', label: 'Folders' },
-  { key: 'documents', label: 'Documents' },
-  { key: 'images', label: 'Images' },
-  { key: 'code', label: 'Code' },
+  {
+    key: 'all',
+    get label() {
+      return i18n.t('search.filters.all');
+    },
+  },
+  {
+    key: 'files',
+    get label() {
+      return i18n.t('search.filters.files');
+    },
+  },
+  {
+    key: 'folders',
+    get label() {
+      return i18n.t('search.filters.folders');
+    },
+  },
+  {
+    key: 'documents',
+    get label() {
+      return i18n.t('search.filters.documents');
+    },
+  },
+  {
+    key: 'images',
+    get label() {
+      return i18n.t('search.filters.images');
+    },
+  },
+  {
+    key: 'code',
+    get label() {
+      return i18n.t('search.filters.code');
+    },
+  },
 ];
 
 // ── Main component ───────────────────────────────────────────────────────────
@@ -343,28 +374,28 @@ const SearchResultsPanel = React.forwardRef<SearchResultsPanelHandle, SearchResu
             {isLocalSearching ? (
               <>
                 <Spinner />
-                <span>Searching...</span>
+                <span>{t('search.searching')}</span>
               </>
             ) : isContentSearching ? (
               <>
                 <Spinner />
-                <span>Searching file contents...</span>
+                <span>{t('search.searchingContents')}</span>
               </>
             ) : contentSearchTriggered && contentResults.length > 0 ? (
-              <span>
-                Found {contentResults.length} content match{contentResults.length !== 1 ? 'es' : ''}
-              </span>
+              <span>{t('search.foundContentMatches', { count: contentResults.length })}</span>
             ) : noResults && !contentSearchTriggered ? (
-              <span>No files matching &apos;{query}&apos;</span>
+              <span>{t('search.noFilesMatching', { query })}</span>
             ) : localResultCount > 0 ? (
               <span>
-                Found {localResultCount} file{localResultCount !== 1 ? 's' : ''} in {folderCount}{' '}
-                folder
-                {folderCount !== 1 ? 's' : ''}
-                {localTotalResultCount > localResultCount && <> ({localTotalResultCount} total)</>}
+                {t('search.foundInFolders', {
+                  count: localResultCount,
+                  folders: folderCount,
+                })}
+                {localTotalResultCount > localResultCount &&
+                  ` ${t('search.totalMore', { total: localTotalResultCount })}`}
               </span>
             ) : (
-              <span>No results for &apos;{query}&apos;</span>
+              <span>{t('search.noResultsFor', { query })}</span>
             )}
           </SearchStatusBar>
         )}
@@ -378,7 +409,7 @@ const SearchResultsPanel = React.forwardRef<SearchResultsPanelHandle, SearchResu
             minHeight: 0,
           }}
           role="listbox"
-          aria-label="Search results"
+          aria-label={t('search.resultsAria')}
         >
           {noQuery ? (
             <EmptyState searchMode={searchMode} />
@@ -395,7 +426,7 @@ const SearchResultsPanel = React.forwardRef<SearchResultsPanelHandle, SearchResu
             >
               <Spinner />
               <span style={{ fontSize: '12px' }}>
-                {searchMode === 'ai' ? t('search.aiThinking') : 'Searching...'}
+                {searchMode === 'ai' ? t('search.aiThinking') : t('search.searching')}
               </span>
             </div>
           ) : noResults && searchMode === 'local' && !contentSearchTriggered ? (
@@ -574,7 +605,7 @@ const SearchResultsPanel = React.forwardRef<SearchResultsPanelHandle, SearchResu
               }}
             >
               <Spinner />
-              <span style={{ fontSize: '12px' }}>Searching file contents...</span>
+              <span style={{ fontSize: '12px' }}>{t('search.searchingContents')}</span>
             </div>
           )}
 
@@ -596,11 +627,9 @@ const SearchResultsPanel = React.forwardRef<SearchResultsPanelHandle, SearchResu
                 }}
               >
                 <span style={{ fontSize: '12px' }}>
-                  No content matches for &apos;{localQuery}&apos;
+                  {t('search.noContentMatches', { query: localQuery })}
                 </span>
-                <span style={{ fontSize: '11px', opacity: 0.7 }}>
-                  Try a shorter or different search term
-                </span>
+                <span style={{ fontSize: '11px', opacity: 0.7 }}>{t('search.tryShorterTerm')}</span>
               </div>
             )}
         </div>
@@ -648,7 +677,7 @@ const SearchModeToggle = ({
         gap: '4px',
       }}
       aria-pressed={searchMode === 'local'}
-      title="Search files by name in the current directory tree"
+      title={i18n.t('search.localTitle')}
     >
       <svg
         width="12"
@@ -683,7 +712,7 @@ const SearchModeToggle = ({
         gap: '4px',
       }}
       aria-pressed={searchMode === 'ai'}
-      title="AI-powered search: natural language queries, content search, semantic matching"
+      title={i18n.t('search.aiTitle')}
     >
       <svg
         width="12"
@@ -772,7 +801,9 @@ const SearchInput = ({
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={onKeyDown}
         placeholder={
-          searchMode === 'local' ? 'Search files and folders...' : 'Natural language search...'
+          searchMode === 'local'
+            ? i18n.t('search.localPlaceholder')
+            : i18n.t('search.aiPlaceholder')
         }
         style={{
           flex: 1,
@@ -784,7 +815,7 @@ const SearchInput = ({
           color: 'var(--xp-text)',
           lineHeight: '18px',
         }}
-        aria-label={searchMode === 'local' ? 'Search files and folders' : 'AI search'}
+        aria-label={searchMode === 'local' ? i18n.t('search.localShort') : i18n.t('search.aiShort')}
       />
       {isSearching && <Spinner />}
       {query && (
@@ -802,7 +833,7 @@ const SearchInput = ({
             transition: 'color 0.15s',
           }}
           className="hover:text-xp-text"
-          aria-label="Clear search"
+          aria-label={i18n.t('search.clearSearch')}
         >
           <svg
             width="12"
@@ -875,10 +906,10 @@ const EmptyState = ({ searchMode }: { searchMode: SearchMode }) => (
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
         <span style={{ fontSize: '12px', textAlign: 'center' }}>
-          Type to search files and folders
+          {i18n.t('search.typeToSearch')}
         </span>
         <span style={{ fontSize: '10px', opacity: 0.7, textAlign: 'center' }}>
-          Ctrl+Shift+F to toggle this panel
+          {i18n.t('search.toggleHint')}
         </span>
       </>
     ) : (
@@ -900,7 +931,7 @@ const EmptyState = ({ searchMode }: { searchMode: SearchMode }) => (
           <path d="M3 5h4" />
           <path d="M17 19h4" />
         </svg>
-        <span style={{ fontSize: '12px', textAlign: 'center' }}>AI-powered search</span>
+        <span style={{ fontSize: '12px', textAlign: 'center' }}>{i18n.t('search.aiPowered')}</span>
         <span
           style={{
             fontSize: '10px',
@@ -909,8 +940,7 @@ const EmptyState = ({ searchMode }: { searchMode: SearchMode }) => (
             maxWidth: '200px',
           }}
         >
-          Try natural language like &quot;large images from last week&quot; or &quot;recently
-          modified code files&quot;
+          {i18n.t('search.tryNatural')}
         </span>
       </>
     )}
@@ -957,7 +987,7 @@ const NoResultsState = ({
       <line x1="8" y1="11" x2="14" y2="11" />
     </svg>
     <span style={{ fontSize: '12px', textAlign: 'center' }}>
-      No files matching &apos;{query}&apos;
+      {i18n.t('search.noFilesMatching', { query })}
     </span>
     {searchMode === 'local' && onSearchContents && (
       <button
@@ -981,7 +1011,7 @@ const NoResultsState = ({
         {isContentSearching ? (
           <>
             <Spinner />
-            Searching contents...
+            {i18n.t('search.searchingContentsShort')}
           </>
         ) : (
           <>
@@ -1000,7 +1030,7 @@ const NoResultsState = ({
               <line x1="16" y1="13" x2="8" y2="13" />
               <line x1="16" y1="17" x2="8" y2="17" />
             </svg>
-            Search in file contents
+            {i18n.t('search.searchInContents')}
           </>
         )}
       </button>
@@ -1018,7 +1048,7 @@ const NoResultsState = ({
           transition: 'opacity 0.15s',
         }}
       >
-        Try AI search instead
+        {i18n.t('search.tryAiSearch')}
       </button>
     )}
   </div>

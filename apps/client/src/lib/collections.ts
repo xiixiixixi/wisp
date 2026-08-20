@@ -7,6 +7,7 @@
 
 import type { FileEntry } from '@/lib/tauri-api';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
+import i18n from '@/i18n';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -283,7 +284,9 @@ export const COLLECTION_COLORS = [
 export const BUILTIN_COLLECTIONS: FileCollection[] = [
   {
     id: 'builtin-large-files',
-    name: 'Large Files',
+    get name() {
+      return i18n.t('collections.builtin.largeFiles');
+    },
     icon: 'Disc',
     color: '#ef4444',
     filters: [{ type: 'size_gt', value: String(100 * 1024 * 1024) }],
@@ -294,7 +297,9 @@ export const BUILTIN_COLLECTIONS: FileCollection[] = [
   },
   {
     id: 'builtin-recent-files',
-    name: 'Recent Files',
+    get name() {
+      return i18n.t('collections.builtin.recentFiles');
+    },
     icon: 'Clock',
     color: '#3b82f6',
     filters: [{ type: 'modified_after', value: '__DYNAMIC_7_DAYS__' }],
@@ -305,7 +310,9 @@ export const BUILTIN_COLLECTIONS: FileCollection[] = [
   },
   {
     id: 'builtin-images',
-    name: 'Images',
+    get name() {
+      return i18n.t('collections.builtin.images');
+    },
     icon: 'Image',
     color: '#a855f7',
     filters: [{ type: 'extension', value: '.png,.jpg,.jpeg,.gif,.webp,.svg,.bmp' }],
@@ -316,7 +323,9 @@ export const BUILTIN_COLLECTIONS: FileCollection[] = [
   },
   {
     id: 'builtin-documents',
-    name: 'Documents',
+    get name() {
+      return i18n.t('collections.builtin.documents');
+    },
     icon: 'FileText',
     color: '#f59e0b',
     filters: [{ type: 'extension', value: '.pdf,.doc,.docx,.txt,.md,.xlsx,.pptx' }],
@@ -327,7 +336,9 @@ export const BUILTIN_COLLECTIONS: FileCollection[] = [
   },
   {
     id: 'builtin-code-files',
-    name: 'Code Files',
+    get name() {
+      return i18n.t('collections.builtin.codeFiles');
+    },
     icon: 'Laptop',
     color: '#10b981',
     filters: [{ type: 'extension', value: '.js,.ts,.tsx,.jsx,.py,.rs,.go,.java,.cpp,.c,.h' }],

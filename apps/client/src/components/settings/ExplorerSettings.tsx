@@ -11,6 +11,7 @@ const ExplorerSettings = ({ settings, updateSetting }: ExplorerSettingsProps) =>
   const { t } = useTranslation();
 
   const viewModes = [
+    { value: 'auto', label: t('settings.explorer.auto') },
     { value: 'grid', label: t('settings.explorer.grid') },
     { value: 'list', label: t('settings.explorer.list') },
     { value: 'details', label: t('settings.explorer.details') },

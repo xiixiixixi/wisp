@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 import { detectSep } from '@/lib/constants';
 
@@ -81,6 +82,7 @@ const useDragReorder = (items: FileEntry[], setItems: (files: FileEntry[]) => vo
 
 const PasteRenameDialog = React.memo(
   ({ isOpen, onClose, files, onComplete }: PasteRenameDialogProps) => {
+    const { t } = useTranslation();
     const [orderedFiles, setOrderedFiles] = useState<FileEntry[]>([]);
     const [sortStrategy, setSortStrategy] = useState<SortStrategy>('as-selected');
     const [rawText, setRawText] = useState('');
@@ -157,7 +159,7 @@ const PasteRenameDialog = React.memo(
           errs.push({
             index: i,
             type: 'invalid-chars',
-            message: 'Name cannot be empty',
+            message: t('dialogs.pasteRename.errEmpty'),
           });
         }
 
@@ -167,7 +169,7 @@ const PasteRenameDialog = React.memo(
           errs.push({
             index: i,
             type: 'duplicate',
-            message: `Duplicate of line ${seenNames.get(lower)! + 1}`,
+            message: t('dialogs.pasteRename.errDuplicate', { line: seenNames.get(lower)! + 1 }),
           });
         }
         seenNames.set(lower, i);
@@ -177,7 +179,7 @@ const PasteRenameDialog = React.memo(
           errs.push({
             index: i,
             type: 'exists-in-dir',
-            message: 'A file with this name already exists in the directory',
+            message: t('dialogs.pasteRename.errExists'),
           });
         }
 
@@ -194,7 +196,7 @@ const PasteRenameDialog = React.memo(
       }
 
       return errs;
-    }, [parsedNames, orderedFiles, existingNames]);
+    }, [parsedNames, orderedFiles, existingNames, t]);
 
     const hasBlockingErrors = useMemo(
       () =>
@@ -380,16 +382,16 @@ const PasteRenameDialog = React.memo(
             }}
           >
             <span style={{ color: 'var(--xp-text-secondary)', fontSize: '12px', fontWeight: 500 }}>
-              Order:
+              {t('dialogs.pasteRename.orderLabel')}
             </span>
             {(
               [
-                ['as-selected', 'As Selected'],
-                ['by-name', 'By Name (A-Z)'],
-                ['by-date', 'By Date (Oldest First)'],
-                ['by-size', 'By Size (Smallest First)'],
+                ['as-selected', 'dialogs.pasteRename.sortAsSelected'],
+                ['by-name', 'dialogs.pasteRename.sortByName'],
+                ['by-date', 'dialogs.pasteRename.sortByDate'],
+                ['by-size', 'dialogs.pasteRename.sortBySize'],
               ] as [SortStrategy, string][]
-            ).map(([value, label]) => (
+            ).map(([value, labelKey]) => (
               <label
                 key={value}
                 style={{
@@ -409,7 +411,7 @@ const PasteRenameDialog = React.memo(
                   onChange={() => setSortStrategy(value)}
                   style={{ accentColor: 'var(--xp-blue)' }}
                 />
-                {label}
+                {t(labelKey)}
               </label>
             ))}
           </div>
@@ -835,7 +837,7 @@ const PasteRenameDialog = React.memo(
                     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                   </svg>
                 )}
-                {isApplying ? 'Applying...' : 'Apply'}
+                {isApplying ? t('dialogs.pasteRename.applying') : t('dialogs.pasteRename.apply')}
               </button>
             </div>
           </div>

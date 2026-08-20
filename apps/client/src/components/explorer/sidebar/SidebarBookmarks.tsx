@@ -54,13 +54,13 @@ const SidebarBookmarks = ({
 
   return (
     <div
-      className="border-xp-border border-b"
+      className="border-b border-xp-border"
       role="region"
       aria-label="Favorites"
       data-sidebar-section="favorites"
     >
       <button
-        className="text-xp-text-muted hover:bg-xp-surface-light/50 flex w-full items-center px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest transition-colors"
+        className="hover:bg-xp-surface-light/50 flex w-full items-center px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted transition-colors"
         onClick={onToggleCollapsed}
         aria-expanded={!collapsed}
       >
@@ -77,14 +77,14 @@ const SidebarBookmarks = ({
           style={sectionHeight ? { maxHeight: sectionHeight } : undefined}
         >
           {bookmarks.length === 0 ? (
-            <p className="text-xp-text-secondary py-1 text-xs">{t('sidebar.noBookmarks')}</p>
+            <p className="py-1 text-xs text-xp-text-secondary">{t('sidebar.noBookmarks')}</p>
           ) : (
             bookmarks.map((bookmark) => {
               const bookmarkColor = bookmark.is_dir ? getFolderColorHex(bookmark.path) : null;
               return (
                 <div
                   key={bookmark.path}
-                  className="hover:bg-xp-surface-light group flex w-full cursor-pointer items-center rounded px-2 py-1 text-xs transition-colors"
+                  className="group flex w-full cursor-pointer items-center rounded px-2 py-1 text-xs transition-colors hover:bg-xp-surface-light"
                   onClick={() => navigateToPath(bookmark.path)}
                   onContextMenu={(e) => {
                     e.preventDefault();
@@ -123,16 +123,16 @@ const SidebarBookmarks = ({
                   {bookmark.is_dir ? (
                     <FolderClosed
                       size={14}
-                      className="text-xp-blue mr-2 flex-shrink-0"
+                      className="mr-2 flex-shrink-0 text-xp-blue"
                       style={bookmarkColor ? { color: bookmarkColor } : undefined}
                     />
                   ) : (
-                    <File size={14} className="text-xp-text-secondary mr-2 flex-shrink-0" />
+                    <File size={14} className="mr-2 flex-shrink-0 text-xp-text-secondary" />
                   )}
                   <span className="flex-1 truncate">{bookmark.name}</span>
                   <button
                     onClick={(e) => handleRemoveBookmark(bookmark.path, e)}
-                    className="text-xp-text-muted hover:text-xp-red ml-2 flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                    className="ml-2 flex-shrink-0 text-xp-text-muted opacity-0 transition-opacity hover:text-xp-red group-hover:opacity-100"
                     title="Remove bookmark"
                     aria-label={`Remove bookmark for ${bookmark.name}`}
                   >

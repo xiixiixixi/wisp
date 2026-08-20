@@ -2,6 +2,7 @@
  * Context menu for chat messages.
  * Provides Pin/Unpin and Copy actions.
  */
+import i18n from '@/i18n';
 import React, { useEffect, useCallback } from 'react';
 
 // ---------------------------------------------------------------------------
@@ -106,7 +107,7 @@ const ChatMessageContextMenu = ({
         onMouseLeave={handleMouseLeave}
       >
         <span style={{ fontSize: '14px' }}>{'\u{1F4CC}'}</span>
-        {isPinned ? 'Unpin message' : 'Pin message'}
+        {isPinned ? i18n.t('chat.unpinMessage') : i18n.t('chat.pinMessage')}
       </button>
       <button
         role="menuitem"

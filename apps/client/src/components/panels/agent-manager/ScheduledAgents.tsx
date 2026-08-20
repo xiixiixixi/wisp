@@ -150,6 +150,7 @@ interface ScheduleCardProps {
 }
 
 const ScheduleCard = ({ sched, onRunNow, onEdit, onDelete, onToggle }: ScheduleCardProps) => {
+  const { t } = useTranslation();
   const dirName = basenameOf(sched.workingDirectory);
 
   return (
@@ -184,18 +185,34 @@ const ScheduleCard = ({ sched, onRunNow, onEdit, onDelete, onToggle }: ScheduleC
         </div>
         <button
           onClick={onToggle}
-          title={sched.enabled ? 'Pause schedule' : 'Resume schedule'}
+          title={t(
+            sched.enabled
+              ? 'agentManager.schedule.pauseSchedule'
+              : 'agentManager.schedule.resumeSchedule',
+          )}
           style={iconBtnStyle(sched.enabled ? 'var(--xp-green, #73daca)' : 'var(--xp-text-muted)')}
         >
           <Power size={11} />
         </button>
-        <button onClick={onRunNow} title="Run now" style={iconBtnStyle('var(--xp-blue)')}>
+        <button
+          onClick={onRunNow}
+          title={t('agentManager.schedule.runNow')}
+          style={iconBtnStyle('var(--xp-blue)')}
+        >
           <Play size={11} />
         </button>
-        <button onClick={onEdit} title="Edit" style={iconBtnStyle('var(--xp-text-muted)')}>
+        <button
+          onClick={onEdit}
+          title={t('agentManager.schedule.edit')}
+          style={iconBtnStyle('var(--xp-text-muted)')}
+        >
           <Pencil size={11} />
         </button>
-        <button onClick={onDelete} title="Delete" style={iconBtnStyle('var(--xp-red, #f7768e)')}>
+        <button
+          onClick={onDelete}
+          title={t('agentManager.schedule.delete')}
+          style={iconBtnStyle('var(--xp-red, #f7768e)')}
+        >
           <Trash2 size={11} />
         </button>
       </div>
@@ -211,7 +228,7 @@ const ScheduleCard = ({ sched, onRunNow, onEdit, onDelete, onToggle }: ScheduleC
         }}
       >
         <Calendar size={10} style={{ flexShrink: 0 }} />
-        <span>{formatFrequency(sched.frequency)}</span>
+        <span>{formatFrequency(sched.frequency, t)}</span>
       </div>
 
       {/* Directory + next run */}
@@ -234,15 +251,23 @@ const ScheduleCard = ({ sched, onRunNow, onEdit, onDelete, onToggle }: ScheduleC
           </span>
         )}
         {sched.enabled && (
-          <span style={{ marginLeft: 'auto' }}>Next: {formatRelativeTime(sched.nextRunAt)}</span>
+          <span style={{ marginLeft: 'auto' }}>
+            {t('agentManager.schedule.nextRun', {
+              time: formatRelativeTime(sched.nextRunAt, Date.now(), t),
+            })}
+          </span>
         )}
       </div>
 
       {/* Stats */}
       {sched.runCount > 0 && (
         <div style={{ fontSize: '10px', color: 'var(--xp-text-muted)' }}>
-          Ran {sched.runCount}× · Last:{' '}
-          {sched.lastRunAt ? formatRelativeTime(sched.lastRunAt) : 'never'}
+          {t('agentManager.schedule.ranCount', {
+            count: sched.runCount,
+            time: sched.lastRunAt
+              ? formatRelativeTime(sched.lastRunAt, Date.now(), t)
+              : t('agentManager.schedule.never'),
+          })}
         </div>
       )}
     </div>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useWindowEvent } from '@/hooks/use-window-event';
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
+import { patchUiState } from '@/lib/ui-state';
 import { PATH_SEPARATOR } from '@/lib/constants';
 import { showInputToast } from '@/components/ui/Toast';
 import { formatError } from '@/lib/file-operation-helpers';
@@ -38,21 +39,6 @@ interface WispWindowState {
 interface WindowWithWisp {
   __wisp_state__?: WispWindowState;
 }
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-const UI_STATE_KEY = STORAGE_KEYS.UI_STATE;
-
-const saveUiState = (patch: Record<string, unknown>) => {
-  try {
-    const raw = localStorage.getItem(UI_STATE_KEY);
-    const parsedRaw = raw ? JSON.parse(raw) : {};
-    const existing = typeof parsedRaw === 'object' && parsedRaw !== null ? parsedRaw : {};
-    localStorage.setItem(UI_STATE_KEY, JSON.stringify({ ...existing, ...patch }));
-  } catch (e) {
-    console.warn('Failed to save UI state:', e);
-  }
-};
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -755,7 +741,7 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
       ) {
         patch.lastRealPath = currentPath;
       }
-      saveUiState(patch);
+      patchUiState(patch);
     }, 300);
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);

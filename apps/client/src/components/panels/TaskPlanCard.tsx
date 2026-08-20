@@ -2,6 +2,7 @@
  * TaskPlanCard -- renders a multi-step task plan with progress tracking
  * and pause / resume / cancel controls.
  */
+import i18n from '@/i18n';
 import { useState, useCallback } from 'react';
 import type { TaskPlan, TaskStep, TaskStepStatus } from './use-task-plan';
 
@@ -171,7 +172,7 @@ const EditableSteps = ({ steps, onSave, onCancel }: EditableStepsProps) => {
               padding: '0 2px',
               flexShrink: 0,
             }}
-            title="Remove step"
+            title={i18n.t('taskPlan.removeStep')}
             aria-label={`Remove step ${i + 1}`}
           >
             {'\u00D7'}
@@ -260,9 +261,9 @@ const TaskPlanCard = ({
   const isCancelled = plan.status === 'cancelled';
 
   const statusLabel = (() => {
-    if (isDone) return 'Completed';
+    if (isDone) return i18n.t('dialogs.fileOp.statusDone');
     if (isFailed) return 'Failed';
-    if (isCancelled) return 'Cancelled';
+    if (isCancelled) return i18n.t('dialogs.fileOp.statusCancelled');
     if (isPaused) return 'Paused';
     if (isRunning) return `Step ${plan.currentStepIndex + 1}/${plan.steps.length}`;
     return 'Pending';

@@ -1,5 +1,6 @@
 import React from 'react';
 import { FileEntry, FileTag } from '@/lib/tauri-api';
+import i18n from '@/i18n';
 import { Lock } from 'lucide-react';
 
 export const IMAGE_EXTENSIONS = new Set([
@@ -76,8 +77,8 @@ export const LockBadge = ({ isReadonly }: { isReadonly: boolean }) => {
   return (
     <span
       className="ml-1 inline-flex flex-shrink-0 items-center"
-      title="Read-only"
-      aria-label="Read-only"
+      title={i18n.t('fileGrid.readOnly')}
+      aria-label={i18n.t('fileGrid.readOnly')}
     >
       <Lock size={10} className="text-xp-text-muted opacity-70" />
     </span>

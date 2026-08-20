@@ -48,7 +48,7 @@ const SidebarDrives = ({
         setDrives([
           {
             letter: isWindows ? 'C' : '',
-            label: isWindows ? 'Local Disk' : 'Macintosh HD',
+            label: isWindows ? t('sidebarDrives.localDisk') : 'Macintosh HD',
             path: ROOT_PATH,
             total_space: 0,
             free_space: 0,
@@ -85,13 +85,13 @@ const SidebarDrives = ({
 
   return (
     <div
-      className="border-xp-border border-b"
+      className="border-b border-xp-border"
       role="region"
       aria-label={isWindows ? 'Drives' : 'Volumes'}
       data-sidebar-section="drives"
     >
       <button
-        className="text-xp-text-muted hover:bg-xp-surface-light/50 flex w-full items-center px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest transition-colors"
+        className="hover:bg-xp-surface-light/50 flex w-full items-center px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted transition-colors"
         onClick={onToggleCollapsed}
         aria-expanded={!collapsed}
       >
@@ -120,7 +120,7 @@ const SidebarDrives = ({
               <div key={drive.path} className="group relative">
                 <button
                   onClick={() => navigateToPath(drive.path)}
-                  className="hover:bg-xp-surface-light w-full rounded px-2 py-1.5 text-left text-xs transition-colors"
+                  className="w-full rounded px-2 py-1.5 text-left text-xs transition-colors hover:bg-xp-surface-light"
                   aria-label={t('navigation.navigateTo', {
                     name: drive.letter ? `${drive.letter}:` : drive.label,
                   })}
@@ -128,20 +128,20 @@ const SidebarDrives = ({
                   <div className="flex items-center">
                     <HardDrive
                       size={15}
-                      className="text-xp-text-muted mr-2.5 flex-shrink-0"
+                      className="mr-2.5 flex-shrink-0 text-xp-text-muted"
                       aria-hidden="true"
                     />
-                    <span className="text-xp-text flex-1 truncate">
+                    <span className="flex-1 truncate text-xp-text">
                       {drive.letter ? `${drive.letter}:` : drive.label}
                     </span>
                     {totalGB > 0 && (
-                      <span className="text-xp-text-muted ml-2 flex-shrink-0 pr-5">
+                      <span className="ml-2 flex-shrink-0 pr-5 text-xp-text-muted">
                         {freeGB} GB free
                       </span>
                     )}
                   </div>
                   {totalGB > 0 && (
-                    <div className="bg-xp-border ml-[25px] mt-1 h-1 overflow-hidden rounded-full">
+                    <div className="ml-[25px] mt-1 h-1 overflow-hidden rounded-full bg-xp-border">
                       <div
                         className={`h-full rounded-full transition-all ${usedPct > 90 ? 'bg-xp-red' : 'bg-xp-blue'}`}
                         style={{ width: `${usedPct}%` }}
@@ -152,7 +152,7 @@ const SidebarDrives = ({
                 {/* Eject button — only shown for non-root/removable volumes */}
                 {drive.path !== '/' && drive.path !== 'C:\\' && (
                   <button
-                    className="text-xp-text-muted hover:text-xp-text hover:bg-xp-surface-light absolute right-1 top-1/2 -translate-y-1/2 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 rounded p-0.5 text-xp-text-muted opacity-0 transition-opacity hover:bg-xp-surface-light hover:text-xp-text group-hover:opacity-100"
                     onClick={(e) => handleEjectVolume(drive.path, e)}
                     title={t('drives.eject')}
                     aria-label={t('drives.eject')}
@@ -166,9 +166,9 @@ const SidebarDrives = ({
           {!isWindows && homePath && (
             <button
               onClick={() => navigateToPath(homePath)}
-              className="hover:bg-xp-surface-light flex w-full items-center rounded px-2 py-1.5 text-xs transition-colors"
+              className="flex w-full items-center rounded px-2 py-1.5 text-xs transition-colors hover:bg-xp-surface-light"
             >
-              <User size={15} className="text-xp-cyan mr-2.5 flex-shrink-0" />{' '}
+              <User size={15} className="mr-2.5 flex-shrink-0 text-xp-cyan" />{' '}
               {homePath.split('/').pop()}
             </button>
           )}

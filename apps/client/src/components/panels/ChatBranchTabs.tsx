@@ -3,6 +3,7 @@
  * Renders tabs for main thread + any active branches,
  * with close buttons and branch indicators on messages.
  */
+import i18n from '@/i18n';
 import { useState } from 'react';
 import { X, GitBranch, MessageSquare, Pencil, Check } from 'lucide-react';
 import { type BranchState, type ConversationBranch } from './chat-branching';
@@ -189,7 +190,7 @@ const ChatBranchTabs = ({
                   e.stopPropagation();
                   handleStartRename(branch);
                 }}
-                title="Rename branch"
+                title={i18n.t('chat.renameBranch')}
                 aria-label={`Rename branch: ${branch.label}`}
                 style={{
                   background: 'none',
@@ -213,7 +214,7 @@ const ChatBranchTabs = ({
                 e.stopPropagation();
                 onDeleteBranch(branch.id);
               }}
-              title="Close branch"
+              title={i18n.t('chat.closeBranch')}
               aria-label={`Close branch: ${branch.label}`}
               style={{
                 background: 'none',

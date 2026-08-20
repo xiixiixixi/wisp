@@ -1,33 +1,34 @@
+import i18n from '@/i18n';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 // ── Permission descriptions ──────────────────────────────────────────────────
 
 const PERMISSION_DESCRIPTIONS: Record<string, string> = {
-  'file:read': 'Read files on your computer',
-  'file:write': 'Create and modify files',
-  'file:delete': 'Delete files and folders',
-  'file:execute': 'Run executable files and scripts',
-  'system:exec': 'Run system commands',
-  'system:commands': 'Execute shell commands on your system',
-  'system:network': 'Access network resources',
-  fetch: 'Make network requests',
-  network: 'Access network resources',
-  'native:invoke': 'Run native code with full system access',
-  clipboard: 'Access clipboard',
-  'ui:clipboard': 'Access clipboard',
-  storage: 'Store persistent data',
-  'ui:notification': 'Show notifications',
-  'ui:notifications': 'Show notifications',
-  'ui:panels': 'Add custom panels to the interface',
-  'ui:modify': 'Change the appearance and layout of the app',
-  'directory:list': 'View files inside folders',
-  'directory:create': 'Create new folders',
-  'directory:delete': 'Delete folders and their contents',
-  'wisp:settings': 'Read and modify Wisp settings',
-  'wisp:extensions': 'Install, disable, or remove other extensions',
-  'wisp:themes': 'Add custom color themes',
-  'wisp:history': 'Read browsing and navigation history',
+  'file:read': i18n.t('dialogs.permissions.permDesc.file_read'),
+  'file:write': i18n.t('dialogs.permissions.permDesc.file_write'),
+  'file:delete': i18n.t('dialogs.permissions.permDesc.file_delete'),
+  'file:execute': i18n.t('dialogs.permissions.permDesc.file_execute'),
+  'system:exec': i18n.t('dialogs.permissions.permDesc.system_exec'),
+  'system:commands': i18n.t('dialogs.permissions.permDesc.system_commands'),
+  'system:network': i18n.t('dialogs.permissions.permDesc.system_network'),
+  fetch: i18n.t('dialogs.permissions.permDesc.fetch'),
+  network: i18n.t('dialogs.permissions.permDesc.network'),
+  'native:invoke': i18n.t('dialogs.permissions.permDesc.native_invoke'),
+  clipboard: i18n.t('dialogs.permissions.permDesc.clipboard'),
+  'ui:clipboard': i18n.t('dialogs.permissions.permDesc.ui_clipboard'),
+  storage: i18n.t('dialogs.permissions.permDesc.storage'),
+  'ui:notification': i18n.t('dialogs.permissions.permDesc.ui_notification'),
+  'ui:notifications': i18n.t('dialogs.permissions.permDesc.ui_notifications'),
+  'ui:panels': i18n.t('dialogs.permissions.permDesc.ui_panels'),
+  'ui:modify': i18n.t('dialogs.permissions.permDesc.ui_modify'),
+  'directory:list': i18n.t('dialogs.permissions.permDesc.directory_list'),
+  'directory:create': i18n.t('dialogs.permissions.permDesc.directory_create'),
+  'directory:delete': i18n.t('dialogs.permissions.permDesc.directory_delete'),
+  'wisp:settings': i18n.t('dialogs.permissions.permDesc.wisp_settings'),
+  'wisp:extensions': i18n.t('dialogs.permissions.permDesc.wisp_extensions'),
+  'wisp:themes': i18n.t('dialogs.permissions.permDesc.wisp_themes'),
+  'wisp:history': i18n.t('dialogs.permissions.permDesc.wisp_history'),
 };
 
 /** Permissions considered dangerous -- highlighted with orange/red */

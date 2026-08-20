@@ -12,15 +12,15 @@ const AccessibilitySettings = ({ settings, updateSetting }: AccessibilitySetting
 
   return (
     <div className="space-y-1">
-      <SectionTitle title="Motion" />
+      <SectionTitle title={t('settings.accessibility.motion')} />
       <SettingRow
         icon={Sparkles}
-        label="Reduce Motion"
-        description="Disable animations and transitions for comfort"
+        label={t('settings.accessibility.reduceMotion')}
+        description={t('settings.accessibility.reduceMotionDesc')}
       >
         <Toggle
           id="reducedMotion"
-          label="Reduce Motion"
+          label={t('settings.accessibility.reduceMotion')}
           checked={settings.reducedMotion}
           onChange={(v) => {
             updateSetting('reducedMotion', v);
@@ -30,15 +30,15 @@ const AccessibilitySettings = ({ settings, updateSetting }: AccessibilitySetting
       </SettingRow>
 
       <Divider />
-      <SectionTitle title="Focus" />
+      <SectionTitle title={t('settings.accessibility.focus')} />
       <SettingRow
         icon={Monitor}
-        label="Enhanced Focus Indicators"
-        description="Show strong outlines for keyboard navigation"
+        label={t('settings.accessibility.enhancedFocus')}
+        description={t('settings.accessibility.enhancedFocusDesc')}
       >
         <Toggle
           id="enhancedFocus"
-          label="Enhanced Focus Indicators"
+          label={t('settings.accessibility.enhancedFocus')}
           checked={settings.enhancedFocus}
           onChange={(v) => {
             updateSetting('enhancedFocus', v);

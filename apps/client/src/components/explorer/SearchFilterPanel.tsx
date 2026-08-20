@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import { ChevronDown, ChevronRight, X, Clock, Filter, FolderOpen } from 'lucide-react';
 import type {
   FileTypeFilter,
@@ -25,25 +26,90 @@ export type DateRangeOption = 'any' | 'today' | 'last7' | 'last30' | 'thisYear' 
 export type SizeRangeOption = 'any' | 'lt1kb' | '1kb-1mb' | '1mb-100mb' | 'gt100mb';
 
 const FILE_TYPE_OPTIONS: { value: FileTypeFilter; label: string }[] = [
-  { value: 'Images', label: 'Images' },
-  { value: 'Documents', label: 'Documents' },
-  { value: 'Videos', label: 'Videos' },
-  { value: 'Audio', label: 'Audio' },
-  { value: 'Code', label: 'Code' },
-  { value: 'Archives', label: 'Archives' },
+  {
+    value: 'Images',
+    get label() {
+      return i18n.t('advancedSelection.categories.images');
+    },
+  },
+  {
+    value: 'Documents',
+    get label() {
+      return i18n.t('advancedSelection.categories.documents');
+    },
+  },
+  {
+    value: 'Videos',
+    get label() {
+      return i18n.t('advancedSelection.categories.videos');
+    },
+  },
+  {
+    value: 'Audio',
+    get label() {
+      return i18n.t('advancedSelection.categories.audio');
+    },
+  },
+  {
+    value: 'Code',
+    get label() {
+      return i18n.t('advancedSelection.categories.code');
+    },
+  },
+  {
+    value: 'Archives',
+    get label() {
+      return i18n.t('advancedSelection.categories.archives');
+    },
+  },
 ];
 
 const DATE_RANGE_OPTIONS: { value: DateRangeOption; label: string }[] = [
-  { value: 'any', label: 'Any time' },
-  { value: 'today', label: 'Today' },
-  { value: 'last7', label: 'Last 7 days' },
-  { value: 'last30', label: 'Last 30 days' },
-  { value: 'thisYear', label: 'This year' },
-  { value: 'custom', label: 'Custom range' },
+  {
+    value: 'any',
+    get label() {
+      return i18n.t('searchFilter.anyTime');
+    },
+  },
+  {
+    value: 'today',
+    get label() {
+      return i18n.t('smartSearch.today');
+    },
+  },
+  {
+    value: 'last7',
+    get label() {
+      return i18n.t('searchFilter.last7days');
+    },
+  },
+  {
+    value: 'last30',
+    get label() {
+      return i18n.t('searchFilter.last30days');
+    },
+  },
+  {
+    value: 'thisYear',
+    get label() {
+      return i18n.t('searchFilter.thisYear');
+    },
+  },
+  {
+    value: 'custom',
+    get label() {
+      return i18n.t('searchFilter.customRange');
+    },
+  },
 ];
 
 const SIZE_RANGE_OPTIONS: { value: SizeRangeOption; label: string }[] = [
-  { value: 'any', label: 'Any size' },
+  {
+    value: 'any',
+    get label() {
+      return i18n.t('searchFilter.anySize');
+    },
+  },
   { value: 'lt1kb', label: '< 1 KB' },
   { value: '1kb-1mb', label: '1 KB - 1 MB' },
   { value: '1mb-100mb', label: '1 MB - 100 MB' },
@@ -203,7 +269,9 @@ export const clientFilterResults = (
     }
 
     if (dateFilter) {
-      const dateMatch = r.matches.find((m) => m.context.startsWith('Modified:'));
+      const dateMatch = r.matches.find((m) =>
+        m.context.startsWith(i18n.t('searchFilter.modifiedLabel')),
+      );
       if (dateMatch) {
         const ts = parseDateFromContext(dateMatch.context);
         if (ts !== null) {
@@ -306,9 +374,9 @@ export const SearchHistoryDropdown = ({ onSelect, onClear }: SearchHistoryDropdo
   if (history.length === 0) return null;
 
   return (
-    <div className="bg-xp-popover border-xp-border absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border shadow-xl backdrop-blur-xl">
-      <div className="border-xp-border flex items-center justify-between border-b px-3 py-2">
-        <span className="text-xp-text-muted flex items-center gap-1.5 text-xs font-medium">
+    <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-xp-border bg-xp-popover shadow-xl backdrop-blur-xl">
+      <div className="flex items-center justify-between border-b border-xp-border px-3 py-2">
+        <span className="flex items-center gap-1.5 text-xs font-medium text-xp-text-muted">
           <Clock size={12} />
           {t('explorer.searchFilter.recentSearches')}
         </span>
@@ -318,7 +386,7 @@ export const SearchHistoryDropdown = ({ onSelect, onClear }: SearchHistoryDropdo
             e.stopPropagation();
             onClear();
           }}
-          className="text-xp-text-muted hover:text-xp-red text-xs transition-colors"
+          className="text-xs text-xp-text-muted transition-colors hover:text-xp-red"
         >
           {t('common.clear')}
         </button>
@@ -330,9 +398,9 @@ export const SearchHistoryDropdown = ({ onSelect, onClear }: SearchHistoryDropdo
             e.preventDefault();
             onSelect(item);
           }}
-          className="hover:bg-xp-surface-light border-xp-border flex w-full items-center gap-2 border-b px-3 py-2 text-left text-sm transition-colors last:border-b-0"
+          className="flex w-full items-center gap-2 border-b border-xp-border px-3 py-2 text-left text-sm transition-colors last:border-b-0 hover:bg-xp-surface-light"
         >
-          <Clock size={12} className="text-xp-text-muted flex-shrink-0" />
+          <Clock size={12} className="flex-shrink-0 text-xp-text-muted" />
           <span className="truncate">{item}</span>
         </button>
       ))}
@@ -392,15 +460,15 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
 
   return (
     <div
-      className="bg-xp-popover border-xp-border overflow-hidden rounded-lg border shadow-xl backdrop-blur-xl"
+      className="overflow-hidden rounded-lg border border-xp-border bg-xp-popover shadow-xl backdrop-blur-xl"
       onMouseDown={(e) => e.preventDefault()}
     >
-      <div className="border-xp-border flex items-center justify-between border-b px-3 py-2">
+      <div className="flex items-center justify-between border-b border-xp-border px-3 py-2">
         <span className="flex items-center gap-1.5 text-xs font-medium">
           <Filter size={12} className="text-xp-blue" />
           {t('explorer.searchFilter.title')}
           {activeCount > 0 && (
-            <span className="bg-xp-blue text-xp-blue rounded-full bg-opacity-20 px-1.5 py-0.5 text-xs font-semibold">
+            <span className="rounded-full bg-xp-blue bg-opacity-20 px-1.5 py-0.5 text-xs font-semibold text-xp-blue">
               {activeCount}
             </span>
           )}
@@ -409,14 +477,14 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
           {activeCount > 0 && (
             <button
               onClick={clearAll}
-              className="text-xp-text-muted hover:text-xp-red text-xs transition-colors"
+              className="text-xs text-xp-text-muted transition-colors hover:text-xp-red"
             >
               {t('explorer.searchFilter.clearAll')}
             </button>
           )}
           <button
             onClick={onClose}
-            className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-text rounded p-0.5 transition-colors"
+            className="rounded p-0.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
           >
             <X size={14} />
           </button>
@@ -440,8 +508,8 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
                   onClick={() => toggleFileType(opt.value)}
                   className={`rounded px-2 py-1.5 text-center text-xs transition-colors ${
                     active
-                      ? 'bg-xp-blue text-xp-blue border-xp-blue border border-opacity-40 bg-opacity-20'
-                      : 'bg-xp-surface hover:bg-xp-surface-light border-xp-border border'
+                      ? 'border border-xp-blue border-opacity-40 bg-xp-blue bg-opacity-20 text-xp-blue'
+                      : 'border border-xp-border bg-xp-surface hover:bg-xp-surface-light'
                   }`}
                 >
                   {opt.label}
@@ -465,8 +533,8 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
                 onClick={() => setDateRange(opt.value)}
                 className={`rounded px-2 py-1.5 text-center text-xs transition-colors ${
                   filters.dateRange === opt.value
-                    ? 'bg-xp-blue text-xp-blue border-xp-blue border border-opacity-40 bg-opacity-20'
-                    : 'bg-xp-surface hover:bg-xp-surface-light border-xp-border border'
+                    ? 'border border-xp-blue border-opacity-40 bg-xp-blue bg-opacity-20 text-xp-blue'
+                    : 'border border-xp-border bg-xp-surface hover:bg-xp-surface-light'
                 }`}
               >
                 {opt.label}
@@ -479,15 +547,15 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
                 type="date"
                 value={filters.customDateAfter || ''}
                 onChange={(e) => onChange({ ...filters, customDateAfter: e.target.value })}
-                className="bg-xp-bg border-xp-border focus:ring-xp-blue flex-1 rounded border px-2 py-1 text-xs focus:outline-none focus:ring-1"
+                className="flex-1 rounded border border-xp-border bg-xp-bg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-xp-blue"
                 placeholder="From"
               />
-              <span className="text-xp-text-muted text-xs">{t('explorer.searchFilter.to')}</span>
+              <span className="text-xs text-xp-text-muted">{t('explorer.searchFilter.to')}</span>
               <input
                 type="date"
                 value={filters.customDateBefore || ''}
                 onChange={(e) => onChange({ ...filters, customDateBefore: e.target.value })}
-                className="bg-xp-bg border-xp-border focus:ring-xp-blue flex-1 rounded border px-2 py-1 text-xs focus:outline-none focus:ring-1"
+                className="flex-1 rounded border border-xp-border bg-xp-bg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-xp-blue"
                 placeholder="To"
               />
             </div>
@@ -508,8 +576,8 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
                 onClick={() => setSizeRange(opt.value)}
                 className={`rounded px-2 py-1.5 text-center text-xs transition-colors ${
                   filters.sizeRange === opt.value
-                    ? 'bg-xp-blue text-xp-blue border-xp-blue border border-opacity-40 bg-opacity-20'
-                    : 'bg-xp-surface hover:bg-xp-surface-light border-xp-border border'
+                    ? 'border border-xp-blue border-opacity-40 bg-xp-blue bg-opacity-20 text-xp-blue'
+                    : 'border border-xp-border bg-xp-surface hover:bg-xp-surface-light'
                 }`}
               >
                 {opt.label}
@@ -530,14 +598,14 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
             value={filters.extensions}
             onChange={(e) => setExtensions(e.target.value)}
             placeholder="e.g. .ts, .tsx, .json"
-            className="bg-xp-bg border-xp-border focus:ring-xp-blue placeholder-xp-text-muted w-full rounded border px-2 py-1.5 text-xs focus:outline-none focus:ring-1"
+            className="w-full rounded border border-xp-border bg-xp-bg px-2 py-1.5 text-xs placeholder-xp-text-muted focus:outline-none focus:ring-1 focus:ring-xp-blue"
           />
           {filters.extensions.trim() && (
             <div className="mt-1.5 flex flex-wrap gap-1">
               {parseExtensionFilter(filters.extensions).map((ext) => (
                 <span
                   key={ext}
-                  className="bg-xp-surface border-xp-border rounded border px-1.5 py-0.5 text-xs"
+                  className="rounded border border-xp-border bg-xp-surface px-1.5 py-0.5 text-xs"
                 >
                   .{ext}
                 </span>
@@ -562,16 +630,16 @@ interface FilterSectionProps {
 
 const FilterSection = ({ title, expanded, onToggle, badge, children }: FilterSectionProps) => {
   return (
-    <div className="border-xp-border overflow-hidden rounded border">
+    <div className="overflow-hidden rounded border border-xp-border">
       <button
         onClick={onToggle}
-        className="hover:bg-xp-surface-light flex w-full items-center justify-between px-2.5 py-1.5 text-xs font-medium transition-colors"
+        className="flex w-full items-center justify-between px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-xp-surface-light"
       >
         <span className="flex items-center gap-1.5">
           {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
           {title}
           {badge && (
-            <span className="bg-xp-blue text-xp-blue rounded-full bg-opacity-20 px-1 py-0 text-xs">
+            <span className="rounded-full bg-xp-blue bg-opacity-20 px-1 py-0 text-xs text-xp-blue">
               {badge}
             </span>
           )}
@@ -665,15 +733,15 @@ export const GroupedSearchResults = ({
           <div key={group.folder}>
             <button
               onClick={() => toggleFolder(group.folder)}
-              className="bg-xp-bg border-xp-border hover:bg-xp-surface-light sticky top-0 z-10 flex w-full items-center gap-1.5 border-b px-3 py-1.5 text-xs font-medium transition-colors"
+              className="sticky top-0 z-10 flex w-full items-center gap-1.5 border-b border-xp-border bg-xp-bg px-3 py-1.5 text-xs font-medium transition-colors hover:bg-xp-surface-light"
               onMouseDown={(e) => e.preventDefault()}
             >
               {isCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
               <FolderOpen size={12} className="text-xp-blue" />
-              <span className="text-xp-text-muted truncate" title={group.folder}>
+              <span className="truncate text-xp-text-muted" title={group.folder}>
                 {group.folder}
               </span>
-              <span className="bg-xp-surface text-xp-text-muted ml-auto flex-shrink-0 rounded-full px-1.5 py-0 text-xs">
+              <span className="ml-auto flex-shrink-0 rounded-full bg-xp-surface px-1.5 py-0 text-xs text-xp-text-muted">
                 {group.results.length}
               </span>
             </button>
@@ -686,7 +754,7 @@ export const GroupedSearchResults = ({
                   <button
                     key={result.path}
                     onClick={() => onSelect(result)}
-                    className={`hover:bg-xp-surface-light border-xp-border w-full border-b p-3 pl-6 text-left transition-colors last:border-b-0 ${
+                    className={`w-full border-b border-xp-border p-3 pl-6 text-left transition-colors last:border-b-0 hover:bg-xp-surface-light ${
                       currentFlatIndex === selectedIndex ? 'bg-xp-surface-light' : ''
                     }`}
                   >
@@ -703,14 +771,14 @@ export const GroupedSearchResults = ({
                             >
                               {badge.label}
                             </span>
-                            <span className="bg-xp-blue text-xp-blue rounded bg-opacity-20 px-1.5 py-0.5 text-xs">
+                            <span className="rounded bg-xp-blue bg-opacity-20 px-1.5 py-0.5 text-xs text-xp-blue">
                               {result.score.toFixed(1)}
                             </span>
                           </div>
                         </div>
-                        <div className="text-xp-text-muted truncate text-xs">{result.filename}</div>
+                        <div className="truncate text-xs text-xp-text-muted">{result.filename}</div>
                         {result.snippet && (
-                          <div className="text-xp-text-secondary mt-0.5 line-clamp-2 text-xs italic opacity-80">
+                          <div className="mt-0.5 line-clamp-2 text-xs italic text-xp-text-secondary opacity-80">
                             &ldquo;{result.snippet}&rdquo;
                           </div>
                         )}
@@ -725,12 +793,12 @@ export const GroupedSearchResults = ({
                                   {match.token}
                                 </span>
                                 {match.context && (
-                                  <span className="text-xp-text-muted ml-1">- {match.context}</span>
+                                  <span className="ml-1 text-xp-text-muted">- {match.context}</span>
                                 )}
                               </div>
                             ))}
                             {result.matches.length > 2 && (
-                              <div className="text-xp-text-muted text-xs">
+                              <div className="text-xs text-xp-text-muted">
                                 {t('explorer.searchFilter.moreMatches', {
                                   count: result.matches.length - 2,
                                 })}
@@ -757,7 +825,7 @@ export const GroupedSearchResults = ({
         );
       })}
 
-      <div className="bg-xp-bg border-xp-border text-xp-text-muted border-t p-3 text-center text-xs">
+      <div className="border-t border-xp-border bg-xp-bg p-3 text-center text-xs text-xp-text-muted">
         {t('explorer.searchFilter.foundResults', { count: results.length, folders: groups.length })}
         {results.length >= maxResults &&
           ` (${t('explorer.searchFilter.showingFirst', { max: maxResults })})`}

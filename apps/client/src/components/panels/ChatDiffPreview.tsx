@@ -2,6 +2,7 @@
  * Diff computation and preview component for the AI chat panel.
  * Used to show before/after changes when the AI proposes editing a file.
  */
+import i18n from '@/i18n';
 import { useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
@@ -179,7 +180,7 @@ const ChatDiffPreview = ({ previousContent, newContent }: DiffPreviewProps) => {
           }}
         >
           {expanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
-          {expanded ? 'Collapse' : 'Expand all'}
+          {expanded ? i18n.t('chat.collapse') : i18n.t('chat.expandAll')}
         </button>
       </div>
       <div

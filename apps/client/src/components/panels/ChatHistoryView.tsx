@@ -2,6 +2,7 @@
  * Chat history panel -- lists saved conversations and lets users
  * load or delete them.
  */
+import i18n from '@/i18n';
 import { ChevronLeft, Trash2 } from 'lucide-react';
 import { type SavedConversation, formatRelativeTime } from './chat-history';
 
@@ -124,7 +125,7 @@ const ChatHistoryView = ({
               e.stopPropagation();
               onDelete(conv.id);
             }}
-            title="Delete conversation"
+            title={i18n.t('chat.deleteConversation')}
             aria-label={`Delete conversation: ${conv.title}`}
             style={{
               background: 'none',

@@ -374,7 +374,7 @@ const ChatSlashInput = forwardRef<ChatSlashInputHandle, ChatSlashInputProps>(
               aria-label={isListening ? t('aiChat.input.voiceStop') : t('aiChat.input.voiceStart')}
               title={
                 isListening
-                  ? 'Stop listening'
+                  ? i18n.t('chat.stopListening')
                   : `Voice input${voiceAutoSend ? ' (auto-send on)' : ''}`
               }
               style={{

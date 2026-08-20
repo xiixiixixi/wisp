@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import React, { useState, useEffect, useRef } from 'react';
 import { FileEntry, TauriAPI, FolderSizeInfo } from '@/lib/tauri-api';
 import { getFileIcon } from '@/lib/utils';
@@ -140,7 +141,7 @@ const EnhancedFilePreview: React.FC<{
       } catch (err) {
         if (!cancelled) {
           console.error('Failed to load preview component:', err);
-          setError(err instanceof Error ? err.message : 'Failed to load preview');
+          setError(err instanceof Error ? err.message : i18n.t('previewPanel.failedLoad'));
         }
       } finally {
         if (!cancelled) {
@@ -173,9 +174,9 @@ const EnhancedFilePreview: React.FC<{
   if (error) {
     return (
       <div className="mt-4">
-        <h4 className="text-xp-text mb-2 text-xs font-semibold">Preview Error</h4>
+        <h4 className="mb-2 text-xs font-semibold text-xp-text">Preview Error</h4>
         <div
-          className="bg-xp-surface border-xp-border text-xp-text-secondary rounded border p-4 text-center"
+          className="rounded border border-xp-border bg-xp-surface p-4 text-center text-xp-text-secondary"
           role="alert"
         >
           <svg
@@ -211,13 +212,13 @@ const EnhancedFilePreview: React.FC<{
     <div className="flex h-full items-center justify-center">
       <div className="text-center">
         <div className="mb-4 text-4xl">{getFileIcon(file)}</div>
-        <p className="text-xp-text-secondary mb-2 text-sm">No preview available</p>
-        <p className="text-xp-text-secondary text-xs">
+        <p className="mb-2 text-sm text-xp-text-secondary">No preview available</p>
+        <p className="text-xs text-xp-text-secondary">
           {file.size > 50 * 1024 * 1024
-            ? 'File is too large for preview'
-            : 'Preview not supported for this file type'}
+            ? i18n.t('previewPanel.tooLarge')
+            : i18n.t('previewPanel.notSupported')}
         </p>
-        <p className="text-xp-text-secondary mt-1 text-xs">Double-click to open</p>
+        <p className="mt-1 text-xs text-xp-text-secondary">Double-click to open</p>
       </div>
     </div>
   );
@@ -235,9 +236,9 @@ const FolderDetails: React.FC<{
 
   return (
     <div className="flex h-full flex-col items-center justify-center">
-      <div className="bg-xp-surface border-xp-border max-w-sm rounded border p-6 text-center">
+      <div className="max-w-sm rounded border border-xp-border bg-xp-surface p-6 text-center">
         <div className="mb-4 text-4xl">{getFileIcon(file)}</div>
-        <h4 className="text-xp-text mb-4 text-sm font-medium">Folder Contents</h4>
+        <h4 className="mb-4 text-sm font-medium text-xp-text">Folder Contents</h4>
         <div className="space-y-3 text-sm">
           {folderSize && (
             <>
@@ -261,7 +262,7 @@ const FolderDetails: React.FC<{
           )}
           {calculating && (
             <div className="py-2 text-center">
-              <div className="text-xp-text-secondary inline-flex items-center">
+              <div className="inline-flex items-center text-xp-text-secondary">
                 <svg className="-ml-1 mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle
                     className="opacity-25"
@@ -282,7 +283,7 @@ const FolderDetails: React.FC<{
             </div>
           )}
           {!folderSize && !calculating && (
-            <div className="text-xp-text-secondary py-2 text-center text-xs">
+            <div className="py-2 text-center text-xs text-xp-text-secondary">
               Click to calculate folder size
             </div>
           )}
@@ -376,7 +377,7 @@ const PreviewPanel = ({
   if (!selectedFile) {
     return (
       <div
-        className="text-xp-text-secondary flex h-full items-center justify-center text-center"
+        className="flex h-full items-center justify-center text-center text-xp-text-secondary"
         role="region"
         aria-label="No file selected for preview"
       >
@@ -413,7 +414,7 @@ const PreviewPanel = ({
       {/* Main Preview Area - Takes most of the space */}
       <div
         className="min-h-0 flex-1 overflow-auto"
-        aria-label={`${selectedFile.is_dir ? 'Folder' : 'File'} preview: ${selectedFile.name}`}
+        aria-label={`${selectedFile.is_dir ? i18n.t('common.folder') : i18n.t('common.file')} preview: ${selectedFile.name}`}
       >
         {(() => {
           if (isDebouncing) return <PreviewSkeleton />;
@@ -448,11 +449,11 @@ const PreviewPanel = ({
       <PreviewActionBar file={selectedFile} />
 
       {/* Collapsible File Properties Section */}
-      <div className="border-xp-border bg-xp-surface border-t">
+      <div className="border-t border-xp-border bg-xp-surface">
         {/* Properties Header - Always visible */}
         <button
           onClick={() => setShowProperties(!showProperties)}
-          className="hover:bg-xp-surface-light flex w-full items-center justify-between px-3 py-2 text-left transition-colors"
+          className="flex w-full items-center justify-between px-3 py-2 text-left transition-colors hover:bg-xp-surface-light"
           aria-expanded={showProperties}
           aria-label={`${showProperties ? 'Hide' : 'Show'} file properties`}
         >
@@ -462,7 +463,7 @@ const PreviewPanel = ({
               <h3 className="truncate text-sm font-medium" title={selectedFile.name}>
                 {selectedFile.name}
               </h3>
-              <p className="text-xp-text-secondary text-xs">
+              <p className="text-xs text-xp-text-secondary">
                 {selectedFile.is_dir ? 'Folder' : formatFileSize(selectedFile.size)}
               </p>
             </div>
@@ -518,20 +519,22 @@ const PreviewPanel = ({
                   <span className="text-xp-text-secondary">Path:</span>
                   <button
                     onClick={handleCopyPath}
-                    className={`border-xp-border rounded border px-2 py-1 text-xs transition-colors ${
+                    className={`rounded border border-xp-border px-2 py-1 text-xs transition-colors ${
                       copyFeedback
-                        ? 'bg-xp-green border-xp-border text-xp-green bg-opacity-20'
+                        ? 'border-xp-border bg-xp-green bg-opacity-20 text-xp-green'
                         : 'bg-xp-bg hover:bg-xp-surface-light'
                     }`}
-                    title="Copy path to clipboard"
+                    title={i18n.t('previewPanel.copyPath')}
                     aria-label={
-                      copyFeedback ? 'Path copied to clipboard' : 'Copy file path to clipboard'
+                      copyFeedback
+                        ? i18n.t('previewPanel.pathCopied')
+                        : i18n.t('previewPanel.copyFilePath')
                     }
                   >
-                    {copyFeedback ? 'Copied!' : 'Copy'}
+                    {copyFeedback ? i18n.t('previewPanel.copied') : i18n.t('common.copy')}
                   </button>
                 </div>
-                <div className="bg-xp-bg border-xp-border break-all rounded border p-2 font-mono text-xs">
+                <div className="break-all rounded border border-xp-border bg-xp-bg p-2 font-mono text-xs">
                   {selectedFile.path}
                 </div>
               </div>

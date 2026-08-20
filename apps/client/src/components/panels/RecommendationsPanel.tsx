@@ -92,7 +92,7 @@ const SimilarFilesTab = ({
 
   if (!selectedFile || selectedFile.is_dir) {
     return (
-      <div className="text-xp-text-muted flex flex-1 items-center justify-center text-sm">
+      <div className="flex flex-1 items-center justify-center text-sm text-xp-text-muted">
         <div className="px-4 text-center">
           <Search className="mx-auto mb-2 h-10 w-10 opacity-40" />
           <p>{t('panels.recommendations.selectFileSimilar')}</p>
@@ -103,9 +103,9 @@ const SimilarFilesTab = ({
 
   if (isLoading) {
     return (
-      <div className="text-xp-text-muted flex flex-1 items-center justify-center">
+      <div className="flex flex-1 items-center justify-center text-xp-text-muted">
         <div className="text-center">
-          <Loader2 className="text-xp-blue mx-auto mb-2 h-8 w-8 animate-spin" />
+          <Loader2 className="mx-auto mb-2 h-8 w-8 animate-spin text-xp-blue" />
           <p className="text-sm">{t('panels.recommendations.findingSimilar')}</p>
         </div>
       </div>
@@ -114,11 +114,11 @@ const SimilarFilesTab = ({
 
   if (error) {
     return (
-      <div className="text-xp-red flex flex-1 items-center justify-center p-4 text-sm">
+      <div className="flex flex-1 items-center justify-center p-4 text-sm text-xp-red">
         <div className="text-center">
           <X className="mx-auto mb-2 h-8 w-8" />
           <p>{t('panels.recommendations.failedLoad')}</p>
-          <p className="text-xp-text-muted mt-1 text-xs">{error}</p>
+          <p className="mt-1 text-xs text-xp-text-muted">{error}</p>
         </div>
       </div>
     );
@@ -126,7 +126,7 @@ const SimilarFilesTab = ({
 
   if (recommendations.length === 0) {
     return (
-      <div className="text-xp-text-muted flex flex-1 items-center justify-center text-sm">
+      <div className="flex flex-1 items-center justify-center text-sm text-xp-text-muted">
         <div className="px-4 text-center">
           <Search className="mx-auto mb-2 h-10 w-10 opacity-40" />
           <p>{t('panels.recommendations.noSimilar')}</p>
@@ -138,8 +138,8 @@ const SimilarFilesTab = ({
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="border-xp-border bg-xp-surface/30 border-b px-4 py-2">
-        <p className="text-xp-text-muted text-xs">
+      <div className="bg-xp-surface/30 border-b border-xp-border px-4 py-2">
+        <p className="text-xs text-xp-text-muted">
           {t('panels.recommendations.similarTo')}{' '}
           <span className="text-xp-blue">{selectedFile.name}</span>
         </p>
@@ -150,7 +150,7 @@ const SimilarFilesTab = ({
           <div
             key={rec.path}
             onClick={() => onFileClick?.(rec.path)}
-            className="hover:bg-xp-surface border-xp-border/30 cursor-pointer border-b px-4 py-2.5 transition-colors"
+            className="border-xp-border/30 cursor-pointer border-b px-4 py-2.5 transition-colors hover:bg-xp-surface"
           >
             <div className="flex items-start gap-2">
               <div className="mt-0.5 flex-shrink-0">
@@ -158,28 +158,28 @@ const SimilarFilesTab = ({
               </div>
               <div className="min-w-0 flex-1">
                 <div className="mb-0.5 flex items-center gap-2">
-                  <span className="text-xp-text truncate text-xs">{rec.name}</span>
-                  <span className="bg-xp-blue/20 text-xp-blue border-xp-blue/30 flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px]">
+                  <span className="truncate text-xs text-xp-text">{rec.name}</span>
+                  <span className="bg-xp-blue/20 border-xp-blue/30 flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] text-xp-blue">
                     {Math.round(rec.score * 100)}%
                   </span>
                 </div>
-                <p className="text-xp-text-muted truncate text-[10px]" title={rec.path}>
+                <p className="truncate text-[10px] text-xp-text-muted" title={rec.path}>
                   {rec.path}
                 </p>
                 {rec.snippet && (
-                  <p className="text-xp-text-muted bg-xp-surface mt-1 line-clamp-2 rounded px-2 py-1 text-[10px]">
+                  <p className="mt-1 line-clamp-2 rounded bg-xp-surface px-2 py-1 text-[10px] text-xp-text-muted">
                     {rec.snippet}
                   </p>
                 )}
               </div>
-              <div className="text-xp-text-muted flex-shrink-0 text-[10px]">#{index + 1}</div>
+              <div className="flex-shrink-0 text-[10px] text-xp-text-muted">#{index + 1}</div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="border-xp-border bg-xp-surface/30 border-t px-4 py-1.5">
-        <p className="text-xp-text-muted text-[10px]">
+      <div className="bg-xp-surface/30 border-t border-xp-border px-4 py-1.5">
+        <p className="text-[10px] text-xp-text-muted">
           {t('panels.recommendations.similarFileCount', { count: recommendations.length })}
         </p>
       </div>
@@ -326,23 +326,23 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Controls */}
-      <div className="border-xp-border space-y-1.5 border-b px-3 py-2">
+      <div className="space-y-1.5 border-b border-xp-border px-3 py-2">
         <input
           type="text"
           value={scanPath}
           onChange={(e) => setScanPath(e.target.value)}
           placeholder={t('panels.recommendations.pathPlaceholder')}
-          className="bg-xp-surface border-xp-border focus:border-xp-blue w-full rounded border px-2 py-1 text-xs transition-colors focus:outline-none"
+          className="w-full rounded border border-xp-border bg-xp-surface px-2 py-1 text-xs transition-colors focus:border-xp-blue focus:outline-none"
           disabled={isScanning}
         />
         <div className="flex items-center gap-2">
-          <label className="text-xp-text-muted flex items-center gap-1 text-[10px]">
+          <label className="flex items-center gap-1 text-[10px] text-xp-text-muted">
             <span>{t('panels.recommendations.minSize')}</span>
             <input
               type="number"
               value={minFileSize}
               onChange={(e) => setMinFileSize(parseInt(e.target.value) || 0)}
-              className="bg-xp-surface border-xp-border focus:border-xp-blue w-16 rounded border px-1 py-0.5 text-[10px] focus:outline-none"
+              className="w-16 rounded border border-xp-border bg-xp-surface px-1 py-0.5 text-[10px] focus:border-xp-blue focus:outline-none"
               disabled={isScanning}
             />
             <span>B</span>
@@ -351,7 +351,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
           {isScanning ? (
             <button
               onClick={handleCancelScan}
-              className="bg-xp-red/10 text-xp-red border-xp-red/20 hover:bg-xp-red/20 flex items-center gap-1 rounded border px-2 py-1 text-[10px] font-medium transition-colors"
+              className="bg-xp-red/10 border-xp-red/20 hover:bg-xp-red/20 flex items-center gap-1 rounded border px-2 py-1 text-[10px] font-medium text-xp-red transition-colors"
             >
               <X className="h-3 w-3" />
               {t('common.cancel')}
@@ -359,7 +359,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
           ) : (
             <button
               onClick={handleStartScan}
-              className="bg-xp-blue hover:bg-xp-blue/80 flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium text-white transition-colors"
+              className="hover:bg-xp-blue/80 flex items-center gap-1 rounded bg-xp-blue px-2 py-1 text-[10px] font-medium text-white transition-colors"
             >
               <Search className="h-3 w-3" />
               {t('panels.recommendations.scan')}
@@ -370,8 +370,8 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
 
       {/* Progress */}
       {isScanning && progress && (
-        <div className="border-xp-border bg-xp-surface/50 border-b px-3 py-1.5">
-          <div className="text-xp-text-muted mb-1 flex items-center justify-between text-[10px]">
+        <div className="bg-xp-surface/50 border-b border-xp-border px-3 py-1.5">
+          <div className="mb-1 flex items-center justify-between text-[10px] text-xp-text-muted">
             <span className="capitalize">{progress.currentPhase}</span>
             <span>
               {progress.processedFiles}
@@ -379,9 +379,9 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
               {t('panels.recommendations.files')}
             </span>
           </div>
-          <div className="bg-xp-surface h-1 w-full rounded-full">
+          <div className="h-1 w-full rounded-full bg-xp-surface">
             <div
-              className="bg-xp-blue h-1 rounded-full transition-all duration-300"
+              className="h-1 rounded-full bg-xp-blue transition-all duration-300"
               style={{
                 width:
                   progress.totalFiles > 0
@@ -399,19 +399,19 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
 
       {/* Summary */}
       {results && results.duplicate_groups.length > 0 && (
-        <div className="border-xp-border bg-xp-surface/30 border-b px-3 py-1.5">
+        <div className="bg-xp-surface/30 border-b border-xp-border px-3 py-1.5">
           <div className="flex flex-wrap items-center gap-2 text-[10px]">
             <span className="text-xp-text-muted">
-              <span className="text-xp-text font-medium">{results.duplicate_groups.length}</span>{' '}
+              <span className="font-medium text-xp-text">{results.duplicate_groups.length}</span>{' '}
               {t('panels.recommendations.groups')}
             </span>
             <span className="text-xp-border">|</span>
             <span className="text-xp-text-muted">
-              <span className="text-xp-text font-medium">{results.total_duplicates}</span>{' '}
+              <span className="font-medium text-xp-text">{results.total_duplicates}</span>{' '}
               {t('panels.recommendations.files')}
             </span>
             <span className="text-xp-border">|</span>
-            <span className="text-xp-red font-medium">
+            <span className="font-medium text-xp-red">
               {formatSize(results.total_wasted_space)} {t('panels.recommendations.wasted')}
             </span>
           </div>
@@ -434,9 +434,9 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
                     onClick={() => toggleGroupExpansion(group.hash)}
                   >
                     {isExpanded ? (
-                      <ChevronDown className="text-xp-text-muted h-3 w-3 flex-shrink-0" />
+                      <ChevronDown className="h-3 w-3 flex-shrink-0 text-xp-text-muted" />
                     ) : (
-                      <ChevronRight className="text-xp-text-muted h-3 w-3 flex-shrink-0" />
+                      <ChevronRight className="h-3 w-3 flex-shrink-0 text-xp-text-muted" />
                     )}
                     <span
                       className={cn(
@@ -447,14 +447,14 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
                       {formatSize(group.size)}
                     </span>
                     <span
-                      className="text-xp-text-muted max-w-[60px] truncate font-mono text-[10px]"
+                      className="max-w-[60px] truncate font-mono text-[10px] text-xp-text-muted"
                       title={group.hash}
                     >
                       {group.hash.slice(0, 8)}
                     </span>
-                    <span className="text-xp-text-muted text-[10px]">{fileCount}x</span>
+                    <span className="text-[10px] text-xp-text-muted">{fileCount}x</span>
                     <span className="flex-1" />
-                    <span className="text-xp-red text-[10px] font-medium">
+                    <span className="text-[10px] font-medium text-xp-red">
                       -{formatSize(group.total_wasted_space)}
                     </span>
                     <button
@@ -465,8 +465,8 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
                       className={cn(
                         'rounded border px-1 py-0.5 text-[10px] transition-colors',
                         allDupsSelected
-                          ? 'bg-xp-blue/20 text-xp-blue border-xp-blue/30'
-                          : 'bg-xp-surface border-xp-border text-xp-text-muted hover:border-xp-blue/50',
+                          ? 'bg-xp-blue/20 border-xp-blue/30 text-xp-blue'
+                          : 'hover:border-xp-blue/50 border-xp-border bg-xp-surface text-xp-text-muted',
                       )}
                     >
                       {allDupsSelected ? t('panels.recommendations.undo') : t('common.select')}
@@ -491,32 +491,32 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
                               type="checkbox"
                               checked={selectedFiles.has(file.path)}
                               onChange={() => toggleFile(file.path)}
-                              className="accent-xp-blue h-3 w-3 flex-shrink-0"
+                              className="h-3 w-3 flex-shrink-0 accent-xp-blue"
                             />
                             {isKeep ? (
-                              <Check className="text-xp-green h-3 w-3 flex-shrink-0" />
+                              <Check className="h-3 w-3 flex-shrink-0 text-xp-green" />
                             ) : (
-                              <Copy className="text-xp-text-muted h-3 w-3 flex-shrink-0" />
+                              <Copy className="h-3 w-3 flex-shrink-0 text-xp-text-muted" />
                             )}
                             <div className="min-w-0 flex-1">
-                              <div className="text-xp-text truncate">
+                              <div className="truncate text-xp-text">
                                 {file.name}
                                 {isKeep && (
-                                  <span className="text-xp-green ml-1 text-[10px]">
+                                  <span className="ml-1 text-[10px] text-xp-green">
                                     ({t('panels.recommendations.keep')})
                                   </span>
                                 )}
                               </div>
-                              <div className="text-xp-text-muted truncate text-[10px]">
+                              <div className="truncate text-[10px] text-xp-text-muted">
                                 {file.path}
                               </div>
                             </div>
                             <button
                               onClick={() => handleOpenFolder(file.path)}
-                              className="hover:bg-xp-surface flex-shrink-0 rounded p-0.5 transition-colors"
+                              className="flex-shrink-0 rounded p-0.5 transition-colors hover:bg-xp-surface"
                               title={t('panels.recommendations.openFolder')}
                             >
-                              <FolderOpen className="text-xp-text-muted h-3 w-3" />
+                              <FolderOpen className="h-3 w-3 text-xp-text-muted" />
                             </button>
                           </div>
                         );
@@ -530,14 +530,14 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
         )}
 
         {results && results.duplicate_groups.length === 0 && (
-          <div className="text-xp-text-muted flex flex-col items-center justify-center py-10">
-            <Check className="text-xp-green mb-2 h-8 w-8" />
+          <div className="flex flex-col items-center justify-center py-10 text-xp-text-muted">
+            <Check className="mb-2 h-8 w-8 text-xp-green" />
             <div className="text-xs font-medium">{t('panels.recommendations.noDuplicates')}</div>
           </div>
         )}
 
         {!isScanning && !results && (
-          <div className="text-xp-text-muted flex flex-col items-center justify-center py-10">
+          <div className="flex flex-col items-center justify-center py-10 text-xp-text-muted">
             <Search className="mb-2 h-8 w-8 opacity-40" />
             <div className="text-xs">{t('panels.recommendations.setPathHint')}</div>
           </div>
@@ -546,13 +546,13 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
 
       {/* Actions */}
       {results && results.duplicate_groups.length > 0 && selectedFiles.size > 0 && (
-        <div className="border-xp-border bg-xp-surface/30 flex items-center gap-2 border-t px-3 py-1.5">
-          <span className="text-xp-text-muted text-[10px]">
+        <div className="bg-xp-surface/30 flex items-center gap-2 border-t border-xp-border px-3 py-1.5">
+          <span className="text-[10px] text-xp-text-muted">
             {t('common.selected', { count: selectedFiles.size })}
           </span>
           <button
             onClick={handleMoveToTrash}
-            className="bg-xp-red/10 text-xp-red border-xp-red/20 hover:bg-xp-red/20 flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-medium transition-colors"
+            className="bg-xp-red/10 border-xp-red/20 hover:bg-xp-red/20 flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-medium text-xp-red transition-colors"
           >
             <Trash2 className="h-3 w-3" />
             {t('common.delete')}
@@ -568,10 +568,10 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
               ]);
               navigator.clipboard.writeText(lines.join('\n'));
             }}
-            className="hover:bg-xp-surface rounded p-1 transition-colors"
+            className="rounded p-1 transition-colors hover:bg-xp-surface"
             title={t('panels.recommendations.copyReport')}
           >
-            <ClipboardCopy className="text-xp-text-muted h-3 w-3" />
+            <ClipboardCopy className="h-3 w-3 text-xp-text-muted" />
           </button>
         </div>
       )}
@@ -592,16 +592,16 @@ const RecommendationsPanel = ({
   const [activeTab, setActiveTab] = useState<TabMode>('similar');
 
   return (
-    <div className="text-xp-text flex h-full flex-col">
+    <div className="flex h-full flex-col text-xp-text">
       {/* Tab switcher */}
-      <div className="border-xp-border flex flex-shrink-0 border-b">
+      <div className="flex flex-shrink-0 border-b border-xp-border">
         <button
           onClick={() => setActiveTab('similar')}
           className={cn(
             'flex-1 px-3 py-2 text-xs font-medium transition-colors',
             activeTab === 'similar'
-              ? 'text-xp-blue border-xp-blue bg-xp-surface/50 border-b-2'
-              : 'text-xp-text-muted hover:text-xp-text hover:bg-xp-surface/30',
+              ? 'bg-xp-surface/50 border-b-2 border-xp-blue text-xp-blue'
+              : 'hover:bg-xp-surface/30 text-xp-text-muted hover:text-xp-text',
           )}
         >
           {t('panels.recommendations.tabSimilar')}
@@ -611,8 +611,8 @@ const RecommendationsPanel = ({
           className={cn(
             'flex-1 px-3 py-2 text-xs font-medium transition-colors',
             activeTab === 'duplicates'
-              ? 'text-xp-blue border-xp-blue bg-xp-surface/50 border-b-2'
-              : 'text-xp-text-muted hover:text-xp-text hover:bg-xp-surface/30',
+              ? 'bg-xp-surface/50 border-b-2 border-xp-blue text-xp-blue'
+              : 'hover:bg-xp-surface/30 text-xp-text-muted hover:text-xp-text',
           )}
         >
           {t('panels.recommendations.tabDuplicates')}

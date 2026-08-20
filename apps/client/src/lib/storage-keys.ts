@@ -6,6 +6,7 @@ export const STORAGE_KEYS = {
   // Core settings & UI
   SETTINGS: 'wisp:settings',
   UI_STATE: 'wisp:ui-state',
+  THEME_CHOSEN: 'wisp:theme-chosen',
   FONT_SIZE: 'wisp:font-size',
   SPLIT_LAYOUT: 'wisp:split-layout',
   SMART_VIEW: 'wisp:folder-views',

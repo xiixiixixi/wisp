@@ -165,47 +165,66 @@ export const computeNextRun = (
 // Formatting helpers
 // ---------------------------------------------------------------------------
 
-const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
 
 const pad = (n: number): string => n.toString().padStart(2, '0');
 
-export const formatFrequency = (freq: ScheduleFrequency): string => {
+type Translator = (key: string, opts?: Record<string, unknown>) => string;
+
+export const formatFrequency = (freq: ScheduleFrequency, t: Translator): string => {
   switch (freq.type) {
     case 'once':
-      return `Once at ${new Date(freq.runAt).toLocaleString()}`;
+      return t('agentManager.schedule.fmtOnce', { time: new Date(freq.runAt).toLocaleString() });
     case 'interval':
-      if (freq.everyMinutes < 60) return `Every ${freq.everyMinutes} min`;
-      if (freq.everyMinutes % 60 === 0) return `Every ${freq.everyMinutes / 60} hr`;
-      return `Every ${freq.everyMinutes} min`;
+      if (freq.everyMinutes % 60 === 0) {
+        return t('agentManager.schedule.fmtEveryHr', { n: freq.everyMinutes / 60 });
+      }
+      return t('agentManager.schedule.fmtEveryMin', { n: freq.everyMinutes });
     case 'hourly':
-      return `Every hour at :${pad(freq.minute)}`;
+      return t('agentManager.schedule.fmtHourly', { minute: pad(freq.minute) });
     case 'daily':
-      return `Daily at ${pad(freq.hour)}:${pad(freq.minute)}`;
+      return t('agentManager.schedule.fmtDaily', {
+        time: `${pad(freq.hour)}:${pad(freq.minute)}`,
+      });
     case 'weekly':
-      return `${dayNames[freq.dayOfWeek] ?? 'Sun'} at ${pad(freq.hour)}:${pad(freq.minute)}`;
+      return t('agentManager.schedule.fmtWeekly', {
+        day: t(`agentManager.schedule.days.${DAY_KEYS[freq.dayOfWeek] ?? 'sun'}`),
+        time: `${pad(freq.hour)}:${pad(freq.minute)}`,
+      });
     case 'monthly':
-      return `Day ${freq.day} at ${pad(freq.hour)}:${pad(freq.minute)}`;
+      return t('agentManager.schedule.fmtMonthly', {
+        day: freq.day,
+        time: `${pad(freq.hour)}:${pad(freq.minute)}`,
+      });
     default:
-      return 'Unknown';
+      return t('agentManager.schedule.fmtUnknown');
   }
 };
 
-export const formatRelativeTime = (timestamp: number, now: number = Date.now()): string => {
+export const formatRelativeTime = (
+  timestamp: number,
+  now: number = Date.now(),
+  t?: Translator,
+): string => {
   const delta = timestamp - now;
   const absDelta = Math.abs(delta);
   const minutes = Math.floor(absDelta / minuteMs);
   const hours = Math.floor(absDelta / hourMs);
   const days = Math.floor(absDelta / dayMs);
-  const tense = delta < 0 ? 'ago' : 'in';
 
-  let value: string;
-  if (absDelta < minuteMs) value = 'now';
-  else if (minutes < 60) value = `${minutes}m`;
-  else if (hours < 24) value = `${hours}h`;
-  else value = `${days}d`;
+  if (absDelta < minuteMs) return t?.('agentManager.schedule.timeNow') ?? 'now';
 
-  if (value === 'now') return 'now';
-  return delta < 0 ? `${value} ${tense}` : `${tense} ${value}`;
+  let value = t?.('agentManager.schedule.fmtDay', { n: days }) ?? `${days}d`;
+  if (hours < 24) {
+    value = t?.('agentManager.schedule.fmtHr', { n: hours }) ?? `${hours}h`;
+  }
+  if (minutes < 60) {
+    value = t?.('agentManager.schedule.fmtMin', { n: minutes }) ?? `${minutes}m`;
+  }
+
+  return delta < 0
+    ? (t?.('agentManager.schedule.timeAgo', { value }) ?? `${value} ago`)
+    : (t?.('agentManager.schedule.timeIn', { value }) ?? `in ${value}`);
 };
 
 // ---------------------------------------------------------------------------

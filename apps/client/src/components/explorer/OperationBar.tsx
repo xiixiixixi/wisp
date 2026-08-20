@@ -137,25 +137,27 @@ const OperationBar = ({
   };
 
   return (
-    <div ref={barRef} className="bg-xp-surface border-xp-border border-b px-3 py-1.5">
+    <div ref={barRef} className="border-b border-xp-border bg-xp-surface px-3 py-1.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-1">
           {/* Sort Dropdown */}
           <div className="relative">
             <button
               onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-              className="text-xp-text-muted hover:text-xp-text hover:bg-xp-surface-light flex items-center gap-1 rounded px-2 py-1 text-xs transition-colors"
+              className="flex items-center gap-1 rounded px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               aria-label={t('operationBar.sortBy', {
-                name: sortOptions?.[sortBy]?.name || 'Name',
+                name: sortOptions?.[sortBy]?.name || t('sort.name'),
                 order: sortOrder === 'asc' ? 'ascending' : 'descending',
               })}
             >
-              <span className="whitespace-nowrap">{sortOptions?.[sortBy]?.name || 'Name'}</span>
+              <span className="whitespace-nowrap">
+                {sortOptions?.[sortBy]?.name || t('sort.name')}
+              </span>
               <ChevronDown size={12} className="opacity-60" />
             </button>
 
             {isSortDropdownOpen && sortOptions && (
-              <div className="bg-xp-popover border-xp-border absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-lg border py-1 shadow-xl backdrop-blur-xl">
+              <div className="absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-lg border border-xp-border bg-xp-popover py-1 shadow-xl backdrop-blur-xl">
                 {Object.values(sortOptions).map((option) => (
                   <button
                     key={option.id}
@@ -167,7 +169,7 @@ const OperationBar = ({
                       }
                       setIsSortDropdownOpen(false);
                     }}
-                    className={`hover:bg-xp-surface-light flex w-full items-center justify-between px-3 py-1.5 text-left transition-colors ${
+                    className={`flex w-full items-center justify-between px-3 py-1.5 text-left transition-colors hover:bg-xp-surface-light ${
                       sortBy === option.id ? 'text-xp-blue' : ''
                     }`}
                   >
@@ -180,13 +182,13 @@ const OperationBar = ({
                 {/* Group by Date toggle inside sort dropdown */}
                 {setGroupByDate && (
                   <>
-                    <div className="border-xp-border my-1 border-t" />
+                    <div className="my-1 border-t border-xp-border" />
                     <button
                       onClick={() => {
                         setGroupByDate(!groupByDate);
                         setIsSortDropdownOpen(false);
                       }}
-                      className={`hover:bg-xp-surface-light flex w-full items-center justify-between px-3 py-1.5 text-left transition-colors ${
+                      className={`flex w-full items-center justify-between px-3 py-1.5 text-left transition-colors hover:bg-xp-surface-light ${
                         groupByDate ? 'text-xp-blue' : ''
                       }`}
                     >
@@ -211,23 +213,25 @@ const OperationBar = ({
           </div>
 
           {/* Separator */}
-          <div className="bg-xp-border h-4 w-px" />
+          <div className="h-4 w-px bg-xp-border" />
           {/* View Mode Dropdown */}
           <div className="relative flex items-center gap-1">
             <button
               onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
-              className="text-xp-text-muted hover:text-xp-text hover:bg-xp-surface-light flex items-center gap-1 rounded px-2 py-1 text-xs transition-colors"
+              className="flex items-center gap-1 rounded px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               aria-label={t('operationBar.viewMode', {
-                name: viewModes[viewMode]?.name || 'Medium Icons',
+                name: viewModes[viewMode]?.name || t('viewMode.medium'),
               })}
             >
               <span className="text-sm">{viewModes[viewMode]?.icon}</span>
-              <span className="whitespace-nowrap">{viewModes[viewMode]?.name || 'Grid'}</span>
+              <span className="whitespace-nowrap">
+                {viewModes[viewMode]?.name || t('viewMode.medium')}
+              </span>
               <ChevronDown size={12} className="opacity-60" />
             </button>
 
             {isViewDropdownOpen && (
-              <div className="bg-xp-popover border-xp-border absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-lg border py-1 shadow-xl backdrop-blur-xl">
+              <div className="absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-lg border border-xp-border bg-xp-popover py-1 shadow-xl backdrop-blur-xl">
                 {Object.values(viewModes).map((mode) => (
                   <button
                     key={mode.id}
@@ -235,7 +239,7 @@ const OperationBar = ({
                       setViewMode(mode.id);
                       setIsViewDropdownOpen(false);
                     }}
-                    className={`hover:bg-xp-surface-light flex w-full items-center gap-2.5 px-3 py-1.5 text-left transition-colors ${
+                    className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left transition-colors hover:bg-xp-surface-light ${
                       viewMode === mode.id ? 'text-xp-blue' : ''
                     }`}
                   >
@@ -251,7 +255,7 @@ const OperationBar = ({
             <button
               onClick={onCopy}
               disabled={selectedFiles.size === 0}
-              className="text-xp-text-muted hover:text-xp-text hover:bg-xp-surface-light rounded p-1 transition-colors disabled:pointer-events-none disabled:opacity-30"
+              className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:pointer-events-none disabled:opacity-30"
               title={t('contextMenu.copy')}
             >
               <Copy size={15} />
@@ -261,7 +265,7 @@ const OperationBar = ({
             <button
               onClick={onCut}
               disabled={selectedFiles.size === 0}
-              className="text-xp-text-muted hover:text-xp-text hover:bg-xp-surface-light rounded p-1 transition-colors disabled:pointer-events-none disabled:opacity-30"
+              className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:pointer-events-none disabled:opacity-30"
               title={t('contextMenu.cut')}
             >
               <Scissors size={15} />
@@ -271,7 +275,7 @@ const OperationBar = ({
             <button
               onClick={onPaste}
               disabled={!hasClipboard}
-              className="text-xp-text-muted hover:text-xp-text hover:bg-xp-surface-light rounded p-1 transition-colors disabled:pointer-events-none disabled:opacity-30"
+              className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:pointer-events-none disabled:opacity-30"
               title={t('contextMenu.paste')}
             >
               <Clipboard size={15} />
@@ -280,14 +284,14 @@ const OperationBar = ({
           <button
             onClick={handleDelete}
             disabled={selectedFiles.size === 0}
-            className="text-xp-text-muted hover:text-xp-red hover:bg-xp-red/10 rounded p-1 transition-colors disabled:pointer-events-none disabled:opacity-30"
+            className="hover:bg-xp-red/10 rounded p-1 text-xp-text-muted transition-colors hover:text-xp-red disabled:pointer-events-none disabled:opacity-30"
             title={t('contextMenu.delete')}
           >
             <Trash2 size={15} />
           </button>
 
           {/* Separator */}
-          <div className="bg-xp-border h-4 w-px" />
+          <div className="h-4 w-px bg-xp-border" />
 
           {/* Size Map toggle */}
           {onToggleSizeBadges && (
@@ -295,8 +299,8 @@ const OperationBar = ({
               onClick={onToggleSizeBadges}
               className={`flex items-center gap-1 rounded px-2 py-1 text-xs transition-colors ${
                 showSizeBadges
-                  ? 'text-xp-blue bg-xp-blue/10'
-                  : 'text-xp-text-muted hover:text-xp-text hover:bg-xp-surface-light'
+                  ? 'bg-xp-blue/10 text-xp-blue'
+                  : 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
               }`}
               title={
                 showSizeBadges
@@ -316,14 +320,14 @@ const OperationBar = ({
           )}
 
           {/* Separator */}
-          <div className="bg-xp-border h-4 w-px" />
+          <div className="h-4 w-px bg-xp-border" />
         </div>
 
         <div className="flex items-center space-x-1">
           {/* Action Buttons */}
           <button
             onClick={handleCreateFolder}
-            className="hover:bg-xp-surface-light rounded p-1.5 transition-colors"
+            className="rounded p-1.5 transition-colors hover:bg-xp-surface-light"
             title={t('operationBar.createFolder')}
             aria-label={t('operationBar.createFolder')}
           >
@@ -340,7 +344,7 @@ const OperationBar = ({
           {selectedFiles.size > 0 && (
             <button
               onClick={handleDelete}
-              className="hover:bg-xp-red/20 text-xp-red rounded p-1.5 transition-colors"
+              className="hover:bg-xp-red/20 rounded p-1.5 text-xp-red transition-colors"
               title={t('operationBar.deleteItems', { count: selectedFiles.size })}
               aria-label={t('operationBar.deleteItemsAria', { count: selectedFiles.size })}
             >
@@ -359,7 +363,7 @@ const OperationBar = ({
               setBottomPanelCollapsed(false);
               setBottomPanelTab('terminal');
             }}
-            className="hover:bg-xp-surface-light rounded p-1.5 transition-colors"
+            className="rounded p-1.5 transition-colors hover:bg-xp-surface-light"
             title={t('operationBar.openTerminal')}
             aria-label={t('operationBar.openTerminal')}
           >
@@ -376,7 +380,7 @@ const OperationBar = ({
           <div className="relative">
             <button
               onClick={() => setIsActionsDropdownOpen(!isActionsDropdownOpen)}
-              className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-text rounded p-1.5 transition-colors"
+              className="rounded p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               title={t('operationBar.actionsMenu')}
               aria-label={t('operationBar.actionsMenu')}
               aria-haspopup="menu"
@@ -386,16 +390,16 @@ const OperationBar = ({
             </button>
 
             {isActionsDropdownOpen && (
-              <div className="bg-xp-popover border-xp-border absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border py-1 shadow-xl backdrop-blur-xl">
+              <div className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-xp-border bg-xp-popover py-1 shadow-xl backdrop-blur-xl">
                 {/* New Folder */}
                 <button
                   onClick={() => {
                     handleCreateFolder();
                     setIsActionsDropdownOpen(false);
                   }}
-                  className="hover:bg-xp-surface-light flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors"
+                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
                 >
-                  <FolderPlus size={14} className="text-xp-text-muted shrink-0" />
+                  <FolderPlus size={14} className="shrink-0 text-xp-text-muted" />
                   <span>{t('operationBar.newFolder')}</span>
                 </button>
 
@@ -406,14 +410,14 @@ const OperationBar = ({
                       onCreateFile();
                       setIsActionsDropdownOpen(false);
                     }}
-                    className="hover:bg-xp-surface-light flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors"
+                    className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
                   >
-                    <FilePlus size={14} className="text-xp-text-muted shrink-0" />
+                    <FilePlus size={14} className="shrink-0 text-xp-text-muted" />
                     <span>{t('operationBar.newFile')}</span>
                   </button>
                 )}
 
-                <div className="border-xp-border my-1 border-t" />
+                <div className="my-1 border-t border-xp-border" />
 
                 {/* Compress */}
                 {onCompress && (
@@ -422,9 +426,9 @@ const OperationBar = ({
                       onCompress();
                       setIsActionsDropdownOpen(false);
                     }}
-                    className="hover:bg-xp-surface-light flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors"
+                    className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
                   >
-                    <Package size={14} className="text-xp-text-muted shrink-0" />
+                    <Package size={14} className="shrink-0 text-xp-text-muted" />
                     <span>{t('operationBar.compress')}</span>
                   </button>
                 )}
@@ -436,21 +440,21 @@ const OperationBar = ({
                       onExtract();
                       setIsActionsDropdownOpen(false);
                     }}
-                    className="hover:bg-xp-surface-light flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors"
+                    className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
                   >
-                    <PackageOpen size={14} className="text-xp-text-muted shrink-0" />
+                    <PackageOpen size={14} className="shrink-0 text-xp-text-muted" />
                     <span>{t('operationBar.extract')}</span>
                   </button>
                 )}
 
-                <div className="border-xp-border my-1 border-t" />
+                <div className="my-1 border-t border-xp-border" />
 
                 {/* Open in Terminal */}
                 <button
                   onClick={handleOpenTerminal}
-                  className="hover:bg-xp-surface-light flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors"
+                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
                 >
-                  <Terminal size={14} className="text-xp-text-muted shrink-0" />
+                  <Terminal size={14} className="shrink-0 text-xp-text-muted" />
                   <span>{t('operationBar.openInTerminal')}</span>
                 </button>
 
@@ -461,14 +465,14 @@ const OperationBar = ({
                       onCopyPath();
                       setIsActionsDropdownOpen(false);
                     }}
-                    className="hover:bg-xp-surface-light flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors"
+                    className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
                   >
-                    <Copy size={14} className="text-xp-text-muted shrink-0" />
+                    <Copy size={14} className="shrink-0 text-xp-text-muted" />
                     <span>{t('operationBar.copyPath')}</span>
                   </button>
                 )}
 
-                <div className="border-xp-border my-1 border-t" />
+                <div className="my-1 border-t border-xp-border" />
 
                 {/* Properties */}
                 {onProperties && (
@@ -477,9 +481,9 @@ const OperationBar = ({
                       onProperties();
                       setIsActionsDropdownOpen(false);
                     }}
-                    className="hover:bg-xp-surface-light flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors"
+                    className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
                   >
-                    <Info size={14} className="text-xp-text-muted shrink-0" />
+                    <Info size={14} className="shrink-0 text-xp-text-muted" />
                     <span>{t('operationBar.properties')}</span>
                   </button>
                 )}

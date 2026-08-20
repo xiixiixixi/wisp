@@ -2,6 +2,7 @@
  * Collapsible pinned messages section for the chat panel.
  * Displayed at the top of the chat when messages are pinned.
  */
+import i18n from '@/i18n';
 import React, { useState, useCallback } from 'react';
 import { Pin, ChevronDown, ChevronRight, X } from 'lucide-react';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
@@ -142,7 +143,7 @@ const PinnedItem = React.memo(({ pin, onUnpin, onJump }: PinnedItemProps) => {
           marginTop: '2px',
         }}
       >
-        {isAssistant ? 'AI' : 'You'}
+        {isAssistant ? 'AI' : i18n.t('chat.you')}
       </span>
       <div
         style={{
@@ -174,7 +175,7 @@ const PinnedItem = React.memo(({ pin, onUnpin, onJump }: PinnedItemProps) => {
           e.stopPropagation();
           onUnpin(pin.messageIndex);
         }}
-        title="Unpin this message"
+        title={i18n.t('chat.unpinThis')}
         aria-label="Unpin this message"
         style={{
           flexShrink: 0,

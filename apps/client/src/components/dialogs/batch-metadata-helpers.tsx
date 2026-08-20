@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { type FileTag, type FileNote, type FileEntry } from '@/lib/tauri-api';
@@ -6,14 +7,54 @@ import { X, Plus, Check, FileText } from 'lucide-react';
 // ── Constants ────────────────────────────────────────────────────────────────
 
 export const PRESET_COLORS: { label: string; value: string }[] = [
-  { label: 'Blue', value: '#7aa2f7' },
-  { label: 'Green', value: '#9ece6a' },
-  { label: 'Red', value: '#f7768e' },
-  { label: 'Orange', value: '#ff9e64' },
-  { label: 'Purple', value: '#bb9af7' },
-  { label: 'Yellow', value: '#e0af68' },
-  { label: 'Teal', value: '#73daca' },
-  { label: 'Pink', value: '#ff7eb6' },
+  {
+    get label() {
+      return i18n.t('dialogs.colors.blue');
+    },
+    value: '#7aa2f7',
+  },
+  {
+    get label() {
+      return i18n.t('dialogs.colors.green');
+    },
+    value: '#9ece6a',
+  },
+  {
+    get label() {
+      return i18n.t('dialogs.colors.red');
+    },
+    value: '#f7768e',
+  },
+  {
+    get label() {
+      return i18n.t('dialogs.colors.orange');
+    },
+    value: '#ff9e64',
+  },
+  {
+    get label() {
+      return i18n.t('dialogs.colors.purple');
+    },
+    value: '#bb9af7',
+  },
+  {
+    get label() {
+      return i18n.t('dialogs.colors.yellow');
+    },
+    value: '#e0af68',
+  },
+  {
+    get label() {
+      return i18n.t('dialogs.colors.teal');
+    },
+    value: '#73daca',
+  },
+  {
+    get label() {
+      return i18n.t('dialogs.colors.pink');
+    },
+    value: '#ff7eb6',
+  },
 ];
 
 // ── Types ────────────────────────────────────────────────────────────────────

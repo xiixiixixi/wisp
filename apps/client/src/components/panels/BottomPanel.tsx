@@ -150,11 +150,11 @@ const BottomPanel = ({
 
   return (
     <div
-      className="bg-xp-surface border-xp-border flex flex-shrink-0 flex-col border-t"
+      className="flex flex-shrink-0 flex-col border-t border-xp-border bg-xp-surface"
       style={{ height: height ?? 192 }}
     >
       {/* Bottom Panel Tabs */}
-      <div className="border-xp-border flex border-b" role="tablist" aria-label="Bottom panel tabs">
+      <div className="flex border-b border-xp-border" role="tablist" aria-label="Bottom panel tabs">
         {/* Core tabs */}
         {CORE_TABS.map((tab) => (
           <button
@@ -166,7 +166,7 @@ const BottomPanel = ({
             onClick={() => setBottomPanelTab(tab)}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium ${
               bottomPanelTab === tab
-                ? 'bg-xp-bg border-xp-blue text-xp-blue border-b-2'
+                ? 'border-b-2 border-xp-blue bg-xp-bg text-xp-blue'
                 : 'hover:bg-xp-surface-light'
             }`}
           >
@@ -177,7 +177,7 @@ const BottomPanel = ({
               </span>
             )}
             {tab === 'notifications' && unreadCount > 0 && (
-              <span className="bg-xp-blue/20 text-xp-blue ml-0.5 rounded px-1 text-[10px] font-bold">
+              <span className="bg-xp-blue/20 ml-0.5 rounded px-1 text-[10px] font-bold text-xp-blue">
                 {unreadCount}
               </span>
             )}
@@ -195,7 +195,7 @@ const BottomPanel = ({
             onClick={() => setBottomPanelTab(extTab.id as BottomPanelTab)}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium ${
               bottomPanelTab === extTab.id
-                ? 'bg-xp-bg border-xp-blue text-xp-blue border-b-2'
+                ? 'border-b-2 border-xp-blue bg-xp-bg text-xp-blue'
                 : 'hover:bg-xp-surface-light'
             }`}
           >
@@ -206,7 +206,7 @@ const BottomPanel = ({
 
         <button
           onClick={() => setBottomPanelCollapsed(true)}
-          className="hover:bg-xp-surface-light ml-auto px-2"
+          className="ml-auto px-2 hover:bg-xp-surface-light"
           title="Close (Ctrl+J)"
           aria-label="Close bottom panel"
         >
@@ -231,7 +231,7 @@ const BottomPanel = ({
           {!isExtensionTab && (
             <React.Suspense
               fallback={
-                <div className="text-xp-text-muted flex h-full items-center justify-center text-xs">
+                <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
                   Loading...
                 </div>
               }
@@ -270,7 +270,7 @@ const BottomPanel = ({
                     onNavigate={onNavigate}
                   />
                 ) : (
-                  <div className="text-xp-text-muted flex h-full items-center justify-center text-xs">
+                  <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
                     <svg
                       className="mr-2 h-4 w-4 text-green-400"
                       fill="currentColor"
@@ -357,7 +357,7 @@ const ActivityLogContent = ({
   return (
     <div className="flex h-full flex-col">
       {/* Sub-filter toolbar */}
-      <div className="border-xp-border bg-xp-surface-light/30 flex flex-shrink-0 items-center gap-1 border-b px-3 py-1.5">
+      <div className="bg-xp-surface-light/30 flex flex-shrink-0 items-center gap-1 border-b border-xp-border px-3 py-1.5">
         {ACTIVITY_LOG_FILTERS.map((f) => (
           <button
             key={f.value}
@@ -379,7 +379,7 @@ const ActivityLogContent = ({
         {(activityLogFilter === 'all' || activityLogFilter === 'output') && (
           <div>
             {activityLogFilter === 'all' && (
-              <div className="text-xp-text-muted bg-xp-surface-light/20 border-xp-border/50 sticky top-0 z-[1] border-b px-3 py-1 text-[10px] font-semibold uppercase tracking-wider">
+              <div className="bg-xp-surface-light/20 border-xp-border/50 sticky top-0 z-[1] border-b px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-xp-text-muted">
                 Output
               </div>
             )}
@@ -411,13 +411,13 @@ const ActivityLogContent = ({
         {(activityLogFilter === 'all' || activityLogFilter === 'activity') && (
           <div>
             {activityLogFilter === 'all' && (
-              <div className="text-xp-text-muted bg-xp-surface-light/20 border-xp-border/50 sticky top-0 z-[1] border-b px-3 py-1 text-[10px] font-semibold uppercase tracking-wider">
+              <div className="bg-xp-surface-light/20 border-xp-border/50 sticky top-0 z-[1] border-b px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-xp-text-muted">
                 Activity
               </div>
             )}
             <React.Suspense
               fallback={
-                <div className="text-xp-text-muted flex h-16 items-center justify-center text-xs">
+                <div className="flex h-16 items-center justify-center text-xs text-xp-text-muted">
                   Loading...
                 </div>
               }
@@ -431,13 +431,13 @@ const ActivityLogContent = ({
         {(activityLogFilter === 'all' || activityLogFilter === 'history') && (
           <div>
             {activityLogFilter === 'all' && (
-              <div className="text-xp-text-muted bg-xp-surface-light/20 border-xp-border/50 sticky top-0 z-[1] border-b px-3 py-1 text-[10px] font-semibold uppercase tracking-wider">
+              <div className="bg-xp-surface-light/20 border-xp-border/50 sticky top-0 z-[1] border-b px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-xp-text-muted">
                 History
               </div>
             )}
             <React.Suspense
               fallback={
-                <div className="text-xp-text-muted flex h-16 items-center justify-center text-xs">
+                <div className="flex h-16 items-center justify-center text-xs text-xp-text-muted">
                   Loading...
                 </div>
               }

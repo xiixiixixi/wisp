@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { useRef, useEffect } from 'react';
 import type { ChatMessage } from '@/lib/ai-service';
 import type { ChatState } from '@/hooks/use-chat-state';
@@ -81,13 +82,13 @@ const ChatMessageList = ({
         <div className="flex justify-start">
           <details
             open
-            className="bg-xp-bg border-xp-border min-w-0 max-w-[85%] overflow-hidden rounded-lg border"
+            className="min-w-0 max-w-[85%] overflow-hidden rounded-lg border border-xp-border bg-xp-bg"
           >
-            <summary className="text-xp-text-muted hover:bg-xp-bg-hover flex cursor-pointer select-none items-center gap-1.5 px-3 py-1.5 text-xs">
-              <div className="bg-xp-cyan h-1.5 w-1.5 animate-pulse rounded-full" />
+            <summary className="hover:bg-xp-bg-hover flex cursor-pointer select-none items-center gap-1.5 px-3 py-1.5 text-xs text-xp-text-muted">
+              <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-xp-cyan" />
               <span>Thinking...</span>
             </summary>
-            <div className="text-xp-text-muted border-xp-border max-h-48 overflow-y-auto whitespace-pre-wrap border-t px-3 py-2 text-xs">
+            <div className="max-h-48 overflow-y-auto whitespace-pre-wrap border-t border-xp-border px-3 py-2 text-xs text-xp-text-muted">
               {state.streamingThinking}
             </div>
           </details>
@@ -102,8 +103,8 @@ const ChatMessageList = ({
 
       {/* Screen reader status announcements */}
       <div className="sr-only" aria-live="assertive">
-        {state.isAgentRunning && 'Agent is processing your request'}
-        {isAiLoading && !state.isAgentRunning && 'AI is generating a response'}
+        {state.isAgentRunning && i18n.t('chat.agentProcessing')}
+        {isAiLoading && !state.isAgentRunning && i18n.t('chat.aiGenerating')}
       </div>
     </div>
   );

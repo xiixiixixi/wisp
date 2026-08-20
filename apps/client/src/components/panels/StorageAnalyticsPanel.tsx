@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import React, { useState, useCallback, useEffect } from 'react';
 import { listenToEvent } from '@/lib/transport';
 import { TauriAPI, StorageAnalytics, StorageAnalysisProgress } from '@/lib/tauri-api';
@@ -107,9 +108,9 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
           className="loading-spinner h-8 w-8 rounded-full border-2 border-current border-t-transparent"
           style={{ borderColor: 'var(--xp-blue)', borderTopColor: 'transparent' }}
         />
-        <p className="text-xp-text-muted text-sm">Analyzing storage...</p>
+        <p className="text-sm text-xp-text-muted">Analyzing storage...</p>
         {progress && (
-          <div className="text-xp-text-muted w-full space-y-1 text-xs">
+          <div className="w-full space-y-1 text-xs text-xp-text-muted">
             <p>
               {formatNumber(progress.files_processed)} files /{' '}
               {formatNumber(progress.dirs_processed)} folders scanned
@@ -141,7 +142,7 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
         </div>
         <button
           onClick={runAnalysis}
-          className="bg-xp-surface-light hover:bg-xp-blue text-xp-text w-full rounded-lg px-3 py-2 text-sm transition-colors"
+          className="w-full rounded-lg bg-xp-surface-light px-3 py-2 text-sm text-xp-text transition-colors hover:bg-xp-blue"
         >
           Retry
         </button>
@@ -156,13 +157,15 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
         <div className="text-3xl">
           <BarChart3 size="1em" className="inline-block" />
         </div>
-        <p className="text-xp-text-muted text-sm">
-          {currentPath ? 'Click Analyze to scan storage' : 'Navigate to a folder to analyze'}
+        <p className="text-sm text-xp-text-muted">
+          {currentPath
+            ? i18n.t('storageAnalytics.clickAnalyze')
+            : i18n.t('storageAnalytics.navigateToAnalyze')}
         </p>
         {currentPath && (
           <button
             onClick={runAnalysis}
-            className="bg-xp-blue rounded-lg px-4 py-2 text-sm text-white transition-colors hover:opacity-90"
+            className="rounded-lg bg-xp-blue px-4 py-2 text-sm text-white transition-colors hover:opacity-90"
           >
             Analyze Storage
           </button>
@@ -195,15 +198,15 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="min-w-0 flex-1">
-          <h3 className="text-xp-text text-sm font-semibold">Storage Analytics</h3>
-          <p className="text-xp-text-muted truncate text-xs" title={analyzedPath}>
+          <h3 className="text-sm font-semibold text-xp-text">Storage Analytics</h3>
+          <p className="truncate text-xs text-xp-text-muted" title={analyzedPath}>
             {analyzedPath}
           </p>
         </div>
         <button
           onClick={runAnalysis}
-          className="bg-xp-surface-light hover:bg-xp-blue border-xp-border ml-2 shrink-0 rounded border px-2 py-1 text-xs transition-colors hover:text-white"
-          title="Refresh analysis"
+          className="ml-2 shrink-0 rounded border border-xp-border bg-xp-surface-light px-2 py-1 text-xs transition-colors hover:bg-xp-blue hover:text-white"
+          title={i18n.t('storageAnalytics.refresh')}
         >
           Refresh
         </button>
@@ -213,7 +216,7 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
       <div className="grid grid-cols-3 gap-2">
         {/* Total Size */}
         <div
-          className="border-xp-border rounded-xl border p-2.5"
+          className="rounded-xl border border-xp-border p-2.5"
           style={{
             backgroundColor: 'rgba(var(--xp-surface-rgb, 36, 40, 59), 0.5)',
             backdropFilter: 'blur(16px)',
@@ -222,16 +225,18 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
           <div className="mb-0.5 text-base">
             <HardDrive size="1em" className="inline-block" />
           </div>
-          <div className="text-xp-text text-sm font-bold">
+          <div className="text-sm font-bold text-xp-text">
             {formatFileSize(hasDiskInfo ? total_size : used_size)}
           </div>
-          <div className="text-xp-text-muted text-[10px]">
-            {hasDiskInfo ? 'Disk Total' : 'Total Size'}
+          <div className="text-[10px] text-xp-text-muted">
+            {hasDiskInfo
+              ? i18n.t('storageAnalytics.diskTotal')
+              : i18n.t('storageAnalytics.totalSize')}
           </div>
         </div>
         {/* Files */}
         <div
-          className="border-xp-border rounded-xl border p-2.5"
+          className="rounded-xl border border-xp-border p-2.5"
           style={{
             backgroundColor: 'rgba(var(--xp-surface-rgb, 36, 40, 59), 0.5)',
             backdropFilter: 'blur(16px)',
@@ -240,12 +245,12 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
           <div className="mb-0.5 text-base">
             <FileText size="1em" className="inline-block" />
           </div>
-          <div className="text-xp-text text-sm font-bold">{formatNumber(file_count)}</div>
-          <div className="text-xp-text-muted text-[10px]">Files</div>
+          <div className="text-sm font-bold text-xp-text">{formatNumber(file_count)}</div>
+          <div className="text-[10px] text-xp-text-muted">Files</div>
         </div>
         {/* Folders */}
         <div
-          className="border-xp-border rounded-xl border p-2.5"
+          className="rounded-xl border border-xp-border p-2.5"
           style={{
             backgroundColor: 'rgba(var(--xp-surface-rgb, 36, 40, 59), 0.5)',
             backdropFilter: 'blur(16px)',
@@ -254,23 +259,23 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
           <div className="mb-0.5 text-base">
             <FolderClosed size="1em" className="inline-block" />
           </div>
-          <div className="text-xp-text text-sm font-bold">{formatNumber(dir_count)}</div>
-          <div className="text-xp-text-muted text-[10px]">Folders</div>
+          <div className="text-sm font-bold text-xp-text">{formatNumber(dir_count)}</div>
+          <div className="text-[10px] text-xp-text-muted">Folders</div>
         </div>
       </div>
 
       {/* Disk Usage Bar */}
       {hasDiskInfo && (
         <div
-          className="border-xp-border rounded-xl border p-3"
+          className="rounded-xl border border-xp-border p-3"
           style={{
             backgroundColor: 'rgba(var(--xp-surface-rgb, 36, 40, 59), 0.5)',
             backdropFilter: 'blur(16px)',
           }}
         >
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-xp-text text-xs font-medium">Disk Usage</span>
-            <span className="text-xp-text-muted text-xs">
+            <span className="text-xs font-medium text-xp-text">Disk Usage</span>
+            <span className="text-xs text-xp-text-muted">
               {formatFileSize(used_size)} / {formatFileSize(total_size)}
             </span>
           </div>
@@ -294,7 +299,7 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
               }}
             />
           </div>
-          <div className="text-xp-text-muted mt-1.5 flex justify-between text-[10px]">
+          <div className="mt-1.5 flex justify-between text-[10px] text-xp-text-muted">
             <span>Used: {usedPercent}%</span>
             <span>
               Free: {freePercent}% ({formatFileSize(free_size)})
@@ -306,13 +311,13 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
       {/* File Type Distribution */}
       {top10Types.length > 0 && (
         <div
-          className="border-xp-border rounded-xl border p-3"
+          className="rounded-xl border border-xp-border p-3"
           style={{
             backgroundColor: 'rgba(var(--xp-surface-rgb, 36, 40, 59), 0.5)',
             backdropFilter: 'blur(16px)',
           }}
         >
-          <h4 className="text-xp-text mb-2 text-xs font-medium">File Types (Top 10 by Size)</h4>
+          <h4 className="mb-2 text-xs font-medium text-xp-text">File Types (Top 10 by Size)</h4>
           <div className="space-y-1.5">
             {top10Types.map((t, i) => {
               const pct = totalFilesSize > 0 ? (t.total_size / totalFilesSize) * 100 : 0;
@@ -326,12 +331,12 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
                       style={{ backgroundColor: color }}
                     />
                     <span
-                      className="text-xp-text truncate font-mono text-[11px]"
+                      className="truncate font-mono text-[11px] text-xp-text"
                       style={{ minWidth: 50 }}
                     >
                       .{t.extension}
                     </span>
-                    <span className="text-xp-text-muted ml-auto shrink-0 text-[10px]">
+                    <span className="ml-auto shrink-0 text-[10px] text-xp-text-muted">
                       {formatFileSize(t.total_size)} ({pct.toFixed(1)}%)
                     </span>
                   </div>
@@ -344,7 +349,7 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
                       style={{ width: `${barWidth}%`, backgroundColor: color }}
                     />
                   </div>
-                  <div className="text-xp-text-muted mt-0.5 text-[10px]">
+                  <div className="mt-0.5 text-[10px] text-xp-text-muted">
                     {formatNumber(t.count)} files
                   </div>
                 </div>
@@ -357,13 +362,13 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
       {/* Size Distribution */}
       {size_categories.length > 0 && (
         <div
-          className="border-xp-border rounded-xl border p-3"
+          className="rounded-xl border border-xp-border p-3"
           style={{
             backgroundColor: 'rgba(var(--xp-surface-rgb, 36, 40, 59), 0.5)',
             backdropFilter: 'blur(16px)',
           }}
         >
-          <h4 className="text-xp-text mb-2 text-xs font-medium">Size Distribution</h4>
+          <h4 className="mb-2 text-xs font-medium text-xp-text">Size Distribution</h4>
           <div className="space-y-1.5">
             {size_categories.map((cat, i) => {
               const barWidth = maxCatSize > 0 ? (cat.total_size / maxCatSize) * 100 : 0;
@@ -371,8 +376,8 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
               return (
                 <div key={cat.label}>
                   <div className="mb-0.5 flex items-center justify-between">
-                    <span className="text-xp-text text-[11px]">{cat.label}</span>
-                    <span className="text-xp-text-muted text-[10px]">
+                    <span className="text-[11px] text-xp-text">{cat.label}</span>
+                    <span className="text-[10px] text-xp-text-muted">
                       {formatNumber(cat.count)} files / {formatFileSize(cat.total_size)}
                     </span>
                   </div>
@@ -395,29 +400,29 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
       {/* Largest Files */}
       {largest_files.length > 0 && (
         <div
-          className="border-xp-border rounded-xl border p-3"
+          className="rounded-xl border border-xp-border p-3"
           style={{
             backgroundColor: 'rgba(var(--xp-surface-rgb, 36, 40, 59), 0.5)',
             backdropFilter: 'blur(16px)',
           }}
         >
-          <h4 className="text-xp-text mb-2 text-xs font-medium">
+          <h4 className="mb-2 text-xs font-medium text-xp-text">
             Largest Files (Top {largest_files.length})
           </h4>
           <div className="max-h-64 space-y-1 overflow-y-auto">
             {largest_files.map((file, i) => (
               <div
                 key={file.path}
-                className="hover:bg-xp-surface-light group flex cursor-pointer items-center gap-2 rounded-lg p-1.5 transition-colors"
+                className="group flex cursor-pointer items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-xp-surface-light"
                 onClick={() => handleFileClick(file.path)}
                 title={file.path}
               >
-                <span className="text-xp-text-muted w-4 shrink-0 text-right text-[10px]">
+                <span className="w-4 shrink-0 text-right text-[10px] text-xp-text-muted">
                   {i + 1}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xp-text truncate text-[11px]">{file.name}</p>
-                  <p className="text-xp-text-muted truncate text-[10px] opacity-60 group-hover:opacity-100">
+                  <p className="truncate text-[11px] text-xp-text">{file.name}</p>
+                  <p className="truncate text-[10px] text-xp-text-muted opacity-60 group-hover:opacity-100">
                     {truncatePath(file.path, 45)}
                   </p>
                 </div>

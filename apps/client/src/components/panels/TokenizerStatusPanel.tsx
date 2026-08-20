@@ -178,22 +178,22 @@ const TokenizerStatusPanel = () => {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <div className="border-xp-blue mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2" />
-          <p className="text-xp-text-muted text-sm">{t('panels.tokenizerStatus.loadingStats')}</p>
+          <div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-xp-blue" />
+          <p className="text-sm text-xp-text-muted">{t('panels.tokenizerStatus.loadingStats')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-xp-bg text-xp-text flex h-full flex-col">
+    <div className="flex h-full flex-col bg-xp-bg text-xp-text">
       {/* Header */}
-      <div className="border-xp-border border-b px-4 py-3">
+      <div className="border-b border-xp-border px-4 py-3">
         <div className="mb-2 flex items-center justify-between">
           <h3 className="text-sm font-medium">{t('panels.tokenizerStatus.title')}</h3>
           {isIndexing && (
-            <div className="text-xp-blue flex items-center gap-2 text-xs">
-              <div className="border-xp-blue h-3 w-3 animate-spin rounded-full border-b" />
+            <div className="flex items-center gap-2 text-xs text-xp-blue">
+              <div className="h-3 w-3 animate-spin rounded-full border-b border-xp-blue" />
               <span>{t('panels.tokenizerStatus.indexingLabel')}</span>
             </div>
           )}
@@ -201,7 +201,7 @@ const TokenizerStatusPanel = () => {
       </div>
 
       {/* Stats */}
-      <div className="border-xp-border space-y-2 border-b px-4 py-3">
+      <div className="space-y-2 border-b border-xp-border px-4 py-3">
         <div className="flex justify-between text-sm">
           <span className="text-xp-text-muted">{t('panels.tokenizerStatus.statusLabel')}</span>
           <span className={settings?.enabled ? 'text-xp-green' : 'text-xp-red'}>
@@ -237,11 +237,11 @@ const TokenizerStatusPanel = () => {
       </div>
 
       {/* Actions */}
-      <div className="border-xp-border space-y-2 border-b px-4 py-3">
+      <div className="space-y-2 border-b border-xp-border px-4 py-3">
         <button
           onClick={handleRebuildIndex}
           disabled={isIndexing}
-          className="bg-xp-blue hover:bg-xp-blue/80 disabled:bg-xp-surface-light disabled:text-xp-text-muted w-full rounded px-3 py-2 text-sm text-white transition-colors"
+          className="hover:bg-xp-blue/80 w-full rounded bg-xp-blue px-3 py-2 text-sm text-white transition-colors disabled:bg-xp-surface-light disabled:text-xp-text-muted"
         >
           {isIndexing
             ? t('panels.tokenizerStatus.rebuilding')
@@ -250,12 +250,12 @@ const TokenizerStatusPanel = () => {
       </div>
 
       {/* AI Indexing Section (Phase 3) */}
-      <div className="border-xp-border border-b px-4 py-3">
+      <div className="border-b border-xp-border px-4 py-3">
         <h4 className="mb-2 text-sm font-medium">{t('panels.tokenizerStatus.aiVisionTitle')}</h4>
         <div className="space-y-2">
           {/* Provider Selector */}
           <div className="flex items-center gap-2">
-            <span className="text-xp-text-muted whitespace-nowrap text-xs">
+            <span className="whitespace-nowrap text-xs text-xp-text-muted">
               {t('panels.tokenizerStatus.providerLabel')}
             </span>
             <div className="flex flex-1 gap-1">
@@ -281,7 +281,7 @@ const TokenizerStatusPanel = () => {
 
           {/* Hint for online providers */}
           {aiProvider !== 'ollama' && (
-            <p className="text-xp-text-muted text-[10px]">
+            <p className="text-[10px] text-xp-text-muted">
               {t('panels.tokenizerStatus.apiKeyFromSettings')}
             </p>
           )}
@@ -299,7 +299,7 @@ const TokenizerStatusPanel = () => {
                   <span className="text-xp-text-muted">
                     {t('panels.tokenizerStatus.visionModelLabel')}
                   </span>
-                  <span className="text-xp-text ml-2 truncate">{aiStatus.vision_model}</span>
+                  <span className="ml-2 truncate text-xp-text">{aiStatus.vision_model}</span>
                 </div>
               )}
               {aiStatus.is_processing && (
@@ -313,14 +313,14 @@ const TokenizerStatusPanel = () => {
                 </div>
               )}
               {aiStatus.queue_length > 0 && (
-                <div className="text-xp-text-muted text-xs">
+                <div className="text-xs text-xp-text-muted">
                   {t('panels.tokenizerStatus.queueLabel', { count: aiStatus.queue_length })}
                 </div>
               )}
               <button
                 onClick={handleTriggerAIIndexing}
                 disabled={aiStatus.is_processing}
-                className="disabled:bg-xp-surface-light disabled:text-xp-text-muted w-full rounded bg-purple-600 px-3 py-1.5 text-xs text-white transition-colors hover:bg-purple-500"
+                className="w-full rounded bg-purple-600 px-3 py-1.5 text-xs text-white transition-colors hover:bg-purple-500 disabled:bg-xp-surface-light disabled:text-xp-text-muted"
               >
                 {aiStatus.is_processing
                   ? t('panels.tokenizerStatus.processing')
@@ -329,7 +329,7 @@ const TokenizerStatusPanel = () => {
             </>
           ) : null}
           {!aiStatus && aiProvider === 'ollama' && (
-            <p className="text-xp-text-muted text-xs">
+            <p className="text-xs text-xp-text-muted">
               {t('panels.tokenizerStatus.ollamaRequirement')}
             </p>
           )}
@@ -337,7 +337,7 @@ const TokenizerStatusPanel = () => {
             <button
               onClick={handleTriggerAIIndexing}
               disabled={!settings?.whitelisted_paths?.length}
-              className="disabled:bg-xp-surface-light disabled:text-xp-text-muted w-full rounded bg-purple-600 px-3 py-1.5 text-xs text-white transition-colors hover:bg-purple-500"
+              className="w-full rounded bg-purple-600 px-3 py-1.5 text-xs text-white transition-colors hover:bg-purple-500 disabled:bg-xp-surface-light disabled:text-xp-text-muted"
             >
               {t('panels.tokenizerStatus.indexImagesWithAI')}
             </button>
@@ -346,11 +346,11 @@ const TokenizerStatusPanel = () => {
       </div>
 
       {/* Search */}
-      <div className="border-xp-border border-b px-4 py-3">
+      <div className="border-b border-xp-border px-4 py-3">
         <h4 className="mb-2 text-sm font-medium">
           {t('panels.tokenizerStatus.contentSearchTitle')}
         </h4>
-        <p className="text-xp-text-muted mb-2 text-xs">{t('panels.tokenizerStatus.searchHint')}</p>
+        <p className="mb-2 text-xs text-xp-text-muted">{t('panels.tokenizerStatus.searchHint')}</p>
         <div className="flex gap-2">
           <input
             type="text"
@@ -358,12 +358,12 @@ const TokenizerStatusPanel = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={handleSearchKeyPress}
             placeholder={t('panels.tokenizerStatus.searchPlaceholder')}
-            className="bg-xp-surface border-xp-border focus:border-xp-blue text-xp-text placeholder:text-xp-text-muted flex-1 rounded border px-3 py-2 text-sm focus:outline-none"
+            className="flex-1 rounded border border-xp-border bg-xp-surface px-3 py-2 text-sm text-xp-text placeholder:text-xp-text-muted focus:border-xp-blue focus:outline-none"
           />
           <button
             onClick={handleSearch}
             disabled={isSearching || !searchQuery.trim()}
-            className="bg-xp-blue hover:bg-xp-blue/80 disabled:bg-xp-surface-light disabled:text-xp-text-muted rounded px-3 py-2 text-sm text-white transition-colors"
+            className="hover:bg-xp-blue/80 rounded bg-xp-blue px-3 py-2 text-sm text-white transition-colors disabled:bg-xp-surface-light disabled:text-xp-text-muted"
           >
             {isSearching ? (
               <div className="h-4 w-4 animate-spin rounded-full border-b border-white" />
@@ -384,7 +384,7 @@ const TokenizerStatusPanel = () => {
       <div className="flex-1 overflow-y-auto">
         {searchResults.length > 0 ? (
           <div>
-            <div className="text-xp-text-muted bg-xp-surface px-4 py-2 text-xs">
+            <div className="bg-xp-surface px-4 py-2 text-xs text-xp-text-muted">
               {t(
                 searchResults.length !== 1
                   ? 'panels.tokenizerStatus.foundResults_plural'
@@ -398,26 +398,26 @@ const TokenizerStatusPanel = () => {
                 <div
                   // eslint-disable-next-line react/no-array-index-key
                   key={index}
-                  className="hover:bg-xp-surface-light border-xp-border/30 cursor-pointer border-b px-4 py-3 transition-colors"
+                  className="border-xp-border/30 cursor-pointer border-b px-4 py-3 transition-colors hover:bg-xp-surface-light"
                 >
                   <div className="mb-1 flex items-start justify-between gap-2">
-                    <span className="text-xp-text truncate text-sm">{result.filename}</span>
+                    <span className="truncate text-sm text-xp-text">{result.filename}</span>
                     <div className="flex flex-shrink-0 items-center gap-1">
                       <span
                         className={`rounded px-1.5 py-0.5 text-xs ${badge.color} bg-opacity-20 text-white`}
                       >
                         {badge.label}
                       </span>
-                      <span className="bg-xp-blue/20 text-xp-blue rounded px-1.5 py-0.5 text-xs">
+                      <span className="bg-xp-blue/20 rounded px-1.5 py-0.5 text-xs text-xp-blue">
                         {result.score.toFixed(1)}
                       </span>
                     </div>
                   </div>
-                  <p className="text-xp-text-muted mb-1 truncate text-xs" title={result.path}>
+                  <p className="mb-1 truncate text-xs text-xp-text-muted" title={result.path}>
                     {result.path}
                   </p>
                   {result.matches && result.matches.length > 0 && (
-                    <p className="text-xp-text-muted bg-xp-surface mt-1 line-clamp-2 rounded px-2 py-1 text-xs">
+                    <p className="mt-1 line-clamp-2 rounded bg-xp-surface px-2 py-1 text-xs text-xp-text-muted">
                       {result.matches[0].context}
                     </p>
                   )}
@@ -427,7 +427,7 @@ const TokenizerStatusPanel = () => {
           </div>
         ) : null}
         {searchResults.length === 0 && searchQuery && !isSearching && (
-          <div className="text-xp-text-muted flex h-32 items-center justify-center text-sm">
+          <div className="flex h-32 items-center justify-center text-sm text-xp-text-muted">
             {t('panels.tokenizerStatus.noResults')}
           </div>
         )}
@@ -438,15 +438,15 @@ const TokenizerStatusPanel = () => {
         settings.whitelisted_paths &&
         settings.whitelisted_paths.length > 0 &&
         !searchQuery && (
-          <div className="border-xp-border border-t">
-            <div className="text-xp-text-muted bg-xp-surface px-4 py-2 text-xs">
+          <div className="border-t border-xp-border">
+            <div className="bg-xp-surface px-4 py-2 text-xs text-xp-text-muted">
               {t('panels.tokenizerStatus.indexedDirectories')}
             </div>
             <div className="max-h-32 overflow-y-auto">
               {settings.whitelisted_paths.map((path) => (
                 <div
                   key={path}
-                  className="text-xp-text-muted border-xp-border/30 hover:bg-xp-surface-light truncate border-b px-4 py-2 text-xs"
+                  className="border-xp-border/30 truncate border-b px-4 py-2 text-xs text-xp-text-muted hover:bg-xp-surface-light"
                   title={path}
                 >
                   {path}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TauriAPI, ShortcutBinding } from '@/lib/tauri-api';
 import {
   formatKeyComboForDisplay,
@@ -14,14 +15,14 @@ interface CategoryDef {
 }
 
 const CATEGORIES: Record<string, CategoryDef> = {
-  'file-operations': { label: 'File Operations', color: 'var(--xp-blue)' },
-  navigation: { label: 'Navigation', color: 'var(--xp-green)' },
-  selection: { label: 'Selection', color: 'var(--xp-purple)' },
-  search: { label: 'Search & Filter', color: 'var(--xp-yellow)' },
-  view: { label: 'View & Layout', color: 'var(--xp-cyan, var(--xp-blue))' },
-  application: { label: 'Application', color: 'var(--xp-orange, var(--xp-yellow))' },
-  terminal: { label: 'Terminal', color: 'var(--xp-green)' },
-  extensions: { label: 'Extensions', color: 'var(--xp-purple)' },
+  'file-operations': { label: 'fileOperations', color: 'var(--xp-blue)' },
+  navigation: { label: 'navigation', color: 'var(--xp-green)' },
+  selection: { label: 'selection', color: 'var(--xp-purple)' },
+  search: { label: 'search', color: 'var(--xp-yellow)' },
+  view: { label: 'view', color: 'var(--xp-cyan, var(--xp-blue))' },
+  application: { label: 'application', color: 'var(--xp-orange, var(--xp-yellow))' },
+  terminal: { label: 'terminal', color: 'var(--xp-green)' },
+  extensions: { label: 'extensions', color: 'var(--xp-purple)' },
 };
 
 const CATEGORY_ORDER = Object.keys(CATEGORIES);
@@ -251,6 +252,7 @@ const KeyboardShortcutsDialog = ({
   onClose,
   onOpenSettings,
 }: KeyboardShortcutsDialogProps) => {
+  const { t } = useTranslation();
   const [shortcuts, setShortcuts] = useState<ShortcutBinding[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -446,7 +448,7 @@ const KeyboardShortcutsDialog = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search shortcuts..."
+            placeholder={t('settings.shortcuts.searchPlaceholder')}
             style={styles.searchInput}
             onFocus={(e) => {
               e.currentTarget.style.borderColor = 'var(--xp-blue)';
@@ -464,18 +466,21 @@ const KeyboardShortcutsDialog = ({
             <div style={styles.emptyState}>Loading shortcuts...</div>
           ) : filtered.length === 0 ? (
             <div style={styles.emptyState}>
-              {searchQuery ? `No shortcuts matching "${searchQuery}"` : 'No shortcuts configured'}
+              {searchQuery
+                ? t('settings.shortcuts.noMatching', { query: searchQuery })
+                : t('settings.shortcuts.noShortcuts')}
             </div>
           ) : (
             sortedCategories.map((cat) => {
               const def = CATEGORIES[cat] || { label: cat, color: 'var(--xp-text-secondary)' };
+              const label = CATEGORIES[cat] ? t(`settings.shortcuts.categories.${def.label}`) : cat;
               const items = grouped.get(cat)!;
 
               return (
                 <div key={cat}>
                   <div style={styles.categoryHeader}>
                     <span style={{ ...styles.categoryDot, backgroundColor: def.color }} />
-                    <span style={{ color: 'var(--xp-text-secondary)' }}>{def.label}</span>
+                    <span style={{ color: 'var(--xp-text-secondary)' }}>{label}</span>
                     <span
                       style={{
                         fontSize: '10px',

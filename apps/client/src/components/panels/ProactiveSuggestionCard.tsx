@@ -6,6 +6,7 @@
  * action button that sends the suggestion as a user message,
  * dismiss button, and a settings toggle to disable proactive mode.
  */
+import i18n from '@/i18n';
 import { useState } from 'react';
 import { Lightbulb, X, Settings } from 'lucide-react';
 import { type ProactiveSuggestion } from './use-proactive-agent';
@@ -91,7 +92,7 @@ const ProactiveSuggestionCard = ({
         {/* Close button */}
         <button
           onClick={onDismiss}
-          title="Dismiss suggestion"
+          title={i18n.t('proactiveCard.dismiss')}
           aria-label="Dismiss suggestion"
           style={{
             background: 'none',
@@ -151,7 +152,7 @@ const ProactiveSuggestionCard = ({
         <div style={{ marginLeft: 'auto', position: 'relative' }}>
           <button
             onClick={() => setShowSettings((v) => !v)}
-            title="Proactive agent settings"
+            title={i18n.t('proactiveCard.settings')}
             aria-label="Proactive agent settings"
             style={{
               background: 'none',

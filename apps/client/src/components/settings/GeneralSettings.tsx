@@ -14,7 +14,8 @@ import {
 } from 'lucide-react';
 import { startTour, resetTourCompleted } from '@/hooks/use-tour';
 import { resetBetaWarning } from '@/components/dialogs/BetaWarningDialog';
-import { applyFontSize } from '@/lib/utils';
+import { applyFontSize, applyTheme } from '@/lib/utils';
+import { patchUiState, resolveTheme, markThemeChosen } from '@/lib/ui-state';
 import { useAllThemes } from '@/lib/theme-registry';
 import {
   Toggle,
@@ -36,8 +37,6 @@ interface GeneralSettingsProps {
 const languageOptions = [
   { value: 'en', label: 'English' },
   { value: 'zh', label: '中文' },
-  { value: 'ja', label: '日本語' },
-  { value: 'id', label: 'Bahasa Indonesia' },
 ];
 
 const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettingsProps) => {
@@ -73,8 +72,13 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
       >
         <SelectField
           label={t('settings.general.theme')}
-          value={settings.theme}
-          onChange={(v) => updateSetting('theme', v)}
+          value={resolveTheme()}
+          onChange={(v) => {
+            markThemeChosen();
+            updateSetting('theme', v);
+            applyTheme(v);
+            patchUiState({ theme: v });
+          }}
           options={themes}
         />
       </SettingRow>
@@ -180,7 +184,7 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
             setLocation('/');
             setTimeout(() => startTour(), 300);
           }}
-          className="bg-xp-blue flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+          className="flex items-center gap-2 rounded-md bg-xp-blue px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
         >
           {t('settings.general.replayTour')}
         </button>
@@ -205,7 +209,7 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
       <div className="px-4 pt-4">
         <button
           onClick={() => setSettings(DEFAULT_SETTINGS)}
-          className="text-xp-red hover:bg-xp-red/10 flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors"
+          className="hover:bg-xp-red/10 flex items-center gap-2 rounded-md px-3 py-2 text-sm text-xp-red transition-colors"
         >
           <RotateCcw size={14} />
           {t('settings.resetAll')}

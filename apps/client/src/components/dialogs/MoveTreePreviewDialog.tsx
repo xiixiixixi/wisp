@@ -6,6 +6,7 @@
  * Right panel: destination tree (result after merge, with conflict markers)
  */
 
+import i18n from '@/i18n';
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   FolderInput,
@@ -595,7 +596,7 @@ const MoveTreePreviewDialog = ({
   if (!isOpen || !data) return null;
 
   const isCopy = data.operation === 'copy';
-  const verb = isCopy ? 'Copy' : 'Move';
+  const verb = isCopy ? i18n.t('dialogs.moveTree.copy') : i18n.t('dialogs.moveTree.move');
   const Icon = isCopy ? Copy : FolderInput;
   const destName = data.destPath.split(/[/\\]/).filter(Boolean).pop() || data.destPath;
 

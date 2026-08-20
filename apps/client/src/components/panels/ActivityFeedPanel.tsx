@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import React, { useRef, useEffect, useCallback } from 'react';
 import type { ActivityEntry, ActivityFilter } from '@/hooks/use-activity-feed';
 
@@ -22,7 +23,7 @@ const BUCKET_LABELS: Record<TimeBucket, string> = {
   'just-now': 'Just Now',
   'last-5-min': 'Last 5 minutes',
   'last-30-min': 'Last 30 minutes',
-  'earlier-today': 'Earlier today',
+  'earlier-today': i18n.t('activityFeed.earlierToday'),
 };
 
 const getBucket = (timestamp: number): TimeBucket => {
@@ -166,7 +167,7 @@ const QuickActions: React.FC<{ entry: ActivityEntry; onNavigate?: (path: string)
       >
         <button
           onClick={handleOpen}
-          title="Show in Explorer"
+          title={i18n.t('activityFeed.showInExplorer')}
           style={{
             background: 'var(--xp-surface-light, rgba(255,255,255,0.06))',
             border: '1px solid var(--xp-border, rgba(255,255,255,0.08))',
@@ -377,7 +378,7 @@ const ActivityFeedPanel: React.FC<ActivityFeedPanelProps> = React.memo(
           {/* Pause/Resume toggle */}
           <button
             onClick={togglePause}
-            title={isPaused ? 'Resume feed' : 'Pause feed'}
+            title={isPaused ? i18n.t('activityFeed.resumeFeed') : i18n.t('activityFeed.pauseFeed')}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -408,7 +409,7 @@ const ActivityFeedPanel: React.FC<ActivityFeedPanelProps> = React.memo(
           {/* Clear button */}
           <button
             onClick={clearFeed}
-            title="Clear activity feed"
+            title={i18n.t('activityFeed.clearFeed')}
             style={{
               display: 'flex',
               alignItems: 'center',

@@ -28,13 +28,15 @@ export const Toggle = ({
     role="switch"
     aria-checked={checked}
     aria-label={label}
-    className={`focus-visible:ring-xp-accent focus-visible:ring-offset-xp-bg relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-      checked ? 'bg-xp-accent' : 'bg-xp-border'
+    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xp-accent focus-visible:ring-offset-2 focus-visible:ring-offset-xp-bg ${
+      checked
+        ? 'border-xp-accent bg-xp-accent'
+        : 'border-xp-border-light bg-xp-border-light hover:bg-xp-text-muted'
     }`}
     onClick={() => onChange(!checked)}
   >
     <span
-      className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm ring-0 transition-transform ${
+      className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-md ring-1 ring-black/20 transition-transform ${
         checked ? 'translate-x-5' : 'translate-x-0.5'
       }`}
     />
@@ -81,11 +83,11 @@ export const SettingRow = ({
 }) => (
   <div className="hover:bg-xp-surface-light/50 group flex items-center justify-between gap-4 rounded-lg px-4 py-3 transition-colors">
     <div className="flex min-w-0 items-center gap-3">
-      {Icon && <Icon size={18} className="text-xp-text-secondary shrink-0" />}
+      {Icon && <Icon size={18} className="shrink-0 text-xp-text-secondary" />}
       <div className="min-w-0">
-        <div className="text-xp-text text-sm font-medium">{label}</div>
+        <div className="text-sm font-medium text-xp-text">{label}</div>
         {description && (
-          <div className="text-xp-text-secondary mt-0.5 text-xs leading-relaxed">{description}</div>
+          <div className="mt-0.5 text-xs leading-relaxed text-xp-text-secondary">{description}</div>
         )}
       </div>
     </div>
@@ -96,7 +98,7 @@ export const SettingRow = ({
 /** Section heading. */
 export const SectionTitle = ({ title, description }: { title: string; description?: string }) => (
   <div className="mb-1 px-4 pb-1 pt-2">
-    <h3 className="text-xp-text-secondary text-xs font-semibold uppercase tracking-wider">
+    <h3 className="text-xs font-semibold uppercase tracking-wider text-xp-text-secondary">
       {title}
     </h3>
     {description && <p className="text-xp-text-secondary/70 mt-0.5 text-xs">{description}</p>}
@@ -117,7 +119,7 @@ export const ColorField = ({
   onChange: (v: string) => void;
 }) => (
   <div className="mb-2 flex items-center gap-2">
-    <span className="text-xp-text-secondary w-[120px] shrink-0 text-[13px]">{label}</span>
+    <span className="w-[120px] shrink-0 text-[13px] text-xp-text-secondary">{label}</span>
     <input
       type="color"
       value={value}
@@ -132,7 +134,7 @@ export const ColorField = ({
         const v = e.target.value;
         if (/^#[0-9a-fA-F]{0,6}$/.test(v) || v === '') onChange(v || '#000000');
       }}
-      className="border-xp-border bg-xp-bg text-xp-text w-[90px] rounded border px-2 py-1 font-mono text-xs"
+      className="w-[90px] rounded border border-xp-border bg-xp-bg px-2 py-1 font-mono text-xs text-xp-text"
     />
   </div>
 );
@@ -174,7 +176,7 @@ export const SystemIntegrationSettings = () => {
   }, [isWindows]);
 
   if (!isWindows) return null;
-  if (loading) return <div className="text-xp-text-muted px-4 py-2 text-sm">Loading...</div>;
+  if (loading) return <div className="px-4 py-2 text-sm text-xp-text-muted">Loading...</div>;
 
   return (
     <>
@@ -267,11 +269,11 @@ export interface AppSettings {
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  theme: 'glass',
+  theme: 'rolex',
   language: '',
   showHiddenFiles: false,
   enableMarkdownPreview: true,
-  defaultView: 'grid',
+  defaultView: 'auto',
   enableAnimations: true,
   showFileExtensions: true,
   enableNotifications: true,

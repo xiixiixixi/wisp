@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import React from 'react';
 import { diffStrings, DiffText, WarningIcon, CheckIcon } from '../bulk-rename-helpers';
 import type { BulkRenameResult } from '@/lib/tauri-api';
@@ -45,7 +46,7 @@ const RenamePreviewList = ({
             letterSpacing: '0.05em',
           }}
         >
-          {results ? 'Results' : 'Preview'}
+          {results ? i18n.t('bulkRename.results') : i18n.t('bulkRename.preview')}
         </label>
         <div
           style={{
@@ -248,7 +249,7 @@ const PreviewRow = ({ item, index, totalCount, isConflict, isResult }: PreviewRo
     );
   } else if (isConflict) {
     statusCell = (
-      <span title="Name conflict - multiple files would have the same name">
+      <span title={i18n.t('bulkRename.conflictName')}>
         <WarningIcon />
       </span>
     );
@@ -262,12 +263,12 @@ const PreviewRow = ({ item, index, totalCount, isConflict, isResult }: PreviewRo
           borderRadius: '50%',
           backgroundColor: 'var(--xp-blue)',
         }}
-        title="Will be renamed"
+        title={i18n.t('bulkRename.willRename')}
       />
     );
   } else {
     statusCell = (
-      <span title="No change">
+      <span title={i18n.t('bulkRename.noChange')}>
         <CheckIcon />
       </span>
     );

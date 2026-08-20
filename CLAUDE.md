@@ -68,18 +68,18 @@ Do NOT run the full test suite unless asked. Prefer running single test files fo
 
 ## i18n
 
-- i18next + react-i18next. Locales: `en`, `zh`, `ja`, `id`.
+- i18next + react-i18next. Maintained locales: `en`, `zh` only (owner's preference).
 - Files: `apps/client/src/locales/{lang}.json`.
 - Components: `const { t } = useTranslation()` then `t('namespace.key')`.
 - Non-React: `import i18n from '@/i18n'` then `i18n.t('key')`.
-- Add new keys to ALL 4 locale files when adding translatable strings.
+- Add new keys to `en.json` and `zh.json` when adding translatable strings. Do not maintain `ja`/`id`.
 
 ## Styling
 
-- Tailwind CSS with `--xp-*` CSS variables (defined in `apps/client/src/styles/tokyo-night.css`).
+- Tailwind CSS with `--xp-*` CSS variables (defined in `apps/client/src/styles/tokyo-night.css` and `apps/client/src/index.css`; the `xp` palette is also registered in `tailwind.config.ts` so `bg-xp-*`/`text-xp-*`/`border-xp-*` classes are generated).
 - Utility classes: `.bg-xp-*`, `.text-xp-*`, `.border-xp-*`.
-- Theme classes on `document.documentElement`: `.theme-glass` (default), `.theme-tokyo-night`, `.theme-dracula`, `.theme-nord`, `.theme-catppuccin`.
-- Default: Wisp Glass (semi-transparent RGBA + backdrop-filter blur).
+- Theme classes on `document.documentElement`: `.theme-rolex` (default), `.theme-glass`, `.theme-light`, plus extension themes (`.theme-tokyo-night`, `.theme-dracula`, `.theme-nord`, `.theme-catppuccin`, ...).
+- Default: Rolex green (`#00a05c` accent on a dark green gradient).
 - Toggle via `applyTheme()` in `apps/client/src/lib/utils.ts`.
 
 ## Rust conventions
