@@ -302,19 +302,25 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
             // Hovering — update cursor position and find drop target
             const pos = (payload as { type: string; position: { x: number; y: number } }).position;
             if (pos) {
-              const scale = window.devicePixelRatio || 1;
-              const x = pos.x / scale;
-              const y = pos.y / scale;
+              // wry reports the drag position in logical points already
+              // (NSPoint from draggingLocation), so no devicePixelRatio
+              // conversion here — halving Retina coordinates made the badge
+              // and the drop target drift away from the real cursor.
+              const x = pos.x;
+              const y = pos.y;
 
               // Update cursor ref (no React re-render)
               cursorRef.current.x = x;
               cursorRef.current.y = y;
 
-              // Move overlay via rAF (GPU-accelerated transform)
+              // Move overlay via rAF (GPU-accelerated transform).
+              // The native ghost icon is centered on the cursor and spans
+              // 64pt, so place the label right of the icon, vertically
+              // centered — icon + text read as one horizontal unit.
               cancelAnimationFrame(rafIdRef.current);
               rafIdRef.current = requestAnimationFrame(() => {
                 if (overlayRef.current) {
-                  overlayRef.current.style.transform = `translate(${x}px, ${y + 20}px) translateX(-50%)`;
+                  overlayRef.current.style.transform = `translate(${x + 36}px, ${y}px) translateY(-50%)`;
                 }
               });
 
@@ -392,9 +398,9 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
             clearHighlight();
 
             if (paths?.length > 0 && position) {
-              const scale = window.devicePixelRatio || 1;
-              const x = position.x / scale;
-              const y = position.y / scale;
+              // Logical points already (see the 'over' handler note)
+              const x = position.x;
+              const y = position.y;
               const target = findDropTarget(x, y);
 
               if (target) {
