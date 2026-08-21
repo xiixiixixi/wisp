@@ -192,6 +192,9 @@ export const createSymlink = async (target: string, linkPath: string): Promise<v
 export const sameVolume = async (a: string, b: string): Promise<boolean> =>
   await transport('same_volume', { a, b });
 
+export const getFileIconPng = async (path: string): Promise<string> =>
+  await transport('get_file_icon', { path });
+
 export const getDirSize = async (path: string): Promise<DirectorySize> =>
   await transport('get_dir_size', { path });
 

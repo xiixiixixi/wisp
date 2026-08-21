@@ -284,6 +284,7 @@ fn main() {
             operations::write_binary_file,
             operations::bulk_rename,
             operations::open_in_terminal,
+            operations::get_file_icon,
             operations::execute_command,
             operations::execute_command_stream,
             operations::get_current_shell,

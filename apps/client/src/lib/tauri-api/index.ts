@@ -77,6 +77,7 @@ export class TauriAPI {
   static writeBinaryFile = fileSystem.writeBinaryFile;
   static createSymlink = fileSystem.createSymlink;
   static sameVolume = fileSystem.sameVolume;
+  static getFileIconPng = fileSystem.getFileIconPng;
   static getDirSize = fileSystem.getDirSize;
   static readTextFile = fileSystem.readTextFile;
   static extractDocumentText = fileSystem.extractDocumentText;

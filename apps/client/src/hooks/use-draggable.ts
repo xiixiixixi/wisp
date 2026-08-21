@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { startDrag } from '@crabnebula/tauri-plugin-drag';
 import { resolveResource } from '@tauri-apps/api/path';
-import type { FileEntry } from '@/lib/tauri-api';
+import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 import { isTauri } from '@/lib/transport';
 import { modifierDragOperation } from '@/lib/drag-utils';
 import { useDragDropContext } from '@/contexts/DragDropContext';
@@ -23,6 +23,22 @@ const getDragIconPath = async (): Promise<string> => {
     _dragIconPath = '';
   }
   return _dragIconPath;
+};
+
+// Finder-style drag ghost: use the dragged file's own system icon instead of
+// the app icon. Cached per path across all rows.
+const dragIconCache = new Map<string, string>();
+const resolveDragIcon = async (path: string): Promise<string> => {
+  const cached = dragIconCache.get(path);
+  if (cached) return cached;
+  let iconPath: string;
+  try {
+    iconPath = await TauriAPI.getFileIconPng(path);
+  } catch {
+    iconPath = await getDragIconPath();
+  }
+  dragIconCache.set(path, iconPath);
+  return iconPath;
 };
 
 /**
@@ -76,7 +92,7 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
       // terminals and plain-text editors receive the paths directly.
       // ⌘⌥+drag stays a file drag and becomes a symbolic link (INT-03).
       if (e.metaKey && !e.altKey) {
-        getDragIconPath().then((icon) => {
+        resolveDragIcon(pathsToDrag[0]).then((icon) => {
           startDrag(
             {
               item: { data: pathsToDrag.join('\n'), types: ['public.utf8-plain-text'] },
@@ -99,7 +115,7 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
       // Start native Tauri drag — OS handles visuals + drop
       // When dropped back in our window, onDragDropEvent fires
       // When dropped on desktop/another app, OS handles it
-      getDragIconPath().then((icon) => {
+      resolveDragIcon(pathsToDrag[0]).then((icon) => {
         startDrag({ item: pathsToDrag, icon }, () => endInternalDrag()).catch((err) => {
           console.error('startDrag failed:', err);
           endInternalDrag();

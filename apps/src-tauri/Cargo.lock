@@ -7722,6 +7722,8 @@ dependencies = [
  "notify",
  "notify-debouncer-full",
  "num_cpus",
+ "objc2-app-kit",
+ "objc2-foundation",
  "ollama-rs",
  "pdf-extract",
  "portable-pty",

@@ -16,6 +16,9 @@ vi.mock('@tauri-apps/api/path', () => ({
 vi.mock('@/lib/transport', () => ({
   isTauri: () => true,
 }));
+vi.mock('@/lib/tauri-api', () => ({
+  TauriAPI: { getFileIconPng: vi.fn().mockResolvedValue('/tmp/file-icon.png') },
+}));
 vi.mock('@/contexts/DragDropContext', () => ({
   useDragDropContext: () => ({
     startInternalDrag: mockStartInternalDrag,

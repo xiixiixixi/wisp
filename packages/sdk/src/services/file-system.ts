@@ -137,6 +137,10 @@ export const sameVolume = async (a: string, b: string): Promise<boolean> => {
   return await transport('same_volume', { a, b });
 };
 
+export const getFileIconPng = async (path: string): Promise<string> => {
+  return await transport('get_file_icon', { path });
+};
+
 export const acceleratedCopyFile = async (source: string, destination: string): Promise<string> => {
   return await transport('accelerated_copy_file', { source, destination });
 };

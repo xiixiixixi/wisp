@@ -1798,3 +1798,63 @@ else echo "Node.js required for full CLI features."; exit 1; fi
     .await
     .map_err(|e| e.to_string())?
 }
+
+// ─── macOS file icon extraction (drag ghost preview) ─────────────────────────
+
+#[cfg(target_os = "macos")]
+fn get_file_icon_sync(path: &str) -> Result<String, String> {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    // Cache one PNG per file path in the temp dir
+    let mut hasher = DefaultHasher::new();
+    path.hash(&mut hasher);
+    let cache_dir = std::env::temp_dir().join("wisp-drag-icons");
+    std::fs::create_dir_all(&cache_dir)
+        .map_err(|e| format!("Failed to create icon cache dir: {}", e))?;
+    let out_path = cache_dir.join(format!("{:x}.png", hasher.finish()));
+    if out_path.exists() {
+        return Ok(out_path.to_string_lossy().to_string());
+    }
+
+    unsafe {
+        use objc2_app_kit::NSWorkspace;
+        use objc2_foundation::NSString;
+
+        let workspace = NSWorkspace::sharedWorkspace();
+        let ns_path = NSString::from_str(path);
+        let icon = workspace.iconForFile(&ns_path);
+
+        use objc2_app_kit::{NSBitmapImageFileType, NSBitmapImageRep};
+        use objc2_foundation::NSDictionary;
+        let tiff = icon
+            .TIFFRepresentation()
+            .ok_or_else(|| "Failed to get TIFF representation".to_string())?;
+        let rep = NSBitmapImageRep::imageRepWithData(&tiff)
+            .ok_or_else(|| "Failed to create bitmap representation".to_string())?;
+        let props = NSDictionary::<NSString>::new();
+        let png = rep
+            .representationUsingType_properties(NSBitmapImageFileType::PNG, &props)
+            .ok_or_else(|| "Failed to encode icon as PNG".to_string())?;
+        let bytes = png.to_vec();
+        std::fs::write(&out_path, bytes).map_err(|e| format!("Failed to write icon: {}", e))?;
+    }
+
+    Ok(out_path.to_string_lossy().to_string())
+}
+
+/// Extract the macOS system icon for a file as a PNG, cached in the temp dir.
+/// Returns the PNG path, used as the native drag ghost preview.
+#[cfg(target_os = "macos")]
+#[command]
+pub async fn get_file_icon(path: String) -> Result<String, String> {
+    tokio::task::spawn_blocking(move || get_file_icon_sync(&path))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[cfg(not(target_os = "macos"))]
+#[command]
+pub async fn get_file_icon(_path: String) -> Result<String, String> {
+    Err("Not supported on this platform".to_string())
+}
