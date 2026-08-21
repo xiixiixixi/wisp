@@ -289,7 +289,7 @@ const GalleryView = ({
   return (
     <div
       ref={bgDropRef}
-      className="flex h-full flex-col overflow-hidden"
+      className="flex h-full select-none flex-col overflow-hidden"
       aria-label="Gallery view"
       onContextMenu={handleBackgroundRightClick || undefined}
     >

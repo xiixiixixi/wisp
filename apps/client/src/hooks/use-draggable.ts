@@ -41,21 +41,6 @@ const resolveDragIcon = async (path: string): Promise<string> => {
   return iconPath;
 };
 
-// WKWebView's default mouse-drag behavior selects text, so dragging a file row
-// would also paint a text selection over the filename. Finder never does this
-// because its list is a native control without a selection layer. Suppress
-// text selection only while a file drag gesture is in flight; normal
-// select/copy of file names keeps working the rest of the time.
-const suppressTextSelection = () => {
-  document.body.style.userSelect = 'none';
-  document.body.style.webkitUserSelect = 'none';
-};
-
-const restoreTextSelection = () => {
-  document.body.style.userSelect = '';
-  document.body.style.webkitUserSelect = '';
-};
-
 /**
  * Native drag hook using tauri-plugin-drag.
  * Uses mousedown/mousemove to detect drag intent, then calls startDrag()
@@ -67,16 +52,11 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
   const draggingRef = useRef(false);
   const { startInternalDrag, endInternalDrag } = useDragDropContext();
 
+  // File views are `select-none` containers (Finder-style: the list has no
+  // text-selection layer), so a mousedown+drag is always a drag intent and
+  // never conflicts with selecting text.
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return; // only left button
-    // Only defer to the browser when the press lands on an existing text
-    // selection (adjusting it). A selection elsewhere must not swallow the
-    // drag — otherwise one lingering selection makes dragging intermittent.
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0 && e.target instanceof Node) {
-      const range = selection.getRangeAt(0);
-      if (range.intersectsNode(e.target)) return;
-    }
     mouseDownRef.current = { x: e.clientX, y: e.clientY };
     draggingRef.current = false;
   }, []);
@@ -91,10 +71,6 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
 
       draggingRef.current = true;
       mouseDownRef.current = null;
-
-      // Keep the webview/browser from painting a text selection or native
-      // image ghost while a drag gesture runs (applies in web mode too).
-      suppressTextSelection();
 
       // Web mode has no native drag channel: without Tauri's drag events the
       // internal drag state could never be ended, so skip drags entirely and
@@ -122,14 +98,10 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
               item: { data: pathsToDrag.join('\n'), types: ['public.utf8-plain-text'] },
               icon,
             },
-            () => {
-              endInternalDrag();
-              restoreTextSelection();
-            },
+            () => endInternalDrag(),
           ).catch((err) => {
             console.error('startDrag failed:', err);
             endInternalDrag();
-            restoreTextSelection();
           });
         });
         return;
@@ -144,13 +116,9 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
       // When dropped back in our window, onDragDropEvent fires
       // When dropped on desktop/another app, OS handles it
       resolveDragIcon(pathsToDrag[0]).then((icon) => {
-        startDrag({ item: pathsToDrag, icon }, () => {
-          endInternalDrag();
-          restoreTextSelection();
-        }).catch((err) => {
+        startDrag({ item: pathsToDrag, icon }, () => endInternalDrag()).catch((err) => {
           console.error('startDrag failed:', err);
           endInternalDrag();
-          restoreTextSelection();
         });
       });
     },
@@ -160,7 +128,6 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
   const onMouseUp = useCallback(() => {
     mouseDownRef.current = null;
     draggingRef.current = false;
-    restoreTextSelection();
   }, []);
 
   const onMouseLeave = useCallback(() => {

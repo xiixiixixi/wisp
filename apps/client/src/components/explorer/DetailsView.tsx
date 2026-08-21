@@ -300,7 +300,7 @@ const DetailsView = (props: DetailsViewProps) => {
   if (!needsVirtualization) {
     return (
       <div
-        className="text-sm"
+        className="select-none text-sm"
         role="table"
         aria-label={t('explorer.details.fileListAria')}
         onContextMenu={handleBackgroundRightClick || undefined}
@@ -320,7 +320,7 @@ const DetailsView = (props: DetailsViewProps) => {
   return (
     <div
       ref={scrollRef}
-      className="h-full overflow-auto text-sm"
+      className="h-full select-none overflow-auto text-sm"
       role="table"
       aria-label={t('explorer.details.fileListAria')}
       onContextMenu={handleBackgroundRightClick || undefined}

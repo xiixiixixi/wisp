@@ -207,7 +207,7 @@ const TreeView = ({
 
   return (
     <div
-      className="overflow-hidden text-sm"
+      className="select-none overflow-hidden text-sm"
       role="tree"
       aria-label="File tree"
       onContextMenu={handleBackgroundRightClick || undefined}
