@@ -325,6 +325,7 @@ drop 校验通过
 
 ### 6.2 手工验收清单（macOS，供逐项检查）
 
+> 完整测试用例（含回归项与已知限制）见 [drag-and-drop-test-cases.md](./drag-and-drop-test-cases.md)。
 > 按功能分组，每项独立可测。标注 ⚠️ 的为已知限制或需重点观察项。
 
 **A. 拖出到外部**
