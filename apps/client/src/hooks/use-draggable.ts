@@ -41,6 +41,21 @@ const resolveDragIcon = async (path: string): Promise<string> => {
   return iconPath;
 };
 
+// WKWebView's default mouse-drag behavior selects text, so dragging a file row
+// would also paint a text selection over the filename. Finder never does this
+// because its list is a native control without a selection layer. Suppress
+// text selection only while a file drag gesture is in flight; normal
+// select/copy of file names keeps working the rest of the time.
+const suppressTextSelection = () => {
+  document.body.style.userSelect = 'none';
+  document.body.style.webkitUserSelect = 'none';
+};
+
+const restoreTextSelection = () => {
+  document.body.style.userSelect = '';
+  document.body.style.webkitUserSelect = '';
+};
+
 /**
  * Native drag hook using tauri-plugin-drag.
  * Uses mousedown/mousemove to detect drag intent, then calls startDrag()
@@ -80,6 +95,9 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
         return;
       }
 
+      // Keep WKWebView from painting a text selection while the file drag runs
+      suppressTextSelection();
+
       // Determine which files to drag
       let pathsToDrag: string[];
       if (selectedFiles.has(file.path) && selectedFiles.size > 1) {
@@ -98,10 +116,14 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
               item: { data: pathsToDrag.join('\n'), types: ['public.utf8-plain-text'] },
               icon,
             },
-            () => endInternalDrag(),
+            () => {
+              endInternalDrag();
+              restoreTextSelection();
+            },
           ).catch((err) => {
             console.error('startDrag failed:', err);
             endInternalDrag();
+            restoreTextSelection();
           });
         });
         return;
@@ -116,9 +138,13 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
       // When dropped back in our window, onDragDropEvent fires
       // When dropped on desktop/another app, OS handles it
       resolveDragIcon(pathsToDrag[0]).then((icon) => {
-        startDrag({ item: pathsToDrag, icon }, () => endInternalDrag()).catch((err) => {
+        startDrag({ item: pathsToDrag, icon }, () => {
+          endInternalDrag();
+          restoreTextSelection();
+        }).catch((err) => {
           console.error('startDrag failed:', err);
           endInternalDrag();
+          restoreTextSelection();
         });
       });
     },
@@ -128,6 +154,7 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
   const onMouseUp = useCallback(() => {
     mouseDownRef.current = null;
     draggingRef.current = false;
+    restoreTextSelection();
   }, []);
 
   const onMouseLeave = useCallback(() => {

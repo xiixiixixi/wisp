@@ -1836,8 +1836,20 @@ fn get_file_icon_sync(path: &str) -> Result<String, String> {
         let png = rep
             .representationUsingType_properties(NSBitmapImageFileType::PNG, &props)
             .ok_or_else(|| "Failed to encode icon as PNG".to_string())?;
-        let bytes = png.to_vec();
-        std::fs::write(&out_path, bytes).map_err(|e| format!("Failed to write icon: {}", e))?;
+        // NSWorkspace hands out full-resolution icons (often 512px); scale down
+        // to Finder drag-ghost size so the cursor preview stays reasonable.
+        const ICON_SIZE: u32 = 64;
+        let img = image::load_from_memory(&png.to_vec())
+            .map_err(|e| format!("Failed to decode icon: {}", e))?;
+        let resized = img.resize_exact(ICON_SIZE, ICON_SIZE, image::imageops::FilterType::Lanczos3);
+        let mut out_bytes: Vec<u8> = Vec::new();
+        resized
+            .write_to(
+                &mut std::io::Cursor::new(&mut out_bytes),
+                image::ImageFormat::Png,
+            )
+            .map_err(|e| format!("Failed to re-encode icon: {}", e))?;
+        std::fs::write(&out_path, out_bytes).map_err(|e| format!("Failed to write icon: {}", e))?;
     }
 
     Ok(out_path.to_string_lossy().to_string())
