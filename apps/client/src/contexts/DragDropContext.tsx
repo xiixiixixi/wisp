@@ -314,7 +314,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
               cancelAnimationFrame(rafIdRef.current);
               rafIdRef.current = requestAnimationFrame(() => {
                 if (overlayRef.current) {
-                  overlayRef.current.style.transform = `translate(${x + 16}px, ${y + 16}px)`;
+                  overlayRef.current.style.transform = `translate(${x}px, ${y + 20}px) translateX(-50%)`;
                 }
               });
 

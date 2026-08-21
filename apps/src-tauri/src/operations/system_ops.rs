@@ -756,6 +756,28 @@ mod tests {
 
     #[cfg(target_os = "macos")]
     #[test]
+    fn test_get_file_icon_real_world_files() {
+        // Regression: real-world files (Quick Look enabled types like pptx)
+        // must also produce 64x64 ghosts.
+        for path in [
+            "/Users/weixili/工作/资料/neu/客服/营销材料-jackery.pptx",
+        ] {
+            if !std::path::Path::new(path).exists() {
+                eprintln!("skip missing {}", path);
+                continue;
+            }
+            let icon_path = get_file_icon_sync(path).expect("icon extraction");
+            let bytes = std::fs::read(&icon_path).expect("read icon png");
+            eprintln!("{} -> {} bytes", path, bytes.len());
+            let img = image::load_from_memory(&bytes).expect("decode png");
+            eprintln!("dims {}x{}", img.width(), img.height());
+            assert_eq!(img.width(), 64);
+            assert_eq!(img.height(), 64);
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
     fn test_get_file_icon_is_64x64() {
         let cargo_toml = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
         let icon_path = get_file_icon_sync(&cargo_toml.to_string_lossy()).expect("icon extraction");
@@ -1823,7 +1845,9 @@ fn get_file_icon_sync(path: &str) -> Result<String, String> {
     let cache_dir = std::env::temp_dir().join("wisp-drag-icons");
     std::fs::create_dir_all(&cache_dir)
         .map_err(|e| format!("Failed to create icon cache dir: {}", e))?;
-    let out_path = cache_dir.join(format!("{:x}.png", hasher.finish()));
+    // Include the icon size in the cache key so entries written by older
+    // (full-resolution) builds can never be served again.
+    let out_path = cache_dir.join(format!("{:x}-64.png", hasher.finish()));
     if out_path.exists() {
         return Ok(out_path.to_string_lossy().to_string());
     }

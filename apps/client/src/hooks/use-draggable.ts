@@ -69,9 +69,14 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
 
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return; // only left button
-    // Don't hijack existing text selections — starting a drag would abort them
+    // Only defer to the browser when the press lands on an existing text
+    // selection (adjusting it). A selection elsewhere must not swallow the
+    // drag — otherwise one lingering selection makes dragging intermittent.
     const selection = window.getSelection();
-    if (selection && selection.toString().length > 0) return;
+    if (selection && selection.rangeCount > 0 && e.target instanceof Node) {
+      const range = selection.getRangeAt(0);
+      if (range.intersectsNode(e.target)) return;
+    }
     mouseDownRef.current = { x: e.clientX, y: e.clientY };
     draggingRef.current = false;
   }, []);
