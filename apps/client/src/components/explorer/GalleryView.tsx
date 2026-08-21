@@ -78,6 +78,7 @@ const GalleryStripThumb = React.memo(
               alt={file.name}
               className="h-full w-full object-cover"
               loading="lazy"
+              draggable={false}
               onLoad={(e) => {
                 const img = e.currentTarget;
                 setDimensions({ w: img.naturalWidth, h: img.naturalHeight });

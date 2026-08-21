@@ -171,6 +171,11 @@ describe('useDraggable in web mode', () => {
     expect(mockStartInternalDrag).not.toHaveBeenCalled();
     expect(attemptListener).toHaveBeenCalled();
 
+    // Text selection must be suppressed during the gesture in web mode too
+    expect(document.body.style.userSelect).toBe('none');
+    fireEvent.mouseUp(el);
+    expect(document.body.style.userSelect).toBe('');
+
     window.removeEventListener('web-drag-attempt', attemptListener);
   });
 });

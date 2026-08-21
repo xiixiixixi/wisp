@@ -753,6 +753,17 @@ pub async fn execute_command_stream(
 
 #[cfg(test)]
 mod tests {
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn test_get_file_icon_is_64x64() {
+        let cargo_toml = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
+        let icon_path = get_file_icon_sync(&cargo_toml.to_string_lossy()).expect("icon extraction");
+        let bytes = std::fs::read(&icon_path).expect("read icon png");
+        let img = image::load_from_memory(&bytes).expect("decode png");
+        assert_eq!(img.width(), 64, "drag icon must be 64px wide");
+        assert_eq!(img.height(), 64, "drag icon must be 64px tall");
+    }
     use super::*;
 
     // ─── sanitize_command tests ──────────────────────────────────────────

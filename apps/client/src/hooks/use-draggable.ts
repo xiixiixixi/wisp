@@ -87,6 +87,10 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
       draggingRef.current = true;
       mouseDownRef.current = null;
 
+      // Keep the webview/browser from painting a text selection or native
+      // image ghost while a drag gesture runs (applies in web mode too).
+      suppressTextSelection();
+
       // Web mode has no native drag channel: without Tauri's drag events the
       // internal drag state could never be ended, so skip drags entirely and
       // surface a hint that drag & drop needs the desktop app.
@@ -94,9 +98,6 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
         window.dispatchEvent(new CustomEvent('web-drag-attempt'));
         return;
       }
-
-      // Keep WKWebView from painting a text selection while the file drag runs
-      suppressTextSelection();
 
       // Determine which files to drag
       let pathsToDrag: string[];
