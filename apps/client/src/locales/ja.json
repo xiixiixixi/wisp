@@ -72,6 +72,7 @@
     "tabs": "サイドバーのタブ",
     "fileExplorer": "ファイルエクスプローラー",
     "searchFilesShortcut": "ファイルを検索（Ctrl+Shift+F）",
+    "searchCurrentFolder": "現在のフォルダを検索",
     "favorites": "お気に入り",
     "noBookmarks": "ブックマークはありません",
     "collections": "コレクション",
@@ -79,7 +80,7 @@
     "toggleCollections": "コレクションを切り替え",
     "createCollection": "新しいコレクションを作成",
     "drives": "ドライブ",
-    "volumes": "ボリューム",
+    "volumes": "場所",
     "fileTree": "ファイルツリー",
     "directoryTree": "ディレクトリツリー",
     "navigateTo": "{{label}}フォルダに移動"
@@ -727,7 +728,7 @@
   "commandPalette": {
     "title": "Wisp コマンドセンター",
     "subtitle": "どこからでも検索、操作、質問",
-    "trigger": "ファイル検索、コマンド実行、Wisp への質問...",
+    "trigger": "全体を検索、コマンドを実行、または Wisp に質問...",
     "modeLabel": "コマンドセンターのモード",
     "modes": {
       "files": "ファイル",

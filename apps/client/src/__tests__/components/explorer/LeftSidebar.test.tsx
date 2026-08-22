@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import LeftSidebar from '@/components/explorer/LeftSidebar';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
@@ -210,25 +210,16 @@ describe('LeftSidebar', () => {
     });
   });
 
-  describe('Bookmarks Section', () => {
-    it('renders favorites header', async () => {
+  describe('Quick Access Bookmarks', () => {
+    it('does not render a duplicate favorites section', async () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('FAVORITES')).toBeInTheDocument();
-      });
-    });
-
-    it('shows empty bookmarks message when none exist', async () => {
-      render(<LeftSidebar {...mockProps} />);
-
-      await waitFor(() => {
-        expect(screen.getByText('FAVORITES')).toBeInTheDocument();
+        expect(screen.getByText('QUICK ACCESS')).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('FAVORITES'));
-
-      expect(await screen.findByText('No bookmarks yet')).toBeInTheDocument();
+      expect(screen.queryByText('FAVORITES')).not.toBeInTheDocument();
+      expect(screen.queryByText('No bookmarks yet')).not.toBeInTheDocument();
     });
 
     it('renders bookmark items when bookmarks exist', async () => {
@@ -238,8 +229,6 @@ describe('LeftSidebar', () => {
       ]);
 
       render(<LeftSidebar {...mockProps} />);
-
-      fireEvent.click(await screen.findByText('FAVORITES'));
 
       await waitFor(() => {
         expect(screen.getByText('MyFolder')).toBeInTheDocument();
@@ -253,8 +242,6 @@ describe('LeftSidebar', () => {
       ]);
 
       render(<LeftSidebar {...mockProps} />);
-
-      fireEvent.click(await screen.findByText('FAVORITES'));
 
       await waitFor(() => {
         expect(screen.getByText('MyFolder')).toBeInTheDocument();
@@ -271,13 +258,11 @@ describe('LeftSidebar', () => {
 
       render(<LeftSidebar {...mockProps} />);
 
-      fireEvent.click(await screen.findByText('FAVORITES'));
-
       await waitFor(() => {
         expect(screen.getByText('MyFolder')).toBeInTheDocument();
       });
 
-      const removeButton = screen.getByTitle('Remove bookmark');
+      const removeButton = screen.getByRole('button', { name: /MyFolder/ });
       fireEvent.click(removeButton);
 
       expect(TauriAPI.removeBookmark).toHaveBeenCalledWith('C:\\Users\\Test\\MyFolder');
@@ -316,75 +301,17 @@ describe('LeftSidebar', () => {
     });
   });
 
-  describe('Recent Files Section', () => {
-    it('renders recent header', async () => {
+  describe('Simplified Structure', () => {
+    it('omits collections, recent files, and file tree sections', async () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('RECENT')).toBeInTheDocument();
-      });
-    });
-
-    it('expands recent files section when clicked', async () => {
-      vi.mocked(TauriAPI.getRecentFiles).mockResolvedValueOnce([
-        {
-          name: 'recent.txt',
-          path: 'C:\\Users\\Test\\recent.txt',
-          file_type: 'text',
-          opened_at: '2024-01-01T00:00:00Z',
-        },
-      ]);
-
-      render(<LeftSidebar {...mockProps} />);
-
-      await waitFor(() => {
-        expect(screen.getByText('RECENT')).toBeInTheDocument();
+        expect(screen.getByText('QUICK ACCESS')).toBeInTheDocument();
       });
 
-      // Click to expand the RECENT section
-      fireEvent.click(screen.getByText('RECENT'));
-
-      await waitFor(() => {
-        expect(screen.getByText('recent.txt')).toBeInTheDocument();
-      });
-    });
-
-    it('shows "No recent files" when recent list is empty and expanded', async () => {
-      vi.mocked(TauriAPI.getRecentFiles).mockResolvedValue([]);
-
-      await act(async () => {
-        render(<LeftSidebar {...mockProps} />);
-      });
-
-      const toggleBtn = await waitFor(() => {
-        const btn = screen.getByLabelText('Toggle recent files');
-        expect(btn).toBeInTheDocument();
-        return btn;
-      });
-
-      // Expand the recent section
-      await act(async () => {
-        fireEvent.click(toggleBtn);
-      });
-
-      await waitFor(() => {
-        expect(toggleBtn).toHaveAttribute('aria-expanded', 'true');
-      });
-
-      expect(screen.getByText('No recent files')).toBeInTheDocument();
-    });
-  });
-
-  // Google Drive section was extracted to an extension and is no longer
-  // part of the core LeftSidebar component.
-
-  describe('File Tree Section', () => {
-    it('renders file tree header', async () => {
-      render(<LeftSidebar {...mockProps} />);
-
-      await waitFor(() => {
-        expect(screen.getByText('FILE TREE')).toBeInTheDocument();
-      });
+      expect(screen.queryByText('FILTERS')).not.toBeInTheDocument();
+      expect(screen.queryByText('RECENT')).not.toBeInTheDocument();
+      expect(screen.queryByText('FILE TREE')).not.toBeInTheDocument();
     });
   });
 

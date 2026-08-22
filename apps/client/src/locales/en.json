@@ -72,6 +72,7 @@
     "tabs": "Sidebar tabs",
     "fileExplorer": "File explorer",
     "searchFilesShortcut": "Search files (Ctrl+Shift+F)",
+    "searchCurrentFolder": "Search current folder",
     "favorites": "FAVORITES",
     "noBookmarks": "No bookmarks yet",
     "collections": "FILTERS",
@@ -79,7 +80,7 @@
     "toggleCollections": "Toggle filters",
     "createCollection": "Create new filter",
     "drives": "DRIVES",
-    "volumes": "VOLUMES",
+    "volumes": "LOCATIONS",
     "fileTree": "FILE TREE",
     "directoryTree": "Directory tree",
     "navigateTo": "Navigate to {{label}} folder"
@@ -727,7 +728,7 @@
   "commandPalette": {
     "title": "Wisp Command Center",
     "subtitle": "Find, act, or ask from anywhere",
-    "trigger": "Search files, run a command, or ask Wisp...",
+    "trigger": "Search everywhere, run a command, or ask Wisp...",
     "modeLabel": "Command center mode",
     "modes": {
       "files": "Files",

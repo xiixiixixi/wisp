@@ -72,6 +72,7 @@
     "tabs": "侧边栏标签页",
     "fileExplorer": "文件资源管理器",
     "searchFilesShortcut": "搜索文件（Ctrl+Shift+F）",
+    "searchCurrentFolder": "搜索当前文件夹",
     "favorites": "收藏夹",
     "noBookmarks": "暂无书签",
     "collections": "集合",
@@ -79,7 +80,7 @@
     "toggleCollections": "展开或收起集合",
     "createCollection": "新建集合",
     "drives": "驱动器",
-    "volumes": "卷",
+    "volumes": "位置",
     "fileTree": "文件树",
     "directoryTree": "目录树",
     "navigateTo": "导航到{{label}}文件夹"
@@ -727,7 +728,7 @@
   "commandPalette": {
     "title": "Wisp 命令中心",
     "subtitle": "随时查找、执行或提问",
-    "trigger": "搜索文件、执行命令或询问 Wisp...",
+    "trigger": "全局搜索、执行命令或询问 Wisp...",
     "modeLabel": "命令中心模式",
     "modes": {
       "files": "文件",

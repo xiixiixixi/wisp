@@ -11,15 +11,9 @@ import SearchResultsPanel, {
   type SearchResultsPanelHandle,
 } from '@/components/explorer/SearchResultsPanel';
 import { extensionHost } from '@/lib/extension-host';
-import { type FileCollection } from '@/lib/collections';
-import { useSidebarResize } from '@/hooks/use-sidebar-resize';
 import SidebarTabBar from '@/components/explorer/sidebar/SidebarTabBar';
 import SidebarQuickAccess from '@/components/explorer/sidebar/SidebarQuickAccess';
-import SidebarRecent from '@/components/explorer/sidebar/SidebarRecent';
-import SidebarBookmarks from '@/components/explorer/sidebar/SidebarBookmarks';
-import SidebarCollections from '@/components/explorer/sidebar/SidebarCollections';
 import SidebarDrives from '@/components/explorer/sidebar/SidebarDrives';
-import SidebarFileTree from '@/components/explorer/sidebar/SidebarFileTree';
 import { useTranslation } from 'react-i18next';
 
 export interface LeftSidebarHandle {
@@ -32,15 +26,9 @@ interface LeftSidebarProps {
   handleFileClick: (file: FileEntry) => void;
   handleFileRightClick?: (file: FileEntry, event: React.MouseEvent) => void;
   handleFileOpen?: (file: FileEntry) => void;
-  getFileIcon: (file: FileEntry) => React.ReactNode;
   width?: number;
   searchPanelOpen?: boolean;
   onToggleSearchPanel?: () => void;
-  onCreateCollection?: () => void;
-  onEditCollection?: (collection: FileCollection) => void;
-  // Active collection filter (collection applied as filter on current directory)
-  activeCollectionFilter?: FileCollection | null;
-  onToggleCollectionFilter?: (collection: FileCollection) => void;
   'data-tour'?: string;
 }
 
@@ -51,14 +39,9 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
     handleFileClick,
     handleFileRightClick,
     handleFileOpen,
-    getFileIcon,
     width,
     searchPanelOpen = false,
     onToggleSearchPanel,
-    onCreateCollection,
-    onEditCollection,
-    activeCollectionFilter,
-    onToggleCollectionFilter,
     'data-tour': dataTour,
   },
   ref,
@@ -116,9 +99,6 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
     }
   };
 
-  // ─── Section collapsed state + resize ─────────────────────────────────
-  const { sectionCollapsed, sectionHeights, toggleSection, onResizeStart } = useSidebarResize();
-
   return (
     <nav
       data-tour={dataTour}
@@ -167,60 +147,9 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
           <SidebarQuickAccess
             currentPath={currentPath}
             navigateToPath={navigateToPath}
-            collapsed={sectionCollapsed.quickAccess}
-            onToggleCollapsed={() => toggleSection('quickAccess')}
-            sectionHeight={sectionHeights.quickAccess}
-            onResizeStart={onResizeStart}
-          />
-
-          <SidebarRecent
-            navigateToPath={navigateToPath}
-            collapsed={sectionCollapsed.recent}
-            onToggleCollapsed={() => toggleSection('recent')}
-            sectionHeight={sectionHeights.recent}
-            onResizeStart={onResizeStart}
-          />
-
-          <SidebarBookmarks
-            currentPath={currentPath}
-            navigateToPath={navigateToPath}
             handleFileRightClick={handleFileRightClick}
-            collapsed={sectionCollapsed.favorites}
-            onToggleCollapsed={() => toggleSection('favorites')}
-            sectionHeight={sectionHeights.favorites}
-            onResizeStart={onResizeStart}
           />
-
-          <SidebarCollections
-            currentPath={currentPath}
-            navigateToPath={navigateToPath}
-            activeCollectionFilter={activeCollectionFilter}
-            onToggleCollectionFilter={onToggleCollectionFilter}
-            onCreateCollection={onCreateCollection}
-            onEditCollection={onEditCollection}
-            collapsed={sectionCollapsed.collections}
-            onToggleCollapsed={() => toggleSection('collections')}
-            sectionHeight={sectionHeights.collections}
-            onResizeStart={onResizeStart}
-          />
-
-          <SidebarDrives
-            navigateToPath={navigateToPath}
-            collapsed={sectionCollapsed.drives}
-            onToggleCollapsed={() => toggleSection('drives')}
-            sectionHeight={sectionHeights.drives}
-            onResizeStart={onResizeStart}
-          />
-
-          <SidebarFileTree
-            currentPath={currentPath}
-            navigateToPath={navigateToPath}
-            handleFileClick={handleFileClick}
-            handleFileRightClick={handleFileRightClick}
-            getFileIcon={getFileIcon}
-            collapsed={sectionCollapsed.fileTree}
-            onToggleCollapsed={() => toggleSection('fileTree')}
-          />
+          <SidebarDrives navigateToPath={navigateToPath} />
         </>
       )}
     </nav>

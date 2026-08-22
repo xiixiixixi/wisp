@@ -19,6 +19,7 @@ const TAB_CLASS_INACTIVE = 'text-xp-text-muted hover:bg-xp-surface-light hover:t
 
 const SidebarTabBar = ({ activeTabId, onTabClick, extensionTabs }: SidebarTabBarProps) => {
   const { t } = useTranslation();
+  const searchShortcut = navigator.platform.toUpperCase().includes('MAC') ? '⌘⇧F' : 'Ctrl+Shift+F';
   const tabClass = (tabId: string) =>
     `flex items-center justify-center rounded transition-colors ${
       activeTabId === tabId ? TAB_CLASS_ACTIVE : TAB_CLASS_INACTIVE
@@ -56,9 +57,9 @@ const SidebarTabBar = ({ activeTabId, onTabClick, extensionTabs }: SidebarTabBar
         onClick={() => onTabClick('__search__')}
         className={tabClass('__search__')}
         style={{ width: 28, height: 28, padding: 0 }}
-        aria-label={t('sidebar.searchFilesShortcut')}
+        aria-label={t('sidebar.searchCurrentFolder')}
         aria-selected={activeTabId === '__search__'}
-        title={t('sidebar.searchFilesShortcut')}
+        title={`${t('sidebar.searchCurrentFolder')} (${searchShortcut})`}
       >
         <Search size={15} />
       </button>

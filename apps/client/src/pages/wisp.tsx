@@ -371,8 +371,6 @@ const ExplorerUnified = () => {
       setCrossTabDialogOpen={dialogManager.setCrossTabDialogOpen}
       activeCollectionFilter={dialogManager.activeCollectionFilter}
       setActiveCollectionFilter={dialogManager.setActiveCollectionFilter}
-      setCollectionEditorOpen={dialogManager.setCollectionEditorOpen}
-      setEditingCollection={dialogManager.setEditingCollection}
       paneSync={paneSync}
       fileOps={fileOps}
       templatePickerOpen={dialogManager.templatePickerOpen}

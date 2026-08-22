@@ -72,6 +72,7 @@
     "tabs": "Tab bilah samping",
     "fileExplorer": "Penjelajah file",
     "searchFilesShortcut": "Cari file (Ctrl+Shift+F)",
+    "searchCurrentFolder": "Cari folder saat ini",
     "favorites": "FAVORIT",
     "noBookmarks": "Belum ada bookmark",
     "collections": "KOLEKSI",
@@ -79,7 +80,7 @@
     "toggleCollections": "Tampilkan atau sembunyikan koleksi",
     "createCollection": "Buat koleksi baru",
     "drives": "DRIVE",
-    "volumes": "VOLUME",
+    "volumes": "LOKASI",
     "fileTree": "POHON FILE",
     "directoryTree": "Pohon direktori",
     "navigateTo": "Navigasi ke folder {{label}}"
@@ -727,7 +728,7 @@
   "commandPalette": {
     "title": "Pusat Perintah Wisp",
     "subtitle": "Cari, bertindak, atau bertanya dari mana saja",
-    "trigger": "Cari file, jalankan perintah, atau tanya Wisp...",
+    "trigger": "Cari di semua lokasi, jalankan perintah, atau tanya Wisp...",
     "modeLabel": "Mode pusat perintah",
     "modes": {
       "files": "File",

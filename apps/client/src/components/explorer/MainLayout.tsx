@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import type { FileEntry, FolderSizeInfo, ConflictFileInfo } from '@/lib/tauri-api';
-import {
-  getFileIcon,
-  formatFileSize,
-  formatDate,
-  type ThemeDef,
-  type SortField,
-} from '@/lib/utils';
+import { formatFileSize, formatDate, type ThemeDef, type SortField } from '@/lib/utils';
 import type { TabItem, SplitLayoutState } from '@/types/split-view';
 import type { FileCollection } from '@/lib/collections';
 import type { SharedPaneActions } from '@/components/split-view/EditorGroupPane';
@@ -153,10 +147,6 @@ export interface MainLayoutProps {
   activeCollectionFilter: FileCollection | null;
   setActiveCollectionFilter: React.Dispatch<React.SetStateAction<FileCollection | null>>;
 
-  // Collections
-  setCollectionEditorOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setEditingCollection: React.Dispatch<React.SetStateAction<FileCollection | null>>;
-
   // Pane sync
   paneSync: PaneSyncState;
 
@@ -269,8 +259,6 @@ const MainLayout = (props: MainLayoutProps) => {
     setCrossTabDialogOpen,
     activeCollectionFilter,
     setActiveCollectionFilter,
-    setCollectionEditorOpen,
-    setEditingCollection,
     paneSync,
     fileOps,
     // Dialogs overlay
@@ -525,21 +513,8 @@ const MainLayout = (props: MainLayoutProps) => {
                   handleFileClick={handleFileClick}
                   handleFileRightClick={ctxMenu.handleFileRightClick}
                   handleFileOpen={handleFileDoubleClick}
-                  getFileIcon={getFileIcon}
                   searchPanelOpen={searchPanelOpen}
                   onToggleSearchPanel={() => setSearchPanelOpen((prev) => !prev)}
-                  onCreateCollection={() => {
-                    setEditingCollection(null);
-                    setCollectionEditorOpen(true);
-                  }}
-                  onEditCollection={(col) => {
-                    setEditingCollection(col);
-                    setCollectionEditorOpen(true);
-                  }}
-                  activeCollectionFilter={activeCollectionFilter}
-                  onToggleCollectionFilter={(col) => {
-                    setActiveCollectionFilter((prev) => (prev?.id === col.id ? null : col));
-                  }}
                 />
                 <ResizeHandle direction="horizontal" onResize={handleLeftResize} />
               </>
