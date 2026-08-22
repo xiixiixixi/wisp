@@ -18,6 +18,7 @@ import {
   computeRelativeSyncPath,
 } from '@/hooks/use-pane-sync';
 import { useFolderViewSettings } from '@/hooks/use-folder-view-settings';
+import { getDemoDirectory, isBrowserDemoMode } from '@/lib/browser-demo-files';
 
 // Re-export components needed by the pane content
 import HomePage from '@/pages/HomePage';
@@ -33,8 +34,12 @@ export interface SharedPaneActions {
   handleFileOpen: (file: FileEntry) => void;
   handleFileRightClick: (file: FileEntry, event: React.MouseEvent, groupId: string) => void;
   handleBackgroundRightClick: (event: React.MouseEvent, groupId: string) => void;
-  handleDelete: (selectedFiles: Set<string>, refetch: () => void) => void;
-  handleCreateFolder: (currentPath: string, refetch: () => void) => void;
+  handleDelete: (files: FileEntry[]) => void;
+  handleCreateFolder: (currentPath: string) => void;
+  handleCreateFile: (currentPath: string) => void;
+  handleCompress: (files: FileEntry[]) => void;
+  handleExtract: (file: FileEntry) => void;
+  handleProperties: (file: FileEntry) => void;
 
   // Theme
   theme: string;
@@ -180,6 +185,10 @@ const EditorGroupPane = ({
     handleBackgroundRightClick,
     handleDelete,
     handleCreateFolder,
+    handleCreateFile,
+    handleCompress,
+    handleExtract,
+    handleProperties,
     onGDriveNavigate: _onGDriveNavigate,
     onGDriveFileSelect: _onGDriveFileSelect,
     onError,
@@ -217,6 +226,9 @@ const EditorGroupPane = ({
   } = useQuery<FileEntry[]>({
     queryKey: ['files', currentPath],
     queryFn: async () => {
+      if (isBrowserDemoMode()) {
+        return getDemoDirectory(currentPath) ?? [];
+      }
       if (currentPath.startsWith('gdrive://')) {
         const match = currentPath.match(/^gdrive:\/\/([^/]+)\/(.*)$/);
         if (match) {
@@ -325,6 +337,15 @@ const EditorGroupPane = ({
         ? applyCollectionToFiles(sortedFilesRaw, activeCollectionFilter)
         : sortedFilesRaw,
     [sortedFilesRaw, activeCollectionFilter],
+  );
+
+  const selectedEntries = useMemo(
+    () => sortedFiles.filter((file) => selectedFiles.has(file.path)),
+    [selectedFiles, sortedFiles],
+  );
+  const singleSelectedEntry = selectedEntries.length === 1 ? selectedEntries[0] : null;
+  const selectedEntryIsArchive = Boolean(
+    singleSelectedEntry && /\.(zip|rar|7z|tar|gz|bz2|xz)$/i.test(singleSelectedEntry.name),
   );
 
   // Grouped files (only computed when grouping is active)
@@ -603,8 +624,10 @@ const EditorGroupPane = ({
         setSelectedFiles={setSelectedFiles}
         currentPath={currentPath}
         groupId={group.id}
-        handleCreateFolder={() => handleCreateFolder(currentPath, refetch)}
-        handleDelete={() => handleDelete(selectedFiles, refetch)}
+        handleCreateFolder={() => handleCreateFolder(currentPath)}
+        handleDelete={() =>
+          handleDelete(sortedFiles.filter((file) => selectedFiles.has(file.path)))
+        }
         handleFileClick={handleFileClick}
         handleFileDoubleClick={handleFileDoubleClick}
         onFileRightClick={onFileRightClick}
@@ -617,6 +640,14 @@ const EditorGroupPane = ({
         onAdvancedSelection={onAdvancedSelection}
         onQuickLook={onQuickLook}
         onRenameFile={renameFileInline}
+        onCreateFile={() => handleCreateFile(currentPath)}
+        onCompress={selectedEntries.length > 0 ? () => handleCompress(selectedEntries) : undefined}
+        onExtract={
+          singleSelectedEntry && selectedEntryIsArchive
+            ? () => handleExtract(singleSelectedEntry)
+            : undefined
+        }
+        onProperties={singleSelectedEntry ? () => handleProperties(singleSelectedEntry) : undefined}
       />
     );
   };

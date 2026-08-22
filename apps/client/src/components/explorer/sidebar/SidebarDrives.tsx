@@ -90,7 +90,7 @@ const SidebarDrives = ({
     <div
       className="border-b border-xp-border"
       role="region"
-      aria-label={isWindows ? 'Drives' : 'Volumes'}
+      aria-label={t(isWindows ? 'sidebar.drives' : 'sidebar.volumes')}
       data-sidebar-section="drives"
     >
       <button

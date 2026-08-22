@@ -27,8 +27,9 @@ const { mockShowConfirmationToast, mockShowInputToast } = vi.hoisted(() => ({
 
 vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {
-    copy: mockCopy,
-    moveFile: mockMoveFile,
+    copyWithProgress: mockCopy,
+    moveWithProgress: mockMoveFile,
+    removeFile: vi.fn(() => Promise.resolve()),
     rename: mockRename,
     moveToTrash: mockMoveToTrash,
     fileExists: mockFileExists,
@@ -401,7 +402,7 @@ describe('File Operations Integration', () => {
 
       expect(toastFn).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: 'Rename failed',
+          title: 'Rename Failed',
           variant: 'destructive',
         }),
       );
@@ -461,7 +462,7 @@ describe('File Operations Integration', () => {
 
       expect(toastFn).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: 'Delete failed',
+          title: 'Couldn’t move to Trash',
           variant: 'destructive',
         }),
       );

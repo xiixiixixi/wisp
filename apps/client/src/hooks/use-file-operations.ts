@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { TauriAPI, type FileEntry, type ConflictFileInfo } from '@/lib/tauri-api';
 import { notifyFilesChanged } from '@/lib/file-change-events';
 import { PATH_SEPARATOR, detectSep } from '@/lib/constants';
@@ -20,11 +21,41 @@ import {
 import { executePaste, showPasteResultToast } from '@/lib/paste-helpers';
 import type { BottomPanelTabId } from '@/hooks/use-layout-state';
 import type { SortField } from '@/lib/utils';
+import { validateFileName } from '@/lib/validate-filename';
 
 // ── Re-exports (preserve public API) ─────────────────────────────────────────
 
 export type { ClipboardState };
 export { formatError };
+
+const getFileNameValidationError = (
+  value: string,
+  existingNames: string[],
+  currentName: string,
+  t: TFunction,
+): string | undefined => {
+  const validation = validateFileName(value, existingNames, currentName);
+  if (validation.valid) return undefined;
+
+  switch (validation.code) {
+    case 'empty':
+      return t('fileOperations.nameValidation.empty');
+    case 'invalidCharacters':
+      return t('fileOperations.nameValidation.invalidCharacters');
+    case 'trailingDotOrSpace':
+      return t('fileOperations.nameValidation.trailingDotOrSpace');
+    case 'reservedName':
+      return t('fileOperations.nameValidation.reservedName', { name: String(validation.detail) });
+    case 'tooLong':
+      return t('fileOperations.nameValidation.tooLong', {
+        count: typeof validation.detail === 'number' ? validation.detail : 255,
+      });
+    case 'conflict':
+      return t('fileOperations.nameValidation.conflict', { name: String(validation.detail) });
+    default:
+      return validation.message;
+  }
+};
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -244,8 +275,11 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
             await TauriAPI.openFile(file.path);
           } catch (error) {
             toastRef.current({
-              title: 'Open failed',
-              description: `Failed to open "${file.name}": ${formatError(error)}`,
+              title: tRef.current('fileOperations.openFailedTitle'),
+              description: tRef.current('fileOperations.openFailedDesc', {
+                name: file.name,
+                error: formatError(error),
+              }),
               variant: 'destructive',
             });
           }
@@ -280,7 +314,9 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
           (opts) =>
             toastRef.current({
               ...opts,
-              description: `${filesToCopy.length} item${filesToCopy.length > 1 ? 's' : ''} copied to clipboard`,
+              description: tRef.current('fileOperations.itemsCopied', {
+                count: filesToCopy.length,
+              }),
             }),
         );
       },
@@ -293,7 +329,7 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
           (opts) =>
             toastRef.current({
               ...opts,
-              description: `${filesToCut.length} item${filesToCut.length > 1 ? 's' : ''} cut to clipboard`,
+              description: tRef.current('fileOperations.itemsCut', { count: filesToCut.length }),
             }),
         );
       },
@@ -301,8 +337,8 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
         const currentClipboard = clipboardRef.current;
         if (!currentClipboard) {
           toastRef.current({
-            title: 'Nothing to paste',
-            description: 'Clipboard is empty',
+            title: tRef.current('fileOperations.nothingToPasteTitle'),
+            description: tRef.current('fileOperations.clipboardEmpty'),
             variant: 'destructive',
           });
           return;
@@ -312,6 +348,7 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
 
       // ── Delete / rename / create ───────────────────────────────────────
       delete: async (filesToDelete: FileEntry[]) => {
+        if (filesToDelete.length === 0) return;
         const doDelete = async () => {
           try {
             for (const file of filesToDelete) {
@@ -321,14 +358,18 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
             setSelectedFilesRef.current(new Set());
             emitFilesChangedRef.current();
             toastRef.current({
-              title: 'Deleted',
-              description: `${filesToDelete.length} item${filesToDelete.length > 1 ? 's' : ''} deleted successfully`,
+              title: tRef.current('fileOperations.movedToTrashTitle'),
+              description: tRef.current('fileOperations.movedToTrashDesc', {
+                count: filesToDelete.length,
+              }),
             });
           } catch (error) {
             console.error('Delete operation failed:', error);
             toastRef.current({
-              title: 'Delete failed',
-              description: `Failed to delete items: ${formatError(error)}`,
+              title: tRef.current('fileOperations.deleteFailedTitle'),
+              description: tRef.current('fileOperations.deleteFailedDesc', {
+                error: formatError(error),
+              }),
               variant: 'destructive',
             });
           }
@@ -338,21 +379,32 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
           dialogsRef.current.openBatchConfirmDialog('delete', filesToDelete, doDelete);
         } else {
           const result = await showConfirmationToast({
-            title: 'Delete File',
-            description: `Are you sure you want to delete "${filesToDelete[0]?.name}"?`,
-            confirmText: 'Delete',
-            cancelText: 'Cancel',
+            title: tRef.current('fileOperations.moveToTrashTitle'),
+            description: tRef.current('fileOperations.moveToTrashPrompt', {
+              name: filesToDelete[0]?.name,
+            }),
+            confirmText: tRef.current('fileOperations.moveToTrashConfirm'),
+            cancelText: tRef.current('common.cancel'),
           });
           if (result) await doDelete();
         }
       },
       rename: async (file: FileEntry) => {
         const newName = await showInputToast({
-          title: 'Rename',
-          description: 'Enter new name:',
+          title: tRef.current('fileOperations.renameTitle'),
+          description: tRef.current('fileOperations.renameDescription'),
           placeholder: file.name,
-          submitText: 'Rename',
-          cancelText: 'Cancel',
+          initialValue: file.name,
+          selectNameWithoutExtension: !file.is_dir,
+          validate: (value) =>
+            getFileNameValidationError(
+              value,
+              filesRef.current.map((entry) => entry.name),
+              file.name,
+              tRef.current,
+            ),
+          submitText: tRef.current('fileOperations.renameAction'),
+          cancelText: tRef.current('common.cancel'),
         });
         if (newName && newName !== file.name) {
           try {
@@ -378,11 +430,18 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
       },
       createFolder: async (parentPath: string) => {
         const folderName = await showInputToast({
-          title: 'New Folder',
-          description: 'Enter folder name:',
-          placeholder: 'New Folder',
-          submitText: 'Create',
-          cancelText: 'Cancel',
+          title: tRef.current('fileOperations.newFolderTitle'),
+          description: tRef.current('fileOperations.newFolderDescription'),
+          placeholder: tRef.current('fileOperations.folderNamePlaceholder'),
+          validate: (value) =>
+            getFileNameValidationError(
+              value,
+              filesRef.current.map((entry) => entry.name),
+              '',
+              tRef.current,
+            ),
+          submitText: tRef.current('fileOperations.createAction'),
+          cancelText: tRef.current('common.cancel'),
         });
         if (folderName) {
           try {
@@ -408,11 +467,18 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
       },
       createFile: async (parentPath: string) => {
         const fileName = await showInputToast({
-          title: 'New File',
-          description: 'Enter file name:',
-          placeholder: 'New File.txt',
-          submitText: 'Create',
-          cancelText: 'Cancel',
+          title: tRef.current('fileOperations.newFileTitle'),
+          description: tRef.current('fileOperations.newFileDescription'),
+          placeholder: tRef.current('fileOperations.fileNamePlaceholder'),
+          validate: (value) =>
+            getFileNameValidationError(
+              value,
+              filesRef.current.map((entry) => entry.name),
+              '',
+              tRef.current,
+            ),
+          submitText: tRef.current('fileOperations.createAction'),
+          cancelText: tRef.current('common.cancel'),
         });
         if (fileName) {
           try {
@@ -608,9 +674,10 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
       },
       createNewTextFile: async (parentPath: string) => {
         try {
-          const filePath = await findUniqueFilePath(parentPath, 'New Text File', '.txt');
+          const defaultName = tRef.current('fileOperations.newTextFileName');
+          const filePath = await findUniqueFilePath(parentPath, defaultName, '.txt');
           await TauriAPI.createFile(filePath);
-          const name = filePath.split(/[/\\]/).pop() || 'New Text File.txt';
+          const name = filePath.split(/[/\\]/).pop() || `${defaultName}.txt`;
           emitFileActivityRef.current('create', filePath, name);
           emitFilesChangedRef.current();
           toastRef.current({
@@ -627,11 +694,18 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
       },
       createNewFile: async (parentPath: string) => {
         const fileName = await showInputToast({
-          title: 'New File',
-          description: 'Enter file name:',
-          placeholder: 'filename.ext',
-          submitText: 'Create',
-          cancelText: 'Cancel',
+          title: tRef.current('fileOperations.newFileTitle'),
+          description: tRef.current('fileOperations.newFileDescription'),
+          placeholder: tRef.current('fileOperations.fileNamePlaceholder'),
+          validate: (value) =>
+            getFileNameValidationError(
+              value,
+              filesRef.current.map((entry) => entry.name),
+              '',
+              tRef.current,
+            ),
+          submitText: tRef.current('fileOperations.createAction'),
+          cancelText: tRef.current('common.cancel'),
         });
         if (fileName) {
           try {
@@ -782,10 +856,10 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
       dialogs.openBatchConfirmDialog('delete', selectedEntries, doDelete);
     } else {
       const confirmed = await showConfirmationToast({
-        title: 'Move to Recycle Bin',
-        description: `Are you sure you want to move this item to the recycle bin?`,
-        confirmText: 'Move to Recycle Bin',
-        cancelText: 'Cancel',
+        title: t('fileOperations.moveToTrashTitle'),
+        description: t('fileOperations.moveToTrashSelectedPrompt', { count: 1 }),
+        confirmText: t('fileOperations.moveToTrashConfirm'),
+        cancelText: t('common.cancel'),
       });
       if (confirmed) await doDelete();
     }
@@ -802,11 +876,18 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
 
   const handleCreateFolder = useCallback(async () => {
     const folderName = await showInputToast({
-      title: 'Create New Folder',
-      description: 'Enter a name for the new folder',
-      placeholder: 'Folder name',
-      submitText: 'Create',
-      cancelText: 'Cancel',
+      title: t('fileOperations.newFolderTitle'),
+      description: t('fileOperations.newFolderDescription'),
+      placeholder: t('fileOperations.folderNamePlaceholder'),
+      validate: (value) =>
+        getFileNameValidationError(
+          value,
+          files.map((entry) => entry.name),
+          '',
+          t,
+        ),
+      submitText: t('fileOperations.createAction'),
+      cancelText: t('common.cancel'),
     });
     if (!folderName) return;
     try {
@@ -827,7 +908,7 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
         description: t('toast.createFolderFailedDesc', { error: formatError(error) }),
       });
     }
-  }, [currentPath, emitFileActivity, emitFilesChanged, toast, t]);
+  }, [currentPath, files, emitFileActivity, emitFilesChanged, toast, t]);
 
   // ── Shortcut clipboard handlers ────────────────────────────────────────
 
@@ -872,20 +953,22 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
           emitFileActivity('remove', filePath);
         }
         toastRef.current({
-          title: 'Deleted',
-          description: `${selectedFilesArray.length} item${selectedFilesArray.length > 1 ? 's' : ''} moved to trash`,
+          title: t('fileOperations.movedToTrashTitle'),
+          description: t('fileOperations.movedToTrashDesc', {
+            count: selectedFilesArray.length,
+          }),
         });
         setSelectedFiles(new Set());
         emitFilesChanged();
       } catch (error) {
         toastRef.current({
-          title: 'Error',
-          description: `Failed to delete: ${formatError(error)}`,
+          title: t('fileOperations.deleteFailedTitle'),
+          description: t('fileOperations.deleteFailedDesc', { error: formatError(error) }),
           variant: 'destructive',
         });
       }
     }
-  }, [selectedFiles, setSelectedFiles, emitFileActivity, emitFilesChanged]);
+  }, [selectedFiles, setSelectedFiles, emitFileActivity, emitFilesChanged, t]);
 
   const createFileFromTemplate = useCallback(
     async (filename: string, content: string) => {

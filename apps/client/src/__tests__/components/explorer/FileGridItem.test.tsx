@@ -20,8 +20,8 @@ vi.mock('@/components/explorer/FileGridHelpers', () => ({
     tags && tags.length > 0 ? <span data-testid="tag-dots">{tags.length} tags</span> : null,
   GitStatusDot: ({ status }: { status?: string }) =>
     status ? <span data-testid="git-status">{status}</span> : null,
-  LockBadge: ({ isReadonly }: { isReadonly?: boolean }) =>
-    isReadonly ? <span data-testid="lock-badge">readonly</span> : null,
+  LockBadge: ({ isReadonly }: { isReadonly: boolean }) =>
+    isReadonly ? <span data-testid="lock-badge">locked</span> : null,
   isImageFile: () => false,
 }));
 vi.mock('@/lib/utils', () => ({

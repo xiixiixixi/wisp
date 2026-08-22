@@ -3,6 +3,7 @@
  * Extracted from StandaloneChatPanel to keep it under the 1000-line limit.
  */
 import { TauriAPI } from '@/lib/tauri-api';
+import { getDemoDirectory, getDemoTextFile, isBrowserDemoMode } from '@/lib/browser-demo-files';
 import { basename } from './chat-file-actions';
 
 // ---------------------------------------------------------------------------
@@ -133,6 +134,17 @@ export const readFileForAIContext = async (
     return { name: file.name, path: file.path, file_type: 'directory' };
   }
 
+  if (isBrowserDemoMode()) {
+    const demoContent = getDemoTextFile(file.path);
+    if (demoContent !== null) {
+      const content =
+        demoContent.length > maxLength
+          ? `${demoContent.slice(0, maxLength)}\n\n[... truncated at ${Math.round(maxLength / 1000)}KB ...]`
+          : demoContent;
+      return { name: file.name, path: file.path, file_type: ext, content };
+    }
+  }
+
   // Handle images — read as base64 for vision models
   if (isImageExtension(ext)) {
     const imageData = await readImageAsBase64(file.path);
@@ -213,7 +225,8 @@ export const readMultipleFilesForAIContext = async (
 /** Build directory listing context string */
 export const buildDirectoryContext = async (dirPath: string): Promise<string> => {
   try {
-    const entries = await TauriAPI.readDirectory(dirPath);
+    const demoEntries = isBrowserDemoMode() ? getDemoDirectory(dirPath) : null;
+    const entries = demoEntries ?? (await TauriAPI.readDirectory(dirPath));
     const total = entries.length;
     const shown = entries.slice(0, MAX_DIR_CONTEXT_ENTRIES);
     const lines = shown.map((e) => `  ${e.is_dir ? '[dir]' : `[${getExt(e.path)}]`} ${e.name}`);

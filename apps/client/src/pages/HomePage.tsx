@@ -7,6 +7,29 @@ import { formatFileSize, applyTheme } from '@/lib/utils';
 import { isWindows, ROOT_PATH, PATH_SEPARATOR, CLOCK_UPDATE_INTERVAL_MS } from '@/lib/constants';
 import { useAllThemes } from '@/lib/theme-registry';
 import { useToast } from '@/hooks/use-toast';
+import {
+  getDemoDirectory,
+  getDemoRecentFiles,
+  getDemoUserDirectories,
+  isBrowserDemoMode,
+} from '@/lib/browser-demo-files';
+import {
+  ArrowRight,
+  Clock3,
+  Download,
+  FileText,
+  Folder,
+  HardDrive,
+  Image,
+  Monitor,
+  Music,
+  Search,
+  Sparkles,
+  Trash2,
+  Video,
+  X,
+} from 'lucide-react';
+import wispLogo from '../../../src-tauri/icons/icon.png';
 
 interface QuickStats {
   totalFiles: number;
@@ -31,162 +54,6 @@ interface HomePageProps {
   setTheme: (theme: string) => void;
 }
 
-// Solid SVG Icon components — filled style for crisp rendering at small sizes
-const FolderIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M19.5 21a3 3 0 003-3v-4.5a3 3 0 00-3-3h-15a3 3 0 00-3 3V18a3 3 0 003 3h15zM1.5 10.146V6a3 3 0 013-3h5.379a2.25 2.25 0 011.59.659l2.122 2.121c.14.141.331.22.53.22H19.5a3 3 0 013 3v1.146A4.483 4.483 0 0019.5 9h-15a4.483 4.483 0 00-3 1.146z" />
-  </svg>
-);
-
-const DocumentIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0016.5 9h-1.875a1.875 1.875 0 01-1.875-1.875V5.25A3.75 3.75 0 009 1.5H5.625zM7.5 15a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 017.5 15zm.75 2.25a.75.75 0 000 1.5H12a.75.75 0 000-1.5H8.25z"
-      clipRule="evenodd"
-    />
-    <path d="M12.971 1.816A5.23 5.23 0 0114.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 013.434 1.279 9.768 9.768 0 00-6.963-6.963z" />
-  </svg>
-);
-
-const DownloadIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M12 2.25a.75.75 0 01.75.75v11.69l3.22-3.22a.75.75 0 111.06 1.06l-4.5 4.5a.75.75 0 01-1.06 0l-4.5-4.5a.75.75 0 111.06-1.06l3.22 3.22V3a.75.75 0 01.75-.75zm-9 13.5a.75.75 0 01.75.75v2.25a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5V16.5a.75.75 0 011.5 0v2.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V16.5a.75.75 0 01.75-.75z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const DesktopIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M2.25 5.25a3 3 0 013-3h13.5a3 3 0 013 3V15a3 3 0 01-3 3h-3v.257c0 .597.237 1.17.659 1.591l.621.622a.75.75 0 01-.53 1.28h-9a.75.75 0 01-.53-1.28l.621-.622a2.25 2.25 0 00.659-1.59V18h-3a3 3 0 01-3-3V5.25zm1.5 0v7.5a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5v-7.5a1.5 1.5 0 00-1.5-1.5H5.25a1.5 1.5 0 00-1.5 1.5z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const PhotoIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const VideoIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M4.5 4.5a3 3 0 00-3 3v9a3 3 0 003 3h8.25a3 3 0 003-3v-9a3 3 0 00-3-3H4.5zM19.94 18.75l-2.69-2.689V7.939l2.69-2.689c.944-.945 2.56-.276 2.56 1.06v11.38c0 1.336-1.616 2.005-2.56 1.06z" />
-  </svg>
-);
-
-const MusicIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M19.952 1.651a.75.75 0 01.298.599V16.303a3 3 0 01-2.176 2.884l-1.32.377a2.553 2.553 0 11-1.403-4.909l2.311-.66a1.5 1.5 0 001.088-1.442V6.994l-9 2.572v9.737a3 3 0 01-2.176 2.884l-1.32.377a2.553 2.553 0 11-1.402-4.909l2.31-.66a1.5 1.5 0 001.088-1.442V5.25a.75.75 0 01.544-.721l10.5-3a.75.75 0 01.706.122z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const TrashIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const _SearchIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const _TerminalIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M2.25 6a3 3 0 013-3h13.5a3 3 0 013 3v12a3 3 0 01-3 3H5.25a3 3 0 01-3-3V6zm3.97 1.28a.75.75 0 011.06 0l3 3a.75.75 0 010 1.06l-3 3a.75.75 0 01-1.06-1.06l2.47-2.47-2.47-2.47a.75.75 0 010-1.06zm4.28 4.97a.75.75 0 000 1.5h3a.75.75 0 000-1.5h-3z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const SparklesIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const _ServerIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M4.08 5.227A3 3 0 016.979 3h10.042a3 3 0 012.899 2.227l2.747 10.11A6.017 6.017 0 0019.5 15H4.5c-1.16 0-2.24.329-3.157.338L4.08 5.227z" />
-    <path
-      fillRule="evenodd"
-      d="M1.5 16.5A3 3 0 014.5 13.5h15a3 3 0 013 3v.75a3 3 0 01-3 3h-15a3 3 0 01-3-3v-.75zm15.75 0a.75.75 0 100 1.5.75.75 0 000-1.5zm-2.25.75a.75.75 0 111.5 0 .75.75 0 01-1.5 0z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const DriveIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M2.25 13.5a8.25 8.25 0 0119.5 0v.75a.75.75 0 01-.75.75H3a.75.75 0 01-.75-.75v-.75zm9-5.25a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H12a.75.75 0 01-.75-.75V8.25zM12 12a.75.75 0 100 1.5.75.75 0 000-1.5z"
-      clipRule="evenodd"
-    />
-    <path d="M2.25 16.5a.75.75 0 01.75-.75h18a.75.75 0 01.75.75v2.25a2.25 2.25 0 01-2.25 2.25H4.5a2.25 2.25 0 01-2.25-2.25V16.5zm15.75.75a.75.75 0 100 1.5.75.75 0 000-1.5zm-2.25.75a.75.75 0 111.5 0 .75.75 0 01-1.5 0z" />
-  </svg>
-);
-
-const _ArrowRightIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 20 20" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const ClockIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const _CheckCircleIcon = ({ className = 'w-4 h-4' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
 /** Returns a human-readable relative time string using i18n. */
 const relativeTime = (
   timestampMs: number,
@@ -207,7 +74,49 @@ const relativeTime = (
   return t('home.weeksAgo', { count: Math.floor(days / 7) });
 };
 
-/** Simple SVG icon for recent files based on type. */
+/** Icon gradient based on file type. */
+const recentFileGradient = (fileType: string): string => {
+  const t = fileType.toLowerCase();
+  if (t === 'folder') return 'from-amber-500 to-amber-600';
+  if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'ico'].includes(t)) {
+    return 'from-pink-500 to-pink-600';
+  }
+  if (['mp4', 'mkv', 'avi', 'mov', 'wmv', 'webm'].includes(t)) {
+    return 'from-orange-500 to-orange-600';
+  }
+  if (['mp3', 'wav', 'ogg', 'flac', 'aac', 'wma'].includes(t)) return 'from-cyan-500 to-cyan-600';
+  if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz'].includes(t)) {
+    return 'from-yellow-500 to-yellow-600';
+  }
+  if (
+    [
+      'js',
+      'ts',
+      'jsx',
+      'tsx',
+      'py',
+      'rs',
+      'go',
+      'java',
+      'c',
+      'cpp',
+      'html',
+      'css',
+      'json',
+      'yaml',
+      'toml',
+      'xml',
+    ].includes(t)
+  ) {
+    return 'from-emerald-500 to-emerald-600';
+  }
+  if (['txt', 'md', 'rtf', 'doc', 'docx', 'pdf', 'csv', 'log'].includes(t)) {
+    return 'from-blue-500 to-blue-600';
+  }
+  return 'from-slate-500 to-slate-600';
+};
+
+/** Icon-library glyph for recent files based on type. */
 const RecentFileTypeIcon = ({
   fileType,
   className = 'w-3.5 h-3.5',
@@ -216,8 +125,8 @@ const RecentFileTypeIcon = ({
   className?: string;
 }) => {
   const t = fileType.toLowerCase();
-  if (t === 'folder') return <FolderIcon className={className} />;
-  return <DocumentIcon className={className} />;
+  if (t === 'folder') return <Folder className={className} />;
+  return <FileText className={className} />;
 };
 
 const Clock = () => {
@@ -230,25 +139,36 @@ const Clock = () => {
   }, []);
 
   const hour = currentTime.getHours();
-  const greeting =
-    hour < 12 ? t('home.goodMorning') : hour < 17 ? t('home.goodAfternoon') : t('home.goodEvening');
+  let greeting = t('home.goodEvening');
+  if (hour < 12) greeting = t('home.goodMorning');
+  else if (hour < 17) greeting = t('home.goodAfternoon');
 
   const locale = i18n.language || 'en';
 
   return (
-    <div className="flex items-end justify-between">
-      <div>
-        <p className="mb-1 flex items-center gap-1.5 text-sm text-xp-text-muted">
-          <ClockIcon />
+    <div className="flex items-end justify-between gap-8">
+      <div className="min-w-0">
+        <div className="mb-3 flex items-center gap-2.5">
+          <img src={wispLogo} alt="" className="h-9 w-9 rounded-xl shadow-lg" aria-hidden="true" />
+          <div>
+            <p className="text-sm font-semibold leading-tight text-xp-text">Wisp</p>
+            <p className="text-[11px] text-xp-text-muted">{t('home.workspace')}</p>
+          </div>
+        </div>
+        <p className="mb-1.5 flex items-center gap-1.5 text-xs text-xp-text-muted">
+          <Clock3 size={16} aria-hidden="true" />
           {currentTime.toLocaleDateString(locale, {
             weekday: 'long',
             month: 'long',
             day: 'numeric',
           })}
         </p>
-        <h1 className="text-3xl font-bold text-xp-text">{greeting}</h1>
+        <h1 className="text-4xl font-semibold tracking-[-0.03em] text-xp-text">{greeting}</h1>
+        <p className="mt-2 max-w-xl text-sm leading-6 text-xp-text-secondary">
+          {t('home.heroSubtitle')}
+        </p>
       </div>
-      <p className="text-2xl font-light tabular-nums text-xp-text-muted">
+      <p className="hidden text-3xl font-light tabular-nums text-xp-text-muted sm:block">
         {currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
       </p>
     </div>
@@ -281,6 +201,10 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
   const loadRecentFiles = useCallback(async () => {
     setRecentFilesLoading(true);
     try {
+      if (isBrowserDemoMode()) {
+        setRecentFiles(getDemoRecentFiles());
+        return;
+      }
       const files = await TauriAPI.getRecentFiles(12);
       setRecentFiles(files);
     } catch (err) {
@@ -292,6 +216,10 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
 
   const handleClearRecentFiles = async () => {
     try {
+      if (isBrowserDemoMode()) {
+        setRecentFiles([]);
+        return;
+      }
       await TauriAPI.clearRecentFiles();
       setRecentFiles([]);
     } catch (err) {
@@ -302,6 +230,10 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
   const handleRemoveRecentFile = async (e: React.MouseEvent, path: string) => {
     e.stopPropagation();
     try {
+      if (isBrowserDemoMode()) {
+        setRecentFiles((prev) => prev.filter((file) => file.path !== path));
+        return;
+      }
       await TauriAPI.removeRecentFile(path);
       setRecentFiles((prev) => prev.filter((f) => f.path !== path));
     } catch (err) {
@@ -456,6 +388,19 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
 
   const loadUserData = async () => {
     try {
+      if (isBrowserDemoMode()) {
+        const userDirs = getDemoUserDirectories();
+        const files = getDemoDirectory(userDirs.home) ?? [];
+        setUserDirectories(userDirs);
+        setRecommendedFolders([`${userDirs.documents}/Launch`, `${userDirs.documents}/Research`]);
+        setQuickStats({
+          totalFiles: files.filter((file) => !file.is_dir).length,
+          totalFolders: files.filter((file) => file.is_dir).length,
+          totalSize: formatFileSize(files.reduce((sum, file) => sum + file.size, 0)),
+          recentFiles: [],
+        });
+        return;
+      }
       const userDirs = await TauriAPI.getUserDirectories();
       setUserDirectories(userDirs);
 
@@ -499,8 +444,13 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
     }
   };
 
-  const handleNavigate = async (path: string) => {
-    await TauriAPI.addToRecentFolders(path);
+  const handleNavigate = (path: string) => {
+    // Persisting a recent destination is secondary and must never block navigation.
+    if (!isBrowserDemoMode()) {
+      TauriAPI.addToRecentFolders(path).catch((error) => {
+        console.warn('Failed to record recent folder:', error);
+      });
+    }
     onNavigate(path);
   };
 
@@ -519,56 +469,72 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
         {
           name: t('sidebar.documents'),
           path: userDirectories.documents,
-          icon: DocumentIcon,
+          icon: FileText,
+          gradient: 'from-blue-500 to-blue-600',
         },
         {
           name: t('sidebar.downloads'),
           path: userDirectories.downloads,
-          icon: DownloadIcon,
+          icon: Download,
+          gradient: 'from-emerald-500 to-emerald-600',
         },
         {
           name: t('sidebar.desktop'),
           path: userDirectories.desktop,
-          icon: DesktopIcon,
+          icon: Monitor,
+          gradient: 'from-violet-500 to-violet-600',
         },
         {
           name: t('sidebar.pictures'),
           path: userDirectories.pictures,
-          icon: PhotoIcon,
+          icon: Image,
+          gradient: 'from-pink-500 to-pink-600',
         },
         {
           name: t('home.videos'),
           path: userDirectories.videos,
-          icon: VideoIcon,
+          icon: Video,
+          gradient: 'from-orange-500 to-orange-600',
         },
         {
           name: t('home.music'),
           path: userDirectories.music,
-          icon: MusicIcon,
+          icon: Music,
+          gradient: 'from-cyan-500 to-cyan-600',
         },
       ]
     : [];
 
   return (
     <div className="flex h-full flex-col overflow-auto bg-xp-bg text-xp-text">
-      <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-6 py-8">
+      <div className="mx-auto grid min-h-0 w-full max-w-6xl flex-1 grid-cols-1 gap-y-5 px-6 py-6 lg:grid-cols-12 lg:gap-x-5 lg:px-8">
         {/* Hero / Greeting */}
-        <div className="mb-6">
+        <div className="order-0 lg:col-span-12">
           <Clock />
         </div>
 
         {/* Quick Links */}
-        <div className="mb-6">
-          <div className="flex flex-wrap gap-2">
+        <div className="order-1 lg:col-span-5">
+          <div className="mb-2.5 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-xp-text">{t('home.quickAccess')}</p>
+              <p className="mt-0.5 text-xs text-xp-text-muted">
+                {t('home.quickAccessDescription')}
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 rounded-2xl border border-xp-border bg-muted p-3 shadow-sm">
             {quickAccessFolders.map((folder) => {
               const Icon = folder.icon;
               return (
                 <button
                   key={folder.name}
                   onClick={() => handleNavigate(folder.path)}
-                  className="bg-xp-surface/50 group flex items-center gap-2.5 rounded-lg border border-xp-border px-3.5 py-2.5 transition-all duration-150 hover:border-xp-text-muted hover:bg-xp-surface"
+                  className="group flex min-h-12 items-center gap-3 rounded-xl border border-xp-border bg-transparent px-3 py-2.5 text-left transition-all duration-150 hover:-translate-y-0.5 hover:border-primary hover:bg-xp-surface hover:shadow-md"
                 >
-                  <div className="wisp-home-icon flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md">
+                  <div
+                    className={`h-7 w-7 rounded-md bg-gradient-to-br ${folder.gradient} flex flex-shrink-0 items-center justify-center`}
+                  >
                     <Icon className="h-3.5 w-3.5 text-white" />
                   </div>
                   <span className="text-sm font-medium text-xp-text">{folder.name}</span>
@@ -577,19 +543,19 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
             })}
             <button
               onClick={() => handleNavigate('wisp://trash')}
-              className="bg-xp-surface/50 group flex items-center gap-2.5 rounded-lg border border-xp-border px-3.5 py-2.5 transition-all duration-150 hover:border-xp-text-muted hover:bg-xp-surface"
+              className="group flex min-h-12 items-center gap-3 rounded-xl border border-xp-border bg-transparent px-3 py-2.5 text-left transition-all duration-150 hover:-translate-y-0.5 hover:border-primary hover:bg-xp-surface hover:shadow-md"
             >
-              <div className="wisp-home-icon flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md">
-                <TrashIcon className="h-3.5 w-3.5 text-white" />
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-red-500 to-red-600">
+                <Trash2 className="h-3.5 w-3.5 text-white" />
               </div>
               <span className="text-sm font-medium text-xp-text">{t('navigation.trash')}</span>
             </button>
             <button
               onClick={() => handleNavigate(ROOT_PATH)}
-              className="bg-xp-surface/50 group flex items-center gap-2.5 rounded-lg border border-xp-border px-3.5 py-2.5 transition-all duration-150 hover:border-xp-text-muted hover:bg-xp-surface"
+              className="group flex min-h-12 items-center gap-3 rounded-xl border border-xp-border bg-transparent px-3 py-2.5 text-left transition-all duration-150 hover:-translate-y-0.5 hover:border-primary hover:bg-xp-surface hover:shadow-md"
             >
-              <div className="wisp-home-icon flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md">
-                <DriveIcon className="h-3.5 w-3.5 text-white" />
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-slate-500 to-slate-600">
+                <HardDrive className="h-3.5 w-3.5 text-white" />
               </div>
               <span className="text-sm font-medium text-xp-text">
                 {isWindows ? 'C:' : t('home.macintoshHD')}
@@ -599,33 +565,38 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
 
           {/* Recent folders inline */}
           {recommendedFolders.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {recommendedFolders.map((path) => {
-                const name = path.split(/[\\/]/).pop() || path;
-                return (
-                  <button
-                    key={path}
-                    onClick={() => handleNavigate(path)}
-                    className="bg-xp-bg/40 group flex items-center gap-2 rounded-md border border-xp-border px-3 py-1.5 text-xs transition-colors hover:border-xp-text-muted"
-                    title={path}
-                  >
-                    <FolderIcon className="h-3 w-3 flex-shrink-0 text-xp-blue" />
-                    <span className="max-w-[140px] truncate text-xp-text-muted group-hover:text-xp-text">
-                      {name}
-                    </span>
-                  </button>
-                );
-              })}
+            <div className="mt-3">
+              <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-xp-text-muted">
+                {t('home.recentFolders')}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {recommendedFolders.map((path) => {
+                  const name = path.split(/[\\/]/).pop() || path;
+                  return (
+                    <button
+                      key={path}
+                      onClick={() => handleNavigate(path)}
+                      className="group flex items-center gap-2 rounded-md border border-xp-border bg-muted px-3 py-1.5 text-xs transition-colors hover:border-primary"
+                      title={path}
+                    >
+                      <Folder className="h-3 w-3 flex-shrink-0 text-xp-blue" />
+                      <span className="max-w-[140px] truncate text-xp-text-muted group-hover:text-xp-text">
+                        {name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
 
         {/* Recent Files */}
         {!recentFilesLoading && recentFiles.length > 0 && (
-          <div className="mb-6">
+          <div className="order-3 lg:col-span-12">
             <div className="mb-2 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <ClockIcon />
+                <Clock3 size={16} aria-hidden="true" />
                 <span className="text-sm font-medium text-xp-text">{t('home.recentFiles')}</span>
               </div>
               <button
@@ -637,6 +608,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
               {recentFiles.map((file) => {
+                const gradient = recentFileGradient(file.file_type);
                 return (
                   <div
                     key={`${file.path}-${file.accessed_at}`}
@@ -652,7 +624,9 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                     className="bg-xp-surface/50 group relative flex cursor-pointer items-center gap-2.5 rounded-lg border border-xp-border px-3 py-2.5 text-left transition-all duration-150 hover:border-xp-text-muted hover:bg-xp-surface"
                     title={file.path}
                   >
-                    <div className="wisp-home-icon flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md">
+                    <div
+                      className={`h-7 w-7 rounded-md bg-gradient-to-br ${gradient} flex flex-shrink-0 items-center justify-center`}
+                    >
                       <RecentFileTypeIcon
                         fileType={file.file_type}
                         className="h-3.5 w-3.5 text-white"
@@ -669,19 +643,9 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                       onClick={(e) => handleRemoveRecentFile(e, file.path)}
                       className="hover:bg-xp-error/20 hover:text-xp-error absolute right-1 top-1 rounded p-0.5 text-xp-text-muted opacity-0 transition-all group-hover:opacity-100"
                       title={t('home.removeFromRecent')}
+                      aria-label={t('home.removeFromRecent')}
                     >
-                      <svg
-                        className="h-3 w-3"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                      </svg>
+                      <X className="h-3 w-3" aria-hidden="true" />
                     </button>
                   </div>
                 );
@@ -690,19 +654,52 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
           </div>
         )}
 
-        {/* AI Assistant - compact, not flex-1 */}
-        <div className="mt-2 flex flex-col">
-          <div className="bg-xp-surface/50 flex flex-col overflow-hidden rounded-xl border border-xp-border">
+        {!recentFilesLoading && recentFiles.length === 0 && (
+          <div className="order-3 lg:col-span-12">
+            <div className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-xp-border bg-muted px-5 py-4 sm:flex-row sm:items-center">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-xp-blue">
+                  <Folder className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-xp-text">{t('home.recentEmptyTitle')}</p>
+                  <p className="mt-0.5 text-xs leading-5 text-xp-text-muted">
+                    {t('home.recentEmptyDescription')}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleNavigate(userDirectories?.home || ROOT_PATH)}
+                className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-xp-border bg-xp-surface px-3.5 text-xs font-medium text-xp-text transition-colors hover:border-primary hover:bg-xp-surface-light"
+              >
+                {t('home.openHome')}
+                <ArrowRight size={14} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* AI Assistant */}
+        <div className="order-2 flex flex-col lg:col-span-7">
+          <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-xp-border bg-muted shadow-xl shadow-black/10">
             {/* Chat messages area */}
-            <div ref={aiScrollRef} className="max-h-64 overflow-y-auto px-5 pb-2 pt-3">
+            <div ref={aiScrollRef} className="max-h-72 overflow-y-auto px-5 pb-2 pt-4 sm:px-6">
               {aiMessages.length === 0 && !aiStreaming && (
                 <div className="flex items-center gap-3 py-2">
-                  <div className="wisp-home-icon flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg">
-                    <SparklesIcon className="h-4 w-4 text-white" />
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-xp-border bg-muted">
+                    <Sparkles className="h-5 w-5 text-xp-blue" />
                   </div>
-                  <div>
-                    <p className="text-sm text-xp-text">{t('home.agentTitle')}</p>
-                    <p className="text-xs text-xp-text-muted">{t('home.agentDescription')}</p>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-base font-semibold text-xp-text">{t('home.agentTitle')}</p>
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-xp-blue">
+                        {t('home.ready')}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-sm leading-5 text-xp-text-muted">
+                      {t('home.agentDescription')}
+                    </p>
                   </div>
                 </div>
               )}
@@ -810,9 +807,14 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
             </div>
 
             {/* Input area - pinned at bottom */}
-            <div className="flex-shrink-0 border-t border-xp-border p-4">
+            <div className="flex-shrink-0 border-t border-xp-border p-4 sm:px-6 sm:pb-5">
               <div className="flex items-center gap-3">
                 <div className="relative flex-1">
+                  <Search
+                    size={17}
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xp-text-muted"
+                    aria-hidden="true"
+                  />
                   <input
                     type="text"
                     value={aiInput}
@@ -825,7 +827,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                     }}
                     placeholder={t('home.askAnything')}
                     disabled={aiRunning}
-                    className="bg-xp-bg/60 focus:border-xp-blue/50 focus:ring-xp-blue/30 w-full rounded-lg border border-xp-border py-2.5 pl-4 pr-20 text-sm text-xp-text placeholder-xp-text-muted transition-colors focus:outline-none focus:ring-1 disabled:opacity-50"
+                    className="h-12 w-full rounded-xl border border-xp-border bg-xp-surface pl-11 pr-24 text-sm text-xp-text placeholder-xp-text-muted shadow-inner transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
                   />
                   <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
                     {aiRunning ? (
@@ -839,16 +841,17 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                       <button
                         onClick={handleAiSend}
                         disabled={!aiInput.trim()}
-                        className="bg-xp-blue/20 hover:bg-xp-blue/30 rounded-md px-2.5 py-1 text-xs text-xp-blue transition-colors disabled:opacity-30"
+                        className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-xp-blue px-3 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-xp-blue-dark disabled:opacity-30"
                       >
                         {t('home.send')}
+                        <ArrowRight size={13} />
                       </button>
                     )}
                   </div>
                 </div>
               </div>
               {aiMessages.length === 0 && (
-                <div className="mt-2.5 flex gap-2">
+                <div className="mt-3 flex flex-wrap gap-2">
                   {[
                     t('home.suggestionListRecent'),
                     t('home.suggestionOrganize'),
@@ -859,7 +862,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                       onClick={() => {
                         setAiInput(suggestion);
                       }}
-                      className="bg-xp-bg/40 rounded-md border border-xp-border px-2.5 py-1 text-xs text-xp-text-muted transition-colors hover:border-xp-text-muted hover:text-xp-text"
+                      className="rounded-lg border border-xp-border bg-muted px-3 py-1.5 text-xs text-xp-text-muted transition-colors hover:border-primary hover:bg-xp-surface-light hover:text-xp-text"
                     >
                       {suggestion}
                     </button>

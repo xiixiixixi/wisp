@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act, renderHook } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import React from 'react';
@@ -79,12 +79,12 @@ vi.mock('@/lib/tauri-api', () => ({
 
 vi.mock('@/lib/extension-host', () => ({
   extensionHost: {
+    subscribe: vi.fn(() => () => {}),
+    getSnapshotVersion: vi.fn(() => 0),
     isExtensionScheme: vi.fn(() => false),
     getTabRenderer: vi.fn(() => null),
     getNavigationEntries: vi.fn(() => []),
     onChange: vi.fn(() => () => {}),
-    subscribe: vi.fn(() => () => {}),
-    getSnapshotVersion: vi.fn(() => 0),
     getSidebarTabs: vi.fn(() => []),
     getSidebarTabRenderer: vi.fn(() => null),
   },
@@ -118,12 +118,7 @@ import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 describe('Navigation Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorage.removeItem('wisp:auto-whitelist-visited');
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
+    localStorage.clear();
   });
 
   describe('Directory Navigation via useNavigation', () => {
@@ -174,7 +169,8 @@ describe('Navigation Integration', () => {
       expect(deps.splitLayout.navigate).not.toHaveBeenCalled();
     });
 
-    it('does not index or whitelist a directory during ordinary navigation', () => {
+    it('indexes the directory on navigation', () => {
+      vi.useFakeTimers();
       const deps = createNavigationDeps();
       const { result } = renderHook(() => useNavigation(deps));
 
@@ -182,21 +178,10 @@ describe('Navigation Integration', () => {
         result.current.navigateToPath('C:\\Users\\Test\\Projects');
       });
 
-      expect(mockIndexDirectory).not.toHaveBeenCalled();
-      expect(mockAddWhitelistedPath).not.toHaveBeenCalled();
-    });
+      act(() => vi.advanceTimersByTime(1000));
 
-    it('whitelists a visited directory only after explicit opt-in', () => {
-      localStorage.setItem('wisp:auto-whitelist-visited', 'true');
-      const deps = createNavigationDeps();
-      const { result } = renderHook(() => useNavigation(deps));
-
-      act(() => {
-        result.current.navigateToPath('C:\\Users\\Test\\Projects');
-      });
-
-      expect(mockAddWhitelistedPath).toHaveBeenCalledWith('C:\\Users\\Test\\Projects');
-      expect(mockIndexDirectory).not.toHaveBeenCalled();
+      expect(mockIndexDirectory).toHaveBeenCalledWith('C:\\Users\\Test\\Projects');
+      vi.useRealTimers();
     });
 
     it('sets the search context on navigation', () => {
@@ -210,7 +195,7 @@ describe('Navigation Integration', () => {
       expect(mockSetSearchContext).toHaveBeenCalledWith('C:\\Users\\Test\\Downloads');
     });
 
-    it('leaves directory watching to the dedicated filesystem effect', () => {
+    it('starts a search watcher on navigation', () => {
       const deps = createNavigationDeps();
       const { result } = renderHook(() => useNavigation(deps));
 
@@ -218,7 +203,7 @@ describe('Navigation Integration', () => {
         result.current.navigateToPath('D:\\Projects');
       });
 
-      expect(mockStartWatching).not.toHaveBeenCalled();
+      expect(mockStartWatching).toHaveBeenCalledWith('D:\\Projects');
     });
 
     it('does not index wisp:// protocol paths', () => {
@@ -444,13 +429,13 @@ describe('Navigation Integration', () => {
     it('renders special label for wisp://home', () => {
       render(<NavigationBar currentPath="wisp://home" navigateToPath={vi.fn()} />);
 
-      expect(screen.getByText('home')).toBeInTheDocument();
+      expect(screen.getByText('Home')).toBeInTheDocument();
     });
 
     it('renders special label for wisp://trash', () => {
       render(<NavigationBar currentPath="wisp://trash" navigateToPath={vi.fn()} />);
 
-      expect(screen.getByText('trash')).toBeInTheDocument();
+      expect(screen.getByText('Trash')).toBeInTheDocument();
     });
 
     it('allows editing path by clicking the navigation bar', async () => {
@@ -462,7 +447,7 @@ describe('Navigation Integration', () => {
       expect(barInner).toBeTruthy();
       fireEvent.click(barInner!);
 
-      const input = screen.getByPlaceholderText('pathPlaceholder');
+      const input = screen.getByPlaceholderText('Enter path... (~ for home)');
       expect(input).toBeInTheDocument();
       expect(input).toHaveValue(testPath);
     });
@@ -475,7 +460,7 @@ describe('Navigation Integration', () => {
       const barInner = document.querySelector('.bg-xp-bg');
       fireEvent.click(barInner!);
 
-      const input = screen.getByPlaceholderText('pathPlaceholder');
+      const input = screen.getByPlaceholderText('Enter path... (~ for home)');
       fireEvent.change(input, { target: { value: 'D:\\NewPath' } });
       fireEvent.keyDown(input, { key: 'Enter' });
 
@@ -493,12 +478,12 @@ describe('Navigation Integration', () => {
       const barInner = document.querySelector('.bg-xp-bg');
       fireEvent.click(barInner!);
 
-      const input = screen.getByPlaceholderText('pathPlaceholder');
+      const input = screen.getByPlaceholderText('Enter path... (~ for home)');
       fireEvent.change(input, { target: { value: 'D:\\OtherPath' } });
       fireEvent.keyDown(input, { key: 'Escape' });
 
       expect(navigateToPath).not.toHaveBeenCalled();
-      expect(screen.queryByPlaceholderText('pathPlaceholder')).not.toBeInTheDocument();
+      expect(screen.queryByPlaceholderText('Enter path... (~ for home)')).not.toBeInTheDocument();
     });
   });
 
@@ -519,6 +504,8 @@ describe('Navigation Integration', () => {
         />,
       );
 
+      fireEvent.click(await screen.findByText('FAVORITES'));
+
       await waitFor(() => {
         expect(screen.getByText('Project A')).toBeInTheDocument();
         expect(screen.getByText('Notes')).toBeInTheDocument();
@@ -528,7 +515,7 @@ describe('Navigation Integration', () => {
       expect(navigateToPath).toHaveBeenCalledWith('D:\\Projects\\ProjectA');
     });
 
-    it('does not add an empty bookmark message to Quick Access', async () => {
+    it('shows empty bookmarks message when no bookmarks exist', async () => {
       mockGetBookmarks.mockResolvedValueOnce([]);
 
       render(
@@ -540,10 +527,11 @@ describe('Navigation Integration', () => {
         />,
       );
 
+      fireEvent.click(await screen.findByText('FAVORITES'));
+
       await waitFor(() => {
-        expect(mockGetBookmarks).toHaveBeenCalled();
+        expect(screen.getByText('No bookmarks yet')).toBeInTheDocument();
       });
-      expect(screen.queryByText('noBookmarks')).not.toBeInTheDocument();
     });
 
     it('removes a bookmark when the remove button is clicked', async () => {
@@ -560,11 +548,13 @@ describe('Navigation Integration', () => {
         />,
       );
 
+      fireEvent.click(await screen.findByText('FAVORITES'));
+
       await waitFor(() => {
         expect(screen.getByText('RemoveMe')).toBeInTheDocument();
       });
 
-      const removeBtn = screen.getByTitle('remove');
+      const removeBtn = screen.getByTitle('Remove bookmark');
       fireEvent.click(removeBtn);
 
       expect(TauriAPI.removeBookmark).toHaveBeenCalledWith('C:\\Users\\Test\\RemoveMe');
@@ -584,20 +574,18 @@ describe('Navigation Integration', () => {
       );
 
       await waitFor(() => {
-        // The i18n mock returns the last key segment, so labels become lowercase
-        // e.g. t('sidebar.documents') -> 'documents'
-        const labels = screen.getAllByLabelText('navigateTo');
+        const labels = screen.getAllByLabelText(/Navigate to .* folder/);
         expect(labels.length).toBeGreaterThanOrEqual(4);
-        expect(screen.getByText('documents')).toBeInTheDocument();
-        expect(screen.getByText('downloads')).toBeInTheDocument();
-        expect(screen.getByText('desktop')).toBeInTheDocument();
-        expect(screen.getByText('pictures')).toBeInTheDocument();
+        expect(screen.getByText('Documents')).toBeInTheDocument();
+        expect(screen.getByText('Downloads')).toBeInTheDocument();
+        expect(screen.getByText('Desktop')).toBeInTheDocument();
+        expect(screen.getByText('Pictures')).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('documents'));
+      fireEvent.click(screen.getByText('Documents'));
       expect(navigateToPath).toHaveBeenCalledWith('C:\\Users\\Test\\Documents');
 
-      fireEvent.click(screen.getByText('downloads'));
+      fireEvent.click(screen.getByText('Downloads'));
       expect(navigateToPath).toHaveBeenCalledWith('C:\\Users\\Test\\Downloads');
     });
   });
@@ -675,7 +663,7 @@ describe('Navigation Integration', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('home')).toBeInTheDocument();
+        expect(screen.getByText('Home')).toBeInTheDocument();
       });
     });
 

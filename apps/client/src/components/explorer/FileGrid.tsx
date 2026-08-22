@@ -15,8 +15,9 @@ import TreeView from './TreeView';
 import GalleryView from './GalleryView';
 import DetailsView from './DetailsView';
 import ColumnView from './ColumnView';
-import type { FileGroup } from '@/lib/utils';
+import { getDateGroupTranslationKey, type FileGroup } from '@/lib/utils';
 import { FileGridSkeleton } from '@/components/ui/Skeleton';
+import { FilePlus2, FolderOpen, FolderPlus } from 'lucide-react';
 import {
   CROSS_TAB_SELECTION_EVENT,
   type CrossTabSelectionEventDetail,
@@ -52,6 +53,10 @@ interface FileGridProps {
   renamingPath?: string | null;
   /** Setter to clear/set the renaming path from parent */
   setRenamingPath?: (path: string | null) => void;
+  /** Empty-state action for creating a folder in the current directory. */
+  onCreateFolder?: () => void;
+  /** Empty-state action for creating a file in the current directory. */
+  onCreateFile?: () => void;
 }
 
 const FileGrid = ({
@@ -79,6 +84,8 @@ const FileGrid = ({
   onRenameFile,
   renamingPath: externalRenamingPath,
   setRenamingPath: externalSetRenamingPath,
+  onCreateFolder,
+  onCreateFile,
 }: FileGridProps) => {
   const { t } = useTranslation();
 
@@ -503,26 +510,45 @@ const FileGrid = ({
     return (
       <div
         ref={bgDropRef}
-        className="flex h-64 items-center justify-center"
+        className="flex min-h-[320px] flex-1 items-center justify-center px-6 py-12"
         onContextMenu={handleBackgroundRightClick || undefined}
-        role="status"
+        role="region"
         aria-label={t('fileGrid.emptyFolder')}
       >
-        <div className="text-center text-xp-text-secondary">
-          <svg
-            className="mx-auto mb-4 h-12 w-12"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <p>{t('fileGrid.emptyFolder')}</p>
-          <p className="mt-2 text-xs text-xp-text-muted">{t('fileGrid.emptyFolderHint')}</p>
+        <div className="max-w-sm text-center">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-xp-border bg-xp-surface text-xp-blue shadow-lg">
+            <FolderOpen size={26} strokeWidth={1.7} aria-hidden="true" />
+          </div>
+          <p className="text-base font-semibold text-xp-text" aria-live="polite">
+            {t('fileGrid.emptyFolder')}
+          </p>
+          <p className="mt-1.5 text-sm leading-5 text-xp-text-muted">
+            {t('fileGrid.emptyFolderHint')}
+          </p>
+          {(onCreateFolder || onCreateFile) && (
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+              {onCreateFolder && (
+                <button
+                  type="button"
+                  onClick={onCreateFolder}
+                  className="inline-flex h-9 items-center gap-2 rounded-lg bg-xp-blue px-3.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-xp-blue-dark"
+                >
+                  <FolderPlus size={16} />
+                  {t('operationBar.newFolder')}
+                </button>
+              )}
+              {onCreateFile && (
+                <button
+                  type="button"
+                  onClick={onCreateFile}
+                  className="inline-flex h-9 items-center gap-2 rounded-lg border border-xp-border bg-xp-surface px-3.5 text-sm font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
+                >
+                  <FilePlus2 size={16} />
+                  {t('operationBar.newFile')}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -654,7 +680,7 @@ const FileGrid = ({
             <div key={group.group}>
               <div className="bg-xp-surface/80 sticky top-0 z-10 border-b border-xp-border px-3 py-2 backdrop-blur-sm">
                 <span className="text-xs font-semibold uppercase tracking-wide text-xp-text-muted">
-                  {group.group}
+                  {t(getDateGroupTranslationKey(group.group))}
                 </span>
                 <span className="ml-2 text-xs text-xp-text-muted">({group.files.length})</span>
               </div>

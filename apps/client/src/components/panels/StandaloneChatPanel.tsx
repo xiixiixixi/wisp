@@ -48,6 +48,7 @@ import {
   IMAGE_EXTENSIONS,
 } from './use-chat-send';
 import { useAgentLoop } from './use-agent-loop';
+import { useExternalChatPrompt } from '@/hooks/use-external-chat-prompt';
 
 // ---------------------------------------------------------------------------
 // Lazy-loaded heavy components (reduces initial bundle)
@@ -514,6 +515,13 @@ const StandaloneChatPanel = () => {
       currentConversationId,
     ],
   );
+
+  // Requests launched from the command center and file-aware AI actions should
+  // complete in one step, including when this lazy panel mounts after the event.
+  useExternalChatPrompt((prompt) => {
+    void sendMessage(prompt);
+  });
+
   const stopAgent = useCallback(() => {
     abortRef.current = true;
     setIsLoading(false);

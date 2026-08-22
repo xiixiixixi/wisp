@@ -57,14 +57,14 @@ describe('TopBar', () => {
 
     it('renders the sidebar toggle button', () => {
       render(<TopBar {...mockProps} />);
-      expect(screen.getByRole('button', { name: 'toggleSidebar' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Toggle sidebar' })).toBeInTheDocument();
     });
   });
 
   describe('Sidebar Toggle', () => {
     it('calls setLeftSidebarCollapsed when toggle button is clicked', () => {
       render(<TopBar {...mockProps} />);
-      fireEvent.click(screen.getByRole('button', { name: 'toggleSidebar' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Toggle sidebar' }));
       expect(mockProps.setLeftSidebarCollapsed).toHaveBeenCalledWith(true);
     });
   });
@@ -72,32 +72,32 @@ describe('TopBar', () => {
   describe('Navigation Controls', () => {
     it('renders history navigation buttons', () => {
       render(<TopBar {...mockProps} />);
-      expect(screen.getByTitle('goBack')).toBeInTheDocument();
-      expect(screen.getByTitle('goForward')).toBeInTheDocument();
+      expect(screen.getByTitle('Go back in history')).toBeInTheDocument();
+      expect(screen.getByTitle('Go forward in history')).toBeInTheDocument();
     });
 
     it('enables/disables history buttons correctly', () => {
       render(<TopBar {...mockProps} />);
-      expect(screen.getByTitle('goBack')).not.toBeDisabled();
-      expect(screen.getByTitle('goForward')).toBeDisabled();
+      expect(screen.getByTitle('Go back in history')).not.toBeDisabled();
+      expect(screen.getByTitle('Go forward in history')).toBeDisabled();
     });
 
     it('calls navigateBackInHistory when back button is clicked', () => {
       render(<TopBar {...mockProps} />);
-      fireEvent.click(screen.getByTitle('goBack'));
+      fireEvent.click(screen.getByTitle('Go back in history'));
       expect(mockProps.navigateBackInHistory).toHaveBeenCalled();
     });
 
     it('renders up and refresh buttons', () => {
       render(<TopBar {...mockProps} />);
-      expect(screen.getByTitle('goUp')).toBeInTheDocument();
-      expect(screen.getByTitle('refresh')).toBeInTheDocument();
+      expect(screen.getByTitle('Go up one level')).toBeInTheDocument();
+      expect(screen.getByTitle('Refresh')).toBeInTheDocument();
     });
 
     it('disables up button when at root', () => {
       const rootProps = { ...mockProps, currentPath: 'C:\\' };
       render(<TopBar {...rootProps} />);
-      expect(screen.getByTitle('goUp')).toBeDisabled();
+      expect(screen.getByTitle('Go up one level')).toBeDisabled();
     });
   });
 
@@ -129,19 +129,19 @@ describe('TopBar', () => {
   describe('Split/Tab Controls', () => {
     it('calls onAddTab when new tab button is clicked', () => {
       render(<TopBar {...mockProps} />);
-      fireEvent.click(screen.getByRole('button', { name: 'newTab' }));
+      fireEvent.click(screen.getByRole('button', { name: 'New tab' }));
       expect(mockProps.onAddTab).toHaveBeenCalled();
     });
 
     it('calls onSplitRight when split right button is clicked', () => {
       render(<TopBar {...mockProps} />);
-      fireEvent.click(screen.getByRole('button', { name: 'splitRight' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Split right' }));
       expect(mockProps.onSplitRight).toHaveBeenCalled();
     });
 
     it('calls onSplitDown when split down button is clicked', () => {
       render(<TopBar {...mockProps} />);
-      fireEvent.click(screen.getByRole('button', { name: 'splitDown' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Split down' }));
       expect(mockProps.onSplitDown).toHaveBeenCalled();
     });
   });

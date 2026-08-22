@@ -347,15 +347,18 @@ describe('useCommandPaletteCommands', () => {
 
   describe('other commands', () => {
     it('Open Settings navigates to settings', () => {
-      const navigateWithHistory = vi.fn();
-      const opts = makeOptions({ navigateWithHistory });
+      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+      const opts = makeOptions();
       const { result } = renderHook(() =>
         useCommandPaletteCommands(opts as UseCommandPaletteCommandsOptions),
       );
 
       const cmd = result.current.find((c) => c.id === 'settings');
       cmd!.action();
-      expect(navigateWithHistory).toHaveBeenCalledWith('wisp://settings');
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'wisp-open-settings' }),
+      );
+      dispatchSpy.mockRestore();
     });
 
     it('Open Trash navigates to trash', () => {
@@ -389,7 +392,7 @@ describe('useCommandPaletteCommands', () => {
       const { result } = renderHook(() =>
         useCommandPaletteCommands(opts as UseCommandPaletteCommandsOptions),
       );
-      const navCmds = result.current.filter((c) => c.category === 'navigation');
+      const navCmds = result.current.filter((c) => c.category === 'Navigation');
       expect(navCmds.length).toBeGreaterThan(0);
     });
 
@@ -398,7 +401,7 @@ describe('useCommandPaletteCommands', () => {
       const { result } = renderHook(() =>
         useCommandPaletteCommands(opts as UseCommandPaletteCommandsOptions),
       );
-      const viewCmds = result.current.filter((c) => c.category === 'view');
+      const viewCmds = result.current.filter((c) => c.category === 'View');
       expect(viewCmds.length).toBeGreaterThan(0);
     });
 
@@ -407,7 +410,7 @@ describe('useCommandPaletteCommands', () => {
       const { result } = renderHook(() =>
         useCommandPaletteCommands(opts as UseCommandPaletteCommandsOptions),
       );
-      const panelCmds = result.current.filter((c) => c.category === 'panels');
+      const panelCmds = result.current.filter((c) => c.category === 'Panels');
       expect(panelCmds.length).toBeGreaterThan(0);
     });
 
@@ -416,7 +419,7 @@ describe('useCommandPaletteCommands', () => {
       const { result } = renderHook(() =>
         useCommandPaletteCommands(opts as UseCommandPaletteCommandsOptions),
       );
-      const fileCmds = result.current.filter((c) => c.category === 'file');
+      const fileCmds = result.current.filter((c) => c.category === 'File');
       expect(fileCmds.length).toBeGreaterThan(0);
     });
 
@@ -425,7 +428,7 @@ describe('useCommandPaletteCommands', () => {
       const { result } = renderHook(() =>
         useCommandPaletteCommands(opts as UseCommandPaletteCommandsOptions),
       );
-      const otherCmds = result.current.filter((c) => c.category === 'other');
+      const otherCmds = result.current.filter((c) => c.category === 'Other');
       expect(otherCmds.length).toBeGreaterThan(0);
     });
   });

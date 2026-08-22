@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TauriAPI } from '@/lib/tauri-api';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
-import { useLocation } from 'wouter';
+import { Link } from 'wouter';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
@@ -43,8 +43,8 @@ import AISettings from '@/components/settings/AISettings';
 import PermissionsSettings from '@/components/settings/PermissionsSettings';
 import AccessibilitySettings from '@/components/settings/AccessibilitySettings';
 import FileAssociationsSettings from '@/components/settings/FileAssociationsSettings';
-import { loadFontSize, applyTheme } from '@/lib/utils';
-import { resolveTheme } from '@/lib/ui-state';
+import { applyTheme, loadFontSize } from '@/lib/utils';
+import { normalizeLanguage } from '@/lib/language-settings';
 import {
   AppSettings,
   DEFAULT_SETTINGS,
@@ -52,6 +52,7 @@ import {
   Toggle,
   SettingRow,
 } from '@/components/settings/shared';
+import wispLogo from '../../../src-tauri/icons/icon.png';
 
 type SettingsTab =
   | 'general'
@@ -189,24 +190,35 @@ const MarketplaceSettings = ({
 );
 
 const Settings = () => {
-  const [, setLocation] = useLocation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const tabs = buildTabs(t);
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
 
   const [settings, setSettings] = useState<AppSettings>(() => {
+    let initialSettings = DEFAULT_SETTINGS;
     try {
       const saved = localStorage.getItem(SETTINGS_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Align stored theme with the resolved built-in default.
-        if (typeof parsed.theme === 'string') parsed.theme = resolveTheme();
-        return { ...DEFAULT_SETTINGS, ...parsed };
+      if (saved) initialSettings = { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+    } catch {
+      /* ignore localStorage/parse errors */
+    }
+
+    try {
+      const savedUiState = localStorage.getItem(STORAGE_KEYS.UI_STATE);
+      if (savedUiState) {
+        const uiState = JSON.parse(savedUiState) as { theme?: unknown };
+        if (typeof uiState.theme === 'string' && uiState.theme) {
+          initialSettings = { ...initialSettings, theme: uiState.theme };
+        }
       }
     } catch {
       /* ignore localStorage/parse errors */
     }
-    return DEFAULT_SETTINGS;
+
+    return {
+      ...initialSettings,
+      language: normalizeLanguage(initialSettings.language),
+    };
   });
 
   const [autoUpdateExtensions, setAutoUpdateExtensions] = useState(() => {
@@ -325,8 +337,29 @@ const Settings = () => {
   }, [settings]);
 
   useEffect(() => {
-    loadFontSize();
     applyTheme(settings.theme);
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.UI_STATE);
+      const current = raw ? JSON.parse(raw) : {};
+      localStorage.setItem(
+        STORAGE_KEYS.UI_STATE,
+        JSON.stringify({ ...current, theme: settings.theme }),
+      );
+    } catch {
+      localStorage.setItem(STORAGE_KEYS.UI_STATE, JSON.stringify({ theme: settings.theme }));
+    }
+  }, [settings.theme]);
+
+  useEffect(() => {
+    const language = normalizeLanguage(settings.language);
+    const activeLanguage = normalizeLanguage(i18n.resolvedLanguage || i18n.language);
+    if (activeLanguage !== language) {
+      void i18n.changeLanguage(language);
+    }
+  }, [i18n, settings.language]);
+
+  useEffect(() => {
+    loadFontSize();
     if (settings.reducedMotion) document.documentElement.classList.add('reduce-motion');
     if (settings.enhancedFocus) document.documentElement.classList.add('enhanced-focus');
     if (settings.highContrast) document.documentElement.classList.add('high-contrast');
@@ -463,17 +496,19 @@ const Settings = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-xp-bg text-xp-text">
+    <div className="flex h-screen flex-col overflow-hidden bg-xp-bg text-xp-text">
       {/* Header */}
       <div className="border-xp-border/50 bg-xp-bg/80 shrink-0 border-b backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-4">
-          <button
-            onClick={() => setLocation('/')}
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3 lg:px-8">
+          <Link
+            href="/"
             className="flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-xp-surface hover:text-xp-text"
             title={t('settings.backToApp')}
+            aria-label={t('settings.backToApp')}
           >
             <ArrowLeft size={18} />
-          </button>
+          </Link>
+          <img src={wispLogo} alt="" className="h-8 w-8 rounded-[10px]" aria-hidden="true" />
           <div>
             <h1 className="text-lg font-semibold leading-tight text-xp-text">
               {t('settings.title')}
@@ -485,9 +520,9 @@ const Settings = () => {
 
       {/* Body: Sidebar + Content */}
       <div className="flex-1 overflow-hidden">
-        <div className="mx-auto flex h-full max-w-6xl">
+        <div className="mx-auto flex h-full max-w-7xl">
           {/* Sidebar */}
-          <nav className="border-xp-border/50 w-56 shrink-0 overflow-y-auto border-r px-3 py-4">
+          <nav className="border-xp-border/50 w-64 shrink-0 overflow-y-auto border-r px-3 py-4">
             <div className="space-y-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
@@ -496,16 +531,16 @@ const Settings = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all ${
+                    className={`flex min-h-12 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all ${
                       isActive
-                        ? 'bg-xp-accent/15 text-xp-accent'
+                        ? 'bg-muted text-xp-blue'
                         : 'text-xp-text-secondary hover:bg-xp-surface hover:text-xp-text'
                     }`}
                   >
-                    <Icon size={18} className={isActive ? 'text-xp-accent' : ''} />
+                    <Icon size={18} className={isActive ? 'text-xp-blue' : ''} />
                     <div className="min-w-0 flex-1">
                       <div
-                        className={`truncate text-sm font-medium ${isActive ? 'text-xp-accent' : ''}`}
+                        className={`truncate text-sm font-medium ${isActive ? 'text-xp-blue' : ''}`}
                       >
                         {tab.label}
                       </div>
@@ -513,7 +548,7 @@ const Settings = () => {
                         {tab.description}
                       </div>
                     </div>
-                    {isActive && <ChevronRight size={14} className="text-xp-accent/60 shrink-0" />}
+                    {isActive && <ChevronRight size={14} className="shrink-0 text-xp-blue" />}
                   </button>
                 );
               })}
@@ -521,8 +556,8 @@ const Settings = () => {
           </nav>
 
           {/* Content */}
-          <main className="flex-1 overflow-y-auto px-2 py-4">
-            <div className="max-w-2xl">
+          <main className="flex-1 overflow-y-auto px-6 py-6">
+            <div className="max-w-3xl">
               {/* Tab heading */}
               <div className="mb-4 px-4">
                 <h2 className="text-xl font-semibold text-xp-text">

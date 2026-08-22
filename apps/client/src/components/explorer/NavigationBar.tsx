@@ -586,7 +586,7 @@ const NavigationBar = ({ currentPath, navigateToPath, refetch: _refetch }: Navig
           }
           return (
             <nav
-              aria-label="Breadcrumb"
+              aria-label={t('navigation.breadcrumb')}
               className="scrollbar-none flex h-full cursor-text items-center gap-0.5 overflow-x-auto"
             >
               {segments.map((seg, i) => {

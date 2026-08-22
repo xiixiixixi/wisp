@@ -150,7 +150,7 @@ const SidebarBookmarks = ({
     <div
       className="border-b border-xp-border"
       role="region"
-      aria-label="Favorites"
+      aria-label={t('sidebar.favorites')}
       data-sidebar-section="favorites"
       data-drop-target=""
       data-drop-action="bookmark-add"

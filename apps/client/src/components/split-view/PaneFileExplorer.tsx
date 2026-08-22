@@ -156,6 +156,13 @@ const PaneFileExplorer = React.memo(
     const [colorFilter, setColorFilter] = useState<string | null>(null);
     const handleColorFilter = useCallback((colorId: string | null) => setColorFilter(colorId), []);
 
+    const handlePreviewSelected = useCallback(() => {
+      if (!onQuickLook || selectedFiles.size !== 1) return;
+      const selectedPath = selectedFiles.values().next().value;
+      const selectedEntry = sortedFiles.find((file) => file.path === selectedPath);
+      if (selectedEntry) onQuickLook(selectedEntry);
+    }, [onQuickLook, selectedFiles, sortedFiles]);
+
     // Re-read folder colors on change so the filter stays in sync
     const [folderColorVersion, setFolderColorVersion] = useState(0);
     useEffect(() => {
@@ -183,63 +190,77 @@ const PaneFileExplorer = React.memo(
 
     return (
       <>
-        <OperationBar
-          viewMode={viewMode}
-          setViewMode={handleSetViewMode}
-          viewModes={viewModes}
-          isAutoDetected={isAutoDetected}
-          onClearAutoDetect={clearSavedView}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          sortOrder={sortOrder}
-          toggleSortOrder={toggleSortOrder}
-          sortOptions={sortOptions}
-          groupByDate={groupByDate}
-          setGroupByDate={setGroupByDate}
-          handleCreateFolder={handleCreateFolder}
-          handleDelete={handleDelete}
-          selectedFiles={selectedFiles}
-          setBottomPanelCollapsed={setBottomPanelCollapsed}
-          setBottomPanelTab={setBottomPanelTab}
-          onSelectAll={() => {
-            const newSet = new Set(sortedFiles.map((f) => f.path));
-            setSelectedFiles(newSet);
-          }}
-          onSelectNone={() => {
-            setSelectedFiles(new Set());
-          }}
-          onInvertSelection={() => {
-            const allPaths = sortedFiles.map((f) => f.path);
-            setSelectedFiles((prev) => {
-              const next = new Set<string>();
-              for (const p of allPaths) {
-                if (!prev.has(p)) next.add(p);
-              }
-              return next;
-            });
-          }}
-          onAdvancedSelection={onAdvancedSelection}
-          showSizeBadges={showSizeBadges}
-          onToggleSizeBadges={toggleSizeBadges}
-          onCreateFile={onCreateFile}
-          onCompress={onCompress}
-          onExtract={onExtract}
-          onProperties={onProperties}
-          onCopyPath={
-            currentPath
-              ? () => {
-                  navigator.clipboard.writeText(currentPath).catch(() => {
-                    /* ignore clipboard errors */
-                  });
+        {(isLoading || displayFiles.length > 0 || selectedFiles.size > 0) && (
+          <OperationBar
+            viewMode={viewMode}
+            setViewMode={handleSetViewMode}
+            viewModes={viewModes}
+            isAutoDetected={isAutoDetected}
+            onClearAutoDetect={clearSavedView}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            sortOrder={sortOrder}
+            toggleSortOrder={toggleSortOrder}
+            sortOptions={sortOptions}
+            groupByDate={groupByDate}
+            setGroupByDate={setGroupByDate}
+            handleCreateFolder={handleCreateFolder}
+            handleDelete={handleDelete}
+            selectedFiles={selectedFiles}
+            setBottomPanelCollapsed={setBottomPanelCollapsed}
+            setBottomPanelTab={setBottomPanelTab}
+            onSelectAll={() => {
+              const newSet = new Set(sortedFiles.map((f) => f.path));
+              setSelectedFiles(newSet);
+            }}
+            onSelectNone={() => {
+              setSelectedFiles(new Set());
+            }}
+            onInvertSelection={() => {
+              const allPaths = sortedFiles.map((f) => f.path);
+              setSelectedFiles((prev) => {
+                const next = new Set<string>();
+                for (const p of allPaths) {
+                  if (!prev.has(p)) next.add(p);
                 }
-              : undefined
-          }
-          currentPath={currentPath}
-          onCopy={clipboardCtx.copySelectedFiles}
-          onCut={clipboardCtx.cutSelectedFiles}
-          onPaste={clipboardCtx.pasteFiles}
-          hasClipboard={clipboardCtx.hasClipboard}
-        />
+                return next;
+              });
+            }}
+            onAdvancedSelection={onAdvancedSelection}
+            showSizeBadges={showSizeBadges}
+            onToggleSizeBadges={toggleSizeBadges}
+            onCreateFile={onCreateFile}
+            onCompress={onCompress}
+            onExtract={onExtract}
+            onProperties={onProperties}
+            onCopyPath={
+              currentPath
+                ? () => {
+                    navigator.clipboard.writeText(currentPath).catch(() => {
+                      /* ignore clipboard errors */
+                    });
+                  }
+                : undefined
+            }
+            currentPath={currentPath}
+            onCopy={clipboardCtx.copySelectedFiles}
+            onCut={clipboardCtx.cutSelectedFiles}
+            onPaste={clipboardCtx.pasteFiles}
+            hasClipboard={clipboardCtx.hasClipboard}
+            onPreview={onQuickLook ? handlePreviewSelected : undefined}
+            statusAccessory={
+              <div className="mr-1 flex items-center gap-2">
+                {showSizeBadges && <SizeDistributionChart files={displayFiles} />}
+                <FolderColorLegend
+                  files={sortedFiles}
+                  onFilterByColor={handleColorFilter}
+                  activeColorFilter={colorFilter}
+                />
+                <TokenizerStatusIndicator />
+              </div>
+            }
+          />
+        )}
 
         <div ref={scrollContainerRef} className="flex-1 overflow-auto p-4">
           <FileGrid
@@ -264,25 +285,9 @@ const PaneFileExplorer = React.memo(
             onQuickLook={onQuickLook}
             showSizeBadges={showSizeBadges}
             onRenameFile={onRenameFile}
+            onCreateFolder={handleCreateFolder}
+            onCreateFile={onCreateFile}
           />
-        </div>
-
-        <div className="bg-xp-surface border-xp-border text-xp-text-muted flex-shrink-0 border-t px-4 py-2 text-xs">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <span>
-                {displayFiles.length} items{colorFilter ? ` (filtered)` : ''}
-              </span>
-              <span>{selectedFiles.size} selected</span>
-              {showSizeBadges && <SizeDistributionChart files={displayFiles} />}
-              <FolderColorLegend
-                files={sortedFiles}
-                onFilterByColor={handleColorFilter}
-                activeColorFilter={colorFilter}
-              />
-            </div>
-            <TokenizerStatusIndicator />
-          </div>
         </div>
       </>
     );

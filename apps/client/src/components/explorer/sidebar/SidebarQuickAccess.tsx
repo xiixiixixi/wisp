@@ -79,7 +79,7 @@ const SidebarQuickAccess = ({
     <div
       className="border-b border-xp-border"
       role="region"
-      aria-label="Quick access"
+      aria-label={t('sidebar.quickAccess')}
       data-sidebar-section="quickAccess"
       data-drop-target=""
       data-drop-action="bookmark-add"

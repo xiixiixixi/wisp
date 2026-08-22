@@ -12,6 +12,16 @@ export interface FileNameValidation {
   warning: boolean;
   /** Human-readable message describing the issue. Empty string when fully valid with no warning. */
   message: string;
+  /** Stable reason used by UI surfaces to provide localized feedback. */
+  code?:
+    | 'empty'
+    | 'invalidCharacters'
+    | 'trailingDotOrSpace'
+    | 'reservedName'
+    | 'tooLong'
+    | 'conflict';
+  /** Optional detail for localized messages. */
+  detail?: string | number;
 }
 
 // Characters forbidden in file names on Windows (and generally problematic everywhere).
@@ -63,7 +73,7 @@ export const validateFileName = (
 
   // 1. Empty name
   if (trimmed.length === 0) {
-    return { valid: false, warning: false, message: 'Name cannot be empty' };
+    return { valid: false, warning: false, message: 'Name cannot be empty', code: 'empty' };
   }
 
   // 2. Invalid characters
@@ -72,6 +82,7 @@ export const validateFileName = (
       valid: false,
       warning: false,
       message: `Name contains invalid characters: ${INVALID_CHARS_DISPLAY}`,
+      code: 'invalidCharacters',
     };
   }
 
@@ -81,6 +92,7 @@ export const validateFileName = (
       valid: false,
       warning: false,
       message: 'Name cannot end with a dot or space',
+      code: 'trailingDotOrSpace',
     };
   }
 
@@ -92,6 +104,8 @@ export const validateFileName = (
       valid: false,
       warning: false,
       message: `"${basePart}" is a reserved system name`,
+      code: 'reservedName',
+      detail: basePart,
     };
   }
 
@@ -101,6 +115,8 @@ export const validateFileName = (
       valid: false,
       warning: false,
       message: `Name is too long (${trimmed.length}/255 characters)`,
+      code: 'tooLong',
+      detail: trimmed.length,
     };
   }
 
@@ -114,6 +130,8 @@ export const validateFileName = (
         valid: false,
         warning: true,
         message: `"${conflict}" already exists in this folder`,
+        code: 'conflict',
+        detail: conflict,
       };
     }
   }

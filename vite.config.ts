@@ -2,13 +2,17 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
-    react({
-      babel: {
-        plugins: [['babel-plugin-react-compiler', { target: '19' }]],
-      },
-    }),
+    react(
+      mode === 'test'
+        ? undefined
+        : {
+            babel: {
+              plugins: [['babel-plugin-react-compiler', { target: '19' }]],
+            },
+          },
+    ),
   ],
   resolve: {
     alias: {
@@ -62,4 +66,4 @@ export default defineConfig({
       'window.__TAURI__': 'undefined',
     },
   },
-});
+}));

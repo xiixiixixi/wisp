@@ -12,6 +12,7 @@ import {
   ChevronUp,
   RefreshCw,
   MessageSquare,
+  Search,
 } from 'lucide-react';
 import { TauriAPI } from '@/lib/tauri-api';
 import { ROOT_PATH } from '@/lib/constants';
@@ -20,6 +21,7 @@ import { type FileCollection, getAllCollections, isQuickFilter } from '@/lib/col
 import { renderIcon } from '@/lib/utils';
 import { getTabIcon } from '@/lib/tab-utils';
 import { useTranslation } from 'react-i18next';
+import wispLogo from '../../../../src-tauri/icons/icon.png';
 
 export interface TopBarHandle {
   // Retained for API compatibility — search now lives in the sidebar
@@ -159,11 +161,11 @@ const TopBar = React.memo(
       return (
         <div
           data-tour={dataTour}
-          className="wisp-titlebar flex-none border-b border-xp-border bg-xp-surface"
+          className="flex-none border-b border-xp-border bg-xp-surface backdrop-blur-xl"
         >
           {/* Row 1: Title bar (draggable) */}
           <div
-            className="flex items-center justify-between px-4 py-1"
+            className="relative flex h-11 items-center justify-between px-3"
             onMouseDown={(e) => {
               if (
                 !(e.target as HTMLElement).closest(
@@ -184,14 +186,11 @@ const TopBar = React.memo(
               }
             }}
           >
-            <div
-              className="flex items-center space-x-3"
-              style={isMac ? { paddingLeft: '60px' } : undefined}
-            >
-              <div className="flex items-center space-x-2">
+            <div className="flex items-center" style={isMac ? { paddingLeft: '60px' } : undefined}>
+              <div className="flex items-center gap-2.5">
                 <button
                   onClick={() => setLeftSidebarCollapsed(!leftSidebarCollapsed)}
-                  className="rounded p-1 transition-colors hover:bg-xp-surface-light"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                   aria-label={t('topBar.toggleSidebar')}
                   title={t('topBar.toggleSidebarShortcut')}
                 >
@@ -203,10 +202,29 @@ const TopBar = React.memo(
                     />
                   </svg>
                 </button>
-                <h1 className="text-sm font-medium">Wisp</h1>
+                <div className="flex items-center gap-2">
+                  <img src={wispLogo} alt="" className="h-6 w-6 rounded-[7px]" aria-hidden="true" />
+                  <h1 className="text-sm font-semibold tracking-tight">Wisp</h1>
+                </div>
               </div>
             </div>
-            {/* Spacer — search is in the left sidebar */}
+
+            {/* One global entry point for files, commands, and actions. */}
+            <button
+              type="button"
+              data-command-palette-trigger
+              onClick={() => window.dispatchEvent(new CustomEvent('wisp-open-command-palette'))}
+              className="absolute left-1/2 hidden h-8 w-[min(38vw,420px)] -translate-x-1/2 items-center gap-2 rounded-lg border border-xp-border bg-muted px-3 text-left text-xs text-xp-text-muted shadow-sm transition-all hover:border-primary hover:bg-xp-surface-light hover:text-xp-text min-[820px]:flex"
+              aria-label={t('commandPalette.trigger')}
+              title={t('commandPalette.trigger')}
+            >
+              <Search size={14} className="shrink-0" />
+              <span className="min-w-0 flex-1 truncate">{t('commandPalette.trigger')}</span>
+              <kbd className="rounded border border-xp-border bg-xp-surface px-1.5 py-0.5 font-sans text-[10px] text-xp-text-secondary">
+                {isMac ? '⌘⇧P' : 'Ctrl⇧P'}
+              </kbd>
+            </button>
+
             <div className="flex-1" />
             {!isMac && (
               <div className="ml-2 flex items-center" role="toolbar" aria-label="Window controls">
@@ -236,7 +254,7 @@ const TopBar = React.memo(
           </div>
 
           {/* Row 2: Nav buttons + Tabs + Split controls */}
-          <div className="flex items-center gap-0.5 px-2">
+          <div className="flex min-h-9 items-center gap-0.5 px-2">
             {/* Nav buttons */}
             {navigateBackInHistory && (
               <button

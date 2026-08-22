@@ -101,7 +101,7 @@ describe('OperationBar', () => {
   it('calls handleCreateFolder when create folder button is clicked', () => {
     render(<OperationBar {...mockProps} />);
 
-    const createButton = screen.getByTitle('createFolder');
+    const createButton = screen.getByRole('button', { name: 'Create folder' });
     fireEvent.click(createButton);
 
     expect(mockProps.handleCreateFolder).toHaveBeenCalled();
@@ -114,14 +114,14 @@ describe('OperationBar', () => {
     };
     render(<OperationBar {...propsWithSelection} />);
 
-    const deleteButton = screen.getByTitle('deleteItems');
+    const deleteButton = screen.getByRole('button', { name: 'Delete 1 selected item(s)' });
     expect(deleteButton).toBeInTheDocument();
   });
 
   it('hides delete button when no files are selected', () => {
     render(<OperationBar {...mockProps} />);
 
-    const deleteButton = screen.queryByTitle('deleteItems');
+    const deleteButton = screen.queryByRole('button', { name: /Delete .* selected item/ });
     expect(deleteButton).not.toBeInTheDocument();
   });
 
@@ -132,7 +132,7 @@ describe('OperationBar', () => {
     };
     render(<OperationBar {...propsWithSelection} />);
 
-    const deleteButton = screen.getByTitle('deleteItems');
+    const deleteButton = screen.getByRole('button', { name: 'Delete 1 selected item(s)' });
     fireEvent.click(deleteButton);
 
     expect(mockProps.handleDelete).toHaveBeenCalled();
@@ -141,7 +141,7 @@ describe('OperationBar', () => {
   it('opens terminal panel when terminal button is clicked', () => {
     render(<OperationBar {...mockProps} />);
 
-    const terminalButton = screen.getByTitle('openTerminal');
+    const terminalButton = screen.getByRole('button', { name: 'Open terminal' });
     fireEvent.click(terminalButton);
 
     expect(mockProps.setBottomPanelCollapsed).toHaveBeenCalledWith(false);
@@ -157,13 +157,7 @@ describe('OperationBar', () => {
 
     expect(screen.getByText('Size')).toBeInTheDocument();
 
-    // Click outside overlay
-    const overlay = document.querySelector('.fixed.inset-0');
-    expect(overlay).toBeInTheDocument();
-
-    if (overlay) {
-      fireEvent.click(overlay);
-      expect(screen.queryByText('Size')).not.toBeInTheDocument();
-    }
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryByText('Size')).not.toBeInTheDocument();
   });
 });

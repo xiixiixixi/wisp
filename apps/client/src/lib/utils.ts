@@ -452,6 +452,19 @@ export type DateGroup =
   | 'Last Month'
   | 'Older';
 
+const DATE_GROUP_I18N_KEYS: Record<DateGroup, string> = {
+  Today: 'today',
+  Yesterday: 'yesterday',
+  'Earlier This Week': 'earlierThisWeek',
+  'Last Week': 'lastWeek',
+  'Earlier This Month': 'earlierThisMonth',
+  'Last Month': 'lastMonth',
+  Older: 'older',
+};
+
+export const getDateGroupTranslationKey = (group: DateGroup): string =>
+  `fileGrid.dateGroups.${DATE_GROUP_I18N_KEYS[group]}`;
+
 const DATE_GROUP_ORDER: DateGroup[] = [
   'Today',
   'Yesterday',

@@ -29,13 +29,15 @@ export interface HistoryEntry {
 
 export type PaletteItem =
   | { type: 'command'; command: Command; matchIndices: number[]; sectionLabel?: string }
-  | { type: 'recent-file'; file: RecentFile; sectionLabel?: string };
+  | { type: 'recent-file'; file: RecentFile; sectionLabel?: string }
+  | { type: 'assistant'; prompt: string; sectionLabel?: string };
 
 export type VirtualRow =
   | { kind: 'section-header'; label: string }
   | { kind: 'command'; command: Command; matchIndices: number[]; itemIndex: number }
   | { kind: 'recent-file'; file: RecentFile; itemIndex: number }
   | { kind: 'search-file'; result: SearchResult; itemIndex: number }
+  | { kind: 'assistant'; prompt: string; itemIndex: number }
   | { kind: 'loading' };
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -46,6 +48,7 @@ export const MAX_HISTORY = 20;
 
 export const COMMAND_ROW_HEIGHT = 40;
 export const FILE_ROW_HEIGHT = 50;
+export const ASSISTANT_ROW_HEIGHT = 64;
 export const SECTION_HEADER_HEIGHT = 28;
 export const LOADING_ROW_HEIGHT = 36;
 
@@ -264,19 +267,22 @@ export const backdropStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'flex-start',
   justifyContent: 'center',
-  paddingTop: '15vh',
-  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  paddingTop: '11vh',
+  backgroundColor: 'rgba(4, 5, 14, 0.68)',
+  backdropFilter: 'blur(10px)',
+  WebkitBackdropFilter: 'blur(10px)',
 };
 
 export const dialogStyle: React.CSSProperties = {
-  width: '520px',
-  maxHeight: '60vh',
+  width: 'min(640px, calc(100vw - 32px))',
+  maxHeight: '68vh',
   display: 'flex',
   flexDirection: 'column',
-  backgroundColor: 'var(--xp-popover, #1a1b2e)',
-  border: '1px solid var(--xp-border, #292e42)',
-  borderRadius: '12px',
-  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+  background:
+    'linear-gradient(165deg, color-mix(in srgb, var(--xp-popover, #1a1b2e) 96%, #7c3aed 4%), var(--xp-popover, #1a1b2e))',
+  border: '1px solid color-mix(in srgb, var(--xp-border, #292e42) 70%, #8b5cf6 30%)',
+  borderRadius: '16px',
+  boxShadow: '0 32px 90px -28px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(139, 92, 246, 0.08)',
   overflow: 'hidden',
   backdropFilter: 'blur(24px)',
   WebkitBackdropFilter: 'blur(24px)',
@@ -286,7 +292,7 @@ export const searchBarStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
-  padding: '12px 16px',
+  padding: '12px 18px',
   borderBottom: '1px solid var(--xp-border, #292e42)',
 };
 
@@ -301,7 +307,7 @@ export const inputStyle: React.CSSProperties = {
   flex: 1,
   background: 'transparent',
   color: 'var(--xp-text, #c0caf5)',
-  fontSize: '14px',
+  fontSize: '15px',
   outline: 'none',
   border: 'none',
 };
@@ -345,7 +351,7 @@ export const loadingSpinnerStyle: React.CSSProperties = {
 };
 
 export const footerStyle: React.CSSProperties = {
-  padding: '8px 16px',
+  padding: '9px 18px',
   borderTop: '1px solid var(--xp-border, #292e42)',
   fontSize: '11px',
   color: 'var(--xp-text-muted, #565f89)',

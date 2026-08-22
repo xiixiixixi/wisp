@@ -203,6 +203,24 @@ describe('Settings Page', () => {
         expect(mockSetLocation).toHaveBeenCalledWith('/');
       });
     });
+
+    it('defaults the language control to Chinese', async () => {
+      render(<Settings />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('select-root-zh')).toBeInTheDocument();
+      });
+    });
+
+    it('normalizes a previously stored zh-CN language value', async () => {
+      localStorage.setItem('wisp:settings', JSON.stringify({ language: 'zh-CN' }));
+
+      render(<Settings />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('select-root-zh')).toBeInTheDocument();
+      });
+    });
   });
 
   describe('Navigation Sidebar', () => {

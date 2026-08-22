@@ -1,6 +1,6 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { FolderTree, Search } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface SidebarTab {
   id: string;
@@ -14,7 +14,7 @@ interface SidebarTabBarProps {
   extensionTabs: SidebarTab[];
 }
 
-const TAB_CLASS_ACTIVE = 'wisp-sidebar-item-active';
+const TAB_CLASS_ACTIVE = 'bg-xp-blue/15 text-xp-blue';
 const TAB_CLASS_INACTIVE = 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text';
 
 const SidebarTabBar = ({ activeTabId, onTabClick, extensionTabs }: SidebarTabBarProps) => {
@@ -35,7 +35,7 @@ const SidebarTabBar = ({ activeTabId, onTabClick, extensionTabs }: SidebarTabBar
         flexShrink: 0,
       }}
       role="tablist"
-      aria-label={t('sidebar.tabs.tablistAria')}
+      aria-label={t('sidebar.tabs')}
     >
       {/* Explorer tab */}
       <button
@@ -43,9 +43,9 @@ const SidebarTabBar = ({ activeTabId, onTabClick, extensionTabs }: SidebarTabBar
         onClick={() => onTabClick('__explorer__')}
         className={tabClass('__explorer__')}
         style={{ width: 28, height: 28, padding: 0 }}
-        aria-label={t('sidebar.tabs.explorerAria')}
+        aria-label={t('sidebar.fileExplorer')}
         aria-selected={activeTabId === '__explorer__'}
-        title={t('sidebar.tabs.explorerTitle')}
+        title={t('sidebar.fileExplorer')}
       >
         <FolderTree size={15} />
       </button>
@@ -56,9 +56,9 @@ const SidebarTabBar = ({ activeTabId, onTabClick, extensionTabs }: SidebarTabBar
         onClick={() => onTabClick('__search__')}
         className={tabClass('__search__')}
         style={{ width: 28, height: 28, padding: 0 }}
-        aria-label={t('sidebar.tabs.searchAria')}
+        aria-label={t('sidebar.searchFilesShortcut')}
         aria-selected={activeTabId === '__search__'}
-        title={t('sidebar.tabs.searchTitle')}
+        title={t('sidebar.searchFilesShortcut')}
       >
         <Search size={15} />
       </button>

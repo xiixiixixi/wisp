@@ -10,7 +10,7 @@ const renderWithSuspense = (ui: React.ReactElement) => {
 };
 
 // Mock sub-panels (lazy-loaded)
-vi.mock('@/components/panels/TerminalPanelEnhanced', () => ({
+vi.mock('@/components/panels/XTermPanel', () => ({
   default: (props: Record<string, unknown> & { terminalCwd?: string }) => (
     <div data-testid="terminal-panel">Terminal: {props.terminalCwd}</div>
   ),
@@ -42,6 +42,8 @@ vi.mock('@/components/ErrorBoundary', () => ({
 }));
 vi.mock('@/lib/extension-host', () => ({
   extensionHost: {
+    subscribe: vi.fn(() => () => {}),
+    getSnapshotVersion: vi.fn(() => 0),
     getBottomTabs: vi.fn(() => []),
     getBottomTabRenderer: vi.fn(() => null),
   },
@@ -100,23 +102,24 @@ describe('BottomPanel', () => {
       render(<BottomPanel {...defaultProps} />);
 
       const tabs = [
-        'TERMINAL',
-        'ACTIVITY LOG',
-        'CHANGES',
-        'CLIPBOARD',
-        'NOTIFICATIONS',
-        'PROPERTIES',
+        'Terminal',
+        'Activity Log',
+        'Changes',
+        'Clipboard',
+        'Notifications',
+        'Properties',
+        'Agents',
       ];
       tabs.forEach((tab) => {
-        expect(screen.getByText(tab)).toBeInTheDocument();
+        expect(screen.getByRole('tab', { name: tab })).toBeInTheDocument();
       });
     });
 
     it('highlights the active tab', () => {
       render(<BottomPanel {...defaultProps} bottomPanelTab="terminal" />);
 
-      const terminalTab = screen.getByText('TERMINAL');
-      expect(terminalTab.closest('button')?.className).toContain('border-xp-blue');
+      const terminalTab = screen.getByRole('tab', { name: 'Terminal' });
+      expect(terminalTab.className).toContain('border-xp-blue');
     });
 
     it('renders close button', () => {
@@ -131,14 +134,14 @@ describe('BottomPanel', () => {
     it('calls setBottomPanelTab when clicking a tab', () => {
       render(<BottomPanel {...defaultProps} />);
 
-      fireEvent.click(screen.getByText('ACTIVITY LOG'));
+      fireEvent.click(screen.getByRole('tab', { name: 'Activity Log' }));
       expect(mockSetBottomPanelTab).toHaveBeenCalledWith('activity-log');
     });
 
     it('calls setBottomPanelTab with clipboard', () => {
       render(<BottomPanel {...defaultProps} />);
 
-      fireEvent.click(screen.getByText('CLIPBOARD'));
+      fireEvent.click(screen.getByRole('tab', { name: 'Clipboard' }));
       expect(mockSetBottomPanelTab).toHaveBeenCalledWith('clipboard');
     });
   });

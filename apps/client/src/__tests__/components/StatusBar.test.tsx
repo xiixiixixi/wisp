@@ -18,6 +18,9 @@ vi.mock('@/lib/tauri-api', () => ({
     ),
     listDrives: vi.fn(() => Promise.resolve([{ path: 'C:\\', free_space: 107374182400 }])),
     readBinaryFile: vi.fn(() => Promise.resolve(new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f]))),
+    getUndoHistory: vi.fn(() => Promise.resolve({ entries: [], undo_count: 0 })),
+    undoOperation: vi.fn(() => Promise.resolve({ success: true, message: 'Undo complete' })),
+    redoOperation: vi.fn(() => Promise.resolve({ success: true, message: 'Redo complete' })),
   },
   FileEntry: {},
 }));
@@ -57,13 +60,24 @@ describe('StatusBar', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockIsExtensionActive.mockReturnValue(false);
+    vi.mocked(TauriAPI.getUndoHistory).mockResolvedValue({ entries: [], undo_count: 0 });
+    vi.mocked(TauriAPI.undoOperation).mockResolvedValue({
+      success: true,
+      message: 'Undo complete',
+      operation_type: 'move',
+    });
+    vi.mocked(TauriAPI.redoOperation).mockResolvedValue({
+      success: true,
+      message: 'Redo complete',
+      operation_type: 'move',
+    });
   });
 
   describe('Item Count', () => {
     it('shows 0 items when files array is empty', () => {
       render(<StatusBar {...defaultProps} files={[]} />);
 
-      expect(screen.getByText('items')).toBeInTheDocument();
+      expect(screen.getByText('0 items')).toBeInTheDocument();
     });
 
     it('shows correct item count', () => {
@@ -75,7 +89,7 @@ describe('StatusBar', () => {
 
       render(<StatusBar {...defaultProps} files={files} />);
 
-      expect(screen.getByText('items')).toBeInTheDocument();
+      expect(screen.getByText('3 items')).toBeInTheDocument();
     });
   });
 
@@ -83,7 +97,7 @@ describe('StatusBar', () => {
     it('does not show selection info when nothing is selected', () => {
       render(<StatusBar {...defaultProps} />);
 
-      expect(screen.queryByText('selected')).not.toBeInTheDocument();
+      expect(screen.queryByText(/selected/)).not.toBeInTheDocument();
     });
 
     it('shows selection count when files are selected', () => {
@@ -254,7 +268,7 @@ describe('StatusBar', () => {
 
       expect(mockToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: 'gitNotInstalled',
+          title: 'Git extension not installed',
         }),
       );
     });
@@ -265,7 +279,7 @@ describe('StatusBar', () => {
       // Give the async effect time to resolve
       await waitFor(() => {
         // The git branch indicator should not appear since findGitRepository returns null
-        expect(screen.queryByRole('button', { name: /openGitPanel/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /Open Git panel/ })).not.toBeInTheDocument();
       });
     });
 
@@ -281,6 +295,55 @@ describe('StatusBar', () => {
       expect(() =>
         render(<StatusBar {...defaultProps} currentPath="C:\\Users\\Test" />),
       ).not.toThrow();
+    });
+  });
+
+  describe('File History', () => {
+    const historyEntry = {
+      index: 0,
+      operation_type: 'move',
+      description: 'Moved report.txt',
+      undoable: true,
+      timestamp_ms: 123,
+      source_path: 'C:\\report.txt',
+      dest_path: 'C:\\Archive\\report.txt',
+    };
+
+    it('exposes and runs undo when a completed file action exists', async () => {
+      vi.mocked(TauriAPI.getUndoHistory).mockResolvedValue({
+        entries: [historyEntry],
+        undo_count: 1,
+      });
+
+      render(<StatusBar {...defaultProps} />);
+
+      const undoButton = await screen.findByRole('button', { name: 'Undo last file action' });
+      expect(undoButton).toHaveAttribute('title', 'Undo: Moved report.txt');
+      expect(screen.getByRole('button', { name: 'Redo last file action' })).toBeDisabled();
+
+      fireEvent.click(undoButton);
+      await waitFor(() => expect(TauriAPI.undoOperation).toHaveBeenCalledTimes(1));
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Action undone', description: 'Undo complete' }),
+      );
+    });
+
+    it('exposes and runs redo when an undone file action exists', async () => {
+      vi.mocked(TauriAPI.getUndoHistory).mockResolvedValue({
+        entries: [historyEntry],
+        undo_count: 0,
+      });
+
+      render(<StatusBar {...defaultProps} />);
+
+      const redoButton = await screen.findByRole('button', { name: 'Redo last file action' });
+      expect(screen.getByRole('button', { name: 'Undo last file action' })).toBeDisabled();
+
+      fireEvent.click(redoButton);
+      await waitFor(() => expect(TauriAPI.redoOperation).toHaveBeenCalledTimes(1));
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Action restored', description: 'Redo complete' }),
+      );
     });
   });
 
@@ -326,7 +389,7 @@ describe('StatusBar', () => {
       render(<StatusBar {...defaultProps} files={files} selectedFiles={selectedFiles} />);
 
       // Should show 1 selected with 0 size (since the selected file is not in files array)
-      expect(screen.getByText('selected')).toBeInTheDocument();
+      expect(screen.getByText('1 selected')).toBeInTheDocument();
     });
 
     it('updates when currentPath changes', async () => {

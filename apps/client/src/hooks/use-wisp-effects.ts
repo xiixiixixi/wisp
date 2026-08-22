@@ -3,8 +3,6 @@ import { useWindowEvent } from '@/hooks/use-window-event';
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { patchUiState } from '@/lib/ui-state';
-import { PATH_SEPARATOR } from '@/lib/constants';
-import { showInputToast } from '@/components/ui/Toast';
 import { formatError } from '@/lib/file-operation-helpers';
 import { invertSelection } from '@/extensions/advanced-selection/selection-utils';
 import {
@@ -17,6 +15,7 @@ import { startTour, isTourCompleted } from '@/hooks/use-tour';
 import { useShortcuts } from '@/hooks/use-shortcuts';
 import { useVimMode, isVimModeEnabled, type VimModeActions } from '@/hooks/use-vim-mode';
 import { useCommandPaletteCommands } from '@/hooks/use-command-palette-commands';
+import { queueExternalChatPrompt } from '@/hooks/use-external-chat-prompt';
 import type { TabItem, EditorGroup } from '@/types/split-view';
 import type { BottomPanelTabId } from '@/hooks/use-layout-state';
 import type { SortField } from '@/lib/utils';
@@ -238,27 +237,7 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
         ) {
           return;
         }
-        const folderName = await showInputToast({
-          title: 'Create New Folder',
-          description: 'Enter a name for the new folder',
-          placeholder: 'Folder name',
-          submitText: 'Create',
-          cancelText: 'Cancel',
-        });
-        if (!folderName) return;
-        try {
-          const fp =
-            currentPath + (currentPath.endsWith(PATH_SEPARATOR) ? '' : PATH_SEPARATOR) + folderName;
-          await TauriAPI.createDirRecursive(fp);
-          refetch();
-          toast({ title: 'Folder Created', description: `Created "${folderName}"` });
-        } catch (err) {
-          toast({
-            variant: 'destructive',
-            title: 'Create Folder Failed',
-            description: formatError(err),
-          });
-        }
+        await fileOps.contextMenuActions.createFolder(currentPath);
       },
       onSelectAll: () => {
         if (files) setSelectedFiles(new Set(files.map((f) => f.path)));
@@ -356,7 +335,7 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
         leftSidebarRef?.current?.focusSearch();
       },
       onOpenSettings: () => {
-        navigateWithHistory('wisp://settings');
+        window.dispatchEvent(new CustomEvent('wisp-open-settings'));
       },
       onToggleFullscreen: () => {
         document.fullscreenElement
@@ -489,8 +468,13 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
         }
       }
     };
+    const handleOpenCommandPalette = () => setCommandPaletteOpen(true);
     document.addEventListener('keydown', handleGlobalKeys, true);
-    return () => document.removeEventListener('keydown', handleGlobalKeys, true);
+    window.addEventListener('wisp-open-command-palette', handleOpenCommandPalette);
+    return () => {
+      document.removeEventListener('keydown', handleGlobalKeys, true);
+      window.removeEventListener('wisp-open-command-palette', handleOpenCommandPalette);
+    };
   }, [
     commandPaletteOpen,
     selectedFile,
@@ -807,10 +791,7 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
       if (prompt) {
         setRightSidebarCollapsed(false);
         setRightPanelTab('chat');
-        // Store the pending prompt for the chat panel to pick up
-        (window as unknown as Record<string, unknown>).__wisp_pending_ai_prompt__ = prompt;
-        // Dispatch a follow-up event the chat panel can listen for
-        window.dispatchEvent(new CustomEvent('wisp-chat-inject-prompt', { detail: { prompt } }));
+        queueExternalChatPrompt(prompt);
       }
     },
     [setRightSidebarCollapsed, setRightPanelTab],

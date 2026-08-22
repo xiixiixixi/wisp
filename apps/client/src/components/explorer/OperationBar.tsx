@@ -15,7 +15,9 @@ import {
   Copy,
   Scissors,
   Clipboard,
+  Eye,
   Trash2,
+  X,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { SortField } from '@/lib/utils';
@@ -73,6 +75,8 @@ interface OperationBarProps {
   onCut?: () => void;
   onPaste?: () => void;
   hasClipboard?: boolean;
+  onPreview?: () => void;
+  statusAccessory?: React.ReactNode;
 }
 
 const OperationBar = ({
@@ -92,7 +96,7 @@ const OperationBar = ({
   setBottomPanelCollapsed,
   setBottomPanelTab,
   onSelectAll: _onSelectAll,
-  onSelectNone: _onSelectNone,
+  onSelectNone,
   onInvertSelection: _onInvertSelection,
   onAdvancedSelection: _onAdvancedSelection,
   showSizeBadges,
@@ -109,6 +113,8 @@ const OperationBar = ({
   onCut,
   onPaste,
   hasClipboard,
+  onPreview,
+  statusAccessory,
 }: OperationBarProps) => {
   const { t } = useTranslation();
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
@@ -136,11 +142,145 @@ const OperationBar = ({
     setIsActionsDropdownOpen(false);
   };
 
+  const getSortLabel = (id: SortField) =>
+    t(`operationBar.sortOptions.${id}`, {
+      defaultValue: sortOptions?.[id]?.name || t('operationBar.sortOptions.name'),
+    });
+  const getViewLabel = (id: string) =>
+    t(`operationBar.viewModes.${id}`, {
+      defaultValue: viewModes[id]?.name || t('operationBar.viewModes.medium'),
+    });
+  const currentSortLabel = getSortLabel(sortBy);
+  const currentViewLabel = getViewLabel(viewMode);
+  const currentSortOrder = t(
+    sortOrder === 'asc' ? 'operationBar.ascending' : 'operationBar.descending',
+  );
+
+  if (selectedFiles.size > 0) {
+    return (
+      <div
+        ref={barRef}
+        className="border-xp-blue/30 bg-xp-blue/5 border-b px-3 py-1.5"
+        role="toolbar"
+        aria-label={t('operationBar.selectionActions')}
+      >
+        <div className="flex min-h-8 items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span
+              className="flex h-5 min-w-5 items-center justify-center rounded-full bg-xp-blue px-1.5 text-[11px] font-semibold text-white"
+              aria-hidden="true"
+            >
+              {selectedFiles.size}
+            </span>
+            <span className="truncate text-xs font-semibold text-xp-text" aria-live="polite">
+              {t('common.selected', { count: selectedFiles.size })}
+            </span>
+            {onSelectNone && (
+              <button
+                type="button"
+                onClick={onSelectNone}
+                className="flex h-7 items-center gap-1 rounded-md px-2 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                title={t('topBar.clearSelection')}
+                aria-label={t('topBar.clearSelection')}
+              >
+                <X size={13} aria-hidden="true" />
+                <span>{t('common.clear')}</span>
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-shrink-0 items-center gap-1">
+            {selectedFiles.size === 1 && onPreview && (
+              <button
+                type="button"
+                onClick={onPreview}
+                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
+                title={t('operationBar.preview')}
+                aria-label={t('operationBar.preview')}
+              >
+                <Eye size={15} aria-hidden="true" />
+                <span className="hidden lg:inline">{t('common.preview')}</span>
+              </button>
+            )}
+            {onCopy && (
+              <button
+                type="button"
+                onClick={onCopy}
+                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
+                title={t('contextMenu.copy')}
+                aria-label={t('contextMenu.copy')}
+              >
+                <Copy size={15} aria-hidden="true" />
+                <span className="hidden xl:inline">{t('contextMenu.copy')}</span>
+              </button>
+            )}
+            {onCut && (
+              <button
+                type="button"
+                onClick={onCut}
+                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
+                title={t('contextMenu.cut')}
+                aria-label={t('contextMenu.cut')}
+              >
+                <Scissors size={15} aria-hidden="true" />
+                <span className="hidden xl:inline">{t('contextMenu.cut')}</span>
+              </button>
+            )}
+            {onCompress && selectedFiles.size > 1 && (
+              <button
+                type="button"
+                onClick={onCompress}
+                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
+                title={t('operationBar.compress')}
+                aria-label={t('operationBar.compress')}
+              >
+                <Package size={15} aria-hidden="true" />
+                <span className="hidden xl:inline">{t('operationBar.compress')}</span>
+              </button>
+            )}
+            {onExtract && selectedFiles.size === 1 && (
+              <button
+                type="button"
+                onClick={onExtract}
+                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
+                title={t('operationBar.extract')}
+                aria-label={t('operationBar.extract')}
+              >
+                <PackageOpen size={15} aria-hidden="true" />
+                <span className="hidden xl:inline">{t('operationBar.extract')}</span>
+              </button>
+            )}
+            {onProperties && selectedFiles.size === 1 && (
+              <button
+                type="button"
+                onClick={onProperties}
+                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
+                title={t('operationBar.properties')}
+                aria-label={t('operationBar.properties')}
+              >
+                <Info size={15} aria-hidden="true" />
+                <span className="hidden xl:inline">{t('operationBar.properties')}</span>
+              </button>
+            )}
+            <div className="mx-1 h-5 w-px bg-xp-border" aria-hidden="true" />
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="hover:bg-xp-red/10 flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-xp-red transition-colors"
+              title={t('operationBar.deleteItems', { count: selectedFiles.size })}
+              aria-label={t('operationBar.deleteItemsAria', { count: selectedFiles.size })}
+            >
+              <Trash2 size={15} aria-hidden="true" />
+              <span className="hidden lg:inline">{t('contextMenu.delete')}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div
-      ref={barRef}
-      className="wisp-operationbar border-b border-xp-border bg-xp-surface px-3 py-1.5"
-    >
+    <div ref={barRef} className="border-b border-xp-border bg-xp-surface px-3 py-1.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-1">
           {/* Sort Dropdown */}
@@ -149,13 +289,11 @@ const OperationBar = ({
               onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
               className="flex items-center gap-1 rounded px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               aria-label={t('operationBar.sortBy', {
-                name: sortOptions?.[sortBy]?.name || t('sort.name'),
-                order: sortOrder === 'asc' ? 'ascending' : 'descending',
+                name: currentSortLabel,
+                order: currentSortOrder,
               })}
             >
-              <span className="whitespace-nowrap">
-                {sortOptions?.[sortBy]?.name || t('sort.name')}
-              </span>
+              <span className="whitespace-nowrap">{currentSortLabel}</span>
               <ChevronDown size={12} className="opacity-60" />
             </button>
 
@@ -176,7 +314,7 @@ const OperationBar = ({
                       sortBy === option.id ? 'text-xp-blue' : ''
                     }`}
                   >
-                    <span className="text-xs">{option.name}</span>
+                    <span className="text-xs">{getSortLabel(option.id)}</span>
                     {sortBy === option.id &&
                       (sortOrder === 'asc' ? <ArrowUp size={11} /> : <ArrowDown size={11} />)}
                   </button>
@@ -223,13 +361,11 @@ const OperationBar = ({
               onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
               className="flex items-center gap-1 rounded px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               aria-label={t('operationBar.viewMode', {
-                name: viewModes[viewMode]?.name || t('viewMode.medium'),
+                name: currentViewLabel,
               })}
             >
               <span className="text-sm">{viewModes[viewMode]?.icon}</span>
-              <span className="whitespace-nowrap">
-                {viewModes[viewMode]?.name || t('viewMode.medium')}
-              </span>
+              <span className="whitespace-nowrap">{currentViewLabel}</span>
               <ChevronDown size={12} className="opacity-60" />
             </button>
 
@@ -247,51 +383,68 @@ const OperationBar = ({
                     }`}
                   >
                     <span className="text-sm">{mode.icon}</span>
-                    <span className="text-xs">{mode.name}</span>
+                    <span className="text-xs">{getViewLabel(mode.id)}</span>
                   </button>
                 ))}
               </div>
             )}
           </div>
-          {/* Copy / Cut / Paste / Delete — icon-only, Finder-style */}
-          {onCopy && (
-            <button
-              onClick={onCopy}
-              disabled={selectedFiles.size === 0}
-              className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:pointer-events-none disabled:opacity-30"
-              title={t('contextMenu.copy')}
-            >
-              <Copy size={15} />
-            </button>
+          {/* Selection actions appear contextually instead of filling every empty state. */}
+          {selectedFiles.size > 0 && (
+            <div className="ml-1 flex items-center gap-0.5 rounded-md border border-xp-border bg-muted px-1">
+              <span className="px-1.5 text-[11px] font-medium tabular-nums text-xp-blue">
+                {selectedFiles.size}
+              </span>
+              {selectedFiles.size === 1 && onPreview && (
+                <button
+                  onClick={onPreview}
+                  className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  title={t('operationBar.preview')}
+                  aria-label={t('operationBar.preview')}
+                >
+                  <Eye size={15} />
+                </button>
+              )}
+              {onCopy && (
+                <button
+                  onClick={onCopy}
+                  className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  title={t('contextMenu.copy')}
+                  aria-label={t('contextMenu.copy')}
+                >
+                  <Copy size={15} />
+                </button>
+              )}
+              {onCut && (
+                <button
+                  onClick={onCut}
+                  className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  title={t('contextMenu.cut')}
+                  aria-label={t('contextMenu.cut')}
+                >
+                  <Scissors size={15} />
+                </button>
+              )}
+              <button
+                onClick={handleDelete}
+                className="hover:bg-xp-red/10 rounded p-1 text-xp-text-muted transition-colors hover:text-xp-red"
+                title={t('contextMenu.delete')}
+                aria-label={t('contextMenu.delete')}
+              >
+                <Trash2 size={15} />
+              </button>
+            </div>
           )}
-          {onCut && (
-            <button
-              onClick={onCut}
-              disabled={selectedFiles.size === 0}
-              className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:pointer-events-none disabled:opacity-30"
-              title={t('contextMenu.cut')}
-            >
-              <Scissors size={15} />
-            </button>
-          )}
-          {onPaste && (
+          {onPaste && hasClipboard && (
             <button
               onClick={onPaste}
-              disabled={!hasClipboard}
-              className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:pointer-events-none disabled:opacity-30"
+              className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               title={t('contextMenu.paste')}
+              aria-label={t('contextMenu.paste')}
             >
               <Clipboard size={15} />
             </button>
           )}
-          <button
-            onClick={handleDelete}
-            disabled={selectedFiles.size === 0}
-            className="hover:bg-xp-red/10 rounded p-1 text-xp-text-muted transition-colors hover:text-xp-red disabled:pointer-events-none disabled:opacity-30"
-            title={t('contextMenu.delete')}
-          >
-            <Trash2 size={15} />
-          </button>
 
           {/* Separator */}
           <div className="h-4 w-px bg-xp-border" />
@@ -327,56 +480,29 @@ const OperationBar = ({
         </div>
 
         <div className="flex items-center space-x-1">
+          {statusAccessory}
+
           {/* Action Buttons */}
           <button
             onClick={handleCreateFolder}
-            className="rounded p-1.5 transition-colors hover:bg-xp-surface-light"
+            className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light hover:text-xp-blue"
             title={t('operationBar.createFolder')}
             aria-label={t('operationBar.createFolder')}
           >
-            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-              <path
-                fillRule="evenodd"
-                d="M10 9a1 1 0 00-1 1v1H8a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1v-1a1 1 0 00-1-1z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <FolderPlus size={16} />
+            <span className="hidden xl:inline">{t('operationBar.newFolder')}</span>
           </button>
-
-          {selectedFiles.size > 0 && (
-            <button
-              onClick={handleDelete}
-              className="hover:bg-xp-red/20 rounded p-1.5 text-xp-red transition-colors"
-              title={t('operationBar.deleteItems', { count: selectedFiles.size })}
-              aria-label={t('operationBar.deleteItemsAria', { count: selectedFiles.size })}
-            >
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-          )}
 
           <button
             onClick={() => {
               setBottomPanelCollapsed(false);
               setBottomPanelTab('terminal');
             }}
-            className="rounded p-1.5 transition-colors hover:bg-xp-surface-light"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             title={t('operationBar.openTerminal')}
             aria-label={t('operationBar.openTerminal')}
           >
-            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L7.586 10 5.293 7.707a1 1 0 010-1.414zM11 12a1 1 0 100 2h3a1 1 0 100-2h-3z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <Terminal size={16} />
           </button>
 
           {/* Gear / Actions dropdown */}

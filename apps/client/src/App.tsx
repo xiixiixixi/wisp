@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Switch, Route } from 'wouter';
+import { Switch, Route, useLocation } from 'wouter';
 import { queryClient } from './lib/queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -16,11 +16,23 @@ import './styles/tokyo-night.css';
 // Lazy-loaded pages -- Settings is only needed when navigating to /settings
 const Settings = React.lazy(() => import('@/pages/settings'));
 
+const AppNavigationBridge = () => {
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    const openSettings = () => setLocation('/settings');
+    window.addEventListener('wisp-open-settings', openSettings);
+    return () => window.removeEventListener('wisp-open-settings', openSettings);
+  }, [setLocation]);
+
+  return null;
+};
+
 const Router = () => {
   return (
     <React.Suspense
       fallback={
-        <div className="bg-xp-bg text-xp-text flex h-screen items-center justify-center text-sm">
+        <div className="flex h-screen items-center justify-center bg-xp-bg text-sm text-xp-text">
           Loading...
         </div>
       }
@@ -72,7 +84,7 @@ const XtensionFileHandler = () => {
     return () => {
       unlisten?.();
     };
-  }, [toast]);
+  }, [t, toast]);
 
   const handleInstall = useCallback(async () => {
     if (!pendingXtension) return;
@@ -96,7 +108,7 @@ const XtensionFileHandler = () => {
     } finally {
       setPendingXtension(null);
     }
-  }, [pendingXtension, toast]);
+  }, [pendingXtension, t, toast]);
 
   if (!pendingXtension) return null;
 
@@ -126,6 +138,7 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <UpdateBanner />
       <ErrorBoundary>
+        <AppNavigationBridge />
         <Router />
       </ErrorBoundary>
       <XtensionFileHandler />

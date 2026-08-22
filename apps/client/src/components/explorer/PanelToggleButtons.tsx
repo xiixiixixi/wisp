@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface PanelToggleButtonsProps {
   rightSidebarCollapsed: boolean;
@@ -14,13 +15,15 @@ const PanelToggleButtons = React.memo(
     onToggleRightSidebar,
     onToggleBottomPanel,
   }: PanelToggleButtonsProps) => {
+    const { t } = useTranslation();
     return (
       <div className="absolute bottom-4 right-4 space-y-2">
         {rightSidebarCollapsed && (
           <button
             onClick={onToggleRightSidebar}
-            className="xp-panel-toggle bg-xp-surface border-xp-border hover:bg-xp-surface-light rounded border p-2 shadow"
-            title="Toggle panel (Ctrl+Shift+B)"
+            className="xp-panel-toggle rounded border border-xp-border bg-xp-surface p-2 shadow hover:bg-xp-surface-light"
+            title={t('panelToggles.togglePanel')}
+            aria-label={t('panelToggles.togglePanel')}
           >
             <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -35,8 +38,9 @@ const PanelToggleButtons = React.memo(
           <button
             data-tour="bottom-panel-toggle"
             onClick={onToggleBottomPanel}
-            className="xp-panel-toggle bg-xp-surface border-xp-border hover:bg-xp-surface-light rounded border p-2 shadow"
-            title="Toggle terminal (Ctrl+J)"
+            className="xp-panel-toggle rounded border border-xp-border bg-xp-surface p-2 shadow hover:bg-xp-surface-light"
+            title={t('panelToggles.toggleTerminal')}
+            aria-label={t('panelToggles.toggleTerminal')}
           >
             <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
               <path

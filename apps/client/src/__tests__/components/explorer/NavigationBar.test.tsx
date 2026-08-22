@@ -65,7 +65,7 @@ describe('NavigationBar', () => {
 
     it('renders edit path button', () => {
       render(<NavigationBar {...defaultProps} />);
-      expect(screen.getByLabelText('editPath')).toBeInTheDocument();
+      expect(screen.getByLabelText('Edit path')).toBeInTheDocument();
     });
 
     it('last segment has current location aria attribute', () => {
@@ -78,17 +78,17 @@ describe('NavigationBar', () => {
   describe('Special paths', () => {
     it('displays "Home" label for wisp://home', () => {
       render(<NavigationBar {...defaultProps} currentPath="wisp://home" />);
-      expect(screen.getByText('home')).toBeInTheDocument();
+      expect(screen.getByText('Home')).toBeInTheDocument();
     });
 
     it('displays "Trash" label for wisp://trash', () => {
       render(<NavigationBar {...defaultProps} currentPath="wisp://trash" />);
-      expect(screen.getByText('trash')).toBeInTheDocument();
+      expect(screen.getByText('Trash')).toBeInTheDocument();
     });
 
     it('displays "Google Drive" label for wisp://gdrive-manager', () => {
       render(<NavigationBar {...defaultProps} currentPath="wisp://gdrive-manager" />);
-      expect(screen.getByText('googleDrive')).toBeInTheDocument();
+      expect(screen.getByText('Google Drive')).toBeInTheDocument();
     });
   });
 
@@ -112,9 +112,9 @@ describe('NavigationBar', () => {
     it('enters editing mode when clicking the edit button', () => {
       render(<NavigationBar {...defaultProps} />);
 
-      fireEvent.click(screen.getByLabelText('editPath'));
+      fireEvent.click(screen.getByLabelText('Edit path'));
 
-      const input = screen.getByLabelText('filePath');
+      const input = screen.getByLabelText('File path');
       expect(input).toBeInTheDocument();
       expect(input).toHaveValue('C:\\Users\\Test\\Documents');
     });
@@ -122,29 +122,29 @@ describe('NavigationBar', () => {
     it('shows placeholder text in edit mode', () => {
       render(<NavigationBar {...defaultProps} />);
 
-      fireEvent.click(screen.getByLabelText('editPath'));
+      fireEvent.click(screen.getByLabelText('Edit path'));
 
-      expect(screen.getByPlaceholderText('pathPlaceholder')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Enter path... (~ for home)')).toBeInTheDocument();
     });
 
     it('cancels editing on Escape', () => {
       render(<NavigationBar {...defaultProps} />);
 
-      fireEvent.click(screen.getByLabelText('editPath'));
-      const input = screen.getByLabelText('filePath');
+      fireEvent.click(screen.getByLabelText('Edit path'));
+      const input = screen.getByLabelText('File path');
 
       fireEvent.keyDown(input, { key: 'Escape' });
 
       // Should return to breadcrumb mode
-      expect(screen.queryByLabelText('filePath')).not.toBeInTheDocument();
+      expect(screen.queryByLabelText('File path')).not.toBeInTheDocument();
       expect(screen.getByText('Documents')).toBeInTheDocument();
     });
 
     it('submits path on Enter', async () => {
       render(<NavigationBar {...defaultProps} />);
 
-      fireEvent.click(screen.getByLabelText('editPath'));
-      const input = screen.getByLabelText('filePath');
+      fireEvent.click(screen.getByLabelText('Edit path'));
+      const input = screen.getByLabelText('File path');
 
       fireEvent.change(input, { target: { value: 'C:\\NewPath' } });
       fireEvent.keyDown(input, { key: 'Enter' });
@@ -158,8 +158,8 @@ describe('NavigationBar', () => {
     it('does not navigate when submitting same path', () => {
       render(<NavigationBar {...defaultProps} />);
 
-      fireEvent.click(screen.getByLabelText('editPath'));
-      const input = screen.getByLabelText('filePath');
+      fireEvent.click(screen.getByLabelText('Edit path'));
+      const input = screen.getByLabelText('File path');
 
       // Submit without changing the value
       fireEvent.keyDown(input, { key: 'Enter' });
@@ -170,8 +170,8 @@ describe('NavigationBar', () => {
     it('has correct ARIA attributes for autocomplete', () => {
       render(<NavigationBar {...defaultProps} />);
 
-      fireEvent.click(screen.getByLabelText('editPath'));
-      const input = screen.getByLabelText('filePath');
+      fireEvent.click(screen.getByLabelText('Edit path'));
+      const input = screen.getByLabelText('File path');
 
       expect(input).toHaveAttribute('aria-autocomplete', 'list');
       expect(input).toHaveAttribute('spellcheck', 'false');

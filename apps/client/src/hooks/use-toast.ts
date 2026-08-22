@@ -7,6 +7,9 @@ type ToastProps = {
   variant?: 'default' | 'destructive';
   className?: string;
   open?: boolean;
+  presentation?: 'toast' | 'dialog';
+  autoDismiss?: boolean;
+  returnFocus?: HTMLElement | null;
 };
 
 const TOAST_LIMIT = 3;
@@ -152,6 +155,7 @@ export type Toast = Omit<ToasterToast, 'id'>;
 
 const toast = ({ ...props }: Toast) => {
   const id = genId();
+  const externalOnOpenChange = props.onOpenChange;
 
   const update = (props: ToasterToast) =>
     dispatch({
@@ -164,16 +168,21 @@ const toast = ({ ...props }: Toast) => {
     type: 'ADD_TOAST',
     toast: {
       ...props,
+      returnFocus:
+        props.presentation === 'dialog'
+          ? (props.returnFocus ?? (document.activeElement as HTMLElement | null))
+          : props.returnFocus,
       id,
       open: true,
       onOpenChange: (open: boolean) => {
+        externalOnOpenChange?.(open);
         if (!open) dismiss();
       },
     },
   });
 
   // Capture toast into notification history
-  {
+  if (props.presentation !== 'dialog') {
     let titleStr: string;
     if (typeof props.title === 'string') {
       titleStr = props.title;
@@ -189,8 +198,10 @@ const toast = ({ ...props }: Toast) => {
     }
   }
 
-  // Auto-dismiss after 10 seconds
-  setTimeout(dismiss, TOAST_AUTO_DISMISS_DELAY);
+  // Interactive dialogs remain open until the user explicitly resolves them.
+  if (props.autoDismiss !== false && props.presentation !== 'dialog') {
+    setTimeout(dismiss, TOAST_AUTO_DISMISS_DELAY);
+  }
 
   return {
     id,

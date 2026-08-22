@@ -3,8 +3,8 @@
  * Instead of a static empty state, shows a dynamic welcome
  * based on the current workspace context (project type, git status, etc.).
  */
-import i18n from '@/i18n';
 import { useState, useEffect } from 'react';
+import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { FolderGit2, Package, GitBranch, FileCode2, Sparkles, Loader2 } from 'lucide-react';
 import { type WorkspaceContext, detectWorkspaceContext } from './chat-workspace-awareness';
@@ -30,22 +30,26 @@ interface ChatWelcomeProps {
 // Suggestion builders
 // ---------------------------------------------------------------------------
 
-const buildSuggestions = (ctx: WorkspaceContext): Suggestion[] => {
+const buildSuggestions = (ctx: WorkspaceContext, t: TFunction): Suggestion[] => {
   const suggestions: Suggestion[] = [];
 
   // Git-based suggestions
   if (ctx.git.isRepo) {
     if (ctx.git.uncommittedCount !== undefined && ctx.git.uncommittedCount > 0) {
       suggestions.push({
-        label: `Review ${ctx.git.uncommittedCount} uncommitted change${ctx.git.uncommittedCount !== 1 ? 's' : ''}`,
-        prompt: `I have ${ctx.git.uncommittedCount} uncommitted changes in this Git repo. Can you list them and help me review what changed?`,
+        label: t('aiChat.welcome.actions.reviewChanges', {
+          count: ctx.git.uncommittedCount,
+        }),
+        prompt: t('aiChat.welcome.prompts.reviewChanges', {
+          count: ctx.git.uncommittedCount,
+        }),
         icon: <FolderGit2 size={12} />,
       });
     }
     if (ctx.git.branch && ctx.git.branch !== 'main' && ctx.git.branch !== 'master') {
       suggestions.push({
-        label: `Summarize work on "${ctx.git.branch}"`,
-        prompt: `I'm on the "${ctx.git.branch}" branch. Can you help me summarize what this branch is about based on the files here?`,
+        label: t('aiChat.welcome.actions.summarizeBranch', { branch: ctx.git.branch }),
+        prompt: t('aiChat.welcome.prompts.summarizeBranch', { branch: ctx.git.branch }),
         icon: <GitBranch size={12} />,
       });
     }
@@ -56,33 +60,29 @@ const buildSuggestions = (ctx: WorkspaceContext): Suggestion[] => {
     switch (ctx.project.type) {
       case 'node':
         suggestions.push({
-          label: i18n.t('chat.checkDeps'),
-          prompt:
-            'Analyze the package.json in this project. Are there any dependencies that might be outdated or have known issues? What improvements would you suggest?',
+          label: t('aiChat.welcome.actions.checkOutdatedDependencies'),
+          prompt: t('aiChat.welcome.prompts.checkOutdatedDependencies'),
           icon: <Package size={12} />,
         });
         break;
       case 'rust':
         suggestions.push({
-          label: i18n.t('chat.reviewCargo'),
-          prompt:
-            'Analyze the Cargo.toml in this project. Are the dependencies well-organized? Any suggestions for the project configuration?',
+          label: t('aiChat.welcome.actions.reviewCargo'),
+          prompt: t('aiChat.welcome.prompts.reviewCargo'),
           icon: <Package size={12} />,
         });
         break;
       case 'python':
         suggestions.push({
-          label: 'Check Python dependencies',
-          prompt:
-            'Analyze the Python dependencies in this project. Are there any version pinning issues or suggestions for improvement?',
+          label: t('aiChat.welcome.actions.checkPythonDependencies'),
+          prompt: t('aiChat.welcome.prompts.checkPythonDependencies'),
           icon: <Package size={12} />,
         });
         break;
       case 'go':
         suggestions.push({
-          label: 'Review Go module config',
-          prompt:
-            'Analyze the go.mod in this project. Are the module dependencies well-managed? Any suggestions?',
+          label: t('aiChat.welcome.actions.reviewGoModule'),
+          prompt: t('aiChat.welcome.prompts.reviewGoModule'),
           icon: <Package size={12} />,
         });
         break;
@@ -94,18 +94,16 @@ const buildSuggestions = (ctx: WorkspaceContext): Suggestion[] => {
   // Generic suggestions based on directory content
   if (ctx.fileCount > 20) {
     suggestions.push({
-      label: i18n.t('chat.organizeFolder'),
-      prompt:
-        'This folder has many files. Analyze them and suggest an organization structure — group related files into subfolders by type or purpose.',
+      label: t('aiChat.welcome.actions.organizeFolder'),
+      prompt: t('aiChat.welcome.prompts.organizeFolder'),
       icon: <Sparkles size={12} />,
     });
   }
 
   if (ctx.fileCount > 0) {
     suggestions.push({
-      label: 'Explain this project',
-      prompt:
-        'Look at the files in this directory and explain what this project or folder is about. What are the key files and their purposes?',
+      label: t('aiChat.welcome.actions.explainFolder'),
+      prompt: t('aiChat.welcome.prompts.explainFolder'),
       icon: <FileCode2 size={12} />,
     });
   }
@@ -117,20 +115,28 @@ const buildSuggestions = (ctx: WorkspaceContext): Suggestion[] => {
 // Welcome headline
 // ---------------------------------------------------------------------------
 
-const buildHeadline = (ctx: WorkspaceContext): string => {
+const buildHeadline = (ctx: WorkspaceContext, t: TFunction): string => {
   if (ctx.project && ctx.git.isRepo) {
-    const branch = ctx.git.branch ? ` on ${ctx.git.branch}` : '';
-    return `${ctx.project.label} project${branch}`;
+    return ctx.git.branch
+      ? t('aiChat.welcome.headlines.projectOnBranch', {
+          project: ctx.project.label,
+          branch: ctx.git.branch,
+        })
+      : t('aiChat.welcome.headlines.project', { project: ctx.project.label });
   }
   if (ctx.project) {
-    return `${ctx.project.label} project`;
+    return t('aiChat.welcome.headlines.project', { project: ctx.project.label });
   }
   if (ctx.git.isRepo) {
-    const branch = ctx.git.branch ? ` on ${ctx.git.branch}` : '';
-    return `Git repository${branch}`;
+    return ctx.git.branch
+      ? t('aiChat.welcome.headlines.repositoryOnBranch', { branch: ctx.git.branch })
+      : t('aiChat.welcome.headlines.repository');
   }
   if (ctx.totalItems > 0) {
-    return `${ctx.fileCount} files, ${ctx.dirCount} folders`;
+    return t('aiChat.welcome.headlines.fileSummary', {
+      files: ctx.fileCount,
+      folders: ctx.dirCount,
+    });
   }
   return '';
 };
@@ -177,8 +183,8 @@ const ChatWelcome = ({
     };
   }, [currentPath]);
 
-  const headline = workspace ? buildHeadline(workspace) : '';
-  const suggestions = workspace ? buildSuggestions(workspace) : [];
+  const headline = workspace ? buildHeadline(workspace, t) : '';
+  const suggestions = workspace ? buildSuggestions(workspace, t) : [];
 
   return (
     <div

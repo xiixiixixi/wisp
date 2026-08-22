@@ -1,30 +1,32 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import OperationBar from '@/components/explorer/OperationBar';
 import type { SortField } from '@/lib/utils';
 
 describe('OperationBar', () => {
-  const mockViewModes: Record<string, { id: string; name: string; icon: React.ReactNode }> = {
-    small: { id: 'small', name: 'Small Icons', icon: '🔹' },
-    medium: { id: 'medium', name: 'Medium Icons', icon: '🔷' },
-    large: { id: 'large', name: 'Large Icons', icon: '🔶' },
-    list: { id: 'list', name: 'List', icon: '📋' },
-    details: { id: 'details', name: 'Details', icon: '📊' },
+  const mockViewModes: Record<string, { id: string; name: string; icon: ReactNode }> = {
+    small: { id: 'small', name: 'Small Icons', icon: 'small' },
+    medium: { id: 'medium', name: 'Medium Icons', icon: 'medium' },
+    large: { id: 'large', name: 'Large Icons', icon: 'large' },
+    list: { id: 'list', name: 'List View', icon: 'list' },
+    details: { id: 'details', name: 'Details View', icon: 'details' },
   };
 
-  const mockSortOptions: Record<string, { id: string; name: string; icon: React.ReactNode }> = {
-    name: { id: 'name', name: 'Name', icon: '🔤' },
-    dateModified: { id: 'dateModified', name: 'Date Modified', icon: '📅' },
-    size: { id: 'size', name: 'Size', icon: '📏' },
-    type: { id: 'type', name: 'Type', icon: '📁' },
+  const mockSortOptions: Record<SortField, { id: SortField; name: string; icon: ReactNode }> = {
+    name: { id: 'name', name: 'Name', icon: 'name' },
+    dateModified: { id: 'dateModified', name: 'Date Modified', icon: 'modified' },
+    dateCreated: { id: 'dateCreated', name: 'Date Created', icon: 'created' },
+    size: { id: 'size', name: 'Size', icon: 'size' },
+    type: { id: 'type', name: 'Type', icon: 'type' },
+    extension: { id: 'extension', name: 'Extension', icon: 'extension' },
   };
 
   const mockProps = {
     viewMode: 'medium',
     setViewMode: vi.fn(),
     viewModes: mockViewModes,
-    sortBy: 'name',
+    sortBy: 'name' as SortField,
     setSortBy: vi.fn(),
     sortOrder: 'asc' as const,
     toggleSortOrder: vi.fn(),
@@ -34,309 +36,205 @@ describe('OperationBar', () => {
     selectedFiles: new Set<string>(),
     setBottomPanelCollapsed: vi.fn(),
     setBottomPanelTab: vi.fn(),
-    onSelectAll: vi.fn(),
-    onSelectNone: vi.fn(),
-    onInvertSelection: vi.fn(),
-    onAdvancedSelection: vi.fn(),
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe('Basic Rendering', () => {
-    it('renders sort dropdown with current sort name', () => {
-      render(<OperationBar {...mockProps} />);
+  it('shows the localized current sort and view labels', () => {
+    render(<OperationBar {...mockProps} />);
 
-      expect(screen.getByText('Name')).toBeInTheDocument();
-    });
-
-    it('renders view mode dropdown with current view mode name', () => {
-      render(<OperationBar {...mockProps} />);
-
-      expect(screen.getByText('Medium Icons')).toBeInTheDocument();
-    });
-
-    it('renders create folder button', () => {
-      render(<OperationBar {...mockProps} />);
-
-      expect(screen.getByTitle('createFolder')).toBeInTheDocument();
-    });
-
-    it('renders terminal button', () => {
-      render(<OperationBar {...mockProps} />);
-
-      expect(screen.getByTitle('openTerminal')).toBeInTheDocument();
-    });
-
-    it('renders selection dropdown button', () => {
-      render(<OperationBar {...mockProps} />);
-
-      expect(screen.getByTitle('selectionOptions')).toBeInTheDocument();
-    });
+    expect(screen.getByText('Name')).toBeInTheDocument();
+    expect(screen.getByText('Medium Icons')).toBeInTheDocument();
   });
 
-  describe('Delete Button Visibility', () => {
-    it('does not render delete button when no files are selected', () => {
-      render(<OperationBar {...mockProps} />);
+  it('runs the primary folder and terminal actions', () => {
+    render(<OperationBar {...mockProps} />);
 
-      expect(screen.queryByTitle('deleteItems')).not.toBeInTheDocument();
-    });
+    fireEvent.click(screen.getByTitle('Create folder'));
+    fireEvent.click(screen.getByTitle('Open terminal'));
 
-    it('renders delete button when files are selected', () => {
-      const selectedProps = {
-        ...mockProps,
-        selectedFiles: new Set(['file1.txt', 'file2.txt']),
-      };
-      render(<OperationBar {...selectedProps} />);
-
-      expect(screen.getByTitle('deleteItems')).toBeInTheDocument();
-    });
-
-    it('shows correct count in delete button title', () => {
-      const selectedProps = {
-        ...mockProps,
-        selectedFiles: new Set(['file1.txt', 'file2.txt', 'file3.txt']),
-      };
-      render(<OperationBar {...selectedProps} />);
-
-      expect(screen.getByTitle('deleteItems')).toBeInTheDocument();
-    });
+    expect(mockProps.handleCreateFolder).toHaveBeenCalledTimes(1);
+    expect(mockProps.setBottomPanelCollapsed).toHaveBeenCalledWith(false);
+    expect(mockProps.setBottomPanelTab).toHaveBeenCalledWith('terminal');
   });
 
-  describe('Action Buttons', () => {
-    it('calls handleCreateFolder when create folder button is clicked', () => {
-      render(<OperationBar {...mockProps} />);
+  it('changes the sort field from the dropdown', () => {
+    render(<OperationBar {...mockProps} />);
 
-      const createFolderButton = screen.getByTitle('createFolder');
-      fireEvent.click(createFolderButton);
+    fireEvent.click(screen.getByText('Name'));
+    fireEvent.click(screen.getByText('Size'));
 
-      expect(mockProps.handleCreateFolder).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls handleDelete when delete button is clicked', () => {
-      const selectedProps = {
-        ...mockProps,
-        selectedFiles: new Set(['file1.txt']),
-      };
-      render(<OperationBar {...selectedProps} />);
-
-      const deleteButton = screen.getByTitle('deleteItems');
-      fireEvent.click(deleteButton);
-
-      expect(mockProps.handleDelete).toHaveBeenCalledTimes(1);
-    });
-
-    it('opens terminal when terminal button is clicked', () => {
-      render(<OperationBar {...mockProps} />);
-
-      const terminalButton = screen.getByTitle('openTerminal');
-      fireEvent.click(terminalButton);
-
-      expect(mockProps.setBottomPanelCollapsed).toHaveBeenCalledWith(false);
-      expect(mockProps.setBottomPanelTab).toHaveBeenCalledWith('terminal');
-    });
+    expect(mockProps.setSortBy).toHaveBeenCalledWith('size');
+    expect(screen.queryByText('Date Modified')).not.toBeInTheDocument();
   });
 
-  describe('Sort Dropdown', () => {
-    it('opens sort dropdown when sort button is clicked', () => {
-      render(<OperationBar {...mockProps} />);
+  it('toggles sort order when the active field is selected again', () => {
+    render(<OperationBar {...mockProps} />);
 
-      const sortButton = screen.getByText('Name');
-      fireEvent.click(sortButton);
+    fireEvent.click(screen.getByText('Name'));
+    fireEvent.click(screen.getAllByText('Name').at(-1)!);
 
-      // All sort options should appear
-      expect(screen.getByText('Date Modified')).toBeInTheDocument();
-      expect(screen.getByText('Size')).toBeInTheDocument();
-      expect(screen.getByText('Type')).toBeInTheDocument();
-    });
-
-    it('calls setSortBy when a different sort option is clicked', () => {
-      render(<OperationBar {...mockProps} />);
-
-      // Open the dropdown
-      const sortButton = screen.getByText('Name');
-      fireEvent.click(sortButton);
-
-      // Click on Size
-      fireEvent.click(screen.getByText('Size'));
-
-      expect(mockProps.setSortBy).toHaveBeenCalledWith('size');
-    });
-
-    it('calls toggleSortOrder when same sort option is clicked', () => {
-      render(<OperationBar {...mockProps} />);
-
-      // Open the dropdown
-      const sortButton = screen.getByText('Name');
-      fireEvent.click(sortButton);
-
-      // Click on Name again (same option)
-      const allNameButtons = screen.getAllByText('Name');
-      // The last one is in the dropdown
-      fireEvent.click(allNameButtons[allNameButtons.length - 1]);
-
-      expect(mockProps.toggleSortOrder).toHaveBeenCalledTimes(1);
-    });
-
-    it('closes sort dropdown after selecting an option', () => {
-      render(<OperationBar {...mockProps} />);
-
-      // Open the dropdown
-      fireEvent.click(screen.getByText('Name'));
-      expect(screen.getByText('Date Modified')).toBeInTheDocument();
-
-      // Click on Size
-      fireEvent.click(screen.getByText('Size'));
-
-      // The dropdown items should no longer show Date Modified as a separate dropdown item
-      // (the dropdown closes, so only the active sort button text remains)
-    });
+    expect(mockProps.toggleSortOrder).toHaveBeenCalledTimes(1);
   });
 
-  describe('View Mode Dropdown', () => {
-    it('opens view mode dropdown when clicked', () => {
-      render(<OperationBar {...mockProps} />);
+  it('changes the view mode from the dropdown', () => {
+    render(<OperationBar {...mockProps} />);
 
-      const viewButton = screen.getByText('Medium Icons');
-      fireEvent.click(viewButton);
+    fireEvent.click(screen.getByText('Medium Icons'));
+    fireEvent.click(screen.getByText('Large Icons'));
 
-      expect(screen.getByText('Small Icons')).toBeInTheDocument();
-      expect(screen.getByText('Large Icons')).toBeInTheDocument();
-      expect(screen.getByText('List')).toBeInTheDocument();
-      expect(screen.getByText('Details')).toBeInTheDocument();
-    });
-
-    it('calls setViewMode when a view mode is selected', () => {
-      render(<OperationBar {...mockProps} />);
-
-      fireEvent.click(screen.getByText('Medium Icons'));
-      fireEvent.click(screen.getByText('Large Icons'));
-
-      expect(mockProps.setViewMode).toHaveBeenCalledWith('large');
-    });
-
-    it('highlights active view mode in dropdown', () => {
-      render(<OperationBar {...mockProps} />);
-
-      fireEvent.click(screen.getByText('Medium Icons'));
-
-      // The active mode button should have the text-xp-blue class
-      const allMedium = screen.getAllByText('Medium Icons');
-      const dropdownItem = allMedium[allMedium.length - 1].closest('button');
-      expect(dropdownItem).toHaveClass('text-xp-blue');
-    });
+    expect(mockProps.setViewMode).toHaveBeenCalledWith('large');
   });
 
-  describe('Selection Dropdown', () => {
-    it('opens selection dropdown when clicked', () => {
-      render(<OperationBar {...mockProps} />);
+  it('keeps selection actions hidden when nothing is selected', () => {
+    render(<OperationBar {...mockProps} onCopy={vi.fn()} onCut={vi.fn()} onPreview={vi.fn()} />);
 
-      const selectButton = screen.getByTitle('selectionOptions');
-      fireEvent.click(selectButton);
-
-      expect(screen.getByText('selectAll')).toBeInTheDocument();
-      expect(screen.getByText('selectNone')).toBeInTheDocument();
-      expect(screen.getByText('invertSelection')).toBeInTheDocument();
-      expect(screen.getByText('advancedSelection')).toBeInTheDocument();
-    });
-
-    it('calls onSelectAll when Select All is clicked', () => {
-      render(<OperationBar {...mockProps} />);
-
-      fireEvent.click(screen.getByTitle('selectionOptions'));
-      fireEvent.click(screen.getByText('selectAll'));
-
-      expect(mockProps.onSelectAll).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onSelectNone when Select None is clicked', () => {
-      render(<OperationBar {...mockProps} />);
-
-      fireEvent.click(screen.getByTitle('selectionOptions'));
-      fireEvent.click(screen.getByText('selectNone'));
-
-      expect(mockProps.onSelectNone).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onInvertSelection when Invert Selection is clicked', () => {
-      render(<OperationBar {...mockProps} />);
-
-      fireEvent.click(screen.getByTitle('selectionOptions'));
-      fireEvent.click(screen.getByText('invertSelection'));
-
-      expect(mockProps.onInvertSelection).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onAdvancedSelection when Advanced Selection is clicked', () => {
-      render(<OperationBar {...mockProps} />);
-
-      fireEvent.click(screen.getByTitle('selectionOptions'));
-      fireEvent.click(screen.getByText('advancedSelection'));
-
-      expect(mockProps.onAdvancedSelection).toHaveBeenCalledTimes(1);
-    });
-
-    it('shows keyboard shortcuts in selection dropdown', () => {
-      render(<OperationBar {...mockProps} />);
-
-      fireEvent.click(screen.getByTitle('selectionOptions'));
-
-      expect(screen.getByText('Ctrl+A')).toBeInTheDocument();
-      expect(screen.getByText('Ctrl+Shift+A')).toBeInTheDocument();
-      expect(screen.getByText('Ctrl+Shift+S')).toBeInTheDocument();
-    });
+    expect(screen.queryByTitle('Copy')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Cut')).not.toBeInTheDocument();
+    expect(screen.queryByTitle(/Delete/)).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Preview selected file')).not.toBeInTheDocument();
   });
 
-  describe('Selection Dropdown Visibility', () => {
-    it('does not render selection dropdown when no selection handlers provided', () => {
-      const noSelectionProps = {
-        ...mockProps,
-        onSelectAll: undefined,
-        onSelectNone: undefined,
-        onInvertSelection: undefined,
-        onAdvancedSelection: undefined,
-      };
-      render(<OperationBar {...noSelectionProps} />);
+  it('shows compact file actions for an active selection', () => {
+    const onCopy = vi.fn();
+    const onCut = vi.fn();
+    render(
+      <OperationBar
+        {...mockProps}
+        selectedFiles={new Set(['a.txt', 'b.txt'])}
+        onCopy={onCopy}
+        onCut={onCut}
+      />,
+    );
 
-      expect(screen.queryByTitle('selectionOptions')).not.toBeInTheDocument();
-    });
+    fireEvent.click(screen.getByTitle('Copy'));
+    fireEvent.click(screen.getByTitle('Cut'));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete 2 selected item(s)' }));
+
+    expect(onCopy).toHaveBeenCalledTimes(1);
+    expect(onCut).toHaveBeenCalledTimes(1);
+    expect(mockProps.handleDelete).toHaveBeenCalledTimes(1);
   });
 
-  describe('Dropdown Close Behavior', () => {
-    it('closes dropdowns when overlay is clicked', () => {
-      render(<OperationBar {...mockProps} />);
+  it('replaces browsing controls with a focused selection toolbar', () => {
+    const onSelectNone = vi.fn();
+    render(
+      <OperationBar
+        {...mockProps}
+        selectedFiles={new Set(['a.txt'])}
+        onSelectNone={onSelectNone}
+      />,
+    );
 
-      // Open sort dropdown
-      fireEvent.click(screen.getByText('Name'));
+    expect(screen.getByRole('toolbar', { name: 'Selected file actions' })).toBeInTheDocument();
+    expect(screen.getByText('1 selected')).toBeInTheDocument();
+    expect(screen.queryByText('Medium Icons')).not.toBeInTheDocument();
 
-      // Verify dropdown is open by checking for sort options
-      expect(screen.getByText('Date Modified')).toBeInTheDocument();
-
-      // Click the overlay
-      const overlay = document.querySelector('.fixed.inset-0.z-40');
-      expect(overlay).toBeInTheDocument();
-      fireEvent.click(overlay!);
-
-      // Overlay should be gone (dropdowns closed)
-      expect(document.querySelector('.fixed.inset-0.z-40')).not.toBeInTheDocument();
-    });
+    fireEvent.click(screen.getByRole('button', { name: 'Clear Selection' }));
+    expect(onSelectNone).toHaveBeenCalledTimes(1);
   });
 
-  describe('Edge Cases', () => {
-    it('handles missing sort option gracefully', () => {
-      const invalidProps = { ...mockProps, sortBy: 'nonexistent' as SortField };
-      expect(() => render(<OperationBar {...invalidProps} />)).not.toThrow();
-    });
+  it('offers preview only for a single selected file', () => {
+    const onPreview = vi.fn();
+    const { rerender } = render(
+      <OperationBar {...mockProps} selectedFiles={new Set(['a.txt'])} onPreview={onPreview} />,
+    );
 
-    it('handles missing view mode gracefully', () => {
-      const invalidProps = { ...mockProps, viewMode: 'nonexistent' };
-      expect(() => render(<OperationBar {...invalidProps} />)).not.toThrow();
-    });
+    fireEvent.click(screen.getByTitle('Preview selected file'));
+    expect(onPreview).toHaveBeenCalledTimes(1);
 
-    it('handles empty selectedFiles set', () => {
-      const emptySelectedProps = { ...mockProps, selectedFiles: new Set<string>() };
-      expect(() => render(<OperationBar {...emptySelectedProps} />)).not.toThrow();
-    });
+    rerender(
+      <OperationBar
+        {...mockProps}
+        selectedFiles={new Set(['a.txt', 'b.txt'])}
+        onPreview={onPreview}
+      />,
+    );
+    expect(screen.queryByTitle('Preview selected file')).not.toBeInTheDocument();
+  });
+
+  it('surfaces compress for multi-select and properties for a single item', () => {
+    const onCompress = vi.fn();
+    const onProperties = vi.fn();
+    const { rerender } = render(
+      <OperationBar
+        {...mockProps}
+        selectedFiles={new Set(['a.txt', 'b.txt'])}
+        onCompress={onCompress}
+        onProperties={onProperties}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Compress' }));
+    expect(onCompress).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: 'Properties' })).not.toBeInTheDocument();
+
+    rerender(
+      <OperationBar
+        {...mockProps}
+        selectedFiles={new Set(['a.txt'])}
+        onCompress={onCompress}
+        onProperties={onProperties}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Properties' }));
+    expect(onProperties).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: 'Compress' })).not.toBeInTheDocument();
+  });
+
+  it('shows paste only when clipboard content is available', () => {
+    const onPaste = vi.fn();
+    const { rerender } = render(
+      <OperationBar {...mockProps} onPaste={onPaste} hasClipboard={false} />,
+    );
+    expect(screen.queryByTitle('Paste')).not.toBeInTheDocument();
+
+    rerender(<OperationBar {...mockProps} onPaste={onPaste} hasClipboard />);
+    fireEvent.click(screen.getByTitle('Paste'));
+    expect(onPaste).toHaveBeenCalledTimes(1);
+  });
+
+  it('exposes secondary create and file-management actions from the menu', () => {
+    const onCreateFile = vi.fn();
+    const onCompress = vi.fn();
+    const onProperties = vi.fn();
+    render(
+      <OperationBar
+        {...mockProps}
+        onCreateFile={onCreateFile}
+        onCompress={onCompress}
+        onProperties={onProperties}
+      />,
+    );
+
+    fireEvent.click(screen.getByTitle('File actions menu'));
+    fireEvent.click(screen.getByText('New File'));
+    expect(onCreateFile).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByTitle('File actions menu'));
+    fireEvent.click(screen.getByText('Compress'));
+    expect(onCompress).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByTitle('File actions menu'));
+    fireEvent.click(screen.getByText('Properties'));
+    expect(onProperties).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes open dropdowns when clicking outside the toolbar', () => {
+    render(<OperationBar {...mockProps} />);
+
+    fireEvent.click(screen.getByText('Name'));
+    expect(screen.getByText('Date Modified')).toBeInTheDocument();
+
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryByText('Date Modified')).not.toBeInTheDocument();
+  });
+
+  it('falls back safely when a saved sort or view id no longer exists', () => {
+    expect(() =>
+      render(<OperationBar {...mockProps} sortBy={'missing' as SortField} viewMode="missing" />),
+    ).not.toThrow();
   });
 });

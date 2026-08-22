@@ -14,8 +14,8 @@ import {
 } from 'lucide-react';
 import { startTour, resetTourCompleted } from '@/hooks/use-tour';
 import { resetBetaWarning } from '@/components/dialogs/BetaWarningDialog';
-import { applyFontSize, applyTheme } from '@/lib/utils';
-import { patchUiState, markThemeChosen } from '@/lib/ui-state';
+import { applyFontSize } from '@/lib/utils';
+import { normalizeLanguage } from '@/lib/language-settings';
 import { useAllThemes } from '@/lib/theme-registry';
 import {
   Toggle,
@@ -37,6 +37,8 @@ interface GeneralSettingsProps {
 const languageOptions = [
   { value: 'en', label: 'English' },
   { value: 'zh', label: '中文' },
+  { value: 'ja', label: '日本語' },
+  { value: 'id', label: 'Bahasa Indonesia' },
 ];
 
 const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettingsProps) => {
@@ -73,12 +75,7 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
         <SelectField
           label={t('settings.general.theme')}
           value={settings.theme}
-          onChange={(v) => {
-            markThemeChosen();
-            updateSetting('theme', v);
-            applyTheme(v);
-            patchUiState({ theme: v });
-          }}
+          onChange={(v) => updateSetting('theme', v)}
           options={themes}
         />
       </SettingRow>
@@ -89,7 +86,7 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
       >
         <SelectField
           label={t('settings.general.language')}
-          value={settings.language || i18n.language?.split('-')[0] || 'en'}
+          value={normalizeLanguage(settings.language || i18n.resolvedLanguage || i18n.language)}
           onChange={(v) => {
             updateSetting('language', v);
             i18n.changeLanguage(v);

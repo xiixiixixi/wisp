@@ -1,6 +1,5 @@
-import React, { useMemo, useSyncExternalStore } from 'react';
-import { useLocation } from 'wouter';
-import i18n from '@/i18n';
+import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { Link } from 'wouter';
 import { extensionHost } from '@/lib/extension-host';
 import {
   Eye,
@@ -11,8 +10,10 @@ import {
   ShoppingCart,
   Settings,
   Activity,
+  MoreHorizontal,
 } from 'lucide-react';
 import AgentStatusIndicator from '@/components/panels/agent-manager/AgentStatusIndicator';
+import { useTranslation } from 'react-i18next';
 
 interface VerticalExtensionsBarProps {
   rightPanelTab: string;
@@ -29,7 +30,9 @@ const VerticalExtensionsBar = ({
   setRightSidebarCollapsed,
   'data-tour': dataTour,
 }: VerticalExtensionsBarProps) => {
-  const [, setLocation] = useLocation();
+  const { t } = useTranslation();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
 
   // useSyncExternalStore ensures re-renders when extension host state changes
   const extRefreshKey = useSyncExternalStore(
@@ -48,32 +51,50 @@ const VerticalExtensionsBar = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [extRefreshKey]);
 
-  // Core panels (always shown, part of the app core)
-  const corePanels = [
-    { id: 'preview', icon: <Eye size={18} />, label: i18n.t('panels.core.preview') },
-    { id: 'tokenizer', icon: <Search size={18} />, label: i18n.t('panels.core.tokenizer') },
-    { id: 'chat', icon: <MessageSquare size={18} />, label: i18n.t('panels.core.chat') },
-    {
-      id: 'agent-manager',
-      icon: (
-        <AgentStatusIndicator>
-          <Bot size={18} />
-        </AgentStatusIndicator>
-      ),
-      label: i18n.t('panels.core.agentManager'),
-    },
-  ];
+  const corePanels = useMemo(
+    () => [
+      { id: 'preview', icon: <Eye size={18} />, label: t('extensionsBar.preview') },
+      { id: 'tokenizer', icon: <Search size={18} />, label: t('extensionsBar.contentSearch') },
+      { id: 'chat', icon: <MessageSquare size={18} />, label: t('extensionsBar.aiChat') },
+      {
+        id: 'agent-manager',
+        icon: (
+          <AgentStatusIndicator>
+            <Bot size={18} />
+          </AgentStatusIndicator>
+        ),
+        label: t('extensionsBar.agentManager'),
+      },
+    ],
+    [t],
+  );
 
-  // System panels (always shown, not extension-managed)
-  const systemPanels = [
-    { id: 'performance', icon: <Activity size={18} />, label: i18n.t('panels.core.performance') },
-    { id: 'extensions', icon: <Puzzle size={18} />, label: i18n.t('panels.core.extensions') },
-    {
-      id: 'marketplace',
-      icon: <ShoppingCart size={18} />,
-      label: i18n.t('panels.core.marketplace'),
-    },
-  ];
+  const advancedPanels = useMemo(
+    () => [
+      ...registeredPanels.map((panel) => ({
+        id: panel.id,
+        icon: panel.icon,
+        label: panel.title,
+      })),
+      { id: 'performance', icon: <Activity size={18} />, label: t('extensionsBar.performance') },
+      { id: 'extensions', icon: <Puzzle size={18} />, label: t('extensionsBar.extensions') },
+      {
+        id: 'marketplace',
+        icon: <ShoppingCart size={18} />,
+        label: t('extensionsBar.marketplace'),
+      },
+    ],
+    [registeredPanels, t],
+  );
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    const close = (event: MouseEvent) => {
+      if (!moreMenuRef.current?.contains(event.target as Node)) setMoreOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [moreOpen]);
 
   const handlePanelClick = (id: string) => {
     setRightPanelTab(id);
@@ -83,16 +104,16 @@ const VerticalExtensionsBar = ({
   };
 
   const btnClass = (id: string) =>
-    `w-10 h-10 mx-1 mb-1 rounded flex items-center justify-center text-lg transition-colors ${
+    `relative w-10 h-10 mx-1 mb-1 rounded-xl flex items-center justify-center text-lg transition-all ${
       rightPanelTab === id && !rightSidebarCollapsed
-        ? 'wisp-panel-button-active bg-xp-blue text-white'
-        : 'text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text'
+        ? 'bg-xp-blue text-white shadow-md shadow-black/15'
+        : 'text-xp-text-secondary hover:text-xp-text hover:bg-xp-surface-light'
     }`;
 
   return (
     <div
       data-tour={dataTour}
-      className="wisp-panel-rail flex w-12 flex-col border-l border-xp-border bg-xp-surface"
+      className="flex w-12 flex-col border-l border-xp-border bg-xp-surface"
     >
       <div className="flex flex-col py-2">
         {/* Core panels (always available) */}
@@ -107,49 +128,60 @@ const VerticalExtensionsBar = ({
           </button>
         ))}
 
-        {/* Separator between core and extension panels */}
-        {registeredPanels.length > 0 && <div className="mx-2 my-1 border-t border-xp-border" />}
-
-        {/* Extension-managed panel icons */}
-        {registeredPanels.map((panel) => (
-          <button
-            key={panel.id}
-            onClick={() => handlePanelClick(panel.id)}
-            className={btnClass(panel.id)}
-            title={panel.title}
-          >
-            {panel.icon}
-          </button>
-        ))}
-
-        {/* Separator before system panels */}
+        {/* Advanced and extension panels stay one click away without crowding the rail. */}
         <div className="mx-2 my-1 border-t border-xp-border" />
-
-        {/* System panels */}
-        {systemPanels.map(({ id, icon, label }) => (
+        <div ref={moreMenuRef} className="relative">
           <button
-            key={id}
-            onClick={() => handlePanelClick(id)}
-            className={btnClass(id)}
-            title={label}
+            onClick={() => setMoreOpen((open) => !open)}
+            className="mx-1 mb-1 flex h-10 w-10 items-center justify-center rounded-xl text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            title={t('extensionsBar.moreTools')}
+            aria-label={t('extensionsBar.moreTools')}
+            aria-haspopup="menu"
+            aria-expanded={moreOpen}
           >
-            {icon}
+            <MoreHorizontal size={18} />
           </button>
-        ))}
+          {moreOpen && (
+            <div
+              role="menu"
+              className="absolute right-full top-0 z-[100] mr-2 w-48 rounded-xl border border-xp-border bg-xp-popover p-1.5 shadow-2xl backdrop-blur-xl"
+            >
+              {advancedPanels.map(({ id, icon, label }) => (
+                <button
+                  key={id}
+                  role="menuitem"
+                  onClick={() => {
+                    handlePanelClick(id);
+                    setMoreOpen(false);
+                  }}
+                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-xs transition-colors hover:bg-xp-surface-light ${
+                    rightPanelTab === id && !rightSidebarCollapsed ? 'text-xp-blue' : 'text-xp-text'
+                  }`}
+                >
+                  <span className="flex h-5 w-5 items-center justify-center text-xp-text-secondary">
+                    {icon}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate">{label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Spacer */}
       <div className="flex-1" />
 
       {/* Settings */}
-      <div className="border-t border-xp-border py-2">
-        <button
-          onClick={() => setLocation('/settings')}
-          className="mx-1 mb-1 flex h-10 w-10 items-center justify-center rounded text-lg transition-colors hover:bg-xp-surface-light"
-          title={i18n.t('settings.title')}
+      <div className="border-t border-xp-border p-2">
+        <Link
+          href="/settings"
+          className="mx-1 mb-1 flex h-10 w-10 items-center justify-center rounded hover:bg-xp-surface-light"
+          title={t('extensionsBar.settings')}
+          aria-label={t('extensionsBar.settings')}
         >
           <Settings size={18} />
-        </button>
+        </Link>
       </div>
     </div>
   );

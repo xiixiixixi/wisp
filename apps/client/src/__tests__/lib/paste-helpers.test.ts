@@ -14,8 +14,9 @@ vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {
     checkConflicts: mockCheckConflicts,
     fileExists: mockFileExists,
-    moveFile: mockMoveFile,
-    copy: mockCopy,
+    moveWithProgress: mockMoveFile,
+    copyWithProgress: mockCopy,
+    removeFile: vi.fn(() => Promise.resolve()),
     getRenameDest: mockGetRenameDest,
     readDirectory: vi.fn(() => Promise.resolve([])),
     getFileIcon: vi.fn(() => ''),

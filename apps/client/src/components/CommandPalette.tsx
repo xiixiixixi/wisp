@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { TauriAPI, SearchResult, RecentFile } from '@/lib/tauri-api';
-import { File, Folder } from 'lucide-react';
+import { Command as CommandIcon, File, Files, Folder, Search, Sparkles, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   loadHistory,
@@ -39,6 +39,7 @@ import {
   footerStyle,
   COMMAND_ROW_HEIGHT,
   FILE_ROW_HEIGHT,
+  ASSISTANT_ROW_HEIGHT,
   SECTION_HEADER_HEIGHT,
   LOADING_ROW_HEIGHT,
   type Command,
@@ -49,6 +50,17 @@ import {
 } from './command-palette-helpers';
 
 export type { Command } from './command-palette-helpers';
+
+const SUGGESTED_COMMAND_IDS = [
+  'new-folder',
+  'home',
+  'toggle-preview',
+  'toggle-terminal',
+  'settings',
+  'keyboard-shortcuts',
+];
+
+type PaletteMode = 'files' | 'commands' | 'assistant';
 
 // ── Main Component ──────────────────────────────────────────────────────────
 
@@ -61,6 +73,7 @@ const CommandPaletteInner = ({
 }: CommandPaletteProps) => {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
+  const [mode, setMode] = useState<PaletteMode>('files');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [fileResults, setFileResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -74,9 +87,9 @@ const CommandPaletteInner = ({
   // Deferred query for filtering - input stays responsive while filtering catches up
   const deferredQuery = useDeferredValue(query);
 
-  // Command mode: ">" prefix means search commands only (like VS Code)
-  const isCommandMode = deferredQuery.startsWith('>');
-  const effectiveQuery = isCommandMode ? deferredQuery.slice(1).trim() : deferredQuery.trim();
+  const isCommandMode = mode === 'commands';
+  const isAssistantMode = mode === 'assistant';
+  const effectiveQuery = deferredQuery.trim();
 
   // Load history, favorites, and recent files when palette opens
   useEffect(() => {
@@ -84,6 +97,7 @@ const CommandPaletteInner = ({
       setFavorites(loadFavorites());
       setHistory(loadHistory());
       setQuery('');
+      setMode('files');
       setSelectedIndex(0);
       setFileResults([]);
       // Fetch recent files from backend
@@ -169,7 +183,15 @@ const CommandPaletteInner = ({
     const items: PaletteItem[] = [];
     const isEmptyQuery = !effectiveQuery;
 
-    if (isEmptyQuery && !isCommandMode) {
+    if (isAssistantMode) {
+      if (effectiveQuery) {
+        items.push({
+          type: 'assistant',
+          prompt: effectiveQuery,
+          sectionLabel: t('commandPalette.askWisp'),
+        });
+      }
+    } else if (isEmptyQuery && !isCommandMode) {
       // Favorites section
       const favCommands = favorites
         .map((id) => commandMap.get(id))
@@ -218,28 +240,21 @@ const CommandPaletteInner = ({
         });
       }
 
-      // All Commands section (grouped by category)
-      const allCommands = filteredCommands.filter(
-        (item) =>
-          !favoriteSet.has(item.command.id) &&
-          !history.some((h) => h.commandId === item.command.id),
-      );
-      let lastCategory = '';
-      allCommands.forEach((item, i) => {
-        const cat = item.command.category || '';
-        const newCat = cat !== lastCategory;
-        if (newCat) lastCategory = cat;
-        let sectionLabel: string | undefined;
-        if (i === 0 && !cat) {
-          sectionLabel = t('commandPalette.allCommands');
-        } else if (newCat) {
-          sectionLabel = cat;
-        }
+      // Keep the default surface calm and intentional. The full catalogue
+      // remains one keystroke away in command mode (`>`).
+      const suggestedCommands = SUGGESTED_COMMAND_IDS.map((id) => commandMap.get(id))
+        .filter((cmd): cmd is Command => cmd !== undefined)
+        .filter(
+          (cmd) => !favoriteSet.has(cmd.id) && !history.some((entry) => entry.commandId === cmd.id),
+        );
+      const fallbackCommands =
+        suggestedCommands.length > 0 ? suggestedCommands : commands.slice(0, 6);
+      fallbackCommands.forEach((command, i) => {
         items.push({
           type: 'command',
-          command: item.command,
-          matchIndices: item.matchIndices,
-          sectionLabel,
+          command,
+          matchIndices: [],
+          sectionLabel: i === 0 ? t('commandPalette.quickActions') : undefined,
         });
       });
     } else if (isCommandMode && isEmptyQuery) {
@@ -291,6 +306,7 @@ const CommandPaletteInner = ({
   }, [
     effectiveQuery,
     isCommandMode,
+    isAssistantMode,
     commands,
     favorites,
     history,
@@ -298,6 +314,7 @@ const CommandPaletteInner = ({
     filteredCommands,
     commandMap,
     favoriteSet,
+    onFileSelect,
     t,
   ]);
 
@@ -311,7 +328,8 @@ const CommandPaletteInner = ({
   }, [history]);
 
   // Show file results only when query is typed, not in command mode, and there are results
-  const showFileResults = !isCommandMode && effectiveQuery.length >= 2 && fileResults.length > 0;
+  const showFileResults =
+    !isCommandMode && !isAssistantMode && effectiveQuery.length >= 2 && fileResults.length > 0;
   const totalItems = paletteItems.length + (showFileResults ? fileResults.length : 0);
 
   // Build flat virtual rows for the virtualizer
@@ -330,8 +348,10 @@ const CommandPaletteInner = ({
           matchIndices: item.matchIndices,
           itemIndex,
         });
-      } else {
+      } else if (item.type === 'recent-file') {
         rows.push({ kind: 'recent-file', file: item.file, itemIndex });
+      } else {
+        rows.push({ kind: 'assistant', prompt: item.prompt, itemIndex });
       }
       itemIndex++;
     }
@@ -365,6 +385,8 @@ const CommandPaletteInner = ({
           return FILE_ROW_HEIGHT;
         case 'search-file':
           return FILE_ROW_HEIGHT;
+        case 'assistant':
+          return ASSISTANT_ROW_HEIGHT;
         case 'loading':
           return LOADING_ROW_HEIGHT;
         default:
@@ -385,13 +407,13 @@ const CommandPaletteInner = ({
   // Reset selection when effective query changes
   useEffect(() => {
     setSelectedIndex(0);
-  }, [effectiveQuery, isCommandMode]);
+  }, [effectiveQuery, isCommandMode, isAssistantMode]);
 
   // Search files when query has no good command matches (skip in command mode)
   useEffect(() => {
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     const q = query.trim();
-    if (!q || q.length < 2 || q.startsWith('>')) {
+    if (!q || q.length < 2 || isCommandMode || isAssistantMode) {
       setFileResults([]);
       return;
     }
@@ -433,7 +455,7 @@ const CommandPaletteInner = ({
     return () => {
       if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     };
-  }, [query, currentPath]);
+  }, [query, currentPath, isCommandMode, isAssistantMode]);
 
   // Scroll selected item into view via virtualizer
   useEffect(() => {
@@ -466,6 +488,15 @@ const CommandPaletteInner = ({
               onFileSelect(item.file.path, !hasExt);
             });
           }
+        } else {
+          onClose();
+          requestAnimationFrame(() => {
+            window.dispatchEvent(
+              new CustomEvent('wisp-ai-chat-request', {
+                detail: { prompt: item.prompt, currentPath },
+              }),
+            );
+          });
         }
       } else {
         // It's a search file result
@@ -480,7 +511,7 @@ const CommandPaletteInner = ({
         }
       }
     },
-    [paletteItems, fileResults, onClose, onFileSelect],
+    [paletteItems, fileResults, onClose, onFileSelect, currentPath],
   );
 
   const handleKeyDown = useCallback(
@@ -532,6 +563,37 @@ const CommandPaletteInner = ({
     setQuery('');
   }, []);
 
+  const handleQueryChange = useCallback((value: string) => {
+    if (value.startsWith('>')) {
+      setMode('commands');
+      setQuery(value.slice(1).trimStart());
+      return;
+    }
+    if (value.startsWith('?')) {
+      setMode('assistant');
+      setQuery(value.slice(1).trimStart());
+      return;
+    }
+    setQuery(value);
+  }, []);
+
+  const switchMode = useCallback((nextMode: PaletteMode) => {
+    setMode(nextMode);
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }, []);
+
+  const activeMode = mode;
+  const locationLabel = useMemo(() => {
+    if (!currentPath) return t('commandPalette.everywhere');
+    if (currentPath === 'wisp://home') return t('sidebar.home');
+    return (
+      currentPath
+        .replace(/[/\\]+$/, '')
+        .split(/[/\\]/)
+        .pop() || currentPath
+    );
+  }, [currentPath, t]);
+
   if (!isOpen) return null;
 
   // ── Render a single virtual row ──────────────────────────────────────────
@@ -545,13 +607,19 @@ const CommandPaletteInner = ({
         const isSelected = row.itemIndex === selectedIndex;
         const isFav = favoriteSet.has(row.command.id);
         const ts = historyTimestamps.get(row.command.id);
-        let iconContent: React.ReactNode = null;
+        let iconContent: React.ReactNode;
         if (row.command.icon) {
           iconContent = <span style={iconWrapStyle}>{row.command.icon}</span>;
         } else if (ts !== undefined) {
           iconContent = (
             <span style={iconWrapStyle}>
               <ClockIcon size={14} />
+            </span>
+          );
+        } else {
+          iconContent = (
+            <span style={iconWrapStyle}>
+              <CommandIcon size={14} />
             </span>
           );
         }
@@ -564,7 +632,10 @@ const CommandPaletteInner = ({
           starOpacity = 0.4;
         }
         return (
-          <button
+          <div
+            role="option"
+            aria-selected={isSelected}
+            id={`command-palette-option-${row.itemIndex}`}
             data-index={row.itemIndex}
             style={isSelected ? itemSelectedStyle : itemBaseStyle}
             onClick={() => executeItem(row.itemIndex)}
@@ -581,9 +652,8 @@ const CommandPaletteInner = ({
             {/* Shortcut badge */}
             {row.command.shortcut && <span style={shortcutStyle}>{row.command.shortcut}</span>}
             {/* Star toggle */}
-            <span
-              role="button"
-              tabIndex={0}
+            <button
+              type="button"
               style={{
                 ...starBtnBaseStyle,
                 opacity: starOpacity,
@@ -598,10 +668,13 @@ const CommandPaletteInner = ({
               title={
                 isFav ? t('commandPalette.removeFromFavorites') : t('commandPalette.addToFavorites')
               }
+              aria-label={
+                isFav ? t('commandPalette.removeFromFavorites') : t('commandPalette.addToFavorites')
+              }
             >
               <StarIcon filled={isFav} size={13} />
-            </span>
-          </button>
+            </button>
+          </div>
         );
       }
 
@@ -613,6 +686,9 @@ const CommandPaletteInner = ({
         const isSelected = row.itemIndex === selectedIndex;
         return (
           <button
+            id={`command-palette-option-${row.itemIndex}`}
+            role="option"
+            aria-selected={isSelected}
             data-index={row.itemIndex}
             style={isSelected ? itemSelectedStyle : itemBaseStyle}
             onClick={() => executeItem(row.itemIndex)}
@@ -636,6 +712,9 @@ const CommandPaletteInner = ({
         const isSelected = row.itemIndex === selectedIndex;
         return (
           <button
+            id={`command-palette-option-${row.itemIndex}`}
+            role="option"
+            aria-selected={isSelected}
             data-index={row.itemIndex}
             style={isSelected ? itemSelectedStyle : itemBaseStyle}
             onClick={() => executeItem(row.itemIndex)}
@@ -646,7 +725,38 @@ const CommandPaletteInner = ({
               <span style={fileNameStyle}>{result.filename}</span>
               <span style={filePathStyle}>{parentPath}</span>
             </span>
-            <span style={timestampStyle}>{isDir ? 'Folder' : 'File'}</span>
+            <span style={timestampStyle}>
+              {isDir ? t('commandPalette.folderType') : t('commandPalette.fileType')}
+            </span>
+          </button>
+        );
+      }
+
+      case 'assistant': {
+        const isSelected = row.itemIndex === selectedIndex;
+        return (
+          <button
+            id={`command-palette-option-${row.itemIndex}`}
+            role="option"
+            aria-selected={isSelected}
+            data-index={row.itemIndex}
+            style={isSelected ? itemSelectedStyle : itemBaseStyle}
+            onClick={() => executeItem(row.itemIndex)}
+            onMouseEnter={() => setSelectedIndex(row.itemIndex)}
+          >
+            <span
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-500/15 text-violet-300"
+              aria-hidden="true"
+            >
+              <Sparkles size={16} />
+            </span>
+            <span style={fileNameContainerStyle}>
+              <span style={fileNameStyle}>
+                {t('commandPalette.askWispWithPrompt', { prompt: row.prompt })}
+              </span>
+              <span style={filePathStyle}>{t('commandPalette.askWispDescription')}</span>
+            </span>
+            <span style={shortcutStyle}>Enter</span>
           </button>
         );
       }
@@ -663,74 +773,167 @@ const CommandPaletteInner = ({
 
   const hasContent = virtualRows.length > 0;
 
+  let SearchModeIcon = Search;
+  let placeholderKey:
+    | 'commandPalette.placeholder'
+    | 'commandPalette.commandPlaceholder'
+    | 'commandPalette.assistantPlaceholder' = 'commandPalette.placeholder';
+  if (activeMode === 'assistant') {
+    SearchModeIcon = Sparkles;
+    placeholderKey = 'commandPalette.assistantPlaceholder';
+  } else if (activeMode === 'commands') {
+    SearchModeIcon = CommandIcon;
+    placeholderKey = 'commandPalette.commandPlaceholder';
+  }
+
+  const renderResultsContent = () => {
+    if (!hasContent && !isSearching) {
+      if (isAssistantMode && !effectiveQuery) {
+        return (
+          <div className="flex flex-col items-center px-8 py-10 text-center">
+            <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-500/15 text-violet-300 ring-1 ring-violet-400/20">
+              <Sparkles size={20} aria-hidden="true" />
+            </span>
+            <div className="text-sm font-medium text-xp-text">
+              {t('commandPalette.assistantEmptyTitle')}
+            </div>
+            <p className="mt-1 max-w-sm text-xs leading-relaxed text-xp-text-muted">
+              {t('commandPalette.assistantEmptyDescription')}
+            </p>
+          </div>
+        );
+      }
+      return <div style={emptyStateStyle}>{t('commandPalette.noResults')}</div>;
+    }
+
+    return (
+      <div
+        style={{
+          height: `${virtualizer.getTotalSize()}px`,
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const row = virtualRows[virtualRow.index];
+          return (
+            <div
+              key={virtualRow.key}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              {renderVirtualRow(row)}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <div style={backdropStyle} onClick={handleBackdropClick} data-command-palette>
-      <div style={dialogStyle} onClick={stopPropagation}>
+      <div
+        style={dialogStyle}
+        onClick={stopPropagation}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('commandPalette.title')}
+      >
+        <div className="border-xp-border/80 flex items-center justify-between border-b px-[18px] py-3.5">
+          <div className="flex min-w-0 items-center gap-3">
+            <span
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/25 to-blue-500/10 text-violet-300 ring-1 ring-violet-400/20"
+              aria-hidden="true"
+            >
+              <Sparkles size={17} />
+            </span>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold tracking-tight text-xp-text">
+                {t('commandPalette.title')}
+              </div>
+              <div className="truncate text-[11px] text-xp-text-muted">
+                {t('commandPalette.subtitle')}
+              </div>
+            </div>
+          </div>
+          <span className="bg-xp-bg/60 ml-4 max-w-[180px] truncate rounded-full border border-xp-border px-2.5 py-1 text-[10px] text-xp-text-muted">
+            {locationLabel}
+          </span>
+        </div>
+
+        <div
+          className="flex items-center gap-1 px-[18px] pt-3"
+          role="tablist"
+          aria-label={t('commandPalette.modeLabel')}
+        >
+          {(
+            [
+              ['files', Files, t('commandPalette.modes.files')],
+              ['commands', CommandIcon, t('commandPalette.modes.commands')],
+              ['assistant', Sparkles, t('commandPalette.modes.assistant')],
+            ] as const
+          ).map(([mode, Icon, label]) => (
+            <button
+              key={mode}
+              type="button"
+              role="tab"
+              aria-selected={activeMode === mode}
+              onClick={() => switchMode(mode)}
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
+                activeMode === mode
+                  ? 'bg-violet-500/15 text-violet-200 ring-1 ring-inset ring-violet-400/20'
+                  : 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
+              }`}
+            >
+              <Icon size={13} aria-hidden="true" />
+              {label}
+            </button>
+          ))}
+        </div>
+
         {/* Search Input */}
         <div style={searchBarStyle}>
-          <svg style={searchIconStyle} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
+          <SearchModeIcon style={searchIconStyle} aria-hidden="true" />
           <input
             ref={inputRef}
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleQueryChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={t('commandPalette.placeholder')}
+            placeholder={t(placeholderKey)}
             style={inputStyle}
             autoComplete="off"
             spellCheck={false}
+            aria-controls="command-palette-results"
+            aria-activedescendant={
+              totalItems > 0 ? `command-palette-option-${selectedIndex}` : undefined
+            }
           />
-          {query && (
-            <button onClick={clearQuery} style={clearBtnStyle}>
-              <svg style={clearIconStyle} fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
+          {effectiveQuery && (
+            <button
+              type="button"
+              onClick={clearQuery}
+              style={clearBtnStyle}
+              aria-label={t('commandPalette.clear')}
+            >
+              <X style={clearIconStyle} aria-hidden="true" />
             </button>
           )}
         </div>
 
         {/* Results List - Virtualized */}
-        <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: '4px 0' }}>
-          {!hasContent && !isSearching ? (
-            <div style={emptyStateStyle}>{t('commandPalette.noResults')}</div>
-          ) : (
-            <div
-              style={{
-                height: `${virtualizer.getTotalSize()}px`,
-                width: '100%',
-                position: 'relative',
-              }}
-            >
-              {virtualizer.getVirtualItems().map((virtualRow) => {
-                const row = virtualRows[virtualRow.index];
-                return (
-                  <div
-                    key={virtualRow.key}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      transform: `translateY(${virtualRow.start}px)`,
-                    }}
-                  >
-                    {renderVirtualRow(row)}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+        <div
+          ref={listRef}
+          id="command-palette-results"
+          role="listbox"
+          style={{ flex: 1, overflowY: 'auto', padding: '4px 0' }}
+        >
+          {renderResultsContent()}
         </div>
 
         {/* Footer hint */}
@@ -744,9 +947,11 @@ const CommandPaletteInner = ({
           <span>
             <kbd style={kbdStyle}>Esc</kbd> {t('commandPalette.closeAction')}
           </span>
-          <span style={{ marginLeft: 'auto' }}>
-            <StarIcon filled={false} size={11} /> {t('commandPalette.favorite')}
-          </span>
+          {activeMode !== 'assistant' && (
+            <span style={{ marginLeft: 'auto' }}>
+              <StarIcon filled={false} size={11} /> {t('commandPalette.favorite')}
+            </span>
+          )}
         </div>
       </div>
     </div>

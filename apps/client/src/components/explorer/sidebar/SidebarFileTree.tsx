@@ -262,7 +262,7 @@ const SidebarFileTree = ({
     <div
       className="flex-1 overflow-y-auto"
       role="region"
-      aria-label="File tree"
+      aria-label={t('sidebar.fileTree')}
       tabIndex={0}
       data-sidebar-section="fileTree"
     >
@@ -280,7 +280,7 @@ const SidebarFileTree = ({
         {t('sidebar.fileTree')}
       </button>
       {!collapsed && (
-        <div className="space-y-0 px-3 pb-2" role="tree" aria-label="Directory tree">
+        <div className="space-y-0 px-3 pb-2" role="tree" aria-label={t('sidebar.directoryTree')}>
           {sortedRootContents && (
             <div>
               <div

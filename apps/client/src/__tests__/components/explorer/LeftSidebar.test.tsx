@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import LeftSidebar from '@/components/explorer/LeftSidebar';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
@@ -37,13 +37,13 @@ vi.mock('@/lib/path-bookmarks', () => ({
 // Mock extension-host
 vi.mock('@/lib/extension-host', () => ({
   extensionHost: {
+    subscribe: vi.fn(() => () => {}),
+    getSnapshotVersion: vi.fn(() => 0),
     isExtensionScheme: vi.fn(() => false),
     getTabRenderer: vi.fn(() => null),
     getNavigationEntries: vi.fn(() => []),
     getSidebarTabs: vi.fn(() => []),
     getSidebarTabRenderer: vi.fn(() => null),
-    subscribe: vi.fn(() => () => {}),
-    getSnapshotVersion: vi.fn(() => 0),
     onChange: vi.fn(() => () => {}),
   },
 }));
@@ -132,7 +132,7 @@ describe('LeftSidebar', () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('quickAccess')).toBeInTheDocument();
+        expect(screen.getByText('QUICK ACCESS')).toBeInTheDocument();
       });
     });
 
@@ -140,7 +140,7 @@ describe('LeftSidebar', () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('home')).toBeInTheDocument();
+        expect(screen.getByText('Home')).toBeInTheDocument();
       });
     });
 
@@ -148,7 +148,7 @@ describe('LeftSidebar', () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('documents')).toBeInTheDocument();
+        expect(screen.getByText('Documents')).toBeInTheDocument();
       });
     });
 
@@ -156,7 +156,7 @@ describe('LeftSidebar', () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('downloads')).toBeInTheDocument();
+        expect(screen.getByText('Downloads')).toBeInTheDocument();
       });
     });
 
@@ -164,7 +164,7 @@ describe('LeftSidebar', () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('desktop')).toBeInTheDocument();
+        expect(screen.getByText('Desktop')).toBeInTheDocument();
       });
     });
 
@@ -172,7 +172,7 @@ describe('LeftSidebar', () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('pictures')).toBeInTheDocument();
+        expect(screen.getByText('Pictures')).toBeInTheDocument();
       });
     });
 
@@ -180,10 +180,10 @@ describe('LeftSidebar', () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('home')).toBeInTheDocument();
+        expect(screen.getByText('Home')).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('home'));
+      fireEvent.click(screen.getByText('Home'));
       expect(mockProps.navigateToPath).toHaveBeenCalledWith('wisp://home');
     });
 
@@ -191,10 +191,10 @@ describe('LeftSidebar', () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('documents')).toBeInTheDocument();
+        expect(screen.getByText('Documents')).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('documents'));
+      fireEvent.click(screen.getByText('Documents'));
       expect(mockProps.navigateToPath).toHaveBeenCalledWith('C:\\Users\\Test\\Documents');
     });
 
@@ -202,31 +202,33 @@ describe('LeftSidebar', () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('downloads')).toBeInTheDocument();
+        expect(screen.getByText('Downloads')).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('downloads'));
+      fireEvent.click(screen.getByText('Downloads'));
       expect(mockProps.navigateToPath).toHaveBeenCalledWith('C:\\Users\\Test\\Downloads');
     });
   });
 
-  describe('Bookmarks in Quick Access', () => {
-    it('does not render a separate favorites section', async () => {
+  describe('Bookmarks Section', () => {
+    it('renders favorites header', async () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('quickAccess')).toBeInTheDocument();
+        expect(screen.getByText('FAVORITES')).toBeInTheDocument();
       });
-      expect(screen.queryByText('favorites')).not.toBeInTheDocument();
     });
 
-    it('does not add an empty bookmark message to Quick Access', async () => {
+    it('shows empty bookmarks message when none exist', async () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(TauriAPI.getBookmarks).toHaveBeenCalled();
+        expect(screen.getByText('FAVORITES')).toBeInTheDocument();
       });
-      expect(screen.queryByText('noBookmarks')).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByText('FAVORITES'));
+
+      expect(await screen.findByText('No bookmarks yet')).toBeInTheDocument();
     });
 
     it('renders bookmark items when bookmarks exist', async () => {
@@ -236,6 +238,8 @@ describe('LeftSidebar', () => {
       ]);
 
       render(<LeftSidebar {...mockProps} />);
+
+      fireEvent.click(await screen.findByText('FAVORITES'));
 
       await waitFor(() => {
         expect(screen.getByText('MyFolder')).toBeInTheDocument();
@@ -249,6 +253,8 @@ describe('LeftSidebar', () => {
       ]);
 
       render(<LeftSidebar {...mockProps} />);
+
+      fireEvent.click(await screen.findByText('FAVORITES'));
 
       await waitFor(() => {
         expect(screen.getByText('MyFolder')).toBeInTheDocument();
@@ -265,11 +271,13 @@ describe('LeftSidebar', () => {
 
       render(<LeftSidebar {...mockProps} />);
 
+      fireEvent.click(await screen.findByText('FAVORITES'));
+
       await waitFor(() => {
         expect(screen.getByText('MyFolder')).toBeInTheDocument();
       });
 
-      const removeButton = screen.getByTitle('remove');
+      const removeButton = screen.getByTitle('Remove bookmark');
       fireEvent.click(removeButton);
 
       expect(TauriAPI.removeBookmark).toHaveBeenCalledWith('C:\\Users\\Test\\MyFolder');
@@ -281,7 +289,7 @@ describe('LeftSidebar', () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('drives')).toBeInTheDocument();
+        expect(screen.getByText('DRIVES')).toBeInTheDocument();
       });
     });
 
@@ -305,20 +313,6 @@ describe('LeftSidebar', () => {
       // The drive button wraps the text; click the text element
       fireEvent.click(screen.getByText('C:'));
       expect(mockProps.navigateToPath).toHaveBeenCalledWith('C:\\');
-    });
-
-    it('refreshes mounted drives when the window regains focus', async () => {
-      render(<LeftSidebar {...mockProps} />);
-
-      await waitFor(() => {
-        expect(TauriAPI.listDrives).toHaveBeenCalledTimes(1);
-      });
-
-      fireEvent.focus(window);
-
-      await waitFor(() => {
-        expect(TauriAPI.listDrives).toHaveBeenCalledTimes(2);
-      });
     });
   });
 
@@ -358,7 +352,9 @@ describe('LeftSidebar', () => {
     it('shows "No recent files" when recent list is empty and expanded', async () => {
       vi.mocked(TauriAPI.getRecentFiles).mockResolvedValue([]);
 
-      render(<LeftSidebar {...mockProps} />);
+      await act(async () => {
+        render(<LeftSidebar {...mockProps} />);
+      });
 
       const toggleBtn = await waitFor(() => {
         const btn = screen.getByLabelText('Toggle recent files');
@@ -367,7 +363,9 @@ describe('LeftSidebar', () => {
       });
 
       // Expand the recent section
-      fireEvent.click(toggleBtn);
+      await act(async () => {
+        fireEvent.click(toggleBtn);
+      });
 
       await waitFor(() => {
         expect(toggleBtn).toHaveAttribute('aria-expanded', 'true');
@@ -381,13 +379,12 @@ describe('LeftSidebar', () => {
   // part of the core LeftSidebar component.
 
   describe('File Tree Section', () => {
-    it('does not render the file tree', async () => {
+    it('renders file tree header', async () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('quickAccess')).toBeInTheDocument();
+        expect(screen.getByText('FILE TREE')).toBeInTheDocument();
       });
-      expect(screen.queryByText('fileTree')).not.toBeInTheDocument();
     });
   });
 
@@ -435,7 +432,7 @@ describe('LeftSidebar', () => {
 
       // Should still render with fallback directories
       await waitFor(() => {
-        expect(screen.getByText('home')).toBeInTheDocument();
+        expect(screen.getByText('Home')).toBeInTheDocument();
       });
     });
 

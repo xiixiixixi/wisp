@@ -5,6 +5,8 @@ import { convertAssetUrl } from '@/lib/transport';
 import { getFileIcon, formatFileSize, formatDate } from '@/lib/utils';
 import { defaultPreviewFactory, type PreviewType } from '@/lib/preview-factory';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { X } from 'lucide-react';
+import { getDemoTextFile, isBrowserDemoMode } from '@/lib/browser-demo-files';
 
 const SyntaxHighlighter = lazy(() =>
   import('react-syntax-highlighter/dist/esm/prism-light').then(async (m) => {
@@ -256,7 +258,11 @@ const TextQuickPreview: React.FC<{ file: FileEntry }> = ({ file }) => {
       return;
     }
 
-    TauriAPI.readTextFile(file.path)
+    const demoContent = isBrowserDemoMode() ? getDemoTextFile(file.path) : null;
+    const readContent =
+      demoContent === null ? TauriAPI.readTextFile(file.path) : Promise.resolve(demoContent);
+
+    readContent
       .then((text) => {
         if (cancelled) return;
         // Limit to first ~100 lines
@@ -274,7 +280,7 @@ const TextQuickPreview: React.FC<{ file: FileEntry }> = ({ file }) => {
     return () => {
       cancelled = true;
     };
-  }, [file.path, file.size]);
+  }, [file.path, file.size, t]);
 
   if (error) {
     return (
@@ -452,13 +458,20 @@ const QuickLookOverlay = ({ file, onClose }: QuickLookOverlayProps) => {
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
   const backdropRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
   // Fade in on mount
   useEffect(() => {
+    previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
     // Force a frame so the transition triggers
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => setVisible(true));
+      requestAnimationFrame(() => {
+        setVisible(true);
+        closeButtonRef.current?.focus();
+      });
     });
+    return () => previouslyFocusedRef.current?.focus();
   }, []);
 
   const handleClose = useCallback(() => {
@@ -475,6 +488,9 @@ const QuickLookOverlay = ({ file, onClose }: QuickLookOverlayProps) => {
         e.preventDefault();
         e.stopPropagation();
         handleClose();
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        closeButtonRef.current?.focus();
       }
     };
     window.addEventListener('keydown', handler, true);
@@ -514,6 +530,9 @@ const QuickLookOverlay = ({ file, onClose }: QuickLookOverlayProps) => {
     <div
       ref={backdropRef}
       onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+      aria-label={file.name}
       style={{
         position: 'fixed',
         inset: 0,
@@ -576,6 +595,7 @@ const QuickLookOverlay = ({ file, onClose }: QuickLookOverlayProps) => {
             </div>
           </div>
           <button
+            ref={closeButtonRef}
             onClick={handleClose}
             style={{
               background: 'none',
@@ -596,18 +616,9 @@ const QuickLookOverlay = ({ file, onClose }: QuickLookOverlayProps) => {
               (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
             }}
             title={t('explorer.quickLook.closeTitle')}
+            aria-label={t('explorer.quickLook.closeTitle')}
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 14 14"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <line x1="2" y1="2" x2="12" y2="12" />
-              <line x1="12" y1="2" x2="2" y2="12" />
-            </svg>
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
 

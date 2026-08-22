@@ -2,41 +2,100 @@ import '@testing-library/jest-dom';
 import React from 'react';
 import { vi } from 'vitest';
 
-// Mock react-i18next so components using useTranslation() work in tests
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string, opts?: Record<string, unknown>) => {
-      // Return last segment of key with interpolation applied
-      const base = key.includes('.') ? key.split('.').pop()! : key;
-      if (!opts) return base;
-      return Object.entries(opts).reduce((str, [k, v]) => str.replace(`{{${k}}}`, String(v)), base);
-    },
-    i18n: { language: 'en', changeLanguage: vi.fn() },
-  }),
-  Trans: ({ children }: { children?: React.ReactNode }) => children,
-  initReactI18next: { type: '3rdParty', init: vi.fn() },
-}));
-
-// Mock lucide-react with a Proxy that auto-generates mock icons for any name
-vi.mock('lucide-react', async (importOriginal) => {
-  const createMockIcon = (name: string) => {
-    const MockIcon = (props: Record<string, unknown>) =>
-      React.createElement('svg', { 'data-testid': `icon-${name}`, ...props });
-    MockIcon.displayName = name;
-    return MockIcon;
-  };
-  const actual = await importOriginal<Record<string, unknown>>();
-  const mocked = Object.fromEntries(
-    Object.keys(actual).map((name) => [name, createMockIcon(name)]),
-  ) as Record<string, unknown>;
-  mocked.createLucideIcon = (name: string) => createMockIcon(name);
-  mocked.default = {};
-  return mocked;
+// Node's experimental storage globals can shadow jsdom's storage with an
+// unavailable value. Use a Storage-prototype-backed in-memory instance so
+// application code and tests spying on Storage.prototype see the same API.
+const storageValues = new Map<string, string>();
+const storagePrototype = window.Storage.prototype;
+Object.defineProperties(storagePrototype, {
+  length: {
+    configurable: true,
+    get: () => storageValues.size,
+  },
+  clear: {
+    configurable: true,
+    writable: true,
+    value: () => storageValues.clear(),
+  },
+  getItem: {
+    configurable: true,
+    writable: true,
+    value: (key: string) => storageValues.get(String(key)) ?? null,
+  },
+  key: {
+    configurable: true,
+    writable: true,
+    value: (index: number) => Array.from(storageValues.keys())[index] ?? null,
+  },
+  removeItem: {
+    configurable: true,
+    writable: true,
+    value: (key: string) => storageValues.delete(String(key)),
+  },
+  setItem: {
+    configurable: true,
+    writable: true,
+    value: (key: string, value: string) => storageValues.set(String(key), String(value)),
+  },
+});
+const memoryLocalStorage = Object.create(storagePrototype) as Storage;
+Object.defineProperty(window, 'localStorage', {
+  configurable: true,
+  value: memoryLocalStorage,
+});
+Object.defineProperty(globalThis, 'localStorage', {
+  configurable: true,
+  value: memoryLocalStorage,
 });
 
-// Prevent any Tauri API access during tests by setting up global environment
-(global as unknown).__TAURI__ = undefined;
-(window as unknown as Record<string, unknown>).__TAURI__ = undefined;
+// Mock react-i18next so components using useTranslation() work in tests
+vi.mock('react-i18next', async () => {
+  const { default: english } = await import('@/locales/en.json');
+
+  const translate = (key: string, opts?: Record<string, unknown>) => {
+    const segments = key.split('.');
+    let value: unknown = english;
+    for (const segment of segments) {
+      if (!value || typeof value !== 'object' || !(segment in value)) {
+        value = undefined;
+        break;
+      }
+      value = (value as Record<string, unknown>)[segment];
+    }
+
+    const fallback = key.includes('.') ? segments.at(-1)! : key;
+    let base = fallback;
+    if (typeof opts?.defaultValue === 'string') base = opts.defaultValue;
+    if (typeof value === 'string') base = value;
+
+    if (!opts) return base;
+    return Object.entries(opts).reduce(
+      (result, [name, replacement]) => result.replaceAll(`{{${name}}}`, String(replacement)),
+      base,
+    );
+  };
+
+  return {
+    useTranslation: () => ({
+      t: translate,
+      i18n: { language: 'en', changeLanguage: vi.fn() },
+    }),
+    Trans: ({ children }: { children?: React.ReactNode }) => children,
+    initReactI18next: { type: '3rdParty', init: vi.fn() },
+  };
+});
+
+// The client is a desktop file manager. Model a Tauri webview explicitly while
+// routing every native call through the mocks below.
+const tauriInternalsMock = {};
+Object.defineProperty(globalThis, '__TAURI_INTERNALS__', {
+  configurable: true,
+  value: tauriInternalsMock,
+});
+Object.defineProperty(window, '__TAURI_INTERNALS__', {
+  configurable: true,
+  value: tauriInternalsMock,
+});
 
 // Mock Tauri API
 const mockInvoke = vi.fn().mockImplementation((command, _args) => {
@@ -51,13 +110,12 @@ const mockInvoke = vi.fn().mockImplementation((command, _args) => {
 
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: mockInvoke,
-  convertFileSrc: vi.fn((path: string) => `https://asset.localhost/${encodeURIComponent(path)}`),
+  convertFileSrc: vi.fn((path: string) => `tauri://asset/${path}`),
 }));
 
 // Mock Tauri event API
 vi.mock('@tauri-apps/api/event', () => ({
   listen: vi.fn(() => Promise.resolve(() => {})),
-  emit: vi.fn(() => Promise.resolve()),
 }));
 
 // Mock Tauri dialog API
@@ -69,7 +127,6 @@ vi.mock('@tauri-apps/plugin-dialog', () => ({
 vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {
     readDirectory: vi.fn(() => Promise.resolve([])),
-    findFiles: vi.fn(() => Promise.resolve([])),
     getFileIcon: vi.fn(() => '📄'),
     formatFileSize: vi.fn(() => '1 KB'),
     formatDate: vi.fn(() => '2024-01-01'),
@@ -150,11 +207,12 @@ vi.mock('@/lib/utils', () => ({
   ICON_NAMES: ['Folder', 'FileText', 'Image', 'Music', 'Star'],
   formatFileSize: vi.fn((bytes: number) => `${bytes} B`),
   formatDate: vi.fn((timestamp: number) => new Date(timestamp).toLocaleDateString()),
+  getDateGroupTranslationKey: vi.fn((group: string) => group),
   sortFiles: vi.fn((files: unknown[]) => files),
   cn: vi.fn((...classes: unknown[]) => classes.filter(Boolean).join(' ')),
   applyFontSize: vi.fn(),
-  loadFontSize: vi.fn(),
   applyTheme: vi.fn(),
+  loadFontSize: vi.fn(),
 }));
 
 // jsdom doesn't implement scrollIntoView

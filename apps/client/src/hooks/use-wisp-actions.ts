@@ -1,9 +1,8 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { TauriAPI, type FileEntry, type ConflictFileInfo } from '@/lib/tauri-api';
-import { PATH_SEPARATOR, detectSep } from '@/lib/constants';
+import { detectSep } from '@/lib/constants';
 import { isEditableFile } from '@/lib/editable-files';
 import { formatError } from '@/lib/file-operation-helpers';
-import { showConfirmationToast, showInputToast } from '@/components/ui/Toast';
 import type { TabItem, EditorGroup } from '@/types/split-view';
 import type { SharedPaneActions } from '@/components/split-view/EditorGroupPane';
 import type { WorkspaceLayoutUiState } from '@/lib/workspace-layouts';
@@ -150,6 +149,8 @@ export const useWispActions = (deps: WispActionsDeps) => {
   activeGroupRef.current = activeGroup;
   const ctxMenuRef = useRef(ctxMenu);
   ctxMenuRef.current = ctxMenu;
+  const fileOpsRef = useRef(fileOps);
+  fileOpsRef.current = fileOps;
   const dialogManagerRef = useRef(dialogManager);
   dialogManagerRef.current = dialogManager;
   const toastRef = useRef(toast);
@@ -280,8 +281,8 @@ export const useWispActions = (deps: WispActionsDeps) => {
     [setShortcutsDialogOpen],
   );
   const handleOpenSettings = useCallback(
-    () => navigation.navigateWithHistory('wisp://settings'),
-    [navigation],
+    () => window.dispatchEvent(new CustomEvent('wisp-open-settings')),
+    [],
   );
   const handleCloseCollectionEditor = useCallback(() => {
     setCollectionEditorOpen(false);
@@ -326,52 +327,15 @@ export const useWispActions = (deps: WispActionsDeps) => {
         ctxMenuRef.current.handleFileRightClick(file, event),
       handleBackgroundRightClick: (event: React.MouseEvent, _groupId: string) =>
         ctxMenuRef.current.handleBackgroundRightClick(event),
-      handleDelete: async (_selectedFiles: Set<string>, refetchFn: () => void) => {
-        if (_selectedFiles.size === 0) return;
-        const confirmed = await showConfirmationToast({
-          title: 'Move to Recycle Bin',
-          description: `Are you sure you want to move ${_selectedFiles.size} item(s) to the recycle bin?`,
-          confirmText: 'Move to Recycle Bin',
-          cancelText: 'Cancel',
-        });
-        if (!confirmed) return;
-        try {
-          for (const fp of Array.from(_selectedFiles)) await TauriAPI.moveToTrash(fp);
-          refetchFn();
-          toastRef.current({
-            title: 'Moved to Recycle Bin',
-            description: `Moved ${_selectedFiles.size} item(s)`,
-          });
-        } catch (err) {
-          toastRef.current({
-            variant: 'destructive',
-            title: 'Delete Failed',
-            description: formatError(err),
-          });
-        }
-      },
-      handleCreateFolder: async (path: string, refetchFn: () => void) => {
-        const folderName = await showInputToast({
-          title: 'Create New Folder',
-          description: 'Enter a name for the new folder',
-          placeholder: 'Folder name',
-          submitText: 'Create',
-          cancelText: 'Cancel',
-        });
-        if (!folderName) return;
-        try {
-          const fp = path + (path.endsWith(PATH_SEPARATOR) ? '' : PATH_SEPARATOR) + folderName;
-          await TauriAPI.createDirRecursive(fp);
-          refetchFn();
-          toastRef.current({ title: 'Folder Created', description: `Created "${folderName}"` });
-        } catch (err) {
-          toastRef.current({
-            variant: 'destructive',
-            title: 'Create Folder Failed',
-            description: formatError(err),
-          });
-        }
-      },
+      handleDelete: (filesToDelete: FileEntry[]) =>
+        fileOpsRef.current.contextMenuActions.delete(filesToDelete),
+      handleCreateFolder: (path: string) =>
+        fileOpsRef.current.contextMenuActions.createFolder(path),
+      handleCreateFile: (path: string) => fileOpsRef.current.contextMenuActions.createFile(path),
+      handleCompress: (filesToCompress: FileEntry[]) =>
+        fileOpsRef.current.contextMenuActions.compressTo(filesToCompress),
+      handleExtract: (file: FileEntry) => fileOpsRef.current.contextMenuActions.extractHere(file),
+      handleProperties: (file: FileEntry) => fileOpsRef.current.contextMenuActions.properties(file),
       theme,
       setTheme,
       setBottomPanelCollapsed,

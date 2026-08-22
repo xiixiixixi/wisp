@@ -80,7 +80,7 @@ export const useLayoutState = (): LayoutState => {
     loadUiState('leftSidebarCollapsed', false),
   );
   const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(() =>
-    loadUiState('rightSidebarCollapsed', false),
+    loadUiState('rightSidebarCollapsed', true),
   );
   const [bottomPanelCollapsed, setBottomPanelCollapsed] = useState(() =>
     loadUiState('bottomPanelCollapsed', true),
@@ -114,7 +114,7 @@ export const useLayoutState = (): LayoutState => {
 
   // Panel sizes
   const [leftSidebarWidth, setLeftSidebarWidth] = useState(() =>
-    loadUiState('leftSidebarWidth', 256),
+    loadUiState('leftSidebarWidth', 240),
   );
   const [rightSidebarWidth, setRightSidebarWidth] = useState(() =>
     loadUiState('rightSidebarWidth', 320),

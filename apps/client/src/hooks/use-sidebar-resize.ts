@@ -21,10 +21,10 @@ const useSidebarResize = (): UseSidebarResizeReturn => {
     return {
       quickAccess: false,
       recent: true,
-      favorites: false,
-      collections: false,
+      favorites: true,
+      collections: true,
       drives: false,
-      fileTree: false,
+      fileTree: true,
     };
   });
 

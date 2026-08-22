@@ -7,7 +7,7 @@ import { toast } from '@/hooks/use-toast';
 import type { TabItem } from '@/types/split-view';
 import type { VimModeState } from '@/hooks/use-vim-mode';
 import VimModeIndicator from '@/components/explorer/VimModeIndicator';
-import { GitBranch } from 'lucide-react';
+import { GitBranch, Redo2, Undo2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -141,6 +141,20 @@ interface GitInfo {
   untrackedCount: number;
 }
 
+interface UndoRedoStatus {
+  canUndo: boolean;
+  canRedo: boolean;
+  undoDescription: string | null;
+  redoDescription: string | null;
+}
+
+const EMPTY_UNDO_REDO_STATUS: UndoRedoStatus = {
+  canUndo: false,
+  canRedo: false,
+  undoDescription: null,
+  redoDescription: null,
+};
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 const StatusBar = ({ files, selectedFiles, currentPath, activeTab, vimState }: StatusBarProps) => {
@@ -150,6 +164,8 @@ const StatusBar = ({ files, selectedFiles, currentPath, activeTab, vimState }: S
   const [encoding, setEncoding] = useState<string | null>(null);
   const [lineEnding, setLineEnding] = useState<'CRLF' | 'LF' | 'CR' | null>(null);
   const [cursorPos, setCursorPos] = useState<CursorPositionDetail | null>(null);
+  const [undoRedoStatus, setUndoRedoStatus] = useState<UndoRedoStatus>(EMPTY_UNDO_REDO_STATUS);
+  const [historyAction, setHistoryAction] = useState<'undo' | 'redo' | null>(null);
 
   // Track previous path to avoid redundant git lookups
   const prevPathRef = useRef<string>('');
@@ -306,6 +322,56 @@ const StatusBar = ({ files, selectedFiles, currentPath, activeTab, vimState }: S
     return () => window.removeEventListener('editor-cursor-change', handleCursorChange);
   }, [handleCursorChange]);
 
+  const refreshUndoRedoStatus = useCallback(async () => {
+    try {
+      const snapshot = await TauriAPI.getUndoHistory();
+      const entries = Array.isArray(snapshot.entries) ? snapshot.entries : [];
+      const undoCount = Math.max(0, Math.min(snapshot.undo_count ?? 0, entries.length));
+      setUndoRedoStatus({
+        canUndo: undoCount > 0,
+        canRedo: undoCount < entries.length,
+        undoDescription: entries[undoCount - 1]?.description ?? null,
+        redoDescription: entries[undoCount]?.description ?? null,
+      });
+    } catch {
+      setUndoRedoStatus(EMPTY_UNDO_REDO_STATUS);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshUndoRedoStatus();
+    const refresh = () => refreshUndoRedoStatus();
+    window.addEventListener('files-changed', refresh);
+    return () => window.removeEventListener('files-changed', refresh);
+  }, [refreshUndoRedoStatus]);
+
+  const handleHistoryAction = useCallback(
+    async (action: 'undo' | 'redo') => {
+      setHistoryAction(action);
+      try {
+        const result =
+          action === 'undo' ? await TauriAPI.undoOperation() : await TauriAPI.redoOperation();
+        if (result.success) {
+          toast({
+            title: t(action === 'undo' ? 'statusBar.undoDone' : 'statusBar.redoDone'),
+            description: result.message,
+          });
+          window.dispatchEvent(new CustomEvent('files-changed'));
+        }
+      } catch (error) {
+        toast({
+          variant: 'destructive',
+          title: t(action === 'undo' ? 'statusBar.undoFailed' : 'statusBar.redoFailed'),
+          description: error instanceof Error ? error.message : String(error),
+        });
+      } finally {
+        setHistoryAction(null);
+        await refreshUndoRedoStatus();
+      }
+    },
+    [refreshUndoRedoStatus, t],
+  );
+
   // Clear cursor position when leaving editor mode
   useEffect(() => {
     if (!isEditorMode) {
@@ -394,6 +460,50 @@ const StatusBar = ({ files, selectedFiles, currentPath, activeTab, vimState }: S
 
       {/* Right section */}
       <div className="flex items-center gap-2">
+        {(undoRedoStatus.canUndo || undoRedoStatus.canRedo) && (
+          <>
+            <div
+              className="flex items-center rounded-md border border-xp-border bg-muted p-0.5"
+              role="group"
+              aria-label={t('statusBar.historyActions')}
+            >
+              <button
+                type="button"
+                onClick={() => handleHistoryAction('undo')}
+                disabled={!undoRedoStatus.canUndo || historyAction !== null}
+                className="flex h-5 w-6 items-center justify-center rounded text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:pointer-events-none disabled:opacity-30"
+                title={
+                  undoRedoStatus.undoDescription
+                    ? t('statusBar.undoDescription', {
+                        description: undoRedoStatus.undoDescription,
+                      })
+                    : t('statusBar.undo')
+                }
+                aria-label={t('statusBar.undo')}
+              >
+                <Undo2 className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleHistoryAction('redo')}
+                disabled={!undoRedoStatus.canRedo || historyAction !== null}
+                className="flex h-5 w-6 items-center justify-center rounded text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:pointer-events-none disabled:opacity-30"
+                title={
+                  undoRedoStatus.redoDescription
+                    ? t('statusBar.redoDescription', {
+                        description: undoRedoStatus.redoDescription,
+                      })
+                    : t('statusBar.redo')
+                }
+                aria-label={t('statusBar.redo')}
+              >
+                <Redo2 className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            </div>
+            <Separator />
+          </>
+        )}
+
         {/* Cursor position (editor mode only) */}
         {isEditorMode && cursorPos && (
           <>

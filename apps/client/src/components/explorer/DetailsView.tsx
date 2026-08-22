@@ -4,7 +4,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { useDraggable } from '@/hooks/use-draggable';
 import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
 import { ViewComponentProps } from './FileGridTypes';
-import type { FileGroup } from '@/lib/utils';
+import { getDateGroupTranslationKey, type FileGroup } from '@/lib/utils';
 import { FileReferenceBadge, getFileReferenceLabel } from './FileReferenceBadge';
 
 interface DetailsViewProps extends ViewComponentProps {
@@ -232,7 +232,10 @@ const DetailsView = (props: DetailsViewProps) => {
     if (fileGroups && fileGroups.length > 0) {
       const items: FlatItem[] = [];
       for (const group of fileGroups) {
-        items.push({ type: 'header', group: { name: group.group, count: group.files.length } });
+        items.push({
+          type: 'header',
+          group: { name: t(getDateGroupTranslationKey(group.group)), count: group.files.length },
+        });
         for (const file of group.files) {
           items.push({ type: 'file', file });
         }
@@ -240,7 +243,7 @@ const DetailsView = (props: DetailsViewProps) => {
       return items;
     }
     return files.map((file) => ({ type: 'file' as const, file }));
-  }, [fileGroups, files]);
+  }, [fileGroups, files, t]);
 
   const needsVirtualization = flatItems.length >= DETAILS_VIRTUALIZATION_THRESHOLD;
 

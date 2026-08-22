@@ -4,6 +4,7 @@
  * in the AI chat.
  */
 import { TauriAPI } from '@/lib/tauri-api';
+import { getDemoDirectory, isBrowserDemoMode } from '@/lib/browser-demo-files';
 import { getExt } from './chat-context-helpers';
 
 // ---------------------------------------------------------------------------
@@ -509,7 +510,8 @@ export const buildDirectorySummary = async (
   if (!dirPath) return result;
 
   try {
-    const entries = await TauriAPI.readDirectory(dirPath);
+    const demoEntries = isBrowserDemoMode() ? getDemoDirectory(dirPath) : null;
+    const entries = demoEntries ?? (await TauriAPI.readDirectory(dirPath));
     result.totalItems = entries.length;
 
     const extCounts = new Map<string, number>();

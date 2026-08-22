@@ -61,7 +61,7 @@ const SidebarCollections = ({
       <div
         className="border-b border-xp-border"
         role="region"
-        aria-label="Collections"
+        aria-label={t('sidebar.collections')}
         data-sidebar-section="collections"
       >
         <div className="flex items-center justify-between">
@@ -69,7 +69,7 @@ const SidebarCollections = ({
             className="hover:bg-xp-surface-light/50 flex flex-1 items-center px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted transition-colors"
             onClick={onToggleCollapsed}
             aria-expanded={!collapsed}
-            aria-label="Toggle collections"
+            aria-label={t('sidebar.toggleCollections')}
           >
             {collapsed ? (
               <ChevronRight className="mr-1 h-3 w-3 flex-shrink-0" />
@@ -82,8 +82,8 @@ const SidebarCollections = ({
             <button
               onClick={onCreateCollection}
               className="mr-2 text-xp-text-muted transition-colors hover:text-xp-blue"
-              title="Create new collection"
-              aria-label="Create new collection"
+              title={t('sidebar.createCollection')}
+              aria-label={t('sidebar.createCollection')}
               style={{ padding: '2px' }}
             >
               <Plus size={13} />
@@ -107,10 +107,19 @@ const SidebarCollections = ({
                   <div
                     key={col.id}
                     className={`group flex w-full cursor-pointer items-center rounded px-2 py-1 text-xs transition-colors ${
-                      isActive
-                        ? 'wisp-sidebar-item-active'
-                        : 'text-xp-text hover:bg-xp-surface-light'
+                      isActive ? 'text-xp-text' : 'text-xp-text hover:bg-xp-surface-light'
                     }`}
+                    style={{
+                      borderLeft: (() => {
+                        if (isActive && !smartFolder) return `3px solid ${col.color}`;
+                        if (isActive && smartFolder) return '3px solid var(--xp-blue)';
+                        return '3px solid transparent';
+                      })(),
+                      backgroundColor: (() => {
+                        if (!isActive) return undefined;
+                        return smartFolder ? 'rgba(122,162,247,0.15)' : `${col.color}15`;
+                      })(),
+                    }}
                     onClick={() => {
                       if (smartFolder) {
                         navigateToPath(`collection://${col.id}`);
@@ -135,6 +144,17 @@ const SidebarCollections = ({
                       {renderIcon(col.icon, 14)}
                     </span>
                     <span className="flex-1 truncate">{col.name}</span>
+                    {isActive && !smartFolder && (
+                      <span
+                        className="ml-auto flex-shrink-0"
+                        style={{
+                          width: '6px',
+                          height: '6px',
+                          borderRadius: '50%',
+                          backgroundColor: col.color,
+                        }}
+                      />
+                    )}
                     {smartFolder && (
                       <span
                         className="ml-auto flex-shrink-0 rounded-full bg-xp-surface px-1.5 py-0 text-[10px] text-xp-text-muted"
@@ -152,7 +172,7 @@ const SidebarCollections = ({
         {/* Resize handle */}
         {!collapsed && (
           <div
-            className="group flex h-2 cursor-row-resize items-center justify-center transition-colors hover:bg-xp-surface-light"
+            className="hover:bg-xp-blue/30 group flex h-2 cursor-row-resize items-center justify-center transition-colors"
             onMouseDown={(e) => onResizeStart('collections', e)}
           >
             <GripHorizontal className="text-xp-text-muted/20 group-hover:text-xp-text-muted/60 h-3 w-4 transition-colors" />

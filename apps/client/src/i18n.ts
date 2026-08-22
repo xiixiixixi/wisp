@@ -4,7 +4,10 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 import en from './locales/en.json';
 import zh from './locales/zh.json';
+import ja from './locales/ja.json';
+import id from './locales/id.json';
 import { STORAGE_KEYS } from './lib/storage-keys';
+import { DEFAULT_LANGUAGE, normalizeLanguage } from './lib/language-settings';
 
 const SETTINGS_KEY = STORAGE_KEYS.SETTINGS;
 
@@ -15,18 +18,18 @@ const wispSettingsDetector = {
       const saved = localStorage.getItem(SETTINGS_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.language) return parsed.language;
+        if (parsed.language) return normalizeLanguage(parsed.language);
       }
     } catch {
       /* ignore */
     }
-    return undefined;
+    return DEFAULT_LANGUAGE;
   },
   cacheUserLanguage(lng: string): void {
     try {
       const saved = localStorage.getItem(SETTINGS_KEY);
       const settings = saved ? JSON.parse(saved) : {};
-      settings.language = lng;
+      settings.language = normalizeLanguage(lng);
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     } catch {
       /* ignore */
@@ -44,10 +47,10 @@ i18n
     resources: {
       en: { translation: en },
       zh: { translation: zh },
+      ja: { translation: ja },
+      id: { translation: id },
     },
-    fallbackLng: 'en',
-    supportedLngs: ['en', 'zh'],
-    nonExplicitSupportedLngs: false,
+    fallbackLng: DEFAULT_LANGUAGE,
     detection: {
       order: ['wispSettings', 'navigator'],
       caches: ['wispSettings'],

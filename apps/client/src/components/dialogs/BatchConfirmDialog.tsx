@@ -9,6 +9,7 @@ import {
   FolderClosed,
   FileIcon,
   ArrowRight,
+  X,
 } from 'lucide-react';
 import type { FileEntry } from '@/lib/tauri-api';
 import { formatFileSize } from '@/lib/utils';
@@ -46,11 +47,14 @@ const BatchConfirmDialog = ({
 }: BatchConfirmDialogProps) => {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDivElement>(null);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (isOpen && dialogRef.current) {
-      dialogRef.current.focus();
-    }
+    if (!isOpen) return;
+    previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+    requestAnimationFrame(() => cancelButtonRef.current?.focus());
+    return () => previouslyFocusedRef.current?.focus();
   }, [isOpen]);
 
   if (!isOpen || files.length === 0) return null;
@@ -119,10 +123,25 @@ const BatchConfirmDialog = ({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
+      e.preventDefault();
       onCancel();
     }
-    if (e.key === 'Enter') {
-      onConfirm();
+    if (e.key === 'Tab' && dialogRef.current) {
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
   };
 
@@ -135,31 +154,26 @@ const BatchConfirmDialog = ({
         ref={dialogRef}
         role="dialog"
         aria-labelledby="batch-confirm-title"
+        aria-describedby={meta.warning ? 'batch-confirm-warning' : undefined}
         aria-modal="true"
         tabIndex={-1}
-        className="bg-xp-surface border-xp-border flex max-h-[80vh] w-[540px] max-w-[90vw] flex-col rounded-lg border shadow-2xl outline-none"
+        className="flex max-h-[80vh] w-[540px] max-w-[90vw] flex-col rounded-lg border border-xp-border bg-xp-surface shadow-2xl outline-none"
         onKeyDown={handleKeyDown}
       >
         {/* Header */}
-        <div className="border-xp-border flex shrink-0 items-center justify-between border-b p-5">
+        <div className="flex shrink-0 items-center justify-between border-b border-xp-border p-5">
           <div className="flex items-center gap-3">
             {meta.icon}
-            <h2 id="batch-confirm-title" className="text-xp-text text-lg font-semibold">
+            <h2 id="batch-confirm-title" className="text-lg font-semibold text-xp-text">
               {t('dialogs.batchConfirm.title', { label: meta.label, count: files.length })}
             </h2>
           </div>
           <button
             onClick={onCancel}
-            className="hover:bg-xp-surface-light rounded-md p-2 transition-colors"
+            className="rounded-md p-2 transition-colors hover:bg-xp-surface-light"
             aria-label={t('common.close')}
           >
-            <svg className="text-xp-text-muted h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <X size={16} className="text-xp-text-muted" aria-hidden="true" />
           </button>
         </div>
 
@@ -167,19 +181,21 @@ const BatchConfirmDialog = ({
         {meta.destructive && meta.warning && (
           <div className="mx-5 mt-4 flex shrink-0 items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
             <AlertTriangle size={18} className="mt-0.5 shrink-0 text-red-400" />
-            <p className="text-sm text-red-300">{meta.warning}</p>
+            <p id="batch-confirm-warning" className="text-sm text-red-300">
+              {meta.warning}
+            </p>
           </div>
         )}
 
         {/* Destination (move operations) */}
         {operation === 'move' && destination && (
-          <div className="bg-xp-surface-light border-xp-border mx-5 mt-4 flex shrink-0 items-center gap-2 rounded-lg border p-3">
-            <ArrowRight size={16} className="text-xp-blue shrink-0" />
+          <div className="mx-5 mt-4 flex shrink-0 items-center gap-2 rounded-lg border border-xp-border bg-xp-surface-light p-3">
+            <ArrowRight size={16} className="shrink-0 text-xp-blue" />
             <div className="min-w-0">
-              <div className="text-xp-text-muted text-xs">
+              <div className="text-xs text-xp-text-muted">
                 {t('dialogs.batchConfirm.destination')}
               </div>
-              <div className="text-xp-text truncate text-sm" title={destination}>
+              <div className="truncate text-sm text-xp-text" title={destination}>
                 {destination}
               </div>
             </div>
@@ -188,10 +204,10 @@ const BatchConfirmDialog = ({
 
         {/* File list */}
         <div className="mx-5 mt-4 min-h-0 flex-1 overflow-hidden">
-          <div className="text-xp-text-muted mb-2 text-xs font-medium uppercase tracking-wide">
+          <div className="mb-2 text-xs font-medium uppercase tracking-wide text-xp-text-muted">
             {t('dialogs.batchConfirm.affectedItems')}
           </div>
-          <div className="border-xp-border bg-xp-bg max-h-[280px] overflow-y-auto rounded-lg border">
+          <div className="max-h-[280px] overflow-y-auto rounded-lg border border-xp-border bg-xp-bg">
             {files.map((file, index) => (
               <div
                 key={file.path}
@@ -201,28 +217,28 @@ const BatchConfirmDialog = ({
               >
                 {/* Icon */}
                 {file.is_dir ? (
-                  <FolderClosed size={16} className="text-xp-blue shrink-0" />
+                  <FolderClosed size={16} className="shrink-0 text-xp-blue" />
                 ) : (
-                  <FileIcon size={16} className="text-xp-text-muted shrink-0" />
+                  <FileIcon size={16} className="shrink-0 text-xp-text-muted" />
                 )}
 
                 {/* Name + path */}
                 <div className="min-w-0 flex-1">
-                  <div className="text-xp-text truncate" title={file.name}>
+                  <div className="truncate text-xp-text" title={file.name}>
                     {file.name}
                   </div>
-                  <div className="text-xp-text-muted truncate text-xs" title={file.path}>
+                  <div className="truncate text-xs text-xp-text-muted" title={file.path}>
                     {file.path}
                   </div>
                 </div>
 
                 {/* Type */}
-                <div className="text-xp-text-muted w-12 shrink-0 text-right text-xs">
+                <div className="w-12 shrink-0 text-right text-xs text-xp-text-muted">
                   {file.is_dir ? t('common.folder') : getExtension(file.name) || t('common.file')}
                 </div>
 
                 {/* Size */}
-                <div className="text-xp-text-muted w-16 shrink-0 text-right text-xs">
+                <div className="w-16 shrink-0 text-right text-xs text-xp-text-muted">
                   {file.is_dir ? '--' : formatFileSize(file.size)}
                 </div>
               </div>
@@ -231,16 +247,17 @@ const BatchConfirmDialog = ({
         </div>
 
         {/* Summary line */}
-        <div className="text-xp-text-muted mx-5 mt-3 shrink-0 text-xs">
+        <div className="mx-5 mt-3 shrink-0 text-xs text-xp-text-muted">
           {summaryText}
           {sizeText ? t('dialogs.batchConfirm.sizeTotal', { size: sizeText }) : ''}
         </div>
 
         {/* Footer */}
-        <div className="border-xp-border mt-4 flex shrink-0 justify-end gap-3 border-t p-5">
+        <div className="mt-4 flex shrink-0 justify-end gap-3 border-t border-xp-border p-5">
           <button
+            ref={cancelButtonRef}
             onClick={onCancel}
-            className="text-xp-text hover:bg-xp-surface-light border-xp-border rounded-md border px-4 py-2 text-sm transition-colors"
+            className="rounded-md border border-xp-border px-4 py-2 text-sm text-xp-text transition-colors hover:bg-xp-surface-light"
             aria-label={t('common.cancel')}
           >
             {t('common.cancel')}

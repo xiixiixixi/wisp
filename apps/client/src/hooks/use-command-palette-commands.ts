@@ -183,7 +183,7 @@ export const useCommandPaletteCommands = ({
         title: t('commands.openSettings'),
         shortcut: 'Ctrl+,',
         category: t('commands.categories.other'),
-        action: () => navigateWithHistory('wisp://settings'),
+        action: () => window.dispatchEvent(new CustomEvent('wisp-open-settings')),
       },
       {
         id: 'trash',

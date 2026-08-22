@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
+import { DEFAULT_LANGUAGE } from '@/lib/language-settings';
 import { Monitor, FolderOpen, AlertTriangle } from 'lucide-react';
 import {
   Select,
@@ -28,15 +29,13 @@ export const Toggle = ({
     role="switch"
     aria-checked={checked}
     aria-label={label}
-    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xp-accent focus-visible:ring-offset-2 focus-visible:ring-offset-xp-bg ${
-      checked
-        ? 'border-xp-accent bg-xp-accent'
-        : 'border-xp-border-light bg-xp-border-light hover:bg-xp-text-muted'
+    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-xp-bg ${
+      checked ? 'bg-xp-blue' : 'bg-xp-border'
     }`}
     onClick={() => onChange(!checked)}
   >
     <span
-      className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-md ring-1 ring-black/20 transition-transform ${
+      className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm ring-0 transition-transform ${
         checked ? 'translate-x-5' : 'translate-x-0.5'
       }`}
     />
@@ -269,11 +268,11 @@ export interface AppSettings {
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  theme: 'rolex',
-  language: '',
+  theme: 'glass',
+  language: DEFAULT_LANGUAGE,
   showHiddenFiles: false,
   enableMarkdownPreview: true,
-  defaultView: 'auto',
+  defaultView: 'grid',
   enableAnimations: true,
   showFileExtensions: true,
   enableNotifications: true,
