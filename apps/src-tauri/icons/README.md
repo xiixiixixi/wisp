@@ -1,6 +1,8 @@
 # Tauri Icons
 
-`icon-source.png` is the 1024×1024 master artwork for the Wisp brand icon.
+`icon-source.png` is the 1024×1024 master artwork for the Wisp brand icon. The visible
+rounded-square artwork occupies 84% of the canvas, leaving an 8% transparent safe area
+on each side so the macOS Dock matches the optical size of native app icons.
 Generate the desktop bundle assets from that source with:
 
 ```sh
