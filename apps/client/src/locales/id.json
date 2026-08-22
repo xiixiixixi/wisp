@@ -327,7 +327,8 @@
       "autoFolderSizesDesc": "Otomatis menghitung dan menampilkan ukuran folder di tampilan detail",
       "preview": "Pratinjau",
       "markdownPreview": "Pratinjau Markdown",
-      "markdownPreviewDesc": "Render file markdown alih-alih menampilkan teks mentah"
+      "markdownPreviewDesc": "Render file markdown alih-alih menampilkan teks mentah",
+      "auto": "Otomatis"
     },
     "ai": {
       "agent": "Agen",
@@ -2244,7 +2245,56 @@
     "aiProvider": "melalui {{provider}}",
     "aiNoProvider": "AI tidak tersedia, menggunakan pencarian teks",
     "aiSearchTerms": "Kata kunci pencarian",
-    "aiMatchedItems": "Cocok dari folder"
+    "aiMatchedItems": "Cocok dari folder",
+    "filters": {
+      "all": "Semua",
+      "files": "Berkas",
+      "folders": "Folder",
+      "documents": "Dokumen",
+      "images": "Gambar",
+      "code": "Kode"
+    },
+    "searching": "Mencari...",
+    "searchingContents": "Mencari isi berkas...",
+    "searchingContentsShort": "Mencari isi...",
+    "foundContentMatches": "Ditemukan {{count}} kecocokan isi",
+    "noFilesMatching": "Tidak ada berkas yang cocok dengan '{{query}}'",
+    "foundInFolders": "Ditemukan {{count}} berkas dalam {{folders}} folder",
+    "foundInFolders_one": "Ditemukan {{count}} berkas dalam {{folders}} folder",
+    "foundInFolders_other": "Ditemukan {{count}} berkas dalam {{folders}} folder",
+    "totalMore": "({{total}} total)",
+    "noResultsFor": "Tidak ada hasil untuk '{{query}}'",
+    "resultsAria": "Hasil pencarian",
+    "localTitle": "Cari nama berkas di folder saat ini dan subfoldernya",
+    "aiTitle": "Pencarian AI dengan bahasa alami, isi berkas, dan pencocokan semantik",
+    "localScope": "Folder Saat Ini",
+    "localPlaceholder": "Cari berkas dan folder...",
+    "aiPlaceholder": "Cari dengan bahasa alami...",
+    "localShort": "Cari berkas dan folder",
+    "aiShort": "Pencarian AI",
+    "clearSearch": "Hapus pencarian",
+    "typeToSearch": "Ketik untuk mencari berkas dan folder",
+    "toggleHint": "Ctrl+Shift+F untuk membuka atau menutup panel ini",
+    "aiPowered": "Pencarian dengan AI",
+    "tryNatural": "Coba bahasa alami seperti \"gambar besar minggu lalu\" atau \"berkas kode yang baru diubah\"",
+    "searchInContents": "Cari dalam isi berkas",
+    "tryAiSearch": "Coba pencarian AI",
+    "noContentMatches": "Tidak ada kecocokan isi untuk '{{query}}'",
+    "tryShorterTerm": "Coba istilah yang lebih pendek atau berbeda"
+  },
+  "collections": {
+    "builtin": {
+      "largeFiles": "Berkas Besar",
+      "recentFiles": "Berkas Terbaru",
+      "images": "Gambar",
+      "documents": "Dokumen",
+      "codeFiles": "Berkas Kode"
+    }
+  },
+  "sidebarDrives": {
+    "localDisk": "Disk Lokal",
+    "noExternalVolumes": "Tidak ada drive eksternal yang terhubung",
+    "freeSpace": "{{size}} GB tersedia"
   },
   "agentManager": {
     "sections": {
@@ -2259,7 +2309,8 @@
       "sessionHistory": "Riwayat Sesi",
       "sharedDiscoveries": "Penemuan Bersama",
       "skillsBrowser": "Marketplace Skill",
-      "crossDirectory": "Lintas Direktori"
+      "crossDirectory": "Lintas Direktori",
+      "scheduled": "Terjadwal"
     },
     "discoveries": {
       "empty": "Belum ada penemuan bersama",

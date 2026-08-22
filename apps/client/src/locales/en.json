@@ -327,7 +327,8 @@
       "autoFolderSizesDesc": "Automatically calculate and display folder sizes in details view",
       "preview": "Preview",
       "markdownPreview": "Markdown Preview",
-      "markdownPreviewDesc": "Render markdown files instead of showing raw text"
+      "markdownPreviewDesc": "Render markdown files instead of showing raw text",
+      "auto": "Auto"
     },
     "ai": {
       "agent": "Agent",
@@ -2244,7 +2245,56 @@
     "aiProvider": "via {{provider}}",
     "aiNoProvider": "No AI available, using text search",
     "aiSearchTerms": "Search terms",
-    "aiMatchedItems": "Matched from folder"
+    "aiMatchedItems": "Matched from folder",
+    "filters": {
+      "all": "All",
+      "files": "Files",
+      "folders": "Folders",
+      "documents": "Documents",
+      "images": "Images",
+      "code": "Code"
+    },
+    "searching": "Searching...",
+    "searchingContents": "Searching file contents...",
+    "searchingContentsShort": "Searching contents...",
+    "foundContentMatches": "Found {{count}} content matches",
+    "noFilesMatching": "No files matching '{{query}}'",
+    "foundInFolders": "Found {{count}} files in {{folders}} folders",
+    "foundInFolders_one": "Found {{count}} file in {{folders}} folder",
+    "foundInFolders_other": "Found {{count}} files in {{folders}} folders",
+    "totalMore": "({{total}} total)",
+    "noResultsFor": "No results for '{{query}}'",
+    "resultsAria": "Search results",
+    "localTitle": "Search file names in the current folder tree",
+    "aiTitle": "AI search with natural language, content search, and semantic matching",
+    "localScope": "Current Folder",
+    "localPlaceholder": "Search files and folders...",
+    "aiPlaceholder": "Natural language search...",
+    "localShort": "Search files and folders",
+    "aiShort": "AI Search",
+    "clearSearch": "Clear search",
+    "typeToSearch": "Type to search files and folders",
+    "toggleHint": "Ctrl+Shift+F to toggle this panel",
+    "aiPowered": "AI-powered search",
+    "tryNatural": "Try natural language like \"large images from last week\" or \"recently modified code files\"",
+    "searchInContents": "Search in file contents",
+    "tryAiSearch": "Try AI search instead",
+    "noContentMatches": "No content matches for '{{query}}'",
+    "tryShorterTerm": "Try a shorter or different search term"
+  },
+  "collections": {
+    "builtin": {
+      "largeFiles": "Large Files",
+      "recentFiles": "Recent Files",
+      "images": "Images",
+      "documents": "Documents",
+      "codeFiles": "Code Files"
+    }
+  },
+  "sidebarDrives": {
+    "localDisk": "Local Disk",
+    "noExternalVolumes": "No external drives connected",
+    "freeSpace": "{{size}} GB free"
   },
   "agentManager": {
     "sections": {

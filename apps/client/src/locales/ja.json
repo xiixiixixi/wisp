@@ -327,7 +327,8 @@
       "autoFolderSizesDesc": "詳細ビューでフォルダサイズを自動計算して表示",
       "preview": "プレビュー",
       "markdownPreview": "Markdown プレビュー",
-      "markdownPreviewDesc": "Markdown ファイルを生テキストではなくレンダリング表示"
+      "markdownPreviewDesc": "Markdown ファイルを生テキストではなくレンダリング表示",
+      "auto": "自動"
     },
     "ai": {
       "agent": "エージェント",
@@ -2244,7 +2245,56 @@
     "aiProvider": "{{provider}} 経由",
     "aiNoProvider": "AI 利用不可、テキスト検索を使用",
     "aiSearchTerms": "検索キーワード",
-    "aiMatchedItems": "フォルダ一致"
+    "aiMatchedItems": "フォルダ一致",
+    "filters": {
+      "all": "すべて",
+      "files": "ファイル",
+      "folders": "フォルダ",
+      "documents": "ドキュメント",
+      "images": "画像",
+      "code": "コード"
+    },
+    "searching": "検索中...",
+    "searchingContents": "ファイル内容を検索中...",
+    "searchingContentsShort": "内容を検索中...",
+    "foundContentMatches": "{{count}} 件の内容一致が見つかりました",
+    "noFilesMatching": "「{{query}}」に一致するファイルはありません",
+    "foundInFolders": "{{folders}} 個のフォルダで {{count}} 個のファイルが見つかりました",
+    "foundInFolders_one": "{{folders}} 個のフォルダで {{count}} 個のファイルが見つかりました",
+    "foundInFolders_other": "{{folders}} 個のフォルダで {{count}} 個のファイルが見つかりました",
+    "totalMore": "（合計 {{total}} 件）",
+    "noResultsFor": "「{{query}}」の検索結果はありません",
+    "resultsAria": "検索結果",
+    "localTitle": "現在のフォルダとサブフォルダをファイル名で検索",
+    "aiTitle": "自然言語、内容、意味を使った AI 検索",
+    "localScope": "現在のフォルダ",
+    "localPlaceholder": "ファイルとフォルダを検索...",
+    "aiPlaceholder": "自然言語で検索...",
+    "localShort": "ファイルとフォルダを検索",
+    "aiShort": "AI 検索",
+    "clearSearch": "検索をクリア",
+    "typeToSearch": "入力してファイルとフォルダを検索",
+    "toggleHint": "Ctrl+Shift+F でこのパネルを切り替え",
+    "aiPowered": "AI 検索",
+    "tryNatural": "「先週の大きな画像」や「最近変更したコードファイル」などを試してください",
+    "searchInContents": "ファイル内容を検索",
+    "tryAiSearch": "AI 検索を試す",
+    "noContentMatches": "「{{query}}」に一致する内容はありません",
+    "tryShorterTerm": "より短い別の検索語を試してください"
+  },
+  "collections": {
+    "builtin": {
+      "largeFiles": "大きなファイル",
+      "recentFiles": "最近のファイル",
+      "images": "画像",
+      "documents": "ドキュメント",
+      "codeFiles": "コードファイル"
+    }
+  },
+  "sidebarDrives": {
+    "localDisk": "ローカルディスク",
+    "noExternalVolumes": "外付けドライブは接続されていません",
+    "freeSpace": "空き {{size}} GB"
   },
   "agentManager": {
     "sections": {
@@ -2259,7 +2309,8 @@
       "sessionHistory": "セッション履歴",
       "sharedDiscoveries": "共有発見",
       "skillsBrowser": "スキルマーケットプレイス",
-      "crossDirectory": "クロスディレクトリ"
+      "crossDirectory": "クロスディレクトリ",
+      "scheduled": "スケジュール"
     },
     "discoveries": {
       "empty": "共有された発見はまだありません",

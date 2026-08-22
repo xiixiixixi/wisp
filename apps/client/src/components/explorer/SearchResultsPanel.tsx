@@ -387,10 +387,15 @@ const SearchResultsPanel = React.forwardRef<SearchResultsPanelHandle, SearchResu
               <span>{t('search.noFilesMatching', { query })}</span>
             ) : localResultCount > 0 ? (
               <span>
-                {t('search.foundInFolders', {
-                  count: localResultCount,
-                  folders: folderCount,
-                })}
+                {t(
+                  localResultCount === 1 && folderCount === 1
+                    ? 'search.foundInFolders_one'
+                    : 'search.foundInFolders_other',
+                  {
+                    count: localResultCount,
+                    folders: folderCount,
+                  },
+                )}
                 {localTotalResultCount > localResultCount &&
                   ` ${t('search.totalMore', { total: localTotalResultCount })}`}
               </span>
@@ -690,7 +695,7 @@ const SearchModeToggle = ({
       >
         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
       </svg>
-      Local
+      {i18n.t('search.localScope')}
     </button>
     <button
       onClick={() => setSearchMode('ai')}
@@ -729,7 +734,7 @@ const SearchModeToggle = ({
         <path d="M3 5h4" />
         <path d="M17 19h4" />
       </svg>
-      AI Search
+      {i18n.t('search.aiShort')}
     </button>
   </div>
 );

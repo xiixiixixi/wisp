@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import SearchResultsPanel from '@/components/explorer/SearchResultsPanel';
+import i18n from '@/i18n';
 
 const mockSetQuery = vi.fn();
 const mockSetActiveFilter = vi.fn();
@@ -45,8 +46,9 @@ describe('SearchResultsPanel', () => {
     onFileOpen: vi.fn(),
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+    await i18n.changeLanguage('en');
   });
 
   describe('Rendering', () => {

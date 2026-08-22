@@ -272,13 +272,13 @@ const RightSidebar = ({
   const getTabTitle = () => {
     if (showCompare) return i18n.t('dialogs.compareFiles.title');
     if (scrubberCompareFiles) return i18n.t('dialogs.compareFiles.title');
-    if (rightPanelTab === 'preview') return i18n.t('panels.core.preview');
-    if (rightPanelTab === 'tokenizer') return i18n.t('panels.core.tokenizer');
-    if (rightPanelTab === 'chat') return 'AI Chat';
-    if (rightPanelTab === 'agent-manager') return i18n.t('panels.core.agentManager');
-    if (rightPanelTab === 'performance') return i18n.t('panels.core.performance');
-    if (rightPanelTab === 'extensions') return i18n.t('panels.core.extensions');
-    if (rightPanelTab === 'marketplace') return i18n.t('panels.core.marketplace');
+    if (rightPanelTab === 'preview') return i18n.t('extensionsBar.preview');
+    if (rightPanelTab === 'tokenizer') return i18n.t('extensionsBar.contentSearch');
+    if (rightPanelTab === 'chat') return i18n.t('extensionsBar.aiChat');
+    if (rightPanelTab === 'agent-manager') return i18n.t('extensionsBar.agentManager');
+    if (rightPanelTab === 'performance') return i18n.t('extensionsBar.performance');
+    if (rightPanelTab === 'extensions') return i18n.t('extensionsBar.extensions');
+    if (rightPanelTab === 'marketplace') return i18n.t('extensionsBar.marketplace');
     const panel = extensionHost.getPanel(rightPanelTab);
     if (panel) return panel.title;
     return rightPanelTab;
