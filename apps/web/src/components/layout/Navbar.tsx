@@ -42,7 +42,7 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex shrink-0 items-center gap-2">
-            <img src="/logo.svg" alt="Wisp" className="h-8 w-8 rounded-lg" />
+            <img src="/logo.png" alt="Wisp" className="h-8 w-8 rounded-lg" />
             <span className="text-lg font-bold text-gray-900 dark:text-white">Wisp</span>
           </Link>
 

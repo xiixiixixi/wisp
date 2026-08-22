@@ -122,7 +122,7 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2">
-              <img src="/logo.svg" alt="Wisp" className="h-8 w-8 rounded-lg" />
+              <img src="/logo.png" alt="Wisp" className="h-8 w-8 rounded-lg" />
               <span className="text-lg font-bold text-gray-900 dark:text-white">{SITE_NAME}</span>
             </Link>
             <p className="mt-3 max-w-xs text-sm text-gray-500 dark:text-gray-400">
