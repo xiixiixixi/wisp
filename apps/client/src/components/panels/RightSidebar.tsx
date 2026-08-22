@@ -301,7 +301,7 @@ const RightSidebar = ({
       >
         {/* Right Panel Header */}
         <div
-          className="flex items-center justify-between border-b border-xp-border px-3 py-2"
+          className="wisp-no-select flex items-center justify-between border-b border-xp-border px-3 py-2"
           style={{ flexShrink: 0 }}
         >
           <h3 className="truncate text-sm font-medium">{getTabTitle()}</h3>

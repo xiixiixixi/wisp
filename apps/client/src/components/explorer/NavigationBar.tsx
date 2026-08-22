@@ -421,7 +421,7 @@ const NavigationBar = ({ currentPath, navigateToPath, refetch: _refetch }: Navig
   }, [currentPath, t]);
 
   return (
-    <div className="border-b border-xp-border bg-xp-surface px-3 py-1">
+    <div className="wisp-no-select border-b border-xp-border bg-xp-surface px-3 py-1">
       <div
         className="relative flex min-w-0 items-center rounded border border-xp-border bg-xp-bg px-2 py-0.5"
         style={

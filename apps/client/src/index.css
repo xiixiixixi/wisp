@@ -1009,6 +1009,21 @@ html[data-wisp-dragging="true"] * {
   user-select: none !important;
 }
 
+/* App chrome behaves like Finder chrome: labels, tabs, and navigation items
+   are controls rather than selectable document text. Explicit editing surfaces
+   remain selectable when they live inside one of these containers. */
+.wisp-no-select,
+.wisp-no-select * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+.wisp-no-select :is(input, textarea, [contenteditable="true"], [data-wisp-selectable="true"]),
+.wisp-no-select :is([contenteditable="true"], [data-wisp-selectable="true"]) * {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
 @keyframes xp-overlay-appear {
   from {
     opacity: 0;

@@ -154,7 +154,11 @@ const BottomPanel = ({
       style={{ height: height ?? 192 }}
     >
       {/* Bottom Panel Tabs */}
-      <div className="flex border-b border-xp-border" role="tablist" aria-label="Bottom panel tabs">
+      <div
+        className="wisp-no-select flex border-b border-xp-border"
+        role="tablist"
+        aria-label="Bottom panel tabs"
+      >
         {/* Core tabs */}
         {CORE_TABS.map((tab) => (
           <button

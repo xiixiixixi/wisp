@@ -124,7 +124,7 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
       data-tour={dataTour}
       role="navigation"
       aria-label={t('sidebar.explorerSidebar')}
-      className="flex flex-shrink-0 flex-col border-r border-xp-border bg-xp-surface"
+      className="wisp-sidebar wisp-no-select flex flex-shrink-0 flex-col border-r border-xp-border bg-xp-surface"
       style={{ width: width ?? 256, minHeight: 0, overflow: 'hidden' }}
     >
       {/* Sidebar tab bar */}

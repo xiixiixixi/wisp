@@ -57,6 +57,13 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
   // never conflicts with selecting text.
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return; // only left button
+    // Suppress the browser's selection gesture before it can begin. Waiting
+    // until the movement threshold is crossed is one event too late: the
+    // WebView may already have anchored a text selection on mousedown.
+    if (e.currentTarget instanceof HTMLElement && e.currentTarget.tabIndex >= 0) {
+      e.currentTarget.focus({ preventScroll: true });
+    }
+    e.preventDefault();
     mouseDownRef.current = { x: e.clientX, y: e.clientY };
     draggingRef.current = false;
   }, []);

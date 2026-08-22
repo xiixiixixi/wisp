@@ -422,6 +422,13 @@ describe('LeftSidebar', () => {
       const sidebar = container.firstChild as HTMLElement;
       expect(sidebar.getAttribute('data-tour')).toBe('sidebar-tour');
     });
+
+    it('prevents navigation labels from being selected during drag gestures', () => {
+      const { container } = render(<LeftSidebar {...mockProps} />);
+
+      const sidebar = container.firstChild as HTMLElement;
+      expect(sidebar).toHaveClass('wisp-no-select');
+    });
   });
 
   describe('Edge Cases', () => {

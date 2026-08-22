@@ -44,6 +44,7 @@ const Probe = () => {
   return (
     <div
       data-testid="probe"
+      tabIndex={0}
       {...handlers}
       onMouseDown={(e) => {
         handlers.onMouseDown(e);
@@ -136,6 +137,16 @@ describe('useDraggable', () => {
     fireEvent.mouseMove(el, { clientX: 102, clientY: 101 });
 
     expect(mockStartDrag).not.toHaveBeenCalled();
+  });
+
+  it('prevents primary mousedown from starting a text selection', () => {
+    const { getByTestId } = render(<Probe />);
+    const el = getByTestId('probe');
+
+    const allowed = fireEvent.mouseDown(el, { clientX: 100, clientY: 100, button: 0 });
+
+    expect(allowed).toBe(false);
+    expect(document.activeElement).toBe(el);
   });
 });
 

@@ -161,7 +161,7 @@ const TopBar = React.memo(
       return (
         <div
           data-tour={dataTour}
-          className="flex-none border-b border-xp-border bg-xp-surface backdrop-blur-xl"
+          className="wisp-titlebar wisp-no-select flex-none border-b border-xp-border bg-xp-surface backdrop-blur-xl"
         >
           {/* Row 1: Title bar (draggable) */}
           <div

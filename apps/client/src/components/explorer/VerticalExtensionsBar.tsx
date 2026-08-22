@@ -113,7 +113,7 @@ const VerticalExtensionsBar = ({
   return (
     <div
       data-tour={dataTour}
-      className="flex w-12 flex-col border-l border-xp-border bg-xp-surface"
+      className="wisp-panel-rail wisp-no-select flex w-12 flex-col border-l border-xp-border bg-xp-surface"
     >
       <div className="flex flex-col py-2">
         {/* Core panels (always available) */}

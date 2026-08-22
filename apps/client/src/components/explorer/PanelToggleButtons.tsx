@@ -17,7 +17,7 @@ const PanelToggleButtons = React.memo(
   }: PanelToggleButtonsProps) => {
     const { t } = useTranslation();
     return (
-      <div className="absolute bottom-4 right-4 space-y-2">
+      <div className="wisp-no-select absolute bottom-4 right-4 space-y-2">
         {rightSidebarCollapsed && (
           <button
             onClick={onToggleRightSidebar}

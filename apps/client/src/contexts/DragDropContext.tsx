@@ -134,6 +134,15 @@ const isDropTargetValid = (
 
 const DragDropContext = createContext<DragDropContextValue | null>(null);
 
+const setGlobalDragSelectionGuard = (active: boolean) => {
+  if (typeof document === 'undefined') return;
+  if (active) {
+    document.documentElement.setAttribute('data-wisp-dragging', 'true');
+  } else {
+    document.documentElement.removeAttribute('data-wisp-dragging');
+  }
+};
+
 export const DragDropProvider = ({ children }: { children: React.ReactNode }) => {
   const [dragState, dispatch] = useReducer(dragReducer, initialState);
   const stateRef = useRef(dragState);
@@ -327,6 +336,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
             if (paths?.length > 0) {
               dispatch({ type: 'SET_OVER_WINDOW', value: true });
               if (!stateRef.current.isDragging) {
+                setGlobalDragSelectionGuard(true);
                 dispatch({ type: 'START_DRAG', paths, source: 'external', op: 'copy' });
               }
             }
@@ -515,6 +525,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
                 }
               }
             }
+            setGlobalDragSelectionGuard(false);
             dispatch({ type: 'END_DRAG' });
           } else if (payload.type === 'leave') {
             clearHighlight();
@@ -522,6 +533,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
             dispatch({ type: 'SET_OVER_WINDOW', value: false });
             // Only end drag if it was external — internal startDrag returns to our window
             if (stateRef.current.dragSource === 'external') {
+              setGlobalDragSelectionGuard(false);
               dispatch({ type: 'END_DRAG' });
             }
           }
@@ -649,6 +661,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
   const startInternalDrag = useCallback((paths: string[], op: 'copy' | 'move' | 'link') => {
     if (endTimerRef.current) clearTimeout(endTimerRef.current);
     endTimerRef.current = null;
+    setGlobalDragSelectionGuard(true);
     dispatch({ type: 'START_DRAG', paths, source: 'internal', op });
   }, []);
 
@@ -658,6 +671,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
     // Cmd+Option = link) alive for that short hand-off window.
     if (endTimerRef.current) clearTimeout(endTimerRef.current);
     endTimerRef.current = setTimeout(() => {
+      setGlobalDragSelectionGuard(false);
       dispatch({ type: 'END_DRAG' });
       endTimerRef.current = null;
     }, 250);
@@ -671,12 +685,8 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
   );
 
   useEffect(() => {
-    if (dragState.isDragging) {
-      document.documentElement.setAttribute('data-wisp-dragging', 'true');
-    } else {
-      document.documentElement.removeAttribute('data-wisp-dragging');
-    }
-    return () => document.documentElement.removeAttribute('data-wisp-dragging');
+    setGlobalDragSelectionGuard(dragState.isDragging);
+    return () => setGlobalDragSelectionGuard(false);
   }, [dragState.isDragging]);
 
   useEffect(() => {
@@ -688,6 +698,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
       blurTimer = setTimeout(() => {
         const state = stateRef.current;
         if (state.isDragging && !state.isOverWindow) {
+          setGlobalDragSelectionGuard(false);
           dispatch({ type: 'END_DRAG' });
         }
       }, 50);
