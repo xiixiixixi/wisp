@@ -14,6 +14,8 @@ import { TauriAPI, type ConflictInfo } from '@/lib/tauri-api';
 import { validateDrop, buildDestinationPath, modifierDragOperation } from '@/lib/drag-utils';
 import { planTransfer, type ConflictPolicy, type TransferPlan } from '@/lib/drag-transfer';
 import { parseBrowserDrop, uniqueDroppedName } from '@/lib/drag-drop-content';
+import { listenForGlobalFileChanges, notifyFilesChanged } from '@/lib/file-change-events';
+import { ensureFileOperationProgressListener } from '@/lib/file-operation-progress';
 import { undoLastTransfer } from '@/hooks/use-transfer-history';
 import { ConflictResolutionDialog } from '@/components/dialogs/ConflictResolutionDialog';
 import { TransferProgressToast } from '@/components/explorer/TransferProgressToast';
@@ -25,6 +27,9 @@ interface DragState {
   dragSource: 'internal' | 'external' | null;
   draggedPaths: string[];
   hoveredDropTarget: string | null; // path from data-drop-target
+  /** The HTML badge only exists inside this webview. Hide it immediately when
+   * the native drag leaves the Wisp window. */
+  isOverWindow: boolean;
   operation: 'copy' | 'move' | 'link';
   /** Operation implied by the modifiers held at drag start. Cross-volume only
    * overrides the operation while baseOperation is 'move' (no modifiers). */
@@ -39,6 +44,7 @@ type DragAction =
       op: 'copy' | 'move' | 'link';
     }
   | { type: 'SET_HOVER'; targetPath: string | null }
+  | { type: 'SET_OVER_WINDOW'; value: boolean }
   | { type: 'SET_OPERATION'; op: 'copy' | 'move' | 'link' }
   | { type: 'SET_BASE_OPERATION'; op: 'copy' | 'move' | 'link' }
   | { type: 'END_DRAG' };
@@ -75,6 +81,7 @@ const initialState: DragState = {
   dragSource: null,
   draggedPaths: [],
   hoveredDropTarget: null,
+  isOverWindow: false,
   operation: 'move',
   baseOperation: 'move',
 };
@@ -87,12 +94,16 @@ const dragReducer = (state: DragState, action: DragAction): DragState => {
         dragSource: action.source,
         draggedPaths: action.paths,
         hoveredDropTarget: null,
+        isOverWindow: true,
         operation: action.op,
         baseOperation: action.op,
       };
     case 'SET_HOVER':
       if (state.hoveredDropTarget === action.targetPath) return state;
       return { ...state, hoveredDropTarget: action.targetPath };
+    case 'SET_OVER_WINDOW':
+      if (state.isOverWindow === action.value) return state;
+      return { ...state, isOverWindow: action.value };
     case 'SET_OPERATION':
       if (state.operation === action.op) return state;
       return { ...state, operation: action.op };
@@ -131,6 +142,19 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
   // Conflict dialog + progress toast state (rendered by the provider below)
   const [conflictRequest, setConflictRequest] = useState<ConflictRequest | null>(null);
   const [activeTransfer, setActiveTransfer] = useState<ActiveTransfer | null>(null);
+
+  // Receive refresh notifications from other Wisp windows and start listening
+  // for file-operation completion before a user can begin a transfer.
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    void listenForGlobalFileChanges()
+      .then((fn) => {
+        unlisten = fn;
+      })
+      .catch((error) => console.warn('Failed to listen for Wisp file changes:', error));
+    void ensureFileOperationProgressListener();
+    return () => unlisten?.();
+  }, []);
 
   // Web-mode hint: file drags need the desktop app
   const { t } = useTranslation();
@@ -176,6 +200,9 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
       policies: Map<string, ConflictPolicy> | null,
     ) => {
       try {
+        // Register the listener before Rust starts work. A same-volume move can
+        // finish as a single rename before the progress toast is mounted.
+        await ensureFileOperationProgressListener();
         const plan: TransferPlan = conflicts
           ? await planTransfer(
               sources,
@@ -193,9 +220,11 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
             };
 
         const ids: string[] = [];
+        let completedWithoutProgress = false;
         for (const item of plan.items) {
           if (item.merge) {
             await TauriAPI.copyDirMerge(item.source, item.dest);
+            completedWithoutProgress = true;
             continue;
           }
           // Cross-volume sources degrade to copy per item (macOS convention)
@@ -214,9 +243,11 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
 
         const count = plan.items.length;
         if (count === 0) {
-          window.dispatchEvent(new CustomEvent('files-changed'));
+          await notifyFilesChanged();
           return;
         }
+        if (completedWithoutProgress) await notifyFilesChanged();
+        if (ids.length === 0) return;
         setActiveTransfer({
           ids,
           itemCount: count,
@@ -228,7 +259,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
         window.dispatchEvent(
           new CustomEvent('drag-drop-error', { detail: { message: String(error) } }),
         );
-        window.dispatchEvent(new CustomEvent('files-changed'));
+        await notifyFilesChanged();
       }
     },
     [resolveSameVolume],
@@ -294,11 +325,15 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
             // Files entering the window (from OS or from our own startDrag)
             const paths = (payload as { type: string; paths: string[] }).paths;
             if (paths?.length > 0) {
+              dispatch({ type: 'SET_OVER_WINDOW', value: true });
               if (!stateRef.current.isDragging) {
                 dispatch({ type: 'START_DRAG', paths, source: 'external', op: 'copy' });
               }
             }
           } else if (payload.type === 'over') {
+            if (!stateRef.current.isOverWindow) {
+              dispatch({ type: 'SET_OVER_WINDOW', value: true });
+            }
             // Hovering — update cursor position and find drop target
             const pos = (payload as { type: string; position: { x: number; y: number } }).position;
             if (pos) {
@@ -430,7 +465,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
                         for (const sourcePath of paths) {
                           await TauriAPI.moveToTrash(sourcePath);
                         }
-                        window.dispatchEvent(new CustomEvent('files-changed'));
+                        await notifyFilesChanged();
                       } catch (error) {
                         window.dispatchEvent(
                           new CustomEvent('drag-drop-error', {
@@ -450,7 +485,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
                             const dest = buildDestinationPath(sourcePath, target.path);
                             await TauriAPI.createSymlink(sourcePath, dest);
                           }
-                          window.dispatchEvent(new CustomEvent('files-changed'));
+                          await notifyFilesChanged();
                           return;
                         }
                         // Default is move; copy on Option or external drags. Cross-volume
@@ -483,6 +518,8 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
             dispatch({ type: 'END_DRAG' });
           } else if (payload.type === 'leave') {
             clearHighlight();
+            cancelAnimationFrame(rafIdRef.current);
+            dispatch({ type: 'SET_OVER_WINDOW', value: false });
             // Only end drag if it was external — internal startDrag returns to our window
             if (stateRef.current.dragSource === 'external') {
               dispatch({ type: 'END_DRAG' });
@@ -527,7 +564,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
       if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z' || e.shiftKey) return;
       if (isEditableTarget(document.activeElement)) return;
       void undoLastTransfer().then((ok) => {
-        if (ok) window.dispatchEvent(new CustomEvent('files-changed'));
+        if (ok) void notifyFilesChanged();
       });
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -585,7 +622,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
               plan.bytes,
             );
           }
-          window.dispatchEvent(new CustomEvent('files-changed'));
+          await notifyFilesChanged();
         } catch (error) {
           window.dispatchEvent(
             new CustomEvent('drag-drop-error', { detail: { message: String(error) } }),
@@ -607,12 +644,59 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
     return () => {};
   }, []);
 
+  const endTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const startInternalDrag = useCallback((paths: string[], op: 'copy' | 'move' | 'link') => {
+    if (endTimerRef.current) clearTimeout(endTimerRef.current);
+    endTimerRef.current = null;
     dispatch({ type: 'START_DRAG', paths, source: 'internal', op });
   }, []);
 
   const endInternalDrag = useCallback(() => {
-    dispatch({ type: 'END_DRAG' });
+    // tauri-plugin-drag can invoke its completion callback just before the
+    // destination webview receives `drop`. Keep the operation (especially
+    // Cmd+Option = link) alive for that short hand-off window.
+    if (endTimerRef.current) clearTimeout(endTimerRef.current);
+    endTimerRef.current = setTimeout(() => {
+      dispatch({ type: 'END_DRAG' });
+      endTimerRef.current = null;
+    }, 250);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (endTimerRef.current) clearTimeout(endTimerRef.current);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (dragState.isDragging) {
+      document.documentElement.setAttribute('data-wisp-dragging', 'true');
+    } else {
+      document.documentElement.removeAttribute('data-wisp-dragging');
+    }
+    return () => document.documentElement.removeAttribute('data-wisp-dragging');
+  }, [dragState.isDragging]);
+
+  useEffect(() => {
+    let blurTimer: ReturnType<typeof setTimeout> | null = null;
+    const handleWindowBlur = () => {
+      // A different app normally gains focus only after accepting the drop.
+      // This is the safety net for native backends that omit the completion
+      // callback: wait for React to commit the preceding `leave`, then clear.
+      blurTimer = setTimeout(() => {
+        const state = stateRef.current;
+        if (state.isDragging && !state.isOverWindow) {
+          dispatch({ type: 'END_DRAG' });
+        }
+      }, 50);
+    };
+    window.addEventListener('blur', handleWindowBlur);
+    return () => {
+      window.removeEventListener('blur', handleWindowBlur);
+      if (blurTimer) clearTimeout(blurTimer);
+    };
   }, []);
 
   return (
@@ -620,7 +704,9 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
       value={{ dragState, registerDropTarget, startInternalDrag, endInternalDrag }}
     >
       {children}
-      {dragState.isDragging && <DragOverlay state={dragState} overlayRef={overlayRef} />}
+      {dragState.isDragging && dragState.isOverWindow && (
+        <DragOverlay state={dragState} overlayRef={overlayRef} />
+      )}
       {webHint && (
         <div
           role="status"

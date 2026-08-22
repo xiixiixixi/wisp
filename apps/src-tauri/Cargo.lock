@@ -7759,6 +7759,7 @@ dependencies = [
  "walkdir",
  "wasmi",
  "winreg 0.55.0",
+ "xattr",
  "xz2",
  "zip 0.6.6",
 ]

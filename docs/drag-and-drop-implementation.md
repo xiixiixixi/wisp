@@ -1,7 +1,7 @@
 # Wisp 拖拽功能实施文档（macOS）
 
 > 平台范围：**仅 macOS**。本文是 [drag-and-drop-spec.md](./drag-and-drop-spec.md) 的实施分解：每个功能对应哪些文件（新建 / 修改）、按什么顺序做、怎么验证。
-> 文档日期：2026-08-20
+> 文档日期：2026-08-22（补充真机反馈修复）
 
 ## 1. 现状盘点
 
@@ -281,7 +281,22 @@ drop 校验通过
 
 - 新增命令：`create_symlink(source: String, dest: String) -> Result<(), String>`（`std::os::unix::fs::symlink`，校验 dest 不存在），放 `copy_move.rs`；SDK + 前端 facade 接线
 - UI 文案统一用「创建符号链接」，避免与 Finder「替身」混淆
-- 真 Finder 替身（core-foundation bookmark）列为后续项
+- `read_directory` 同时返回 `is_symlink` / `symlink_target` / `is_alias`：symlink 用 `symlink_metadata` + `read_link` 识别；macOS Finder 替身读取 `com.apple.FinderInfo` 的 `kIsAlias` 标志
+- `FileReferenceBadge.tsx` 统一渲染：链条 = symlink，箭头 = Finder 替身；创建/解析真 Finder 替身仍列为后续项
+
+### 4.9 多分栏、多窗口刷新
+
+- `files-changed` 只在一个 WebView 内有效，因此只能刷新单个 Wisp 窗口；原实现不能满足两窗口验收
+- `file-change-events.ts` 先立即派发本地 `files-changed`，再通过 Tauri `wisp-files-changed` 广播给其他窗口；来源窗口用 source id 去重
+- `EditorGroupPane` 收到本地事件后统一失效 `['files']` 查询，因此同一窗口的左、右分栏一起重新读取
+- 手动刷新、symlink、废纸篓、撤销、浏览器内容落盘等无进度操作统一走 `notifyFilesChanged`
+- `file-operation-progress.ts` 在传输前建立唯一监听、缓存最后进度；每个窗口收到 Completed/Failed/Cancelled 后刷新本窗，避免快速 rename 的完成事件早于 toast 挂载
+
+### 4.10 离开窗口与操作交接
+
+- 新增 `isOverWindow`：收到 native `leave` 立即清高亮、停 rAF、隐藏 Web overlay；外部应用继续显示 macOS 原生幽灵图
+- 原生拖拽结束回调延迟 250ms 清理内部操作，给目的 WebView 的 `drop` 留出交接时间，避免 ⌘⌥ 的 `link` 被提前重置为 `move`
+- 拖拽活动期在 document 根节点临时禁用文字选择；END_DRAG 和卸载时必定清理
 
 ## 5. 文件改动总表
 
@@ -294,16 +309,20 @@ drop 校验通过
 | `apps/client/src/components/explorer/TreeView.tsx` | 0 | 修改 | 行拖出 |
 | `apps/client/src/components/dialogs/ConflictResolutionDialog.tsx` | 1 | **新建** | 冲突对话框 |
 | `apps/client/src/components/explorer/TransferProgressToast.tsx` | 1 | **新建** | 进度 + 取消 UI |
+| `apps/client/src/lib/file-operation-progress.ts` | 修复 | **新建** | 提前监听并缓存快速操作终态 |
+| `apps/client/src/lib/file-change-events.ts` | 修复 | **新建** | 当前窗口全分栏 + 跨 Wisp 窗口刷新 |
+| `apps/client/src/components/explorer/FileReferenceBadge.tsx` | 修复 | **新建** | symlink / Finder 替身视觉及辅助功能标识 |
 | `apps/client/src/hooks/use-transfer-history.ts` | 1 | **新建** | 撤销摘要记录 |
 | `apps/client/src/components/TrashPage.tsx` | 2 | 修改 | 废纸篓落点 |
 | `apps/client/src/components/explorer/LeftSidebar.tsx` | 2 | 修改 | 侧栏废纸篓落点 |
 | `apps/client/src/components/explorer/sidebar/SidebarBookmarks.tsx` | 2/4 | 修改 | 收藏落点 + 排序 |
 | `apps/client/src/components/explorer/sidebar/SidebarDrives.tsx` | 2 | 修改 | 驱动器落点 |
 | `apps/client/src/components/explorer/NavigationBar.tsx` | 2 | 修改 | 面包屑落点 |
-| `apps/client/src/locales/en.json` / `zh.json` | 0/1 | 修改 | 新增 §4.6 键 |
+| `apps/client/src/locales/en.json` / `zh.json` | 0/1/修复 | 修改 | 新增 §4.6 与链接标识键 |
 | `apps/client/src/lib/tauri-api/file-system.ts` | 0/1/2 | 修改 | overwrite 参数、same_volume、stat_paths、create_symlink 接线 |
 | `packages/sdk/src/services/file-system.ts` | 0/1/2 | 修改 | 同上（SDK 服务层） |
 | `apps/src-tauri/src/operations/file_ops/copy_move.rs` | 0/1/2 | 修改 | overwrite 参数、same_volume、stat_paths、create_symlink |
+| `apps/src-tauri/src/operations/directory_ops.rs` / `types.rs` | 修复 | 修改 | symlink 与 Finder 替身元数据 |
 | `apps/client/src/components/explorer/FileGrid.tsx` | 4 | 修改 | 手动排序（可选） |
 | `apps/client/src/components/split-view/PaneTabBar.tsx` | 4 | 修改 | 拖出新窗（可选） |
 | 测试文件（见 §6） | 各阶段 | 修改/新建 | 单测 |
@@ -378,5 +397,6 @@ drop 校验通过
 2. **WKWebView 非文件拖入**（DRI-04/05）：❌ 已探针实测确认——macOS Tauri 下 HTML5 drop 事件不达页面。HTML5 处理现在**两种模式都注册**：桌面端被 WRY 拦截不触发；网页版事件可到达、解析逻辑生效，但落盘依赖后端（当前网页版无文件后端）。后续如需桌面端支持须扩展 WRY Rust 侧 drag handler。
 3. **原生拖拽期间键盘事件**（INT-02）：系统接管拖拽后 keydown 可能到不了 webview，修饰键实时切换需手工确认（清单 #11）；fallback 用拖拽启动时的修饰键状态定 op。
 4. **overwrite 参数改动**：`copy_with_progress` 默认 `overwrite: false`，现有调用方（paste-helpers 等）行为不变。
-5. **symlink 与 Finder 替身差异**：v1 明确做 symlink 并统一文案，真替身后续用 core-foundation 补。
-6. **拖拽期间视图刷新**：传输中 `files-changed` 触发重渲染可能打断后续 drop 目标高亮，进度 UI 期间考虑节流刷新（暂未实施，观察项）。
+5. **symlink 与 Finder 替身差异**：⌘⌥ 明确创建 symlink；列表可识别并区分已有 Finder 替身，但不创建、不解析替身目标。
+6. **拖拽期间视图刷新**：只在操作终态刷新，不在传输中持续刷新，避免重渲染打断落点高亮。
+7. **跨窗口操作语义**：刷新已跨窗口；若要让目标窗口继承源窗口的 move/copy/link 状态，还需新增跨 WebView drag-session 同步，不能把任意外部文件拖入误判成内部移动。

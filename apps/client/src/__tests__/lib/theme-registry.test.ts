@@ -13,18 +13,18 @@ import { renderHook, act } from '@testing-library/react';
 vi.mock('@/lib/utils', () => ({
   themes: {
     glass: {
-      name: 'Wisp Glass',
-      primary: '#6366f1',
-      bg: 'transparent',
-      surface: 'rgba(255,255,255,0.06)',
-      text: 'rgba(255,255,255,0.92)',
+      name: 'Wisp Slate',
+      primary: '#8aa8c8',
+      bg: '#242a32',
+      surface: '#2b323b',
+      text: '#edf0f3',
     },
     light: {
-      name: 'Light',
-      primary: '#3b82f6',
-      bg: '#ffffff',
-      surface: '#f8fafc',
-      text: '#1e293b',
+      name: 'Wisp Paper',
+      primary: '#4f759b',
+      bg: '#f1f3f5',
+      surface: '#e8ecf0',
+      text: '#26313b',
     },
   },
   loadCustomThemes: () => ({}),
@@ -46,9 +46,9 @@ describe('theme-registry', () => {
     it('includes built-in themes', () => {
       const themes = getAllThemes();
       expect(themes.glass).toBeDefined();
-      expect(themes.glass.name).toBe('Wisp Glass');
+      expect(themes.glass.name).toBe('Wisp Slate');
       expect(themes.light).toBeDefined();
-      expect(themes.light.name).toBe('Light');
+      expect(themes.light.name).toBe('Wisp Paper');
     });
   });
 

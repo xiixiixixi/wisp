@@ -963,6 +963,51 @@ mod tests {
         assert!(result.is_err());
     }
 
+    #[test]
+    fn test_find_files_bounded_skips_hidden_and_noisy_directories() {
+        let temp = tempfile::tempdir().expect("create temp dir");
+        let root = temp.path();
+        std::fs::create_dir_all(root.join("visible/nested")).unwrap();
+        std::fs::create_dir_all(root.join(".git")).unwrap();
+        std::fs::create_dir_all(root.join("node_modules/pkg")).unwrap();
+        std::fs::write(root.join("visible/needle-one.txt"), "one").unwrap();
+        std::fs::write(root.join("visible/nested/needle-two.txt"), "two").unwrap();
+        std::fs::write(root.join(".git/needle-hidden.txt"), "hidden").unwrap();
+        std::fs::write(root.join("node_modules/pkg/needle-vendor.txt"), "vendor").unwrap();
+
+        let results = find_files_bounded(&root.to_path_buf(), "needle", 10, 100).unwrap();
+
+        assert_eq!(results.len(), 2);
+        assert!(results.iter().all(|path| !path.contains(".git")));
+        assert!(results.iter().all(|path| !path.contains("node_modules")));
+    }
+
+    #[test]
+    fn test_find_files_bounded_stops_at_result_limit() {
+        let temp = tempfile::tempdir().expect("create temp dir");
+        for index in 0..10 {
+            std::fs::write(temp.path().join(format!("needle-{index}.txt")), "match").unwrap();
+        }
+
+        let results = find_files_bounded(&temp.path().to_path_buf(), "needle", 3, 100).unwrap();
+
+        assert_eq!(results.len(), 3);
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn test_empty_spotlight_fallback_is_limited_to_unreliable_locations() {
+        assert!(should_fallback_after_empty_spotlight(&PathBuf::from(
+            "/Users/test/.hidden/files"
+        )));
+        assert!(should_fallback_after_empty_spotlight(&PathBuf::from(
+            "/Volumes/External"
+        )));
+        assert!(!should_fallback_after_empty_spotlight(&PathBuf::from(
+            "/Users/test/Documents"
+        )));
+    }
+
     // ─── build_shell_command tests ───────────────────────────────────────
 
     #[test]
@@ -998,25 +1043,202 @@ pub async fn find_files(pattern: String, search_path: String) -> Result<Vec<Stri
         return Err("Search path does not exist or is not a directory".to_string());
     }
 
-    tokio::task::spawn_blocking(move || {
-        let mut files = Vec::new();
-        walk_files(&root, &mut files)?;
+    tokio::task::spawn_blocking(move || find_files_fast(&root, &pattern))
+        .await
+        .map_err(|e| e.to_string())?
+}
 
-        let pattern_lower = pattern.to_lowercase();
-        Ok(files
-            .into_iter()
-            .filter_map(|p| {
-                let name = p.file_name()?.to_string_lossy().to_lowercase();
-                if name.contains(&pattern_lower) {
-                    Some(p.to_string_lossy().to_string())
-                } else {
-                    None
-                }
-            })
-            .collect())
+const FILE_SEARCH_MAX_RESULTS: usize = 1_000;
+const FILE_SEARCH_MAX_SCANNED_ENTRIES: usize = 50_000;
+
+/// Search file names without allowing one query to walk an unlimited tree.
+/// macOS delegates to Spotlight's central metadata store; other platforms and
+/// Spotlight launch failures use a bounded filesystem fallback.
+fn find_files_fast(root: &PathBuf, pattern: &str) -> Result<Vec<String>, String> {
+    if pattern.trim().is_empty() {
+        return Ok(Vec::new());
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        match find_files_with_spotlight(root, pattern, FILE_SEARCH_MAX_RESULTS) {
+            Ok(results)
+                if !results.is_empty() || !should_fallback_after_empty_spotlight(root) =>
+            {
+                return Ok(results);
+            }
+            Ok(_) | Err(_) => {
+                // Spotlight commonly excludes hidden directories and may be
+                // disabled on external volumes. Only those locations get the
+                // bounded fallback when Spotlight returns no matches.
+            }
+        }
+    }
+
+    find_files_bounded(
+        root,
+        pattern,
+        FILE_SEARCH_MAX_RESULTS,
+        FILE_SEARCH_MAX_SCANNED_ENTRIES,
+    )
+}
+
+#[cfg(target_os = "macos")]
+fn should_fallback_after_empty_spotlight(root: &PathBuf) -> bool {
+    use std::path::Component;
+
+    if root.starts_with("/Volumes") {
+        return true;
+    }
+
+    root.components().any(|component| match component {
+        Component::Normal(name) => name.to_string_lossy().starts_with('.'),
+        _ => false,
     })
-    .await
-    .map_err(|e| e.to_string())?
+}
+
+#[cfg(target_os = "macos")]
+fn find_files_with_spotlight(
+    root: &PathBuf,
+    pattern: &str,
+    max_results: usize,
+) -> Result<Vec<String>, String> {
+    use std::io::{BufRead, BufReader};
+    use std::process::{Command, Stdio};
+
+    // Arguments are passed directly to mdfind (no shell), so file names and
+    // paths cannot be interpreted as shell syntax.
+    let mut child = Command::new("/usr/bin/mdfind")
+        .arg("-0")
+        .arg("-onlyin")
+        .arg(root)
+        .arg("-name")
+        .arg(pattern)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .map_err(|e| format!("Failed to start Spotlight search: {e}"))?;
+
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| "Failed to read Spotlight search output".to_string())?;
+    let mut reader = BufReader::new(stdout);
+    let mut record = Vec::new();
+    let mut results = Vec::new();
+    let mut reached_limit = false;
+
+    loop {
+        record.clear();
+        let bytes_read = match reader.read_until(0, &mut record) {
+            Ok(bytes_read) => bytes_read,
+            Err(error) => {
+                drop(reader);
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err(format!("Failed to read Spotlight search output: {error}"));
+            }
+        };
+        if bytes_read == 0 {
+            break;
+        }
+        if record.last() == Some(&0) {
+            record.pop();
+        }
+        if record.is_empty() {
+            continue;
+        }
+
+        let path = PathBuf::from(String::from_utf8_lossy(&record).into_owned());
+        // Finder-style name search includes both files and folders. Drop stale
+        // metadata records whose paths no longer exist.
+        if path.exists() {
+            results.push(path.to_string_lossy().to_string());
+        }
+        if results.len() >= max_results {
+            reached_limit = true;
+            break;
+        }
+    }
+
+    drop(reader);
+    if reached_limit {
+        let _ = child.kill();
+    }
+    let status = child
+        .wait()
+        .map_err(|e| format!("Failed to finish Spotlight search: {e}"))?;
+    if !reached_limit && !status.success() {
+        return Err(format!("Spotlight search exited with status {status}"));
+    }
+
+    Ok(results)
+}
+
+fn find_files_bounded(
+    root: &PathBuf,
+    pattern: &str,
+    max_results: usize,
+    max_scanned_entries: usize,
+) -> Result<Vec<String>, String> {
+    let pattern_lower = pattern.to_lowercase();
+    let mut pending = vec![root.clone()];
+    let mut results = Vec::new();
+    let mut scanned_entries = 0usize;
+
+    while let Some(directory) = pending.pop() {
+        let entries = match std::fs::read_dir(&directory) {
+            Ok(entries) => entries,
+            Err(error) if directory == *root => {
+                return Err(format!(
+                    "Failed to read directory {}: {}",
+                    directory.display(),
+                    error
+                ));
+            }
+            // A single protected/unmounted child should not fail the whole search.
+            Err(_) => continue,
+        };
+
+        for entry in entries.flatten() {
+            if results.len() >= max_results || scanned_entries >= max_scanned_entries {
+                return Ok(results);
+            }
+            scanned_entries += 1;
+
+            let path = entry.path();
+            let name = entry.file_name().to_string_lossy().to_string();
+            let Ok(file_type) = entry.file_type() else {
+                continue;
+            };
+
+            if file_type.is_dir() {
+                if name.starts_with('.') || GREP_SKIP_DIRS.contains(&name.as_str()) {
+                    continue;
+                }
+                if name.to_lowercase().contains(&pattern_lower) {
+                    results.push(path.to_string_lossy().to_string());
+                    if results.len() >= max_results {
+                        return Ok(results);
+                    }
+                }
+                pending.push(path);
+                continue;
+            }
+
+            // Keep symlink entries as results, but never traverse through them.
+            let is_searchable_file =
+                file_type.is_file() || (file_type.is_symlink() && path.exists());
+            if is_searchable_file
+                && !name.starts_with('.')
+                && name.to_lowercase().contains(&pattern_lower)
+            {
+                results.push(path.to_string_lossy().to_string());
+            }
+        }
+    }
+
+    Ok(results)
 }
 
 #[command]

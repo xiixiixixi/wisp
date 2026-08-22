@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import LeftSidebar from '@/components/explorer/LeftSidebar';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
@@ -7,6 +7,7 @@ import { FileEntry, TauriAPI } from '@/lib/tauri-api';
 // Mock constants
 vi.mock('@/lib/constants', () => ({
   isWindows: true,
+  isMac: false,
   PATH_SEPARATOR: '\\',
   ROOT_PATH: 'C:\\',
 }));
@@ -41,6 +42,8 @@ vi.mock('@/lib/extension-host', () => ({
     getNavigationEntries: vi.fn(() => []),
     getSidebarTabs: vi.fn(() => []),
     getSidebarTabRenderer: vi.fn(() => null),
+    subscribe: vi.fn(() => () => {}),
+    getSnapshotVersion: vi.fn(() => 0),
     onChange: vi.fn(() => () => {}),
   },
 }));
@@ -181,7 +184,7 @@ describe('LeftSidebar', () => {
       });
 
       fireEvent.click(screen.getByText('home'));
-      expect(mockProps.navigateToPath).toHaveBeenCalledWith('C:\\Users\\Test');
+      expect(mockProps.navigateToPath).toHaveBeenCalledWith('wisp://home');
     });
 
     it('navigates to Documents when Documents is clicked', async () => {
@@ -207,21 +210,23 @@ describe('LeftSidebar', () => {
     });
   });
 
-  describe('Bookmarks Section', () => {
-    it('renders favorites header', async () => {
+  describe('Bookmarks in Quick Access', () => {
+    it('does not render a separate favorites section', async () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('favorites')).toBeInTheDocument();
+        expect(screen.getByText('quickAccess')).toBeInTheDocument();
       });
+      expect(screen.queryByText('favorites')).not.toBeInTheDocument();
     });
 
-    it('shows empty bookmarks message when none exist', async () => {
+    it('does not add an empty bookmark message to Quick Access', async () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('noBookmarks')).toBeInTheDocument();
+        expect(TauriAPI.getBookmarks).toHaveBeenCalled();
       });
+      expect(screen.queryByText('noBookmarks')).not.toBeInTheDocument();
     });
 
     it('renders bookmark items when bookmarks exist', async () => {
@@ -264,7 +269,7 @@ describe('LeftSidebar', () => {
         expect(screen.getByText('MyFolder')).toBeInTheDocument();
       });
 
-      const removeButton = screen.getByTitle('Remove bookmark');
+      const removeButton = screen.getByTitle('remove');
       fireEvent.click(removeButton);
 
       expect(TauriAPI.removeBookmark).toHaveBeenCalledWith('C:\\Users\\Test\\MyFolder');
@@ -300,6 +305,20 @@ describe('LeftSidebar', () => {
       // The drive button wraps the text; click the text element
       fireEvent.click(screen.getByText('C:'));
       expect(mockProps.navigateToPath).toHaveBeenCalledWith('C:\\');
+    });
+
+    it('refreshes mounted drives when the window regains focus', async () => {
+      render(<LeftSidebar {...mockProps} />);
+
+      await waitFor(() => {
+        expect(TauriAPI.listDrives).toHaveBeenCalledTimes(1);
+      });
+
+      fireEvent.focus(window);
+
+      await waitFor(() => {
+        expect(TauriAPI.listDrives).toHaveBeenCalledTimes(2);
+      });
     });
   });
 
@@ -339,9 +358,7 @@ describe('LeftSidebar', () => {
     it('shows "No recent files" when recent list is empty and expanded', async () => {
       vi.mocked(TauriAPI.getRecentFiles).mockResolvedValue([]);
 
-      await act(async () => {
-        render(<LeftSidebar {...mockProps} />);
-      });
+      render(<LeftSidebar {...mockProps} />);
 
       const toggleBtn = await waitFor(() => {
         const btn = screen.getByLabelText('Toggle recent files');
@@ -350,9 +367,7 @@ describe('LeftSidebar', () => {
       });
 
       // Expand the recent section
-      await act(async () => {
-        fireEvent.click(toggleBtn);
-      });
+      fireEvent.click(toggleBtn);
 
       await waitFor(() => {
         expect(toggleBtn).toHaveAttribute('aria-expanded', 'true');
@@ -366,12 +381,13 @@ describe('LeftSidebar', () => {
   // part of the core LeftSidebar component.
 
   describe('File Tree Section', () => {
-    it('renders file tree header', async () => {
+    it('does not render the file tree', async () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('fileTree')).toBeInTheDocument();
+        expect(screen.getByText('quickAccess')).toBeInTheDocument();
       });
+      expect(screen.queryByText('fileTree')).not.toBeInTheDocument();
     });
   });
 

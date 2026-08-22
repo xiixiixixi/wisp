@@ -73,7 +73,7 @@ export const getFileRecommendations = async (
   limit?: number,
 ): Promise<SearchResult[]> => await transport('get_file_recommendations', { filePath, limit });
 
-// ── Auto-index a directory (called on navigation) ───────────────────────────
+// ── Explicitly index a directory ────────────────────────────────────────────
 
 export const indexDirectory = async (path: string, maxDepth?: number): Promise<void> =>
   await transport('index_directory', { path, maxDepth: maxDepth || null });

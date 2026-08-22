@@ -154,6 +154,7 @@ impl SearchEngine {
     /// 2. Remove stale docs (deleted files or files with changed timestamps).
     /// 3. Index only new or modified files.
     /// 4. Rebuild FST + scorer stats.
+    #[allow(dead_code)] // Retained for a future explicit "refresh index" action.
     pub(crate) fn incremental_update_inner(
         index: &Arc<RwLock<SearchIndex>>,
         settings_arc: &Arc<Mutex<TokenizerSettings>>,
@@ -507,6 +508,7 @@ impl SearchEngine {
     }
 
     /// Start the filesystem watcher on all whitelisted paths.
+    #[allow(dead_code)] // Automatic recursive watching is intentionally disabled at startup.
     pub(crate) fn start_watcher_inner(
         index: &Arc<RwLock<SearchIndex>>,
         settings_arc: &Arc<Mutex<TokenizerSettings>>,

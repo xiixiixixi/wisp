@@ -29,7 +29,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
   const [newExtension, setNewExtension] = useState('');
   const [autoWhitelist, setAutoWhitelist] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.AUTO_WHITELIST_VISITED);
-    return saved !== null ? saved === 'true' : true; // default ON
+    return saved === 'true'; // explicit opt-in: browsing should never start indexing by default
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -213,7 +213,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
   if (isLoading) {
     return (
       <div className={`flex items-center justify-center p-8 ${className || ''}`}>
-        <div className="border-xp-blue h-8 w-8 animate-spin rounded-full border-b-2" />
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-xp-blue" />
       </div>
     );
   }
@@ -223,13 +223,13 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xp-text text-xl font-semibold">{t('settings.tokenizer.title')}</h2>
-          <p className="text-xp-text-muted text-sm">{t('settings.tokenizer.subtitle')}</p>
+          <h2 className="text-xl font-semibold text-xp-text">{t('settings.tokenizer.title')}</h2>
+          <p className="text-sm text-xp-text-muted">{t('settings.tokenizer.subtitle')}</p>
         </div>
 
         <div className="flex items-center space-x-2">
           {stats && (
-            <div className="text-xp-text-muted text-xs">
+            <div className="text-xs text-xp-text-muted">
               {t('settings.tokenizer.statsFilesTokens', {
                 files: stats.total_files,
                 tokens: stats.total_tokens.toLocaleString(),
@@ -243,10 +243,10 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
       </div>
 
       {/* Enable/Disable Toggle */}
-      <div className="bg-xp-surface border-xp-border flex items-center justify-between rounded-lg border p-4">
+      <div className="flex items-center justify-between rounded-lg border border-xp-border bg-xp-surface p-4">
         <div>
-          <h3 className="text-xp-text font-medium">{t('settings.tokenizer.enableIndexing')}</h3>
-          <p className="text-xp-text-muted text-sm">{t('settings.tokenizer.enableIndexingDesc')}</p>
+          <h3 className="font-medium text-xp-text">{t('settings.tokenizer.enableIndexing')}</h3>
+          <p className="text-sm text-xp-text-muted">{t('settings.tokenizer.enableIndexingDesc')}</p>
         </div>
         <button
           onClick={() => setSettings((prev) => ({ ...prev, enabled: !prev.enabled }))}
@@ -261,10 +261,10 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
       </div>
 
       {/* Auto-whitelist visited folders */}
-      <div className="bg-xp-surface border-xp-border flex items-center justify-between rounded-lg border p-4">
+      <div className="flex items-center justify-between rounded-lg border border-xp-border bg-xp-surface p-4">
         <div>
-          <h3 className="text-xp-text font-medium">{t('settings.tokenizer.autoWhitelist')}</h3>
-          <p className="text-xp-text-muted text-sm">{t('settings.tokenizer.autoWhitelistDesc')}</p>
+          <h3 className="font-medium text-xp-text">{t('settings.tokenizer.autoWhitelist')}</h3>
+          <p className="text-sm text-xp-text-muted">{t('settings.tokenizer.autoWhitelistDesc')}</p>
         </div>
         <button
           onClick={() => toggleAutoWhitelist(!autoWhitelist)}
@@ -280,10 +280,10 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
 
       {/* Indexing Status & Progress */}
       {(isIndexing || indexingProgress) && (
-        <div className="bg-xp-surface border-xp-border rounded-lg border p-4">
+        <div className="rounded-lg border border-xp-border bg-xp-surface p-4">
           <div className="mb-2 flex items-center space-x-2">
             <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
-            <h3 className="text-xp-text font-medium">
+            <h3 className="font-medium text-xp-text">
               {isIndexing
                 ? t('settings.tokenizer.indexingInProgress')
                 : t('settings.tokenizer.indexingComplete')}
@@ -304,14 +304,14 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
                 </span>
               </div>
 
-              <div className="bg-xp-bg h-2 w-full rounded-full">
+              <div className="h-2 w-full rounded-full bg-xp-bg">
                 <div
                   className="h-2 rounded-full bg-blue-500 transition-all duration-300"
                   style={{ width: `${indexingProgress.progress_percentage}%` }}
                 />
               </div>
 
-              <div className="text-xp-text-muted text-xs">
+              <div className="text-xs text-xp-text-muted">
                 {t('settings.tokenizer.currentFile', { file: indexingProgress.current_file })}
               </div>
             </div>
@@ -321,38 +321,38 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
 
       {/* Statistics */}
       {stats && (
-        <div className="bg-xp-surface border-xp-border rounded-lg border p-4">
-          <h3 className="text-xp-text mb-3 font-medium">{t('settings.tokenizer.statistics')}</h3>
+        <div className="rounded-lg border border-xp-border bg-xp-surface p-4">
+          <h3 className="mb-3 font-medium text-xp-text">{t('settings.tokenizer.statistics')}</h3>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div className="text-center">
-              <div className="text-xp-blue text-lg font-semibold">{stats.total_files}</div>
-              <div className="text-xp-text-muted text-xs">
+              <div className="text-lg font-semibold text-xp-blue">{stats.total_files}</div>
+              <div className="text-xs text-xp-text-muted">
                 {t('settings.tokenizer.filesIndexed')}
               </div>
             </div>
             <div className="text-center">
-              <div className="text-xp-blue text-lg font-semibold">
+              <div className="text-lg font-semibold text-xp-blue">
                 {stats.total_tokens.toLocaleString()}
               </div>
-              <div className="text-xp-text-muted text-xs">
+              <div className="text-xs text-xp-text-muted">
                 {t('settings.tokenizer.totalTokens')}
               </div>
             </div>
             <div className="text-center">
-              <div className="text-xp-blue text-lg font-semibold">
+              <div className="text-lg font-semibold text-xp-blue">
                 {Object.keys(stats.word_to_files || {}).length.toLocaleString()}
               </div>
-              <div className="text-xp-text-muted text-xs">
+              <div className="text-xs text-xp-text-muted">
                 {t('settings.tokenizer.uniqueWords')}
               </div>
             </div>
             <div className="text-center">
-              <div className="text-xp-blue text-lg font-semibold">
+              <div className="text-lg font-semibold text-xp-blue">
                 {stats.last_updated
                   ? new Date(stats.last_updated * 1000).toLocaleDateString()
                   : t('settings.tokenizer.never')}
               </div>
-              <div className="text-xp-text-muted text-xs">
+              <div className="text-xs text-xp-text-muted">
                 {t('settings.tokenizer.lastUpdated')}
               </div>
             </div>
@@ -361,15 +361,15 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
       )}
 
       {/* Whitelisted Paths */}
-      <div className="bg-xp-surface border-xp-border rounded-lg border p-4">
-        <h3 className="text-xp-text mb-3 font-medium">{t('settings.tokenizer.whitelistedDirs')}</h3>
-        <p className="text-xp-text-muted mb-3 text-xs">
+      <div className="rounded-lg border border-xp-border bg-xp-surface p-4">
+        <h3 className="mb-3 font-medium text-xp-text">{t('settings.tokenizer.whitelistedDirs')}</h3>
+        <p className="mb-3 text-xs text-xp-text-muted">
           {t('settings.tokenizer.whitelistedDirsDesc')}
         </p>
 
         <div className="mb-3 space-y-2">
           {settings.whitelisted_paths.map((path) => (
-            <div key={path} className="bg-xp-bg flex items-center justify-between rounded p-2">
+            <div key={path} className="flex items-center justify-between rounded bg-xp-bg p-2">
               <span className="font-mono text-sm">{path}</span>
               <button
                 onClick={() => removeWhitelistedPath(path)}
@@ -382,7 +382,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
           ))}
 
           {settings.whitelisted_paths.length === 0 && (
-            <div className="text-xp-text-muted py-4 text-center">
+            <div className="py-4 text-center text-xp-text-muted">
               {t('settings.tokenizer.noWhitelistedDirs')}
             </div>
           )}
@@ -395,11 +395,11 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
             onChange={(e) => setNewPath(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addWhitelistedPath()}
             placeholder={t('settings.tokenizer.addDirPlaceholder')}
-            className="bg-xp-bg border-xp-border flex-1 rounded border px-3 py-2 text-sm"
+            className="flex-1 rounded border border-xp-border bg-xp-bg px-3 py-2 text-sm"
           />
           <button
             onClick={addWhitelistedPath}
-            className="bg-xp-blue hover:bg-xp-blue-dark rounded px-4 py-2 text-sm text-white"
+            className="rounded bg-xp-blue px-4 py-2 text-sm text-white hover:bg-xp-blue-dark"
           >
             {t('common.add')}
           </button>
@@ -407,17 +407,17 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
       </div>
 
       {/* Blacklisted Extensions */}
-      <div className="bg-xp-surface border-xp-border rounded-lg border p-4">
-        <h3 className="text-xp-text mb-3 font-medium">
+      <div className="rounded-lg border border-xp-border bg-xp-surface p-4">
+        <h3 className="mb-3 font-medium text-xp-text">
           {t('settings.tokenizer.blacklistedExtensions')}
         </h3>
-        <p className="text-xp-text-muted mb-3 text-xs">
+        <p className="mb-3 text-xs text-xp-text-muted">
           {t('settings.tokenizer.blacklistedExtensionsDesc')}
         </p>
 
         <div className="mb-3 flex flex-wrap gap-2">
           {settings.blacklisted_extensions.map((ext) => (
-            <span key={ext} className="bg-xp-bg inline-flex items-center rounded px-2 py-1 text-sm">
+            <span key={ext} className="inline-flex items-center rounded bg-xp-bg px-2 py-1 text-sm">
               .{ext}
               <button
                 onClick={() => removeBlacklistedExtension(ext)}
@@ -437,11 +437,11 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
             onChange={(e) => setNewExtension(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addBlacklistedExtension()}
             placeholder={t('settings.tokenizer.addExtPlaceholder')}
-            className="bg-xp-bg border-xp-border flex-1 rounded border px-3 py-2 text-sm"
+            className="flex-1 rounded border border-xp-border bg-xp-bg px-3 py-2 text-sm"
           />
           <button
             onClick={addBlacklistedExtension}
-            className="bg-xp-blue hover:bg-xp-blue-dark rounded px-4 py-2 text-sm text-white"
+            className="rounded bg-xp-blue px-4 py-2 text-sm text-white hover:bg-xp-blue-dark"
           >
             {t('common.add')}
           </button>
@@ -449,15 +449,15 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
       </div>
 
       {/* Blacklisted Paths */}
-      <div className="bg-xp-surface border-xp-border rounded-lg border p-4">
-        <h3 className="text-xp-text mb-3 font-medium">{t('settings.tokenizer.blacklistedDirs')}</h3>
-        <p className="text-xp-text-muted mb-3 text-xs">
+      <div className="rounded-lg border border-xp-border bg-xp-surface p-4">
+        <h3 className="mb-3 font-medium text-xp-text">{t('settings.tokenizer.blacklistedDirs')}</h3>
+        <p className="mb-3 text-xs text-xp-text-muted">
           {t('settings.tokenizer.blacklistedDirsDesc')}
         </p>
 
         <div className="mb-3 space-y-2">
           {(settings.blacklisted_paths || []).map((path) => (
-            <div key={path} className="bg-xp-bg flex items-center justify-between rounded p-2">
+            <div key={path} className="flex items-center justify-between rounded bg-xp-bg p-2">
               <span className="font-mono text-sm">{path}</span>
               <button
                 onClick={() => removeBlacklistedPath(path)}
@@ -470,7 +470,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
           ))}
 
           {(!settings.blacklisted_paths || settings.blacklisted_paths.length === 0) && (
-            <div className="text-xp-text-muted py-4 text-center">
+            <div className="py-4 text-center text-xp-text-muted">
               {t('settings.tokenizer.noBlacklistedDirs')}
             </div>
           )}
@@ -483,11 +483,11 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
             onChange={(e) => setNewBlacklistPath(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addBlacklistedPath()}
             placeholder={t('settings.tokenizer.addExcludeDirPlaceholder')}
-            className="bg-xp-bg border-xp-border flex-1 rounded border px-3 py-2 text-sm"
+            className="flex-1 rounded border border-xp-border bg-xp-bg px-3 py-2 text-sm"
           />
           <button
             onClick={addBlacklistedPath}
-            className="bg-xp-blue hover:bg-xp-blue-dark rounded px-4 py-2 text-sm text-white"
+            className="rounded bg-xp-blue px-4 py-2 text-sm text-white hover:bg-xp-blue-dark"
           >
             {t('common.add')}
           </button>
@@ -495,8 +495,8 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
       </div>
 
       {/* Advanced Settings */}
-      <div className="bg-xp-surface border-xp-border rounded-lg border p-4">
-        <h3 className="text-xp-text mb-3 font-medium">
+      <div className="rounded-lg border border-xp-border bg-xp-surface p-4">
+        <h3 className="mb-3 font-medium text-xp-text">
           {t('settings.tokenizer.advancedSettings')}
         </h3>
 
@@ -518,7 +518,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
               }
               className="w-full"
             />
-            <div className="text-xp-text-muted mt-1 text-xs">
+            <div className="mt-1 text-xs text-xp-text-muted">
               {t('settings.tokenizer.maxFileSizeDesc')}
             </div>
           </div>
@@ -540,7 +540,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
               }
               className="w-full"
             />
-            <div className="text-xp-text-muted mt-1 text-xs">
+            <div className="mt-1 text-xs text-xp-text-muted">
               {t('settings.tokenizer.updateIntervalDesc')}
             </div>
           </div>
@@ -565,7 +565,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
               }
               className="w-full"
             />
-            <div className="text-xp-text-muted mt-1 text-xs">
+            <div className="mt-1 text-xs text-xp-text-muted">
               {t('settings.tokenizer.memoryLimitDesc')}
             </div>
           </div>
@@ -576,7 +576,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
       <div className="flex space-x-3">
         <button
           onClick={saveSettings}
-          className="bg-xp-blue hover:bg-xp-blue-dark flex-1 rounded px-4 py-2 text-white transition-colors"
+          className="flex-1 rounded bg-xp-blue px-4 py-2 text-white transition-colors hover:bg-xp-blue-dark"
         >
           {t('settings.tokenizer.saveSettings')}
         </button>

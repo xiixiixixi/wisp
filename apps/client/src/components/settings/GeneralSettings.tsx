@@ -15,7 +15,7 @@ import {
 import { startTour, resetTourCompleted } from '@/hooks/use-tour';
 import { resetBetaWarning } from '@/components/dialogs/BetaWarningDialog';
 import { applyFontSize, applyTheme } from '@/lib/utils';
-import { patchUiState, resolveTheme, markThemeChosen } from '@/lib/ui-state';
+import { patchUiState, markThemeChosen } from '@/lib/ui-state';
 import { useAllThemes } from '@/lib/theme-registry';
 import {
   Toggle,
@@ -72,7 +72,7 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
       >
         <SelectField
           label={t('settings.general.theme')}
-          value={resolveTheme()}
+          value={settings.theme}
           onChange={(v) => {
             markThemeChosen();
             updateSetting('theme', v);

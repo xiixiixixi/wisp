@@ -361,7 +361,7 @@ const StatusBar = ({ files, selectedFiles, currentPath, activeTab, vimState }: S
     <div
       role="status"
       aria-live="polite"
-      className="bg-xp-surface border-xp-border text-xp-text-secondary flex flex-shrink-0 select-none items-center justify-between border-t px-3 text-xs"
+      className="wisp-statusbar flex flex-shrink-0 select-none items-center justify-between border-t border-xp-border bg-xp-surface px-3 text-xs text-xp-text-secondary"
       style={{ minHeight: '24px', height: '24px' }}
     >
       {/* Left section */}

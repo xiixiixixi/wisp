@@ -70,7 +70,7 @@
     "collections": "FILTERS",
     "noCollections": "No filters yet",
     "drives": "DRIVES",
-    "volumes": "VOLUMES",
+    "volumes": "DISKS & VOLUMES",
     "fileTree": "FILE TREE",
     "navigateTo": "Navigate to {{label}} folder",
     "tabs": {
@@ -512,7 +512,7 @@
       "enabled": "Enabled",
       "disabled": "Disabled",
       "autoWhitelist": "Auto-whitelist visited folders",
-      "autoWhitelistDesc": "Automatically add every folder you navigate to the whitelist for indexing",
+      "autoWhitelistDesc": "When enabled, visited folders are added to the content index, which may increase disk use and background reads",
       "indexingInProgress": "Indexing in Progress",
       "indexingComplete": "Indexing Complete",
       "progressFiles": "{{processed}} / {{total}} files",
@@ -3033,7 +3033,9 @@
     "remove": "Remove bookmark"
   },
   "sidebarDrives": {
-    "localDisk": "Local Disk"
+    "localDisk": "Local Disk",
+    "noExternalVolumes": "No external volumes detected",
+    "freeSpace": "{{size}} GB free"
   },
   "activityFeed": {
     "earlierToday": "Earlier today",
@@ -3210,6 +3212,11 @@
     "hintReasoningCheap": "Reasoning · cheap",
     "hintOpenLarge": "Open · large",
     "hintXai": "xAI"
+  },
+  "fileReference": {
+    "symlink": "Symbolic link",
+    "symlinkTo": "Symbolic link to {{target}}",
+    "alias": "Finder alias"
   },
   "dragOverlay": {
     "copy": "Copy",

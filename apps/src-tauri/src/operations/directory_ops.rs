@@ -10,6 +10,30 @@ use tokio::sync::Semaphore;
 static FILE_IO_SEMAPHORE: LazyLock<Semaphore> =
     LazyLock::new(|| Semaphore::new(num_cpus::get().max(4) * 2));
 
+#[cfg(target_os = "macos")]
+fn finder_info_has_alias_flag(finder_info: &[u8]) -> bool {
+    // FinderInfo bytes 8..10 contain the big-endian Finder flags. kIsAlias is
+    // bit 0x8000. Short or missing attributes are not aliases.
+    finder_info
+        .get(8..10)
+        .map(|bytes| u16::from_be_bytes([bytes[0], bytes[1]]) & 0x8000 != 0)
+        .unwrap_or(false)
+}
+
+#[cfg(target_os = "macos")]
+fn is_finder_alias(path: &Path) -> bool {
+    xattr::get(path, "com.apple.FinderInfo")
+        .ok()
+        .flatten()
+        .map(|finder_info| finder_info_has_alias_flag(&finder_info))
+        .unwrap_or(false)
+}
+
+#[cfg(not(target_os = "macos"))]
+fn is_finder_alias(_path: &Path) -> bool {
+    false
+}
+
 #[command]
 pub async fn read_directory(path: String) -> Result<Vec<FileEntry>, String> {
     let _permit = FILE_IO_SEMAPHORE
@@ -36,7 +60,16 @@ pub async fn read_directory(path: String) -> Result<Vec<FileEntry>, String> {
             .par_iter()
             .filter_map(|entry| {
                 let path = entry.path();
-                let metadata = entry.metadata().ok()?;
+                let link_metadata = fs::symlink_metadata(&path).ok()?;
+                let is_symlink = link_metadata.file_type().is_symlink();
+                // Keep symlinked folders navigable, while still retaining the
+                // link identity for the badge. Broken links fall back to their
+                // own metadata instead of disappearing from the directory.
+                let metadata = if is_symlink {
+                    fs::metadata(&path).unwrap_or(link_metadata)
+                } else {
+                    link_metadata
+                };
                 let name = path
                     .file_name()
                     .and_then(|n| n.to_str())
@@ -46,6 +79,13 @@ pub async fn read_directory(path: String) -> Result<Vec<FileEntry>, String> {
                 let file_type = crate::file_lib::get_file_type(&path, is_dir);
                 let mime_type = crate::file_lib::get_mime_type(&path);
                 let is_readonly = metadata.permissions().readonly();
+                let symlink_target = if is_symlink {
+                    fs::read_link(&path)
+                        .ok()
+                        .map(|target| target.to_string_lossy().to_string())
+                } else {
+                    None
+                };
                 Some(FileEntry {
                     name,
                     path: path.to_string_lossy().to_string(),
@@ -59,6 +99,9 @@ pub async fn read_directory(path: String) -> Result<Vec<FileEntry>, String> {
                     file_type,
                     mime_type,
                     is_readonly,
+                    is_symlink,
+                    symlink_target,
+                    is_alias: !is_symlink && is_finder_alias(&path),
                 })
             })
             .collect();
@@ -70,6 +113,60 @@ pub async fn read_directory(path: String) -> Result<Vec<FileEntry>, String> {
     })
     .await
     .map_err(|e| e.to_string())?
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod tests {
+    use super::{finder_info_has_alias_flag, read_directory};
+    use std::fs;
+    use std::os::unix::fs::symlink;
+    use tempfile::tempdir;
+
+    #[test]
+    fn detects_finder_alias_flag() {
+        let mut finder_info = [0_u8; 32];
+        finder_info[8] = 0x80;
+        assert!(finder_info_has_alias_flag(&finder_info));
+    }
+
+    #[test]
+    fn rejects_regular_or_truncated_finder_info() {
+        assert!(!finder_info_has_alias_flag(&[0_u8; 32]));
+        assert!(!finder_info_has_alias_flag(&[0_u8; 8]));
+    }
+
+    #[tokio::test]
+    async fn directory_entries_distinguish_symlinks_and_finder_aliases() {
+        let temp = tempdir().expect("temp dir");
+        let original = temp.path().join("original.txt");
+        let link = temp.path().join("original-link.txt");
+        let alias = temp.path().join("original alias");
+        fs::write(&original, "original").expect("write original");
+        symlink(&original, &link).expect("create symlink");
+        fs::write(&alias, "alias payload").expect("write alias placeholder");
+
+        let mut finder_info = [0_u8; 32];
+        finder_info[8] = 0x80;
+        xattr::set(&alias, "com.apple.FinderInfo", &finder_info).expect("set FinderInfo");
+
+        let entries = read_directory(temp.path().to_string_lossy().to_string())
+            .await
+            .expect("read directory");
+        let link_entry = entries
+            .iter()
+            .find(|entry| entry.name == "original-link.txt")
+            .expect("symlink entry");
+        assert!(link_entry.is_symlink);
+        assert_eq!(link_entry.symlink_target.as_deref(), original.to_str());
+        assert!(!link_entry.is_alias);
+
+        let alias_entry = entries
+            .iter()
+            .find(|entry| entry.name == "original alias")
+            .expect("alias entry");
+        assert!(alias_entry.is_alias);
+        assert!(!alias_entry.is_symlink);
+    }
 }
 
 #[command]

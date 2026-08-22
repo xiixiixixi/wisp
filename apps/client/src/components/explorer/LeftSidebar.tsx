@@ -16,10 +16,8 @@ import { useSidebarResize } from '@/hooks/use-sidebar-resize';
 import SidebarTabBar from '@/components/explorer/sidebar/SidebarTabBar';
 import SidebarQuickAccess from '@/components/explorer/sidebar/SidebarQuickAccess';
 import SidebarRecent from '@/components/explorer/sidebar/SidebarRecent';
-import SidebarBookmarks from '@/components/explorer/sidebar/SidebarBookmarks';
 import SidebarCollections from '@/components/explorer/sidebar/SidebarCollections';
 import SidebarDrives from '@/components/explorer/sidebar/SidebarDrives';
-import SidebarFileTree from '@/components/explorer/sidebar/SidebarFileTree';
 
 export interface LeftSidebarHandle {
   focusSearch: () => void;
@@ -50,7 +48,6 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
     handleFileClick,
     handleFileRightClick,
     handleFileOpen,
-    getFileIcon,
     width,
     searchPanelOpen = false,
     onToggleSearchPanel,
@@ -122,7 +119,7 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
       data-tour={dataTour}
       role="navigation"
       aria-label="File explorer sidebar"
-      className="bg-xp-surface border-xp-border flex flex-shrink-0 flex-col border-r"
+      className="wisp-sidebar flex flex-shrink-0 flex-col border-r border-xp-border bg-xp-surface"
       style={{ width: width ?? 256, minHeight: 0, overflow: 'hidden' }}
     >
       {/* Sidebar tab bar */}
@@ -151,7 +148,7 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
           const renderer = extensionHost.getSidebarTabRenderer(activeExtensionTab);
           if (!renderer) {
             return (
-              <div className="text-xp-text-muted flex flex-1 items-center justify-center p-4 text-xs">
+              <div className="flex flex-1 items-center justify-center p-4 text-xs text-xp-text-muted">
                 Extension tab not available
               </div>
             );
@@ -165,6 +162,7 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
           <SidebarQuickAccess
             currentPath={currentPath}
             navigateToPath={navigateToPath}
+            handleFileRightClick={handleFileRightClick}
             collapsed={sectionCollapsed.quickAccess}
             onToggleCollapsed={() => toggleSection('quickAccess')}
             sectionHeight={sectionHeights.quickAccess}
@@ -176,16 +174,6 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
             collapsed={sectionCollapsed.recent}
             onToggleCollapsed={() => toggleSection('recent')}
             sectionHeight={sectionHeights.recent}
-            onResizeStart={onResizeStart}
-          />
-
-          <SidebarBookmarks
-            currentPath={currentPath}
-            navigateToPath={navigateToPath}
-            handleFileRightClick={handleFileRightClick}
-            collapsed={sectionCollapsed.favorites}
-            onToggleCollapsed={() => toggleSection('favorites')}
-            sectionHeight={sectionHeights.favorites}
             onResizeStart={onResizeStart}
           />
 
@@ -208,16 +196,6 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
             onToggleCollapsed={() => toggleSection('drives')}
             sectionHeight={sectionHeights.drives}
             onResizeStart={onResizeStart}
-          />
-
-          <SidebarFileTree
-            currentPath={currentPath}
-            navigateToPath={navigateToPath}
-            handleFileClick={handleFileClick}
-            handleFileRightClick={handleFileRightClick}
-            getFileIcon={getFileIcon}
-            collapsed={sectionCollapsed.fileTree}
-            onToggleCollapsed={() => toggleSection('fileTree')}
           />
         </>
       )}

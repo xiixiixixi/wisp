@@ -287,7 +287,7 @@ const RightSidebar = ({
   return (
     <div
       ref={outerRef}
-      className="border-l border-xp-border bg-xp-surface"
+      className="wisp-inspector border-l border-xp-border bg-xp-surface"
       style={{ width: width ?? 320, flexShrink: 0, minHeight: 0, overflow: 'hidden' }}
     >
       {/* Inner container with explicit measured height -- bypasses WebView2 flex height bug */}

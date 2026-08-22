@@ -157,7 +157,10 @@ const TopBar = React.memo(
       }, []);
 
       return (
-        <div data-tour={dataTour} className="bg-xp-surface border-xp-border flex-none border-b">
+        <div
+          data-tour={dataTour}
+          className="wisp-titlebar flex-none border-b border-xp-border bg-xp-surface"
+        >
           {/* Row 1: Title bar (draggable) */}
           <div
             className="flex items-center justify-between px-4 py-1"
@@ -188,7 +191,7 @@ const TopBar = React.memo(
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setLeftSidebarCollapsed(!leftSidebarCollapsed)}
-                  className="hover:bg-xp-surface-light rounded p-1 transition-colors"
+                  className="rounded p-1 transition-colors hover:bg-xp-surface-light"
                   aria-label={t('topBar.toggleSidebar')}
                   title={t('topBar.toggleSidebarShortcut')}
                 >
@@ -209,14 +212,14 @@ const TopBar = React.memo(
               <div className="ml-2 flex items-center" role="toolbar" aria-label="Window controls">
                 <button
                   onClick={() => appWindowRef.current?.minimize()}
-                  className="hover:bg-xp-surface-light rounded p-2 transition-colors"
+                  className="rounded p-2 transition-colors hover:bg-xp-surface-light"
                   aria-label={t('topBar.minimize')}
                 >
                   <Minus size={14} />
                 </button>
                 <button
                   onClick={() => appWindowRef.current?.toggleMaximize()}
-                  className="hover:bg-xp-surface-light rounded p-2 transition-colors"
+                  className="rounded p-2 transition-colors hover:bg-xp-surface-light"
                   aria-label={isMaximized ? t('topBar.restore') : t('topBar.maximize')}
                 >
                   {isMaximized ? <Copy size={14} /> : <Square size={14} />}
@@ -239,7 +242,7 @@ const TopBar = React.memo(
               <button
                 onClick={navigateBackInHistory}
                 disabled={!canNavigateBackInHistory?.()}
-                className="hover:bg-xp-surface-light flex-shrink-0 rounded p-1 transition-colors disabled:opacity-30"
+                className="flex-shrink-0 rounded p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
                 title={t('topBar.goBack')}
                 aria-label={t('topBar.goBack')}
               >
@@ -256,7 +259,7 @@ const TopBar = React.memo(
               <button
                 onClick={navigateForwardInHistory}
                 disabled={!canNavigateForwardInHistory?.()}
-                className="hover:bg-xp-surface-light flex-shrink-0 rounded p-1 transition-colors disabled:opacity-30"
+                className="flex-shrink-0 rounded p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
                 title={t('topBar.goForward')}
                 aria-label={t('topBar.goForward')}
               >
@@ -273,7 +276,7 @@ const TopBar = React.memo(
               <button
                 onClick={navigateUp}
                 disabled={currentPath === ROOT_PATH}
-                className="hover:bg-xp-surface-light flex-shrink-0 rounded p-1 transition-colors disabled:opacity-30"
+                className="flex-shrink-0 rounded p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
                 title={t('topBar.goUp')}
                 aria-label={t('topBar.goUp')}
               >
@@ -283,7 +286,7 @@ const TopBar = React.memo(
             {refetch && (
               <button
                 onClick={refetch}
-                className="hover:bg-xp-surface-light flex-shrink-0 rounded p-1 transition-colors"
+                className="flex-shrink-0 rounded p-1 transition-colors hover:bg-xp-surface-light"
                 title={t('topBar.refresh')}
                 aria-label={t('topBar.refresh')}
               >
@@ -302,7 +305,7 @@ const TopBar = React.memo(
                     console.error('Failed to create chat:', err);
                   }
                 }}
-                className="hover:bg-xp-surface-light flex-shrink-0 rounded p-1 transition-colors"
+                className="flex-shrink-0 rounded p-1 transition-colors hover:bg-xp-surface-light"
                 title={t('topBar.newChatDesc')}
                 aria-label={t('topBar.newChat')}
               >
@@ -317,7 +320,7 @@ const TopBar = React.memo(
                 className={`flex flex-shrink-0 items-center gap-1 rounded p-1 transition-colors ${
                   activeCollectionFilter
                     ? 'text-xp-text'
-                    : 'hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-text'
+                    : 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
                 }`}
                 style={
                   activeCollectionFilter
@@ -467,7 +470,7 @@ const TopBar = React.memo(
             </div>
 
             {/* Separator */}
-            <div className="bg-xp-border mx-0.5 h-5 w-px flex-shrink-0" />
+            <div className="mx-0.5 h-5 w-px flex-shrink-0 bg-xp-border" />
 
             {/* Tabs */}
             <div className="scrollbar-none flex min-w-0 flex-1 overflow-x-auto">
@@ -477,14 +480,14 @@ const TopBar = React.memo(
                 return (
                   <div
                     key={tab.id}
-                    className={`border-xp-border group flex min-w-0 max-w-[180px] flex-shrink-0 cursor-pointer items-center border-r px-3 py-1 ${
+                    className={`group flex min-w-0 max-w-[180px] flex-shrink-0 cursor-pointer items-center border-r border-xp-border px-3 py-1 ${
                       isActive
-                        ? 'bg-xp-bg border-b-xp-blue border-b-2'
+                        ? 'border-b-2 border-b-xp-blue bg-xp-bg'
                         : 'hover:bg-xp-surface-light'
                     }`}
                     onClick={() => onSwitchTab?.(tab.id)}
                   >
-                    <TabIcon size={13} className="text-xp-text-secondary mr-1.5 flex-shrink-0" />
+                    <TabIcon size={13} className="mr-1.5 flex-shrink-0 text-xp-text-secondary" />
                     <span className="truncate text-xs font-medium">{tab.name}</span>
                     {tabs.length > 1 && (
                       <button
@@ -492,7 +495,7 @@ const TopBar = React.memo(
                           e.stopPropagation();
                           onCloseTab?.(tab.id);
                         }}
-                        className="hover:bg-xp-surface-light ml-1 flex-shrink-0 rounded p-0.5 opacity-0 group-hover:opacity-100"
+                        className="ml-1 flex-shrink-0 rounded p-0.5 opacity-0 hover:bg-xp-surface-light group-hover:opacity-100"
                         aria-label={`Close ${tab.name}`}
                       >
                         <X size={12} />
@@ -508,7 +511,7 @@ const TopBar = React.memo(
               {onAddTab && (
                 <button
                   onClick={onAddTab}
-                  className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-text rounded p-1"
+                  className="rounded p-1 text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text"
                   title={t('topBar.newTabShortcut')}
                   aria-label={t('topBar.newTab')}
                 >
@@ -518,7 +521,7 @@ const TopBar = React.memo(
               {onSplitRight && (
                 <button
                   onClick={onSplitRight}
-                  className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-text rounded p-1"
+                  className="rounded p-1 text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text"
                   title={t('topBar.splitRightShortcut')}
                   aria-label={t('topBar.splitRight')}
                 >
@@ -528,7 +531,7 @@ const TopBar = React.memo(
               {onSplitDown && (
                 <button
                   onClick={onSplitDown}
-                  className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-text rounded p-1"
+                  className="rounded p-1 text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text"
                   title={t('topBar.splitDownShortcut')}
                   aria-label={t('topBar.splitDown')}
                 >

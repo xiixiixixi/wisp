@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { type FileEntry, type ConflictFileInfo } from '@/lib/tauri-api';
+import { notifyFilesChanged } from '@/lib/file-change-events';
 import { useToast } from '@/hooks/use-toast';
 import { sortFiles } from '@/lib/utils';
 import type { ConflictResolution } from '@/components/dialogs/FileConflictDialog';
@@ -89,7 +90,11 @@ const ExplorerUnified = () => {
   const [paneFiles, setPaneFiles] = useState<FileEntry[]>([]);
   const paneRefetchRef = useRef<() => void>(() => {});
   const files = paneFiles;
-  const refetch = useCallback(() => paneRefetchRef.current(), []);
+  const refetch = useCallback(() => {
+    // The shared event reaches every EditorGroupPane, including the active
+    // pane. Calling its refetch directly as well duplicated the same request.
+    void notifyFilesChanged();
+  }, []);
 
   // Dialog manager
   const dialogManager = useDialogManager({

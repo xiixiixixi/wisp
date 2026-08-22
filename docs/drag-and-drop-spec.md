@@ -3,7 +3,7 @@
 > 平台范围：**仅 macOS**。交互语义以 macOS 访达（Finder）习惯为基准，不覆盖 Windows/Linux 特化行为（任务栏固定、.lnk 快捷方式、盘符概念等）。
 >
 > 关联文档：[architecture.md](./architecture.md)、[drag-and-drop-implementation.md](./drag-and-drop-implementation.md)
-> 文档日期：2026-08-20
+> 文档日期：2026-08-22（根据 A 组真机反馈补充刷新、离窗状态与链接标识）
 
 ## 1. 目标与范围
 
@@ -55,9 +55,10 @@
 | `dragSource` | `'internal' \| 'external' \| null` | 内部拖出 / 外部拖入 |
 | `draggedPaths` | string[] | 被拖拽的路径集合 |
 | `hoveredDropTarget` | string \| null | 当前悬停落点 |
+| `isOverWindow` | boolean | 原生拖拽是否仍在当前 Wisp 窗口内；离窗立即隐藏 Web 标签 |
 | `operation` | `'copy' \| 'move' \| 'link'` | 当前操作语义（`link` 为改造新增） |
 
-Actions：`START_DRAG` / `SET_HOVER` / `SET_OPERATION` / `END_DRAG`
+Actions：`START_DRAG` / `SET_HOVER` / `SET_OVER_WINDOW` / `SET_OPERATION` / `END_DRAG`
 
 ### 2.3 两条主数据流
 
@@ -69,8 +70,8 @@ mousedown（记录坐标）
   → 系统接管拖拽（光标、Esc、目标应用由 OS 处理）
   → 落回本窗口 → onDragDropEvent 依次触发 enter / over / drop / leave
       over：elementFromPoint 找落点 → 高亮 / 无效标记 → 文件夹则启动 500ms 弹簧加载计时
-      drop：validateDrop 校验 → 执行传输 → 派发 files-changed 刷新视图
-      leave：清理高亮与计时器
+      drop：validateDrop 校验 → 执行传输 → 进度完成事件刷新所有窗口
+      leave：清理高亮与计时器，立即隐藏仅能在 WebView 内绘制的文字标签
 ```
 
 **外部拖入：**
@@ -91,7 +92,8 @@ mousedown（记录坐标）
 | `data-is-folder="true"` | 文件夹落点，触发弹簧加载 | 已有 |
 | `data-drop-action` | 特殊动作：`trash`（移入废纸篓）、`bookmark-add`（添加收藏） | **新增** |
 | `spring-load-folder` 事件 | 悬停 500ms 后展开文件夹 | 已有 |
-| `files-changed` 事件 | 传输完成后通知视图刷新 | 已有 |
+| `files-changed` 事件 | 通知当前窗口全部分栏刷新 | 已有（已修复为全分栏） |
+| `wisp-files-changed` Tauri 事件 | 通知其他 Wisp 窗口刷新 | **新增** |
 | `drag-drop-error` 事件 | 传输失败提示 | 已有 |
 
 ### 2.5 现有文件职责表
@@ -142,7 +144,7 @@ mousedown（记录坐标）
 | DRO-04 | 拖到 Dock 打开 | 系统行为，验收即可 | — | ✅ 系统自带 |
 | DRO-05 | 拖到终端粘贴路径 | ⌘+拖 = 以纯文本拖出路径（插件自定义类型 `public.utf8-plain-text`） | `use-draggable.ts` | ✅ 已实现，待真机验证 |
 | DRO-06 | 拖出选中文本 | 搜索/文件路径文本拖进编辑器 | 文本选择逻辑 + use-draggable 变体 | ⏳ 规划 |
-| DRO-07 | 拖到另一个 Wisp 窗口 | 跨窗口移动/复制 | `DragDropContext.tsx`（识别源窗口） | ⏳ 规划 |
+| DRO-07 | 拖到另一个 Wisp 窗口 | 原生文件拖放可进入；完成后两窗自动刷新。跨窗口保留“内部源窗口/修饰键”语义仍需独立会话同步 | `DragDropContext.tsx` + `file-change-events.ts` | ⚠️ 部分支持 |
 
 ### B. 拖入（外部 → Wisp）
 
@@ -195,6 +197,9 @@ mousedown（记录坐标）
 | UX-04 | 拖到边缘自动滚屏 | `DragDropContext.tsx` over 事件 | ❌ 缺失（未实施） |
 | UX-05 | 内部拖拽数据 MIME 序列化 | `drag-utils.ts`（WISP_DND_MIME） | ✅ |
 | UX-06 | 触控板拖拽 | 系统行为 | ✅ 验收 |
+| UX-07 | 离开窗口后的反馈与清理 | Wisp 内显示文字 badge；离开边框立即隐藏，外部仅保留系统原生幽灵图；返回后不残留滚动/划词状态 | `DragDropContext.tsx` + `index.css` | ✅ |
+| UX-08 | 链接类文件标识 | symlink 显示链条 badge；Finder 替身显示箭头 badge；tooltip/辅助功能读出类型 | Rust `FileEntry` + `FileReferenceBadge.tsx` | ✅ |
+| UX-09 | 多分栏/多窗口刷新 | 操作完成、撤销、手动刷新后，当前窗全部分栏和其他 Wisp 窗口同步刷新 | `file-operation-progress.ts` + `file-change-events.ts` | ✅ |
 
 ## 5. 冲突、容错与撤销
 
@@ -206,6 +211,8 @@ mousedown（记录坐标）
   - 合并：仅当源与目标均为文件夹时提供；v1 对同名子项递归应用所选策略
 - **撤销**：`copy_with_progress` / `move_with_progress` 内部已调用 `record_operation`（`undo_redo/`），拖拽执行切换到这两个命令后**自动可撤销**；前端在完成后显示撤销 toast，窗口聚焦时 Cmd+Z 触发 `undo_operation`。
 - **进度**：超过 10 项或总体积超过 100MB 时显示进度 UI；进度事件来自 `progress.rs` 的 ProgressManager（已有），支持 `cancel_file_operation` 取消。
+- **快速移动事件保护**：前端在启动传输前先建立进度监听，并缓存每个 operation_id 的最后状态，避免同卷 `rename` 太快、toast 尚未挂载就丢掉 Completed 事件。
+- **刷新范围**：Rust 进度事件本身是应用级广播；每个窗口收到终态后刷新本窗全部分栏。无进度操作及手动刷新额外发出 `wisp-files-changed`，覆盖其他窗口。
 - **失败**：单项失败不中断整体，收集失败列表统一提示（`drag-drop-error`）。
 - **取消**：Esc 与拖回原位由系统处理，不产生任何操作记录。
 
@@ -233,11 +240,16 @@ mousedown（记录坐标）
 | 18 | 无效目标 | 拖文件夹到它自己的子文件夹 | 红色无效标记，不执行 |
 | 19 | Esc | 拖拽中按 Esc | 取消，无操作记录 |
 | 20 | AI 附件 | 拖文件到 AI 聊天框 | 加入附件列表 |
+| 21 | 两个分栏/窗口 | 在 A 中把文件移到 B 当前目录 | A、B 都自动更新，不切目录 |
+| 22 | 离开 Wisp 松手 | 拖到终端并松开，再把鼠标移回 Wisp | Wisp 标签不滞留、不自动滚动、不划选文字 |
+| 23 | 链接标识 | 查看 symlink 与 Finder 替身 | 两者有可区分 badge，symlink 可显示目标 |
+| 24 | 手动刷新 | 两分栏/两窗口打开同一受影响目录后点刷新 | 所有可见目录重新读取 |
 
 ## 7. 风险与已知限制
 
 1. **tauri-plugin-drag 多数据类型**（DRO-05 终端路径文本）：✅ 已确认插件 API 支持 `{ data, types }` 自定义数据类型（v2.1.0），⌘+拖 已实现并有单测；真机端到端行为待用户手工验证。
 2. **WKWebView 对浏览器文本/图片拖入**（DRI-04/05）：❌ 已实测确认——macOS Tauri 下 WRY 的原生拖拽处理器会吞掉所有非文件拖拽，HTML5 drop 事件不会到达页面（探针验证：窗口级 drop 监听器收不到任何事件）。HTML5 处理在两种模式下都注册：桌面端不触发；网页版解析逻辑生效但落盘依赖后端（当前无）。后续若需桌面端支持，需要 Rust 侧扩展 WRY 的 drag handler。
 3. **原生拖拽期间的键盘事件**：系统接管拖拽后 webview 能否收到 keydown（INT-02 实时切换修饰键）未验证；fallback 方案为按拖拽启动时的修饰键状态决定操作。
-4. **符号链接 vs Finder 替身**：v1 用 symlink（终端可见的符号链接），Finder 原生「替身」文件（alias）需引 core-foundation，列为后续项。
+4. **符号链接 vs Finder 替身**：⌘⌥ 创建的是 symlink（终端可见的符号链接），不是 Finder 替身。Wisp 现在会识别并分别标记两种文件；Finder 替身的创建和目标解析仍是后续项。
 5. 原生拖拽由系统接管，Esc 行为与拖拽光标样式部分不可控。
+6. 自定义文字 badge 是 WebView 内容，物理上不能绘制到 Wisp 边框外；离窗后由 macOS 原生幽灵图继续反馈，这是预期边界，不再让 Web badge 停在边框。

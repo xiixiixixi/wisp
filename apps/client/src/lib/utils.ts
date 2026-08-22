@@ -520,7 +520,9 @@ export const groupFilesByDate = (files: FileEntry[]): FileGroup[] => {
   }));
 };
 
-// Built-in theme configurations (rolex default + glass + light; others via extensions)
+// Built-in theme configurations. The legacy keys stay stable so existing
+// preferences and extension integrations continue to work, while the visible
+// themes share one calm Wisp workbench language.
 export interface ThemeDef {
   name: string;
   primary: string;
@@ -531,25 +533,25 @@ export interface ThemeDef {
 
 export const themes: Record<string, ThemeDef> = {
   rolex: {
-    name: 'Rolex',
-    primary: '#00a05c',
-    bg: '#06130e',
-    surface: '#0c231a',
-    text: 'rgba(235, 255, 245, 0.92)',
+    name: 'Wisp Ink',
+    primary: '#79a8d8',
+    bg: '#11161d',
+    surface: '#171d25',
+    text: '#e6ebf1',
   },
   glass: {
-    name: 'Wisp Glass',
-    primary: '#6366f1',
-    bg: 'transparent',
-    surface: 'rgba(255,255,255,0.06)',
-    text: 'rgba(255,255,255,0.92)',
+    name: 'Wisp Slate',
+    primary: '#8aa8c8',
+    bg: '#242a32',
+    surface: '#2b323b',
+    text: '#edf0f3',
   },
   light: {
-    name: 'Light',
-    primary: '#3b82f6',
-    bg: '#ffffff',
-    surface: '#f8fafc',
-    text: '#1e293b',
+    name: 'Wisp Paper',
+    primary: '#4f759b',
+    bg: '#f1f3f5',
+    surface: '#e8ecf0',
+    text: '#26313b',
   },
 };
 

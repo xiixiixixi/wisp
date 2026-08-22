@@ -1,7 +1,7 @@
 // Wisp Search Engine — Core Engine Implementation
 //
 // Contains the `SearchEngine` struct and its methods: indexing,
-// searching, recommendations, PRF, context boost, watcher management.
+// searching, recommendations, PRF, and context boost.
 // Type definitions live in `compat_types`, persistence in `compat_persistence`.
 
 use moka::sync::Cache;
@@ -19,7 +19,6 @@ use tracing::info;
 
 use super::ai_pipeline::AIPipeline;
 use super::index::SearchIndex;
-use super::watcher::FileWatcher;
 use super::SearchResult;
 
 use super::compat_persistence::{file_meta, load_settings, save_settings};
@@ -48,7 +47,7 @@ static CONTENT_CACHE: LazyLock<Cache<String, String>> = LazyLock::new(|| {
 /// Provides the same public API the old `FileTokenizer` / `tokenizer.rs`
 /// exposed so that all Tauri commands can delegate here.
 ///
-/// NOTE: The `settings`, `watcher`, `indexed_dirs`, and `context_path` fields
+/// NOTE: The `settings`, `indexed_dirs`, and `context_path` fields
 /// use `std::sync::Mutex`. Switching to `parking_lot::Mutex` would eliminate
 /// poisoning overhead and provide ~2x faster lock/unlock on uncontended paths.
 /// However, `parking_lot` is not currently a dependency — add it to Cargo.toml
@@ -56,9 +55,8 @@ static CONTENT_CACHE: LazyLock<Cache<String, String>> = LazyLock::new(|| {
 pub struct SearchEngine {
     index: Arc<RwLock<SearchIndex>>,
     settings: Arc<Mutex<TokenizerSettings>>,
-    watcher: Arc<Mutex<FileWatcher>>,
     is_indexing: Arc<AtomicBool>,
-    /// Directories already indexed via `index_directory` (auto-index on navigation).
+    /// Directories already indexed through an explicit `index_directory` request.
     indexed_dirs: Arc<Mutex<HashSet<String>>>,
     /// The user's current directory for context-aware ranking boost.
     context_path: Arc<Mutex<Option<String>>>,
@@ -73,7 +71,6 @@ impl SearchEngine {
         Self {
             index: Arc::new(RwLock::new(SearchIndex::new())),
             settings: Arc::new(Mutex::new(settings)),
-            watcher: Arc::new(Mutex::new(FileWatcher::new())),
             is_indexing: Arc::new(AtomicBool::new(false)),
             indexed_dirs: Arc::new(Mutex::new(HashSet::new())),
             context_path: Arc::new(Mutex::new(None)),
@@ -82,11 +79,12 @@ impl SearchEngine {
 
     // -- 2. start() ----------------------------------------------------------
 
-    /// Kick off background indexing and the filesystem watcher.
+    /// Load the persisted content index without walking whitelisted folders.
     ///
-    /// Tries to load a cached index first. If available, performs incremental
-    /// updates (only re-indexing new/modified files). Falls back to full rebuild
-    /// if no cache exists or the cache is invalid.
+    /// Directory browsing and application startup are latency-sensitive. A
+    /// startup-wide incremental scan can saturate CPU and disk for minutes when
+    /// a broad path (for example the home folder) is whitelisted. Rebuilding is
+    /// therefore explicit; ordinary file-name search uses the platform provider.
     pub fn start(&self) {
         let settings = self.get_settings();
         if !settings.enabled || settings.whitelisted_paths.is_empty() {
@@ -103,16 +101,12 @@ impl SearchEngine {
         }
 
         let index = Arc::clone(&self.index);
-        let settings_arc = Arc::clone(&self.settings);
-        let watcher = Arc::clone(&self.watcher);
         let is_indexing = Arc::clone(&self.is_indexing);
 
         thread::Builder::new()
             .name("search-engine-init".into())
             .spawn(move || {
-                // Try loading cached index first.
-                let loaded_cache = SearchIndex::load_from_disk();
-                if let Some(cached_index) = loaded_cache {
+                if let Some(cached_index) = SearchIndex::load_from_disk() {
                     {
                         let mut idx = match index.write() {
                             Ok(g) => g,
@@ -132,27 +126,14 @@ impl SearchEngine {
                             idx.estimated_memory_bytes() / (1024 * 1024)
                         );
                     }
-                    // Do incremental update (add new files, remove stale ones).
-                    Self::incremental_update_inner(&index, &settings_arc);
                 } else {
-                    // No cache or invalid — full rebuild.
-                    Self::rebuild_full_index_inner(&index, &settings_arc);
-                }
-
-                // Save the index to disk after indexing.
-                {
-                    let idx = match index.read() {
-                        Ok(g) => g,
-                        Err(e) => e.into_inner(),
-                    };
-                    idx.save_to_disk();
+                    info!(
+                        "[SearchEngine] No usable index cache; waiting for an explicit rebuild"
+                    );
                 }
 
                 is_indexing.store(false, Ordering::SeqCst);
-                info!("[SearchEngine] Initial indexing complete");
-
-                // --- Start file watcher ---
-                Self::start_watcher_inner(&index, &settings_arc, &watcher);
+                info!("[SearchEngine] Cached index startup complete");
             })
             .ok();
     }
@@ -707,7 +688,7 @@ impl SearchEngine {
 
     // -- 11. set_settings() / get_settings() ---------------------------------
 
-    /// Replace settings, persist, and restart the watcher if paths changed.
+    /// Replace settings, persist, and rebuild when the selected paths change.
     pub fn set_settings(&self, new_settings: TokenizerSettings) {
         let old_paths: Vec<String>;
         {
@@ -856,7 +837,7 @@ impl SearchEngine {
     // -- 16. index_directory() -----------------------------------------------
 
     /// Index a single directory incrementally (no full rebuild).
-    /// Skips directories already indexed. Used for auto-indexing on navigation.
+    /// Skips directories already indexed. This is only called explicitly.
     pub fn index_directory(&self, path: &str, max_depth: Option<u32>) {
         let path_str = path.to_string();
 
@@ -941,7 +922,6 @@ impl SearchEngine {
         });
     }
 
-    // start_watcher_inner -> compat_watcher.rs
 }
 
 impl Default for SearchEngine {

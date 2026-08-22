@@ -5,6 +5,7 @@ import { useDraggable } from '@/hooks/use-draggable';
 import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
 import { ViewComponentProps } from './FileGridTypes';
 import type { FileGroup } from '@/lib/utils';
+import { FileReferenceBadge, getFileReferenceLabel } from './FileReferenceBadge';
 
 interface DetailsViewProps extends ViewComponentProps {
   fileGroups?: FileGroup[] | null;
@@ -93,7 +94,11 @@ const FileRow = React.memo(
       <div
         role="row"
         aria-selected={selectedFiles.has(file.path)}
-        aria-label={file.name}
+        aria-label={
+          getFileReferenceLabel(file, t)
+            ? `${file.name}, ${getFileReferenceLabel(file, t)}`
+            : file.name
+        }
         tabIndex={0}
         data-file-path={file.path}
         data-drop-target={file.is_dir ? file.path : undefined}
@@ -110,7 +115,11 @@ const FileRow = React.memo(
         onKeyDown={handleKeyDown}
       >
         <div className="col-span-1 flex justify-center">
-          <span className="text-lg">{getFileIcon(file)}</span>
+          <span className="text-lg">
+            <FileReferenceBadge file={file} compact>
+              {getFileIcon(file)}
+            </FileReferenceBadge>
+          </span>
         </div>
         <div className="col-span-5 min-w-0">
           <div className="truncate font-medium">{file.name}</div>

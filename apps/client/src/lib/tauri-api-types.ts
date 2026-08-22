@@ -10,6 +10,12 @@ export interface FileEntry {
   mime_type?: string;
   /** Whether the file/directory is read-only. */
   is_readonly: boolean;
+  /** POSIX symbolic link; optional keeps older plugin/mock payloads compatible. */
+  is_symlink?: boolean;
+  /** Link target as stored on disk. */
+  symlink_target?: string;
+  /** macOS Finder alias file. */
+  is_alias?: boolean;
 }
 
 export interface ConflictFileInfo {

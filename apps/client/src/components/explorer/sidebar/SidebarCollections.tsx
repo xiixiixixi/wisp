@@ -59,14 +59,14 @@ const SidebarCollections = ({
   return (
     <>
       <div
-        className="border-xp-border border-b"
+        className="border-b border-xp-border"
         role="region"
         aria-label="Collections"
         data-sidebar-section="collections"
       >
         <div className="flex items-center justify-between">
           <button
-            className="text-xp-text-muted hover:bg-xp-surface-light/50 flex flex-1 items-center px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest transition-colors"
+            className="hover:bg-xp-surface-light/50 flex flex-1 items-center px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted transition-colors"
             onClick={onToggleCollapsed}
             aria-expanded={!collapsed}
             aria-label="Toggle collections"
@@ -81,7 +81,7 @@ const SidebarCollections = ({
           {onCreateCollection && !collapsed && (
             <button
               onClick={onCreateCollection}
-              className="text-xp-text-muted hover:text-xp-blue mr-2 transition-colors"
+              className="mr-2 text-xp-text-muted transition-colors hover:text-xp-blue"
               title="Create new collection"
               aria-label="Create new collection"
               style={{ padding: '2px' }}
@@ -96,7 +96,7 @@ const SidebarCollections = ({
             style={sectionHeight ? { maxHeight: sectionHeight } : undefined}
           >
             {collections.length === 0 ? (
-              <p className="text-xp-text-secondary py-1 text-xs">{t('sidebar.noCollections')}</p>
+              <p className="py-1 text-xs text-xp-text-secondary">{t('sidebar.noCollections')}</p>
             ) : (
               collections.map((col) => {
                 const smartFolder = isSmartFolder(col);
@@ -107,19 +107,10 @@ const SidebarCollections = ({
                   <div
                     key={col.id}
                     className={`group flex w-full cursor-pointer items-center rounded px-2 py-1 text-xs transition-colors ${
-                      isActive ? 'text-xp-text' : 'hover:bg-xp-surface-light text-xp-text'
+                      isActive
+                        ? 'wisp-sidebar-item-active'
+                        : 'text-xp-text hover:bg-xp-surface-light'
                     }`}
-                    style={{
-                      borderLeft: (() => {
-                        if (isActive && !smartFolder) return `3px solid ${col.color}`;
-                        if (isActive && smartFolder) return '3px solid var(--xp-blue)';
-                        return '3px solid transparent';
-                      })(),
-                      backgroundColor: (() => {
-                        if (!isActive) return undefined;
-                        return smartFolder ? 'rgba(122,162,247,0.15)' : `${col.color}15`;
-                      })(),
-                    }}
                     onClick={() => {
                       if (smartFolder) {
                         navigateToPath(`collection://${col.id}`);
@@ -144,20 +135,9 @@ const SidebarCollections = ({
                       {renderIcon(col.icon, 14)}
                     </span>
                     <span className="flex-1 truncate">{col.name}</span>
-                    {isActive && !smartFolder && (
-                      <span
-                        className="ml-auto flex-shrink-0"
-                        style={{
-                          width: '6px',
-                          height: '6px',
-                          borderRadius: '50%',
-                          backgroundColor: col.color,
-                        }}
-                      />
-                    )}
                     {smartFolder && (
                       <span
-                        className="text-xp-text-muted bg-xp-surface ml-auto flex-shrink-0 rounded-full px-1.5 py-0 text-[10px]"
+                        className="ml-auto flex-shrink-0 rounded-full bg-xp-surface px-1.5 py-0 text-[10px] text-xp-text-muted"
                         style={{ minWidth: '18px', textAlign: 'center' }}
                       >
                         {col.filters.length}
@@ -172,7 +152,7 @@ const SidebarCollections = ({
         {/* Resize handle */}
         {!collapsed && (
           <div
-            className="hover:bg-xp-blue/30 group flex h-2 cursor-row-resize items-center justify-center transition-colors"
+            className="group flex h-2 cursor-row-resize items-center justify-center transition-colors hover:bg-xp-surface-light"
             onMouseDown={(e) => onResizeStart('collections', e)}
           >
             <GripHorizontal className="text-xp-text-muted/20 group-hover:text-xp-text-muted/60 h-3 w-4 transition-colors" />
@@ -201,7 +181,7 @@ const SidebarCollections = ({
           onClick={(e) => e.stopPropagation()}
         >
           <button
-            className="text-xp-text hover:bg-xp-surface-light flex w-full items-center rounded px-3 py-1.5 text-xs transition-colors"
+            className="flex w-full items-center rounded px-3 py-1.5 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
             onClick={() => {
               if (onEditCollection) onEditCollection(collectionContextMenu.collection);
               setCollectionContextMenu(null);
@@ -210,7 +190,7 @@ const SidebarCollections = ({
             Edit
           </button>
           <button
-            className="text-xp-red hover:bg-xp-surface-light flex w-full items-center rounded px-3 py-1.5 text-xs transition-colors"
+            className="flex w-full items-center rounded px-3 py-1.5 text-xs text-xp-red transition-colors hover:bg-xp-surface-light"
             onClick={() => {
               deleteCollection(collectionContextMenu.collection.id);
               setCollectionContextMenu(null);

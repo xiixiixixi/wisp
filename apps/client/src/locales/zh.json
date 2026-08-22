@@ -70,7 +70,7 @@
     "collections": "集合",
     "noCollections": "暂无集合",
     "drives": "驱动器",
-    "volumes": "卷",
+    "volumes": "磁盘与挂载",
     "fileTree": "文件树",
     "navigateTo": "导航到{{label}}文件夹",
     "tabs": {
@@ -520,7 +520,7 @@
       "enabled": "已启用",
       "disabled": "已禁用",
       "autoWhitelist": "自动加入访问过的文件夹",
-      "autoWhitelistDesc": "将你导航到的每个文件夹自动加入索引白名单",
+      "autoWhitelistDesc": "开启后，访问文件夹会将其加入内容索引；可能增加磁盘占用和后台读取",
       "indexingInProgress": "正在建立索引",
       "indexingComplete": "索引完成",
       "progressFiles": "{{processed}} / {{total}} 个文件",
@@ -3033,7 +3033,9 @@
     "remove": "移除书签"
   },
   "sidebarDrives": {
-    "localDisk": "本地磁盘"
+    "localDisk": "本地磁盘",
+    "noExternalVolumes": "未检测到外接磁盘",
+    "freeSpace": "{{size}} GB 可用"
   },
   "activityFeed": {
     "earlierToday": "今天早些时候",
@@ -3210,6 +3212,11 @@
     "hintReasoningCheap": "推理 · 便宜",
     "hintOpenLarge": "开放 · 大参数",
     "hintXai": "xAI"
+  },
+  "fileReference": {
+    "symlink": "符号链接",
+    "symlinkTo": "符号链接 → {{target}}",
+    "alias": "Finder 替身"
   },
   "dragOverlay": {
     "copy": "复制",

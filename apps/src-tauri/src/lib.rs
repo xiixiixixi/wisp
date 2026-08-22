@@ -45,6 +45,9 @@ mod tests {
             file_type: "file".to_string(),
             mime_type: None,
             is_readonly: false,
+            is_symlink: false,
+            symlink_target: None,
+            is_alias: false,
         };
         assert_eq!(entry.name, "test.txt");
         assert!(!entry.is_dir);

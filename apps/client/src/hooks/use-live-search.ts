@@ -145,7 +145,8 @@ const searchFiles = async (
   maxResults: number,
   abortSignal: { aborted: boolean },
 ): Promise<LiveSearchResult[]> => {
-  // Use the Rust find_files command which walks the directory tree in a single IPC call
+  // Use the native filename provider in one IPC call (Spotlight on macOS,
+  // bounded filesystem search elsewhere).
   let filePaths: string[];
   try {
     filePaths = await TauriAPI.findFiles(searchTerm, basePath);
@@ -169,10 +170,10 @@ const searchFiles = async (
     if (name.startsWith('.')) continue;
 
     const parentDir = pathParts.join(sep);
-    const ext = name.split('.').pop()?.toLowerCase() || '';
+    const ext = name.includes('.') ? name.split('.').pop()?.toLowerCase() || '' : '';
     // We don't have is_dir from find_files, but we can infer from extension presence
     // find_files returns all matches; we approximate is_dir = no extension
-    const is_dir = ext === '' && !name.includes('.');
+    const is_dir = ext === '';
 
     const entry: FileEntry = {
       name,

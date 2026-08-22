@@ -56,6 +56,7 @@ beforeEach(() => {
       },
       style: {
         setProperty: vi.fn(),
+        removeProperty: vi.fn(),
       },
     },
   });
@@ -405,17 +406,28 @@ describe('groupFilesByDate', () => {
 // ── themes ────────────────────────────────────────────────────────────────
 
 describe('themes', () => {
-  it('has glass and light themes', () => {
-    expect(themes).toHaveProperty('glass');
-    expect(themes).toHaveProperty('light');
-  });
-
-  it('glass theme has expected structure', () => {
-    expect(themes.glass.name).toBe('Wisp Glass');
-    expect(themes.glass.primary).toBeTruthy();
-    expect(themes.glass.bg).toBeDefined();
-    expect(themes.glass.surface).toBeDefined();
-    expect(themes.glass.text).toBeDefined();
+  it('keeps the three compatible theme keys in the quiet workbench palette', () => {
+    expect(themes.rolex).toEqual({
+      name: 'Wisp Ink',
+      primary: '#79a8d8',
+      bg: '#11161d',
+      surface: '#171d25',
+      text: '#e6ebf1',
+    });
+    expect(themes.glass).toEqual({
+      name: 'Wisp Slate',
+      primary: '#8aa8c8',
+      bg: '#242a32',
+      surface: '#2b323b',
+      text: '#edf0f3',
+    });
+    expect(themes.light).toEqual({
+      name: 'Wisp Paper',
+      primary: '#4f759b',
+      bg: '#f1f3f5',
+      surface: '#e8ecf0',
+      text: '#26313b',
+    });
   });
 });
 

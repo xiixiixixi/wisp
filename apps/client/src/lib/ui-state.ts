@@ -22,7 +22,7 @@ export const patchUiState = (patch: Record<string, unknown>): void => {
 export const DEFAULT_THEME = 'rolex';
 
 /**
- * Themes from before the Rolex redesign that get migrated to the new default.
+ * Older built-in themes that migrate to Wisp Ink when no choice was made.
  * Migration only happens when the user has never actively picked a theme
  * (see `markThemeChosen`), so a deliberate choice is always respected.
  */
@@ -55,7 +55,7 @@ const readStoredTheme = (key: string): string | null => {
  * Single source of truth for the active theme. The explorer and the settings
  * page both use this so the applied theme and the settings dropdown can never
  * disagree. Prefers `wisp:ui-state` (runtime state), falls back to
- * `wisp:settings`, then the default Rolex theme.
+ * `wisp:settings`, then the default Wisp Ink theme.
  */
 export const resolveTheme = (): string => {
   const chosen = (() => {

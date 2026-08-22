@@ -458,7 +458,7 @@ const MainLayout = (props: MainLayoutProps) => {
     <DragDropProvider>
       <CrossTabSelectionProvider value={crossTabSelection}>
         <div
-          className="text-xp-text"
+          className="wisp-shell text-xp-text"
           style={{
             position: 'absolute',
             top: 0,

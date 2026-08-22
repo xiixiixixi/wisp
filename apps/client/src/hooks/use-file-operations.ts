@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TauriAPI, type FileEntry, type ConflictFileInfo } from '@/lib/tauri-api';
+import { notifyFilesChanged } from '@/lib/file-change-events';
 import { PATH_SEPARATOR, detectSep } from '@/lib/constants';
 import { showConfirmationToast, showInputToast } from '@/components/ui/Toast';
 import type { BatchOperationType } from '@/components/dialogs/BatchConfirmDialog';
@@ -160,7 +161,7 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
 
   /** Notify the app that files changed */
   const emitFilesChanged = useCallback(() => {
-    window.dispatchEvent(new CustomEvent('files-changed'));
+    void notifyFilesChanged();
   }, []);
 
   /** Dispatch an activity feed event for the activity panel */

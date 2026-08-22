@@ -1,23 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useLiveSearch } from '@/hooks/use-live-search';
-import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
+import { TauriAPI } from '@/lib/tauri-api';
 
 // SEARCH_DEBOUNCE_MS is 300 from constants
 vi.mock('@/lib/constants', () => ({
   SEARCH_DEBOUNCE_MS: 300,
 }));
 
-const makeFile = (name: string, path: string, isDir = false): FileEntry => {
-  return {
-    name,
-    path,
-    is_dir: isDir,
-    size: 1024,
-    modified: 1700000000,
-    file_type: isDir ? 'directory' : 'file',
-  };
-};
+const makeFile = (_name: string, path: string, _isDir = false): string => path;
 
 describe('useLiveSearch', () => {
   beforeEach(() => {
@@ -99,8 +90,8 @@ describe('useLiveSearch', () => {
   });
 
   describe('Debounced search', () => {
-    it('calls TauriAPI.readDirectory after debounce delay', async () => {
-      const mockReadDir = vi.mocked(TauriAPI.readDirectory);
+    it('calls TauriAPI.findFiles after debounce delay', async () => {
+      const mockReadDir = vi.mocked(TauriAPI.findFiles);
       mockReadDir.mockResolvedValue([makeFile('test.txt', '/test/test.txt')]);
 
       const { result } = renderHook(() => useLiveSearch('/test'));
@@ -119,11 +110,11 @@ describe('useLiveSearch', () => {
         await vi.runAllTimersAsync();
       });
 
-      expect(mockReadDir).toHaveBeenCalled();
+      expect(mockReadDir).toHaveBeenCalledWith('test', '/test');
     });
 
     it('does not search before debounce delay expires', () => {
-      const mockReadDir = vi.mocked(TauriAPI.readDirectory);
+      const mockReadDir = vi.mocked(TauriAPI.findFiles);
       const { result } = renderHook(() => useLiveSearch('/test'));
 
       act(() => {
@@ -139,7 +130,7 @@ describe('useLiveSearch', () => {
     });
 
     it('cancels previous debounce when query changes rapidly', async () => {
-      const mockReadDir = vi.mocked(TauriAPI.readDirectory);
+      const mockReadDir = vi.mocked(TauriAPI.findFiles);
       mockReadDir.mockResolvedValue([]);
 
       const { result } = renderHook(() => useLiveSearch('/test'));
@@ -170,16 +161,14 @@ describe('useLiveSearch', () => {
         await vi.runAllTimersAsync();
       });
 
-      // readDirectory should only have been called once for the final query, not for each intermediate one
-      // (The walk calls readDirectory for each directory level, so we check it was called at least once
-      // for /test but not for intermediate queries since they were cancelled.)
-      expect(mockReadDir).toHaveBeenCalledWith('/test');
+      expect(mockReadDir).toHaveBeenCalledTimes(1);
+      expect(mockReadDir).toHaveBeenCalledWith('abc', '/test');
     });
   });
 
   describe('Search results', () => {
     it('returns matching files after search completes', async () => {
-      const mockReadDir = vi.mocked(TauriAPI.readDirectory);
+      const mockReadDir = vi.mocked(TauriAPI.findFiles);
       mockReadDir.mockResolvedValue([
         makeFile('hello.txt', '/base/hello.txt'),
         makeFile('world.txt', '/base/world.txt'),
@@ -202,17 +191,12 @@ describe('useLiveSearch', () => {
     });
 
     it('sorts results by relevance (exact > starts with > contains)', async () => {
-      const mockReadDir = vi.mocked(TauriAPI.readDirectory);
-      mockReadDir.mockImplementation(async (path: string) => {
-        if (path === '/base') {
-          return [
-            makeFile('my-test-file.txt', '/base/my-test-file.txt'),
-            makeFile('test', '/base/test', true),
-            makeFile('testing.txt', '/base/testing.txt'),
-          ];
-        }
-        return []; // Subdirectories return empty
-      });
+      const mockReadDir = vi.mocked(TauriAPI.findFiles);
+      mockReadDir.mockResolvedValue([
+        makeFile('my-test-file.txt', '/base/my-test-file.txt'),
+        makeFile('test', '/base/test', true),
+        makeFile('testing.txt', '/base/testing.txt'),
+      ]);
 
       const { result } = renderHook(() => useLiveSearch('/base'));
 
@@ -236,7 +220,7 @@ describe('useLiveSearch', () => {
     });
 
     it('skips hidden files (starting with .)', async () => {
-      const mockReadDir = vi.mocked(TauriAPI.readDirectory);
+      const mockReadDir = vi.mocked(TauriAPI.findFiles);
       mockReadDir.mockResolvedValue([
         makeFile('.hidden', '/base/.hidden'),
         makeFile('visible.txt', '/base/visible.txt'),
@@ -257,8 +241,8 @@ describe('useLiveSearch', () => {
       expect(result.current.results.length).toBe(0);
     });
 
-    it('handles readDirectory errors gracefully', async () => {
-      const mockReadDir = vi.mocked(TauriAPI.readDirectory);
+    it('handles findFiles errors gracefully', async () => {
+      const mockReadDir = vi.mocked(TauriAPI.findFiles);
       mockReadDir.mockRejectedValue(new Error('Permission denied'));
 
       const { result } = renderHook(() => useLiveSearch('/base'));
@@ -280,17 +264,11 @@ describe('useLiveSearch', () => {
 
   describe('Grouped results', () => {
     it('groups results by parent directory', async () => {
-      const mockReadDir = vi.mocked(TauriAPI.readDirectory);
-      // First call returns entries in base dir, including a subdir
-      mockReadDir.mockImplementation(async (path: string) => {
-        if (path === '/base') {
-          return [makeFile('test.txt', '/base/test.txt'), makeFile('sub', '/base/sub', true)];
-        }
-        if (path === '/base/sub') {
-          return [makeFile('test2.txt', '/base/sub/test2.txt')];
-        }
-        return [];
-      });
+      const mockReadDir = vi.mocked(TauriAPI.findFiles);
+      mockReadDir.mockResolvedValue([
+        makeFile('test.txt', '/base/test.txt'),
+        makeFile('test2.txt', '/base/sub/test2.txt'),
+      ]);
 
       const { result } = renderHook(() => useLiveSearch('/base'));
 
@@ -326,16 +304,11 @@ describe('useLiveSearch', () => {
     });
 
     it('filters by folders only', async () => {
-      const mockReadDir = vi.mocked(TauriAPI.readDirectory);
-      mockReadDir.mockImplementation(async (path: string) => {
-        if (path === '/base') {
-          return [
-            makeFile('mydir', '/base/mydir', true),
-            makeFile('myfile.txt', '/base/myfile.txt'),
-          ];
-        }
-        return [];
-      });
+      const mockReadDir = vi.mocked(TauriAPI.findFiles);
+      mockReadDir.mockResolvedValue([
+        makeFile('mydir', '/base/mydir', true),
+        makeFile('myfile.txt', '/base/myfile.txt'),
+      ]);
 
       const { result } = renderHook(() => useLiveSearch('/base'));
 
@@ -355,16 +328,11 @@ describe('useLiveSearch', () => {
     });
 
     it('filters by files only', async () => {
-      const mockReadDir = vi.mocked(TauriAPI.readDirectory);
-      mockReadDir.mockImplementation(async (path: string) => {
-        if (path === '/base') {
-          return [
-            makeFile('mydir', '/base/mydir', true),
-            makeFile('myfile.txt', '/base/myfile.txt'),
-          ];
-        }
-        return [];
-      });
+      const mockReadDir = vi.mocked(TauriAPI.findFiles);
+      mockReadDir.mockResolvedValue([
+        makeFile('mydir', '/base/mydir', true),
+        makeFile('myfile.txt', '/base/myfile.txt'),
+      ]);
 
       const { result } = renderHook(() => useLiveSearch('/base'));
 
@@ -383,7 +351,7 @@ describe('useLiveSearch', () => {
     });
 
     it('filters by documents extension', async () => {
-      const mockReadDir = vi.mocked(TauriAPI.readDirectory);
+      const mockReadDir = vi.mocked(TauriAPI.findFiles);
       mockReadDir.mockResolvedValue([
         makeFile('report.pdf', '/base/report.pdf'),
         makeFile('report.txt', '/base/report.txt'),
@@ -409,7 +377,7 @@ describe('useLiveSearch', () => {
     });
 
     it('filters by images extension', async () => {
-      const mockReadDir = vi.mocked(TauriAPI.readDirectory);
+      const mockReadDir = vi.mocked(TauriAPI.findFiles);
       mockReadDir.mockResolvedValue([
         makeFile('photo.jpg', '/base/photo.jpg'),
         makeFile('photo.png', '/base/photo.png'),
@@ -435,7 +403,7 @@ describe('useLiveSearch', () => {
     });
 
     it('filters by code extension', async () => {
-      const mockReadDir = vi.mocked(TauriAPI.readDirectory);
+      const mockReadDir = vi.mocked(TauriAPI.findFiles);
       mockReadDir.mockResolvedValue([
         makeFile('app.tsx', '/base/app.tsx'),
         makeFile('main.rs', '/base/main.rs'),
@@ -527,7 +495,7 @@ describe('useLiveSearch', () => {
 
   describe('resultCount and totalResultCount', () => {
     it('resultCount is capped at displayLimit', async () => {
-      const mockReadDir = vi.mocked(TauriAPI.readDirectory);
+      const mockReadDir = vi.mocked(TauriAPI.findFiles);
       // Create 250 files that match
       const files = Array.from({ length: 250 }, (_, i) =>
         makeFile(`test${i}.txt`, `/base/test${i}.txt`),

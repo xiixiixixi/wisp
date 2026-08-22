@@ -137,7 +137,10 @@ const OperationBar = ({
   };
 
   return (
-    <div ref={barRef} className="border-b border-xp-border bg-xp-surface px-3 py-1.5">
+    <div
+      ref={barRef}
+      className="wisp-operationbar border-b border-xp-border bg-xp-surface px-3 py-1.5"
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-1">
           {/* Sort Dropdown */}

@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useEffect, useRef } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 import { sortFiles, groupFilesByDate, type FileGroup, type SortField } from '@/lib/utils';
 import { useFolderSizes } from '@/hooks/use-folder-sizes';
@@ -209,13 +209,13 @@ const EditorGroupPane = ({
   // when useQuery returns undefined (query disabled or data not yet loaded).
   const EMPTY_FILES = useRef<FileEntry[]>([]).current;
 
-  // Per-pane file query (authoritative source of files for this pane)
+  // Path-scoped query: panes showing the same folder share one read/cache.
   const {
     data: queryFilesRaw,
     isLoading: queryLoading,
     refetch: queryRefetch,
   } = useQuery<FileEntry[]>({
-    queryKey: ['files', group.id, currentPath],
+    queryKey: ['files', currentPath],
     queryFn: async () => {
       if (currentPath.startsWith('gdrive://')) {
         const match = currentPath.match(/^gdrive:\/\/([^/]+)\/(.*)$/);
@@ -230,7 +230,10 @@ const EditorGroupPane = ({
       }
       return await TauriAPI.readDirectory(currentPath);
     },
-    staleTime: 0,
+    // A short freshness window makes back/forward and split-pane navigation
+    // instant without hiding external changes for long. Watchers and explicit
+    // file-operation events still refetch immediately.
+    staleTime: 5_000,
     enabled:
       activeTab?.type !== 'editor' &&
       currentPath !== 'wisp://home' &&
@@ -280,7 +283,6 @@ const EditorGroupPane = ({
     onFilesChangeRef.current?.(files, refetch);
   }, [files, isActive, refetch]);
 
-  const queryClient = useQueryClient();
   const { getFolderSize, isCalculatingSize, calculateFolderSize, calculateMissingSizes } =
     useFolderSizes(files);
 
@@ -302,11 +304,13 @@ const EditorGroupPane = ({
   // Listen for files-changed events (from drag-drop operations) to refetch
   useEffect(() => {
     const onFilesChanged = () => {
-      queryClient.invalidateQueries({ queryKey: ['files'] });
+      // Each pane refreshes only its own path. Invalidating every file query
+      // from every mounted pane multiplied the same request in split view.
+      void refetch();
     };
     window.addEventListener('files-changed', onFilesChanged);
     return () => window.removeEventListener('files-changed', onFilesChanged);
-  }, [queryClient]);
+  }, [refetch]);
 
   // Sort files using per-folder settings
   const sortedFilesRaw = useMemo(

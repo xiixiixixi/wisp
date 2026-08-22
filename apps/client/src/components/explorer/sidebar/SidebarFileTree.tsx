@@ -5,6 +5,7 @@ import { PATH_SEPARATOR, ROOT_PATH } from '@/lib/constants';
 import { getFolderColorHex } from '@/lib/folder-colors';
 import { useWindowEvent } from '@/hooks/use-window-event';
 import { useTranslation } from 'react-i18next';
+import { FileReferenceBadge } from '../FileReferenceBadge';
 
 type SortBy = 'name' | 'dateModified' | 'size' | 'type';
 type SortOrder = 'asc' | 'desc';
@@ -174,7 +175,7 @@ const SidebarFileTree = ({
           aria-selected={currentPath === file.path}
           aria-expanded={file.is_dir ? isExpanded : undefined}
           aria-label={`${file.name}${file.is_dir ? ', folder' : ', file'}`}
-          className={`hover:bg-xp-surface-light flex cursor-pointer items-center rounded px-1 py-1 text-xs transition-colors ${currentPath === file.path ? 'bg-xp-blue text-xp-blue border-xp-blue border-l-2 bg-opacity-25' : 'text-xp-text'} `}
+          className={`flex cursor-pointer items-center rounded px-1 py-1 text-xs transition-colors hover:bg-xp-surface-light ${currentPath === file.path ? 'wisp-sidebar-item-active' : 'text-xp-text'} `}
           style={{ paddingLeft: `${depth * 16 + 8}px` }}
           onClick={() => handleItemClick(file)}
           onContextMenu={(e) => handleItemRightClick(file, e)}
@@ -182,7 +183,7 @@ const SidebarFileTree = ({
           <div className="flex min-w-0 flex-1 items-center space-x-1">
             {file.is_dir ? (
               <button
-                className="hover:bg-xp-surface-light flex h-5 w-5 flex-shrink-0 items-center justify-center rounded p-0.5 transition-colors"
+                className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded p-0.5 transition-colors hover:bg-xp-surface-light"
                 onClick={(e) => toggleFolder(file.path, e)}
                 aria-expanded={isExpanded}
                 aria-label={isExpanded ? `Collapse ${file.name}` : `Expand ${file.name}`}
@@ -221,7 +222,11 @@ const SidebarFileTree = ({
               <div className="h-5 w-5" />
             )}
 
-            <span className="mr-1 flex-shrink-0">{getFileIcon(file)}</span>
+            <span className="mr-1 flex-shrink-0">
+              <FileReferenceBadge file={file} compact>
+                {getFileIcon(file)}
+              </FileReferenceBadge>
+            </span>
             {file.is_dir &&
               (() => {
                 const treeColor = getFolderColorHex(file.path);
@@ -262,7 +267,7 @@ const SidebarFileTree = ({
       data-sidebar-section="fileTree"
     >
       <button
-        className="text-xp-text-muted hover:bg-xp-surface-light/50 bg-xp-surface sticky top-0 z-10 flex w-full items-center px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest transition-colors"
+        className="hover:bg-xp-surface-light/50 sticky top-0 z-10 flex w-full items-center bg-xp-surface px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted transition-colors"
         onClick={onToggleCollapsed}
         aria-expanded={!collapsed}
       >
@@ -283,11 +288,11 @@ const SidebarFileTree = ({
                 aria-selected={currentPath === rootPath}
                 aria-expanded={expandedFolders.has(rootPath)}
                 aria-label={`Root drive ${rootPath}`}
-                className={`hover:bg-xp-surface-light flex cursor-pointer items-center rounded px-1 py-1 text-xs font-medium transition-colors ${currentPath === rootPath ? 'bg-xp-blue text-xp-blue border-xp-blue border-l-2 bg-opacity-25' : 'text-xp-text'} `}
+                className={`flex cursor-pointer items-center rounded px-1 py-1 text-xs font-medium transition-colors hover:bg-xp-surface-light ${currentPath === rootPath ? 'wisp-sidebar-item-active' : 'text-xp-text'} `}
                 onClick={() => navigateToPath(rootPath)}
               >
                 <button
-                  className="hover:bg-xp-surface-light flex h-5 w-5 flex-shrink-0 items-center justify-center rounded p-0.5 transition-colors"
+                  className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded p-0.5 transition-colors hover:bg-xp-surface-light"
                   onClick={(e) => toggleFolder(rootPath, e)}
                   aria-expanded={expandedFolders.has(rootPath)}
                   aria-label={
@@ -306,7 +311,7 @@ const SidebarFileTree = ({
                     />
                   </svg>
                 </button>
-                <HardDrive size={14} className="text-xp-text-secondary mr-1 flex-shrink-0" />
+                <HardDrive size={14} className="mr-1 flex-shrink-0 text-xp-text-secondary" />
                 <span className="truncate">{rootPath}</span>
               </div>
 

@@ -85,14 +85,14 @@ const VerticalExtensionsBar = ({
   const btnClass = (id: string) =>
     `w-10 h-10 mx-1 mb-1 rounded flex items-center justify-center text-lg transition-colors ${
       rightPanelTab === id && !rightSidebarCollapsed
-        ? 'bg-xp-blue text-white'
-        : 'hover:bg-xp-surface-light'
+        ? 'wisp-panel-button-active bg-xp-blue text-white'
+        : 'text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text'
     }`;
 
   return (
     <div
       data-tour={dataTour}
-      className="flex w-12 flex-col border-l border-xp-border bg-xp-surface"
+      className="wisp-panel-rail flex w-12 flex-col border-l border-xp-border bg-xp-surface"
     >
       <div className="flex flex-col py-2">
         {/* Core panels (always available) */}

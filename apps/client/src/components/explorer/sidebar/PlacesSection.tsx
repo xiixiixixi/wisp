@@ -21,11 +21,11 @@ const PlacesSection = ({ userDirectories, currentPath, navigateToPath }: PlacesS
   const { t } = useTranslation();
   return (
     <div
-      className="border-xp-border border-b px-3 py-2"
+      className="border-b border-xp-border px-3 py-2"
       role="region"
       aria-label={t('sidebar.quickAccess')}
     >
-      <h4 className="text-xp-text-muted mb-1.5 text-[10px] font-semibold uppercase tracking-widest">
+      <h4 className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted">
         {t('sidebar.quickAccess')}
       </h4>
       <div className="space-y-0.5">
@@ -35,35 +35,30 @@ const PlacesSection = ({ userDirectories, currentPath, navigateToPath }: PlacesS
               {
                 path: 'wisp://home',
                 Icon: Home,
-                color: 'text-xp-blue',
                 labelKey: 'sidebar.home',
               },
               {
                 path: userDirectories.documents,
                 Icon: FileText,
-                color: 'text-xp-orange',
                 labelKey: 'sidebar.documents',
               },
               {
                 path: userDirectories.downloads,
                 Icon: Download,
-                color: 'text-xp-green',
                 labelKey: 'sidebar.downloads',
               },
               {
                 path: userDirectories.desktop,
                 Icon: Monitor,
-                color: 'text-xp-purple',
                 labelKey: 'sidebar.desktop',
               },
               {
                 path: userDirectories.pictures,
                 Icon: Image,
-                color: 'text-xp-pink',
                 labelKey: 'sidebar.pictures',
               },
             ] as const
-          ).map(({ path, Icon, color, labelKey }) => {
+          ).map(({ path, Icon, labelKey }) => {
             const label = t(labelKey);
             const isActive = currentPath === path;
             return (
@@ -71,13 +66,13 @@ const PlacesSection = ({ userDirectories, currentPath, navigateToPath }: PlacesS
                 key={labelKey}
                 onClick={() => navigateToPath(path)}
                 className={`flex w-full items-center rounded px-2 py-1.5 text-xs transition-colors ${
-                  isActive ? 'bg-xp-blue/15 text-xp-blue' : 'hover:bg-xp-surface-light text-xp-text'
+                  isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
                 }`}
                 aria-label={t('sidebar.navigateTo', { label })}
               >
                 <Icon
                   size={15}
-                  className={`mr-2.5 flex-shrink-0 ${isActive ? 'text-xp-blue' : color}`}
+                  className="mr-2.5 flex-shrink-0 text-xp-text-secondary"
                   aria-hidden="true"
                 />
                 {label}

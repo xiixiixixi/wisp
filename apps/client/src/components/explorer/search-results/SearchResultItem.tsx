@@ -3,6 +3,7 @@ import { formatFileSize, getFileIcon } from '@/lib/utils';
 import i18n from '@/i18n';
 import type { FileEntry, SearchResult } from '@/lib/tauri-api';
 import type { LiveSearchResult } from '@/hooks/use-live-search';
+import { FileReferenceBadge } from '../FileReferenceBadge';
 
 // ── Highlight helper ─────────────────────────────────────────────────────────
 
@@ -74,7 +75,9 @@ export const ResultRow = React.memo(
         title={file.path}
       >
         <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-          {getFileIcon(file)}
+          <FileReferenceBadge file={file} compact>
+            {getFileIcon(file)}
+          </FileReferenceBadge>
         </span>
         <span
           style={{

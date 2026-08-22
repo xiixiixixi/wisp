@@ -207,48 +207,6 @@ const relativeTime = (
   return t('home.weeksAgo', { count: Math.floor(days / 7) });
 };
 
-/** Icon gradient based on file type. */
-const recentFileGradient = (fileType: string): string => {
-  const t = fileType.toLowerCase();
-  if (t === 'folder') return 'from-amber-500 to-amber-600';
-  if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'ico'].includes(t)) {
-    return 'from-pink-500 to-pink-600';
-  }
-  if (['mp4', 'mkv', 'avi', 'mov', 'wmv', 'webm'].includes(t)) {
-    return 'from-orange-500 to-orange-600';
-  }
-  if (['mp3', 'wav', 'ogg', 'flac', 'aac', 'wma'].includes(t)) return 'from-cyan-500 to-cyan-600';
-  if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz'].includes(t)) {
-    return 'from-yellow-500 to-yellow-600';
-  }
-  if (
-    [
-      'js',
-      'ts',
-      'jsx',
-      'tsx',
-      'py',
-      'rs',
-      'go',
-      'java',
-      'c',
-      'cpp',
-      'html',
-      'css',
-      'json',
-      'yaml',
-      'toml',
-      'xml',
-    ].includes(t)
-  ) {
-    return 'from-emerald-500 to-emerald-600';
-  }
-  if (['txt', 'md', 'rtf', 'doc', 'docx', 'pdf', 'csv', 'log'].includes(t)) {
-    return 'from-blue-500 to-blue-600';
-  }
-  return 'from-slate-500 to-slate-600';
-};
-
 /** Simple SVG icon for recent files based on type. */
 const RecentFileTypeIcon = ({
   fileType,
@@ -280,7 +238,7 @@ const Clock = () => {
   return (
     <div className="flex items-end justify-between">
       <div>
-        <p className="text-xp-text-muted mb-1 flex items-center gap-1.5 text-sm">
+        <p className="mb-1 flex items-center gap-1.5 text-sm text-xp-text-muted">
           <ClockIcon />
           {currentTime.toLocaleDateString(locale, {
             weekday: 'long',
@@ -288,9 +246,9 @@ const Clock = () => {
             day: 'numeric',
           })}
         </p>
-        <h1 className="text-xp-text text-3xl font-bold">{greeting}</h1>
+        <h1 className="text-3xl font-bold text-xp-text">{greeting}</h1>
       </div>
-      <p className="text-xp-text-muted text-2xl font-light tabular-nums">
+      <p className="text-2xl font-light tabular-nums text-xp-text-muted">
         {currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
       </p>
     </div>
@@ -562,43 +520,37 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
           name: t('sidebar.documents'),
           path: userDirectories.documents,
           icon: DocumentIcon,
-          gradient: 'from-blue-500 to-blue-600',
         },
         {
           name: t('sidebar.downloads'),
           path: userDirectories.downloads,
           icon: DownloadIcon,
-          gradient: 'from-emerald-500 to-emerald-600',
         },
         {
           name: t('sidebar.desktop'),
           path: userDirectories.desktop,
           icon: DesktopIcon,
-          gradient: 'from-violet-500 to-violet-600',
         },
         {
           name: t('sidebar.pictures'),
           path: userDirectories.pictures,
           icon: PhotoIcon,
-          gradient: 'from-pink-500 to-pink-600',
         },
         {
           name: t('home.videos'),
           path: userDirectories.videos,
           icon: VideoIcon,
-          gradient: 'from-orange-500 to-orange-600',
         },
         {
           name: t('home.music'),
           path: userDirectories.music,
           icon: MusicIcon,
-          gradient: 'from-cyan-500 to-cyan-600',
         },
       ]
     : [];
 
   return (
-    <div className="bg-xp-bg text-xp-text flex h-full flex-col overflow-auto">
+    <div className="flex h-full flex-col overflow-auto bg-xp-bg text-xp-text">
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-6 py-8">
         {/* Hero / Greeting */}
         <div className="mb-6">
@@ -614,34 +566,32 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                 <button
                   key={folder.name}
                   onClick={() => handleNavigate(folder.path)}
-                  className="bg-xp-surface/50 border-xp-border hover:border-xp-text-muted hover:bg-xp-surface group flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 transition-all duration-150"
+                  className="bg-xp-surface/50 group flex items-center gap-2.5 rounded-lg border border-xp-border px-3.5 py-2.5 transition-all duration-150 hover:border-xp-text-muted hover:bg-xp-surface"
                 >
-                  <div
-                    className={`h-7 w-7 rounded-md bg-gradient-to-br ${folder.gradient} flex flex-shrink-0 items-center justify-center`}
-                  >
+                  <div className="wisp-home-icon flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md">
                     <Icon className="h-3.5 w-3.5 text-white" />
                   </div>
-                  <span className="text-xp-text text-sm font-medium">{folder.name}</span>
+                  <span className="text-sm font-medium text-xp-text">{folder.name}</span>
                 </button>
               );
             })}
             <button
               onClick={() => handleNavigate('wisp://trash')}
-              className="bg-xp-surface/50 border-xp-border hover:border-xp-text-muted hover:bg-xp-surface group flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 transition-all duration-150"
+              className="bg-xp-surface/50 group flex items-center gap-2.5 rounded-lg border border-xp-border px-3.5 py-2.5 transition-all duration-150 hover:border-xp-text-muted hover:bg-xp-surface"
             >
-              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-red-500 to-red-600">
+              <div className="wisp-home-icon flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md">
                 <TrashIcon className="h-3.5 w-3.5 text-white" />
               </div>
-              <span className="text-xp-text text-sm font-medium">{t('navigation.trash')}</span>
+              <span className="text-sm font-medium text-xp-text">{t('navigation.trash')}</span>
             </button>
             <button
               onClick={() => handleNavigate(ROOT_PATH)}
-              className="bg-xp-surface/50 border-xp-border hover:border-xp-text-muted hover:bg-xp-surface group flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 transition-all duration-150"
+              className="bg-xp-surface/50 group flex items-center gap-2.5 rounded-lg border border-xp-border px-3.5 py-2.5 transition-all duration-150 hover:border-xp-text-muted hover:bg-xp-surface"
             >
-              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-slate-500 to-slate-600">
+              <div className="wisp-home-icon flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md">
                 <DriveIcon className="h-3.5 w-3.5 text-white" />
               </div>
-              <span className="text-xp-text text-sm font-medium">
+              <span className="text-sm font-medium text-xp-text">
                 {isWindows ? 'C:' : t('home.macintoshHD')}
               </span>
             </button>
@@ -656,11 +606,11 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                   <button
                     key={path}
                     onClick={() => handleNavigate(path)}
-                    className="bg-xp-bg/40 border-xp-border hover:border-xp-text-muted group flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs transition-colors"
+                    className="bg-xp-bg/40 group flex items-center gap-2 rounded-md border border-xp-border px-3 py-1.5 text-xs transition-colors hover:border-xp-text-muted"
                     title={path}
                   >
-                    <FolderIcon className="text-xp-blue h-3 w-3 flex-shrink-0" />
-                    <span className="text-xp-text-muted group-hover:text-xp-text max-w-[140px] truncate">
+                    <FolderIcon className="h-3 w-3 flex-shrink-0 text-xp-blue" />
+                    <span className="max-w-[140px] truncate text-xp-text-muted group-hover:text-xp-text">
                       {name}
                     </span>
                   </button>
@@ -676,18 +626,17 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
             <div className="mb-2 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <ClockIcon />
-                <span className="text-xp-text text-sm font-medium">{t('home.recentFiles')}</span>
+                <span className="text-sm font-medium text-xp-text">{t('home.recentFiles')}</span>
               </div>
               <button
                 onClick={handleClearRecentFiles}
-                className="text-xp-text-muted hover:text-xp-error text-[11px] transition-colors"
+                className="hover:text-xp-error text-[11px] text-xp-text-muted transition-colors"
               >
                 {t('home.clearAll')}
               </button>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
               {recentFiles.map((file) => {
-                const gradient = recentFileGradient(file.file_type);
                 return (
                   <div
                     key={`${file.path}-${file.accessed_at}`}
@@ -700,27 +649,25 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                     }}
                     role="button"
                     tabIndex={0}
-                    className="bg-xp-surface/50 border-xp-border hover:border-xp-text-muted hover:bg-xp-surface group relative flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-all duration-150"
+                    className="bg-xp-surface/50 group relative flex cursor-pointer items-center gap-2.5 rounded-lg border border-xp-border px-3 py-2.5 text-left transition-all duration-150 hover:border-xp-text-muted hover:bg-xp-surface"
                     title={file.path}
                   >
-                    <div
-                      className={`h-7 w-7 rounded-md bg-gradient-to-br ${gradient} flex flex-shrink-0 items-center justify-center`}
-                    >
+                    <div className="wisp-home-icon flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md">
                       <RecentFileTypeIcon
                         fileType={file.file_type}
                         className="h-3.5 w-3.5 text-white"
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xp-text truncate text-sm font-medium">{file.name}</p>
-                      <p className="text-xp-text-muted text-[10px]">
+                      <p className="truncate text-sm font-medium text-xp-text">{file.name}</p>
+                      <p className="text-[10px] text-xp-text-muted">
                         {relativeTime(file.accessed_at, t)}
                       </p>
                     </div>
                     {/* Remove button on hover */}
                     <button
                       onClick={(e) => handleRemoveRecentFile(e, file.path)}
-                      className="hover:bg-xp-error/20 text-xp-text-muted hover:text-xp-error absolute right-1 top-1 rounded p-0.5 opacity-0 transition-all group-hover:opacity-100"
+                      className="hover:bg-xp-error/20 hover:text-xp-error absolute right-1 top-1 rounded p-0.5 text-xp-text-muted opacity-0 transition-all group-hover:opacity-100"
                       title={t('home.removeFromRecent')}
                     >
                       <svg
@@ -745,17 +692,17 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
 
         {/* AI Assistant - compact, not flex-1 */}
         <div className="mt-2 flex flex-col">
-          <div className="bg-xp-surface/50 border-xp-border flex flex-col overflow-hidden rounded-xl border">
+          <div className="bg-xp-surface/50 flex flex-col overflow-hidden rounded-xl border border-xp-border">
             {/* Chat messages area */}
             <div ref={aiScrollRef} className="max-h-64 overflow-y-auto px-5 pb-2 pt-3">
               {aiMessages.length === 0 && !aiStreaming && (
                 <div className="flex items-center gap-3 py-2">
-                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-purple-600">
+                  <div className="wisp-home-icon flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg">
                     <SparklesIcon className="h-4 w-4 text-white" />
                   </div>
                   <div>
-                    <p className="text-xp-text text-sm">{t('home.agentTitle')}</p>
-                    <p className="text-xp-text-muted text-xs">{t('home.agentDescription')}</p>
+                    <p className="text-sm text-xp-text">{t('home.agentTitle')}</p>
+                    <p className="text-xs text-xp-text-muted">{t('home.agentDescription')}</p>
                   </div>
                 </div>
               )}
@@ -786,7 +733,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                 {/* Streaming response */}
                 {aiStreaming && (
                   <div className="flex justify-start">
-                    <div className="bg-xp-bg/60 text-xp-text max-w-[85%] rounded-lg px-3.5 py-2.5 text-sm">
+                    <div className="bg-xp-bg/60 max-w-[85%] rounded-lg px-3.5 py-2.5 text-sm text-xp-text">
                       <MarkdownRenderer content={aiStreaming} />
                     </div>
                   </div>
@@ -805,7 +752,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                       return (
                         <span
                           key={tc.id}
-                          className="bg-xp-bg/60 border-xp-border text-xp-text-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs"
+                          className="bg-xp-bg/60 inline-flex items-center gap-1.5 rounded-md border border-xp-border px-2.5 py-1 text-xs text-xp-text-muted"
                         >
                           <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${dotClass}`} />
                           {tc.name}
@@ -833,7 +780,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                       <p className="mb-1.5 text-xs font-medium text-yellow-400">
                         {t('home.approve')}: {tc.name}
                       </p>
-                      <p className="text-xp-text-muted mb-2 truncate font-mono text-xs">
+                      <p className="mb-2 truncate font-mono text-xs text-xp-text-muted">
                         {approvalDetail}
                       </p>
                       <div className="flex gap-2">
@@ -845,13 +792,13 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                         </button>
                         <button
                           onClick={() => handleApproval(tc.id, 'allow_always')}
-                          className="bg-xp-blue rounded px-3 py-1 text-xs text-white transition-colors hover:opacity-80"
+                          className="rounded bg-xp-blue px-3 py-1 text-xs text-white transition-colors hover:opacity-80"
                         >
                           {t('home.always')}
                         </button>
                         <button
                           onClick={() => handleApproval(tc.id, 'deny_always')}
-                          className="bg-xp-surface border-xp-border text-xp-text hover:bg-xp-bg rounded border px-3 py-1 text-xs transition-colors"
+                          className="rounded border border-xp-border bg-xp-surface px-3 py-1 text-xs text-xp-text transition-colors hover:bg-xp-bg"
                         >
                           {t('home.never')}
                         </button>
@@ -863,7 +810,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
             </div>
 
             {/* Input area - pinned at bottom */}
-            <div className="border-xp-border flex-shrink-0 border-t p-4">
+            <div className="flex-shrink-0 border-t border-xp-border p-4">
               <div className="flex items-center gap-3">
                 <div className="relative flex-1">
                   <input
@@ -878,7 +825,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                     }}
                     placeholder={t('home.askAnything')}
                     disabled={aiRunning}
-                    className="bg-xp-bg/60 border-xp-border text-xp-text placeholder-xp-text-muted focus:border-xp-blue/50 focus:ring-xp-blue/30 w-full rounded-lg border py-2.5 pl-4 pr-20 text-sm transition-colors focus:outline-none focus:ring-1 disabled:opacity-50"
+                    className="bg-xp-bg/60 focus:border-xp-blue/50 focus:ring-xp-blue/30 w-full rounded-lg border border-xp-border py-2.5 pl-4 pr-20 text-sm text-xp-text placeholder-xp-text-muted transition-colors focus:outline-none focus:ring-1 disabled:opacity-50"
                   />
                   <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
                     {aiRunning ? (
@@ -892,7 +839,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                       <button
                         onClick={handleAiSend}
                         disabled={!aiInput.trim()}
-                        className="bg-xp-blue/20 text-xp-blue hover:bg-xp-blue/30 rounded-md px-2.5 py-1 text-xs transition-colors disabled:opacity-30"
+                        className="bg-xp-blue/20 hover:bg-xp-blue/30 rounded-md px-2.5 py-1 text-xs text-xp-blue transition-colors disabled:opacity-30"
                       >
                         {t('home.send')}
                       </button>
@@ -912,7 +859,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                       onClick={() => {
                         setAiInput(suggestion);
                       }}
-                      className="bg-xp-bg/40 border-xp-border text-xp-text-muted hover:text-xp-text hover:border-xp-text-muted rounded-md border px-2.5 py-1 text-xs transition-colors"
+                      className="bg-xp-bg/40 rounded-md border border-xp-border px-2.5 py-1 text-xs text-xp-text-muted transition-colors hover:border-xp-text-muted hover:text-xp-text"
                     >
                       {suggestion}
                     </button>

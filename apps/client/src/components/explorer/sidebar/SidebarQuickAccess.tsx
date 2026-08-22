@@ -10,9 +10,10 @@ import {
   ChevronRight,
   GripHorizontal,
 } from 'lucide-react';
-import { TauriAPI } from '@/lib/tauri-api';
+import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 import { PATH_SEPARATOR, isWindows, isMac } from '@/lib/constants';
 import { useTranslation } from 'react-i18next';
+import { SidebarBookmarkItems } from '@/components/explorer/sidebar/SidebarBookmarks';
 
 interface UserDirectories {
   home: string;
@@ -27,6 +28,7 @@ interface UserDirectories {
 interface SidebarQuickAccessProps {
   currentPath: string;
   navigateToPath: (path: string) => void;
+  handleFileRightClick?: (file: FileEntry, event: React.MouseEvent) => void;
   collapsed: boolean;
   onToggleCollapsed: () => void;
   sectionHeight: number | undefined;
@@ -36,6 +38,7 @@ interface SidebarQuickAccessProps {
 const SidebarQuickAccess = ({
   currentPath,
   navigateToPath,
+  handleFileRightClick,
   collapsed,
   onToggleCollapsed,
   sectionHeight,
@@ -74,13 +77,15 @@ const SidebarQuickAccess = ({
 
   return (
     <div
-      className="border-xp-border border-b"
+      className="border-b border-xp-border"
       role="region"
       aria-label="Quick access"
       data-sidebar-section="quickAccess"
+      data-drop-target=""
+      data-drop-action="bookmark-add"
     >
       <button
-        className="text-xp-text-muted hover:bg-xp-surface-light/50 flex w-full items-center px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest transition-colors"
+        className="hover:bg-xp-surface-light/50 flex w-full items-center px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted transition-colors"
         onClick={onToggleCollapsed}
         aria-expanded={!collapsed}
       >
@@ -102,35 +107,30 @@ const SidebarQuickAccess = ({
                 {
                   path: 'wisp://home',
                   Icon: Home,
-                  color: 'text-xp-blue',
                   labelKey: 'sidebar.home' as const,
                 },
                 {
                   path: userDirectories.documents,
                   Icon: FileText,
-                  color: 'text-xp-orange',
                   labelKey: 'sidebar.documents' as const,
                 },
                 {
                   path: userDirectories.downloads,
                   Icon: Download,
-                  color: 'text-xp-green',
                   labelKey: 'sidebar.downloads' as const,
                 },
                 {
                   path: userDirectories.desktop,
                   Icon: Monitor,
-                  color: 'text-xp-purple',
                   labelKey: 'sidebar.desktop' as const,
                 },
                 {
                   path: userDirectories.pictures,
                   Icon: Image,
-                  color: 'text-xp-pink',
                   labelKey: 'sidebar.pictures' as const,
                 },
               ] as const
-            ).map(({ path, Icon, color, labelKey }) => {
+            ).map(({ path, Icon, labelKey }) => {
               const label = t(labelKey);
               const isActive = currentPath === path;
               return (
@@ -138,15 +138,13 @@ const SidebarQuickAccess = ({
                   key={labelKey}
                   onClick={() => navigateToPath(path)}
                   className={`flex w-full items-center rounded px-2 py-1.5 text-xs transition-colors ${
-                    isActive
-                      ? 'bg-xp-blue/15 text-xp-blue'
-                      : 'hover:bg-xp-surface-light text-xp-text'
+                    isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
                   }`}
                   aria-label={t('sidebar.navigateTo', { label })}
                 >
                   <Icon
                     size={15}
-                    className={`mr-2.5 flex-shrink-0 ${isActive ? 'text-xp-blue' : color}`}
+                    className="mr-2.5 flex-shrink-0 text-xp-text-secondary"
                     aria-hidden="true"
                   />
                   {label}
@@ -162,26 +160,29 @@ const SidebarQuickAccess = ({
                   key="icloud"
                   onClick={() => navigateToPath(iCloudPath)}
                   className={`flex w-full items-center rounded px-2 py-1.5 text-xs transition-colors ${
-                    isActive
-                      ? 'bg-xp-blue/15 text-xp-blue'
-                      : 'hover:bg-xp-surface-light text-xp-text'
+                    isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
                   }`}
                   aria-label={t('sidebar.navigateTo', { label })}
                 >
                   <Cloud
                     size={15}
-                    className={`mr-2.5 flex-shrink-0 ${isActive ? 'text-xp-blue' : 'text-xp-cyan'}`}
+                    className="mr-2.5 flex-shrink-0 text-xp-text-secondary"
                     aria-hidden="true"
                   />
                   {label}
                 </button>
               );
             })()}
+          <SidebarBookmarkItems
+            currentPath={currentPath}
+            navigateToPath={navigateToPath}
+            handleFileRightClick={handleFileRightClick}
+          />
         </div>
       )}
       {/* Resize handle */}
       <div
-        className="hover:bg-xp-blue/30 group flex h-2 cursor-row-resize items-center justify-center transition-colors"
+        className="group flex h-2 cursor-row-resize items-center justify-center transition-colors hover:bg-xp-surface-light"
         onMouseDown={(e) => onResizeStart('quickAccess', e)}
       >
         <GripHorizontal className="text-xp-text-muted/20 group-hover:text-xp-text-muted/60 h-3 w-4 transition-colors" />

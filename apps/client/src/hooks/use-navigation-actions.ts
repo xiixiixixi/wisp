@@ -66,13 +66,9 @@ export const useNavigationActions = (deps: NavigationActionsDeps) => {
         TauriAPI.setSearchContext(newPath).catch((err) =>
           console.error('Failed to set search context:', err),
         );
-        // Defer indexing so the folder renders first — prevents UI freezes
-        setTimeout(() => {
-          TauriAPI.indexDirectory(newPath).catch((err) =>
-            console.error('Failed to index directory:', err),
-          );
-        }, 1000);
-        if (localStorage.getItem(STORAGE_KEYS.AUTO_WHITELIST_VISITED) !== 'false') {
+        // Do not start indexing as a side effect of ordinary navigation. Users
+        // can explicitly opt in to content indexing from Search settings.
+        if (localStorage.getItem(STORAGE_KEYS.AUTO_WHITELIST_VISITED) === 'true') {
           TauriAPI.addWhitelistedPath(newPath).catch((err) =>
             console.error('Failed to whitelist path:', err),
           );

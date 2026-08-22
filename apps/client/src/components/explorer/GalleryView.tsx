@@ -6,6 +6,7 @@ import { useDroppable } from '@/hooks/use-droppable';
 import { useThumbnailCache } from '@/hooks/use-thumbnail-cache';
 import { isImageFile } from './FileGridHelpers';
 import { ViewComponentProps } from './FileGridTypes';
+import { FileReferenceBadge } from './FileReferenceBadge';
 
 // Filmstrip thumbnail item
 const GalleryStripThumb = React.memo(
@@ -93,7 +94,9 @@ const GalleryStripThumb = React.memo(
           </>
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-xp-surface-light">
-            <span className="text-xl opacity-60">{getFileIcon(file)}</span>
+            <span className="text-xl opacity-60">
+              <FileReferenceBadge file={file}>{getFileIcon(file)}</FileReferenceBadge>
+            </span>
           </div>
         )}
       </div>
@@ -343,7 +346,11 @@ const GalleryView = ({
           }
           return (
             <div className="flex flex-col items-center gap-3 text-xp-text-muted">
-              <span className="text-7xl opacity-50">{getFileIcon(displayFile)}</span>
+              <span className="text-7xl opacity-50">
+                <FileReferenceBadge file={displayFile}>
+                  {getFileIcon(displayFile)}
+                </FileReferenceBadge>
+              </span>
               <span className="text-sm font-medium">{displayFile.name}</span>
               <span className="text-xs">
                 {displayFile.is_dir ? 'Folder' : formatFileSize(displayFile.size)}

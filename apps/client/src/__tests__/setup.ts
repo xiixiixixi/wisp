@@ -18,24 +18,20 @@ vi.mock('react-i18next', () => ({
 }));
 
 // Mock lucide-react with a Proxy that auto-generates mock icons for any name
-vi.mock('lucide-react', () => {
+vi.mock('lucide-react', async (importOriginal) => {
   const createMockIcon = (name: string) => {
     const MockIcon = (props: Record<string, unknown>) =>
       React.createElement('svg', { 'data-testid': `icon-${name}`, ...props });
     MockIcon.displayName = name;
     return MockIcon;
   };
-
-  return new Proxy({} as Record<string, unknown>, {
-    get: (_target, prop: string) => {
-      if (prop === '__esModule') return true;
-      if (prop === 'default') return {};
-      if (prop === 'createLucideIcon') {
-        return (name: string) => createMockIcon(name);
-      }
-      return createMockIcon(prop);
-    },
-  });
+  const actual = await importOriginal<Record<string, unknown>>();
+  const mocked = Object.fromEntries(
+    Object.keys(actual).map((name) => [name, createMockIcon(name)]),
+  ) as Record<string, unknown>;
+  mocked.createLucideIcon = (name: string) => createMockIcon(name);
+  mocked.default = {};
+  return mocked;
 });
 
 // Prevent any Tauri API access during tests by setting up global environment
@@ -55,11 +51,13 @@ const mockInvoke = vi.fn().mockImplementation((command, _args) => {
 
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: mockInvoke,
+  convertFileSrc: vi.fn((path: string) => `https://asset.localhost/${encodeURIComponent(path)}`),
 }));
 
 // Mock Tauri event API
 vi.mock('@tauri-apps/api/event', () => ({
   listen: vi.fn(() => Promise.resolve(() => {})),
+  emit: vi.fn(() => Promise.resolve()),
 }));
 
 // Mock Tauri dialog API
@@ -71,6 +69,7 @@ vi.mock('@tauri-apps/plugin-dialog', () => ({
 vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {
     readDirectory: vi.fn(() => Promise.resolve([])),
+    findFiles: vi.fn(() => Promise.resolve([])),
     getFileIcon: vi.fn(() => '📄'),
     formatFileSize: vi.fn(() => '1 KB'),
     formatDate: vi.fn(() => '2024-01-01'),
@@ -155,6 +154,7 @@ vi.mock('@/lib/utils', () => ({
   cn: vi.fn((...classes: unknown[]) => classes.filter(Boolean).join(' ')),
   applyFontSize: vi.fn(),
   loadFontSize: vi.fn(),
+  applyTheme: vi.fn(),
 }));
 
 // jsdom doesn't implement scrollIntoView

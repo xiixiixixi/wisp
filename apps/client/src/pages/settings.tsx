@@ -199,7 +199,7 @@ const Settings = () => {
       const saved = localStorage.getItem(SETTINGS_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Align stored theme with the resolved theme (legacy values migrate to Rolex)
+        // Align stored theme with the resolved built-in default.
         if (typeof parsed.theme === 'string') parsed.theme = resolveTheme();
         return { ...DEFAULT_SETTINGS, ...parsed };
       }

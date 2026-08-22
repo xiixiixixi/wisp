@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
 import { ViewComponentProps } from './FileGridTypes';
+import { FileReferenceBadge } from './FileReferenceBadge';
 
 interface ColumnData {
   path: string;
@@ -90,7 +91,9 @@ const ColumnFileRow = React.memo(
             justifyContent: 'center',
           }}
         >
-          {getFileIcon(file)}
+          <FileReferenceBadge file={file} compact>
+            {getFileIcon(file)}
+          </FileReferenceBadge>
         </span>
         <span
           style={{

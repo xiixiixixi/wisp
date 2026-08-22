@@ -5,6 +5,7 @@ import React from 'react';
 
 vi.mock('@/lib/constants', () => ({
   isWindows: true,
+  isMac: false,
   PATH_SEPARATOR: '\\',
   ROOT_PATH: 'C:\\',
 }));
@@ -82,6 +83,8 @@ vi.mock('@/lib/extension-host', () => ({
     getTabRenderer: vi.fn(() => null),
     getNavigationEntries: vi.fn(() => []),
     onChange: vi.fn(() => () => {}),
+    subscribe: vi.fn(() => () => {}),
+    getSnapshotVersion: vi.fn(() => 0),
     getSidebarTabs: vi.fn(() => []),
     getSidebarTabRenderer: vi.fn(() => null),
   },
@@ -119,6 +122,7 @@ describe('Navigation Integration', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -170,7 +174,7 @@ describe('Navigation Integration', () => {
       expect(deps.splitLayout.navigate).not.toHaveBeenCalled();
     });
 
-    it('indexes the directory on navigation', () => {
+    it('does not index or whitelist a directory during ordinary navigation', () => {
       const deps = createNavigationDeps();
       const { result } = renderHook(() => useNavigation(deps));
 
@@ -178,7 +182,21 @@ describe('Navigation Integration', () => {
         result.current.navigateToPath('C:\\Users\\Test\\Projects');
       });
 
-      expect(mockIndexDirectory).toHaveBeenCalledWith('C:\\Users\\Test\\Projects');
+      expect(mockIndexDirectory).not.toHaveBeenCalled();
+      expect(mockAddWhitelistedPath).not.toHaveBeenCalled();
+    });
+
+    it('whitelists a visited directory only after explicit opt-in', () => {
+      localStorage.setItem('wisp:auto-whitelist-visited', 'true');
+      const deps = createNavigationDeps();
+      const { result } = renderHook(() => useNavigation(deps));
+
+      act(() => {
+        result.current.navigateToPath('C:\\Users\\Test\\Projects');
+      });
+
+      expect(mockAddWhitelistedPath).toHaveBeenCalledWith('C:\\Users\\Test\\Projects');
+      expect(mockIndexDirectory).not.toHaveBeenCalled();
     });
 
     it('sets the search context on navigation', () => {
@@ -192,7 +210,7 @@ describe('Navigation Integration', () => {
       expect(mockSetSearchContext).toHaveBeenCalledWith('C:\\Users\\Test\\Downloads');
     });
 
-    it('starts a search watcher on navigation', () => {
+    it('leaves directory watching to the dedicated filesystem effect', () => {
       const deps = createNavigationDeps();
       const { result } = renderHook(() => useNavigation(deps));
 
@@ -200,7 +218,7 @@ describe('Navigation Integration', () => {
         result.current.navigateToPath('D:\\Projects');
       });
 
-      expect(mockStartWatching).toHaveBeenCalledWith('D:\\Projects');
+      expect(mockStartWatching).not.toHaveBeenCalled();
     });
 
     it('does not index wisp:// protocol paths', () => {
@@ -510,7 +528,7 @@ describe('Navigation Integration', () => {
       expect(navigateToPath).toHaveBeenCalledWith('D:\\Projects\\ProjectA');
     });
 
-    it('shows empty bookmarks message when no bookmarks exist', async () => {
+    it('does not add an empty bookmark message to Quick Access', async () => {
       mockGetBookmarks.mockResolvedValueOnce([]);
 
       render(
@@ -523,8 +541,9 @@ describe('Navigation Integration', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('noBookmarks')).toBeInTheDocument();
+        expect(mockGetBookmarks).toHaveBeenCalled();
       });
+      expect(screen.queryByText('noBookmarks')).not.toBeInTheDocument();
     });
 
     it('removes a bookmark when the remove button is clicked', async () => {
@@ -545,7 +564,7 @@ describe('Navigation Integration', () => {
         expect(screen.getByText('RemoveMe')).toBeInTheDocument();
       });
 
-      const removeBtn = screen.getByTitle('Remove bookmark');
+      const removeBtn = screen.getByTitle('remove');
       fireEvent.click(removeBtn);
 
       expect(TauriAPI.removeBookmark).toHaveBeenCalledWith('C:\\Users\\Test\\RemoveMe');

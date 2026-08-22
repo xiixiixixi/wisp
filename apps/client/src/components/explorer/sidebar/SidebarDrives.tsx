@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   HardDrive,
-  User,
   ChevronDown,
   ChevronRight,
   GripHorizontal,
@@ -38,30 +37,32 @@ const SidebarDrives = ({
   const { t } = useTranslation();
   const { toast } = useToast();
   const [drives, setDrives] = useState<Drive[]>([]);
-  const [homePath, setHomePath] = useState<string | null>(null);
+
+  const loadDrives = useCallback(async () => {
+    try {
+      const list = await TauriAPI.listDrives();
+      setDrives(list);
+    } catch (error) {
+      console.error('Failed to load drives:', error);
+      setDrives([
+        {
+          letter: isWindows ? 'C' : '',
+          label: isWindows ? t('sidebarDrives.localDisk') : 'Macintosh HD',
+          path: ROOT_PATH,
+          total_space: 0,
+          free_space: 0,
+        },
+      ]);
+    }
+  }, [t]);
 
   useEffect(() => {
-    TauriAPI.listDrives()
-      .then((list) => setDrives(list))
-      .catch((error) => {
-        console.error('Failed to load drives:', error);
-        setDrives([
-          {
-            letter: isWindows ? 'C' : '',
-            label: isWindows ? t('sidebarDrives.localDisk') : 'Macintosh HD',
-            path: ROOT_PATH,
-            total_space: 0,
-            free_space: 0,
-          },
-        ]);
-      });
-
-    if (!isWindows) {
-      TauriAPI.getUserDirectories()
-        .then((dirs) => setHomePath(dirs.home))
-        .catch((error) => console.error('Failed to load user directories:', error));
-    }
-  }, []);
+    void loadDrives();
+    // macOS does not currently emit a mount event to the webview. Refreshing
+    // when Wisp regains focus makes newly attached/ejected volumes appear.
+    window.addEventListener('focus', loadDrives);
+    return () => window.removeEventListener('focus', loadDrives);
+  }, [loadDrives]);
 
   const handleEjectVolume = useCallback(
     async (path: string, e: React.MouseEvent) => {
@@ -69,8 +70,7 @@ const SidebarDrives = ({
       try {
         await TauriAPI.ejectVolume(path);
         toast({ title: t('drives.ejectSuccess') });
-        const driveList = await TauriAPI.listDrives();
-        setDrives(driveList);
+        await loadDrives();
       } catch (error) {
         toast({
           title: t('drives.ejectFailed'),
@@ -80,8 +80,11 @@ const SidebarDrives = ({
         console.error('Eject volume failed:', error);
       }
     },
-    [t, toast],
+    [loadDrives, t, toast],
   );
+
+  const hasExternalVolumes =
+    !isWindows && drives.some((drive) => drive.path.startsWith('/Volumes/'));
 
   return (
     <div
@@ -138,7 +141,7 @@ const SidebarDrives = ({
                     </span>
                     {totalGB > 0 && (
                       <span className="ml-2 flex-shrink-0 pr-5 text-xp-text-muted">
-                        {freeGB} GB free
+                        {t('sidebarDrives.freeSpace', { size: freeGB })}
                       </span>
                     )}
                   </div>
@@ -165,23 +168,17 @@ const SidebarDrives = ({
               </div>
             );
           })}
-          {!isWindows && homePath && (
-            <button
-              onClick={() => navigateToPath(homePath)}
-              data-drop-target={homePath}
-              data-is-folder="true"
-              className="flex w-full items-center rounded px-2 py-1.5 text-xs transition-colors hover:bg-xp-surface-light"
-            >
-              <User size={15} className="mr-2.5 flex-shrink-0 text-xp-cyan" />{' '}
-              {homePath.split('/').pop()}
-            </button>
+          {!isWindows && !hasExternalVolumes && (
+            <p className="px-2 py-1 text-[11px] text-xp-text-muted" aria-live="polite">
+              {t('sidebarDrives.noExternalVolumes')}
+            </p>
           )}
         </div>
       )}
       {/* Resize handle */}
       {!collapsed && (
         <div
-          className="hover:bg-xp-blue/30 group flex h-2 cursor-row-resize items-center justify-center transition-colors"
+          className="group flex h-2 cursor-row-resize items-center justify-center transition-colors hover:bg-xp-surface-light"
           onMouseDown={(e) => onResizeStart('drives', e)}
         >
           <GripHorizontal className="text-xp-text-muted/20 group-hover:text-xp-text-muted/60 h-3 w-4 transition-colors" />

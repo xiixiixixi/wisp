@@ -462,8 +462,7 @@ const SearchResultsPanel = React.forwardRef<SearchResultsPanelHandle, SearchResu
                   style={
                     matchedItems.includes(result.filename)
                       ? {
-                          borderLeft: '2px solid var(--xp-blue)',
-                          background: 'rgba(var(--xp-blue-rgb, 99, 102, 241), 0.05)',
+                          background: 'var(--xp-surface-light)',
                         }
                       : undefined
                   }

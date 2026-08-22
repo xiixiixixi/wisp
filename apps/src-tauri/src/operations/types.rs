@@ -12,6 +12,12 @@ pub struct FileEntry {
     pub mime_type: Option<String>,
     /// Whether the file/directory is read-only (permissions).
     pub is_readonly: bool,
+    /// Whether this entry is a POSIX symbolic link.
+    pub is_symlink: bool,
+    /// Link target as stored on disk. Relative targets remain relative.
+    pub symlink_target: Option<String>,
+    /// Whether macOS Finder marks this regular file as a Finder alias.
+    pub is_alias: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -188,6 +194,9 @@ mod tests {
             file_type: "file".to_string(),
             mime_type: Some("text/plain".to_string()),
             is_readonly: false,
+            is_symlink: false,
+            symlink_target: None,
+            is_alias: false,
         };
         let json = serde_json::to_string(&entry).unwrap();
         let deserialized: FileEntry = serde_json::from_str(&json).unwrap();
@@ -211,6 +220,9 @@ mod tests {
             file_type: "file".to_string(),
             mime_type: None,
             is_readonly: false,
+            is_symlink: false,
+            symlink_target: None,
+            is_alias: false,
         };
         let json = serde_json::to_string(&entry).unwrap();
         let deserialized: FileEntry = serde_json::from_str(&json).unwrap();
@@ -228,6 +240,9 @@ mod tests {
             file_type: "directory".to_string(),
             mime_type: None,
             is_readonly: false,
+            is_symlink: false,
+            symlink_target: None,
+            is_alias: false,
         };
         assert!(entry.is_dir);
         assert_eq!(entry.file_type, "directory");

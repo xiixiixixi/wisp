@@ -8,6 +8,7 @@ import { formatFileSize } from '@/lib/utils';
 import { getFolderColorHex } from '@/lib/folder-colors';
 import { validateFileName } from '@/lib/validate-filename';
 import ThumbnailPreview from './ThumbnailPreview';
+import { FileReferenceBadge } from './FileReferenceBadge';
 
 // ─── Chat file display name helper ───────────────────────────────────────────
 
@@ -414,8 +415,8 @@ const FileGridItem = React.memo(
         }
         className={`cursor-pointer rounded-lg transition-colors duration-150 ${
           isSelected
-            ? 'bg-xp-blue/20 ring-xp-blue/80 border-xp-blue border ring-2'
-            : 'hover:bg-xp-surface-light border border-transparent'
+            ? 'bg-xp-blue/20 ring-xp-blue/80 border border-xp-blue ring-2'
+            : 'border border-transparent hover:bg-xp-surface-light'
         } ${(() => {
           if (isGridView) return 'min-w-0 overflow-hidden p-3 text-center';
           if (isListView) {
@@ -456,23 +457,23 @@ const FileGridItem = React.memo(
           className={`${itemSize} ${isGridView ? 'mb-2' : ''} flex-shrink-0`}
           style={folderColorHex ? { color: folderColorHex } : undefined}
         >
-          {getFileIcon(file)}
+          <FileReferenceBadge file={file}>{getFileIcon(file)}</FileReferenceBadge>
         </div>
         <div className={`${isGridView ? 'w-full min-w-0' : 'min-w-0 flex-1'} select-none`}>
           <div
-            className={`text-xp-text font-medium ${isRenaming ? '' : 'overflow-hidden'} ${isListView ? 'text-xs' : 'text-sm'} ${isGridView ? 'justify-center' : ''} flex items-center`}
+            className={`font-medium text-xp-text ${isRenaming ? '' : 'overflow-hidden'} ${isListView ? 'text-xs' : 'text-sm'} ${isGridView ? 'justify-center' : ''} flex items-center`}
             style={isRenaming ? { position: 'relative', overflow: 'visible' } : undefined}
           >
             {renderNameArea()}
           </div>
           {file.name.endsWith('.chat') && !isRenaming && (
-            <span className="bg-xp-purple/20 text-xp-purple mt-0.5 inline-block rounded-full px-1.5 py-0.5 text-[9px]">
+            <span className="bg-xp-purple/20 mt-0.5 inline-block rounded-full px-1.5 py-0.5 text-[9px] text-xp-purple">
               Chat
             </span>
           )}
           {isGridView && !isRenaming && <TagDots tags={tags} />}
           {!isGridView && !isListView && !isRenaming && (
-            <div className="text-xp-text-muted flex items-center space-x-4 text-xs">
+            <div className="flex items-center space-x-4 text-xs text-xp-text-muted">
               <span>
                 {file.is_dir
                   ? formatFolderSize(getFolderSize(file.path), isCalculatingSize(file.path))
@@ -484,7 +485,7 @@ const FileGridItem = React.memo(
             </div>
           )}
           {viewMode === 'content' && !isRenaming && (
-            <div className="text-xp-text-muted mt-1 text-xs">
+            <div className="mt-1 text-xs text-xp-text-muted">
               <div>
                 {file.is_dir
                   ? formatFolderSize(getFolderSize(file.path), isCalculatingSize(file.path))

@@ -14,7 +14,7 @@ interface SidebarTabBarProps {
   extensionTabs: SidebarTab[];
 }
 
-const TAB_CLASS_ACTIVE = 'bg-xp-blue/15 text-xp-blue';
+const TAB_CLASS_ACTIVE = 'wisp-sidebar-item-active';
 const TAB_CLASS_INACTIVE = 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text';
 
 const SidebarTabBar = ({ activeTabId, onTabClick, extensionTabs }: SidebarTabBarProps) => {

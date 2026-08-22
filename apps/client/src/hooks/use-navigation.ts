@@ -69,17 +69,10 @@ export const useNavigation = ({ currentPath, splitLayout, activeGroup }: UseNavi
         TauriAPI.setSearchContext(newPath).catch((err) =>
           console.error('Failed to set search context:', err),
         );
-        // Defer indexing so the folder renders first — prevents UI freezes
-        setTimeout(() => {
-          TauriAPI.indexDirectory(newPath).catch((err) =>
-            console.error('Failed to index directory:', err),
-          );
-        }, 1000);
-        // Watch the directory for FS changes so the search index auto-rebuilds.
-        TauriAPI.startWatching(newPath).catch((err: unknown) =>
-          console.warn('Failed to start search watcher:', err),
-        );
-        if (localStorage.getItem(STORAGE_KEYS.AUTO_WHITELIST_VISITED) !== 'false') {
+        // Browsing must stay independent from indexing. Filename search uses the
+        // platform provider (Spotlight on macOS), while content indexing remains
+        // an explicit opt-in because adding a whitelist path can rebuild the index.
+        if (localStorage.getItem(STORAGE_KEYS.AUTO_WHITELIST_VISITED) === 'true') {
           TauriAPI.addWhitelistedPath(newPath).catch((err) =>
             console.error('Failed to whitelist path:', err),
           );

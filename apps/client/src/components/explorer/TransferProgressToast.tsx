@@ -2,6 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TauriAPI, type FileOperationProgress } from '@/lib/tauri-api';
 import {
+  getLatestFileOperationProgress,
+  subscribeToFileOperationProgress,
+} from '@/lib/file-operation-progress';
+import { notifyFilesChanged } from '@/lib/file-change-events';
+import {
   recordTransfer,
   clearTransferRecord,
   undoLastTransfer,
@@ -59,8 +64,7 @@ export const TransferProgressToast = ({
 
   // Track operation statuses via the file-operation-progress event stream
   useEffect(() => {
-    let unlisten: (() => void) | null = null;
-    void TauriAPI.listenToFileOperationProgress((progress: FileOperationProgress) => {
+    const updateProgress = (progress: FileOperationProgress) => {
       if (!ids.includes(progress.operation_id)) return;
       setOpStates((prev) => {
         const cur = prev.get(progress.operation_id);
@@ -75,12 +79,16 @@ export const TransferProgressToast = ({
         return next;
       });
       if (progress.current_file) setCurrentFile(progress.current_file);
-    }).then((fn) => {
-      unlisten = fn;
-    });
-    return () => {
-      unlisten?.();
     };
+
+    // Subscribe before reading the cache so an event cannot slip through the
+    // small gap between those two steps.
+    const unsubscribe = subscribeToFileOperationProgress(updateProgress);
+    for (const id of ids) {
+      const latest = getLatestFileOperationProgress(id);
+      if (latest) updateProgress(latest);
+    }
+    return unsubscribe;
   }, [ids]);
 
   // Record the transfer once settled, then auto-dismiss the toast (which also
@@ -109,7 +117,7 @@ export const TransferProgressToast = ({
   const handleUndo = async () => {
     setUndoing(true);
     const ok = await undoLastTransfer();
-    if (ok) window.dispatchEvent(new CustomEvent('files-changed'));
+    if (ok) await notifyFilesChanged();
     onDismiss();
   };
 

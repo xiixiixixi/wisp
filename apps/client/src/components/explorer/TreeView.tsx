@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
 import { useDraggable } from '@/hooks/use-draggable';
 import { ViewComponentProps } from './FileGridTypes';
+import { FileReferenceBadge } from './FileReferenceBadge';
 
 interface TreeRowProps {
   file: FileEntry;
@@ -107,7 +108,11 @@ const TreeRow = ({
           )}
           {!file.is_dir && <div className="w-4 flex-shrink-0" />}
 
-          <span className="mr-2 flex-shrink-0 text-sm">{getFileIcon(file)}</span>
+          <span className="mr-2 flex-shrink-0 text-sm">
+            <FileReferenceBadge file={file} compact>
+              {getFileIcon(file)}
+            </FileReferenceBadge>
+          </span>
           <span className="flex-1 truncate text-sm">{file.name}</span>
         </div>
       </div>
