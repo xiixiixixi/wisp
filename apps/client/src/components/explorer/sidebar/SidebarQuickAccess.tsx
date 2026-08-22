@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Home, FileText, Download, Monitor, Image, Cloud } from 'lucide-react';
+import { Home, User, FileText, Download, Monitor, Image, Cloud } from 'lucide-react';
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 import { PATH_SEPARATOR, isWindows, isMac } from '@/lib/constants';
 import { useTranslation } from 'react-i18next';
@@ -77,6 +77,11 @@ const SidebarQuickAccess = ({
                 path: 'wisp://home',
                 Icon: Home,
                 labelKey: 'sidebar.home' as const,
+              },
+              {
+                path: userDirectories.home,
+                Icon: User,
+                labelKey: 'sidebar.userDirectory' as const,
               },
               {
                 path: userDirectories.documents,

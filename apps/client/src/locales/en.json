@@ -60,6 +60,7 @@
   "sidebar": {
     "quickAccess": "QUICK ACCESS",
     "home": "Home",
+    "userDirectory": "User Folder",
     "documents": "Documents",
     "downloads": "Downloads",
     "desktop": "Desktop",

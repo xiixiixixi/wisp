@@ -144,6 +144,14 @@ describe('LeftSidebar', () => {
       });
     });
 
+    it('renders the user directory in quick access', async () => {
+      render(<LeftSidebar {...mockProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('User Folder')).toBeInTheDocument();
+      });
+    });
+
     it('renders Documents quick access item', async () => {
       render(<LeftSidebar {...mockProps} />);
 
@@ -185,6 +193,13 @@ describe('LeftSidebar', () => {
 
       fireEvent.click(screen.getByText('Home'));
       expect(mockProps.navigateToPath).toHaveBeenCalledWith('wisp://home');
+    });
+
+    it('navigates to the real user directory when clicked', async () => {
+      render(<LeftSidebar {...mockProps} />);
+
+      fireEvent.click(await screen.findByText('User Folder'));
+      expect(mockProps.navigateToPath).toHaveBeenCalledWith('C:\\Users\\Test');
     });
 
     it('navigates to Documents when Documents is clicked', async () => {
