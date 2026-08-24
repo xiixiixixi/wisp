@@ -14,7 +14,6 @@ use std::sync::{Arc, LazyLock, Mutex, OnceLock, RwLock};
 use std::thread;
 use std::time::UNIX_EPOCH;
 
-use jwalk::WalkDir;
 use tracing::info;
 
 use super::ai_pipeline::AIPipeline;
@@ -407,17 +406,22 @@ impl SearchEngine {
             return;
         }
 
-        for entry in WalkDir::new(root)
-            .sort(false)
-            .max_depth(10)
-            .follow_links(false)
-            .into_iter()
-            .filter_map(|e| e.ok())
+        // Sequential deterministic walk (jwalk was observed spinning under
+        // LaunchServices-launched processes).
+        let mut scratch_dirs: Vec<std::path::PathBuf> = Vec::new();
+        let mut files: Vec<std::path::PathBuf> = Vec::new();
+        let mut scratch_names: Vec<std::path::PathBuf> = Vec::new();
+        super::compat_watcher::walk_dir_recursive(
+            root,
+            10,
+            &std::collections::HashSet::new(),
+            u64::MAX,
+            &mut scratch_dirs,
+            &mut files,
+            &mut scratch_names,
+        );
         {
-            let p = entry.path();
-            if !p.is_file() {
-                continue;
-            }
+            for p in files.into_iter().chain(scratch_names.into_iter()) {
             // File type filter
             if let Some(cat) = parsed.metadata.file_type {
                 let matches_type = p
@@ -507,6 +511,7 @@ impl SearchEngine {
             ));
             if meta_results.len() >= limit * 2 {
                 break;
+            }
             }
         }
     }

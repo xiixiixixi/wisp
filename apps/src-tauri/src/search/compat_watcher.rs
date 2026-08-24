@@ -7,7 +7,6 @@ use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, RwLock};
 
-use jwalk::WalkDir;
 use rayon::prelude::*;
 use tracing::{info, warn};
 
@@ -85,6 +84,66 @@ fn is_noise_path(path: &Path, whitelisted: &[String]) -> bool {
     false
 }
 
+/// Plain recursive directory walk. jwalk's parallel producer/consumer was
+/// observed spinning forever (workers starved, iterator hot-yielding) when
+/// launched through LaunchServices, so collection uses this deterministic
+/// sequential walker instead.
+pub(crate) fn walk_dir_recursive(
+    dir: &Path,
+    max_depth: usize,
+    blacklisted_exts: &HashSet<String>,
+    max_file_size: u64,
+    out_dirs: &mut Vec<PathBuf>,
+    out_text_files: &mut Vec<PathBuf>,
+    out_name_only: &mut Vec<PathBuf>,
+) {
+    if max_depth == 0 {
+        return;
+    }
+    let entries = match std::fs::read_dir(dir) {
+        Ok(e) => e,
+        Err(_) => return,
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .map(|n| n.starts_with('.'))
+            .unwrap_or(false)
+        {
+            continue;
+        }
+        let is_dir = match entry.file_type() {
+            Ok(t) => t.is_dir(),
+            Err(_) => path.is_dir(),
+        };
+        if is_dir {
+            out_dirs.push(path.clone());
+            walk_dir_recursive(
+                &path,
+                max_depth - 1,
+                blacklisted_exts,
+                max_file_size,
+                out_dirs,
+                out_text_files,
+                out_name_only,
+            );
+        } else if is_text_indexable(&path, blacklisted_exts, max_file_size) {
+            out_text_files.push(path);
+        } else {
+            let ext = path
+                .extension()
+                .and_then(|e| e.to_str())
+                .map(|e| e.to_lowercase())
+                .unwrap_or_default();
+            if !blacklisted_exts.contains(&ext) {
+                out_name_only.push(path);
+            }
+        }
+    }
+}
+
 pub(crate) fn collect_walk_entries(settings: &TokenizerSettings) -> WalkEntries {
     let blacklisted: HashSet<String> = settings
         .blacklisted_extensions
@@ -105,15 +164,20 @@ pub(crate) fn collect_walk_entries(settings: &TokenizerSettings) -> WalkEntries 
             continue;
         }
 
-        for entry in WalkDir::new(root_path)
-            .sort(false)
-            .follow_links(false)
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
+        // Walk the root's children (the root itself is not an entry).
+        let entries = match std::fs::read_dir(root_path) {
+            Ok(e) => e,
+            Err(err) => {
+                warn!(
+                    "[SearchEngine] Cannot read whitelisted path {}: {}",
+                    root,
+                    err
+                );
+                continue;
+            }
+        };
+        for entry in entries.flatten() {
             let path = entry.path();
-
-            // Skip hidden entries and anything under a blacklisted path.
             if path
                 .file_name()
                 .and_then(|n| n.to_str())
@@ -128,26 +192,37 @@ pub(crate) fn collect_walk_entries(settings: &TokenizerSettings) -> WalkEntries 
                 continue;
             }
             if is_noise_path(path.as_path(), &settings.whitelisted_paths) {
-                // Skip the whole subtree: WalkDir yields children later, and
-                // each child also fails this check, so nothing under it is
-                // collected.
                 continue;
             }
 
-            if path.is_dir() {
-                out.directories.push(path.to_path_buf());
+            let is_dir = match entry.file_type() {
+                Ok(t) => t.is_dir(),
+                Err(_) => path.is_dir(),
+            };
+            if is_dir {
+                out.directories.push(path.clone());
+                walk_dir_recursive(
+                    &path,
+                    usize::MAX,
+                    &blacklisted,
+                    settings.max_file_size,
+                    &mut out.directories,
+                    &mut out.text_files,
+                    &mut out.name_only_files,
+                );
             } else if is_text_indexable(path.as_path(), &blacklisted, settings.max_file_size) {
-                out.text_files.push(path.to_path_buf());
-            } else if !blacklisted.contains(
-                &path
+                out.text_files.push(path);
+            } else {
+                let ext = path
                     .extension()
                     .and_then(|e| e.to_str())
                     .map(|e| e.to_lowercase())
-                    .unwrap_or_default(),
-            ) {
-                // Not readable as text but not blacklisted either — keep the
-                // name searchable.
-                out.name_only_files.push(path.to_path_buf());
+                    .unwrap_or_default();
+                if !blacklisted.contains(&ext) {
+                    // Not readable as text but not blacklisted either — keep
+                    // the name searchable.
+                    out.name_only_files.push(path);
+                }
             }
         }
     }
@@ -522,30 +597,15 @@ impl SearchEngine {
         let mut files_to_index: Vec<PathBuf> = Vec::new();
         let mut dirs_to_index: Vec<PathBuf> = Vec::new();
 
-        for entry in WalkDir::new(root)
-            .sort(false)
-            .max_depth(depth as usize)
-            .follow_links(false)
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
-            let p = entry.path();
-            if p.as_path() == root {
-                continue;
-            }
-            if p.file_name()
-                .and_then(|n| n.to_str())
-                .map(|n| n.starts_with('.'))
-                .unwrap_or(false)
-            {
-                continue;
-            }
-            if p.is_dir() {
-                dirs_to_index.push(p);
-            } else if is_text_indexable(&p, &blacklisted, settings.max_file_size) {
-                files_to_index.push(p);
-            }
-        }
+        walk_dir_recursive(
+            root,
+            depth as usize + 1,
+            &blacklisted,
+            settings.max_file_size,
+            &mut dirs_to_index,
+            &mut files_to_index,
+            &mut Vec::new(),
+        );
 
         if files_to_index.is_empty() && dirs_to_index.is_empty() {
             return;
