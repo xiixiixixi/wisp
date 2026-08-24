@@ -135,6 +135,12 @@ impl SearchEngine {
                     );
                 }
 
+                // Start the watcher BEFORE reconciling: reconciliation can
+                // block for a long time on OS-permission-gated directories
+                // (e.g. a TCC-pending Documents folder), and live updates
+                // must not wait behind it.
+                Self::start_watcher_inner(&index, &settings_arc, &watcher_arc);
+
                 // Reconcile the cache against the filesystem so changes that
                 // happened while the app was closed (new/renamed/deleted
                 // files and folders) are picked up without a manual rebuild.
@@ -146,10 +152,6 @@ impl SearchEngine {
                     };
                     idx.save_to_disk();
                 }
-
-                // Keep the index fresh from here on: watch whitelisted paths
-                // and fold filesystem changes into the index incrementally.
-                Self::start_watcher_inner(&index, &settings_arc, &watcher_arc);
 
                 is_indexing.store(false, Ordering::SeqCst);
                 info!("[SearchEngine] Cached index startup complete");
