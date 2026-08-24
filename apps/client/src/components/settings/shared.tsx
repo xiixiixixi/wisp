@@ -272,7 +272,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   language: DEFAULT_LANGUAGE,
   showHiddenFiles: false,
   enableMarkdownPreview: true,
-  defaultView: 'grid',
+  defaultView: 'details',
   enableAnimations: true,
   showFileExtensions: true,
   enableNotifications: true,

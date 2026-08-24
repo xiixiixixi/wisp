@@ -142,7 +142,7 @@ export const useSmartView = (files: FileEntry[], currentPath: string): SmartView
     // Skip auto-detection for special pages
     if (currentPath.startsWith('wisp://') || currentPath.startsWith('gdrive://')) {
       setIsAutoDetected(false);
-      setSuggestedView('medium');
+      setSuggestedView('details');
       return;
     }
 
@@ -170,9 +170,9 @@ export const useSmartView = (files: FileEntry[], currentPath: string): SmartView
       return;
     }
 
-    // Priority 4: Fallback grid
+    // Priority 4: Fallback — details list is the Wisp default
     if (!userOverrodeRef.current) {
-      setSuggestedView('medium');
+      setSuggestedView('details');
       setIsAutoDetected(false);
     }
   }, [currentPath, files]);

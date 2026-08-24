@@ -134,8 +134,8 @@ export const useLayoutState = (): LayoutState => {
     setBottomPanelHeight((h) => Math.min(500, Math.max(120, h - delta)));
   }, []);
 
-  // View mode
-  const [viewMode, setViewMode] = useState<string>(() => loadUiState('viewMode', 'medium'));
+  // View mode — details list is the Wisp default
+  const [viewMode, setViewMode] = useState<string>(() => loadUiState('viewMode', 'details'));
 
   // Sorting
   const [sortBy, setSortBy] = useState<SortField>(() => loadUiState<SortField>('sortBy', 'name'));

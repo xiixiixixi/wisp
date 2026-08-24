@@ -100,8 +100,6 @@
     "refresh": "Refresh",
     "newChat": "New Chat",
     "newChatDesc": "New Chat (create .chat file)",
-    "quickFilters": "Quick filters",
-    "clearFilter": "Clear Filter",
     "newTab": "New tab",
     "newTabShortcut": "New tab (Ctrl+T)",
     "splitRight": "Split right",
@@ -1313,7 +1311,6 @@
       "baseDirLabel": "Base Directory (optional)",
       "baseDirPlaceholder": "Leave empty to use as quick filter on current directory",
       "baseDirHintSet": "Smart folder: navigates to this directory with filters applied.",
-      "baseDirHintEmpty": "Quick filter: applies filters to whatever directory you are viewing.",
       "filtersLabel": "Filters",
       "selectValue": "-- select --",
       "removeFilter": "Remove filter",
@@ -2283,15 +2280,6 @@
     "tryAiSearch": "Try AI search instead",
     "noContentMatches": "No content matches for '{{query}}'",
     "tryShorterTerm": "Try a shorter or different search term"
-  },
-  "collections": {
-    "builtin": {
-      "largeFiles": "Large Files",
-      "recentFiles": "Recent Files",
-      "images": "Images",
-      "documents": "Documents",
-      "codeFiles": "Code Files"
-    }
   },
   "sidebarDrives": {
     "localDisk": "Local Disk",

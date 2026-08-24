@@ -4,6 +4,10 @@ import { createRoot } from 'react-dom/client';
 import './i18n';
 import App from './App';
 import './index.css';
+import { migrateLegacyDefaultView } from './lib/view-default';
+
+// One-time rewrite of stored legacy view defaults ('grid'/'medium') to details
+migrateLegacyDefaultView();
 
 // Expose React on window so extensions loaded via new Function() can access it
 (window as unknown as Record<string, unknown>).React = React;
@@ -12,10 +16,6 @@ import './index.css';
 // Expose the Extension SDK so extensions can import from '@wisp/extension-sdk'
 import * as WispSDK from '@wisp/extension-sdk';
 (window as unknown as Record<string, unknown>).WispSDK = WispSDK;
-
-// Install theme event bridge so extension themes register in the theme picker
-import { installThemeEventBridge } from './lib/theme-registry';
-installThemeEventBridge();
 
 import { toast } from './hooks/use-toast';
 window.addEventListener('wisp:extension-toast', ((e: CustomEvent) => {

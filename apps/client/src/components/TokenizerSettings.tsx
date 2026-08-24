@@ -205,9 +205,9 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
   };
 
   const formatDuration = (seconds: number): string => {
-    if (seconds < 60) return `${seconds}s`;
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
-    return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+    if (seconds < 60) return `${seconds} 秒`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} 分钟`;
+    return `${Math.floor(seconds / 3600)} 小时 ${Math.floor((seconds % 3600) / 60)} 分钟`;
   };
 
   if (isLoading) {
@@ -237,7 +237,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
             </div>
           )}
           <div
-            className={`h-3 w-3 rounded-full ${settings.enabled ? 'bg-green-500' : 'bg-gray-400'}`}
+            className={`h-3 w-3 rounded-full ${settings.enabled ? 'bg-xp-green' : 'bg-xp-text-muted'}`}
           />
         </div>
       </div>
@@ -253,7 +253,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
           className={`rounded-md px-4 py-2 transition-colors ${
             settings.enabled
               ? 'bg-green-600 text-white hover:bg-green-700'
-              : 'bg-gray-600 text-white hover:bg-gray-700'
+              : 'bg-xp-surface-light text-white hover:bg-xp-border'
           }`}
         >
           {settings.enabled ? t('settings.tokenizer.enabled') : t('settings.tokenizer.disabled')}
@@ -271,7 +271,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
           className={`rounded-md px-4 py-2 transition-colors ${
             autoWhitelist
               ? 'bg-green-600 text-white hover:bg-green-700'
-              : 'bg-gray-600 text-white hover:bg-gray-700'
+              : 'bg-xp-surface-light text-white hover:bg-xp-border'
           }`}
         >
           {autoWhitelist ? t('settings.tokenizer.enabled') : t('settings.tokenizer.disabled')}
@@ -641,7 +641,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
               description: t('toast.tokenizerResetDesc'),
             });
           }}
-          className="rounded bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
+          className="rounded bg-xp-surface-light px-4 py-2 text-white transition-colors hover:bg-xp-border"
         >
           {t('settings.tokenizer.resetToDefaults')}
         </button>
