@@ -51,6 +51,40 @@ fn is_blacklisted_path(path: &Path, blacklisted_paths: &[String]) -> bool {
 /// Directories are always collected by name so folder search works; files
 /// whose extension is blacklisted are skipped entirely, and remaining files
 /// are split into content-indexable vs name-only.
+/// System locations that are never worth indexing when they sit inside a
+/// whitelisted root (mirrors Spotlight's defaults). They are chatty,
+/// enormous, and full of caches/logs that drown out real user files.
+/// Explicitly whitelisting one of them still indexes it.
+fn is_noise_path(path: &Path, whitelisted: &[String]) -> bool {
+    let normalize = |p: &str| p.replace('\\', "/").trim_end_matches('/').to_lowercase();
+    let lower = normalize(&path.to_string_lossy());
+
+    let home = std::env::var("HOME").map(|h| normalize(&h)).unwrap_or_default();
+    let mut prefixes = vec!["/library".to_string()];
+    if !home.is_empty() {
+        prefixes.push(format!("{}/library", home));
+        prefixes.push(format!("{}/.trash", home));
+    }
+
+    for prefix in prefixes {
+        let in_noise = lower == prefix || lower.starts_with(&format!("{}/", prefix));
+        if !in_noise {
+            continue;
+        }
+        // Explicit opt-in: a whitelist entry inside the noise area
+        // (e.g. "~/Library/Mail") still gets indexed together with its subtree.
+        let opted_in = whitelisted.iter().any(|w| {
+            let w = normalize(w);
+            (w == prefix || w.starts_with(&format!("{}/", prefix)))
+                && (lower == w || lower.starts_with(&format!("{}/", w)))
+        });
+        if !opted_in {
+            return true;
+        }
+    }
+    false
+}
+
 pub(crate) fn collect_walk_entries(settings: &TokenizerSettings) -> WalkEntries {
     let blacklisted: HashSet<String> = settings
         .blacklisted_extensions
@@ -91,6 +125,12 @@ pub(crate) fn collect_walk_entries(settings: &TokenizerSettings) -> WalkEntries 
             if !settings.blacklisted_paths.is_empty()
                 && is_blacklisted_path(path.as_path(), &settings.blacklisted_paths)
             {
+                continue;
+            }
+            if is_noise_path(path.as_path(), &settings.whitelisted_paths) {
+                // Skip the whole subtree: WalkDir yields children later, and
+                // each child also fails this check, so nothing under it is
+                // collected.
                 continue;
             }
 
@@ -673,11 +713,15 @@ impl SearchEngine {
                         Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => return,
                     }
                 }
-                let idx = match index_for_saver.read() {
-                    Ok(g) => g,
-                    Err(e) => e.into_inner(),
-                };
-                idx.save_to_disk();
+                {
+                    let mut idx = match index_for_saver.write() {
+                        Ok(g) => g,
+                        Err(e) => e.into_inner(),
+                    };
+                    idx.rebuild_fst();
+                    idx.update_scorer_stats();
+                    idx.save_to_disk();
+                }
                 info!("[SearchEngine] Incremental changes saved to disk");
             })
             .ok();
@@ -685,6 +729,18 @@ impl SearchEngine {
         watcher.set_callback(Box::new(move |events: Vec<FileChangeEvent>| {
             let mut changed = false;
             for event in events {
+                // Ignore churn under system noise locations (~/Library, …) so
+                // it neither pollutes the index nor keeps the save debounce
+                // permanently awake.
+                let dominant_path = match &event {
+                    FileChangeEvent::Created(p)
+                    | FileChangeEvent::Modified(p)
+                    | FileChangeEvent::Removed(p) => p.clone(),
+                    FileChangeEvent::Renamed { to, .. } => to.clone(),
+                };
+                if is_noise_path(&dominant_path, &settings_for_cb.whitelisted_paths) {
+                    continue;
+                }
                 match event {
                     FileChangeEvent::Created(ref p) | FileChangeEvent::Modified(ref p) => {
                         // Renames on macOS can arrive as a bare Modified event
@@ -791,18 +847,10 @@ impl SearchEngine {
                 }
             }
 
-            // Rebuild FST and update BM25F corpus stats after processing
-            // the batch of file-change events so fuzzy/prefix search and
-            // scoring reflect the incremental updates.
+            // Mark the index dirty; the saver thread rebuilds the FST and
+            // BM25F stats right before persisting (rebuilding them per event
+            // batch is far too expensive on busy directories).
             if changed {
-                {
-                    let mut idx = match index_for_cb.write() {
-                        Ok(g) => g,
-                        Err(e) => e.into_inner(),
-                    };
-                    idx.rebuild_fst();
-                    idx.update_scorer_stats();
-                }
                 let _ = dirty_tx.send(());
             }
         }));
