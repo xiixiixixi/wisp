@@ -12,6 +12,7 @@ use wisp::duplicate_finder;
 use wisp::extensions;
 use wisp::file_organizer;
 use wisp::file_watcher;
+use wisp::search;
 use wisp::git;
 use wisp::google_drive;
 use wisp::mcp_host;
@@ -57,6 +58,13 @@ fn main() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .setup(|app| {
+            // Initialize the search engine eagerly: it loads the cached
+            // index, reconciles it against the filesystem, and starts the
+            // watcher, so search is warm before the user types anything.
+            std::thread::spawn(|| {
+                wisp::search::compat_engine::get_search_engine();
+            });
+
             // Initialize progress manager
             let progress_manager =
                 operations::ProgressManager::new().with_app_handle(app.handle().clone());
