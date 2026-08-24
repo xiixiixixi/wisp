@@ -113,13 +113,11 @@ fn classify_event(event: &notify::Event) -> Vec<FileChangeEvent> {
                         out.push(FileChangeEvent::Modified(p.clone()));
                     }
                 }
-                // Metadata-only changes (permissions, timestamps) — still
-                // worth processing since metadata is indexed.
-                ModifyKind::Metadata(_) => {
-                    for p in &event.paths {
-                        out.push(FileChangeEvent::Modified(p.clone()));
-                    }
-                }
+                // Metadata-only changes (permissions, timestamps) are
+                // ignored: content did not change, and reacting to them
+                // creates a feedback loop — reading a file updates its
+                // atime, which FSEvents reports as a metadata change.
+                ModifyKind::Metadata(_) => {}
                 // Any other modify sub-kind.
                 _ => {
                     for p in &event.paths {
