@@ -12,10 +12,19 @@ use super::compat_types::TokenizerSettings;
 
 // ===== Persistence helpers ==================================================
 
+pub(crate) fn data_dir_pub_for_cache() -> PathBuf {
+    data_dir()
+}
+
 fn data_dir() -> PathBuf {
-    let dir = dirs::data_local_dir()
-        .unwrap_or_else(|| PathBuf::from("."))
-        .join("wisp");
+    // Testability seam: point Wisp at an isolated data directory in tests so
+    // integration tests never touch the user's real index or settings.
+    let dir = match std::env::var("WISP_DATA_DIR") {
+        Ok(dir) if !dir.is_empty() => PathBuf::from(dir),
+        _ => dirs::data_local_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join("wisp"),
+    };
     fs::create_dir_all(&dir).ok();
     dir
 }

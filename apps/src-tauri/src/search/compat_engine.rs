@@ -56,6 +56,7 @@ pub struct SearchEngine {
     index: Arc<RwLock<SearchIndex>>,
     settings: Arc<Mutex<TokenizerSettings>>,
     is_indexing: Arc<AtomicBool>,
+    watcher: Arc<Mutex<super::watcher::FileWatcher>>,
     /// Directories already indexed through an explicit `index_directory` request.
     indexed_dirs: Arc<Mutex<HashSet<String>>>,
     /// The user's current directory for context-aware ranking boost.
@@ -72,6 +73,7 @@ impl SearchEngine {
             index: Arc::new(RwLock::new(SearchIndex::new())),
             settings: Arc::new(Mutex::new(settings)),
             is_indexing: Arc::new(AtomicBool::new(false)),
+            watcher: Arc::new(Mutex::new(super::watcher::FileWatcher::new())),
             indexed_dirs: Arc::new(Mutex::new(HashSet::new())),
             context_path: Arc::new(Mutex::new(None)),
         }
@@ -102,6 +104,8 @@ impl SearchEngine {
 
         let index = Arc::clone(&self.index);
         let is_indexing = Arc::clone(&self.is_indexing);
+        let settings_arc = Arc::clone(&self.settings);
+        let watcher_arc = Arc::clone(&self.watcher);
 
         thread::Builder::new()
             .name("search-engine-init".into())
@@ -131,6 +135,22 @@ impl SearchEngine {
                         "[SearchEngine] No usable index cache; waiting for an explicit rebuild"
                     );
                 }
+
+                // Reconcile the cache against the filesystem so changes that
+                // happened while the app was closed (new/renamed/deleted
+                // files and folders) are picked up without a manual rebuild.
+                Self::incremental_update_inner(&index, &settings_arc);
+                {
+                    let idx = match index.read() {
+                        Ok(g) => g,
+                        Err(e) => e.into_inner(),
+                    };
+                    idx.save_to_disk();
+                }
+
+                // Keep the index fresh from here on: watch whitelisted paths
+                // and fold filesystem changes into the index incrementally.
+                Self::start_watcher_inner(&index, &settings_arc, &watcher_arc);
 
                 is_indexing.store(false, Ordering::SeqCst);
                 info!("[SearchEngine] Cached index startup complete");

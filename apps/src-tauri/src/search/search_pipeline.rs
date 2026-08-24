@@ -363,6 +363,8 @@ pub(crate) fn rank_and_rerank(
                 })
                 .unwrap_or(false);
 
+            let directory_name_match =
+                doc.content_source == "directory" && filename_match;
             let signals = RankingSignals {
                 bm25f_score,
                 recency_days,
@@ -370,6 +372,7 @@ pub(crate) fn rank_and_rerank(
                 access_count: 0,
                 extension_match,
                 filename_match,
+                directory_name_match,
             };
             Some((doc.path.clone(), bm25f_score, signals))
         })

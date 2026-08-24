@@ -55,10 +55,8 @@ pub struct FileWatcher {
 /// Returns `true` when the path should be processed (not hidden, not
 /// blacklisted, and points to a file rather than a directory).
 fn should_process(path: &Path, blacklisted: &HashSet<String>) -> bool {
-    // Reject directories — we only care about files.
-    if path.is_dir() {
-        return false;
-    }
+    // Directories pass through: the engine indexes them by name so folders
+    // stay searchable when they are created or renamed.
 
     // Reject hidden files (name starts with '.').
     if let Some(name) = path.file_name().and_then(|n| n.to_str()) {

@@ -20,6 +20,10 @@ pub struct RankingSignals {
     pub extension_match: bool,
     /// Whether a query term was found in the filename itself.
     pub filename_match: bool,
+    /// Whether this is a directory whose name matches the query. Folder
+    /// names are short and rarely contain common words, so an exact folder
+    /// name hit is a strong intent signal.
+    pub directory_name_match: bool,
 }
 
 /// Tunable weights that control how each signal contributes to the final
@@ -40,6 +44,13 @@ pub struct RerankerConfig {
     pub filename_match_weight: f64,
     /// RRF smoothing constant (higher = less emphasis on top ranks).
     pub rrf_k: f64,
+    /// Weight for a directory whose name matches the query.
+    #[serde(default = "default_directory_match_weight")]
+    pub directory_match_weight: f64,
+}
+
+fn default_directory_match_weight() -> f64 {
+    6.0
 }
 
 impl Default for RerankerConfig {
@@ -52,6 +63,7 @@ impl Default for RerankerConfig {
             ext_match_weight: 0.10,
             filename_match_weight: 0.20,
             rrf_k: 60.0,
+            directory_match_weight: 6.0,
         }
     }
 }
@@ -108,6 +120,7 @@ impl Reranker {
         let access_score = (1.0 + signals.access_count as f64).ln();
         let ext_score = if signals.extension_match { 1.0 } else { 0.0 };
         let fname_score = if signals.filename_match { 1.0 } else { 0.0 };
+        let dir_score = if signals.directory_name_match { 1.0 } else { 0.0 };
 
         self.config.bm25f_weight * signals.bm25f_score
             + self.config.recency_weight * recency_score
@@ -115,6 +128,7 @@ impl Reranker {
             + self.config.access_weight * access_score
             + self.config.ext_match_weight * ext_score
             + self.config.filename_match_weight * fname_score
+            + self.config.directory_match_weight * dir_score
     }
 
     /// Reciprocal Rank Fusion across multiple retriever result lists.
@@ -550,6 +564,7 @@ mod tests {
             access_count: 0,
             extension_match: false,
             filename_match: false,
+            directory_name_match: false,
         };
 
         let score = reranker.compute_rerank_score(&signals);
@@ -599,6 +614,7 @@ mod tests {
                     access_count: 0,
                     extension_match: false,
                     filename_match: false,
+                    directory_name_match: false,
                 },
             ),
             (
@@ -611,6 +627,7 @@ mod tests {
                     access_count: 50,
                     extension_match: true,
                     filename_match: true,
+                    directory_name_match: false,
                 },
             ),
         ];

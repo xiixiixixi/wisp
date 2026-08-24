@@ -484,6 +484,14 @@ pub fn parse(input: &str) -> ParsedQuery {
         'outer: for &(patterns, ref category) in type_keywords {
             for &pat in patterns {
                 if contains_word(&lr, pat) {
+                    // A lone type word ("Documents", "photos") is usually the
+                    // NAME of a folder the user wants to find, not a filter.
+                    // Only treat it as a file-type filter when the original
+                    // query contains more than just this word (">100MB
+                    // videos", "old documents", …).
+                    if raw.trim().to_lowercase() == pat {
+                        break 'outer;
+                    }
                     file_type = Some(*category);
                     remaining = remove_word(&remaining, pat);
                     break 'outer;
@@ -494,9 +502,18 @@ pub fn parse(input: &str) -> ParsedQuery {
 
     // -- 9. Tokenize remaining into keywords (stop-word removal) -----------
     let stops = stop_words();
+    // Split each whitespace word on non-alphanumerics the same way the
+    // indexer tokenizes content, so hyphenated terms ("xiaozhi-esp32")
+    // match instead of being treated as one opaque keyword.
+    let word_re = super::index::word_regex();
     let mut keywords: Vec<String> = remaining
         .split_whitespace()
-        .map(|w| w.to_lowercase())
+        .flat_map(|w| {
+            word_re
+                .find_iter(w)
+                .map(|m| m.as_str().to_lowercase())
+                .collect::<Vec<_>>()
+        })
         .filter(|w| w.len() >= 2 && !stops.contains(w.as_str()))
         .collect();
 
