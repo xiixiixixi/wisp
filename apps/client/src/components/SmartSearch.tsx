@@ -877,7 +877,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                   key={`token-${chip.key}-${chip.rawValue}`}
                   className={`rounded-full px-2 py-0.5 text-xs font-medium ${(() => {
                     if (chip.variant === 'kind') return 'bg-blue-500 bg-opacity-20 text-blue-400';
-                    if (chip.variant === 'size') return 'bg-green-500 bg-opacity-20 text-green-400';
+                    if (chip.variant === 'size') return 'bg-xp-green bg-opacity-20 text-green-400';
                     if (chip.variant === 'date') {
                       return 'bg-orange-500 bg-opacity-20 text-orange-400';
                     }
@@ -894,7 +894,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                     key={`nl-${chip.type}-${chip.label}`}
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${(() => {
                       if (chip.type === 'type') return 'bg-blue-500 bg-opacity-20 text-blue-400';
-                      if (chip.type === 'size') return 'bg-green-500 bg-opacity-20 text-green-400';
+                      if (chip.type === 'size') return 'bg-xp-green bg-opacity-20 text-green-400';
                       if (chip.type === 'date') {
                         return 'bg-orange-500 bg-opacity-20 text-orange-400';
                       }

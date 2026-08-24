@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
+import { invoke } from '@tauri-apps/api/core';
 import MarketplacePanel from '@/components/panels/MarketplacePanel';
 import { TauriAPI } from '@/lib/tauri-api';
 
@@ -49,35 +50,35 @@ Object.defineProperty(window, 'open', {
 // Mock marketplace API response data
 const MOCK_EXTENSIONS = [
   {
-    id: 'wisp-tokyo-night-theme',
-    name: 'Tokyo Night Theme',
-    displayName: 'Tokyo Night',
-    slug: 'wisp-tokyo-night-theme',
-    description: 'A beautiful dark theme inspired by the lights of downtown Tokyo',
+    id: 'wisp-markdown-notes',
+    name: 'Markdown Notes',
+    displayName: 'Markdown Notes',
+    slug: 'wisp-markdown-notes',
+    description: 'Write and preview markdown notes inside Wisp',
     version: '1.0.0',
     checksum: '',
-    icon: 'moon',
+    icon: 'note',
     downloadCount: 100,
     averageRating: 4.5,
     reviewCount: 10,
     author: { username: 'wisp', name: 'Wisp' },
-    categories: [{ name: 'Theme', slug: 'theme' }],
+    categories: [{ name: 'Editor', slug: 'editor' }],
     downloadUrl: '',
   },
   {
-    id: 'wisp-dracula-theme',
-    name: 'Dracula Theme',
-    displayName: 'Dracula',
-    slug: 'wisp-dracula-theme',
-    description: 'A dark theme inspired by Dracula',
+    id: 'wisp-git-tools',
+    name: 'Git Tools',
+    displayName: 'Git Tools',
+    slug: 'wisp-git-tools',
+    description: 'Repository status and quick git actions',
     version: '1.0.0',
     checksum: '',
-    icon: 'palette',
+    icon: 'git',
     downloadCount: 80,
     averageRating: 4.2,
     reviewCount: 5,
     author: { username: 'wisp', name: 'Wisp' },
-    categories: [{ name: 'Theme', slug: 'theme' }],
+    categories: [{ name: 'Editor', slug: 'editor' }],
     downloadUrl: '',
   },
   {
@@ -109,7 +110,6 @@ const setupMocks = () => {
         json: async () => ({
           categories: [
             { id: 'all', name: 'All', slug: 'all' },
-            { id: 'theme', name: 'Theme', slug: 'theme' },
             { id: 'editor', name: 'Editor', slug: 'editor' },
           ],
         }),
@@ -228,7 +228,7 @@ describe('MarketplacePanel', () => {
 
   it('shows installed status for installed extensions', async () => {
     (TauriAPI.getInstalledExtensions as ReturnType<typeof vi.fn>).mockResolvedValue([
-      { manifest: { id: 'wisp-tokyo-night-theme' } },
+      { manifest: { id: 'wisp-markdown-notes' } },
     ]);
 
     await act(async () => {
@@ -247,9 +247,9 @@ describe('MarketplacePanel', () => {
   it('handles extension installation via web API', async () => {
     (TauriAPI.downloadAndInstallExtension as ReturnType<typeof vi.fn>).mockResolvedValue({
       manifest: {
-        id: 'wisp-tokyo-night-theme',
-        name: 'Tokyo Night Theme',
-        display_name: 'Tokyo Night',
+        id: 'wisp-markdown-notes',
+        name: 'Markdown Notes',
+        display_name: 'Markdown Notes',
       },
     });
 
@@ -271,6 +271,66 @@ describe('MarketplacePanel', () => {
     await waitFor(() => {
       expect(TauriAPI.downloadAndInstallExtension).toHaveBeenCalled();
     });
+  });
+
+  it('hides marketplace theme extensions (themes are built into Wisp)', async () => {
+    setupMocks();
+    (TauriAPI.getInstalledExtensions as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+
+    // The panel prefers the Tauri marketplace_proxy over direct fetch — serve
+    // the payloads through the mocked invoke and restore it afterwards.
+    const mockedInvoke = vi.mocked(invoke);
+    const originalImpl = mockedInvoke.getMockImplementation();
+    const solarized = {
+      id: 'wisp-solarized-theme',
+      name: 'Solarized Theme',
+      displayName: 'Solarized',
+      slug: 'wisp-solarized-theme',
+      description: 'A classic light/dark theme',
+      version: '1.0.0',
+      checksum: '',
+      icon: 'sun',
+      downloadCount: 10,
+      averageRating: 4,
+      reviewCount: 2,
+      author: { username: 'wisp', name: 'Wisp' },
+      categories: [{ name: 'Theme', slug: 'theme' }],
+      downloadUrl: '',
+    };
+    mockedInvoke.mockImplementation(async (cmd: string, args?: unknown) => {
+      if (cmd === 'marketplace_proxy') {
+        const url = (args as { url: string }).url;
+        if (url.includes('/extensions')) {
+          return JSON.stringify({
+            extensions: [...MOCK_EXTENSIONS, solarized],
+            pagination: { page: 1, limit: 20, total: 3, totalPages: 1 },
+          });
+        }
+        if (url.includes('/categories')) {
+          return JSON.stringify({
+            categories: [
+              { id: 'all', name: 'All', slug: 'all' },
+              { id: 'editor', name: 'Editor', slug: 'editor' },
+            ],
+          });
+        }
+        return JSON.stringify({});
+      }
+      return originalImpl ? originalImpl(cmd, args) : Promise.resolve(null);
+    });
+
+    try {
+      await act(async () => {
+        render(<MarketplacePanel />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Markdown Notes')).toBeInTheDocument();
+      });
+      expect(screen.queryByText('Solarized')).not.toBeInTheDocument();
+    } finally {
+      mockedInvoke.mockImplementation(originalImpl ?? (() => Promise.resolve(null)));
+    }
   });
 
   it('shows error state when marketplace is unavailable', async () => {

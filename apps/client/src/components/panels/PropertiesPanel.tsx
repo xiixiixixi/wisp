@@ -424,7 +424,7 @@ const PermBadge = ({ label, value }: { label: string; value: boolean }) => {
   return (
     <div
       className={`flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium ${
-        value ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
+        value ? 'bg-xp-green/10 text-green-400' : 'bg-red-500/10 text-red-400'
       }`}
     >
       <span>{value ? '\u2713' : '\u2717'}</span>

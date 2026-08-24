@@ -9,7 +9,7 @@ export const Separator = ({ className = '', orientation = 'horizontal' }: Separa
   return (
     <div
       className={`${
-        orientation === 'horizontal' ? 'h-px w-full bg-gray-200' : 'h-full w-px bg-gray-200'
+        orientation === 'horizontal' ? 'h-px w-full bg-xp-border' : 'h-full w-px bg-xp-border'
       } ${className}`}
     />
   );

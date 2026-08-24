@@ -11,7 +11,6 @@ import { extensionHost } from '@/lib/extension-host';
 import { useToast } from '@/hooks/use-toast';
 import XtensionInstallDialog from '@/components/dialogs/XtensionInstallDialog';
 import UpdateBanner from '@/components/UpdateBanner';
-import './styles/tokyo-night.css';
 
 // Lazy-loaded pages -- Settings is only needed when navigating to /settings
 const Settings = React.lazy(() => import('@/pages/settings'));

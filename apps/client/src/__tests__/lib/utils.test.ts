@@ -15,15 +15,9 @@ import {
   sortFiles,
   getDateGroup,
   groupFilesByDate,
-  themes,
-  slugifyThemeName,
-  loadCustomThemes,
-  saveCustomThemes,
   applyFontSize,
   loadFontSize,
   applyTheme,
-  applyCustomThemeVars,
-  type CustomThemeColors,
   type SortField,
 } from '@/lib/utils';
 
@@ -403,91 +397,6 @@ describe('groupFilesByDate', () => {
   });
 });
 
-// ── themes ────────────────────────────────────────────────────────────────
-
-describe('themes', () => {
-  it('keeps the three compatible theme keys in the quiet workbench palette', () => {
-    expect(themes.rolex).toEqual({
-      name: 'Wisp Ink',
-      primary: '#79a8d8',
-      bg: '#11161d',
-      surface: '#171d25',
-      text: '#e6ebf1',
-    });
-    expect(themes.glass).toEqual({
-      name: 'Wisp Slate',
-      primary: '#8aa8c8',
-      bg: '#242a32',
-      surface: '#2b323b',
-      text: '#edf0f3',
-    });
-    expect(themes.light).toEqual({
-      name: 'Wisp Paper',
-      primary: '#4f759b',
-      bg: '#f1f3f5',
-      surface: '#e8ecf0',
-      text: '#26313b',
-    });
-  });
-});
-
-// ── slugifyThemeName ──────────────────────────────────────────────────────
-
-describe('slugifyThemeName', () => {
-  it('converts to lowercase kebab-case', () => {
-    expect(slugifyThemeName('My Custom Theme')).toBe('my-custom-theme');
-  });
-
-  it('strips leading/trailing hyphens', () => {
-    expect(slugifyThemeName('--test--')).toBe('test');
-  });
-
-  it('replaces special characters', () => {
-    expect(slugifyThemeName('Theme @#$ Name!')).toBe('theme-name');
-  });
-
-  it('handles empty string', () => {
-    expect(slugifyThemeName('')).toBe('');
-  });
-
-  it('handles whitespace-only string', () => {
-    expect(slugifyThemeName('   ')).toBe('');
-  });
-
-  it('collapses multiple non-alphanumeric chars', () => {
-    expect(slugifyThemeName('a   b   c')).toBe('a-b-c');
-  });
-});
-
-// ── loadCustomThemes / saveCustomThemes ───────────────────────────────────
-
-describe('loadCustomThemes', () => {
-  it('returns empty object when no themes stored', () => {
-    expect(loadCustomThemes()).toEqual({});
-  });
-
-  it('returns parsed themes from localStorage', () => {
-    const data = { 'my-theme': { name: 'My Theme' } };
-    store['wisp:custom-themes'] = JSON.stringify(data);
-    expect(loadCustomThemes()).toEqual(data);
-  });
-
-  it('returns empty object for corrupted JSON', () => {
-    store['wisp:custom-themes'] = 'not json!';
-    expect(loadCustomThemes()).toEqual({});
-  });
-});
-
-describe('saveCustomThemes', () => {
-  it('persists themes to localStorage', () => {
-    const data = {
-      'my-theme': { name: 'My Theme' },
-    } as unknown as Record<string, CustomThemeColors>;
-    saveCustomThemes(data);
-    expect(localStorage.setItem).toHaveBeenCalledWith('wisp:custom-themes', JSON.stringify(data));
-  });
-});
-
 // ── applyFontSize / loadFontSize ──────────────────────────────────────────
 
 describe('applyFontSize', () => {
@@ -531,61 +440,12 @@ describe('applyTheme', () => {
     expect(document.documentElement.classList.add).toHaveBeenCalledWith('theme-glass');
   });
 
-  it('sets CSS custom properties for built-in themes', () => {
+  it('swaps the previous theme class', () => {
     applyTheme('glass');
-    expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
-      '--xp-bg',
-      themes.glass.bg,
-    );
-    expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
-      '--xp-text',
-      themes.glass.text,
-    );
-  });
-
-  it('adds theme class for extension themes without setting CSS vars', () => {
-    applyTheme('dracula');
-    expect(document.documentElement.classList.add).toHaveBeenCalledWith('theme-dracula');
-  });
-});
-
-// ── applyCustomThemeVars ──────────────────────────────────────────────────
-
-describe('applyCustomThemeVars', () => {
-  it('sets all expected CSS custom properties', () => {
-    const theme: CustomThemeColors = {
-      name: 'Test Theme',
-      background: '#000',
-      backgroundSecondary: '#111',
-      text: '#fff',
-      textSecondary: '#ccc',
-      accent: '#00f',
-      accentHover: '#33f',
-      border: '#333',
-      surface: '#222',
-      surfaceHover: '#444',
-      sidebarBg: '#1a1a1a',
-      success: '#0f0',
-      warning: '#ff0',
-      error: '#f00',
-    };
-
-    applyCustomThemeVars(theme);
-
-    const setProperty = document.documentElement.style.setProperty;
-    expect(setProperty).toHaveBeenCalledWith('--xp-bg', '#000');
-    expect(setProperty).toHaveBeenCalledWith('--xp-bg-secondary', '#111');
-    expect(setProperty).toHaveBeenCalledWith('--xp-text', '#fff');
-    expect(setProperty).toHaveBeenCalledWith('--xp-text-secondary', '#ccc');
-    expect(setProperty).toHaveBeenCalledWith('--xp-blue', '#00f');
-    expect(setProperty).toHaveBeenCalledWith('--xp-accent', '#00f');
-    expect(setProperty).toHaveBeenCalledWith('--xp-accent-hover', '#33f');
-    expect(setProperty).toHaveBeenCalledWith('--xp-border', '#333');
-    expect(setProperty).toHaveBeenCalledWith('--xp-surface', '#222');
-    expect(setProperty).toHaveBeenCalledWith('--xp-surface-light', '#444');
-    expect(setProperty).toHaveBeenCalledWith('--xp-sidebar-bg', '#1a1a1a');
-    expect(setProperty).toHaveBeenCalledWith('--xp-green', '#0f0');
-    expect(setProperty).toHaveBeenCalledWith('--xp-yellow', '#ff0');
-    expect(setProperty).toHaveBeenCalledWith('--xp-red', '#f00');
+    applyTheme('light');
+    const calls = (document.documentElement.classList.remove as ReturnType<typeof vi.fn>).mock
+      .calls;
+    expect(calls.some((call) => call.includes('theme-glass'))).toBe(true);
+    expect(document.documentElement.classList.add).toHaveBeenCalledWith('theme-light');
   });
 });

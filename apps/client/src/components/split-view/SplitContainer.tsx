@@ -25,8 +25,7 @@ const nodeContainsGroup = (node: SplitNode, groupId: string): boolean => {
 };
 
 const SplitContainer = ({ node, groups, activeGroupId, path }: SplitContainerProps) => {
-  const { selection, viewSort, splitActions, paneSync, activeCollectionFilter } =
-    useExplorerContext();
+  const { selection, viewSort, splitActions, paneSync } = useExplorerContext();
 
   const totalGroups = Object.keys(groups).length;
 
@@ -68,7 +67,6 @@ const SplitContainer = ({ node, groups, activeGroupId, path }: SplitContainerPro
         onCloseTabsToRight={splitActions.onCloseTabsToRight}
         onCloseAllTabs={splitActions.onCloseAllTabs}
         onReorderTab={splitActions.onReorderTab}
-        activeCollectionFilter={activeCollectionFilter}
         paneSyncEnabled={paneSync.paneSyncEnabled}
         paneSyncMode={paneSync.paneSyncMode}
         onTogglePaneSync={paneSync.onTogglePaneSync}

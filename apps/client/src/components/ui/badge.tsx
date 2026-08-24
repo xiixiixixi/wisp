@@ -11,10 +11,10 @@ export const Badge = ({ variant = 'default', className = '', children }: BadgePr
     'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
 
   const variantClasses = {
-    default: 'bg-blue-100 text-blue-900 hover:bg-blue-200',
-    secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
+    default: 'bg-xp-selection text-xp-blue',
+    secondary: 'bg-xp-surface-light text-xp-text hover:bg-xp-border',
     destructive: 'bg-red-100 text-red-900 hover:bg-red-200',
-    outline: 'border border-gray-300 text-gray-900 hover:bg-gray-100',
+    outline: 'border border-xp-border text-xp-text hover:bg-xp-surface-light',
     success: 'bg-green-100 text-green-900 hover:bg-green-200',
     warning: 'bg-yellow-100 text-yellow-900 hover:bg-yellow-200',
   };

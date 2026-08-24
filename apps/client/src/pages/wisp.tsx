@@ -26,7 +26,6 @@ import type { LeftSidebarHandle } from '@/components/explorer/LeftSidebar';
 import MainLayout from '@/components/explorer/MainLayout';
 import { useSplitLayout } from '@/hooks/use-split-layout';
 import { useCrossTabSelection } from '@/hooks/use-cross-tab-selection';
-import { applyCollectionToFiles } from '@/lib/collections';
 import { usePaneSync } from '@/hooks/use-pane-sync';
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -118,10 +117,7 @@ const ExplorerUnified = () => {
     () => sortFiles(files, layout.sortBy, layout.sortOrder),
     [files, layout.sortBy, layout.sortOrder],
   );
-  const filteredFiles = useMemo(() => {
-    if (!dialogManager.activeCollectionFilter) return sortedFiles;
-    return applyCollectionToFiles(sortedFiles, dialogManager.activeCollectionFilter);
-  }, [sortedFiles, dialogManager.activeCollectionFilter]);
+  const filteredFiles = sortedFiles;
 
   const handleGDriveFileSelect = useCallback((file: FileEntry) => {
     setSelectedFiles(new Set([file.path]));
@@ -369,8 +365,6 @@ const ExplorerUnified = () => {
       vimState={effects.vimState}
       crossTabSelection={crossTabSelection}
       setCrossTabDialogOpen={dialogManager.setCrossTabDialogOpen}
-      activeCollectionFilter={dialogManager.activeCollectionFilter}
-      setActiveCollectionFilter={dialogManager.setActiveCollectionFilter}
       paneSync={paneSync}
       fileOps={fileOps}
       templatePickerOpen={dialogManager.templatePickerOpen}

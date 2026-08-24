@@ -144,8 +144,6 @@ export interface MainLayoutProps {
   setCrossTabDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
 
   // Active collection filter (collection applied as filter on current directory)
-  activeCollectionFilter: FileCollection | null;
-  setActiveCollectionFilter: React.Dispatch<React.SetStateAction<FileCollection | null>>;
 
   // Pane sync
   paneSync: PaneSyncState;
@@ -257,8 +255,6 @@ const MainLayout = (props: MainLayoutProps) => {
     vimState,
     crossTabSelection,
     setCrossTabDialogOpen,
-    activeCollectionFilter,
-    setActiveCollectionFilter,
     paneSync,
     fileOps,
     // Dialogs overlay
@@ -414,7 +410,6 @@ const MainLayout = (props: MainLayoutProps) => {
         pasteFiles: fileOps.pasteFiles,
         hasClipboard: fileOps.clipboard !== null,
       },
-      activeCollectionFilter,
     }),
     [
       selectedFiles,
@@ -438,7 +433,6 @@ const MainLayout = (props: MainLayoutProps) => {
       fileOps.cutSelectedFiles,
       fileOps.pasteFiles,
       fileOps.clipboard,
-      activeCollectionFilter,
     ],
   );
 
@@ -492,11 +486,6 @@ const MainLayout = (props: MainLayoutProps) => {
             hasMultiTabSelection={crossTabSelection.hasMultiTabSelection}
             onOpenBatchActions={() => setCrossTabDialogOpen(true)}
             onClearCrossTabSelection={crossTabSelection.clearAll}
-            activeCollectionFilter={activeCollectionFilter}
-            onToggleCollectionFilter={(col) => {
-              setActiveCollectionFilter((prev) => (prev?.id === col.id ? null : col));
-            }}
-            onClearCollectionFilter={() => setActiveCollectionFilter(null)}
           />
 
           {/* Main Content Area */}

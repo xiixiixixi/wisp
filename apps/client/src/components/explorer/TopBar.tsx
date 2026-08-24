@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect, forwardRef } from 'react';
-import { useWindowEvent } from '@/hooks/use-window-event';
 import { isTauri } from '@/lib/transport';
 import {
   Minus,
@@ -17,8 +16,6 @@ import {
 import { TauriAPI } from '@/lib/tauri-api';
 import { ROOT_PATH } from '@/lib/constants';
 import type { TabItem } from '@/types/split-view';
-import { type FileCollection, getAllCollections, isQuickFilter } from '@/lib/collections';
-import { renderIcon } from '@/lib/utils';
 import { getTabIcon } from '@/lib/tab-utils';
 import { useTranslation } from 'react-i18next';
 import wispLogo from '../../../../src-tauri/icons/icon.png';
@@ -53,10 +50,6 @@ interface TopBarProps {
   hasMultiTabSelection?: boolean;
   onOpenBatchActions?: () => void;
   onClearCrossTabSelection?: () => void;
-  // Collection filters (collections applied as filters on current directory)
-  activeCollectionFilter?: FileCollection | null;
-  onToggleCollectionFilter?: (collection: FileCollection) => void;
-  onClearCollectionFilter?: () => void;
 }
 
 const TopBar = React.memo(
@@ -85,36 +78,11 @@ const TopBar = React.memo(
         hasMultiTabSelection = false,
         onOpenBatchActions,
         onClearCrossTabSelection,
-        activeCollectionFilter,
-        onToggleCollectionFilter,
-        onClearCollectionFilter,
       },
       _ref,
     ) => {
       const { t } = useTranslation();
       const [isMaximized, setIsMaximized] = useState(false);
-      const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
-      const [quickFilters, setQuickFilters] = useState<FileCollection[]>(() =>
-        getAllCollections().filter(isQuickFilter),
-      );
-      const filterDropdownRef = useRef<HTMLDivElement>(null);
-
-      // Load quick-filter collections and sync
-      useWindowEvent('collections-changed', () =>
-        setQuickFilters(getAllCollections().filter(isQuickFilter)),
-      );
-
-      // Close dropdown on outside click
-      useEffect(() => {
-        if (!filterDropdownOpen) return;
-        const close = (e: MouseEvent) => {
-          if (filterDropdownRef.current && !filterDropdownRef.current.contains(e.target as Node)) {
-            setFilterDropdownOpen(false);
-          }
-        };
-        document.addEventListener('mousedown', close);
-        return () => document.removeEventListener('mousedown', close);
-      }, [filterDropdownOpen]);
       const appWindowRef = useRef<Awaited<
         ReturnType<typeof import('@tauri-apps/api/window').getCurrentWindow>
       > | null>(null);
@@ -330,162 +298,6 @@ const TopBar = React.memo(
                 <MessageSquare size={14} />
               </button>
             )}
-
-            {/* Quick Filter dropdown (built-in + user collections with no basePath) */}
-            <div ref={filterDropdownRef} style={{ position: 'relative' }} className="flex-shrink-0">
-              <button
-                onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
-                className={`flex flex-shrink-0 items-center gap-1 rounded p-1 transition-colors ${
-                  activeCollectionFilter
-                    ? 'text-xp-text'
-                    : 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
-                }`}
-                style={
-                  activeCollectionFilter
-                    ? {
-                        backgroundColor: `${activeCollectionFilter.color}20`,
-                        border: `1px solid ${activeCollectionFilter.color}40`,
-                      }
-                    : undefined
-                }
-                title={t('topBar.quickFilters')}
-                aria-label={t('topBar.quickFilters')}
-                aria-expanded={filterDropdownOpen}
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                </svg>
-                {activeCollectionFilter && (
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 500,
-                      maxWidth: '80px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {activeCollectionFilter.name}
-                  </span>
-                )}
-              </button>
-              {filterDropdownOpen && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    zIndex: 9999,
-                    minWidth: '200px',
-                    maxHeight: '320px',
-                    overflowY: 'auto',
-                    borderRadius: '8px',
-                    backgroundColor: 'var(--xp-surface)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                    border: '1px solid var(--xp-border)',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                    padding: '4px',
-                    marginTop: '4px',
-                    animation: 'fadeIn 100ms ease-out',
-                  }}
-                >
-                  {quickFilters.map((col) => {
-                    const isActive = activeCollectionFilter?.id === col.id;
-                    return (
-                      <button
-                        key={col.id}
-                        className="flex w-full items-center rounded px-3 py-1.5 text-xs transition-colors"
-                        style={{
-                          color: 'var(--xp-text)',
-                          backgroundColor: isActive ? `${col.color}15` : 'transparent',
-                          borderLeft: isActive ? `3px solid ${col.color}` : '3px solid transparent',
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isActive) {
-                            (e.currentTarget as HTMLElement).style.backgroundColor =
-                              'var(--xp-surface-light)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isActive) {
-                            (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
-                          }
-                        }}
-                        onClick={() => {
-                          onToggleCollectionFilter?.(col);
-                          setFilterDropdownOpen(false);
-                        }}
-                      >
-                        <span
-                          style={{
-                            marginRight: '8px',
-                            fontSize: '14px',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                          }}
-                        >
-                          {renderIcon(col.icon, 14)}
-                        </span>
-                        <span style={{ flex: 1, textAlign: 'left' }}>{col.name}</span>
-                        {isActive && (
-                          <span
-                            style={{
-                              width: '6px',
-                              height: '6px',
-                              borderRadius: '50%',
-                              backgroundColor: col.color,
-                              marginLeft: '8px',
-                              flexShrink: 0,
-                            }}
-                          />
-                        )}
-                      </button>
-                    );
-                  })}
-                  {/* Divider + clear */}
-                  {activeCollectionFilter && (
-                    <>
-                      <div
-                        style={{
-                          height: '1px',
-                          backgroundColor: 'var(--xp-border)',
-                          margin: '4px 0',
-                        }}
-                      />
-                      <button
-                        className="flex w-full items-center rounded px-3 py-1.5 text-xs transition-colors"
-                        style={{ color: 'var(--xp-text-muted)' }}
-                        onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLElement).style.backgroundColor =
-                            'var(--xp-surface-light)';
-                        }}
-                        onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
-                        }}
-                        onClick={() => {
-                          onClearCollectionFilter?.();
-                          setFilterDropdownOpen(false);
-                        }}
-                      >
-                        <X size={12} style={{ marginRight: '8px' }} />
-                        {t('topBar.clearFilter')}
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
 
             {/* Separator */}
             <div className="mx-0.5 h-5 w-px flex-shrink-0 bg-xp-border" />

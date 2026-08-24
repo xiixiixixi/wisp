@@ -72,15 +72,15 @@ describe('collections CRUD', () => {
     expect(all[0].id).toBe(col.id);
   });
 
-  it('creates collection with default icon, basePath, and color', () => {
-    const col = createCollection('Empty', []);
+  it('creates collection with default icon and color', () => {
+    const col = createCollection('Empty', [], 'Folder', '/docs');
     expect(col.icon).toBe('Folder');
-    expect(col.basePath).toBe('');
+    expect(col.basePath).toBe('/docs');
     expect(col.color).toBe('#3b82f6');
   });
 
   it('retrieves a collection by id', () => {
-    const col = createCollection('Find me', []);
+    const col = createCollection('Find me', [], 'Folder', '/docs');
     expect(getCollection(col.id)).toEqual(expect.objectContaining({ name: 'Find me' }));
   });
 
@@ -89,7 +89,7 @@ describe('collections CRUD', () => {
   });
 
   it('updates a collection', () => {
-    const col = createCollection('Old Name', []);
+    const col = createCollection('Old Name', [], 'Folder', '/docs');
     updateCollection(col.id, { name: 'New Name' });
 
     const updated = getCollection(col.id);
@@ -98,14 +98,14 @@ describe('collections CRUD', () => {
   });
 
   it('update is a no-op for non-existent id', () => {
-    createCollection('Only One', []);
+    createCollection('Only One', [], 'Folder', '/docs');
     updateCollection('does-not-exist', { name: 'Nope' });
     expect(getCollections()).toHaveLength(1);
     expect(getCollections()[0].name).toBe('Only One');
   });
 
   it('deletes a collection', () => {
-    const col = createCollection('Delete me', []);
+    const col = createCollection('Delete me', [], 'Folder', '/docs');
     expect(getCollections()).toHaveLength(1);
 
     deleteCollection(col.id);
@@ -113,7 +113,7 @@ describe('collections CRUD', () => {
   });
 
   it('dispatches events on create, update, delete', () => {
-    const col = createCollection('Evt', []);
+    const col = createCollection('Evt', [], 'Folder', '/docs');
     expect(window.dispatchEvent).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'collections-changed' }),
     );
@@ -222,7 +222,7 @@ describe('matchesCollection', () => {
       name: 'Test',
       icon: '',
       color: '#3b82f6',
-      basePath: '',
+      basePath: '/docs',
       createdAt: 0,
       updatedAt: 0,
       filters: [
@@ -240,7 +240,7 @@ describe('matchesCollection', () => {
       name: 'Test',
       icon: '',
       color: '#3b82f6',
-      basePath: '',
+      basePath: '/docs',
       createdAt: 0,
       updatedAt: 0,
       filters: [
@@ -258,7 +258,7 @@ describe('matchesCollection', () => {
       name: 'Test',
       icon: '',
       color: '#3b82f6',
-      basePath: '',
+      basePath: '/docs',
       createdAt: 0,
       updatedAt: 0,
       filters: [],

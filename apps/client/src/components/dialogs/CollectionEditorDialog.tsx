@@ -256,7 +256,7 @@ const CollectionEditorDialogInner = ({
   // Reset form when collection prop changes
   useEffect(() => {
     if (collection) {
-      setName(collection.builtin ? '' : collection.name);
+      setName(collection.name);
       setIcon(collection.icon);
       setColor(collection.color ?? COLLECTION_COLORS[3]);
       setFilters(
@@ -306,7 +306,10 @@ const CollectionEditorDialogInner = ({
     setFilters((prev) => prev.filter((_, i) => i !== idx));
   }, []);
 
-  const canSave = name.trim().length > 0 && filters.some((f) => f.value.trim() !== '');
+  const canSave =
+    name.trim().length > 0 &&
+    basePath.trim().length > 0 &&
+    filters.some((f) => f.value.trim() !== '');
 
   const handleSave = () => {
     if (!canSave) return;
@@ -438,9 +441,7 @@ const CollectionEditorDialogInner = ({
               placeholder={t('dialogs.collection.baseDirPlaceholder')}
             />
             <div style={{ fontSize: '11px', color: 'var(--xp-text-muted)', marginTop: '4px' }}>
-              {basePath
-                ? t('dialogs.collection.baseDirHintSet')
-                : t('dialogs.collection.baseDirHintEmpty')}
+              {t('dialogs.collection.baseDirHintSet')}
             </div>
           </div>
 

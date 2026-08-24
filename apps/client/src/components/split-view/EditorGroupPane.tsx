@@ -7,7 +7,6 @@ import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { useCollectionFiles } from '@/hooks/use-collection-files';
 import type { EditorGroup } from '@/types/split-view';
 import { extensionHost } from '@/lib/extension-host';
-import { type FileCollection, applyCollectionToFiles } from '@/lib/collections';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import PaneTabBar from './PaneTabBar';
 import NavigationBar from '@/components/explorer/NavigationBar';
@@ -126,8 +125,6 @@ interface EditorGroupPaneProps {
   isMaximized?: boolean;
   onMaximizePane?: (groupId: string) => void;
   onRestorePane?: () => void;
-  // Filter presets
-  activeCollectionFilter?: FileCollection | null;
   // Pane sync navigation
   paneSyncEnabled?: boolean;
   paneSyncMode?: PaneSyncMode;
@@ -168,7 +165,6 @@ const EditorGroupPane = ({
   isMaximized,
   onMaximizePane,
   onRestorePane,
-  activeCollectionFilter,
   paneSyncEnabled,
   paneSyncMode,
   onTogglePaneSync,
@@ -330,14 +326,7 @@ const EditorGroupPane = ({
     [files, localSortBy, localSortOrder],
   );
 
-  // Apply filter preset if one is active
-  const sortedFiles = useMemo(
-    () =>
-      activeCollectionFilter
-        ? applyCollectionToFiles(sortedFilesRaw, activeCollectionFilter)
-        : sortedFilesRaw,
-    [sortedFilesRaw, activeCollectionFilter],
-  );
+  const sortedFiles = sortedFilesRaw;
 
   const selectedEntries = useMemo(
     () => sortedFiles.filter((file) => selectedFiles.has(file.path)),

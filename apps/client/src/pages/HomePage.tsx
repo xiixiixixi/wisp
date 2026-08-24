@@ -783,7 +783,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleApproval(tc.id, 'allow_once')}
-                          className="rounded bg-green-600 px-3 py-1 text-xs text-white transition-colors hover:bg-green-500"
+                          className="rounded bg-green-600 px-3 py-1 text-xs text-white transition-colors hover:bg-xp-green"
                         >
                           {t('home.thisTime')}
                         </button>

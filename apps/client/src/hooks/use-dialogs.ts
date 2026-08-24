@@ -165,10 +165,6 @@ export interface DialogState {
   editingCollection: FileCollection | null;
   setEditingCollection: React.Dispatch<React.SetStateAction<FileCollection | null>>;
 
-  // Active collection filter (a collection applied as a filter on the current directory)
-  activeCollectionFilter: FileCollection | null;
-  setActiveCollectionFilter: React.Dispatch<React.SetStateAction<FileCollection | null>>;
-
   // Change summary toast
   showChangeSummaryToast: boolean;
   setShowChangeSummaryToast: React.Dispatch<React.SetStateAction<boolean>>;
@@ -411,9 +407,6 @@ export const useDialogs = (): DialogState => {
   const [collectionEditorOpen, setCollectionEditorOpen] = useState(false);
   const [editingCollection, setEditingCollection] = useState<FileCollection | null>(null);
 
-  // Active collection filter
-  const [activeCollectionFilter, setActiveCollectionFilter] = useState<FileCollection | null>(null);
-
   // Change summary toast
   const [showChangeSummaryToast, setShowChangeSummaryToast] = useState(false);
 
@@ -533,8 +526,6 @@ export const useDialogs = (): DialogState => {
     setCollectionEditorOpen,
     editingCollection,
     setEditingCollection,
-    activeCollectionFilter,
-    setActiveCollectionFilter,
     showChangeSummaryToast,
     setShowChangeSummaryToast,
   };

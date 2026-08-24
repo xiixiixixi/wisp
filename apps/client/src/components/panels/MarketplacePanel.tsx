@@ -287,7 +287,11 @@ const MarketplacePanel = () => {
         const data = (await marketplaceFetch(
           `${getMarketplaceApi()}/extensions?${params.toString()}`,
         )) as { extensions?: MarketplaceExtension[]; pagination?: PaginationInfo };
-        setExtensions(data.extensions || []);
+        // Themes are built into Wisp (Ink/Slate/Paper) — hide marketplace theme extensions.
+        const nonTheme = (data.extensions || []).filter(
+          (ext) => !ext.categories?.some((c) => c.slug === 'theme'),
+        );
+        setExtensions(nonTheme);
         setPagination(
           data.pagination || {
             page,

@@ -102,15 +102,15 @@ export const GDriveDownloadDialog = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-xp-surface border-xp-border w-96 max-w-full rounded-lg border p-6">
+      <div className="w-96 max-w-full rounded-lg border border-xp-border bg-xp-surface p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-xp-text text-lg font-medium">
+          <h3 className="text-lg font-medium text-xp-text">
             {t('settings.gdrive.downloadFileTitle')}
           </h3>
           <button
             onClick={handleClose}
             disabled={downloadState === 'downloading'}
-            className="text-xp-text-muted hover:text-xp-text focus:ring-xp-blue focus:outline-none focus:ring-1 disabled:opacity-50"
+            className="text-xp-text-muted hover:text-xp-text focus:outline-none focus:ring-1 focus:ring-xp-blue disabled:opacity-50"
             aria-label={t('settings.gdrive.ariaCloseDownloadDialog')}
           >
             <XCircle className="h-5 w-5" />
@@ -120,46 +120,46 @@ export const GDriveDownloadDialog = ({
         <div className="py-4 text-center">
           {(downloadState === 'idle' || downloadState === 'picking') && (
             <>
-              <Download className="text-xp-blue mx-auto mb-3 h-12 w-12 animate-pulse" />
-              <p className="text-xp-text mb-1 text-sm">{t('settings.gdrive.preparingDownload')}</p>
-              <p className="text-xp-text-muted text-xs">{fileName}</p>
+              <Download className="mx-auto mb-3 h-12 w-12 animate-pulse text-xp-blue" />
+              <p className="mb-1 text-sm text-xp-text">{t('settings.gdrive.preparingDownload')}</p>
+              <p className="text-xs text-xp-text-muted">{fileName}</p>
             </>
           )}
 
           {downloadState === 'downloading' && (
             <>
               <div className="mx-auto mb-3 h-12 w-12">
-                <div className="border-xp-border border-t-tokyo-blue h-12 w-12 animate-spin rounded-full border-4" />
+                <div className="h-12 w-12 animate-spin rounded-full border-4 border-xp-border border-t-xp-blue" />
               </div>
-              <p className="text-xp-text mb-1 text-sm">{t('settings.gdrive.downloading')}</p>
-              <p className="text-xp-text-muted text-xs">{fileName}</p>
+              <p className="mb-1 text-sm text-xp-text">{t('settings.gdrive.downloading')}</p>
+              <p className="text-xs text-xp-text-muted">{fileName}</p>
             </>
           )}
 
           {downloadState === 'success' && (
             <>
-              <CheckCircle className="text-xp-green mx-auto mb-3 h-12 w-12" />
-              <p className="text-xp-text mb-1 text-sm">{t('settings.gdrive.downloadComplete')}</p>
-              <p className="text-xp-text-muted text-xs">{fileName}</p>
+              <CheckCircle className="mx-auto mb-3 h-12 w-12 text-xp-green" />
+              <p className="mb-1 text-sm text-xp-text">{t('settings.gdrive.downloadComplete')}</p>
+              <p className="text-xs text-xp-text-muted">{fileName}</p>
             </>
           )}
 
           {downloadState === 'error' && (
             <>
-              <XCircle className="text-xp-red mx-auto mb-3 h-12 w-12" />
-              <p className="text-xp-text mb-1 text-sm">{t('settings.gdrive.downloadFailed')}</p>
-              <p className="text-xp-text-muted mb-3 text-xs">{errorMessage}</p>
+              <XCircle className="mx-auto mb-3 h-12 w-12 text-xp-red" />
+              <p className="mb-1 text-sm text-xp-text">{t('settings.gdrive.downloadFailed')}</p>
+              <p className="mb-3 text-xs text-xp-text-muted">{errorMessage}</p>
               <div className="flex justify-center space-x-2">
                 <button
                   onClick={startDownload}
-                  className="bg-xp-blue hover:bg-xp-blue-dark focus:ring-xp-blue rounded px-4 py-2 text-sm text-white transition-colors focus:outline-none focus:ring-1"
+                  className="rounded bg-xp-blue px-4 py-2 text-sm text-white transition-colors hover:bg-xp-blue-dark focus:outline-none focus:ring-1 focus:ring-xp-blue"
                   aria-label={t('settings.gdrive.ariaRetryDownload')}
                 >
                   {t('settings.gdrive.retry')}
                 </button>
                 <button
                   onClick={handleClose}
-                  className="border-xp-border hover:bg-xp-surface-light text-xp-text focus:ring-xp-blue rounded border px-4 py-2 text-sm transition-colors focus:outline-none focus:ring-1"
+                  className="rounded border border-xp-border px-4 py-2 text-sm text-xp-text transition-colors hover:bg-xp-surface-light focus:outline-none focus:ring-1 focus:ring-xp-blue"
                   aria-label={t('settings.gdrive.ariaCancelDownload')}
                 >
                   {t('common.cancel')}

@@ -50,29 +50,29 @@ vi.mock('@radix-ui/react-select', async () => {
   };
 });
 
-// Mock theme-registry
+// Mock theme-registry — Wisp ships exactly three built-in themes
 vi.mock('@/lib/theme-registry', () => ({
   useAllThemes: vi.fn(() => ({
+    rolex: {
+      name: 'Wisp Ink',
+      primary: '#79a8d8',
+      bg: '#11161d',
+      surface: '#171d25',
+      text: '#e6ebf1',
+    },
     glass: {
-      name: 'Wisp Glass',
-      primary: '#7c3aed',
-      bg: '#0a0a1a',
-      surface: '#1a1a2e',
-      text: '#e2e8f0',
+      name: 'Wisp Slate',
+      primary: '#8aa8c8',
+      bg: '#242a32',
+      surface: '#2b323b',
+      text: '#edf0f3',
     },
-    'tokyo-night': {
-      name: 'Tokyo Night',
-      primary: '#7aa2f7',
-      bg: '#1a1b26',
-      surface: '#24283b',
-      text: '#c0caf5',
-    },
-    dracula: {
-      name: 'Dracula',
-      primary: '#bd93f9',
-      bg: '#282a36',
-      surface: '#44475a',
-      text: '#f8f8f2',
+    light: {
+      name: 'Wisp Paper',
+      primary: '#4f759b',
+      bg: '#f1f3f5',
+      surface: '#e8ecf0',
+      text: '#26313b',
     },
   })),
 }));
@@ -744,7 +744,7 @@ describe('Settings Page', () => {
       localStorage.setItem(
         'wisp:settings',
         JSON.stringify({
-          theme: 'tokyo-night',
+          theme: 'glass',
           showHiddenFiles: true,
           enableMarkdownPreview: true,
           defaultView: 'list',

@@ -17,12 +17,12 @@ export const Button = ({
     'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
 
   const variantClasses = {
-    default: 'bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-500',
+    default: 'bg-xp-blue text-white hover:bg-xp-accent-hover focus-visible:ring-xp-blue',
     outline:
-      'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus-visible:ring-gray-500',
-    ghost: 'text-gray-900 hover:bg-gray-100 focus-visible:ring-gray-500',
-    destructive: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
-    secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 focus-visible:ring-gray-500',
+      'border border-xp-border bg-xp-popover text-xp-text hover:bg-xp-surface-light focus-visible:ring-xp-blue',
+    ghost: 'text-xp-text hover:bg-xp-surface-light focus-visible:ring-xp-blue',
+    destructive: 'bg-xp-red text-white hover:bg-xp-red focus-visible:ring-xp-red',
+    secondary: 'bg-xp-surface-light text-xp-text hover:bg-xp-border focus-visible:ring-xp-blue',
   };
 
   const sizeClasses = {

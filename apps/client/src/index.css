@@ -1,4 +1,4 @@
-@import "./styles/tokyo-night.css";
+@import "./styles/xp-utilities.css";
 
 @tailwind base;
 @tailwind components;
@@ -14,187 +14,60 @@ body {
 }
 
 :root {
-  /* Legacy glass theme defaults (the Rolex theme boots via html.theme-rolex before JS loads) */
-  --background: transparent;
-  --foreground: rgba(255, 255, 255, 0.92);
-  --muted: rgba(255, 255, 255, 0.06);
-  --muted-foreground: rgba(255, 255, 255, 0.6);
-  --popover: rgba(15, 15, 35, 0.85);
-  --popover-foreground: rgba(255, 255, 255, 0.92);
-  --card: rgba(255, 255, 255, 0.06);
-  --card-foreground: rgba(255, 255, 255, 0.92);
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(255, 255, 255, 0.1);
-  --primary: #6366f1;
-  --primary-foreground: #ffffff;
-  --secondary: rgba(255, 255, 255, 0.06);
-  --secondary-foreground: rgba(255, 255, 255, 0.92);
-  --accent: rgba(255, 255, 255, 0.06);
-  --accent-foreground: rgba(255, 255, 255, 0.92);
-  --destructive: #f87171;
-  --destructive-foreground: #ffffff;
-  --ring: #6366f1;
+  /* Wisp Ink defaults (html boots with class="theme-rolex" before JS loads) */
+  --background: #11161d;
+  --foreground: #e6ebf1;
+  --muted: #202833;
+  --muted-foreground: #9ca8b5;
+  --popover: #1b222c;
+  --popover-foreground: #e6ebf1;
+  --card: #171d25;
+  --card-foreground: #e6ebf1;
+  --border: #2a3440;
+  --input: #2f3a47;
+  --primary: #79a8d8;
+  --primary-foreground: #101820;
+  --secondary: #202833;
+  --secondary-foreground: #d9e0e7;
+  --accent: #202b36;
+  --accent-foreground: #e6ebf1;
+  --destructive: #d08282;
+  --destructive-foreground: #1b1010;
+  --ring: #79a8d8;
   --radius: 0.5rem;
 
-  /* Glass theme — gradient bg, solid surfaces */
-  --xp-bg: transparent;
-  --xp-bg-gradient: linear-gradient(
-    135deg,
-    #0a0a1a 0%,
-    #0f0f2e 25%,
-    #1a0a2e 50%,
-    #0a1a2e 75%,
-    #0a0a1a 100%
-  );
-  --xp-surface: #111122;
-  --xp-surface-light: #161630;
-  --xp-blue: #6366f1;
-  --xp-blue-dark: #4f46e5;
-  --xp-accent: #6366f1;
-  --xp-accent-hover: #818cf8;
-  --xp-purple: #a78bfa;
-  --xp-pink: #f472b6;
-  --xp-green: #34d399;
-  --xp-orange: #fb923c;
-  --xp-yellow: #fbbf24;
-  --xp-red: #f87171;
-  --xp-cyan: #22d3ee;
-  --xp-text: rgba(255, 255, 255, 0.92);
-  --xp-text-secondary: rgba(255, 255, 255, 0.6);
-  --xp-text-muted: rgba(255, 255, 255, 0.4);
-  --xp-border: rgba(255, 255, 255, 0.1);
-  --xp-border-light: rgba(255, 255, 255, 0.12);
-  --xp-popover: #1a1b2e;
-
-  /* Glow Effects */
-  --glow-blue: 0 0 8px rgba(99, 102, 241, 0.3);
-  --glow-purple: 0 0 8px rgba(167, 139, 250, 0.3);
-  --glow-pink: 0 0 8px rgba(244, 114, 182, 0.3);
-  --glow-green: 0 0 8px rgba(52, 211, 153, 0.3);
-}
-
-/* Theme Classes */
-.theme-glass {
-  --background: transparent;
-  --foreground: rgba(255, 255, 255, 0.92);
-  --muted: rgba(255, 255, 255, 0.06);
-  --muted-foreground: rgba(255, 255, 255, 0.6);
-  --popover: rgba(15, 15, 35, 0.85);
-  --popover-foreground: rgba(255, 255, 255, 0.92);
-  --card: rgba(255, 255, 255, 0.06);
-  --card-foreground: rgba(255, 255, 255, 0.92);
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(255, 255, 255, 0.1);
-  --primary: #6366f1;
-  --primary-foreground: #ffffff;
-  --secondary: rgba(255, 255, 255, 0.06);
-  --secondary-foreground: rgba(255, 255, 255, 0.92);
-  --accent: rgba(255, 255, 255, 0.06);
-  --accent-foreground: rgba(255, 255, 255, 0.92);
-  --destructive: #f87171;
-  --destructive-foreground: #ffffff;
-  --ring: #6366f1;
-
-  --xp-bg: transparent;
-  --xp-bg-gradient: linear-gradient(
-    135deg,
-    #0a0a1a 0%,
-    #0f0f2e 25%,
-    #1a0a2e 50%,
-    #0a1a2e 75%,
-    #0a0a1a 100%
-  );
-  --xp-surface: #111122;
-  --xp-surface-light: #161630;
-  --xp-blue: #6366f1;
-  --xp-blue-dark: #4f46e5;
-  --xp-accent: #6366f1;
-  --xp-accent-hover: #818cf8;
-  --xp-purple: #a78bfa;
-  --xp-pink: #f472b6;
-  --xp-green: #34d399;
-  --xp-orange: #fb923c;
-  --xp-yellow: #fbbf24;
-  --xp-red: #f87171;
-  --xp-cyan: #22d3ee;
-  --xp-text: rgba(255, 255, 255, 0.92);
-  --xp-text-secondary: rgba(255, 255, 255, 0.6);
-  --xp-text-muted: rgba(255, 255, 255, 0.4);
-  --xp-border: rgba(255, 255, 255, 0.1);
-  --xp-border-light: rgba(255, 255, 255, 0.12);
-  --xp-popover: #1a1b2e;
-
-  --glow-blue: 0 0 8px rgba(99, 102, 241, 0.3);
-  --glow-purple: 0 0 8px rgba(167, 139, 250, 0.3);
-  --glow-pink: 0 0 8px rgba(244, 114, 182, 0.3);
-  --glow-green: 0 0 8px rgba(52, 211, 153, 0.3);
-}
-
-/* Additional themes available via marketplace extensions:
-   Tokyo Night, Dracula, Nord, Catppuccin, High Contrast,
-   Cyberpunk, Sunset, Ocean Deep, Aurora, Rosé Pine, Solarized Dark */
-
-/* ═══════════════════════════════════════════════════════════════════
-   LIGHT THEME
-   A clean light-mode theme with white/gray backgrounds and dark text.
-   ═══════════════════════════════════════════════════════════════════ */
-
-.theme-light {
-  /* shadcn/ui semantic tokens */
-  --background: hsl(0, 0%, 100%);
-  --foreground: hsl(222, 47%, 11%);
-  --muted: hsl(210, 40%, 96%);
-  --muted-foreground: hsl(215, 16%, 47%);
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(222, 47%, 11%);
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(222, 47%, 11%);
-  --border: hsl(214, 32%, 91%);
-  --input: hsl(214, 32%, 91%);
-  --primary: hsl(221, 83%, 53%);
-  --primary-foreground: hsl(210, 40%, 98%);
-  --secondary: hsl(210, 40%, 96%);
-  --secondary-foreground: hsl(222, 47%, 11%);
-  --accent: hsl(210, 40%, 96%);
-  --accent-foreground: hsl(222, 47%, 11%);
-  --destructive: hsl(0, 72%, 51%);
-  --destructive-foreground: hsl(210, 40%, 98%);
-  --ring: hsl(221, 83%, 53%);
-
-  /* Custom theme variables */
-  --xp-bg: #ffffff;
-  --xp-bg-gradient: #ffffff;
-  --xp-surface: #f8fafc;
-  --xp-surface-light: #f1f5f9;
-  --xp-blue: #3b82f6;
-  --xp-blue-dark: #2563eb;
-  --xp-accent: #3b82f6;
-  --xp-accent-hover: #60a5fa;
-  --xp-purple: #8b5cf6;
-  --xp-pink: #ec4899;
-  --xp-green: #16a34a;
-  --xp-orange: #ea580c;
-  --xp-yellow: #ca8a04;
-  --xp-red: #dc2626;
-  --xp-cyan: #0891b2;
-  --xp-text: #1e293b;
-  --xp-text-secondary: #64748b;
-  --xp-text-muted: #94a3b8;
-  --xp-border: #e2e8f0;
-  --xp-border-light: #cbd5e1;
-  --xp-popover: #ffffff;
-
-  /* Glow effects — subtle blue shadows instead of neon glows */
-  --glow-blue: 0 0 8px rgba(59, 130, 246, 0.25), 0 0 16px rgba(59, 130, 246, 0.1);
-  --glow-purple: 0 0 8px rgba(139, 92, 246, 0.25), 0 0 16px rgba(139, 92, 246, 0.1);
-  --glow-pink: 0 0 8px rgba(236, 72, 153, 0.25), 0 0 16px rgba(236, 72, 153, 0.1);
-  --glow-green: 0 0 8px rgba(22, 163, 74, 0.25), 0 0 16px rgba(22, 163, 74, 0.1);
-}
-
-/* Light theme html background — solid white */
-html.theme-light {
-  background: #ffffff;
-  min-height: 100vh;
+  --xp-bg: #11161d;
+  --xp-bg-gradient: #11161d;
+  --xp-surface: #171d25;
+  --xp-surface-light: #202833;
+  --xp-sidebar: #151b23;
+  --xp-chrome: #141a22;
+  --xp-rail: #131920;
+  --xp-inspector: #161c24;
+  --xp-popover: #1b222c;
+  --xp-blue: #79a8d8;
+  --xp-blue-dark: #608bb5;
+  --xp-accent: #79a8d8;
+  --xp-accent-hover: #8cb6df;
+  --xp-purple: #9d96bd;
+  --xp-pink: #bd8fa0;
+  --xp-green: #7fb394;
+  --xp-orange: #c49a72;
+  --xp-yellow: #c6aa70;
+  --xp-red: #d08282;
+  --xp-cyan: #79aeb5;
+  --xp-text: #e6ebf1;
+  --xp-text-secondary: #a8b2bf;
+  --xp-text-muted: #7f8b99;
+  --xp-border: #2a3440;
+  --xp-border-light: #394552;
+  --xp-selection-bg: rgba(121, 168, 216, 0.13);
+  --xp-selection-border: rgba(121, 168, 216, 0.32);
+  --xp-shadow-popover: 0 14px 38px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.2);
+  --glow-blue: none;
+  --glow-purple: none;
+  --glow-pink: none;
+  --glow-green: none;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -236,216 +109,9 @@ html.enhanced-focus *:focus-visible {
   border-radius: 2px;
 }
 
-/* Body gets a very subtle warm gray so panels pop slightly */
-.theme-light body {
-  background: #f8fafc !important;
-}
-
-/* ── Surface panels: light elevated cards ────────────────────── */
-.theme-light .bg-xp-surface {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.06),
-    0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
-.theme-light .bg-xp-surface-light {
-  background-color: #f1f5f9;
-}
-
-/* Input fields — white with visible border */
-.theme-light input,
-.theme-light select,
-.theme-light textarea {
-  background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #1e293b !important;
-}
-
-/* ── Interactive states ───────────────────────────────────────── */
-.theme-light .file-item:hover {
-  background-color: #f1f5f9;
-}
-.theme-light .file-item.selected {
-  background-color: rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
-}
-.theme-light .sidebar-item:hover {
-  background-color: #f1f5f9;
-}
-.theme-light .sidebar-item.active {
-  background-color: rgba(59, 130, 246, 0.12);
-  color: #2563eb;
-}
-.theme-light .extension-card:hover {
-  border-color: rgba(59, 130, 246, 0.4);
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.1);
-}
-.theme-light .tab-item.active {
-  background-color: #ffffff;
-  border-bottom-color: #3b82f6;
-}
-
-/* ── Scrollbar ───────────────────────────────────────────────── */
-.theme-light ::-webkit-scrollbar-track {
-  background: #f8fafc;
-}
-.theme-light ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-.theme-light ::-webkit-scrollbar-thumb:hover {
-  background: #3b82f6;
-}
-
-/* ── Borders ─────────────────────────────────────────────────── */
-.theme-light .border-xp-border {
-  border-color: #e2e8f0;
-}
-
-/* ── Selection color ─────────────────────────────────────────── */
-.theme-light ::selection {
-  background-color: rgba(59, 130, 246, 0.25);
-  color: #1e293b;
-}
-
 /* ═══════════════════════════════════════════════════════════════════
-   ROLEX GREEN THEME (default)
-   Deep green dark theme inspired by the Rolex brand green (#006039).
-   ═══════════════════════════════════════════════════════════════════ */
-
-.theme-rolex {
-  /* shadcn/ui semantic tokens */
-  --background: #06130e;
-  --foreground: rgba(235, 255, 245, 0.92);
-  --muted: rgba(0, 160, 92, 0.1);
-  --muted-foreground: rgba(235, 255, 245, 0.62);
-  --popover: #0e2a1e;
-  --popover-foreground: rgba(235, 255, 245, 0.92);
-  --card: #0c231a;
-  --card-foreground: rgba(235, 255, 245, 0.92);
-  --border: rgba(0, 160, 92, 0.16);
-  --input: rgba(0, 160, 92, 0.16);
-  --primary: #00a05c;
-  --primary-foreground: #ffffff;
-  --secondary: rgba(0, 160, 92, 0.1);
-  --secondary-foreground: rgba(235, 255, 245, 0.92);
-  --accent: rgba(0, 160, 92, 0.14);
-  --accent-foreground: rgba(235, 255, 245, 0.92);
-  --destructive: #f87171;
-  --destructive-foreground: #ffffff;
-  --ring: #00a05c;
-
-  /* Custom theme variables */
-  --xp-bg: #06130e;
-  --xp-bg-gradient: linear-gradient(135deg, #03100b 0%, #06241a 30%, #0a3322 55%, #04170f 100%);
-  --xp-surface: #0c231a;
-  --xp-surface-light: #113024;
-  --xp-blue: #00a05c;
-  --xp-blue-dark: #006039;
-  --xp-accent: #00a05c;
-  --xp-accent-hover: #00b96a;
-  --xp-purple: #a78bfa;
-  --xp-pink: #f472b6;
-  --xp-green: #2fbf71;
-  --xp-orange: #fb923c;
-  --xp-yellow: #fbbf24;
-  --xp-red: #f87171;
-  --xp-cyan: #22d3ee;
-  --xp-text: rgba(235, 255, 245, 0.92);
-  --xp-text-secondary: rgba(235, 255, 245, 0.62);
-  --xp-text-muted: rgba(235, 255, 245, 0.42);
-  --xp-border: rgba(0, 160, 92, 0.16);
-  --xp-border-light: rgba(0, 160, 92, 0.26);
-  --xp-popover: #0e2a1e;
-
-  /* Glow effects */
-  --glow-blue: 0 0 8px rgba(0, 160, 92, 0.35);
-  --glow-purple: 0 0 8px rgba(167, 139, 250, 0.3);
-  --glow-pink: 0 0 8px rgba(244, 114, 182, 0.3);
-  --glow-green: 0 0 8px rgba(47, 191, 113, 0.35);
-}
-
-/* Gradient background on the html element itself (Windows/Linux fallback) */
-html.theme-rolex {
-  background: linear-gradient(135deg, #03100b 0%, #06241a 30%, #0a3322 55%, #04170f 100%);
-  background-attachment: fixed;
-  min-height: 100vh;
-}
-
-.theme-rolex body {
-  background: transparent !important;
-}
-
-/* ── Surface panels ──────────────────────────────────────────── */
-.theme-rolex .bg-xp-surface {
-  background-color: #0c231a;
-  border: 1px solid rgba(0, 160, 92, 0.1);
-}
-
-.theme-rolex .bg-xp-surface-light {
-  background-color: #113024;
-}
-
-/* Input fields */
-.theme-rolex input,
-.theme-rolex select,
-.theme-rolex textarea {
-  background-color: rgba(0, 0, 0, 0.3) !important;
-  border: 1px solid rgba(0, 160, 92, 0.16) !important;
-}
-
-/* ── Interactive states ───────────────────────────────────────── */
-.theme-rolex .file-item:hover {
-  background-color: rgba(0, 160, 92, 0.08);
-}
-.theme-rolex .file-item.selected {
-  background-color: rgba(0, 160, 92, 0.25);
-  border: 1px solid rgba(0, 160, 92, 0.45);
-  color: rgba(235, 255, 245, 0.95);
-}
-.theme-rolex .sidebar-item:hover {
-  background-color: rgba(0, 160, 92, 0.08);
-}
-.theme-rolex .sidebar-item.active {
-  background-color: rgba(0, 160, 92, 0.3);
-}
-.theme-rolex .extension-card:hover {
-  border-color: rgba(0, 160, 92, 0.4);
-}
-.theme-rolex .tab-item.active {
-  background-color: rgba(0, 160, 92, 0.12);
-  border-bottom-color: #00a05c;
-}
-
-/* ── Scrollbar ────────────────────────────────────────────────── */
-.theme-rolex ::-webkit-scrollbar-track {
-  background: transparent;
-}
-.theme-rolex ::-webkit-scrollbar-thumb {
-  background: rgba(0, 160, 92, 0.22);
-  border-radius: 4px;
-}
-.theme-rolex ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 160, 92, 0.35);
-}
-
-/* ── Borders ──────────────────────────────────────────────────── */
-.theme-rolex .border-xp-border {
-  border-color: rgba(0, 160, 92, 0.12);
-}
-
-/* ── Selection color ─────────────────────────────────────────── */
-.theme-rolex ::selection {
-  background-color: rgba(0, 160, 92, 0.4);
-  color: #ffffff;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   GLASSMORPHIC THEME OVERRIDES
-   The gradient lives on html so every transparent layer shows it.
+   FONT SIZE SCALING
+   Applied to html element so all rem-based sizes scale accordingly.
    ═══════════════════════════════════════════════════════════════════ */
 
 /* Gradient background on the html element itself (Windows/Linux fallback) */

@@ -6,7 +6,6 @@ export const STORAGE_KEYS = {
   // Core settings & UI
   SETTINGS: 'wisp:settings',
   UI_STATE: 'wisp:ui-state',
-  THEME_CHOSEN: 'wisp:theme-chosen',
   FONT_SIZE: 'wisp:font-size',
   SPLIT_LAYOUT: 'wisp:split-layout',
   SMART_VIEW: 'wisp:folder-views',
@@ -26,6 +25,7 @@ export const STORAGE_KEYS = {
   // Explorer UI
   SIDEBAR_SECTIONS: 'wisp-sidebar-sections',
   SIDEBAR_HEIGHTS: 'wisp-sidebar-heights',
+  VIEW_DEFAULT_MIGRATED: 'wisp:view-default-migrated',
 
   // Collections, bookmarks, colors
   COLLECTIONS: 'wisp:collections',
@@ -50,7 +50,6 @@ export const STORAGE_KEYS = {
   OLLAMA_URL: 'wisp_ollama_url',
 
   // Misc
-  CUSTOM_THEMES: 'wisp:custom-themes',
   CUSTOM_TEMPLATES: 'wisp:custom-templates',
   CONTEXT_MENU_RULES: 'wisp:context-menu-rules',
   SAVED_SEARCHES: 'wisp:saved-searches',

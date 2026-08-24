@@ -91,18 +91,18 @@ const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogP
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onKeyDown={handleKeyDown}
     >
-      <div className="bg-xp-surface border-xp-border w-[420px] max-w-[90vw] overflow-hidden rounded-xl border shadow-2xl">
+      <div className="w-[420px] max-w-[90vw] overflow-hidden rounded-xl border border-xp-border bg-xp-surface shadow-2xl">
         {/* Header */}
-        <div className="border-xp-border flex items-center justify-between border-b px-5 py-4">
+        <div className="flex items-center justify-between border-b border-xp-border px-5 py-4">
           <div>
-            <h2 className="text-xp-text text-base font-semibold">{t('openWith.title')}</h2>
-            <p className="text-xp-text-secondary mt-0.5 max-w-[300px] truncate text-xs">
+            <h2 className="text-base font-semibold text-xp-text">{t('openWith.title')}</h2>
+            <p className="mt-0.5 max-w-[300px] truncate text-xs text-xp-text-secondary">
               {fileName}
             </p>
           </div>
           <button
             onClick={handleClose}
-            className="text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text rounded-md p-1.5 transition-colors"
+            className="rounded-md p-1.5 text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             aria-label={t('openWith.cancel')}
           >
             <X size={16} />
@@ -138,14 +138,14 @@ const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogP
                   >
                     {t(labelKey)}
                   </div>
-                  <div className="text-xp-text-secondary text-xs">{t(descriptionKey)}</div>
+                  <div className="text-xs text-xp-text-secondary">{t(descriptionKey)}</div>
                 </div>
                 <div
                   className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
                     isSelected ? 'border-xp-accent bg-xp-accent' : 'border-xp-border'
                   }`}
                 >
-                  {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                  {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-xp-popover" />}
                 </div>
               </button>
             );
@@ -154,30 +154,30 @@ const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogP
 
         {/* Remember checkbox */}
         {ext && (
-          <div className="border-xp-border border-t px-5 py-3">
+          <div className="border-t border-xp-border px-5 py-3">
             <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
                 checked={rememberChoice}
                 onChange={(e) => setRememberChoice(e.target.checked)}
-                className="text-xp-accent bg-xp-bg border-xp-border focus:ring-xp-accent h-4 w-4 rounded focus:ring-2"
+                className="h-4 w-4 rounded border-xp-border bg-xp-bg text-xp-accent focus:ring-2 focus:ring-xp-accent"
               />
-              <span className="text-xp-text text-sm">{t('openWith.alwaysUse', { ext })}</span>
+              <span className="text-sm text-xp-text">{t('openWith.alwaysUse', { ext })}</span>
             </label>
           </div>
         )}
 
         {/* Footer */}
-        <div className="border-xp-border flex justify-end gap-2 border-t px-5 py-3">
+        <div className="flex justify-end gap-2 border-t border-xp-border px-5 py-3">
           <button
             onClick={handleClose}
-            className="text-xp-text hover:bg-xp-surface-light rounded-md px-4 py-2 text-sm transition-colors"
+            className="rounded-md px-4 py-2 text-sm text-xp-text transition-colors hover:bg-xp-surface-light"
           >
             {t('openWith.cancel')}
           </button>
           <button
             onClick={handleOpen}
-            className="bg-xp-accent hover:bg-xp-accent/80 rounded-md px-4 py-2 text-sm font-medium text-white transition-colors"
+            className="hover:bg-xp-accent/80 rounded-md bg-xp-accent px-4 py-2 text-sm font-medium text-white transition-colors"
           >
             {t('openWith.open')}
           </button>

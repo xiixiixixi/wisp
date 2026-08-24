@@ -194,7 +194,7 @@ const CompareFilesDialog = ({
               <div className="flex min-h-6 items-center">
                 {renderFileInfo(file1Info, file1Path)}
                 {file1Path && file1Info && (
-                  <span className="ml-2 truncate font-mono text-xs text-gray-600">
+                  <span className="ml-2 truncate font-mono text-xs text-xp-text-secondary">
                     {file1Info.name}
                   </span>
                 )}
@@ -220,7 +220,7 @@ const CompareFilesDialog = ({
               <div className="flex min-h-6 items-center">
                 {renderFileInfo(file2Info, file2Path)}
                 {file2Path && file2Info && (
-                  <span className="ml-2 truncate font-mono text-xs text-gray-600">
+                  <span className="ml-2 truncate font-mono text-xs text-xp-text-secondary">
                     {file2Info.name}
                   </span>
                 )}
@@ -237,7 +237,7 @@ const CompareFilesDialog = ({
             </div>
           )}
 
-          <div className="space-y-1 text-xs text-gray-500">
+          <div className="space-y-1 text-xs text-xp-text-muted">
             <div>• {t('dialogs.compareFiles.hintRegularFiles')}</div>
             <div>• {t('dialogs.compareFiles.hintLargeFiles')}</div>
             <div>• {t('dialogs.compareFiles.hintBinaryFiles')}</div>

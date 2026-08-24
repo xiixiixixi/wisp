@@ -108,7 +108,7 @@ const FileComparisonDialog = ({
         {/* File Information */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-700">File 1</h3>
+            <h3 className="text-sm font-medium text-xp-text-secondary">File 1</h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <FileIcon className="h-4 w-4 text-blue-500" />
@@ -116,10 +116,10 @@ const FileComparisonDialog = ({
                   {file1.name}
                 </span>
               </div>
-              <div className="text-gray-600">Size: {formatFileSize(file1.size)}</div>
-              <div className="text-gray-600">Modified: {formatDate(file1.modified)}</div>
+              <div className="text-xp-text-secondary">Size: {formatFileSize(file1.size)}</div>
+              <div className="text-xp-text-secondary">Modified: {formatDate(file1.modified)}</div>
               {file1.hash && (
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-xp-text-secondary">
                   <Hash className="h-3 w-3" />
                   <span className="truncate font-mono text-xs">{file1.hash}</span>
                 </div>
@@ -128,7 +128,7 @@ const FileComparisonDialog = ({
           </div>
 
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-700">File 2</h3>
+            <h3 className="text-sm font-medium text-xp-text-secondary">File 2</h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <FileIcon className="h-4 w-4 text-green-500" />
@@ -136,10 +136,10 @@ const FileComparisonDialog = ({
                   {file2.name}
                 </span>
               </div>
-              <div className="text-gray-600">Size: {formatFileSize(file2.size)}</div>
-              <div className="text-gray-600">Modified: {formatDate(file2.modified)}</div>
+              <div className="text-xp-text-secondary">Size: {formatFileSize(file2.size)}</div>
+              <div className="text-xp-text-secondary">Modified: {formatDate(file2.modified)}</div>
               {file2.hash && (
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-xp-text-secondary">
                   <Hash className="h-3 w-3" />
                   <span className="truncate font-mono text-xs">{file2.hash}</span>
                 </div>
@@ -152,28 +152,28 @@ const FileComparisonDialog = ({
 
         {/* Statistics */}
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <div className="rounded-lg bg-gray-50 p-3 text-center">
+          <div className="rounded-lg bg-xp-surface-light p-3 text-center">
             <div className="text-lg font-semibold text-green-600">{metadata.linesAdded}</div>
-            <div className="text-xs text-gray-600">Lines Added</div>
+            <div className="text-xs text-xp-text-secondary">Lines Added</div>
           </div>
-          <div className="rounded-lg bg-gray-50 p-3 text-center">
+          <div className="rounded-lg bg-xp-surface-light p-3 text-center">
             <div className="text-lg font-semibold text-red-600">{metadata.linesRemoved}</div>
-            <div className="text-xs text-gray-600">Lines Removed</div>
+            <div className="text-xs text-xp-text-secondary">Lines Removed</div>
           </div>
-          <div className="rounded-lg bg-gray-50 p-3 text-center">
+          <div className="rounded-lg bg-xp-surface-light p-3 text-center">
             <div className="text-lg font-semibold text-orange-600">{metadata.linesModified}</div>
-            <div className="text-xs text-gray-600">Lines Modified</div>
+            <div className="text-xs text-xp-text-secondary">Lines Modified</div>
           </div>
-          <div className="rounded-lg bg-gray-50 p-3 text-center">
+          <div className="rounded-lg bg-xp-surface-light p-3 text-center">
             <div className="text-lg font-semibold text-blue-600">
               {formatFileSize(metadata.bytesDifferent)}
             </div>
-            <div className="text-xs text-gray-600">Bytes Different</div>
+            <div className="text-xs text-xp-text-secondary">Bytes Different</div>
           </div>
         </div>
 
         {/* Processing Info */}
-        <div className="flex items-center gap-4 text-xs text-gray-500">
+        <div className="flex items-center gap-4 text-xs text-xp-text-muted">
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
             Processed in {metadata.processingTime}ms
@@ -190,8 +190,8 @@ const FileComparisonDialog = ({
   const renderDifferencesTab = () => {
     if (!comparisonResult || comparisonResult.differences.length === 0) {
       return (
-        <div className="py-8 text-center text-gray-500">
-          <Scale className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+        <div className="py-8 text-center text-xp-text-muted">
+          <Scale className="mx-auto mb-4 h-12 w-12 text-xp-text-secondary" />
           <div className="text-lg font-medium">No differences found</div>
           <div className="text-sm">The files are identical</div>
         </div>
@@ -227,8 +227,12 @@ const FileComparisonDialog = ({
                 >
                   {diff.diffType}
                 </Badge>
-                {diff.line1 && <span className="text-xs text-gray-600">Line {diff.line1}</span>}
-                {diff.line2 && <span className="text-xs text-gray-600">→ Line {diff.line2}</span>}
+                {diff.line1 && (
+                  <span className="text-xs text-xp-text-secondary">Line {diff.line1}</span>
+                )}
+                {diff.line2 && (
+                  <span className="text-xs text-xp-text-secondary">→ Line {diff.line2}</span>
+                )}
                 <Badge variant="outline" className="text-xs">
                   {diff.severity}
                 </Badge>
@@ -249,13 +253,13 @@ const FileComparisonDialog = ({
 
               {diff.context && diff.context.length > 0 && (
                 <details className="mt-3">
-                  <summary className="cursor-pointer text-xs text-gray-600 hover:text-gray-800">
+                  <summary className="cursor-pointer text-xs text-xp-text-secondary hover:text-xp-text">
                     Show context ({diff.context.length} lines)
                   </summary>
-                  <div className="mt-2 rounded bg-gray-50 p-2 font-mono text-xs">
+                  <div className="mt-2 rounded bg-xp-surface-light p-2 font-mono text-xs">
                     {diff.context.map((line, idx) => (
                       // eslint-disable-next-line react/no-array-index-key
-                      <div key={idx} className="text-gray-600">
+                      <div key={idx} className="text-xp-text-secondary">
                         {line}
                       </div>
                     ))}
@@ -278,17 +282,19 @@ const FileComparisonDialog = ({
         <div className="grid h-96 grid-cols-2 gap-4">
           {[file1, file2].map((file, i) => (
             <div key={file.path} className="flex flex-col overflow-hidden rounded-lg border">
-              <div className="shrink-0 border-b bg-gray-50 p-2">
+              <div className="shrink-0 border-b bg-xp-surface-light p-2">
                 <h3
                   className="flex items-center gap-2 truncate text-sm font-medium"
                   title={file.path}
                 >
                   <FileIcon className={`h-4 w-4 ${i === 0 ? 'text-blue-500' : 'text-green-500'}`} />
                   {file.name}
-                  <span className="ml-auto text-xs text-gray-400">{formatFileSize(file.size)}</span>
+                  <span className="ml-auto text-xs text-xp-text-muted">
+                    {formatFileSize(file.size)}
+                  </span>
                 </h3>
               </div>
-              <div className="flex flex-1 items-center justify-center overflow-auto bg-[#1a1a2e] p-4">
+              <div className="flex flex-1 items-center justify-center overflow-auto bg-xp-surface p-4">
                 <img
                   src={convertAssetUrl(file.path)}
                   alt={file.name}
@@ -307,17 +313,19 @@ const FileComparisonDialog = ({
         <div className="grid h-96 grid-cols-2 gap-4">
           {[file1, file2].map((file, i) => (
             <div key={file.path} className="flex flex-col overflow-hidden rounded-lg border">
-              <div className="shrink-0 border-b bg-gray-50 p-2">
+              <div className="shrink-0 border-b bg-xp-surface-light p-2">
                 <h3
                   className="flex items-center gap-2 truncate text-sm font-medium"
                   title={file.path}
                 >
                   <FileIcon className={`h-4 w-4 ${i === 0 ? 'text-blue-500' : 'text-green-500'}`} />
                   {file.name}
-                  <span className="ml-auto text-xs text-gray-400">{formatFileSize(file.size)}</span>
+                  <span className="ml-auto text-xs text-xp-text-muted">
+                    {formatFileSize(file.size)}
+                  </span>
                 </h3>
               </div>
-              <div className="flex flex-1 items-center justify-center overflow-auto bg-[#1a1a2e] p-4">
+              <div className="flex flex-1 items-center justify-center overflow-auto bg-xp-surface p-4">
                 <video
                   src={convertAssetUrl(file.path)}
                   controls
@@ -332,8 +340,8 @@ const FileComparisonDialog = ({
 
     if (comparisonType !== 'text') {
       return (
-        <div className="py-8 text-center text-gray-500">
-          <FileIcon className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+        <div className="py-8 text-center text-xp-text-muted">
+          <FileIcon className="mx-auto mb-4 h-12 w-12 text-xp-text-secondary" />
           <div className="text-lg font-medium">Side-by-side view not available</div>
           <div className="text-sm">
             This view is only available for text, image, and video files
@@ -348,7 +356,7 @@ const FileComparisonDialog = ({
     return (
       <div className="grid h-96 grid-cols-2 gap-4">
         <div className="rounded-lg border">
-          <div className="border-b bg-gray-50 p-2">
+          <div className="border-b bg-xp-surface-light p-2">
             <h3 className="truncate text-sm font-medium" title={file1.path}>
               {file1.name}
             </h3>
@@ -358,7 +366,7 @@ const FileComparisonDialog = ({
               {lines1.map((line, idx) => (
                 // eslint-disable-next-line react/no-array-index-key
                 <div key={idx} className="flex">
-                  <span className="w-8 select-none text-gray-400">{idx + 1}</span>
+                  <span className="w-8 select-none text-xp-text-muted">{idx + 1}</span>
                   <span className="pl-2">{line}</span>
                 </div>
               ))}
@@ -367,7 +375,7 @@ const FileComparisonDialog = ({
         </div>
 
         <div className="rounded-lg border">
-          <div className="border-b bg-gray-50 p-2">
+          <div className="border-b bg-xp-surface-light p-2">
             <h3 className="truncate text-sm font-medium" title={file2.path}>
               {file2.name}
             </h3>
@@ -377,7 +385,7 @@ const FileComparisonDialog = ({
               {lines2.map((line, idx) => (
                 // eslint-disable-next-line react/no-array-index-key
                 <div key={idx} className="flex">
-                  <span className="w-8 select-none text-gray-400">{idx + 1}</span>
+                  <span className="w-8 select-none text-xp-text-muted">{idx + 1}</span>
                   <span className="pl-2">{line}</span>
                 </div>
               ))}
@@ -409,7 +417,7 @@ const FileComparisonDialog = ({
             <div className="flex h-64 items-center justify-center">
               <div className="flex flex-col items-center gap-4">
                 <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-500" />
-                <div className="text-sm text-gray-600">Comparing files...</div>
+                <div className="text-sm text-xp-text-secondary">Comparing files...</div>
               </div>
             </div>
           ) : comparisonResult ? (
@@ -435,8 +443,8 @@ const FileComparisonDialog = ({
               </div>
             </Tabs>
           ) : (
-            <div className="py-8 text-center text-gray-500">
-              <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+            <div className="py-8 text-center text-xp-text-muted">
+              <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-xp-text-secondary" />
               <div className="text-lg font-medium">Comparison failed</div>
               <div className="text-sm">Unable to compare the selected files</div>
             </div>

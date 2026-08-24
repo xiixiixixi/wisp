@@ -1,5 +1,5 @@
-/* Tokyo Night Theme - variables scoped to theme class */
-/* :root defaults are now glass theme in index.css */
+/* Wisp theme utilities — CSS-variable-backed color, hover, and scrollbar
+   classes shared by all three built-in themes (Ink, Slate, Paper). */
 
 .bg-xp-bg {
   background-color: var(--xp-bg);
@@ -12,6 +12,9 @@
 }
 .bg-xp-popover {
   background-color: var(--xp-popover);
+}
+.bg-xp-selection {
+  background-color: var(--xp-selection-bg);
 }
 .bg-xp-blue {
   background-color: var(--xp-blue);
@@ -84,6 +87,9 @@
 .border-xp-blue {
   border-color: var(--xp-blue);
 }
+.border-t-xp-blue {
+  border-top-color: var(--xp-blue);
+}
 
 .hover\:bg-xp-surface-light:hover {
   background-color: var(--xp-surface-light);
@@ -115,7 +121,7 @@
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
 }
 
-/* Scrollbar styling for Tokyo Night theme */
+/* Scrollbar styling */
 .xp-scrollbar::-webkit-scrollbar {
   width: 8px;
   height: 8px;

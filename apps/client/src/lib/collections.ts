@@ -7,7 +7,6 @@
 
 import type { FileEntry } from '@/lib/tauri-api';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
-import i18n from '@/i18n';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,8 +37,6 @@ export interface FileCollection {
   color: string;
   createdAt: number;
   updatedAt: number;
-  /** Built-in collections cannot be deleted. */
-  builtin?: boolean;
 }
 
 // ── Storage key ──────────────────────────────────────────────────────────────
@@ -52,7 +49,10 @@ const readAll = (): FileCollection[] => {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed as FileCollection[];
+    // Quick filters (no basePath) were removed — only smart folders remain
+    return (parsed as FileCollection[]).filter(
+      (c) => typeof c.basePath === 'string' && c.basePath.length > 0,
+    );
   } catch {
     return [];
   }
@@ -69,9 +69,6 @@ export const getCollections = (): FileCollection[] => {
 };
 
 export const getCollection = (id: string): FileCollection | null => {
-  // Check built-ins first
-  const builtin = BUILTIN_COLLECTIONS.find((c) => c.id === id);
-  if (builtin) return builtin;
   return readAll().find((c) => c.id === id) ?? null;
 };
 
@@ -79,7 +76,7 @@ export const createCollection = (
   name: string,
   filters: CollectionFilter[],
   icon: string = 'Folder',
-  basePath: string = '',
+  basePath: string,
   color: string = '#3b82f6',
 ): FileCollection => {
   const collections = readAll();
@@ -281,100 +278,12 @@ export const COLLECTION_COLORS = [
 
 // ── Built-in Collections (replaces former "Filter Presets") ─────────────────
 
-export const BUILTIN_COLLECTIONS: FileCollection[] = [
-  {
-    id: 'builtin-large-files',
-    get name() {
-      return i18n.t('collections.builtin.largeFiles');
-    },
-    icon: 'Disc',
-    color: '#ef4444',
-    filters: [{ type: 'size_gt', value: String(100 * 1024 * 1024) }],
-    basePath: '',
-    createdAt: 0,
-    updatedAt: 0,
-    builtin: true,
-  },
-  {
-    id: 'builtin-recent-files',
-    get name() {
-      return i18n.t('collections.builtin.recentFiles');
-    },
-    icon: 'Clock',
-    color: '#3b82f6',
-    filters: [{ type: 'modified_after', value: '__DYNAMIC_7_DAYS__' }],
-    basePath: '',
-    createdAt: 0,
-    updatedAt: 0,
-    builtin: true,
-  },
-  {
-    id: 'builtin-images',
-    get name() {
-      return i18n.t('collections.builtin.images');
-    },
-    icon: 'Image',
-    color: '#a855f7',
-    filters: [{ type: 'extension', value: '.png,.jpg,.jpeg,.gif,.webp,.svg,.bmp' }],
-    basePath: '',
-    createdAt: 0,
-    updatedAt: 0,
-    builtin: true,
-  },
-  {
-    id: 'builtin-documents',
-    get name() {
-      return i18n.t('collections.builtin.documents');
-    },
-    icon: 'FileText',
-    color: '#f59e0b',
-    filters: [{ type: 'extension', value: '.pdf,.doc,.docx,.txt,.md,.xlsx,.pptx' }],
-    basePath: '',
-    createdAt: 0,
-    updatedAt: 0,
-    builtin: true,
-  },
-  {
-    id: 'builtin-code-files',
-    get name() {
-      return i18n.t('collections.builtin.codeFiles');
-    },
-    icon: 'Laptop',
-    color: '#10b981',
-    filters: [{ type: 'extension', value: '.js,.ts,.tsx,.jsx,.py,.rs,.go,.java,.cpp,.c,.h' }],
-    basePath: '',
-    createdAt: 0,
-    updatedAt: 0,
-    builtin: true,
-  },
-];
-
-/**
- * Returns all collections (built-in + user-created).
- * Built-in collections appear first.
- */
+/** Returns all user-created smart-folder collections. */
 export const getAllCollections = (): FileCollection[] => {
-  return [...BUILTIN_COLLECTIONS, ...readAll()];
-};
-
-/**
- * Applies a collection's filters to a list of files (synchronous, excluding tag filters).
- * Useful when the collection is applied as a filter to the current directory.
- */
-export const applyCollectionToFiles = (
-  files: FileEntry[],
-  collection: FileCollection,
-): FileEntry[] => {
-  if (!collection.filters.length) return files;
-  return files.filter((file) => matchesCollection(file, collection));
+  return readAll();
 };
 
 /** Returns true if a collection acts as a directory-scoped filter (has a basePath). */
 export const isSmartFolder = (collection: FileCollection): boolean => {
   return collection.basePath.length > 0;
-};
-
-/** Returns true if a collection acts as a current-directory filter (no basePath). */
-export const isQuickFilter = (collection: FileCollection): boolean => {
-  return collection.basePath.length === 0;
 };

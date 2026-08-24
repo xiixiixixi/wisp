@@ -1,6 +1,5 @@
 import { createContext, useContext } from 'react';
 import type { FileEntry } from '@/lib/tauri-api';
-import type { FileCollection } from '@/lib/collections';
 import type { SharedPaneActions } from '@/components/split-view/EditorGroupPane';
 import type { PaneSyncMode } from '@/hooks/use-pane-sync';
 import type { SortField } from '@/lib/utils';
@@ -75,7 +74,6 @@ export interface ExplorerContextValue {
   splitActions: SplitActionsContextValue;
   paneSync: PaneSyncContextValue;
   clipboard: ClipboardContextValue;
-  activeCollectionFilter: FileCollection | null;
 }
 
 const ExplorerContext = createContext<ExplorerContextValue | null>(null);

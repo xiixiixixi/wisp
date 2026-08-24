@@ -16,7 +16,6 @@ const KNOWN_KEYS = [
   STORAGE_KEYS.SPLIT_LAYOUT,
   STORAGE_KEYS.TOUR_COMPLETED,
   STORAGE_KEYS.BETA_WARNING_DISMISSED,
-  STORAGE_KEYS.CUSTOM_THEMES,
   STORAGE_KEYS.LAST_EXPORT_DATE,
   STORAGE_KEYS.OPENAI_KEY,
   STORAGE_KEYS.OLLAMA_URL,
@@ -251,7 +250,7 @@ const BackupRestoreSettings = () => {
       >
         <button
           onClick={handleExport}
-          className="bg-xp-accent flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+          className="flex items-center gap-2 rounded-md bg-xp-accent px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
         >
           <Download size={14} />
           {t('settings.backup.exportButton')}
@@ -259,7 +258,7 @@ const BackupRestoreSettings = () => {
       </SettingRow>
 
       {lastExportDate && (
-        <div className="text-xp-text-secondary flex items-center gap-2 px-4 py-1.5 text-xs">
+        <div className="flex items-center gap-2 px-4 py-1.5 text-xs text-xp-text-secondary">
           <Clock size={12} className="shrink-0" />
           <span>{t('settings.backup.lastExported', { date: formatDate(lastExportDate) })}</span>
         </div>
@@ -278,7 +277,7 @@ const BackupRestoreSettings = () => {
       >
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="border-xp-border bg-xp-surface text-xp-text hover:bg-xp-surface-light flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors"
+          className="flex items-center gap-2 rounded-md border border-xp-border bg-xp-surface px-3 py-2 text-sm font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
         >
           <Upload size={14} />
           {t('settings.backup.chooseFile')}
@@ -312,18 +311,18 @@ const BackupRestoreSettings = () => {
       )}
 
       {importStatus.type === 'preview' && (
-        <div className="border-xp-border bg-xp-surface mx-4 mt-2 rounded-lg border p-4">
+        <div className="mx-4 mt-2 rounded-lg border border-xp-border bg-xp-surface p-4">
           <div className="mb-3 flex items-center gap-2">
             <FileJson size={16} className="text-xp-accent" />
-            <span className="text-xp-text text-sm font-medium">
+            <span className="text-sm font-medium text-xp-text">
               {t('settings.backup.importPreviewTitle')}
             </span>
           </div>
 
-          <div className="text-xp-text-secondary mb-3 space-y-1 text-xs">
+          <div className="mb-3 space-y-1 text-xs text-xp-text-secondary">
             <div>
               {t('settings.backup.previewVersion')}{' '}
-              <span className="text-xp-text font-mono">{importStatus.payload.version}</span>
+              <span className="font-mono text-xp-text">{importStatus.payload.version}</span>
             </div>
             <div>
               {t('settings.backup.previewExported')}{' '}
@@ -331,7 +330,7 @@ const BackupRestoreSettings = () => {
             </div>
             <div>
               {t('settings.backup.previewTotalKeys')}{' '}
-              <span className="text-xp-text font-mono">
+              <span className="font-mono text-xp-text">
                 {Object.keys(importStatus.payload.settings).length}
               </span>
             </div>
@@ -341,8 +340,8 @@ const BackupRestoreSettings = () => {
             {importStatus.categories.map((cat) => (
               <div key={cat.label} className="bg-xp-bg/50 rounded-md px-3 py-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xp-text text-xs font-medium">{t(cat.label)}</span>
-                  <span className="text-xp-text-secondary font-mono text-[10px]">
+                  <span className="text-xs font-medium text-xp-text">{t(cat.label)}</span>
+                  <span className="font-mono text-[10px] text-xp-text-secondary">
                     {t('settings.backup.previewKeyCount', { count: cat.keys.length })}
                   </span>
                 </div>
@@ -363,13 +362,13 @@ const BackupRestoreSettings = () => {
           <div className="flex justify-end gap-2">
             <button
               onClick={handleCancelImport}
-              className="border-xp-border bg-xp-surface text-xp-text hover:bg-xp-surface-light rounded-md border px-3 py-1.5 text-sm transition-colors"
+              className="rounded-md border border-xp-border bg-xp-surface px-3 py-1.5 text-sm text-xp-text transition-colors hover:bg-xp-surface-light"
             >
               {t('common.cancel')}
             </button>
             <button
               onClick={handleApplyImport}
-              className="bg-xp-accent flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              className="flex items-center gap-1.5 rounded-md bg-xp-accent px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
             >
               <CheckCircle size={14} />
               {t('settings.backup.applyImport')}

@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { applyTheme } from '@/lib/utils';
-import { useAllThemes, installThemeEventBridge } from '@/lib/theme-registry';
-import { resolveTheme, markThemeChosen } from '@/lib/ui-state';
-
-// Install the event bridge once (listens for extension theme register/unregister)
-installThemeEventBridge();
+import { useAllThemes } from '@/lib/theme-registry';
+import { resolveTheme } from '@/lib/ui-state';
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
@@ -18,7 +15,6 @@ export const useThemeManager = () => {
   }, [theme]);
 
   const handleApplyTheme = useCallback((themeKey: string) => {
-    markThemeChosen();
     setTheme(themeKey);
     applyTheme(themeKey);
   }, []);

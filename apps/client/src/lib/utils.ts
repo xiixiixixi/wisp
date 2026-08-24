@@ -713,98 +713,12 @@ export const loadFontSize = () => {
   applyFontSize(saved || 'medium');
 };
 
-// ── Custom Theme support ─────────────────────────────────────────────────────
-
-export interface CustomThemeColors {
-  name: string;
-  background: string;
-  backgroundSecondary: string;
-  text: string;
-  textSecondary: string;
-  accent: string;
-  accentHover: string;
-  border: string;
-  surface: string;
-  surfaceHover: string;
-  sidebarBg: string;
-  success: string;
-  warning: string;
-  error: string;
-}
-
-const CUSTOM_THEMES_KEY = STORAGE_KEYS.CUSTOM_THEMES;
-
-export const loadCustomThemes = (): Record<string, CustomThemeColors> => {
-  try {
-    const raw = localStorage.getItem(CUSTOM_THEMES_KEY);
-    if (!raw) return {};
-    return JSON.parse(raw) as Record<string, CustomThemeColors>;
-  } catch {
-    return {};
-  }
-};
-
-export const saveCustomThemes = (themes: Record<string, CustomThemeColors>): void => {
-  try {
-    localStorage.setItem(CUSTOM_THEMES_KEY, JSON.stringify(themes));
-  } catch {
-    // storage full or unavailable
-  }
-};
-
-export const slugifyThemeName = (name: string): string => {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-};
-
-export const applyCustomThemeVars = (theme: CustomThemeColors): void => {
-  const root = document.documentElement;
-  root.style.setProperty('--xp-bg', theme.background);
-  root.style.setProperty('--xp-bg-secondary', theme.backgroundSecondary);
-  root.style.setProperty('--xp-text', theme.text);
-  root.style.setProperty('--xp-text-secondary', theme.textSecondary);
-  root.style.setProperty('--xp-blue', theme.accent);
-  root.style.setProperty('--xp-accent', theme.accent);
-  root.style.setProperty('--xp-accent-hover', theme.accentHover);
-  root.style.setProperty('--xp-border', theme.border);
-  root.style.setProperty('--xp-surface', theme.surface);
-  root.style.setProperty('--xp-surface-light', theme.surfaceHover);
-  root.style.setProperty('--xp-sidebar-bg', theme.sidebarBg);
-  root.style.setProperty('--xp-green', theme.success);
-  root.style.setProperty('--xp-yellow', theme.warning);
-  root.style.setProperty('--xp-red', theme.error);
-};
-
-// Theme utility function — works for both built-in and extension-provided themes
+// Theme utility function — the .theme-* CSS classes in index.css are the
+// single source of truth for each theme's full palette.
 export const applyTheme = (themeKey: string) => {
-  // Remove all theme-* classes from root element
   const root = document.documentElement;
   root.classList.forEach((cls) => {
     if (cls.startsWith('theme-')) root.classList.remove(cls);
   });
-  // Add the active theme class (extension themes inject their own .theme-{id} CSS)
   root.classList.add(`theme-${themeKey}`);
-
-  // Set inline style properties for built-in themes (backward compat)
-  const themeData = themes[themeKey];
-  if (themeData) {
-    root.style.setProperty('--xp-bg', themeData.bg);
-    root.style.setProperty('--xp-surface', themeData.surface);
-    root.style.setProperty('--xp-text', themeData.text);
-    root.style.setProperty('--xp-blue', themeData.primary);
-    root.style.setProperty('--xp-accent', themeData.primary);
-    root.style.setProperty('--xp-accent-hover', themeData.primary);
-  } else {
-    // Extension theme — clear inline overrides so CSS class variables take effect
-    root.style.removeProperty('--xp-bg');
-    root.style.removeProperty('--xp-bg-gradient');
-    root.style.removeProperty('--xp-surface');
-    root.style.removeProperty('--xp-text');
-    root.style.removeProperty('--xp-blue');
-    root.style.removeProperty('--xp-accent');
-    root.style.removeProperty('--xp-accent-hover');
-  }
 };

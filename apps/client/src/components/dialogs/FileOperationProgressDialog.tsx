@@ -32,7 +32,7 @@ const getStatusLabel = (op: FileOperationProgress, t: (key: string) => string): 
 const getStatusColor = (status: string): string => {
   switch (status) {
     case 'Completed':
-      return 'bg-green-500';
+      return 'bg-xp-green';
     case 'Failed':
       return 'bg-red-500';
     case 'Cancelled':
@@ -124,7 +124,7 @@ const FileOperationProgressDialog = () => {
         return (
           <div
             key={op.operation_id}
-            className="bg-xp-surface border-xp-border rounded-lg border p-3 shadow-xl backdrop-blur-sm"
+            className="rounded-lg border border-xp-border bg-xp-surface p-3 shadow-xl backdrop-blur-sm"
           >
             {/* Header */}
             <div className="mb-1.5 flex items-center justify-between">
@@ -132,7 +132,7 @@ const FileOperationProgressDialog = () => {
                 <span
                   className={`h-2 w-2 flex-shrink-0 rounded-full ${getStatusColor(op.status)} ${isActive ? 'animate-pulse' : ''}`}
                 />
-                <span className="text-xp-text truncate text-xs font-medium capitalize">
+                <span className="truncate text-xs font-medium capitalize text-xp-text">
                   {op.operation_type || t('dialogs.fileOp.fileOperation')}
                 </span>
               </div>
@@ -140,7 +140,7 @@ const FileOperationProgressDialog = () => {
                 {isActive && (
                   <button
                     onClick={() => cancelOperation(op.operation_id)}
-                    className="text-xp-text-muted p-0.5 transition-colors hover:text-red-400"
+                    className="p-0.5 text-xp-text-muted transition-colors hover:text-red-400"
                     title={t('dialogs.fileOp.cancelOperation')}
                   >
                     <Square size={10} />
@@ -148,7 +148,7 @@ const FileOperationProgressDialog = () => {
                 )}
                 <button
                   onClick={() => dismiss(op.operation_id)}
-                  className="text-xp-text-muted hover:text-xp-text p-0.5 transition-colors"
+                  className="p-0.5 text-xp-text-muted transition-colors hover:text-xp-text"
                 >
                   <X size={12} />
                 </button>
@@ -156,12 +156,12 @@ const FileOperationProgressDialog = () => {
             </div>
 
             {/* Current file */}
-            <div className="text-xp-text-muted mb-1.5 truncate text-[11px]" title={op.current_file}>
+            <div className="mb-1.5 truncate text-[11px] text-xp-text-muted" title={op.current_file}>
               {fileName}
             </div>
 
             {/* Progress bar */}
-            <div className="bg-xp-bg mb-1.5 h-1.5 w-full overflow-hidden rounded-full">
+            <div className="mb-1.5 h-1.5 w-full overflow-hidden rounded-full bg-xp-bg">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${getStatusColor(op.status)}`}
                 style={{ width: `${Math.min(100, op.progress_percentage || 0)}%` }}
@@ -169,7 +169,7 @@ const FileOperationProgressDialog = () => {
             </div>
 
             {/* Stats */}
-            <div className="text-xp-text-muted flex items-center justify-between text-[10px]">
+            <div className="flex items-center justify-between text-[10px] text-xp-text-muted">
               <span>
                 {getStatusLabel(op, t)}
                 {isActive &&
