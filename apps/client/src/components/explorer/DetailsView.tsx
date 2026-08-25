@@ -7,6 +7,9 @@ import { ViewComponentProps } from './FileGridTypes';
 import { getDateGroupTranslationKey, type FileGroup } from '@/lib/utils';
 import { FileReferenceBadge, getFileReferenceLabel } from './FileReferenceBadge';
 
+// Kept inline (not from FileGridHelpers) so tests don't pull the real i18n singleton.
+const isHiddenFile = (file: FileEntry): boolean => file.name.startsWith('.');
+
 interface DetailsViewProps extends ViewComponentProps {
   fileGroups?: FileGroup[] | null;
 }
@@ -115,14 +118,16 @@ const FileRow = React.memo(
         onKeyDown={handleKeyDown}
       >
         <div className="col-span-1 flex justify-center">
-          <span className="text-lg">
+          <span className={`text-lg ${isHiddenFile(file) ? 'opacity-60' : ''}`}>
             <FileReferenceBadge file={file} compact>
               {getFileIcon(file)}
             </FileReferenceBadge>
           </span>
         </div>
         <div className="col-span-5 min-w-0">
-          <div className="truncate font-medium">{file.name}</div>
+          <div className={`truncate font-medium ${isHiddenFile(file) ? 'text-xp-text-muted' : ''}`}>
+            {file.name}
+          </div>
         </div>
         <div className="col-span-2 text-right text-xs text-xp-text-muted">
           {(() => {

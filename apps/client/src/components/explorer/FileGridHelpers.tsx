@@ -23,6 +23,9 @@ export const isImageFile = (file: FileEntry): boolean => {
   return IMAGE_EXTENSIONS.has(ext);
 };
 
+// Dot-prefixed entries render dimmed (Finder-style ghost) in every view.
+export const isHiddenFile = (file: FileEntry): boolean => file.name.startsWith('.');
+
 // ─── Tag dots displayed under / beside a file name ───────────────────────────
 
 export const TagDots = ({ tags }: { tags: FileTag[] }) => {

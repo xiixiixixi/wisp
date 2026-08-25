@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useDraggable } from '@/hooks/use-draggable';
 import { useDroppable } from '@/hooks/use-droppable';
-import { TagDots, GitStatusDot, LockBadge, isImageFile } from './FileGridHelpers';
+import { TagDots, GitStatusDot, LockBadge, isImageFile, isHiddenFile } from './FileGridHelpers';
 import { FileGridItemProps, SizeBadgeInfo } from './FileGridTypes';
 import { formatFileSize } from '@/lib/utils';
 import { getFolderColorHex } from '@/lib/folder-colors';
@@ -454,14 +454,14 @@ const FileGridItem = React.memo(
         )}
         {showSizeBadge && sizeBadgeInfo && <SizeBadge file={file} info={sizeBadgeInfo} />}
         <div
-          className={`${itemSize} ${isGridView ? 'mb-2' : ''} flex-shrink-0`}
+          className={`${itemSize} ${isGridView ? 'mb-2' : ''} flex-shrink-0 ${isHiddenFile(file) && !isRenaming ? 'opacity-60' : ''}`}
           style={folderColorHex ? { color: folderColorHex } : undefined}
         >
           <FileReferenceBadge file={file}>{getFileIcon(file)}</FileReferenceBadge>
         </div>
         <div className={`${isGridView ? 'w-full min-w-0' : 'min-w-0 flex-1'} select-none`}>
           <div
-            className={`font-medium text-xp-text ${isRenaming ? '' : 'overflow-hidden'} ${isListView ? 'text-xs' : 'text-sm'} ${isGridView ? 'justify-center' : ''} flex items-center`}
+            className={`font-medium ${isHiddenFile(file) && !isRenaming ? 'text-xp-text-muted' : 'text-xp-text'} ${isRenaming ? '' : 'overflow-hidden'} ${isListView ? 'text-xs' : 'text-sm'} ${isGridView ? 'justify-center' : ''} flex items-center`}
             style={isRenaming ? { position: 'relative', overflow: 'visible' } : undefined}
           >
             {renderNameArea()}

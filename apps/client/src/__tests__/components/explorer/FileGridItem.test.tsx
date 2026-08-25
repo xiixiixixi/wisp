@@ -23,6 +23,7 @@ vi.mock('@/components/explorer/FileGridHelpers', () => ({
   LockBadge: ({ isReadonly }: { isReadonly: boolean }) =>
     isReadonly ? <span data-testid="lock-badge">locked</span> : null,
   isImageFile: () => false,
+  isHiddenFile: (file: { name: string }) => file.name.startsWith('.'),
 }));
 vi.mock('@/lib/utils', () => ({
   formatFileSize: (bytes: number) => `${bytes} B`,
@@ -122,6 +123,30 @@ describe('FileGridItem', () => {
       render(<FileGridItem {...defaultProps} />);
       const item = screen.getByRole('option');
       expect(item).toHaveAttribute('data-file-path', 'C:\\Users\\Test\\document.txt');
+    });
+  });
+
+  describe('Hidden file styling', () => {
+    it('dims the name of dot-prefixed files', () => {
+      const hiddenFile = { ...sampleFile, name: '.config', path: 'C:\\Users\\Test\\.config' };
+      render(<FileGridItem {...defaultProps} file={hiddenFile} />);
+      const nameEl = screen.getByText('.config').closest('div.font-medium');
+      expect(nameEl?.className).toContain('text-xp-text-muted');
+    });
+
+    it('fades the icon of dot-prefixed files', () => {
+      const hiddenFile = { ...sampleFile, name: '.config', path: 'C:\\Users\\Test\\.config' };
+      const { container } = render(<FileGridItem {...defaultProps} file={hiddenFile} />);
+      const iconWrap = container.querySelector('.opacity-60');
+      expect(iconWrap).toBeInTheDocument();
+      expect(iconWrap).toContainElement(screen.getByTestId('file-icon-.config'));
+    });
+
+    it('keeps normal name color for regular files', () => {
+      render(<FileGridItem {...defaultProps} />);
+      const nameEl = screen.getByText('document.txt').closest('div.font-medium');
+      expect(nameEl?.className).not.toContain('text-xp-text-muted');
+      expect(nameEl?.className).toContain('text-xp-text');
     });
   });
 
