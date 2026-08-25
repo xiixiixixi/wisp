@@ -66,6 +66,45 @@ const saveSettingsForPath = (path: string, settings: FolderSettings): void => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
 };
 
+// ── Global sort (shared by every folder and every pane) ──────────────────────
+
+// The single source of truth for sorting is the `sortBy`/`sortOrder` fields
+// inside `wisp:ui-state` — the same fields useLayoutState (OperationBar's
+// sort dropdown) reads and writes. Panes listen for the event to re-sort live.
+const GLOBAL_SORT_KEY = STORAGE_KEYS.UI_STATE;
+const SORT_CHANGED_EVENT = 'wisp-sort-changed';
+
+const readUiState = (): Record<string, unknown> => {
+  try {
+    const raw = localStorage.getItem(GLOBAL_SORT_KEY);
+    if (raw) {
+      const parsed: unknown = JSON.parse(raw);
+      if (typeof parsed === 'object' && parsed !== null) return parsed as Record<string, unknown>;
+    }
+  } catch {
+    /* ignore */
+  }
+  return {};
+};
+
+/** Global sort if the user ever picked one; null means "use folder defaults". */
+const loadGlobalSort = (): { sortBy?: SortField; sortOrder?: 'asc' | 'desc' } | null => {
+  const state = readUiState();
+  if (!('sortBy' in state) && !('sortOrder' in state)) return null;
+  return state as { sortBy?: SortField; sortOrder?: 'asc' | 'desc' };
+};
+
+const saveGlobalSort = (patch: { sortBy?: SortField; sortOrder?: 'asc' | 'desc' }): void => {
+  const next = { ...readUiState(), ...patch };
+  localStorage.setItem(GLOBAL_SORT_KEY, JSON.stringify(next));
+  // Live-sync every open pane
+  window.dispatchEvent(
+    new CustomEvent(SORT_CHANGED_EVENT, {
+      detail: { sortBy: next.sortBy, sortOrder: next.sortOrder },
+    }),
+  );
+};
+
 // ── Auto-detection helpers ────────────────────────────────────────────────────
 
 /** Folders that default to date-grouped, reverse-chronological sort */
@@ -77,33 +116,36 @@ const isDateGroupedFolder = (path: string): boolean => {
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
 /**
- * Per-folder view and sort settings. Each call site (pane) gets its own state
- * that persists per folder path in localStorage.
- *
- * When navigating to a folder with no saved settings, falls back to
- * auto-detected defaults (date-grouped for Downloads/Desktop/Documents,
- * otherwise medium icons sorted by name ascending).
+ * Per-folder view settings with global sorting. View mode and date grouping
+ * persist per folder path (localStorage), but the sort field/order is a
+ * single global choice: changing it anywhere applies to every folder and
+ * every open pane (synced live via a window event). Until the user picks a
+ * sort once, folders fall back to auto-detected defaults (date folders start
+ * date-desc, others name ascending).
  *
  * The `globalViewMode` parameter provides a baseline from the smart-view
- * auto-detection system — it's used only when no per-folder sort/group
- * settings exist yet.
+ * auto-detection system — it's used only when no per-folder view setting
+ * exists yet.
  */
 export const useFolderViewSettings = (
   currentPath: string,
   globalViewMode: string,
 ): FolderViewSettingsResult => {
-  // Compute initial values for this path
+  // Compute initial values for this path. Sorting is global: a stored global
+  // choice wins everywhere; folders only differ by the fallback default
+  // (date folders start date-desc) until the user picks a sort once.
   const computeDefaults = useCallback(
     (
       path: string,
     ): { viewMode: string; sortBy: SortField; sortOrder: 'asc' | 'desc'; groupByDate: boolean } => {
       const saved = getSettingsForPath(path);
+      const globalSort = loadGlobalSort();
       const isDateFolder = isDateGroupedFolder(path);
 
       return {
         viewMode: saved?.viewMode ?? globalViewMode ?? DEFAULT_VIEW_MODE,
-        sortBy: saved?.sortBy ?? (isDateFolder ? 'dateModified' : DEFAULT_SORT_BY),
-        sortOrder: saved?.sortOrder ?? (isDateFolder ? 'desc' : DEFAULT_SORT_ORDER),
+        sortBy: globalSort?.sortBy ?? (isDateFolder ? 'dateModified' : DEFAULT_SORT_BY),
+        sortOrder: globalSort?.sortOrder ?? (isDateFolder ? 'desc' : DEFAULT_SORT_ORDER),
         groupByDate: saved?.groupByDate ?? (isDateFolder ? true : DEFAULT_GROUP_BY_DATE),
       };
     },
@@ -120,7 +162,8 @@ export const useFolderViewSettings = (
   // Track the path so we can reload settings on navigation
   const prevPathRef = useRef(currentPath);
 
-  // When the path changes, load settings for the new folder
+  // When the path changes, reload per-folder view/grouping; the global sort
+  // applies unchanged (it is folder-independent by design).
   useEffect(() => {
     if (prevPathRef.current === currentPath) return;
     prevPathRef.current = currentPath;
@@ -131,6 +174,17 @@ export const useFolderViewSettings = (
     setSortOrderState(defaults.sortOrder);
     setGroupByDateState(defaults.groupByDate);
   }, [currentPath, computeDefaults]);
+
+  // Follow global sort changes made from any other pane
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ sortBy?: SortField; sortOrder?: 'asc' | 'desc' }>).detail;
+      if (detail?.sortBy) setSortByState(detail.sortBy);
+      if (detail?.sortOrder) setSortOrderState(detail.sortOrder);
+    };
+    window.addEventListener(SORT_CHANGED_EVENT, handler);
+    return () => window.removeEventListener(SORT_CHANGED_EVENT, handler);
+  }, []);
 
   // Sync viewMode when globalViewMode (from useSmartView) changes for this path
   // Only apply if the user hasn't explicitly saved settings for this folder
@@ -155,21 +209,15 @@ export const useFolderViewSettings = (
     [currentPath],
   );
 
-  const setSortBy = useCallback(
-    (field: SortField) => {
-      setSortByState(field);
-      saveSettingsForPath(currentPath, { sortBy: field });
-    },
-    [currentPath],
-  );
+  const setSortBy = useCallback((field: SortField) => {
+    setSortByState(field);
+    saveGlobalSort({ sortBy: field });
+  }, []);
 
-  const setSortOrder = useCallback(
-    (order: 'asc' | 'desc') => {
-      setSortOrderState(order);
-      saveSettingsForPath(currentPath, { sortOrder: order });
-    },
-    [currentPath],
-  );
+  const setSortOrder = useCallback((order: 'asc' | 'desc') => {
+    setSortOrderState(order);
+    saveGlobalSort({ sortOrder: order });
+  }, []);
 
   const setGroupByDate = useCallback(
     (enabled: boolean) => {
@@ -182,10 +230,10 @@ export const useFolderViewSettings = (
   const toggleSortOrder = useCallback(() => {
     setSortOrderState((prev) => {
       const next = prev === 'asc' ? 'desc' : 'asc';
-      saveSettingsForPath(currentPath, { sortOrder: next });
+      saveGlobalSort({ sortOrder: next });
       return next;
     });
-  }, [currentPath]);
+  }, []);
 
   return {
     viewMode,

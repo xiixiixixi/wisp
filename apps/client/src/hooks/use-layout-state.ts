@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import type { SortField } from '@/lib/utils';
 
@@ -137,9 +137,62 @@ export const useLayoutState = (): LayoutState => {
   // View mode — details list is the Wisp default
   const [viewMode, setViewMode] = useState<string>(() => loadUiState('viewMode', 'details'));
 
-  // Sorting
-  const [sortBy, setSortBy] = useState<SortField>(() => loadUiState<SortField>('sortBy', 'name'));
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(() => loadUiState('sortOrder', 'asc'));
+  // Sorting — global. The same `wisp:ui-state` fields drive the per-pane
+  // folder settings; the event tells every open pane to re-sort immediately.
+  const [sortBy, setSortByRaw] = useState<SortField>(() =>
+    loadUiState<SortField>('sortBy', 'name'),
+  );
+  const [sortOrder, setSortOrderRaw] = useState<'asc' | 'desc'>(() =>
+    loadUiState('sortOrder', 'asc'),
+  );
+
+  const notifySortChanged = useCallback(
+    (detail: { sortBy: SortField; sortOrder: 'asc' | 'desc' }) => {
+      window.dispatchEvent(new CustomEvent('wisp-sort-changed', { detail }));
+    },
+    [],
+  );
+
+  // Refs so the setter wrappers can read the latest counterpart value
+  const sortByRef = useRef(sortBy);
+  sortByRef.current = sortBy;
+  const sortOrderRef = useRef(sortOrder);
+  sortOrderRef.current = sortOrder;
+
+  const setSortBy: React.Dispatch<React.SetStateAction<SortField>> = useCallback(
+    (action) => {
+      setSortByRaw((prev) => {
+        const next = typeof action === 'function' ? action(prev) : action;
+        if (next !== prev) notifySortChanged({ sortBy: next, sortOrder: sortOrderRef.current });
+        return next;
+      });
+    },
+    [notifySortChanged],
+  );
+
+  const setSortOrder: React.Dispatch<React.SetStateAction<'asc' | 'desc'>> = useCallback(
+    (action) => {
+      setSortOrderRaw((prev) => {
+        const next = typeof action === 'function' ? action(prev) : action;
+        if (next !== prev) notifySortChanged({ sortBy: sortByRef.current, sortOrder: next });
+        return next;
+      });
+    },
+    [notifySortChanged],
+  );
+
+  // Follow global sort changes made elsewhere (per-pane sort dropdowns write
+  // the shared store directly); keeps this state — and the debounced
+  // ui-state persistence that reads it — from clobbering the global choice.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ sortBy?: SortField; sortOrder?: 'asc' | 'desc' }>).detail;
+      if (detail?.sortBy) setSortByRaw(detail.sortBy);
+      if (detail?.sortOrder) setSortOrderRaw(detail.sortOrder);
+    };
+    window.addEventListener('wisp-sort-changed', handler);
+    return () => window.removeEventListener('wisp-sort-changed', handler);
+  }, []);
 
   return {
     leftSidebarCollapsed,
