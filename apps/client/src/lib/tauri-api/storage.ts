@@ -50,14 +50,16 @@ export const diagnoseDirectory = async (
 // Browser demo: no backend, keep an in-memory tag store so the UI stays
 // testable at ?demo=1.
 const demoTags = new Map<string, FileTag[]>();
+// Canonical English names — the same values Finder stores, localized
+// for display by displayTagName().
 const demoPalette: FileTag[] = [
-  { name: '红色', color: '#FF453A' },
-  { name: '橙色', color: '#FF9F0A' },
-  { name: '黄色', color: '#FFD60A' },
-  { name: '绿色', color: '#30D158' },
-  { name: '蓝色', color: '#0A84FF' },
-  { name: '紫色', color: '#BF5AF2' },
-  { name: '灰色', color: '#98989D' },
+  { name: 'Red', color: '#FF453A' },
+  { name: 'Orange', color: '#FF9F0A' },
+  { name: 'Yellow', color: '#FFD60A' },
+  { name: 'Green', color: '#30D158' },
+  { name: 'Blue', color: '#0A84FF' },
+  { name: 'Purple', color: '#BF5AF2' },
+  { name: 'Gray', color: '#98989D' },
 ];
 
 export const getFileTags = async (path: string): Promise<FileTag[]> => {

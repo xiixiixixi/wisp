@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getTagPalette, ensureTagPalette } from '@/lib/file-tags-cache';
+import { displayTagName } from '@/lib/finder-tags';
 import type { FileTag } from '@/lib/tauri-api';
 
 const CUSTOM_TAGS_KEY = 'wisp:custom-finder-tags';
@@ -77,7 +78,7 @@ const SidebarTags = ({ currentPath, navigateToPath }: SidebarTagsProps) => {
                 style={{ backgroundColor: tag.color }}
                 aria-hidden="true"
               />
-              <span className="truncate">{tag.name}</span>
+              <span className="truncate">{displayTagName(tag.name)}</span>
             </button>
           );
         })}

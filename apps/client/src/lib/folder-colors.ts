@@ -38,10 +38,21 @@ export const FOLDER_COLORS: FolderColorDef[] = FINDER_TAG_COLORS.map((c) => ({
 
 const COLOR_HEX_MAP = new Map<string, string>(FOLDER_COLORS.map((c) => [c.id, c.hex]));
 
-/** Localised colour name for a colour id (红色, 橙色, …). */
+/** Localised colour name for display (红色, 橙色, …). */
 export const colorName = (colorId: string): string => i18n.t(`dialogs.colors.${colorId}`);
 
-const paletteColorNames = (): Set<string> => new Set(FOLDER_COLORS.map((c) => colorName(c.id)));
+/**
+ * Canonical on-disk tag name for a colour id — macOS stores the standard
+ * tags as English (Red, Orange, …); using the same names keeps Wisp's
+ * colour tags identical to Finder's instead of spawning duplicates.
+ */
+export const canonicalTagName = (colorId: string): string => {
+  const id = colorId === 'grey' ? 'gray' : colorId;
+  return id.charAt(0).toUpperCase() + id.slice(1);
+};
+
+const paletteColorNames = (): Set<string> =>
+  new Set(FOLDER_COLORS.map((c) => canonicalTagName(c.id)));
 
 // ── Storage key (cache only; the truth lives in Finder tags) ───────────────
 
@@ -76,7 +87,7 @@ const writeFinderTag = async (path: string, colorId: string | null): Promise<voi
     const kept = current.filter((t) => !names.has(t.name));
     const next =
       colorId != null
-        ? [...kept, { name: colorName(colorId), color: COLOR_HEX_MAP.get(colorId) ?? '' }]
+        ? [...kept, { name: canonicalTagName(colorId), color: COLOR_HEX_MAP.get(colorId) ?? '' }]
         : kept;
     await TauriAPI.setFileTags(path, next);
     notifyFileTagsChanged();
@@ -168,7 +179,7 @@ export const migrateFolderColorsToFinderTags = (): void => {
     groups.set(mapped, [...(groups.get(mapped) ?? []), e.path]);
   }
   for (const [colorId, paths] of groups) {
-    const name = colorName(colorId);
+    const name = canonicalTagName(colorId);
     TauriAPI.batchAddTags(paths, [{ name, color: COLOR_HEX_MAP.get(colorId) ?? '' }]).catch((err) =>
       console.error('Folder colour migration failed:', err),
     );

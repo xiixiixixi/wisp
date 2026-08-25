@@ -1,5 +1,6 @@
 import React from 'react';
 import { FileEntry, FileTag } from '@/lib/tauri-api';
+import { displayTagName } from '@/lib/finder-tags';
 import i18n from '@/i18n';
 import { Lock } from 'lucide-react';
 
@@ -39,7 +40,7 @@ export const TagDots = ({ tags }: { tags: FileTag[] }) => {
           key={tag.name}
           className="h-[7px] w-[7px] flex-shrink-0 rounded-full border border-black/20"
           style={{ backgroundColor: tag.color }}
-          title={tag.name}
+          title={displayTagName(tag.name)}
         />
       ))}
     </span>

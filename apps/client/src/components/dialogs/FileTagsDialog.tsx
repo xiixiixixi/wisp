@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TauriAPI, type FileTag } from '@/lib/tauri-api';
-import { FINDER_TAG_COLORS } from '@/lib/finder-tags';
+import { FINDER_TAG_COLORS, displayTagName } from '@/lib/finder-tags';
 import { setCachedFileTags, notifyFileTagsChanged } from '@/lib/file-tags-cache';
 import { Tag, X, Plus, Check } from 'lucide-react';
 
@@ -182,7 +182,7 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
                         style={{ backgroundColor: tag.color }}
                         aria-hidden="true"
                       />
-                      <span className="min-w-0 flex-1 truncate">{tag.name}</span>
+                      <span className="min-w-0 flex-1 truncate">{displayTagName(tag.name)}</span>
                       {active && <Check className="h-3.5 w-3.5 flex-shrink-0 text-xp-accent" />}
                     </button>
                   );

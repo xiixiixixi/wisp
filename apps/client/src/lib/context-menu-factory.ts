@@ -14,6 +14,7 @@ import {
   getTagPalette,
   ensureTagPalette,
 } from '@/lib/file-tags-cache';
+import { displayTagName } from '@/lib/finder-tags';
 import {
   FolderOpen,
   ExternalLink,
@@ -692,7 +693,7 @@ export class ContextMenuFactory {
           const active = currentTags.some((x) => x.name === tag.name);
           return {
             id: `tag-${tag.name}`,
-            label: tag.name,
+            label: displayTagName(tag.name),
             icon: React.createElement('span', {
               style: {
                 display: 'inline-block',
