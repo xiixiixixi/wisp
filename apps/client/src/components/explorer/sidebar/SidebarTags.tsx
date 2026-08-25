@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getTagPalette, ensureTagPalette } from '@/lib/file-tags-cache';
-import { displayTagName } from '@/lib/finder-tags';
+import { displayTagName, hexA } from '@/lib/finder-tags';
 import type { FileTag } from '@/lib/tauri-api';
 
 const CUSTOM_TAGS_KEY = 'wisp:custom-finder-tags';
@@ -65,17 +65,19 @@ const SidebarTags = ({ currentPath, navigateToPath }: SidebarTagsProps) => {
             <button
               key={tag.name}
               onClick={() => navigateToPath(target)}
-              title={t('sidebar.showTagged', { name: tag.name })}
+              title={t('sidebar.showTagged', { name: displayTagName(tag.name) })}
               aria-current={isActive ? 'page' : undefined}
               className={`flex min-h-7 w-full items-center gap-2 rounded-md px-2 py-1 text-left text-sm transition-colors ${
-                isActive
-                  ? 'bg-xp-surface-light text-xp-text'
-                  : 'hover:bg-xp-surface-light/50 text-xp-text-secondary hover:text-xp-text'
+                isActive ? 'text-xp-text' : 'text-xp-text-secondary hover:text-xp-text'
               }`}
+              style={isActive ? { backgroundColor: hexA(tag.color, 0.12) } : undefined}
             >
               <span
-                className="h-2.5 w-2.5 flex-shrink-0 rounded-full border border-black border-opacity-20"
-                style={{ backgroundColor: tag.color }}
+                className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                style={{
+                  backgroundColor: tag.color,
+                  boxShadow: `0 0 7px ${hexA(tag.color, 0.55)}`,
+                }}
                 aria-hidden="true"
               />
               <span className="truncate">{displayTagName(tag.name)}</span>

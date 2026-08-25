@@ -38,6 +38,22 @@ export const displayTagName = (name: string): string => {
   return mapped ? i18n.t(`dialogs.colors.${mapped}`) : name;
 };
 
+/** Hex colour + alpha → rgba() string for tinted glass surfaces. */
+export const hexA = (hex: string, alpha: number): string => {
+  const m = hex.replace('#', '');
+  const full =
+    m.length === 3
+      ? m
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : m;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 export const FINDER_TAG_COLORS: FinderTagColor[] = [
   { id: 'red', hex: '#FF453A', index: 6 },
   { id: 'orange', hex: '#FF9F0A', index: 7 },

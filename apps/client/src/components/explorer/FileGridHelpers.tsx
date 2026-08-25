@@ -1,6 +1,6 @@
 import React from 'react';
 import { FileEntry, FileTag } from '@/lib/tauri-api';
-import { displayTagName } from '@/lib/finder-tags';
+import { displayTagName, hexA } from '@/lib/finder-tags';
 import i18n from '@/i18n';
 import { Lock } from 'lucide-react';
 
@@ -29,20 +29,51 @@ export const isHiddenFile = (file: FileEntry): boolean => file.name.startsWith('
 
 // ─── Tag dots displayed under / beside a file name ───────────────────────────
 
+/**
+ * Tag chips — the file list stays monochrome ink; tags are its only
+ * chroma. Each tag renders as a small glass chip: the tag colour tinted
+ * at low alpha, a hairline border of the same hue, a softly glowing dot
+ * (Finder's dot, now a lamp inside the chip) and the localised name in
+ * the tag colour. At most two chips per row; the rest fold into +N.
+ */
 export const TagDots = ({ tags }: { tags: FileTag[] }) => {
   if (!tags || tags.length === 0) return null;
 
-  // Finder style: small dots sitting inline right after the file name.
+  const shown = tags.slice(0, 2);
+  const rest = tags.length - shown.length;
+
   return (
-    <span className="ml-1 inline-flex flex-shrink-0 items-center gap-0.5 align-middle">
-      {tags.map((tag) => (
+    <span className="ml-1.5 inline-flex flex-shrink-0 items-center gap-1 align-middle">
+      {shown.map((tag) => (
         <span
           key={tag.name}
-          className="h-[7px] w-[7px] flex-shrink-0 rounded-full border border-black/20"
-          style={{ backgroundColor: tag.color }}
           title={displayTagName(tag.name)}
-        />
+          className="inline-flex h-4 max-w-24 flex-shrink-0 items-center gap-1 rounded-full border px-1.5"
+          style={{
+            backgroundColor: hexA(tag.color, 0.13),
+            borderColor: hexA(tag.color, 0.3),
+          }}
+        >
+          <span
+            className="h-1 w-1 flex-shrink-0 rounded-full"
+            style={{
+              backgroundColor: tag.color,
+              boxShadow: `0 0 5px ${hexA(tag.color, 0.75)}`,
+            }}
+          />
+          <span
+            className="truncate text-[9.5px] font-medium leading-none tracking-wide"
+            style={{ color: tag.color }}
+          >
+            {displayTagName(tag.name)}
+          </span>
+        </span>
       ))}
+      {rest > 0 && (
+        <span className="bg-xp-surface/60 inline-flex h-4 flex-shrink-0 items-center rounded-full border border-xp-border px-1.5 text-[9.5px] font-medium leading-none text-xp-text-muted">
+          +{rest}
+        </span>
+      )}
     </span>
   );
 };
