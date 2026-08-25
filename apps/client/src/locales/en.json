@@ -2969,6 +2969,7 @@
     "PreviousTab": "Previous Tab",
     "OpenTerminal": "Open Terminal",
     "OpenAIAssistant": "AI Assistant",
-    "OpenExtensions": "Extensions"
+    "OpenExtensions": "Extensions",
+    "CopyPath": "Copy Path as Pathname"
   }
 }

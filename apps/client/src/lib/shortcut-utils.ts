@@ -133,6 +133,7 @@ export const formatKeyComboForDisplay = (keyCombination: string): string => {
 /** Map action string → category id */
 export const ACTION_CATEGORIES: Record<string, string> = {
   Copy: 'file-operations',
+  CopyPath: 'file-operations',
   Cut: 'file-operations',
   Paste: 'file-operations',
   Delete: 'file-operations',
@@ -184,6 +185,7 @@ export const ACTION_CATEGORIES: Record<string, string> = {
 /** Human-readable labels for each action */
 export const ACTION_LABELS: Record<string, string> = {
   Copy: 'Copy',
+  CopyPath: 'Copy Path as Pathname',
   Cut: 'Cut',
   Paste: 'Paste',
   Delete: 'Delete',

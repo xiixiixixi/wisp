@@ -290,6 +290,11 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
           });
         }
       },
+      onCopyPath: () => {
+        const first = Array.from(selectedFiles)[0];
+        const file = first ? files?.find((f) => f.path === first) : undefined;
+        if (file) fileOps.contextMenuActions.copyPath(file);
+      },
       onOpen: () => {
         const first = Array.from(selectedFiles)[0];
         const file = first ? files?.find((f) => f.path === first) : undefined;

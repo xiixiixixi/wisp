@@ -5,6 +5,7 @@ use std::collections::HashMap;
 pub enum ShortcutAction {
     // File operations
     Copy,
+    CopyPath,
     Cut,
     Paste,
     Delete,

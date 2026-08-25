@@ -171,6 +171,15 @@ impl ShortcutsManager {
                         "ctrl+d",
                     ),
                     sb(
+                        "copy-path",
+                        &["ctrl", "alt", "c"],
+                        ShortcutAction::CopyPath,
+                        ctx.clone(),
+                        &profile,
+                        "Copy path of selected item",
+                        "ctrl+alt+c",
+                    ),
+                    sb(
                         "open-selected",
                         &["ctrl", "o"],
                         ShortcutAction::Open,
@@ -473,6 +482,7 @@ impl ShortcutsManager {
 fn parse_action(action: &str, extension_id: Option<String>) -> ShortcutAction {
     match action {
         "Copy" => ShortcutAction::Copy,
+        "CopyPath" => ShortcutAction::CopyPath,
         "Open" => ShortcutAction::Open,
         "Properties" => ShortcutAction::Properties,
         "Cut" => ShortcutAction::Cut,

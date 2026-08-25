@@ -6,6 +6,7 @@ import { getKeyString } from '@/lib/shortcut-utils';
 export interface ShortcutHandlers {
   // File operations
   onCopy?: () => void;
+  onCopyPath?: () => void;
   onCut?: () => void;
   onPaste?: () => void;
   onDelete?: () => void;
@@ -127,6 +128,9 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
     switch (action) {
       case 'Copy':
         h.onCopy?.();
+        break;
+      case 'CopyPath':
+        h.onCopyPath?.();
         break;
       case 'Cut':
         h.onCut?.();

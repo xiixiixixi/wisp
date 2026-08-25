@@ -2954,6 +2954,7 @@
     "PreviousTab": "上一个标签页",
     "OpenTerminal": "打开终端",
     "OpenAIAssistant": "AI 助手",
-    "OpenExtensions": "扩展"
+    "OpenExtensions": "扩展",
+    "CopyPath": "拷贝路径"
   }
 }

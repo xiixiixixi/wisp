@@ -854,6 +854,7 @@ export interface ShortcutKey {
 export type ShortcutAction =
   // File operations
   | 'Copy'
+  | 'CopyPath'
   | 'Cut'
   | 'Paste'
   | 'Delete'
