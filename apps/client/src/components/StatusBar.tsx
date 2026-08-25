@@ -130,6 +130,11 @@ interface StatusBarProps {
   activeTab?: TabItem | null;
   /** Vim mode state — when provided and enabled, shows the vim indicator in the left section. */
   vimState?: VimModeState | null;
+  /** Show restore buttons for collapsed panels in the status bar. */
+  rightSidebarCollapsed?: boolean;
+  bottomPanelCollapsed?: boolean;
+  onRestoreRightSidebar?: () => void;
+  onRestoreBottomPanel?: () => void;
 }
 
 // ── Git status counts ────────────────────────────────────────────────────────
@@ -157,7 +162,17 @@ const EMPTY_UNDO_REDO_STATUS: UndoRedoStatus = {
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-const StatusBar = ({ files, selectedFiles, currentPath, activeTab, vimState }: StatusBarProps) => {
+const StatusBar = ({
+  files,
+  selectedFiles,
+  currentPath,
+  activeTab,
+  vimState,
+  rightSidebarCollapsed,
+  bottomPanelCollapsed,
+  onRestoreRightSidebar,
+  onRestoreBottomPanel,
+}: StatusBarProps) => {
   const { t } = useTranslation();
   const [gitInfo, setGitInfo] = useState<GitInfo | null>(null);
   const [freeSpace, setFreeSpace] = useState<string | null>(null);
@@ -593,6 +608,56 @@ const StatusBar = ({ files, selectedFiles, currentPath, activeTab, vimState }: S
           >
             {t('statusBar.freeSpaceShort', { size: freeSpace })}
           </span>
+        )}
+
+        {/* Collapsed-panel restore toggles (moved here from the floating
+            corner buttons, which overlaid page content) */}
+        {onRestoreRightSidebar && rightSidebarCollapsed && (
+          <button
+            type="button"
+            className="rounded p-0.5 transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            style={{
+              border: 'none',
+              background: 'transparent',
+              color: 'inherit',
+              cursor: 'pointer',
+            }}
+            title={t('panelToggles.togglePanel')}
+            aria-label={t('panelToggles.togglePanel')}
+            onClick={onRestoreRightSidebar}
+          >
+            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        )}
+        {onRestoreBottomPanel && bottomPanelCollapsed && (
+          <button
+            type="button"
+            data-tour="bottom-panel-toggle"
+            className="rounded p-0.5 transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            style={{
+              border: 'none',
+              background: 'transparent',
+              color: 'inherit',
+              cursor: 'pointer',
+            }}
+            title={t('panelToggles.toggleTerminal')}
+            aria-label={t('panelToggles.toggleTerminal')}
+            onClick={onRestoreBottomPanel}
+          >
+            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
         )}
       </div>
     </div>

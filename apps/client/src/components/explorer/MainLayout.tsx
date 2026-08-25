@@ -25,7 +25,6 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import BottomPanel from '@/components/panels/BottomPanel';
 import ContextMenu, { type ContextMenuItem } from '@/components/ui/ContextMenu';
 import DialogsOverlay from '@/components/explorer/DialogsOverlay';
-import PanelToggleButtons from '@/components/explorer/PanelToggleButtons';
 import ResizeHandle from '@/components/ui/ResizeHandle';
 import StatusBar from '@/components/StatusBar';
 import SplitContainer from '@/components/split-view/SplitContainer';
@@ -622,14 +621,10 @@ const MainLayout = (props: MainLayoutProps) => {
             currentPath={currentPath}
             activeTab={activeTabObj}
             vimState={vimState}
-          />
-
-          {/* Panel Toggle Buttons */}
-          <PanelToggleButtons
             rightSidebarCollapsed={rightSidebarCollapsed}
             bottomPanelCollapsed={bottomPanelCollapsed}
-            onToggleRightSidebar={() => setRightSidebarCollapsed(false)}
-            onToggleBottomPanel={() => setBottomPanelCollapsed(false)}
+            onRestoreRightSidebar={() => setRightSidebarCollapsed(false)}
+            onRestoreBottomPanel={() => setBottomPanelCollapsed(false)}
           />
 
           {/* Context Menu */}
