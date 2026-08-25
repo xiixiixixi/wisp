@@ -497,6 +497,7 @@ fn main() {
             storage::get_file_tags_batch,
             storage::remove_all_tags_from_file,
             storage::remove_tag_globally,
+            storage::find_files_by_tag,
             // Batch tag operations
             storage::batch_add_tags,
             storage::batch_remove_tags,

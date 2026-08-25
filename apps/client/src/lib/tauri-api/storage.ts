@@ -91,6 +91,37 @@ export const getFileTagsBatch = async (paths: string[]): Promise<Record<string, 
   return await transport('get_file_tags_batch', { paths });
 };
 
+export const findFilesByTag = async (
+  tagName: string,
+): Promise<import('../tauri-api-types').FileEntry[]> => {
+  if (isBrowserDemoMode()) {
+    // Demo: collect paths carrying the tag from the in-memory store.
+    const { getDemoDirectory } = await import('../browser-demo-files');
+    const paths: string[] = [];
+    for (const [p, tags] of demoTags) {
+      if (tags.some((t) => t.name === tagName)) paths.push(p);
+    }
+    const seen = new Set<string>();
+    const entries: import('../tauri-api-types').FileEntry[] = [];
+    for (const dir of [
+      '/home/user',
+      '/home/user/Documents',
+      '/home/user/Downloads',
+      '/home/user/Desktop',
+      '/home/user/Pictures',
+    ]) {
+      for (const f of getDemoDirectory(dir) ?? []) {
+        if (paths.includes(f.path) && !seen.has(f.path)) {
+          seen.add(f.path);
+          entries.push(f);
+        }
+      }
+    }
+    return entries;
+  }
+  return await transport('find_files_by_tag', { tagName });
+};
+
 export const removeAllTagsFromFile = async (path: string): Promise<void> =>
   await transport('remove_all_tags_from_file', { path });
 

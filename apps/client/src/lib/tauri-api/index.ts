@@ -239,6 +239,7 @@ export class TauriAPI {
   static getFileTags = storage.getFileTags;
   static setFileTags = storage.setFileTags;
   static getAllFileTags = storage.getAllFileTags;
+  static findFilesByTag = storage.findFilesByTag;
   static getFileTagsBatch = storage.getFileTagsBatch;
   static removeAllTagsFromFile = storage.removeAllTagsFromFile;
   static removeTagGlobally = storage.removeTagGlobally;

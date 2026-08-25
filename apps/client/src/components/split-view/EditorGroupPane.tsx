@@ -225,6 +225,11 @@ const EditorGroupPane = ({
       if (isBrowserDemoMode()) {
         return getDemoDirectory(currentPath) ?? [];
       }
+      if (currentPath.startsWith('wisp://tag/')) {
+        // Finder's sidebar tag click: every file carrying the tag.
+        const tagName = decodeURIComponent(currentPath.slice('wisp://tag/'.length));
+        return await TauriAPI.findFilesByTag(tagName);
+      }
       if (currentPath.startsWith('gdrive://')) {
         const match = currentPath.match(/^gdrive:\/\/([^/]+)\/(.*)$/);
         if (match) {
@@ -248,6 +253,7 @@ const EditorGroupPane = ({
       currentPath !== 'wisp://trash' &&
       currentPath !== 'wisp://gdrive-manager' &&
       !currentPath.startsWith('comparison://') &&
+      (!currentPath.startsWith('wisp://') || currentPath.startsWith('wisp://tag/')) &&
       !isCollectionPath,
   });
   const queryFiles = queryFilesRaw ?? EMPTY_FILES;

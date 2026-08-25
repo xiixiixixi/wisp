@@ -5,7 +5,6 @@ import type {
   FileNote,
   NoteSearchResult,
   FileAnnotation,
-  TagCategory,
   CustomMetadataField,
   RecentFile,
 } from '../types';
@@ -115,36 +114,6 @@ export const getAllAnnotations = async (): Promise<Record<string, FileAnnotation
 };
 
 // Tag Categories operations
-
-export const getTagCategories = async (): Promise<TagCategory[]> => {
-  return await transport('get_tag_categories');
-};
-
-export const addTagCategory = async (
-  name: string,
-  color: string,
-  parentId?: string,
-): Promise<TagCategory> => {
-  return await transport('add_tag_category', { name, color, parentId: parentId ?? null });
-};
-
-export const updateTagCategory = async (
-  id: string,
-  name?: string,
-  color?: string,
-  parentId?: string,
-): Promise<void> => {
-  return await transport('update_tag_category', {
-    id,
-    name: name ?? null,
-    color: color ?? null,
-    parentId: parentId ?? null,
-  });
-};
-
-export const deleteTagCategory = async (id: string): Promise<void> => {
-  return await transport('delete_tag_category', { id });
-};
 
 // Custom Metadata operations
 

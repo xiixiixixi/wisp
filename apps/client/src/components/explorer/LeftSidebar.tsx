@@ -14,6 +14,7 @@ import { extensionHost } from '@/lib/extension-host';
 import SidebarTabBar from '@/components/explorer/sidebar/SidebarTabBar';
 import SidebarQuickAccess from '@/components/explorer/sidebar/SidebarQuickAccess';
 import SidebarDrives from '@/components/explorer/sidebar/SidebarDrives';
+import SidebarTags from '@/components/explorer/sidebar/SidebarTags';
 import { useTranslation } from 'react-i18next';
 
 export interface LeftSidebarHandle {
@@ -150,6 +151,7 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
             handleFileRightClick={handleFileRightClick}
           />
           <SidebarDrives navigateToPath={navigateToPath} />
+          <SidebarTags currentPath={currentPath} navigateToPath={navigateToPath} />
         </>
       )}
     </nav>

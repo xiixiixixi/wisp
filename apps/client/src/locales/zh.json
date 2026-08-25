@@ -84,7 +84,9 @@
     "volumes": "位置",
     "fileTree": "文件树",
     "directoryTree": "目录树",
-    "navigateTo": "导航到{{label}}文件夹"
+    "navigateTo": "导航到{{label}}文件夹",
+    "tags": "标签",
+    "showTagged": "显示所有带“{{name}}”标签的项目"
   },
   "panelToggles": {
     "togglePanel": "切换面板（Ctrl+Shift+B）",

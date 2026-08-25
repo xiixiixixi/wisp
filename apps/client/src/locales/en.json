@@ -84,7 +84,9 @@
     "volumes": "LOCATIONS",
     "fileTree": "FILE TREE",
     "directoryTree": "Directory tree",
-    "navigateTo": "Navigate to {{label}} folder"
+    "navigateTo": "Navigate to {{label}} folder",
+    "tags": "Tags",
+    "showTagged": "Show all items tagged “{{name}}”"
   },
   "panelToggles": {
     "togglePanel": "Toggle panel (Ctrl+Shift+B)",

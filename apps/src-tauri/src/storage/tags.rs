@@ -280,6 +280,62 @@ pub async fn batch_remove_tags(paths: Vec<String>, tag_names: Vec<String>) -> Re
     Ok(())
 }
 
+/// Every file on the indexed volumes carrying a given tag (Finder's
+/// sidebar tag click). Uses the same Spotlight store Finder queries;
+/// returns ready-to-render FileEntry rows, capped for sanity.
+#[tauri::command]
+pub async fn find_files_by_tag(tag_name: String) -> Result<Vec<crate::operations::types::FileEntry>, String> {
+    let escaped = tag_name.replace('\'', "''");
+    let output = std::process::Command::new("mdfind")
+        .arg(format!("kMDItemUserTags == '*{}*'", escaped))
+        .output()
+        .map_err(|e| format!("Failed to run mdfind: {}", e))?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut entries = Vec::new();
+    for path in stdout.lines().filter(|l| !l.is_empty()).take(1000) {
+        let Ok(link_metadata) = std::fs::symlink_metadata(path) else {
+            continue;
+        };
+        let is_symlink = link_metadata.file_type().is_symlink();
+        let metadata = if is_symlink {
+            std::fs::metadata(path).unwrap_or(link_metadata)
+        } else {
+            link_metadata
+        };
+        let p = std::path::Path::new(path);
+        let name = p
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("Unknown")
+            .to_string();
+        let is_dir = metadata.is_dir();
+        let modified = metadata
+            .modified()
+            .ok()
+            .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+            .map(|d| d.as_millis() as u64)
+            .unwrap_or(0);
+        entries.push(crate::operations::types::FileEntry {
+            name,
+            path: path.to_string(),
+            is_dir,
+            size: if is_dir { 0 } else { metadata.len() },
+            modified,
+            file_type: crate::file_lib::get_file_type(p, is_dir),
+            mime_type: crate::file_lib::get_mime_type(p),
+            is_readonly: metadata.permissions().readonly(),
+            is_symlink,
+            symlink_target: if is_symlink {
+                std::fs::read_link(path).ok().and_then(|t| t.to_str().map(str::to_string))
+            } else {
+                None
+            },
+            is_alias: false,
+        });
+    }
+    Ok(entries)
+}
+
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 #[cfg(test)]

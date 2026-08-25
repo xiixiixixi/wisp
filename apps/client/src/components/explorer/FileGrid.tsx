@@ -163,8 +163,13 @@ const FileGrid = ({
   useEffect(() => {
     if (files.length === 0) return;
 
-    // Only fetch tags when on a real filesystem path (not special pages)
-    if (currentPath.startsWith('wisp://') || currentPath.startsWith('gdrive://')) return;
+    // Only fetch tags on real filesystem paths (tag views included)
+    if (
+      (currentPath.startsWith('wisp://') && !currentPath.startsWith('wisp://tag/')) ||
+      currentPath.startsWith('gdrive://')
+    ) {
+      return;
+    }
 
     let cancelled = false;
     const loadAllTags = async () => {
