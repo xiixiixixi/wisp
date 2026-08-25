@@ -2,6 +2,8 @@ import { useEffect, useCallback, useRef } from 'react';
 import { TauriAPI, ShortcutAction, ShortcutBinding } from '@/lib/tauri-api';
 import { listenToEvent } from '@/lib/transport';
 import { getKeyString } from '@/lib/shortcut-utils';
+import { isBrowserDemoMode } from '@/lib/browser-demo-files';
+import { DEMO_DEFAULT_SHORTCUTS } from '@/hooks/demo-default-shortcuts';
 
 export interface ShortcutHandlers {
   // File operations
@@ -90,7 +92,12 @@ async function ensureLoaded() {
   if (!loadPromise) {
     loadPromise = TauriAPI.getShortcuts()
       .then(buildMap)
-      .catch((err) => console.error('Failed to load shortcuts:', err))
+      .catch((err) => {
+        console.error('Failed to load shortcuts:', err);
+        // Browser demo has no backend — fall back to the default bindings so
+        // keyboard shortcuts stay testable at ?demo=1.
+        if (isBrowserDemoMode()) buildMap(DEMO_DEFAULT_SHORTCUTS);
+      })
       .finally(() => {
         loadPromise = null;
       });

@@ -20,6 +20,18 @@ export const getKeyString = (event: KeyboardEvent): string => {
 
   let key = event.key.toLowerCase();
 
+  // On macOS, Option+letter produces special glyphs (⌥C → "ç", ⌥S → "ß") and
+  // dead keys report key === "Dead", so event.key never matches the authored
+  // binding. With Alt held, resolve letters/digits from the layout-independent
+  // physical event.code instead — combos like ⌥⌘C must match "ctrl+alt+c".
+  if (event.altKey) {
+    if (/^Key[A-Z]$/.test(event.code)) {
+      key = event.code.slice(3).toLowerCase();
+    } else if (/^Digit\d$/.test(event.code)) {
+      key = event.code.slice(5);
+    }
+  }
+
   // With Shift held, browsers report the shifted character (⇧. → ">"), so
   // map shifted punctuation back to its base key. The combo already carries
   // "shift", keeping bindings like "ctrl+shift+." matchable (Finder's

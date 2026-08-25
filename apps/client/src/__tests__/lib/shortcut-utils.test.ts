@@ -14,6 +14,7 @@ import {
 const makeKeyEvent = (overrides: Partial<KeyboardEvent> = {}): KeyboardEvent => {
   return {
     key: 'a',
+    code: '',
     ctrlKey: false,
     metaKey: false,
     altKey: false,
@@ -27,6 +28,22 @@ const makeKeyEvent = (overrides: Partial<KeyboardEvent> = {}): KeyboardEvent => 
 describe('getKeyString', () => {
   it('returns just the key for unmodified key press', () => {
     expect(getKeyString(makeKeyEvent({ key: 'a' }))).toBe('a');
+  });
+
+  it('resolves macOS Option glyphs via physical event.code (⌥⌘C etc.)', () => {
+    // On macOS ⌥C produces "ç" and ⌥N is a dead key reporting "Dead";
+    // the combo must still match the authored ctrl+alt+<letter> binding.
+    expect(
+      getKeyString(makeKeyEvent({ key: 'ç', code: 'KeyC', altKey: true, metaKey: true })),
+    ).toBe('ctrl+alt+c');
+    expect(
+      getKeyString(makeKeyEvent({ key: 'Dead', code: 'KeyN', altKey: true, metaKey: true })),
+    ).toBe('ctrl+alt+n');
+    expect(
+      getKeyString(makeKeyEvent({ key: 'ß', code: 'KeyS', altKey: true, ctrlKey: true })),
+    ).toBe('ctrl+alt+s');
+    // Without Alt, the literal key is kept
+    expect(getKeyString(makeKeyEvent({ key: 'ç', code: 'KeyC' }))).toBe('ç');
   });
 
   it('normalizes shifted punctuation to its base key (⌘⇧. etc.)', () => {
