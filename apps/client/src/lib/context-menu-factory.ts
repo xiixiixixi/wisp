@@ -645,7 +645,9 @@ export class ContextMenuFactory {
         action: () => this.actions.manageTags(file),
       });
 
-      moreItems.push({
+      // Copy path sits in the top level (not under "More") so it is one
+      // click away for every file and folder.
+      items.push({
         id: 'copy-path',
         label: i18n.t('contextMenu.copyPath'),
         icon: mi(MapPin),
