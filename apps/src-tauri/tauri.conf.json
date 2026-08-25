@@ -20,18 +20,34 @@
         "decorations": true,
         "hiddenTitle": true,
         "titleBarStyle": "Overlay",
-        "trafficLightPosition": { "x": 12, "y": 20 },
+        "trafficLightPosition": {
+          "x": 12,
+          "y": 20
+        },
         "alwaysOnTop": false,
         "center": true,
         "acceptFirstMouse": true
       }
     ],
     "security": {
-        "csp": "default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' asset: https://asset.localhost http://asset.localhost data:; connect-src 'self' ipc: http://ipc.localhost https://asset.localhost http://asset.localhost https://xplorer.space https://*.xplorer.space http://localhost:*; media-src 'self' asset: https://asset.localhost http://asset.localhost; object-src 'none'; base-uri 'self'",
-      "capabilities": ["default"],
+      "csp": "default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' asset: https://asset.localhost http://asset.localhost data:; connect-src 'self' ipc: http://ipc.localhost https://asset.localhost http://asset.localhost https://xplorer.space https://*.xplorer.space http://localhost:*; media-src 'self' asset: https://asset.localhost http://asset.localhost; object-src 'none'; base-uri 'self'",
+      "capabilities": [
+        "default"
+      ],
       "assetProtocol": {
         "enable": true,
-        "scope": ["$HOME/**", "$APPDATA/**", "$LOCALAPPDATA/**", "$DOCUMENT/**", "$DOWNLOAD/**", "$DESKTOP/**", "$PICTURE/**", "$VIDEO/**", "$AUDIO/**", "../client/dist/**"]
+        "scope": [
+          "$HOME/**",
+          "$APPDATA/**",
+          "$LOCALAPPDATA/**",
+          "$DOCUMENT/**",
+          "$DOWNLOAD/**",
+          "$DESKTOP/**",
+          "$PICTURE/**",
+          "$VIDEO/**",
+          "$AUDIO/**",
+          "../client/dist/**"
+        ]
       }
     }
   },
@@ -64,7 +80,9 @@
     "longDescription": "A modern file explorer built with Tauri, React, and TypeScript",
     "fileAssociations": [
       {
-        "ext": ["xtension"],
+        "ext": [
+          "xtension"
+        ],
         "mimeType": "application/x-wisp-extension",
         "description": "Wisp Extension Package"
       }
@@ -73,6 +91,9 @@
       "nsis": {
         "installerHooks": "./windows/hooks.nsh"
       }
+    },
+    "macOS": {
+      "signingIdentity": "Apple Development: xiixiixixi@gmail.com (XZTBXM8859)"
     }
   }
 }
