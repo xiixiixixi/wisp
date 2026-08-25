@@ -29,6 +29,23 @@ describe('getKeyString', () => {
     expect(getKeyString(makeKeyEvent({ key: 'a' }))).toBe('a');
   });
 
+  it('normalizes shifted punctuation to its base key (⌘⇧. etc.)', () => {
+    // Browsers report Shift+. as '>'; Finder's show-hidden-files combo must
+    // still match the ctrl+shift+. binding.
+    expect(getKeyString(makeKeyEvent({ key: '>', ctrlKey: true, shiftKey: true }))).toBe(
+      'ctrl+shift+.',
+    );
+    expect(getKeyString(makeKeyEvent({ key: '{', ctrlKey: true, shiftKey: true }))).toBe(
+      'ctrl+shift+[',
+    );
+    // Full-width forms from CJK input methods normalize too
+    expect(getKeyString(makeKeyEvent({ key: '。', ctrlKey: true, shiftKey: true }))).toBe(
+      'ctrl+shift+.',
+    );
+    // Without shift, '>' stays '>' (it is then the literal key)
+    expect(getKeyString(makeKeyEvent({ key: '>' }))).toBe('>');
+  });
+
   it('prepends ctrl for ctrl key', () => {
     expect(getKeyString(makeKeyEvent({ key: 'c', ctrlKey: true }))).toBe('ctrl+c');
   });

@@ -20,6 +20,33 @@ export const getKeyString = (event: KeyboardEvent): string => {
 
   let key = event.key.toLowerCase();
 
+  // With Shift held, browsers report the shifted character (⇧. → ">"), so
+  // map shifted punctuation back to its base key. The combo already carries
+  // "shift", keeping bindings like "ctrl+shift+." matchable (Finder's
+  // show-hidden-files ⌘⇧.). Full-width forms cover CJK input methods.
+  if (event.shiftKey) {
+    const shifted: Record<string, string> = {
+      '>': '.',
+      '<': ',',
+      '{': '[',
+      '}': ']',
+      ':': ';',
+      '"': "'",
+      '~': '`',
+      '|': '\\',
+      '?': '/',
+      _: '-',
+      '+': '=',
+      '。': '.',
+      '，': ',',
+      '：': ';',
+      '「': '[',
+      '」': ']',
+      '·': '`',
+    };
+    key = shifted[key] ?? key;
+  }
+
   switch (key) {
     case ' ':
       key = 'space';
