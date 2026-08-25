@@ -2093,7 +2093,11 @@
     "splitDown": "Split down",
     "maximizePane": "Maximize pane",
     "restorePane": "Restore pane",
-    "closePane": "Close pane"
+    "closePane": "Close pane",
+    "syncModeMirrorShort": "Mirror",
+    "syncModeRelativeShort": "Relative",
+    "syncSwitchedToMirror": "Pane sync mode: Mirror — panes show the same folder",
+    "syncSwitchedToRelative": "Pane sync mode: Relative — panes follow keeping their relative level"
   },
   "comparison": {
     "sideBySide": "Side by Side",

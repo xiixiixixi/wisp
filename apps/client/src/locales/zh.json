@@ -2093,7 +2093,11 @@
     "splitDown": "向下分割",
     "maximizePane": "最大化面板",
     "restorePane": "还原面板",
-    "closePane": "关闭面板"
+    "closePane": "关闭面板",
+    "syncModeMirrorShort": "镜像",
+    "syncModeRelativeShort": "相对",
+    "syncSwitchedToMirror": "分栏同步：镜像 — 各面板显示同一文件夹",
+    "syncSwitchedToRelative": "分栏同步：相对 — 其他面板跟随保持相对层级"
   },
   "comparison": {
     "sideBySide": "Side by Side",

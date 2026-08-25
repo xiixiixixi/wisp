@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, X, Columns, Rows, Pin, Maximize2, Minimize2, Link, Unlink } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 import type { TabItem } from '@/types/split-view';
 import type { CrossTabSelection } from '@/hooks/use-cross-tab-selection';
 import { useCrossTabSelectionContext } from '@/contexts/CrossTabSelectionContext';
@@ -669,7 +670,16 @@ const PaneTabBar = ({
               e.preventDefault();
               e.stopPropagation();
               if (onSwitchPaneSyncMode) {
-                onSwitchPaneSyncMode(paneSyncMode === 'mirror' ? 'relative' : 'mirror');
+                const nextMode = paneSyncMode === 'mirror' ? 'relative' : 'mirror';
+                onSwitchPaneSyncMode(nextMode);
+                // The icon looks identical across modes — toast so the
+                // right-click is never a silent no-op for the user.
+                toast({
+                  title:
+                    nextMode === 'mirror'
+                      ? t('splitView.syncSwitchedToMirror')
+                      : t('splitView.syncSwitchedToRelative'),
+                });
               }
             }}
             style={{
@@ -711,6 +721,20 @@ const PaneTabBar = ({
             }
           >
             {paneSyncEnabled ? <Link size={14} /> : <Unlink size={14} />}
+            {paneSyncEnabled && (
+              <span
+                style={{
+                  fontSize: 10,
+                  lineHeight: 1,
+                  marginLeft: 4,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {paneSyncMode === 'mirror'
+                  ? t('splitView.syncModeMirrorShort')
+                  : t('splitView.syncModeRelativeShort')}
+              </span>
+            )}
           </button>
         )}
         <button
