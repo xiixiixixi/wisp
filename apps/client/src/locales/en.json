@@ -223,7 +223,8 @@
     "pinToSidebar": "Pin to Sidebar",
     "lockFile": "Lock File",
     "unlockFile": "Unlock File",
-    "bulkRenameAction": "Bulk Rename"
+    "bulkRenameAction": "Bulk Rename",
+    "tagsEditor": "Edit Tags…"
   },
   "drives": {
     "eject": "Eject",
@@ -1163,7 +1164,10 @@
       "closeAria": "Close tags dialog",
       "saving": "Saving...",
       "saveTags": "Save Tags",
-      "duplicateError": "Tag \"{{name}}\" already exists on this file."
+      "duplicateError": "Tag \"{{name}}\" already exists on this file.",
+      "palette": "Tags",
+      "newTag": "New Tag",
+      "finderSyncNote": "Interoperable with Finder tags — searchable in Spotlight"
     },
     "annotations": {
       "title": "Annotations",
@@ -1399,6 +1403,16 @@
       "toastCopyCompleteDesc_other": "{{count}} files copied.",
       "toastCopyWithErrorsTitle": "Copy completed with errors",
       "toastCopyWithErrorsDesc": "{{copied}} copied, {{failed}} failed: {{errors}}"
+    },
+    "colors": {
+      "red": "Red",
+      "orange": "Orange",
+      "yellow": "Yellow",
+      "green": "Green",
+      "blue": "Blue",
+      "purple": "Purple",
+      "gray": "Gray",
+      "pink": "Pink"
     }
   },
   "openWith": {

@@ -91,6 +91,7 @@ winreg = "0.55"
 objc2-app-kit = { version = "0.3.2", default-features = false, features = ["NSImage", "NSImageRep", "NSBitmapImageRep", "NSWorkspace"] }
 objc2-foundation = { version = "0.3.2", default-features = false, features = ["NSData", "NSDictionary", "NSString"] }
 xattr = "1.6"
+plist = "1"
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

@@ -7736,6 +7736,7 @@ dependencies = [
  "objc2-foundation",
  "ollama-rs",
  "pdf-extract",
+ "plist",
  "portable-pty",
  "rand 0.8.5",
  "rayon",

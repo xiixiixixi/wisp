@@ -223,7 +223,8 @@
     "pinToSidebar": "固定到侧边栏",
     "lockFile": "锁定文件",
     "unlockFile": "解锁文件",
-    "bulkRenameAction": "批量重命名"
+    "bulkRenameAction": "批量重命名",
+    "tagsEditor": "编辑标签…"
   },
   "drives": {
     "eject": "弹出",
@@ -1163,7 +1164,10 @@
       "closeAria": "关闭标签对话框",
       "saving": "保存中…",
       "saveTags": "保存标签",
-      "duplicateError": "此文件上已存在标签「{{name}}」。"
+      "duplicateError": "此文件上已存在标签「{{name}}」。",
+      "palette": "标签",
+      "newTag": "新标签",
+      "finderSyncNote": "与 Finder 标签互通：Spotlight 可搜、其他 App 可见"
     },
     "annotations": {
       "title": "批注",
@@ -1399,6 +1403,16 @@
       "toastCopyCompleteDesc_other": "已复制 {{count}} 个文件。",
       "toastCopyWithErrorsTitle": "复制完成，但有错误",
       "toastCopyWithErrorsDesc": "成功 {{copied}} 个，失败 {{failed}} 个：{{errors}}"
+    },
+    "colors": {
+      "red": "红色",
+      "orange": "橙色",
+      "yellow": "黄色",
+      "green": "绿色",
+      "blue": "蓝色",
+      "purple": "紫色",
+      "gray": "灰色",
+      "pink": "粉色"
     }
   },
   "openWith": {

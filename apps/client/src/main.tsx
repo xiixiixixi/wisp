@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import './i18n';
+import { migrateFolderColorsToFinderTags } from '@/lib/folder-colors';
+import { ensureTagPalette } from '@/lib/file-tags-cache';
 import App from './App';
 import './index.css';
 import { migrateLegacyDefaultView } from './lib/view-default';
@@ -26,5 +28,10 @@ window.addEventListener('wisp:extension-toast', ((e: CustomEvent) => {
 window.addEventListener('unhandledrejection', (event) => {
   console.error('[Unhandled Promise Rejection]', event.reason);
 });
+
+// One-time: convert private folder colours into real Finder tags,
+// and preload Finder's tag palette for the context menu.
+migrateFolderColorsToFinderTags();
+ensureTagPalette();
 
 createRoot(document.getElementById('root')!).render(<App />);

@@ -12,6 +12,8 @@ export interface ContextMenuItem {
   submenu?: ContextMenuItem[];
   action?: () => void;
   visible?: boolean;
+  /** Render a checkmark after the label (toggle state, Finder-style tags) */
+  checked?: boolean;
 }
 
 export interface ContextMenuProps {
@@ -156,7 +158,7 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
     menuItems.map((item) => {
       if (item.visible === false) return null;
       if (item.separator) {
-        return <div key={item.id} className="border-xp-border my-1 border-t" />;
+        return <div key={item.id} className="my-1 border-t border-xp-border" />;
       }
 
       const hasSubmenu = item.submenu && item.submenu.length > 0;
@@ -179,7 +181,7 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
           <div
             className={`flex cursor-pointer items-center justify-between px-3 py-1.5 text-sm ${
               item.disabled
-                ? 'text-xp-text-muted cursor-not-allowed'
+                ? 'cursor-not-allowed text-xp-text-muted'
                 : 'text-xp-text hover:bg-xp-surface-light'
             } `}
             onClick={(e) => {
@@ -206,7 +208,16 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
               <span>{item.label}</span>
             </div>
             <div className="flex items-center space-x-2">
-              {item.shortcut && <span className="text-xp-text-muted text-xs">{item.shortcut}</span>}
+              {item.checked && (
+                <svg className="h-3 w-3 text-xp-accent" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+              {item.shortcut && <span className="text-xs text-xp-text-muted">{item.shortcut}</span>}
               {hasSubmenu && (
                 <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                   <path
@@ -232,7 +243,7 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
         {/* Main menu */}
         <div
           ref={menuRef}
-          className="bg-xp-popover border-xp-border/60 context-menu-scroll fixed z-50 min-w-48 rounded-lg border py-1 shadow-xl shadow-black/20 backdrop-blur-xl"
+          className="border-xp-border/60 context-menu-scroll fixed z-50 min-w-48 rounded-lg border bg-xp-popover py-1 shadow-xl shadow-black/20 backdrop-blur-xl"
           style={{ left: x, top: y, maxHeight: '70vh', overflowY: 'auto', pointerEvents: 'auto' }}
         >
           {renderMenuItems(items, 0, true)}
@@ -242,7 +253,7 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
         {submenuStack.map((sub, idx) => (
           <div
             key={sub.id}
-            className="bg-xp-popover border-xp-border/60 context-menu-scroll fixed min-w-48 rounded-lg border py-1 shadow-xl shadow-black/20 backdrop-blur-xl"
+            className="border-xp-border/60 context-menu-scroll fixed min-w-48 rounded-lg border bg-xp-popover py-1 shadow-xl shadow-black/20 backdrop-blur-xl"
             style={{
               left: sub.left,
               top: sub.top,

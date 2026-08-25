@@ -9,6 +9,12 @@ import { getRecentEntries, type ClipboardEntry } from '@/hooks/use-clipboard-his
 import type { SortField } from '@/lib/utils';
 import { shouldShowMenuItem } from '@/lib/context-menu-rules';
 import {
+  getCachedFileTags,
+  toggleTagOnFile,
+  getTagPalette,
+  ensureTagPalette,
+} from '@/lib/file-tags-cache';
+import {
   FolderOpen,
   ExternalLink,
   Wrench,
@@ -65,6 +71,7 @@ import {
 } from 'lucide-react';
 import {
   FOLDER_COLORS,
+  colorName,
   getFolderColor,
   setFolderColor,
   removeFolderColor,
@@ -652,17 +659,6 @@ export class ContextMenuFactory {
         action: () => this.actions.copyName(file),
       });
 
-      // Keyword tags — kept under "More"; unlike Finder's coloured labels
-      // these are custom text tags, and the user finds them not useful.
-      if (!isMultiSelect) {
-        moreItems.push({
-          id: 'manage-tags',
-          label: i18n.t('contextMenu.tags'),
-          icon: mi(Tag),
-          action: () => this.actions.manageTags(file),
-        });
-      }
-
       // Copy path stays top level (one click away for every file and folder),
       // followed by the Finder-parity items collected above.
       items.push({
@@ -685,6 +681,57 @@ export class ContextMenuFactory {
         shortcut: 'Ctrl+I',
         action: () => this.actions.properties(file),
       });
+
+      // Tags (Finder-style): first-level submenu toggling the file's
+      // Finder-tag metadata, plus an entry to the tag editor.
+      {
+        ensureTagPalette();
+        const palette = getTagPalette();
+        const currentTags = getCachedFileTags(file.path);
+        const tagSubmenu: ContextMenuItem[] = palette.map((tag) => {
+          const active = currentTags.some((x) => x.name === tag.name);
+          return {
+            id: `tag-${tag.name}`,
+            label: tag.name,
+            icon: React.createElement('span', {
+              style: {
+                display: 'inline-block',
+                width: 12,
+                height: 12,
+                borderRadius: '50%',
+                backgroundColor: tag.color,
+                border: '1px solid rgba(255,255,255,0.2)',
+                flexShrink: 0,
+              },
+            }),
+            checked: active,
+            action: () => {
+              const targets = isMultiSelect ? selectedFilesList : [file.path];
+              for (const targetPath of targets) {
+                toggleTagOnFile(
+                  targetPath,
+                  tag,
+                  (p, tags) => TauriAPI.setFileTags(p, tags),
+                  (p) => TauriAPI.getFileTags(p),
+                );
+              }
+            },
+          };
+        });
+        tagSubmenu.push({ id: 'tag-sep', label: '', separator: true });
+        tagSubmenu.push({
+          id: 'manage-tags',
+          label: i18n.t('contextMenu.tagsEditor'),
+          icon: mi(Tag),
+          action: () => this.actions.manageTags(file),
+        });
+        items.push({
+          id: 'tags',
+          label: i18n.t('contextMenu.tags'),
+          icon: mi(Tag),
+          submenu: tagSubmenu,
+        });
+      }
 
       if (!file.is_dir) {
         const ext = file.name.split('.').pop()?.toLowerCase() || '';
@@ -841,7 +888,7 @@ export class ContextMenuFactory {
       const currentFolderColor = getFolderColor(file.path);
       const colorSubmenu: ContextMenuItem[] = FOLDER_COLORS.map((c) => ({
         id: `folder-color-${c.id}`,
-        label: c.label,
+        label: colorName(c.id),
         icon: React.createElement('span', {
           style: {
             display: 'inline-block',
@@ -857,7 +904,7 @@ export class ContextMenuFactory {
           },
         }),
         action: () => {
-          setFolderColor(file.path, c.id, c.label);
+          setFolderColor(file.path, c.id);
         },
       }));
 

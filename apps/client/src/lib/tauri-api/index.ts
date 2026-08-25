@@ -256,10 +256,6 @@ export class TauriAPI {
   static toggleAnnotationResolved = storage.toggleAnnotationResolved;
   static deleteFileAnnotation = storage.deleteFileAnnotation;
   static getAllAnnotations = storage.getAllAnnotations;
-  static getTagCategories = storage.getTagCategories;
-  static addTagCategory = storage.addTagCategory;
-  static updateTagCategory = storage.updateTagCategory;
-  static deleteTagCategory = storage.deleteTagCategory;
   static getFileMetadata = storage.getFileMetadata;
   static setFileMetadata = storage.setFileMetadata;
   static getAllMetadataKeys = storage.getAllMetadataKeys;

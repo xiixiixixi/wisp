@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useTranslation } from 'react-i18next';
 import { FileEntry, FolderSizeInfo, FileTag, TauriAPI } from '@/lib/tauri-api';
+import { primeFileTagsCache } from '@/lib/file-tags-cache';
+import { syncFolderColorsFromTags } from '@/lib/folder-colors';
 import { useDroppable } from '@/hooks/use-droppable';
 import { useGridLayout } from '@/hooks/use-grid-layout';
 import { useTypeAheadSearch } from '@/hooks/use-type-ahead-search';
@@ -175,6 +177,8 @@ const FileGrid = ({
             tagMap.set(path, tags);
           }
           setAllTags(tagMap);
+          primeFileTagsCache(batchResult);
+          syncFolderColorsFromTags(batchResult);
         }
       } catch {
         if (!cancelled) setAllTags(new Map());
@@ -182,8 +186,11 @@ const FileGrid = ({
     };
 
     loadAllTags();
+    const onTagsChanged = () => loadAllTags();
+    window.addEventListener('file-tags-changed', onTagsChanged);
     return () => {
       cancelled = true;
+      window.removeEventListener('file-tags-changed', onTagsChanged);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filePathsKey, currentPath]);
@@ -571,7 +578,7 @@ const FileGrid = ({
     getFolderSize,
     isCalculatingSize,
     calculateFolderSize,
-    renamingPath,
+    allTags,
     onRenameConfirm: handleRenameConfirm,
     onRenameCancel: handleRenameCancel,
     onRenameFile,

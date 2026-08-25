@@ -7,6 +7,7 @@ import { ViewComponentProps } from './FileGridTypes';
 import { getDateGroupTranslationKey, type FileGroup } from '@/lib/utils';
 import { FileReferenceBadge, getFileReferenceLabel } from './FileReferenceBadge';
 import { InlineRenameInput } from './FileGridItem';
+import { TagDots } from './FileGridHelpers';
 
 // Kept inline (not from FileGridHelpers) so tests don't pull the real i18n singleton.
 const isHiddenFile = (file: FileEntry): boolean => file.name.startsWith('.');
@@ -37,6 +38,7 @@ interface FileRowProps {
   getFolderSize: (path: string) => FolderSizeInfo | null;
   isCalculatingSize: (path: string) => boolean;
   onCalculateFolderSize?: (path: string) => void;
+  tags?: import('@/lib/tauri-api').FileTag[];
   renamingPath?: string | null;
   onRenameConfirm?: (oldPath: string, newName: string) => void;
   onRenameCancel?: () => void;
@@ -58,6 +60,7 @@ const FileRow = React.memo(
     getFolderSize,
     isCalculatingSize,
     onCalculateFolderSize,
+    tags,
     renamingPath,
     onRenameConfirm,
     onRenameCancel,
@@ -163,6 +166,7 @@ const FileRow = React.memo(
               {file.name}
             </div>
           )}
+          <TagDots tags={tags ?? []} />
         </div>
         <div className="col-span-2 text-right text-xs text-xp-text-muted">
           {(() => {
@@ -223,6 +227,7 @@ const DetailsView = (props: DetailsViewProps) => {
     isCalculatingSize,
     calculateFolderSize,
     fileGroups,
+    allTags,
     renamingPath,
     onRenameConfirm,
     onRenameCancel,
@@ -354,7 +359,9 @@ const DetailsView = (props: DetailsViewProps) => {
     if (item.type === 'header') {
       return <GroupHeader name={item.group.name} count={item.group.count} />;
     }
-    return <FileRow file={item.file} {...stableRowProps} />;
+    return (
+      <FileRow file={item.file} {...stableRowProps} tags={allTags?.get(item.file.path) ?? []} />
+    );
   };
 
   if (!needsVirtualization) {

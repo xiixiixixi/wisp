@@ -27,6 +27,10 @@ pub use metadata::*;
 pub use notes::*;
 pub use recent::*;
 pub use tags::*;
+pub use tags::{
+    read_tag_strings, strings_to_tags, tags_to_strings, write_tag_strings,
+};
+
 
 // ─── Shared helper ───────────────────────────────────────────────────────────
 

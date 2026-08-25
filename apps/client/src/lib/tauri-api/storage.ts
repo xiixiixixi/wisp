@@ -1,11 +1,11 @@
 import { transport } from '../transport';
+import { isBrowserDemoMode } from '../browser-demo-files';
 import type {
   BookmarkEntry,
   FileTag,
   FileNote,
   NoteSearchResult,
   FileAnnotation,
-  TagCategory,
   CustomMetadataField,
   StorageAnalytics,
   DiagnosisResult,
@@ -45,18 +45,51 @@ export const diagnoseDirectory = async (
 ): Promise<DiagnosisResult> =>
   await transport('diagnose_directory', { path, skipHidden, skipGitignored });
 
-// ── File Tags operations ────────────────────────────────────────────────────
+// ── File Tags operations (Finder-tag metadata) ──────────────────────────────
 
-export const getFileTags = async (path: string): Promise<FileTag[]> =>
-  await transport('get_file_tags', { path });
+// Browser demo: no backend, keep an in-memory tag store so the UI stays
+// testable at ?demo=1.
+const demoTags = new Map<string, FileTag[]>();
+const demoPalette: FileTag[] = [
+  { name: '红色', color: '#FF453A' },
+  { name: '橙色', color: '#FF9F0A' },
+  { name: '黄色', color: '#FFD60A' },
+  { name: '绿色', color: '#30D158' },
+  { name: '蓝色', color: '#0A84FF' },
+  { name: '紫色', color: '#BF5AF2' },
+  { name: '灰色', color: '#98989D' },
+];
 
-export const setFileTags = async (path: string, tags: FileTag[]): Promise<void> =>
+export const getFileTags = async (path: string): Promise<FileTag[]> => {
+  if (isBrowserDemoMode()) return demoTags.get(path) ?? [];
+  return await transport('get_file_tags', { path });
+};
+
+export const setFileTags = async (path: string, tags: FileTag[]): Promise<void> => {
+  if (isBrowserDemoMode()) {
+    if (tags.length === 0) demoTags.delete(path);
+    else demoTags.set(path, tags);
+    return;
+  }
   await transport('set_file_tags', { path, tags });
+};
 
-export const getAllFileTags = async (): Promise<FileTag[]> => await transport('get_all_file_tags');
+export const getAllFileTags = async (): Promise<FileTag[]> => {
+  if (isBrowserDemoMode()) return demoPalette;
+  return await transport('get_all_file_tags');
+};
 
-export const getFileTagsBatch = async (paths: string[]): Promise<Record<string, FileTag[]>> =>
-  await transport('get_file_tags_batch', { paths });
+export const getFileTagsBatch = async (paths: string[]): Promise<Record<string, FileTag[]>> => {
+  if (isBrowserDemoMode()) {
+    const result: Record<string, FileTag[]> = {};
+    for (const p of paths) {
+      const tags = demoTags.get(p);
+      if (tags && tags.length > 0) result[p] = tags;
+    }
+    return result;
+  }
+  return await transport('get_file_tags_batch', { paths });
+};
 
 export const removeAllTagsFromFile = async (path: string): Promise<void> =>
   await transport('remove_all_tags_from_file', { path });
@@ -126,32 +159,6 @@ export const getAllAnnotations = async (): Promise<Record<string, FileAnnotation
   await transport('get_all_annotations');
 
 // ── Tag Categories operations ───────────────────────────────────────────────
-
-export const getTagCategories = async (): Promise<TagCategory[]> =>
-  await transport('get_tag_categories');
-
-export const addTagCategory = async (
-  name: string,
-  color: string,
-  parentId?: string,
-): Promise<TagCategory> =>
-  await transport('add_tag_category', { name, color, parentId: parentId ?? null });
-
-export const updateTagCategory = async (
-  id: string,
-  name?: string,
-  color?: string,
-  parentId?: string,
-): Promise<void> =>
-  await transport('update_tag_category', {
-    id,
-    name: name ?? null,
-    color: color ?? null,
-    parentId: parentId ?? null,
-  });
-
-export const deleteTagCategory = async (id: string): Promise<void> =>
-  await transport('delete_tag_category', { id });
 
 // ── Custom Metadata operations ──────────────────────────────────────────────
 

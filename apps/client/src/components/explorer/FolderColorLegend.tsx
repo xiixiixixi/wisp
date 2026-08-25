@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   FOLDER_COLORS,
+  colorName,
   getAllFolderColors,
   type FolderColor,
   type FolderColorDef,
@@ -92,8 +93,8 @@ const FolderColorLegend = React.memo(
             <button
               key={def.id}
               onClick={() => handleClick(def.id)}
-              title={`${def.label}: ${count} folder${count !== 1 ? 's' : ''}${isActive ? ' (click to clear filter)' : ''}`}
-              aria-label={`${def.label}: ${count} folder${count !== 1 ? 's' : ''}`}
+              title={`${colorName(def.id)}: ${count} folder${count !== 1 ? 's' : ''}${isActive ? ' (click to clear filter)' : ''}`}
+              aria-label={`${colorName(def.id)}: ${count} folder${count !== 1 ? 's' : ''}`}
               aria-pressed={isActive}
               style={{
                 display: 'inline-flex',

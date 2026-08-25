@@ -17,6 +17,8 @@ export interface ViewComponentProps {
   getFolderSize: (path: string) => FolderSizeInfo | null;
   isCalculatingSize: (path: string) => boolean;
   calculateFolderSize?: (path: string) => void;
+  /** Per-path Finder tags, for rendering coloured dots */
+  allTags?: Map<string, import('@/lib/tauri-api').FileTag[]>;
   /** Path of the file currently being renamed inline (details/column views render an input for it) */
   renamingPath?: string | null;
   /** Commit an inline rename; clears the editing state */

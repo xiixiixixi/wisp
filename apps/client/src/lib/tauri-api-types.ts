@@ -1129,13 +1129,6 @@ export interface FileAnnotation {
 
 // ── Tag Categories types ─────────────────────────────────────────────────────
 
-export interface TagCategory {
-  id: string;
-  name: string;
-  color: string;
-  parent_id: string | null;
-}
-
 // ── Custom Metadata types ────────────────────────────────────────────────────
 
 export interface CustomMetadataField {

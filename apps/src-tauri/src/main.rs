@@ -515,11 +515,6 @@ fn main() {
             storage::toggle_annotation_resolved,
             storage::delete_file_annotation,
             storage::get_all_annotations,
-            // Tag category operations
-            storage::get_tag_categories,
-            storage::add_tag_category,
-            storage::update_tag_category,
-            storage::delete_tag_category,
             // Custom metadata operations
             storage::get_file_metadata,
             storage::set_file_metadata,
