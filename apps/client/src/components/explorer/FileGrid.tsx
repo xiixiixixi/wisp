@@ -489,14 +489,8 @@ const FileGrid = ({
 
   const handleGridKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
-      // F2 key: enter inline rename mode for the selected file
-      if (e.key === 'F2' && onRenameFile && selectedFiles.size === 1 && !renamingPath) {
-        e.preventDefault();
-        e.stopPropagation();
-        const selectedPath = Array.from(selectedFiles)[0];
-        setRenamingPath(selectedPath);
-        return;
-      }
+      // F2 / Enter rename is owned by the configurable shortcut system,
+      // which dispatches 'start-inline-rename' — handled below at line ~321.
       // Escape during rename: cancel
       if (e.key === 'Escape' && renamingPath) {
         e.preventDefault();
@@ -511,7 +505,7 @@ const FileGrid = ({
       // If the grid nav didn't consume it, try type-ahead
       if (!e.defaultPrevented) handleTypeAhead(e);
     },
-    [handleGridNav, handleTypeAhead, onRenameFile, selectedFiles, renamingPath, setRenamingPath],
+    [handleGridNav, handleTypeAhead, renamingPath, setRenamingPath],
   );
 
   if (isLoading) {
@@ -584,9 +578,11 @@ const FileGrid = ({
     isCalculatingSize,
     calculateFolderSize,
     allTags,
+    renamingPath,
     onRenameConfirm: handleRenameConfirm,
     onRenameCancel: handleRenameCancel,
     onRenameFile,
+    onQuickLook,
   };
 
   if (viewMode === 'tree') {

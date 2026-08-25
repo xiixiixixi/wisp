@@ -26,9 +26,10 @@ describe('browser demo files', () => {
     const firstRead = getDemoDirectory(path);
     const secondRead = getDemoDirectory(path);
 
-    expect(firstRead).toHaveLength(6);
+    expect(firstRead).toHaveLength(7);
     expect(firstRead?.some((entry) => entry.is_dir)).toBe(true);
     expect(firstRead?.some((entry) => entry.name === 'Q3-launch-plan.md')).toBe(true);
+    expect(firstRead?.some((entry) => entry.name === '.secret-notes.md')).toBe(true);
     expect(firstRead?.[0]).not.toBe(secondRead?.[0]);
   });
 
@@ -56,7 +57,7 @@ describe('browser demo files', () => {
       readFileForAIContext({ name: 'Q3-launch-plan.md', path: planPath, is_dir: false }),
     ]);
 
-    expect(summary).toMatchObject({ totalItems: 6, dirCount: 2, fileCount: 4 });
+    expect(summary).toMatchObject({ totalItems: 7, dirCount: 2, fileCount: 5 });
     expect(directoryContext).toContain('Directory listing');
     expect(directoryContext).toContain('Q3-launch-plan.md');
     expect(fileContext.content).toContain('Ship the new Wisp workspace experience');

@@ -54,6 +54,10 @@ export interface WispEffectsDeps {
   pendingSelectRef: React.MutableRefObject<string | null>;
   topBarRef: React.RefObject<TopBarHandle | null>;
   leftSidebarRef?: React.RefObject<LeftSidebarHandle | null>;
+  /** Toggle the Quick Look overlay for a file (dialogManager) */
+  toggleQuickLook: (file: import('@/lib/tauri-api').FileEntry) => void;
+  /** Toggle hidden-file visibility + persist the setting (wisp.tsx) */
+  toggleHiddenFiles: () => void;
 
   // Navigation
   navigateWithHistory: (path: string) => void;
@@ -112,6 +116,7 @@ export interface WispEffectsDeps {
     copySelectedFiles: () => void;
     cutSelectedFiles: () => void;
     pasteFiles: () => Promise<void>;
+    pasteFilesAsMove: () => Promise<void>;
     deleteSelectedFiles: () => Promise<void>;
     handleDelete: () => Promise<void>;
     handleCreateFolder: () => Promise<void>;
@@ -145,6 +150,8 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
     pendingSelectRef,
     topBarRef: _topBarRef,
     leftSidebarRef,
+    toggleQuickLook,
+    toggleHiddenFiles,
     navigateWithHistory,
     navigateUp,
     navigateBackInHistory,
@@ -182,7 +189,7 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
     sortOrder,
     theme,
     setCommandPaletteOpen,
-    commandPaletteOpen,
+    commandPaletteOpen: _commandPaletteOpen,
     setWorkspaceLayoutDialogOpen,
     setPathBookmarksDialogOpen,
     setShortcutsDialogOpen,
@@ -220,6 +227,9 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
       onCopy: fileOps.copySelectedFiles,
       onCut: fileOps.cutSelectedFiles,
       onPaste: fileOps.pasteFiles,
+      onPasteMove: () => {
+        void fileOps.pasteFilesAsMove();
+      },
       onDelete: fileOps.deleteSelectedFiles,
       onRename: () => {
         if (selectedFiles.size === 1) {
@@ -238,6 +248,45 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
           return;
         }
         await fileOps.contextMenuActions.createFolder(currentPath);
+      },
+      onNewFile: async () => {
+        if (
+          !currentPath ||
+          currentPath.startsWith('wisp://') ||
+          currentPath.startsWith('collection://')
+        ) {
+          return;
+        }
+        await fileOps.contextMenuActions.createFile(currentPath);
+      },
+      onQuickLook: () => {
+        if (selectedFile) toggleQuickLook(selectedFile);
+      },
+      onUndo: () => {
+        TauriAPI.undoOperation()
+          .then((result) => {
+            if (result.success) {
+              toast({ title: 'Undo', description: result.message });
+              refetch();
+            }
+          })
+          .catch((err) => {
+            console.error('Undo operation failed:', err);
+            toast({ variant: 'destructive', title: 'Undo Failed', description: formatError(err) });
+          });
+      },
+      onRedo: () => {
+        TauriAPI.redoOperation()
+          .then((result) => {
+            if (result.success) {
+              toast({ title: 'Redo', description: result.message });
+              refetch();
+            }
+          })
+          .catch((err) => {
+            console.error('Redo operation failed:', err);
+            toast({ variant: 'destructive', title: 'Redo Failed', description: formatError(err) });
+          });
       },
       onSelectAll: () => {
         if (files) setSelectedFiles(new Set(files.map((f) => f.path)));
@@ -321,7 +370,24 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
         setCurrentPath('wisp://home');
       },
       onGoToPath: () => {
-        leftSidebarRef?.current?.focusSearch();
+        // Finder's ⇧⌘G: focus the active pane's address bar for typing a path
+        window.dispatchEvent(new CustomEvent('wisp-focus-address-bar'));
+      },
+      onGoToSpecial: (folder: string) => {
+        if (folder === 'applications') {
+          navigateWithHistory('/Applications');
+          return;
+        }
+        const folderKey = folder as 'desktop' | 'downloads' | 'documents';
+        TauriAPI.getUserDirectories()
+          .then((dirs) => {
+            const target = dirs[folderKey];
+            if (target) navigateWithHistory(target);
+          })
+          .catch((err) => console.error('Failed to resolve special folder:', err));
+      },
+      onToggleHiddenFiles: () => {
+        toggleHiddenFiles();
       },
       onToggleLeftSidebar: () => {
         setLeftSidebarCollapsed((prev) => !prev);
@@ -347,10 +413,27 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
         setCommandPaletteOpen(true);
       },
       onNaturalLanguageSearch: () => {
-        leftSidebarRef?.current?.focusSearch();
+        // Matches the behaviour this key had before it became configurable:
+        // open the AI search panel and reveal the sidebar
+        setSearchPanelOpen((prev) => !prev);
+        setLeftSidebarCollapsed(false);
       },
       onOpenSettings: () => {
         window.dispatchEvent(new CustomEvent('wisp-open-settings'));
+      },
+      onQuit: () => {
+        import('@tauri-apps/api/window')
+          .then(({ getCurrentWindow }) => getCurrentWindow().close())
+          .catch((err) => console.error('Failed to quit:', err));
+      },
+      onNewTab: () => {
+        const name = currentPath.split(/[/\\]/).pop() || currentPath;
+        splitLayout.addTab(
+          activeGroup.id,
+          { id: `folder-${Date.now()}`, name, path: currentPath, type: 'folder' },
+          true,
+        );
+        refetch();
       },
       onToggleFullscreen: () => {
         document.fullscreenElement
@@ -364,6 +447,9 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
         const modes = ['list', 'small', 'medium', 'large'];
         const currentIndex = modes.indexOf(viewMode);
         setViewMode(modes[(currentIndex + 1) % modes.length]);
+      },
+      onSetViewMode: (mode: string) => {
+        setViewMode(mode);
       },
       onZoomIn: () => {
         const current = parseFloat(document.documentElement.style.fontSize || '16');
@@ -384,141 +470,58 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
         const ci = tabs.findIndex((t) => t.id === activeTab);
         splitLayout.switchTab(activeGroup.id, tabs[ci === 0 ? tabs.length - 1 : ci - 1].id);
       },
+      onToggleShortcutsDialog: () => {
+        setShortcutsDialogOpen((prev) => !prev);
+      },
+      onToggleWorkspaceLayoutDialog: () => {
+        setWorkspaceLayoutDialogOpen((prev) => !prev);
+      },
+      onToggleBookmarksDialog: () => {
+        setPathBookmarksDialogOpen((prev) => !prev);
+      },
+      onSplitPaneVertical: () => {
+        splitLayoutRef.current.splitGroup(activeGroupRef.current.id, 'vertical');
+      },
+      onSplitPaneHorizontal: () => {
+        splitLayoutRef.current.splitGroup(activeGroupRef.current.id, 'horizontal');
+      },
+      onToggleAgentLauncher: () => {
+        window.dispatchEvent(new CustomEvent('wisp-toggle-agent-launcher'));
+      },
+      onToggleAgentWorkspace: () => {
+        window.dispatchEvent(new CustomEvent('wisp-toggle-agent-workspace'));
+      },
     },
     'file-explorer',
   );
 
   // ── Split-pane keyboard shortcuts ─────────────────────────────────────────
-  useEffect(() => {
-    const handleSplitShortcuts = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-        return;
-      }
-      if (e.ctrlKey && e.key === '\\') {
-        e.preventDefault();
-        const ag = activeGroupRef.current;
-        if (e.shiftKey) {
-          splitLayoutRef.current.splitGroup(ag.id, 'horizontal');
-        } else {
-          splitLayoutRef.current.splitGroup(ag.id, 'vertical');
-        }
-      }
-    };
-    document.addEventListener('keydown', handleSplitShortcuts);
-    return () => document.removeEventListener('keydown', handleSplitShortcuts);
-  }, [activeGroupRef, splitLayoutRef]);
+  // (Handled by the configurable shortcut system: ⌘\ and ⌘⇧\ — see the
+  // split-vertical / split-horizontal bindings.)
 
-  // ── Command Palette, Quick Look, Undo/Redo ────────────────────────────────
+  // ── Command Palette ────────────────────────────────────────────────────────
+  // All key-triggered behaviours above (Quick Look, undo/redo, dialogs, view
+  // modes…) are owned by the configurable shortcut system, so the settings UI
+  // and the cheat sheet always show the keys that actually fire. This listener
+  // only bridges the programmatic "open palette" event.
   useEffect(() => {
-    const handleGlobalKeys = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      const isInput =
-        target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
-      // ⌘⇧P is Finder's preview-panel toggle and is handled by the
-      // configurable shortcut system (toggle-preview binding); the command
-      // palette stays reachable via ⌘P (QuickSearch).
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
-        e.preventDefault();
-        setSearchPanelOpen((prev) => !prev);
-        setLeftSidebarCollapsed(false);
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
-        e.preventDefault();
-        setWorkspaceLayoutDialogOpen((prev) => !prev);
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-        e.preventDefault();
-        setShortcutsDialogOpen((prev) => !prev);
-        return;
-      }
-      if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key === '?' && !isInput) {
-        e.preventDefault();
-        setShortcutsDialogOpen((prev) => !prev);
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && !isInput) {
-        e.preventDefault();
-        TauriAPI.undoOperation()
-          .then((result) => {
-            if (result.success) {
-              toast({ title: 'Undo', description: result.message });
-              refetch();
-            }
-          })
-          .catch((err) => {
-            console.error('Undo operation failed:', err);
-            toast({ variant: 'destructive', title: 'Undo Failed', description: formatError(err) });
-          });
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'z' && !isInput) {
-        e.preventDefault();
-        TauriAPI.redoOperation()
-          .then((result) => {
-            if (result.success) {
-              toast({ title: 'Redo', description: result.message });
-              refetch();
-            }
-          })
-          .catch((err) => {
-            console.error('Redo operation failed:', err);
-            toast({ variant: 'destructive', title: 'Redo Failed', description: formatError(err) });
-          });
-        return;
-      }
-      if (e.key === ' ' && !isInput && !commandPaletteOpen) {
-        e.preventDefault();
-        if (selectedFile) {
-          if (!rightSidebarCollapsed && rightPanelTab === 'preview') {
-            setRightSidebarCollapsed(true);
-          } else {
-            setRightPanelTab('preview');
-            setRightSidebarCollapsed(false);
-          }
-        }
-      }
-    };
     const handleOpenCommandPalette = () => setCommandPaletteOpen(true);
-    document.addEventListener('keydown', handleGlobalKeys, true);
     window.addEventListener('wisp-open-command-palette', handleOpenCommandPalette);
-    return () => {
-      document.removeEventListener('keydown', handleGlobalKeys, true);
-      window.removeEventListener('wisp-open-command-palette', handleOpenCommandPalette);
-    };
-  }, [
-    commandPaletteOpen,
-    selectedFile,
-    rightSidebarCollapsed,
-    rightPanelTab,
-    toast,
-    refetch,
-    setCommandPaletteOpen,
-    setSearchPanelOpen,
-    setLeftSidebarCollapsed,
-    setWorkspaceLayoutDialogOpen,
-    setShortcutsDialogOpen,
-    setRightSidebarCollapsed,
-    setRightPanelTab,
-  ]);
+    return () => window.removeEventListener('wisp-open-command-palette', handleOpenCommandPalette);
+  }, [setCommandPaletteOpen]);
 
   // ── Path Bookmarks keyboard shortcuts ─────────────────────────────────────
+  // Slots use ⌥⌘1-9 (jump) / ⌥⇧⌘1-9 (save current folder). ⌘1-⌘4 stay free
+  // for Finder's view-mode shortcuts, which live in the configurable
+  // shortcut system.
   useEffect(() => {
     const handleBookmarkKeys = (e: KeyboardEvent) => {
       if (!(e.ctrlKey || e.metaKey)) return;
+      if (!e.altKey) return;
       const target = e.target as HTMLElement;
       const isInput =
         target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
       if (isInput) return;
-
-      if (!e.shiftKey && e.key.toLowerCase() === 'b') {
-        e.preventDefault();
-        e.stopPropagation();
-        setPathBookmarksDialogOpen((prev) => !prev);
-        return;
-      }
 
       const digitFromKey = /^[1-9]$/.test(e.key) ? parseInt(e.key, 10) : 0;
       const digitFromCode = /^Digit[1-9]$/.test(e.code)
@@ -545,7 +548,7 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
     };
     document.addEventListener('keydown', handleBookmarkKeys, true);
     return () => document.removeEventListener('keydown', handleBookmarkKeys, true);
-  }, [currentPath, toast, navigateWithHistory, setPathBookmarksDialogOpen]);
+  }, [currentPath, toast, navigateWithHistory]);
 
   // ── Initialize extension system (deferred — open folder first) ───────────
   useEffect(() => {

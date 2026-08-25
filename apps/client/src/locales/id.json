@@ -2771,5 +2771,39 @@
       "saveWorkflow": "Simpan interaksi sebagai alur kerja",
       "deleteWorkflow": "Hapus alur kerja"
     }
+  },
+  "shortcutActions": {
+    "PasteMove": "Pindahkan ke Sini",
+    "QuickLook": "Pratinjau Cepat",
+    "Undo": "Urungkan",
+    "Redo": "Ulangi",
+    "NewTab": "Tab Baru",
+    "ToggleShortcutsDialog": "Pintasan Keyboard",
+    "ToggleWorkspaceLayoutDialog": "Tata Letak Ruang Kerja",
+    "ToggleBookmarksDialog": "Bookmark Path",
+    "SplitPaneVertical": "Bagi Panel Vertikal",
+    "SplitPaneHorizontal": "Bagi Panel Horizontal",
+    "ToggleAgentLauncher": "Peluncur Agen AI",
+    "ToggleAgentWorkspace": "Ruang Kerja Agen AI",
+    "SetViewMode": "Beralih ke tampilan {{mode}}",
+    "viewMode": {
+      "large": "Ikon Besar",
+      "medium": "Ikon",
+      "small": "Ikon Kecil",
+      "tiles": "Ubin",
+      "content": "Konten",
+      "list": "Daftar",
+      "details": "Daftar Detail",
+      "tree": "Pohon",
+      "gallery": "Galeri",
+      "column": "Kolom"
+    },
+    "goTo": {
+      "desktop": "Buka Desktop",
+      "downloads": "Buka Unduhan",
+      "documents": "Buka Dokumen",
+      "applications": "Buka Aplikasi",
+      "home": "Buka Beranda"
+    }
   }
 }

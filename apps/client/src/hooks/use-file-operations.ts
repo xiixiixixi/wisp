@@ -944,6 +944,13 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
     await runPaste(cb, currentPath);
   }, [currentPath, runPaste]);
 
+  // Finder's ⌥⌘V: paste the clipboard as a move even if it was copied
+  const pasteFilesAsMove = useCallback(async () => {
+    const cb = clipboardRef.current;
+    if (!cb || cb.files.length === 0) return;
+    await runPaste({ ...cb, operation: 'cut' }, currentPath);
+  }, [currentPath, runPaste]);
+
   const deleteSelectedFiles = useCallback(async () => {
     const selectedFilesArray = Array.from(selectedFiles);
     if (selectedFilesArray.length > 0) {
@@ -1034,6 +1041,7 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
     copySelectedFiles,
     cutSelectedFiles,
     pasteFiles,
+    pasteFilesAsMove,
     deleteSelectedFiles,
     createFileFromTemplate,
     renameFileInline,

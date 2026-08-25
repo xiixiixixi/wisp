@@ -2986,6 +2986,38 @@
     "OpenTerminal": "Open Terminal",
     "OpenAIAssistant": "AI Assistant",
     "OpenExtensions": "Extensions",
-    "CopyPath": "Copy Path as Pathname"
+    "CopyPath": "Copy Path as Pathname",
+    "PasteMove": "Move Here",
+    "QuickLook": "Quick Look",
+    "Undo": "Undo",
+    "Redo": "Redo",
+    "NewTab": "New Tab",
+    "ToggleShortcutsDialog": "Keyboard Shortcuts",
+    "ToggleWorkspaceLayoutDialog": "Workspace Layout",
+    "ToggleBookmarksDialog": "Path Bookmarks",
+    "SplitPaneVertical": "Split Pane Vertically",
+    "SplitPaneHorizontal": "Split Pane Horizontally",
+    "ToggleAgentLauncher": "AI Agent Launcher",
+    "ToggleAgentWorkspace": "AI Agent Workspace",
+    "SetViewMode": "Switch to {{mode}} view",
+    "viewMode": {
+      "large": "Large Icons",
+      "medium": "Icons",
+      "small": "Small Icons",
+      "tiles": "Tiles",
+      "content": "Content",
+      "list": "Simple List",
+      "details": "List",
+      "tree": "Tree",
+      "gallery": "Gallery",
+      "column": "Columns"
+    },
+    "goTo": {
+      "desktop": "Go to Desktop",
+      "downloads": "Go to Downloads",
+      "documents": "Go to Documents",
+      "applications": "Go to Applications",
+      "home": "Go to Home"
+    }
   }
 }

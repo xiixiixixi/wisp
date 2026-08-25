@@ -857,6 +857,7 @@ export type ShortcutAction =
   | 'CopyPath'
   | 'Cut'
   | 'Paste'
+  | 'PasteMove'
   | 'Delete'
   | 'Rename'
   | 'NewFile'
@@ -864,12 +865,17 @@ export type ShortcutAction =
   | 'Duplicate'
   | 'Open'
   | 'Properties'
+  | 'QuickLook'
+  // History
+  | 'Undo'
+  | 'Redo'
   // Navigation
   | 'NavigateUp'
   | 'NavigateBack'
   | 'NavigateForward'
   | 'GoHome'
   | 'GoToPath'
+  | { GoToSpecial: { folder: string } }
   // View operations
   | 'Refresh'
   | 'ToggleHiddenFiles'
@@ -878,6 +884,7 @@ export type ShortcutAction =
   | 'ToggleRightSidebar'
   | 'ToggleBottomPanel'
   | 'SwitchViewMode'
+  | { SetViewMode: { mode: string } }
   | 'ZoomIn'
   | 'ZoomOut'
   // Search and filter
@@ -895,11 +902,20 @@ export type ShortcutAction =
   | 'ToggleFullscreen'
   | 'Quit'
   | 'NewWindow'
+  | 'NewTab'
   | 'CloseTab'
   | 'NextTab'
   | 'PreviousTab'
+  // Panels, dialogs & split panes
+  | 'ToggleShortcutsDialog'
+  | 'ToggleWorkspaceLayoutDialog'
+  | 'ToggleBookmarksDialog'
+  | 'SplitPaneVertical'
+  | 'SplitPaneHorizontal'
   // Terminal / AI
   | 'OpenTerminal'
+  | 'ToggleAgentLauncher'
+  | 'ToggleAgentWorkspace'
   | 'OpenAIAssistant'
   | 'OpenExtensions'
   // Extension operations
@@ -909,16 +925,12 @@ export type ShortcutAction =
   // Legacy
   | 'Save'
   | 'SaveAs'
-  | 'Open'
   | 'OpenWith'
-  | 'Properties'
   | 'FocusExplorer'
   | 'FocusSearch'
   | 'Minimize'
   | 'Maximize'
-  | 'Cancel'
-  | 'Undo'
-  | 'Redo';
+  | 'Cancel';
 
 export interface ShortcutBinding {
   id: string;
@@ -943,6 +955,8 @@ export interface ShortcutSettings {
   current_profile: string;
   global_shortcuts_enabled: boolean;
   context_aware: boolean;
+  /** Bumped by the backend when built-in defaults change, so persisted profiles re-sync */
+  schema_version?: number;
   profiles: ShortcutProfile[];
 }
 

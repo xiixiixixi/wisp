@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 import { sortFiles, groupFilesByDate, type FileGroup, type SortField } from '@/lib/utils';
 import { useFolderSizes } from '@/hooks/use-folder-sizes';
+import { useHiddenFiles } from '@/hooks/use-hidden-files';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { useCollectionFiles } from '@/hooks/use-collection-files';
 import type { EditorGroup } from '@/types/split-view';
@@ -334,7 +335,13 @@ const EditorGroupPane = ({
     [files, localSortBy, localSortOrder],
   );
 
-  const sortedFiles = sortedFilesRaw;
+  // Honor the global ⇧⌘. hidden-file visibility in split panes too
+  const { showHiddenFiles } = useHiddenFiles();
+  const sortedFiles = useMemo(
+    () =>
+      showHiddenFiles ? sortedFilesRaw : sortedFilesRaw.filter((f) => !f.name.startsWith('.')),
+    [sortedFilesRaw, showHiddenFiles],
+  );
 
   const selectedEntries = useMemo(
     () => sortedFiles.filter((file) => selectedFiles.has(file.path)),
@@ -715,6 +722,7 @@ const EditorGroupPane = ({
           currentPath={currentPath}
           navigateToPath={sharedActions.navigateToPath}
           refetch={refetch}
+          active={isActive}
         />
       )}
 

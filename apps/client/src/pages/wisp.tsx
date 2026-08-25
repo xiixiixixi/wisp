@@ -3,6 +3,7 @@ import { type FileEntry, type ConflictFileInfo } from '@/lib/tauri-api';
 import { notifyFilesChanged } from '@/lib/file-change-events';
 import { useToast } from '@/hooks/use-toast';
 import { sortFiles } from '@/lib/utils';
+import { useHiddenFiles } from '@/hooks/use-hidden-files';
 import type { ConflictResolution } from '@/components/dialogs/FileConflictDialog';
 
 import { useFolderSizes } from '@/hooks/use-folder-sizes';
@@ -112,12 +113,19 @@ const ExplorerUnified = () => {
     refetch: () => refetch(),
   });
 
+  // Hidden-file visibility (Finder's ⌘⇧.) — shared with split panes and the
+  // settings page via the useHiddenFiles hook.
+  const { showHiddenFiles, toggleHiddenFiles } = useHiddenFiles();
+
   // Sorted + filtered files
   const sortedFiles = useMemo(
     () => sortFiles(files, layout.sortBy, layout.sortOrder),
     [files, layout.sortBy, layout.sortOrder],
   );
-  const filteredFiles = sortedFiles;
+  const filteredFiles = useMemo(
+    () => (showHiddenFiles ? sortedFiles : sortedFiles.filter((f) => !f.name.startsWith('.'))),
+    [sortedFiles, showHiddenFiles],
+  );
 
   const handleGDriveFileSelect = useCallback((file: FileEntry) => {
     setSelectedFiles(new Set([file.path]));
@@ -258,6 +266,8 @@ const ExplorerUnified = () => {
     pendingSelectRef,
     topBarRef,
     leftSidebarRef,
+    toggleQuickLook: dialogManager.handleQuickLook,
+    toggleHiddenFiles,
     navigateWithHistory: actions.navigateWithHistory,
     navigateUp: actions.navigateUp,
     navigateBackInHistory: actions.navigateBackInHistory,

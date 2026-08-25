@@ -2771,5 +2771,39 @@
       "saveWorkflow": "やり取りをワークフローとして保存",
       "deleteWorkflow": "ワークフローを削除"
     }
+  },
+  "shortcutActions": {
+    "PasteMove": "ここに移動",
+    "QuickLook": "クイックルック",
+    "Undo": "取り消す",
+    "Redo": "やり直す",
+    "NewTab": "新規タブ",
+    "ToggleShortcutsDialog": "キーボードショートカット",
+    "ToggleWorkspaceLayoutDialog": "ワークスペースレイアウト",
+    "ToggleBookmarksDialog": "パスブックマーク",
+    "SplitPaneVertical": "垂直分割",
+    "SplitPaneHorizontal": "水平分割",
+    "ToggleAgentLauncher": "AIランチャー",
+    "ToggleAgentWorkspace": "AIワークスペース",
+    "SetViewMode": "{{mode}}表示に切り替え",
+    "viewMode": {
+      "large": "大きいアイコン",
+      "medium": "アイコン",
+      "small": "小さいアイコン",
+      "tiles": "タイル",
+      "content": "コンテンツ",
+      "list": "リスト",
+      "details": "詳細リスト",
+      "tree": "ツリー",
+      "gallery": "ギャラリー",
+      "column": "カラム"
+    },
+    "goTo": {
+      "desktop": "デスクトップへ",
+      "downloads": "ダウンロードへ",
+      "documents": "書類へ",
+      "applications": "アプリケーションへ",
+      "home": "ホームへ"
+    }
   }
 }

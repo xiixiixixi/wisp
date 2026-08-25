@@ -11,6 +11,7 @@ export interface ShortcutHandlers {
   onCopyPath?: () => void;
   onCut?: () => void;
   onPaste?: () => void;
+  onPasteMove?: () => void;
   onDelete?: () => void;
   onRename?: () => void;
   onNewFolder?: () => void;
@@ -18,8 +19,13 @@ export interface ShortcutHandlers {
   onDuplicate?: () => void;
   onOpen?: () => void;
   onProperties?: () => void;
+  onQuickLook?: () => void;
   onRefresh?: () => void;
   onSelectAll?: () => void;
+
+  // History
+  onUndo?: () => void;
+  onRedo?: () => void;
 
   // Navigation
   onNavigateUp?: () => void;
@@ -27,6 +33,7 @@ export interface ShortcutHandlers {
   onNavigateForward?: () => void;
   onGoHome?: () => void;
   onGoToPath?: () => void;
+  onGoToSpecial?: (folder: string) => void;
   onToggleHiddenFiles?: () => void;
 
   // View operations
@@ -35,6 +42,7 @@ export interface ShortcutHandlers {
   onToggleRightSidebar?: () => void;
   onToggleBottomPanel?: () => void;
   onSwitchViewMode?: () => void;
+  onSetViewMode?: (mode: string) => void;
   onZoomIn?: () => void;
   onZoomOut?: () => void;
 
@@ -51,12 +59,22 @@ export interface ShortcutHandlers {
   onToggleFullscreen?: () => void;
   onQuit?: () => void;
   onNewWindow?: () => void;
+  onNewTab?: () => void;
   onCloseTab?: () => void;
   onNextTab?: () => void;
   onPreviousTab?: () => void;
 
-  // Terminal
+  // Dialogs & split panes
+  onToggleShortcutsDialog?: () => void;
+  onToggleWorkspaceLayoutDialog?: () => void;
+  onToggleBookmarksDialog?: () => void;
+  onSplitPaneVertical?: () => void;
+  onSplitPaneHorizontal?: () => void;
+
+  // Terminal / AI
   onOpenTerminal?: () => void;
+  onToggleAgentLauncher?: () => void;
+  onToggleAgentWorkspace?: () => void;
 
   // Extension actions
   onExtensionAction?: (
@@ -145,6 +163,9 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
       case 'Paste':
         h.onPaste?.();
         break;
+      case 'PasteMove':
+        h.onPasteMove?.();
+        break;
       case 'Delete':
         h.onDelete?.();
         break;
@@ -160,11 +181,20 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
       case 'Duplicate':
         h.onDuplicate?.();
         break;
+      case 'QuickLook':
+        h.onQuickLook?.();
+        break;
       case 'Open':
         h.onOpen?.();
         break;
       case 'Properties':
         h.onProperties?.();
+        break;
+      case 'Undo':
+        h.onUndo?.();
+        break;
+      case 'Redo':
+        h.onRedo?.();
         break;
       case 'Refresh':
         h.onRefresh?.();
@@ -186,6 +216,30 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
         break;
       case 'GoToPath':
         h.onGoToPath?.();
+        break;
+      case 'NewTab':
+        h.onNewTab?.();
+        break;
+      case 'ToggleShortcutsDialog':
+        h.onToggleShortcutsDialog?.();
+        break;
+      case 'ToggleWorkspaceLayoutDialog':
+        h.onToggleWorkspaceLayoutDialog?.();
+        break;
+      case 'ToggleBookmarksDialog':
+        h.onToggleBookmarksDialog?.();
+        break;
+      case 'SplitPaneVertical':
+        h.onSplitPaneVertical?.();
+        break;
+      case 'SplitPaneHorizontal':
+        h.onSplitPaneHorizontal?.();
+        break;
+      case 'ToggleAgentLauncher':
+        h.onToggleAgentLauncher?.();
+        break;
+      case 'ToggleAgentWorkspace':
+        h.onToggleAgentWorkspace?.();
         break;
       case 'ToggleHiddenFiles':
         h.onToggleHiddenFiles?.();
@@ -257,6 +311,10 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
         if (typeof action === 'object' && 'ExtensionAction' in action) {
           const ea = action.ExtensionAction;
           h.onExtensionAction?.(ea.extension_id, ea.action_id, ea.params);
+        } else if (typeof action === 'object' && 'SetViewMode' in action) {
+          h.onSetViewMode?.(action.SetViewMode.mode);
+        } else if (typeof action === 'object' && 'GoToSpecial' in action) {
+          h.onGoToSpecial?.(action.GoToSpecial.folder);
         }
         break;
     }

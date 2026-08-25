@@ -2971,6 +2971,38 @@
     "OpenTerminal": "打开终端",
     "OpenAIAssistant": "AI 助手",
     "OpenExtensions": "扩展",
-    "CopyPath": "拷贝路径"
+    "CopyPath": "拷贝路径",
+    "PasteMove": "移动到此处",
+    "QuickLook": "快速查看",
+    "Undo": "撤销",
+    "Redo": "重做",
+    "NewTab": "新建标签页",
+    "ToggleShortcutsDialog": "快捷键一览",
+    "ToggleWorkspaceLayoutDialog": "工作区布局",
+    "ToggleBookmarksDialog": "路径书签",
+    "SplitPaneVertical": "垂直分屏",
+    "SplitPaneHorizontal": "水平分屏",
+    "ToggleAgentLauncher": "AI 启动器",
+    "ToggleAgentWorkspace": "AI 工作区",
+    "SetViewMode": "切换到{{mode}}视图",
+    "viewMode": {
+      "large": "大图标",
+      "medium": "图标",
+      "small": "小图标",
+      "tiles": "平铺",
+      "content": "内容",
+      "list": "简单列表",
+      "details": "列表",
+      "tree": "树状",
+      "gallery": "画廊",
+      "column": "分栏"
+    },
+    "goTo": {
+      "desktop": "前往桌面",
+      "downloads": "前往下载",
+      "documents": "前往文稿",
+      "applications": "前往应用程序",
+      "home": "前往个人文件夹"
+    }
   }
 }

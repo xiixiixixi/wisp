@@ -19,7 +19,9 @@ const AppNavigationBridge = () => {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    const openSettings = () => setLocation('/settings');
+    // Keep query params (e.g. the browser demo's ?demo=1) alive across routes,
+    // otherwise the settings page loses demo mode and its fallback bindings.
+    const openSettings = () => setLocation(`/settings${window.location.search}`);
     window.addEventListener('wisp-open-settings', openSettings);
     return () => window.removeEventListener('wisp-open-settings', openSettings);
   }, [setLocation]);

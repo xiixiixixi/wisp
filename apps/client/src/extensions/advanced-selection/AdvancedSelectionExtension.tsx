@@ -289,29 +289,9 @@ export const AdvancedSelectionExtension = ({
     };
   }, [handleSelectSimilar, handleSelectByExtension, handleInvertSelection]);
 
-  // Keyboard shortcut for invert selection
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Check if focus is on an input element
-      const target = e.target as HTMLElement;
-      if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.contentEditable === 'true'
-      ) {
-        return;
-      }
-
-      // Ctrl+I to invert selection
-      if (e.ctrlKey && e.key === 'i') {
-        e.preventDefault();
-        handleInvertSelection();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleInvertSelection]);
+  // Invert selection is owned by the configurable shortcut system (⌘⇧I,
+  // invert-selection binding) — no hardcoded key listener here, so the
+  // settings UI always shows the key that actually fires.
 
   return (
     <>

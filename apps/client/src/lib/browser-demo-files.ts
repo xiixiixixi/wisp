@@ -56,6 +56,13 @@ const documents = [
     modified: '2026-08-18T11:05:00Z',
     file_type: 'pdf',
   }),
+  // Hidden file so ⇧⌘. (toggle hidden files) is verifiable in the demo
+  makeEntry(`${DEMO_HOME_PATH}/Documents`, '.secret-notes.md', {
+    is_dir: false,
+    size: 512,
+    modified: '2026-08-17T10:00:00Z',
+    file_type: 'markdown',
+  }),
 ];
 
 const launch = [

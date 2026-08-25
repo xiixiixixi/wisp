@@ -148,6 +148,7 @@ export const ACTION_CATEGORIES: Record<string, string> = {
   CopyPath: 'file-operations',
   Cut: 'file-operations',
   Paste: 'file-operations',
+  PasteMove: 'file-operations',
   Delete: 'file-operations',
   Rename: 'file-operations',
   NewFile: 'file-operations',
@@ -155,6 +156,10 @@ export const ACTION_CATEGORIES: Record<string, string> = {
   Duplicate: 'file-operations',
   Open: 'file-operations',
   Properties: 'file-operations',
+  QuickLook: 'file-operations',
+
+  Undo: 'file-operations',
+  Redo: 'file-operations',
 
   NavigateUp: 'navigation',
   NavigateBack: 'navigation',
@@ -185,11 +190,20 @@ export const ACTION_CATEGORIES: Record<string, string> = {
   ToggleFullscreen: 'application',
   Quit: 'application',
   NewWindow: 'application',
+  NewTab: 'application',
   CloseTab: 'application',
   NextTab: 'application',
   PreviousTab: 'application',
 
+  ToggleShortcutsDialog: 'application',
+  ToggleWorkspaceLayoutDialog: 'application',
+  ToggleBookmarksDialog: 'application',
+  SplitPaneVertical: 'application',
+  SplitPaneHorizontal: 'application',
+
   OpenTerminal: 'terminal',
+  ToggleAgentLauncher: 'terminal',
+  ToggleAgentWorkspace: 'terminal',
   OpenAIAssistant: 'terminal',
   OpenExtensions: 'terminal',
 };
@@ -200,6 +214,7 @@ export const ACTION_LABELS: Record<string, string> = {
   CopyPath: 'Copy Path as Pathname',
   Cut: 'Cut',
   Paste: 'Paste',
+  PasteMove: 'Move Here',
   Delete: 'Delete',
   Rename: 'Rename',
   NewFile: 'New File',
@@ -207,6 +222,10 @@ export const ACTION_LABELS: Record<string, string> = {
   Duplicate: 'Duplicate',
   Open: 'Open',
   Properties: 'Get Info',
+  QuickLook: 'Quick Look',
+
+  Undo: 'Undo',
+  Redo: 'Redo',
 
   NavigateUp: 'Go to Parent',
   NavigateBack: 'Go Back',
@@ -237,24 +256,75 @@ export const ACTION_LABELS: Record<string, string> = {
   ToggleFullscreen: 'Toggle Fullscreen',
   Quit: 'Quit',
   NewWindow: 'New Window',
+  NewTab: 'New Tab',
   CloseTab: 'Close Tab',
   NextTab: 'Next Tab',
   PreviousTab: 'Previous Tab',
 
+  ToggleShortcutsDialog: 'Keyboard Shortcuts',
+  ToggleWorkspaceLayoutDialog: 'Workspace Layout',
+  ToggleBookmarksDialog: 'Path Bookmarks',
+  SplitPaneVertical: 'Split Pane Vertically',
+  SplitPaneHorizontal: 'Split Pane Horizontally',
+
   OpenTerminal: 'Open Terminal',
+  ToggleAgentLauncher: 'AI Agent Launcher',
+  ToggleAgentWorkspace: 'AI Agent Workspace',
   OpenAIAssistant: 'AI Assistant',
   OpenExtensions: 'Extensions',
 };
 
-/** Get category for a ShortcutAction (handles both string and object ExtensionAction) */
+/** Display names for the view modes reachable via ⌘1-⌘4 */
+export const VIEW_MODE_LABELS: Record<string, string> = {
+  large: 'Large Icons',
+  medium: 'Icons',
+  small: 'Small Icons',
+  tiles: 'Tiles',
+  content: 'Content',
+  list: 'List',
+  details: 'Details',
+  tree: 'Tree',
+  gallery: 'Gallery',
+  column: 'Columns',
+};
+
+/** Display names for the special folders reachable via GoToSpecial */
+export const SPECIAL_FOLDER_LABELS: Record<string, string> = {
+  desktop: 'Desktop',
+  downloads: 'Downloads',
+  documents: 'Documents',
+  applications: 'Applications',
+  home: 'Home',
+};
+
+/** Get category for a ShortcutAction (handles string, SetViewMode/GoToSpecial and ExtensionAction) */
 export const getCategoryForAction = (action: string | Record<string, unknown>): string => {
-  if (typeof action !== 'string') return 'extensions';
+  if (typeof action !== 'string') {
+    if ('SetViewMode' in action) return 'view';
+    if ('GoToSpecial' in action) return 'navigation';
+    return 'extensions';
+  }
   return ACTION_CATEGORIES[action] || 'other';
 };
 
 /** Get display label for a ShortcutAction */
 export const getLabelForAction = (action: string | Record<string, unknown>): string => {
   if (typeof action !== 'string') {
+    if ('SetViewMode' in action) {
+      const mode = (action.SetViewMode as { mode: string }).mode;
+      return i18n.t('shortcutActions.SetViewMode', {
+        defaultValue: 'Switch to {{mode}} view',
+        mode: i18n.t(`shortcutActions.viewMode.${mode}`, {
+          defaultValue: VIEW_MODE_LABELS[mode] || mode,
+        }),
+      });
+    }
+    if ('GoToSpecial' in action) {
+      const folder = (action.GoToSpecial as { folder: string }).folder;
+      return i18n.t(`shortcutActions.goTo.${folder}`, {
+        defaultValue: `Go to ${SPECIAL_FOLDER_LABELS[folder] || folder}`,
+      });
+    }
     if ('ExtensionAction' in action) {
       const ea = action.ExtensionAction as { extension_id: string; action_id: string };
       return `Extension: ${ea.extension_id} / ${ea.action_id}`;

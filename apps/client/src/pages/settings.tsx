@@ -368,7 +368,28 @@ const Settings = () => {
 
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    // Let the explorer (e.g. hidden-file visibility, ⌘⇧.) follow along live
+    window.dispatchEvent(new CustomEvent('wisp-settings-changed'));
   }, [settings]);
+
+  // Stay in sync when settings are changed elsewhere (e.g. the ⌘⇧. shortcut)
+  useEffect(() => {
+    const syncFromStorage = () => {
+      try {
+        const saved = localStorage.getItem(SETTINGS_KEY);
+        if (!saved) return;
+        setSettings((prev) => {
+          const merged = { ...prev, ...JSON.parse(saved) };
+          // Avoid re-triggering the persist effect when nothing changed
+          return JSON.stringify(merged) === JSON.stringify(prev) ? prev : merged;
+        });
+      } catch {
+        /* ignore localStorage/parse errors */
+      }
+    };
+    window.addEventListener('wisp-settings-changed', syncFromStorage);
+    return () => window.removeEventListener('wisp-settings-changed', syncFromStorage);
+  }, []);
 
   useEffect(() => {
     applyTheme(settings.theme);
@@ -542,7 +563,7 @@ const Settings = () => {
           style={isMac ? { paddingLeft: '76px' } : undefined}
         >
           <Link
-            href="/"
+            href={`/${window.location.search}`}
             className="flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-xp-surface hover:text-xp-text"
             title={t('settings.backToApp')}
             aria-label={t('settings.backToApp')}

@@ -16,6 +16,7 @@ interface TreeRowProps {
   handleFileClick: (file: FileEntry, event: React.MouseEvent) => void;
   handleFileDoubleClick: (file: FileEntry) => void;
   handleFileRightClick: (file: FileEntry, event: React.MouseEvent) => void;
+  onQuickLook?: (file: FileEntry) => void;
 }
 
 // Sort files: directories first, then by name
@@ -38,6 +39,7 @@ const TreeRow = ({
   handleFileClick,
   handleFileDoubleClick,
   handleFileRightClick,
+  onQuickLook,
 }: TreeRowProps) => {
   const dragHandlers = useDraggable({ file, selectedFiles, allFiles });
   const expanded = file.is_dir && expandedFolders.has(file.path);
@@ -76,15 +78,12 @@ const TreeRow = ({
               new CustomEvent('start-inline-rename', { detail: { path: file.path } }),
             );
           }
+          // Space previews (Finder behaviour). Consume the event so the
+          // document-level shortcut system doesn't fire a second time.
           if (e.key === ' ') {
             e.preventDefault();
-            const syntheticEvent = {
-              ctrlKey: e.ctrlKey,
-              shiftKey: e.shiftKey,
-              metaKey: e.metaKey,
-              button: 0,
-            } as React.MouseEvent;
-            handleFileClick(file, syntheticEvent);
+            e.stopPropagation();
+            onQuickLook?.(file);
           }
         }}
       >
@@ -142,6 +141,7 @@ const TreeRow = ({
                 handleFileClick={handleFileClick}
                 handleFileDoubleClick={handleFileDoubleClick}
                 handleFileRightClick={handleFileRightClick}
+                onQuickLook={onQuickLook}
               />
             ))
           ) : (
@@ -174,6 +174,7 @@ const TreeView = ({
   handleFileDoubleClick,
   handleFileRightClick,
   handleBackgroundRightClick,
+  onQuickLook,
 }: ViewComponentProps) => {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [folderContents, setFolderContents] = useState<Map<string, FileEntry[]>>(new Map());
@@ -238,6 +239,7 @@ const TreeView = ({
           handleFileClick={handleFileClick}
           handleFileDoubleClick={handleFileDoubleClick}
           handleFileRightClick={handleFileRightClick}
+          onQuickLook={onQuickLook}
         />
       ))}
     </div>

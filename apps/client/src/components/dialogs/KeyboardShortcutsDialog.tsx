@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TauriAPI, ShortcutBinding } from '@/lib/tauri-api';
+import { isBrowserDemoMode } from '@/lib/browser-demo-files';
+import { DEMO_DEFAULT_SHORTCUTS } from '@/hooks/demo-default-shortcuts';
 import {
   formatKeyComboForDisplay,
   getCategoryForAction,
@@ -267,6 +269,9 @@ const KeyboardShortcutsDialog = ({
       setShortcuts(data);
     } catch (err) {
       console.error('Failed to load shortcuts:', err);
+      // Browser demo has no backend — show the same default bindings the
+      // shortcut hook falls back to, so the cheat sheet matches reality.
+      if (isBrowserDemoMode()) setShortcuts(DEMO_DEFAULT_SHORTCUTS);
     } finally {
       setIsLoading(false);
     }

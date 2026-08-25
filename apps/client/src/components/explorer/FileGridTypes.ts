@@ -27,6 +27,8 @@ export interface ViewComponentProps {
   onRenameCancel?: () => void;
   /** Commit an inline rename; resolves false on failure */
   onRenameFile?: (oldPath: string, newName: string) => Promise<boolean>;
+  /** Finder's Space — open the focused file in Quick Look */
+  onQuickLook?: (file: FileEntry) => void;
 }
 
 export interface SizeBadgeInfo {

@@ -43,6 +43,7 @@ interface FileRowProps {
   onRenameConfirm?: (oldPath: string, newName: string) => void;
   onRenameCancel?: () => void;
   onRenameFile?: (oldPath: string, newName: string) => Promise<boolean>;
+  onQuickLook?: (file: FileEntry) => void;
 }
 
 const FileRow = React.memo(
@@ -65,6 +66,7 @@ const FileRow = React.memo(
     onRenameConfirm,
     onRenameCancel,
     onRenameFile,
+    onQuickLook,
   }: FileRowProps) => {
     const { t } = useTranslation();
     const dragHandlers = useDraggable({ file, selectedFiles, allFiles });
@@ -90,19 +92,15 @@ const FileRow = React.memo(
             new CustomEvent('start-inline-rename', { detail: { path: file.path } }),
           );
         }
+        // Space previews (Finder behaviour). Consume the event so the
+        // document-level shortcut system doesn't fire a second time.
         if (e.key === ' ') {
           e.preventDefault();
-          // Synthesize a partial MouseEvent carrying modifier keys for multi-select
-          const syntheticEvent = {
-            ctrlKey: e.ctrlKey,
-            shiftKey: e.shiftKey,
-            metaKey: e.metaKey,
-            button: 0,
-          } as React.MouseEvent;
-          onFileClick(file.path, syntheticEvent);
+          e.stopPropagation();
+          onQuickLook?.(file);
         }
       },
-      [onFileDoubleClick, onFileClick, file.path],
+      [onQuickLook, file],
     );
     const handleCalculateClick = useCallback(
       (e: React.MouseEvent) => {
@@ -161,12 +159,12 @@ const FileRow = React.memo(
             />
           ) : (
             <div
-              className={`truncate font-medium ${isHiddenFile(file) ? 'text-xp-text-muted' : ''}`}
+              className={`flex min-w-0 items-center font-medium ${isHiddenFile(file) ? 'text-xp-text-muted' : ''}`}
             >
-              {file.name}
+              <span className="min-w-0 truncate">{file.name}</span>
+              <TagDots tags={tags ?? []} />
             </div>
           )}
-          <TagDots tags={tags ?? []} />
         </div>
         <div className="col-span-2 text-right text-xs text-xp-text-muted">
           {(() => {
@@ -232,6 +230,7 @@ const DetailsView = (props: DetailsViewProps) => {
     onRenameConfirm,
     onRenameCancel,
     onRenameFile,
+    onQuickLook,
   } = props;
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -353,6 +352,7 @@ const DetailsView = (props: DetailsViewProps) => {
     onRenameConfirm,
     onRenameCancel,
     onRenameFile,
+    onQuickLook,
   };
 
   const renderFlatItem = (item: FlatItem) => {

@@ -96,8 +96,11 @@ export const useGridKeyboardNav = ({
         return;
       }
 
-      // Handle Space — Quick Look preview of focused file
+      // Handle Space — Quick Look preview of focused file. Consume the event
+      // so the document-level shortcut system doesn't fire a second time.
       if (e.key === ' ') {
+        e.preventDefault();
+        e.stopPropagation();
         const file = files[currentIndex];
         if (file && onQuickLook) {
           onQuickLook(file);

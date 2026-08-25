@@ -304,22 +304,15 @@ const MainLayout = (props: MainLayoutProps) => {
   }, []);
 
   useEffect(() => {
-    const handleAgentLauncherKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'k') {
-        const target = e.target as HTMLElement;
-        const isInput =
-          target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
-        if (isInput) return;
-        e.preventDefault();
-        e.stopPropagation();
-        setAgentLauncherOpen((v) => !v);
-      }
-    };
-    document.addEventListener('keydown', handleAgentLauncherKey, true);
-    return () => document.removeEventListener('keydown', handleAgentLauncherKey, true);
+    // ⌘K is owned by the configurable shortcut system (agent-launcher
+    // binding); it dispatches this event so the key stays editable in
+    // settings while the launcher lives here.
+    const handleAgentLauncherKey = () => setAgentLauncherOpen((v) => !v);
+    window.addEventListener('wisp-toggle-agent-launcher', handleAgentLauncherKey);
+    return () => window.removeEventListener('wisp-toggle-agent-launcher', handleAgentLauncherKey);
   }, []);
 
-  // ── Agent Workspace (Cmd+Shift+A) ─────────────────────────────────────────
+  // ── Agent Workspace (⌥⌘A) ────────────────────────────────────────────────
   const [agentWorkspaceOpen, setAgentWorkspaceOpen] = useState(false);
 
   const handleCloseAgentWorkspace = useCallback(() => {
@@ -327,19 +320,10 @@ const MainLayout = (props: MainLayoutProps) => {
   }, []);
 
   useEffect(() => {
-    const handleAgentWorkspaceKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && !e.altKey && e.key.toLowerCase() === 'a') {
-        const target = e.target as HTMLElement;
-        const isInput =
-          target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
-        if (isInput) return;
-        e.preventDefault();
-        e.stopPropagation();
-        setAgentWorkspaceOpen((v) => !v);
-      }
-    };
-    document.addEventListener('keydown', handleAgentWorkspaceKey, true);
-    return () => document.removeEventListener('keydown', handleAgentWorkspaceKey, true);
+    // Toggled by the configurable shortcut system (agent-workspace binding).
+    const handleAgentWorkspaceKey = () => setAgentWorkspaceOpen((v) => !v);
+    window.addEventListener('wisp-toggle-agent-workspace', handleAgentWorkspaceKey);
+    return () => window.removeEventListener('wisp-toggle-agent-workspace', handleAgentWorkspaceKey);
   }, []);
 
   // Listen for workspace open events (from bottom panel "expand" button)

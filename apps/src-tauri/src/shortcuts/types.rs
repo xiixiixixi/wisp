@@ -8,11 +8,14 @@ pub enum ShortcutAction {
     CopyPath,
     Cut,
     Paste,
+    /// Finder's ⌥⌘V — paste the clipboard as a move instead of a copy
+    PasteMove,
     Delete,
     Rename,
     NewFile,
     NewFolder,
     Duplicate,
+    QuickLook,
 
     // Navigation
     #[serde(alias = "GoUp")]
@@ -23,6 +26,12 @@ pub enum ShortcutAction {
     NavigateForward,
     GoHome,
     GoToPath,
+    /// Jump to a well-known folder (desktop / downloads / documents / applications)
+    GoToSpecial { folder: String },
+
+    // History
+    Undo,
+    Redo,
 
     // View operations
     Refresh,
@@ -35,6 +44,8 @@ pub enum ShortcutAction {
     ToggleRightSidebar,
     ToggleBottomPanel,
     SwitchViewMode,
+    /// Switch directly to a named view mode (Finder's ⌘1-⌘4)
+    SetViewMode { mode: String },
     ZoomIn,
     ZoomOut,
 
@@ -58,13 +69,23 @@ pub enum ShortcutAction {
     ToggleFullscreen,
     Quit,
     NewWindow,
+    NewTab,
     CloseTab,
     NextTab,
     PreviousTab,
 
+    // Panels, dialogs & panes
+    ToggleShortcutsDialog,
+    ToggleWorkspaceLayoutDialog,
+    ToggleBookmarksDialog,
+    SplitPaneVertical,
+    SplitPaneHorizontal,
+
     // Terminal / AI
     #[serde(alias = "FocusTerminal")]
     OpenTerminal,
+    ToggleAgentLauncher,
+    ToggleAgentWorkspace,
     OpenAIAssistant,
     OpenExtensions,
 
@@ -86,8 +107,6 @@ pub enum ShortcutAction {
     Minimize,
     Maximize,
     Cancel,
-    Undo,
-    Redo,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -116,5 +135,9 @@ pub struct ShortcutSettings {
     pub current_profile: String,
     pub global_shortcuts_enabled: bool,
     pub context_aware: bool,
+    /// Bump when built-in defaults change so persisted profiles re-sync
+    /// (user-created extension bindings are preserved across migrations).
+    #[serde(default)]
+    pub schema_version: u32,
     pub profiles: Vec<ShortcutProfile>,
 }

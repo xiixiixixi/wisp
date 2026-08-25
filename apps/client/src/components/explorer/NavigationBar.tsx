@@ -10,6 +10,8 @@ interface NavigationBarProps {
   currentPath: string;
   navigateToPath?: (path: string) => void;
   refetch?: () => void;
+  /** Only the active pane responds to ⇧⌘G (focus the address bar) */
+  active?: boolean;
 }
 
 interface PathSegment {
@@ -124,7 +126,12 @@ const parseBreadcrumbSegments = (path: string): PathSegment[] => {
 
 type PathValidation = 'idle' | 'valid' | 'invalid' | 'checking';
 
-const NavigationBar = ({ currentPath, navigateToPath, refetch: _refetch }: NavigationBarProps) => {
+const NavigationBar = ({
+  currentPath,
+  navigateToPath,
+  refetch: _refetch,
+  active = true,
+}: NavigationBarProps) => {
   const { t } = useTranslation();
   const [isEditingPath, setIsEditingPath] = useState(false);
   const [editPathValue, setEditPathValue] = useState(currentPath);
@@ -153,6 +160,15 @@ const NavigationBar = ({ currentPath, navigateToPath, refetch: _refetch }: Navig
       pathInputRef.current.select();
     }
   }, [isEditingPath]);
+
+  // Finder's ⇧⌘G (Go to Folder): the shortcut system dispatches this event;
+  // only the active pane's address bar enters edit mode.
+  useEffect(() => {
+    if (!active) return;
+    const focusAddressBar = () => setIsEditingPath(true);
+    window.addEventListener('wisp-focus-address-bar', focusAddressBar);
+    return () => window.removeEventListener('wisp-focus-address-bar', focusAddressBar);
+  }, [active]);
 
   // Cleanup timers on unmount
   useEffect(() => {
