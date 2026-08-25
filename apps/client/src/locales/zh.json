@@ -222,7 +222,8 @@
     "bookmarkFolder": "收藏此文件夹",
     "pinToSidebar": "固定到侧边栏",
     "lockFile": "锁定文件",
-    "unlockFile": "解锁文件"
+    "unlockFile": "解锁文件",
+    "bulkRenameAction": "批量重命名"
   },
   "drives": {
     "eject": "弹出",

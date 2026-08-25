@@ -222,7 +222,8 @@
     "bookmarkFolder": "Bookmark this folder",
     "pinToSidebar": "Pin to Sidebar",
     "lockFile": "Lock File",
-    "unlockFile": "Unlock File"
+    "unlockFile": "Unlock File",
+    "bulkRenameAction": "Bulk Rename"
   },
   "drives": {
     "eject": "Eject",

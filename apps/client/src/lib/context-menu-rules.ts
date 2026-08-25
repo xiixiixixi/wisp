@@ -7,6 +7,7 @@
 
 import type { FileEntry } from '@/lib/tauri-api';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
+import i18n from '@/i18n';
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -31,37 +32,47 @@ const STORAGE_KEY = STORAGE_KEYS.CONTEXT_MENU_RULES;
 
 // ── Known menu items (for the rule editor dropdown) ────────────────
 
-const KNOWN_MENU_ITEMS: { id: string; label: string }[] = [
-  { id: 'open', label: 'Open' },
-  { id: 'open-new-tab', label: 'Open in New Tab' },
-  { id: 'open-with', label: 'Open with...' },
-  { id: 'open-in-editor', label: 'Edit' },
-  { id: 'copy', label: 'Copy' },
-  { id: 'cut', label: 'Cut' },
-  { id: 'paste', label: 'Paste' },
-  { id: 'duplicate', label: 'Duplicate' },
-  { id: 'create-symlink', label: 'Create Link' },
-  { id: 'rename', label: 'Rename' },
-  { id: 'bulk-rename', label: 'Bulk Rename' },
-  { id: 'delete', label: 'Delete' },
-  { id: 'secure-delete', label: 'Secure Delete' },
-  { id: 'archive', label: 'Archive' },
-  { id: 'compress', label: 'Add to archive...' },
-  { id: 'extract', label: 'Extract here' },
-  { id: 'encrypt', label: 'Encrypt' },
-  { id: 'decrypt', label: 'Decrypt' },
-  { id: 'compare', label: 'Compare' },
-  { id: 'open-terminal', label: 'Open in Terminal' },
-  { id: 'calculate-folder-size', label: 'Calculate Folder Size' },
-  { id: 'file-details', label: 'File Details' },
-  { id: 'manage-tags', label: 'Tags...' },
-  { id: 'copy-path', label: 'Copy Path' },
-  { id: 'copy-name', label: 'Copy Name' },
-  { id: 'version-history', label: 'Version History' },
-  { id: 'pin-to-sidebar', label: 'Pin to Sidebar' },
-  { id: 'add-bookmark', label: 'Add to Bookmarks' },
-  { id: 'properties', label: 'Properties' },
-];
+const KNOWN_MENU_ITEMS: { id: string; label: string; i18nKey: string }[] = [
+  { id: 'open', label: 'Open', i18nKey: 'contextMenu.open' },
+  { id: 'open-new-tab', label: 'Open in New Tab', i18nKey: 'contextMenu.openInNewTab' },
+  { id: 'open-with', label: 'Open with...', i18nKey: 'contextMenu.openWith' },
+  { id: 'open-in-editor', label: 'Edit', i18nKey: 'contextMenu.edit' },
+  { id: 'copy', label: 'Copy', i18nKey: 'contextMenu.copy' },
+  { id: 'cut', label: 'Cut', i18nKey: 'contextMenu.cut' },
+  { id: 'paste', label: 'Paste', i18nKey: 'contextMenu.paste' },
+  { id: 'duplicate', label: 'Duplicate', i18nKey: 'contextMenu.duplicate' },
+  { id: 'create-symlink', label: 'Create Link', i18nKey: 'contextMenu.createLink' },
+  { id: 'rename', label: 'Rename', i18nKey: 'contextMenu.rename' },
+  { id: 'bulk-rename', label: 'Bulk Rename', i18nKey: 'contextMenu.bulkRenameAction' },
+  { id: 'delete', label: 'Delete', i18nKey: 'contextMenu.delete' },
+  { id: 'secure-delete', label: 'Secure Delete', i18nKey: 'contextMenu.secureDelete' },
+  { id: 'archive', label: 'Archive', i18nKey: 'contextMenu.archive' },
+  { id: 'compress', label: 'Add to archive...', i18nKey: 'contextMenu.addToArchive' },
+  { id: 'extract', label: 'Extract here', i18nKey: 'contextMenu.extractHere' },
+  { id: 'encrypt', label: 'Encrypt', i18nKey: 'contextMenu.encrypt' },
+  { id: 'decrypt', label: 'Decrypt', i18nKey: 'contextMenu.decrypt' },
+  { id: 'compare', label: 'Compare', i18nKey: 'contextMenu.compare' },
+  { id: 'open-terminal', label: 'Open in Terminal', i18nKey: 'contextMenu.openInTerminal' },
+  {
+    id: 'calculate-folder-size',
+    label: 'Calculate Folder Size',
+    i18nKey: 'contextMenu.calculateFolderSize',
+  },
+  { id: 'file-details', label: 'File Details', i18nKey: 'contextMenu.fileDetails' },
+  { id: 'manage-tags', label: 'Tags...', i18nKey: 'contextMenu.tags' },
+  { id: 'copy-path', label: 'Copy Path', i18nKey: 'contextMenu.copyPath' },
+  { id: 'copy-name', label: 'Copy Name', i18nKey: 'contextMenu.copyName' },
+  { id: 'version-history', label: 'Version History', i18nKey: 'contextMenu.versionHistory' },
+  { id: 'pin-to-sidebar', label: 'Pin to Sidebar', i18nKey: 'contextMenu.pinToSidebar' },
+  { id: 'add-bookmark', label: 'Add to Bookmarks', i18nKey: 'contextMenu.addToBookmarks' },
+  { id: 'properties', label: 'Properties', i18nKey: 'common.properties' },
+].map((item) => ({
+  ...item,
+  // getter: label follows the active language instead of freezing at import
+  get label() {
+    return i18n.t(item.i18nKey);
+  },
+}));
 
 // ── CRUD helpers ───────────────────────────────────────────────────
 
