@@ -344,7 +344,7 @@ export class ContextMenuFactory {
         id: 'rename',
         label: i18n.t('contextMenu.rename'),
         icon: mi(Pencil),
-        shortcut: 'F2',
+        shortcut: 'Enter',
         action: () => this.actions.rename(file),
       });
     }
@@ -377,7 +377,7 @@ export class ContextMenuFactory {
         ? i18n.t('contextMenu.deleteItems', { count: selectedFiles.size })
         : i18n.t('contextMenu.delete'),
       icon: mi(Trash2),
-      shortcut: 'Delete',
+      shortcut: 'Ctrl+Backspace',
       action: () => {
         const filesToDelete = isMultiSelect ? selectedFilesList.map(entryFromPath) : [file];
         this.actions.delete(filesToDelete);
@@ -388,7 +388,8 @@ export class ContextMenuFactory {
 
     // Archive submenu (compression + extraction)
     if (this.config.enableCompression) {
-      const canCompress = isMultiSelect || !file.is_dir;
+      // Finder's 压缩 works on any selection, single folders included
+      const canCompress = true;
       const canExtract =
         !isMultiSelect &&
         !file.is_dir &&
@@ -426,10 +427,16 @@ export class ContextMenuFactory {
 
     // --- "More" submenu: less-common actions grouped together ---
     const moreItems: ContextMenuItem[] = [];
+    // Finder-parity items collected for the first menu level
+    const finderParityItems: ContextMenuItem[] = [];
+
+    // --- Finder-parity top-level items -----------------------------------
+    // Open with, Create Link and Properties/Tags sit on the first level the
+    // way 打开方式/显示简介/制作替身/标签… do in Finder's context menu.
 
     // Open with... (single file only)
     if (!isMultiSelect && !file.is_dir) {
-      moreItems.push({
+      finderParityItems.push({
         id: 'open-with',
         label: i18n.t('contextMenu.openWith'),
         icon: mi(Wrench),
@@ -439,7 +446,7 @@ export class ContextMenuFactory {
 
     // Create Link (single item only)
     if (!isMultiSelect) {
-      moreItems.push({
+      finderParityItems.push({
         id: 'create-symlink',
         label: i18n.t('contextMenu.createLink'),
         icon: mi(Link2),
@@ -639,14 +646,14 @@ export class ContextMenuFactory {
       });
 
       moreItems.push({
-        id: 'manage-tags',
-        label: i18n.t('contextMenu.tags'),
-        icon: mi(Tag),
-        action: () => this.actions.manageTags(file),
+        id: 'copy-name',
+        label: i18n.t('contextMenu.copyName'),
+        icon: mi(ClipboardCopy),
+        action: () => this.actions.copyName(file),
       });
 
-      // Copy path sits in the top level (not under "More") so it is one
-      // click away for every file and folder.
+      // Copy path stays top level (one click away for every file and folder),
+      // followed by the Finder-parity items collected above.
       items.push({
         id: 'copy-path',
         label: i18n.t('contextMenu.copyPath'),
@@ -654,11 +661,28 @@ export class ContextMenuFactory {
         action: () => this.actions.copyPath(file),
       });
 
-      moreItems.push({
-        id: 'copy-name',
-        label: i18n.t('contextMenu.copyName'),
-        icon: mi(ClipboardCopy),
-        action: () => this.actions.copyName(file),
+      if (finderParityItems.length > 0) {
+        items.push({ id: 'sep-finder-parity', label: '', separator: true });
+        items.push(...finderParityItems);
+      }
+
+      // Tags (Finder's 标签… lives on the first level)
+      if (!isMultiSelect) {
+        items.push({
+          id: 'manage-tags',
+          label: i18n.t('contextMenu.tags'),
+          icon: mi(Tag),
+          action: () => this.actions.manageTags(file),
+        });
+      }
+
+      // Properties (Finder's 显示简介, ⌘I) — first level
+      items.push({
+        id: 'properties',
+        label: i18n.t('common.properties'),
+        icon: mi(Settings),
+        shortcut: 'Ctrl+I',
+        action: () => this.actions.properties(file),
       });
 
       if (!file.is_dir) {
@@ -864,15 +888,6 @@ export class ContextMenuFactory {
         submenu: colorSubmenu,
       });
     }
-
-    // Properties
-    moreItems.push({
-      id: 'properties',
-      label: i18n.t('common.properties'),
-      icon: mi(Settings),
-      shortcut: 'Alt+Enter',
-      action: () => this.actions.properties(file),
-    });
 
     // Add the "More" submenu if there are items to show
     if (moreItems.length > 0) {
