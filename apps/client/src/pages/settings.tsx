@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, type MouseEvent } from 'react';
+import { isTauri } from '@/lib/transport';
 import { TauriAPI } from '@/lib/tauri-api';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { Link } from 'wouter';
@@ -193,6 +194,39 @@ const Settings = () => {
   const { t, i18n } = useTranslation();
   const tabs = buildTabs(t);
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
+
+  // Window dragging — the native titlebar is overlaid, so the settings header
+  // must offer the same drag affordance as the explorer titlebar.
+  const appWindowRef = useRef<Awaited<
+    ReturnType<typeof import('@tauri-apps/api/window').getCurrentWindow>
+  > | null>(null);
+  const isMac = navigator.platform.toUpperCase().includes('MAC');
+
+  useEffect(() => {
+    if (!isTauri()) return;
+    let cancelled = false;
+    import('@tauri-apps/api/window').then(({ getCurrentWindow }) => {
+      if (!cancelled) appWindowRef.current = getCurrentWindow();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleHeaderMouseDown = (e: MouseEvent) => {
+    if ((e.target as HTMLElement).closest('button, input, a, select, textarea, [role="button"]')) {
+      return;
+    }
+    e.preventDefault();
+    appWindowRef.current?.startDragging();
+  };
+
+  const handleHeaderDoubleClick = (e: MouseEvent) => {
+    if ((e.target as HTMLElement).closest('button, input, a, select, textarea, [role="button"]')) {
+      return;
+    }
+    appWindowRef.current?.toggleMaximize();
+  };
 
   const [settings, setSettings] = useState<AppSettings>(() => {
     let initialSettings = DEFAULT_SETTINGS;
@@ -497,9 +531,16 @@ const Settings = () => {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-xp-bg text-xp-text">
-      {/* Header */}
-      <div className="border-xp-border/50 bg-xp-bg/80 shrink-0 border-b backdrop-blur-sm">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3 lg:px-8">
+      {/* Header — draggable window region */}
+      <div
+        className="border-xp-border/50 bg-xp-bg/80 shrink-0 border-b backdrop-blur-sm"
+        onMouseDown={handleHeaderMouseDown}
+        onDoubleClick={handleHeaderDoubleClick}
+      >
+        <div
+          className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3 lg:px-8"
+          style={isMac ? { paddingLeft: '76px' } : undefined}
+        >
           <Link
             href="/"
             className="flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-xp-surface hover:text-xp-text"
