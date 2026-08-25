@@ -2805,5 +2805,9 @@
       "saveWorkflow": "Save interaction as workflow",
       "deleteWorkflow": "Delete a workflow"
     }
+  },
+  "xterm": {
+    "newTerminal": "New Terminal",
+    "noTerminals": "All terminals are closed — click + to start a new one"
   }
 }

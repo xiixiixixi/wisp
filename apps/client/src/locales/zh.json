@@ -2790,5 +2790,9 @@
       "saveWorkflow": "保存交互为工作流",
       "deleteWorkflow": "删除工作流"
     }
+  },
+  "xterm": {
+    "newTerminal": "新建终端",
+    "noTerminals": "终端已全部关闭，点击 + 新建终端"
   }
 }

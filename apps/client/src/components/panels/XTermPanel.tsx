@@ -19,6 +19,9 @@ interface TermTab {
 
 interface XTermPanelProps {
   cwd: string;
+  /** Whether the terminal is currently shown (VS Code semantics: the first
+   *  terminal is created lazily on first show, then kept alive forever). */
+  visible?: boolean;
 }
 
 // ── Theme helper ─────────────────────────────────────────────────────────────
@@ -153,9 +156,38 @@ const createTab = (): TermTab => {
   return { id, label: `Terminal ${tabCounter}`, terminal, fitAddon };
 };
 
-const XTermPanel = ({ cwd }: XTermPanelProps) => {
-  const [tabs, setTabs] = useState<TermTab[]>(() => [createTab()]);
-  const [activeTabId, setActiveTabId] = useState(() => tabs[0]?.id || '');
+const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
+  const [tabs, setTabs] = useState<TermTab[]>([]);
+  const [activeTabId, setActiveTabId] = useState('');
+
+  // VS Code semantics: create the first terminal only on a visible transition
+  // (first show, or toggling the panel back on with zero terminals). Closing
+  // the last terminal while the panel stays open leaves the empty state.
+  const wasVisibleRef = useRef(false);
+  useEffect(() => {
+    const becameVisible = visible && !wasVisibleRef.current;
+    wasVisibleRef.current = visible;
+    if (!becameVisible || tabs.length > 0) return;
+    const tab = createTab();
+    setTabs([tab]);
+    setActiveTabId(tab.id);
+  }, [visible, tabs.length]);
+
+  // Refit and focus the active terminal whenever the panel becomes visible
+  // again (switching bottom tabs / expanding the panel).
+  useEffect(() => {
+    if (!visible) return;
+    const active = tabs.find((t) => t.id === activeTabId);
+    if (!active) return;
+    requestAnimationFrame(() => {
+      try {
+        active.fitAddon.fit();
+      } catch {
+        /* ignore */
+      }
+      active.terminal.focus();
+    });
+  }, [visible, activeTabId, tabs]);
 
   // Listen to PTY output — route to correct terminal
   useEffect(() => {
@@ -219,13 +251,10 @@ const XTermPanel = ({ cwd }: XTermPanelProps) => {
       TauriAPI.ptyKill(id).catch(() => {});
       setTabs((prev) => {
         const next = prev.filter((t) => t.id !== id);
-        if (next.length === 0) {
-          const tab = createTab();
-          setActiveTabId(tab.id);
-          return [tab];
-        }
+        // VS Code semantics: closing the last terminal leaves an empty state;
+        // a new one is only created when the panel is toggled on again.
         if (id === activeTabId) {
-          setActiveTabId(next[next.length - 1].id);
+          setActiveTabId(next[next.length - 1]?.id ?? '');
         }
         return next;
       });
@@ -286,38 +315,37 @@ const XTermPanel = ({ cwd }: XTermPanelProps) => {
             >
               <TerminalIcon size={12} />
               <span>{tab.label}</span>
-              {tabs.length > 1 && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCloseTab(tab.id);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 14,
-                    height: 14,
-                    borderRadius: 3,
-                    border: 'none',
-                    background: 'transparent',
-                    color: 'inherit',
-                    cursor: 'pointer',
-                    opacity: 0.5,
-                    padding: 0,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = '1';
-                    e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = '0.5';
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
-                >
-                  <X size={10} />
-                </button>
-              )}
+              {/* Always closable, like VS Code's per-terminal kill button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCloseTab(tab.id);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 14,
+                  height: 14,
+                  borderRadius: 3,
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'inherit',
+                  cursor: 'pointer',
+                  opacity: 0.5,
+                  padding: 0,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                  e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '0.5';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
+                <X size={10} />
+              </button>
             </div>
           ))}
         </div>
@@ -353,9 +381,24 @@ const XTermPanel = ({ cwd }: XTermPanelProps) => {
 
       {/* Terminal instances */}
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-        {tabs.map((tab) => (
-          <TermInstance key={tab.id} tab={tab} cwd={cwd} isActive={tab.id === activeTabId} />
-        ))}
+        {tabs.length === 0 ? (
+          <div
+            style={{
+              display: 'flex',
+              height: '100%',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 12,
+              color: getCssVar('--xp-text-muted', '#565f89'),
+            }}
+          >
+            {i18n.t('xterm.noTerminals')}
+          </div>
+        ) : (
+          tabs.map((tab) => (
+            <TermInstance key={tab.id} tab={tab} cwd={cwd} isActive={tab.id === activeTabId} />
+          ))
+        )}
       </div>
     </div>
   );

@@ -119,16 +119,6 @@ const BottomPanel = ({
     return () => window.removeEventListener('wisp-set-bottom-tab', handler);
   }, [setBottomPanelTab]);
 
-  if (bottomPanelCollapsed) {
-    // Keep XTermPanel mounted (hidden) so PTY sessions and scrollback survive
-    // collapsing the panel, not just tab switches.
-    return (
-      <div className="hidden">
-        <XTermPanel cwd={terminalCwd} />
-      </div>
-    );
-  }
-
   // Check if the active tab is an extension tab
   const isExtensionTab = !CORE_TABS.includes(bottomPanelTab);
 
@@ -158,7 +148,9 @@ const BottomPanel = ({
 
   return (
     <div
-      className="flex flex-shrink-0 flex-col border-t border-xp-border bg-xp-surface"
+      // Collapsed hides the same tree instead of unmounting it, so terminal
+      // sessions (and any other panel state) survive collapse/expand.
+      className={`${bottomPanelCollapsed ? 'hidden' : 'flex flex-shrink-0 flex-col border-t border-xp-border bg-xp-surface'}`}
       style={{ height: height ?? 192 }}
     >
       {/* Bottom Panel Tabs */}
@@ -250,7 +242,10 @@ const BottomPanel = ({
               </div>
             }
           >
-            <XTermPanel cwd={terminalCwd} />
+            <XTermPanel
+              cwd={terminalCwd}
+              visible={!bottomPanelCollapsed && bottomPanelTab === 'terminal'}
+            />
           </React.Suspense>
         </ErrorBoundary>
       </div>

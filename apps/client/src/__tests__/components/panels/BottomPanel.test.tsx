@@ -86,14 +86,17 @@ describe('BottomPanel', () => {
   });
 
   describe('Collapsed state', () => {
-    it('returns null when collapsed', () => {
+    it('keeps the panel mounted but hidden when collapsed', () => {
       const { container } = render(<BottomPanel {...defaultProps} bottomPanelCollapsed={true} />);
-      expect(container.firstChild).toBeNull();
+      // Hidden instead of unmounted so terminal sessions survive collapse.
+      expect(container.firstChild).not.toBeNull();
+      expect((container.firstChild as HTMLElement).className).toContain('hidden');
     });
 
     it('renders when not collapsed', () => {
       const { container } = render(<BottomPanel {...defaultProps} />);
       expect(container.firstChild).not.toBeNull();
+      expect((container.firstChild as HTMLElement).className).not.toContain('hidden');
     });
   });
 
