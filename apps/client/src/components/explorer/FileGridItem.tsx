@@ -396,6 +396,7 @@ const FileGridItem = React.memo(
           <span className="min-w-0 truncate">
             {file.name.endsWith('.chat') ? getChatDisplayName(file.name) : file.name}
           </span>
+          {!isRenaming && <TagDots tags={tags} />}
           <LockBadge isReadonly={file.is_readonly} />
           <GitStatusDot status={gitStatus} />
         </>
@@ -471,7 +472,6 @@ const FileGridItem = React.memo(
               Chat
             </span>
           )}
-          {isGridView && !isRenaming && <TagDots tags={tags} />}
           {!isGridView && !isListView && !isRenaming && (
             <div className="flex items-center space-x-4 text-xs text-xp-text-muted">
               <span>
@@ -481,7 +481,6 @@ const FileGridItem = React.memo(
               </span>
               <span>{formatDate(file.modified)}</span>
               <span className="capitalize">{file.file_type}</span>
-              <TagDots tags={tags} />
             </div>
           )}
           {viewMode === 'content' && !isRenaming && (
@@ -492,7 +491,6 @@ const FileGridItem = React.memo(
                   : formatFileSize(file.size)}
               </div>
               <div>{formatDate(file.modified)}</div>
-              <TagDots tags={tags} />
             </div>
           )}
         </div>

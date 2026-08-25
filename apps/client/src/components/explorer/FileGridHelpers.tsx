@@ -31,17 +31,18 @@ export const isHiddenFile = (file: FileEntry): boolean => file.name.startsWith('
 export const TagDots = ({ tags }: { tags: FileTag[] }) => {
   if (!tags || tags.length === 0) return null;
 
+  // Finder style: small dots sitting inline right after the file name.
   return (
-    <div className="mt-0.5 flex flex-wrap items-center gap-0.5">
+    <span className="ml-1 inline-flex flex-shrink-0 items-center gap-0.5 align-middle">
       {tags.map((tag) => (
         <span
           key={tag.name}
-          className="h-2 w-2 flex-shrink-0 rounded-full border border-black border-opacity-20"
+          className="h-[7px] w-[7px] flex-shrink-0 rounded-full border border-black/20"
           style={{ backgroundColor: tag.color }}
           title={tag.name}
         />
       ))}
-    </div>
+    </span>
   );
 };
 
