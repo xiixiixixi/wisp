@@ -2814,5 +2814,93 @@
   "xterm": {
     "newTerminal": "New Terminal",
     "noTerminals": "All terminals are closed — click + to start a new one"
+  },
+  "advancedSelection": {
+    "menu": {
+      "menuName": "Advanced Selection",
+      "selectSimilar": "Select Similar",
+      "selectByFileType": "Select by File Type…",
+      "selectByDate": "Select by Date…",
+      "selectBySize": "Select by Size…",
+      "invertSelection": "Invert Selection",
+      "selectAllImages": "All Images",
+      "selectAllDocuments": "All Documents",
+      "selectAllVideos": "All Videos",
+      "selectAllAudio": "All Audio"
+    },
+    "dialog": {
+      "titleBySize": "Select by Size",
+      "titleByFileType": "Select by File Type",
+      "titleByDate": "Select by Date",
+      "totalFiles": "Total files",
+      "smallest": "Smallest",
+      "largest": "Largest",
+      "average": "Average",
+      "oldestFile": "Oldest file",
+      "newestFile": "Newest file",
+      "quickSelect": "Quick select",
+      "customRange": "Custom range",
+      "min": "Min",
+      "max": "Max",
+      "noLimit": "No limit",
+      "noMaximumLimit": "No maximum",
+      "filesMatching": "files matching",
+      "clear": "Clear",
+      "cancel": "Cancel",
+      "selectNFiles": "Select {{count}} files",
+      "extensionsInFolder": "Extensions in this folder ({{count}})",
+      "customExtension": "Custom extensions",
+      "customExtPlaceholder": "e.g. .png, .jpg",
+      "add": "Add",
+      "selected": "{{count}} selected",
+      "clearAll": "Clear all",
+      "selectFiles": "Select Files",
+      "from": "From",
+      "to": "To"
+    },
+    "presets": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "last7days": "Last 7 days",
+      "last30days": "Last 30 days",
+      "thisMonth": "This month",
+      "lastMonth": "Last month",
+      "thisYear": "This year",
+      "tiny": "Tiny",
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large",
+      "veryLarge": "Very large",
+      "huge": "Huge"
+    },
+    "categories": {
+      "images": "Images",
+      "documents": "Documents",
+      "videos": "Videos",
+      "audio": "Audio",
+      "archives": "Archives",
+      "code": "Code",
+      "web": "Web",
+      "executables": "Executables"
+    },
+    "size": {
+      "unlimited": "Unlimited"
+    },
+    "toast": {
+      "selectionUpdated": "Selection updated",
+      "selectedExtensions": "Selected {{count}} files ({{exts}})",
+      "noFilesFound": "No files found",
+      "noFilesWithExtension": "No files match these extensions",
+      "selectedDateRange": "Selected {{count}} files ({{from}} – {{to}})",
+      "noFilesInDateRange": "No files in this date range",
+      "selectedLargerThan": "Selected {{count}} files larger than {{size}}",
+      "selectedBetween": "Selected {{count}} files between {{min}} and {{max}}",
+      "noFilesInSizeRange": "No files in this size range",
+      "selectedSimilar": "Selected {{count}} similar items",
+      "selectionInverted": "Selection inverted",
+      "nowSelecting": "Now selecting {{count}} items",
+      "selectedPattern": "Selected {{count}} files matching \"{{pattern}}\"",
+      "noFilesMatchPattern": "No files match \"{{pattern}}\""
+    }
   }
 }
