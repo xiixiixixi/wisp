@@ -113,6 +113,8 @@ export const ACTION_CATEGORIES: Record<string, string> = {
   NewFile: 'file-operations',
   NewFolder: 'file-operations',
   Duplicate: 'file-operations',
+  Open: 'file-operations',
+  Properties: 'file-operations',
 
   NavigateUp: 'navigation',
   NavigateBack: 'navigation',
@@ -162,6 +164,8 @@ export const ACTION_LABELS: Record<string, string> = {
   NewFile: 'New File',
   NewFolder: 'New Folder',
   Duplicate: 'Duplicate',
+  Open: 'Open',
+  Properties: 'Get Info',
 
   NavigateUp: 'Go to Parent',
   NavigateBack: 'Go Back',

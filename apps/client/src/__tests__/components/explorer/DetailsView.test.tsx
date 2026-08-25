@@ -192,12 +192,21 @@ describe('DetailsView', () => {
       expect(mockHandleFileRightClick).toHaveBeenCalledWith(sampleFiles[0], expect.any(Object));
     });
 
-    it('calls handleFileDoubleClick on Enter key', () => {
-      render(<DetailsView {...defaultProps} />);
+    it('Enter key starts an inline rename (Finder behaviour)', () => {
+      const renameEvents: CustomEvent[] = [];
+      const listener = (e: Event) => renameEvents.push(e as CustomEvent);
+      window.addEventListener('start-inline-rename', listener);
+      try {
+        render(<DetailsView {...defaultProps} />);
 
-      const row = screen.getByRole('row', { name: 'document.txt' });
-      fireEvent.keyDown(row, { key: 'Enter' });
-      expect(mockHandleFileDoubleClick).toHaveBeenCalledWith(sampleFiles[0]);
+        const row = screen.getByRole('row', { name: 'document.txt' });
+        fireEvent.keyDown(row, { key: 'Enter' });
+        expect(mockHandleFileDoubleClick).not.toHaveBeenCalled();
+        expect(renameEvents).toHaveLength(1);
+        expect(renameEvents[0].detail).toEqual({ path: sampleFiles[0].path });
+      } finally {
+        window.removeEventListener('start-inline-rename', listener);
+      }
     });
 
     it('calls handleBackgroundRightClick on background context menu', () => {

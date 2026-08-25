@@ -70,7 +70,14 @@ const FileRow = React.memo(
     );
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') onFileDoubleClick(file.path);
+        // Enter renames (Finder behaviour; open with ⌘O/⌘↓ via the shortcut system)
+        if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          window.dispatchEvent(
+            new CustomEvent('start-inline-rename', { detail: { path: file.path } }),
+          );
+        }
         if (e.key === ' ') {
           e.preventDefault();
           // Synthesize a partial MouseEvent carrying modifier keys for multi-select

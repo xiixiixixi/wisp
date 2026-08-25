@@ -60,6 +60,8 @@ export const useGridKeyboardNav = ({
         ' ',
       ];
       if (!navKeys.includes(e.key)) return;
+      // Leave modified combos (⌘↓ open, ⌘↑ go up, …) to the global shortcut system
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
 
       if (files.length === 0) return;
       e.preventDefault();
@@ -82,10 +84,15 @@ export const useGridKeyboardNav = ({
         }
       }
 
-      // Handle Enter — open focused file
+      // Handle Enter — rename the focused item (Finder behaviour; open with ⌘O/⌘↓)
       if (e.key === 'Enter') {
         const file = files[currentIndex];
-        if (file) handleFileDoubleClick(file);
+        if (file) {
+          e.stopPropagation();
+          window.dispatchEvent(
+            new CustomEvent('start-inline-rename', { detail: { path: file.path } }),
+          );
+        }
         return;
       }
 

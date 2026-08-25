@@ -122,11 +122,20 @@ describe('ColumnView', () => {
       expect(defaultProps.handleFileRightClick).toHaveBeenCalled();
     });
 
-    it('opens Enter key triggers double-click', () => {
-      render(<ColumnView {...defaultProps} />);
-      const option = screen.getByText('report.pdf').closest('[role="option"]')!;
-      fireEvent.keyDown(option, { key: 'Enter' });
-      expect(defaultProps.handleFileDoubleClick).toHaveBeenCalledWith(sampleFiles[1]);
+    it('Enter key starts an inline rename (Finder behaviour)', () => {
+      const renameEvents: CustomEvent[] = [];
+      const listener = (e: Event) => renameEvents.push(e as CustomEvent);
+      window.addEventListener('start-inline-rename', listener);
+      try {
+        render(<ColumnView {...defaultProps} />);
+        const option = screen.getByText('report.pdf').closest('[role="option"]')!;
+        fireEvent.keyDown(option, { key: 'Enter' });
+        expect(defaultProps.handleFileDoubleClick).not.toHaveBeenCalled();
+        expect(renameEvents).toHaveLength(1);
+        expect(renameEvents[0].detail).toEqual({ path: sampleFiles[1].path });
+      } finally {
+        window.removeEventListener('start-inline-rename', listener);
+      }
     });
   });
 

@@ -13,6 +13,8 @@ export interface ShortcutHandlers {
   onNewFolder?: () => void;
   onNewFile?: () => void;
   onDuplicate?: () => void;
+  onOpen?: () => void;
+  onProperties?: () => void;
   onRefresh?: () => void;
   onSelectAll?: () => void;
 
@@ -146,6 +148,12 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
         break;
       case 'Duplicate':
         h.onDuplicate?.();
+        break;
+      case 'Open':
+        h.onOpen?.();
+        break;
+      case 'Properties':
+        h.onProperties?.();
         break;
       case 'Refresh':
         h.onRefresh?.();

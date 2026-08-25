@@ -861,6 +861,8 @@ export type ShortcutAction =
   | 'NewFile'
   | 'NewFolder'
   | 'Duplicate'
+  | 'Open'
+  | 'Properties'
   // Navigation
   | 'NavigateUp'
   | 'NavigateBack'

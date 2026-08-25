@@ -290,6 +290,16 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
           });
         }
       },
+      onOpen: () => {
+        const first = Array.from(selectedFiles)[0];
+        const file = first ? files?.find((f) => f.path === first) : undefined;
+        if (file) _handleFileDoubleClick(file);
+      },
+      onProperties: () => {
+        const first = Array.from(selectedFiles)[0];
+        const file = first ? files?.find((f) => f.path === first) : undefined;
+        if (file) fileOps.contextMenuActions.properties(file);
+      },
       onRefresh: () => {
         refetch();
       },
@@ -400,11 +410,9 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
       const target = e.target as HTMLElement;
       const isInput =
         target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'p') {
-        e.preventDefault();
-        setCommandPaletteOpen((prev) => !prev);
-        return;
-      }
+      // ⌘⇧P is Finder's preview-panel toggle and is handled by the
+      // configurable shortcut system (toggle-preview binding); the command
+      // palette stays reachable via ⌘P (QuickSearch).
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
         e.preventDefault();
         setSearchPanelOpen((prev) => !prev);

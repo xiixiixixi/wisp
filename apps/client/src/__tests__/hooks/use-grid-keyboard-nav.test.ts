@@ -48,7 +48,9 @@ describe('useGridKeyboardNav', () => {
       shiftKey: false,
       ctrlKey: false,
       metaKey: false,
+      altKey: false,
       preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
       currentTarget: createMockContainer(),
       ...options,
     } as unknown as React.KeyboardEvent<HTMLDivElement>;
@@ -100,11 +102,20 @@ describe('useGridKeyboardNav', () => {
     expect(mockHandleFileClick).not.toHaveBeenCalled();
   });
 
-  it('handles Enter key - opens focused file', () => {
+  it('handles Enter key - renames focused file (Finder behaviour)', () => {
     const { result } = renderHook(() => useGridKeyboardNav(defaultOptions));
-    const event = createKeyboardEvent('Enter');
-    result.current.handleKeyDown(event);
-    expect(mockHandleFileDoubleClick).toHaveBeenCalledWith(sampleFiles[0]);
+    const renameEvents: CustomEvent[] = [];
+    const listener = (e: Event) => renameEvents.push(e as CustomEvent);
+    window.addEventListener('start-inline-rename', listener);
+    try {
+      const event = createKeyboardEvent('Enter');
+      result.current.handleKeyDown(event);
+      expect(mockHandleFileDoubleClick).not.toHaveBeenCalled();
+      expect(renameEvents).toHaveLength(1);
+      expect(renameEvents[0].detail).toEqual({ path: sampleFiles[0].path });
+    } finally {
+      window.removeEventListener('start-inline-rename', listener);
+    }
   });
 
   it('handles Space key - triggers Quick Look', () => {

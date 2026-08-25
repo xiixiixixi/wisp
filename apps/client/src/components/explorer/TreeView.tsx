@@ -68,7 +68,14 @@ const TreeRow = ({
         onDoubleClick={() => handleFileDoubleClick(file)}
         onContextMenu={(e) => handleFileRightClick(file, e)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') handleFileDoubleClick(file);
+          // Enter renames (Finder behaviour); open with ⌘O/⌘↓ via the shortcut system
+          if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.dispatchEvent(
+              new CustomEvent('start-inline-rename', { detail: { path: file.path } }),
+            );
+          }
           if (e.key === ' ') {
             e.preventDefault();
             const syntheticEvent = {

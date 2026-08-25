@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import i18n from '@/i18n';
 import {
   getKeyString,
   formatKeyComboForDisplay,
@@ -238,9 +239,11 @@ describe('getCategoryForAction', () => {
 // ── getLabelForAction ─────────────────────────────────────────────────────
 
 describe('getLabelForAction', () => {
-  it('returns label for known string action', () => {
-    expect(getLabelForAction('Copy')).toBe('Copy');
-    expect(getLabelForAction('GoHome')).toBe('Go Home');
+  it('returns a localized label for known string action', () => {
+    // Known actions resolve through i18n (shortcutActions.*), falling back
+    // to the English ACTION_LABELS only when the key is missing.
+    expect(getLabelForAction('Copy')).toBe(i18n.t('shortcutActions.Copy'));
+    expect(getLabelForAction('GoHome')).toBe(i18n.t('shortcutActions.GoHome'));
   });
 
   it('returns the action string itself for unknown string action', () => {

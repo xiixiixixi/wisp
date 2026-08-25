@@ -154,7 +154,7 @@ const TopBar = React.memo(
               }
             }}
           >
-            <div className="flex items-center" style={isMac ? { paddingLeft: '60px' } : undefined}>
+            <div className="flex items-center" style={isMac ? { paddingLeft: '80px' } : undefined}>
               <div className="flex items-center gap-2.5">
                 <button
                   onClick={() => setLeftSidebarCollapsed(!leftSidebarCollapsed)}
@@ -189,7 +189,7 @@ const TopBar = React.memo(
               <Search size={14} className="shrink-0" />
               <span className="min-w-0 flex-1 truncate">{t('commandPalette.trigger')}</span>
               <kbd className="rounded border border-xp-border bg-xp-surface px-1.5 py-0.5 font-sans text-[10px] text-xp-text-secondary">
-                {isMac ? '⌘⇧P' : 'Ctrl⇧P'}
+                {isMac ? '⌘P' : 'Ctrl+P'}
               </kbd>
             </button>
 
