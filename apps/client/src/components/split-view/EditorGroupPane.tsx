@@ -222,13 +222,15 @@ const EditorGroupPane = ({
   } = useQuery<FileEntry[]>({
     queryKey: ['files', currentPath],
     queryFn: async () => {
-      if (isBrowserDemoMode()) {
-        return getDemoDirectory(currentPath) ?? [];
-      }
       if (currentPath.startsWith('wisp://tag/')) {
-        // Finder's sidebar tag click: every file carrying the tag.
+        // Finder's sidebar tag click: every file carrying the tag. Must
+        // come before the demo branch — the demo resolves these paths
+        // through its own in-memory tag store inside findFilesByTag.
         const tagName = decodeURIComponent(currentPath.slice('wisp://tag/'.length));
         return await TauriAPI.findFilesByTag(tagName);
+      }
+      if (isBrowserDemoMode()) {
+        return getDemoDirectory(currentPath) ?? [];
       }
       if (currentPath.startsWith('gdrive://')) {
         const match = currentPath.match(/^gdrive:\/\/([^/]+)\/(.*)$/);

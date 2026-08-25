@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { ChevronRight, Pencil, HardDrive, Home, Trash2, Cloud, Folder } from 'lucide-react';
+import { ChevronRight, Pencil, HardDrive, Home, Trash2, Cloud, Folder, Tag } from 'lucide-react';
 import { PATH_SEPARATOR, isWindows } from '@/lib/constants';
 import { TauriAPI } from '@/lib/tauri-api';
 import { getCollection } from '@/lib/collections';
@@ -406,6 +406,12 @@ const NavigationBar = ({ currentPath, navigateToPath, refetch: _refetch }: Navig
     ? { label: t(specialConfig.labelKey), icon: specialConfig.icon }
     : null;
 
+  // Tag view (wisp://tag/<name>) — show the decoded tag name
+  const tagLabel = useMemo((): string | null => {
+    if (!currentPath.startsWith('wisp://tag/')) return null;
+    return decodeURIComponent(currentPath.slice('wisp://tag/'.length));
+  }, [currentPath]);
+
   // Resolve collection name for collection:// paths
   const collectionLabel = useMemo((): React.ReactNode | null => {
     if (!currentPath.startsWith('collection://')) return null;
@@ -574,6 +580,14 @@ const NavigationBar = ({ currentPath, navigateToPath, refetch: _refetch }: Navig
               <div className="flex h-full cursor-text items-center gap-2 px-1">
                 <span className="text-xp-text-muted">{special.icon}</span>
                 <span className="text-sm font-medium">{special.label}</span>
+              </div>
+            );
+          }
+          if (tagLabel) {
+            return (
+              <div className="flex h-full cursor-text items-center gap-2 px-1">
+                <Tag size={12} className="flex-shrink-0 text-xp-text-muted" />
+                <span className="text-sm font-medium">{tagLabel}</span>
               </div>
             );
           }
