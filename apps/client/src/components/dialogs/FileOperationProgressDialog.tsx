@@ -140,7 +140,7 @@ const FileOperationProgressDialog = () => {
                 {isActive && (
                   <button
                     onClick={() => cancelOperation(op.operation_id)}
-                    className="p-0.5 text-xp-text-muted transition-colors hover:text-red-400"
+                    className="p-0.5 text-xp-text-muted transition-colors hover:text-xp-red"
                     title={t('dialogs.fileOp.cancelOperation')}
                   >
                     <Square size={10} />

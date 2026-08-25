@@ -120,10 +120,10 @@ const BetaWarningDialog = () => {
           </ul>
 
           <div className="mt-4 flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 p-3">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" aria-hidden="true" />
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-xp-yellow" aria-hidden="true" />
             <div className="min-w-0">
-              <p className="text-xs font-medium text-amber-200">{t('dialogs.beta.cautionTitle')}</p>
-              <p className="mt-0.5 text-xs leading-5 text-amber-100/70">
+              <p className="text-xs font-medium text-xp-yellow">{t('dialogs.beta.cautionTitle')}</p>
+              <p className="mt-0.5 text-xs leading-5 text-xp-text-secondary">
                 {t('dialogs.beta.cautionDesc')}
               </p>
             </div>

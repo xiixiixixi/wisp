@@ -286,10 +286,7 @@ const SearchResultsPanel = React.forwardRef<SearchResultsPanelHandle, SearchResu
                   borderRadius: '10px',
                   border: '1px solid',
                   borderColor: activeFilter === key ? 'var(--xp-blue)' : 'var(--xp-border)',
-                  background:
-                    activeFilter === key
-                      ? 'rgba(var(--xp-blue-rgb, 99, 102, 241), 0.15)'
-                      : 'transparent',
+                  background: activeFilter === key ? 'var(--xp-selection-bg)' : 'transparent',
                   color: activeFilter === key ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
                   cursor: 'pointer',
                   transition: 'all 0.15s',
@@ -326,7 +323,7 @@ const SearchResultsPanel = React.forwardRef<SearchResultsPanelHandle, SearchResu
                         opacity: 0.6,
                         padding: '1px 5px',
                         borderRadius: '3px',
-                        background: 'rgba(var(--xp-blue-rgb, 99, 102, 241), 0.1)',
+                        background: 'var(--xp-selection-bg)',
                       }}
                     >
                       {t('search.aiProvider', { provider: aiProvider })}
@@ -350,7 +347,7 @@ const SearchResultsPanel = React.forwardRef<SearchResultsPanelHandle, SearchResu
                           fontSize: '10px',
                           padding: '1px 5px',
                           borderRadius: '3px',
-                          background: 'rgba(var(--xp-blue-rgb, 99, 102, 241), 0.1)',
+                          background: 'var(--xp-selection-bg)',
                           color: 'var(--xp-text-muted)',
                         }}
                       >
@@ -1178,7 +1175,7 @@ const ContentSearchResults = ({
                 color: 'var(--xp-text)',
                 background: 'none',
                 border: 'none',
-                borderBottom: '1px solid rgba(var(--xp-border-rgb, 100, 100, 100), 0.3)',
+                borderBottom: '1px solid var(--xp-border)',
                 cursor: 'pointer',
                 textAlign: 'left',
                 display: 'flex',

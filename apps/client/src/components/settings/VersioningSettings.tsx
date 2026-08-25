@@ -80,8 +80,8 @@ const VersioningSettings = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="border-xp-accent h-5 w-5 animate-spin rounded-full border-2 border-t-transparent" />
-        <span className="text-xp-text-secondary ml-3 text-sm">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-xp-accent border-t-transparent" />
+        <span className="ml-3 text-sm text-xp-text-secondary">
           {t('settings.versioning.loadingSettings')}
         </span>
       </div>
@@ -96,7 +96,7 @@ const VersioningSettings = () => {
       />
 
       {error && (
-        <div className="mx-4 mb-2 rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-400">
+        <div className="mx-4 mb-2 rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-xp-red">
           {error}
         </div>
       )}
@@ -142,7 +142,7 @@ const VersioningSettings = () => {
           <button
             onClick={saveConfig}
             disabled={saving}
-            className="bg-xp-accent/10 text-xp-accent hover:bg-xp-accent/20 flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50"
+            className="bg-xp-accent/10 hover:bg-xp-accent/20 flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-xp-accent transition-colors disabled:opacity-50"
           >
             <Save size={14} />
             {saving ? t('settings.versioning.saving') : t('settings.versioning.saveChanges')}
@@ -167,12 +167,12 @@ const VersioningSettings = () => {
               if (e.key === 'Enter') addDirectory();
             }}
             placeholder={t('settings.versioning.dirPlaceholder')}
-            className="border-xp-border bg-xp-bg text-xp-text placeholder:text-xp-text-secondary/50 focus:ring-xp-accent h-9 flex-1 rounded-md border px-3 text-sm focus:outline-none focus:ring-1"
+            className="placeholder:text-xp-text-secondary/50 h-9 flex-1 rounded-md border border-xp-border bg-xp-bg px-3 text-sm text-xp-text focus:outline-none focus:ring-1 focus:ring-xp-accent"
           />
           <button
             onClick={addDirectory}
             disabled={!newDir.trim()}
-            className="bg-xp-accent/10 text-xp-accent hover:bg-xp-accent/20 flex h-9 items-center gap-1.5 rounded-md px-3 text-xs font-medium transition-colors disabled:opacity-50"
+            className="bg-xp-accent/10 hover:bg-xp-accent/20 flex h-9 items-center gap-1.5 rounded-md px-3 text-xs font-medium text-xp-accent transition-colors disabled:opacity-50"
           >
             <Plus size={14} />
             {t('settings.versioning.addDir')}
@@ -183,7 +183,7 @@ const VersioningSettings = () => {
       {config.enabled_dirs.length === 0 ? (
         <div className="px-4 py-4 text-center">
           <FolderOpen size={24} className="text-xp-text-secondary/40 mx-auto mb-2" />
-          <p className="text-xp-text-secondary text-xs">{t('settings.versioning.noDirsTracked')}</p>
+          <p className="text-xs text-xp-text-secondary">{t('settings.versioning.noDirsTracked')}</p>
           <p className="text-xp-text-secondary/60 mt-0.5 text-[11px]">
             {t('settings.versioning.noDirsTrackedHint')}
           </p>
@@ -196,14 +196,14 @@ const VersioningSettings = () => {
               className="bg-xp-surface/50 border-xp-border/30 flex items-center justify-between gap-2 rounded-md border px-3 py-2"
             >
               <div className="flex min-w-0 items-center gap-2">
-                <FolderOpen size={14} className="text-xp-text-secondary shrink-0" />
-                <span className="text-xp-text truncate text-xs" title={dir}>
+                <FolderOpen size={14} className="shrink-0 text-xp-text-secondary" />
+                <span className="truncate text-xs text-xp-text" title={dir}>
                   {dir}
                 </span>
               </div>
               <button
                 onClick={() => removeDirectory(dir)}
-                className="text-xp-text-secondary flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-red-500/10 hover:text-red-400"
+                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-red-500/10 hover:text-xp-red"
                 title={t('settings.versioning.stopTracking')}
               >
                 <Trash2 size={13} />

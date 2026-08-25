@@ -331,7 +331,7 @@ const KeyboardShortcutsSettings = () => {
                           <div className="flex items-center gap-1">
                             <button
                               onClick={handleConfirmEdit}
-                              className="hover:bg-xp-accent/80 shrink-0 rounded bg-xp-accent px-2 py-1 text-xs font-medium text-white transition-colors"
+                              className="shrink-0 rounded bg-xp-accent px-2 py-1 text-xs font-medium text-white transition-colors hover:bg-xp-accent-hover"
                             >
                               {t('settings.shortcuts.save')}
                             </button>

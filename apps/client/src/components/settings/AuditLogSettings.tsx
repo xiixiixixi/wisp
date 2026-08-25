@@ -138,7 +138,7 @@ const AuditLogSettings = () => {
 
       <div className="flex flex-wrap items-end gap-3 px-4 py-2">
         <div className="flex flex-col gap-1">
-          <label className="text-xp-text-secondary flex items-center gap-1 text-xs">
+          <label className="flex items-center gap-1 text-xs text-xp-text-secondary">
             <Filter size={12} />
             {t('settings.audit.operationLabel')}
           </label>
@@ -150,7 +150,7 @@ const AuditLogSettings = () => {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xp-text-secondary flex items-center gap-1 text-xs">
+          <label className="flex items-center gap-1 text-xs text-xp-text-secondary">
             <Calendar size={12} />
             {t('settings.audit.fromLabel')}
           </label>
@@ -158,12 +158,12 @@ const AuditLogSettings = () => {
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            className="border-xp-border bg-xp-bg text-xp-text h-9 rounded-md border px-2 text-sm"
+            className="h-9 rounded-md border border-xp-border bg-xp-bg px-2 text-sm text-xp-text"
           />
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xp-text-secondary flex items-center gap-1 text-xs">
+          <label className="flex items-center gap-1 text-xs text-xp-text-secondary">
             <Calendar size={12} />
             {t('settings.audit.toLabel')}
           </label>
@@ -171,7 +171,7 @@ const AuditLogSettings = () => {
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
-            className="border-xp-border bg-xp-bg text-xp-text h-9 rounded-md border px-2 text-sm"
+            className="h-9 rounded-md border border-xp-border bg-xp-bg px-2 text-sm text-xp-text"
           />
         </div>
       </div>
@@ -189,10 +189,10 @@ const AuditLogSettings = () => {
 
       {/* Table */}
       <div className="px-4">
-        <div className="border-xp-border overflow-hidden rounded-lg border">
+        <div className="overflow-hidden rounded-lg border border-xp-border">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-xp-surface-light/50 text-xp-text-secondary text-xs uppercase tracking-wider">
+              <tr className="bg-xp-surface-light/50 text-xs uppercase tracking-wider text-xp-text-secondary">
                 <th className="px-3 py-2 text-left font-medium">
                   {t('settings.audit.colTimestamp')}
                 </th>
@@ -208,7 +208,7 @@ const AuditLogSettings = () => {
             <tbody>
               {entries.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-xp-text-secondary py-8 text-center text-sm">
+                  <td colSpan={4} className="py-8 text-center text-sm text-xp-text-secondary">
                     {loading ? t('settings.audit.loading') : t('settings.audit.noEntries')}
                   </td>
                 </tr>
@@ -218,7 +218,7 @@ const AuditLogSettings = () => {
                     key={entry.id}
                     className="border-xp-border/30 hover:bg-xp-surface-light/30 border-t transition-colors"
                   >
-                    <td className="text-xp-text-secondary whitespace-nowrap px-3 py-2 text-xs">
+                    <td className="whitespace-nowrap px-3 py-2 text-xs text-xp-text-secondary">
                       {formatTimestamp(entry.timestamp)}
                     </td>
                     <td className="px-3 py-2">
@@ -228,7 +228,7 @@ const AuditLogSettings = () => {
                         {entry.operation}
                       </span>
                     </td>
-                    <td className="text-xp-text max-w-[300px] px-3 py-2 text-xs">
+                    <td className="max-w-[300px] px-3 py-2 text-xs text-xp-text">
                       <div className="space-y-0.5">
                         {entry.paths.map((p) => (
                           <div key={p} className="truncate" title={p}>
@@ -237,14 +237,14 @@ const AuditLogSettings = () => {
                         ))}
                       </div>
                       {entry.details && (
-                        <div className="text-xp-text-secondary mt-0.5 italic">{entry.details}</div>
+                        <div className="mt-0.5 italic text-xp-text-secondary">{entry.details}</div>
                       )}
                     </td>
                     <td className="px-3 py-2 text-center">
                       {entry.success ? (
-                        <CheckCircle size={16} className="inline text-emerald-400" />
+                        <CheckCircle size={16} className="inline text-xp-green" />
                       ) : (
-                        <XCircle size={16} className="inline text-red-400" />
+                        <XCircle size={16} className="inline text-xp-red" />
                       )}
                     </td>
                   </tr>
@@ -258,21 +258,21 @@ const AuditLogSettings = () => {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between px-4 py-2">
-          <div className="text-xp-text-secondary text-xs">
+          <div className="text-xs text-xp-text-secondary">
             {t('settings.audit.pageOf', { page: page + 1, total: totalPages })}
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="text-xp-text-secondary hover:bg-xp-surface hover:text-xp-text rounded-md p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
+              className="rounded-md p-1.5 text-xp-text-secondary transition-colors hover:bg-xp-surface hover:text-xp-text disabled:cursor-not-allowed disabled:opacity-30"
             >
               <ChevronLeft size={16} />
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className="text-xp-text-secondary hover:bg-xp-surface hover:text-xp-text rounded-md p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
+              className="rounded-md p-1.5 text-xp-text-secondary transition-colors hover:bg-xp-surface hover:text-xp-text disabled:cursor-not-allowed disabled:opacity-30"
             >
               <ChevronRight size={16} />
             </button>
@@ -287,7 +287,7 @@ const AuditLogSettings = () => {
       <div className="flex flex-wrap items-center gap-3 px-4 py-2">
         <button
           onClick={handleExport}
-          className="bg-xp-accent/15 text-xp-accent hover:bg-xp-accent/25 flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors"
+          className="bg-xp-accent/15 hover:bg-xp-accent/25 flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-xp-accent transition-colors"
         >
           <Download size={16} />
           {t('settings.audit.exportCsv')}
@@ -298,8 +298,8 @@ const AuditLogSettings = () => {
           onBlur={() => setConfirmClear(false)}
           className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
             confirmClear
-              ? 'border border-red-500/40 bg-red-500/20 text-red-400'
-              : 'bg-red-500/10 text-red-400/70 hover:bg-red-500/20'
+              ? 'border border-red-500/40 bg-red-500/20 text-xp-red'
+              : 'text-xp-red/70 bg-red-500/10 hover:bg-red-500/20'
           }`}
         >
           <Trash2 size={16} />
@@ -309,7 +309,7 @@ const AuditLogSettings = () => {
 
       {exportStatus && (
         <div className="px-4 py-2">
-          <div className="text-xp-text-secondary bg-xp-surface rounded-md px-3 py-2 text-xs">
+          <div className="rounded-md bg-xp-surface px-3 py-2 text-xs text-xp-text-secondary">
             {exportStatus}
           </div>
         </div>
@@ -321,23 +321,23 @@ const AuditLogSettings = () => {
 const operationBadgeClass = (operation: string): string => {
   switch (operation) {
     case 'copy':
-      return 'bg-blue-500/15 text-blue-400';
+      return 'bg-blue-500/15 text-xp-blue';
     case 'move':
-      return 'bg-purple-500/15 text-purple-400';
+      return 'bg-purple-500/15 text-xp-purple';
     case 'rename':
-      return 'bg-cyan-500/15 text-cyan-400';
+      return 'bg-cyan-500/15 text-xp-cyan';
     case 'delete':
-      return 'bg-red-500/15 text-red-400';
+      return 'bg-red-500/15 text-xp-red';
     case 'secure_delete':
-      return 'bg-red-600/20 text-red-500';
+      return 'bg-red-600/20 text-xp-red';
     case 'compress':
-      return 'bg-amber-500/15 text-amber-400';
+      return 'bg-amber-500/15 text-xp-yellow';
     case 'extract':
-      return 'bg-amber-500/15 text-amber-400';
+      return 'bg-amber-500/15 text-xp-yellow';
     case 'encrypt':
-      return 'bg-emerald-500/15 text-emerald-400';
+      return 'bg-emerald-500/15 text-xp-green';
     case 'decrypt':
-      return 'bg-emerald-500/15 text-emerald-400';
+      return 'bg-emerald-500/15 text-xp-green';
     default:
       return 'bg-xp-surface text-xp-text-secondary';
   }

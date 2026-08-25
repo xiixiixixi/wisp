@@ -177,7 +177,7 @@ const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogP
           </button>
           <button
             onClick={handleOpen}
-            className="hover:bg-xp-accent/80 rounded-md bg-xp-accent px-4 py-2 text-sm font-medium text-white transition-colors"
+            className="rounded-md bg-xp-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-xp-accent-hover"
           >
             {t('openWith.open')}
           </button>

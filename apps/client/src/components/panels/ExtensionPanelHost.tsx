@@ -17,7 +17,7 @@ const ExtensionPanelHost = ({ panelId, builtinProps }: ExtensionPanelHostProps) 
     return panel.render(builtinProps || {});
   } catch (err) {
     return (
-      <div className="p-4 text-sm text-red-400">
+      <div className="p-4 text-sm text-xp-red">
         Error rendering panel "{panel.title}": {String(err)}
       </div>
     );

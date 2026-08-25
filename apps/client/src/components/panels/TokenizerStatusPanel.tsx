@@ -303,7 +303,7 @@ const TokenizerStatusPanel = () => {
                 </div>
               )}
               {aiStatus.is_processing && (
-                <div className="flex items-center gap-2 text-xs text-purple-400">
+                <div className="flex items-center gap-2 text-xs text-xp-purple">
                   <div className="h-3 w-3 animate-spin rounded-full border-b border-purple-400" />
                   <span className="truncate">
                     {t('panels.tokenizerStatus.processingLabel', {

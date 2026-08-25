@@ -195,7 +195,7 @@ const PermissionsSettings = ({
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2 text-sm font-medium text-xp-text">
-                  <code className="text-xp-accent/80 rounded bg-xp-surface px-1.5 py-0.5 font-mono text-[11px]">
+                  <code className="rounded bg-xp-surface px-1.5 py-0.5 font-mono text-[11px] text-xp-accent">
                     {toolName}
                   </code>
                   {t(keys.labelKey)}
@@ -224,7 +224,7 @@ const PermissionsSettings = ({
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2 text-sm font-medium text-xp-text">
-                  <code className="text-xp-accent/80 rounded bg-xp-surface px-1.5 py-0.5 font-mono text-[11px]">
+                  <code className="rounded bg-xp-surface px-1.5 py-0.5 font-mono text-[11px] text-xp-accent">
                     {toolName}
                   </code>
                   {t(keys.labelKey)}
@@ -311,7 +311,7 @@ const PermissionsSettings = ({
                 <span className="truncate">{p}</span>
                 <button
                   onClick={() => removeFromList('allowed_paths', i)}
-                  className="shrink-0 text-xs text-xp-text-secondary hover:text-red-400"
+                  className="shrink-0 text-xs text-xp-text-secondary hover:text-xp-red"
                 >
                   {t('common.remove')}
                 </button>
@@ -361,7 +361,7 @@ const PermissionsSettings = ({
                 <span className="truncate">{p}</span>
                 <button
                   onClick={() => removeFromList('blocked_paths', i)}
-                  className="shrink-0 text-xs text-xp-text-secondary hover:text-red-400"
+                  className="shrink-0 text-xs text-xp-text-secondary hover:text-xp-red"
                 >
                   {t('common.remove')}
                 </button>
@@ -411,7 +411,7 @@ const PermissionsSettings = ({
                 <span className="truncate">{c}</span>
                 <button
                   onClick={() => removeFromList('custom_blocked_commands', i)}
-                  className="shrink-0 text-xs text-xp-text-secondary hover:text-red-400"
+                  className="shrink-0 text-xs text-xp-text-secondary hover:text-xp-red"
                 >
                   {t('common.remove')}
                 </button>

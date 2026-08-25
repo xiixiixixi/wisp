@@ -294,16 +294,16 @@ const BackupRestoreSettings = () => {
 
       {importStatus.type === 'error' && (
         <div className="mx-4 mt-2 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
-          <AlertTriangle size={16} className="mt-0.5 shrink-0 text-red-400" />
+          <AlertTriangle size={16} className="mt-0.5 shrink-0 text-xp-red" />
           <div>
-            <div className="text-sm font-medium text-red-400">
+            <div className="text-sm font-medium text-xp-red">
               {t('settings.backup.importErrorTitle')}
             </div>
-            <div className="mt-0.5 text-xs text-red-400/80">{importStatus.message}</div>
+            <div className="mt-0.5 text-xs text-xp-red">{importStatus.message}</div>
           </div>
           <button
             onClick={handleCancelImport}
-            className="ml-auto shrink-0 text-xs text-red-400/60 transition-colors hover:text-red-400"
+            className="text-xp-red/60 ml-auto shrink-0 text-xs transition-colors hover:text-xp-red"
           >
             {t('settings.backup.dismiss')}
           </button>
@@ -353,10 +353,8 @@ const BackupRestoreSettings = () => {
           </div>
 
           <div className="mb-4 flex items-center gap-2 rounded-md border border-amber-500/20 bg-amber-500/10 p-2">
-            <AlertTriangle size={14} className="shrink-0 text-amber-400" />
-            <span className="text-xs text-amber-400/90">
-              {t('settings.backup.overwriteWarning')}
-            </span>
+            <AlertTriangle size={14} className="shrink-0 text-xp-yellow" />
+            <span className="text-xs text-xp-yellow">{t('settings.backup.overwriteWarning')}</span>
           </div>
 
           <div className="flex justify-end gap-2">
@@ -379,12 +377,12 @@ const BackupRestoreSettings = () => {
 
       {importStatus.type === 'success' && (
         <div className="mx-4 mt-2 flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
-          <CheckCircle size={16} className="shrink-0 text-emerald-400" />
+          <CheckCircle size={16} className="shrink-0 text-xp-green" />
           <div>
-            <div className="text-sm font-medium text-emerald-400">
+            <div className="text-sm font-medium text-xp-green">
               {t('settings.backup.importSuccessTitle')}
             </div>
-            <div className="mt-0.5 text-xs text-emerald-400/80">
+            <div className="mt-0.5 text-xs text-xp-green">
               {t('settings.backup.importSuccessDesc', { count: importStatus.count })}
             </div>
           </div>

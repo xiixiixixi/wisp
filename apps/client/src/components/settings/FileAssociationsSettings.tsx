@@ -18,12 +18,12 @@ const FileAssociationsSettings = () => {
   return (
     <div className="space-y-1">
       <SectionTitle title={t('settings.fileAssociations.title')} />
-      <p className="text-xp-text-secondary px-4 pb-2 text-xs">
+      <p className="px-4 pb-2 text-xs text-xp-text-secondary">
         {t('settings.fileAssociations.description')}
       </p>
 
       {entries.length === 0 ? (
-        <div className="text-xp-text-secondary px-4 py-6 text-center text-sm">
+        <div className="px-4 py-6 text-center text-sm text-xp-text-secondary">
           {t('settings.fileAssociations.noPreferences')}
         </div>
       ) : (
@@ -35,17 +35,17 @@ const FileAssociationsSettings = () => {
                 className="hover:bg-xp-surface-light/50 flex items-center justify-between rounded-lg px-3 py-2.5 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <FileCode size={16} className="text-xp-text-secondary shrink-0" />
+                  <FileCode size={16} className="shrink-0 text-xp-text-secondary" />
                   <div>
-                    <span className="text-xp-text text-sm font-medium">.{ext}</span>
-                    <span className="text-xp-text-secondary ml-2 text-xs">
+                    <span className="text-sm font-medium text-xp-text">.{ext}</span>
+                    <span className="ml-2 text-xs text-xp-text-secondary">
                       → {t(HANDLER_LABELS[handler])}
                     </span>
                   </div>
                 </div>
                 <button
                   onClick={() => clearPreference(ext)}
-                  className="text-xp-text-secondary rounded-md p-1.5 transition-colors hover:text-red-400"
+                  className="rounded-md p-1.5 text-xp-text-secondary transition-colors hover:text-xp-red"
                   title={t('settings.fileAssociations.reset')}
                   aria-label={t('settings.fileAssociations.resetExt', { ext })}
                 >
@@ -60,7 +60,7 @@ const FileAssociationsSettings = () => {
           <div className="px-4 py-2">
             <button
               onClick={clearAll}
-              className="text-xp-text-secondary text-sm transition-colors hover:text-red-400"
+              className="text-sm text-xp-text-secondary transition-colors hover:text-xp-red"
             >
               {t('settings.fileAssociations.resetAll')}
             </button>

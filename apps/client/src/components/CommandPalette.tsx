@@ -745,7 +745,7 @@ const CommandPaletteInner = ({
             onMouseEnter={() => setSelectedIndex(row.itemIndex)}
           >
             <span
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-500/15 text-violet-300"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-500/15 text-xp-purple"
               aria-hidden="true"
             >
               <Sparkles size={16} />
@@ -791,7 +791,7 @@ const CommandPaletteInner = ({
       if (isAssistantMode && !effectiveQuery) {
         return (
           <div className="flex flex-col items-center px-8 py-10 text-center">
-            <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-500/15 text-violet-300 ring-1 ring-violet-400/20">
+            <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-500/15 text-xp-purple ring-1 ring-violet-400/20">
               <Sparkles size={20} aria-hidden="true" />
             </span>
             <div className="text-sm font-medium text-xp-text">
@@ -844,10 +844,10 @@ const CommandPaletteInner = ({
         aria-modal="true"
         aria-label={t('commandPalette.title')}
       >
-        <div className="border-xp-border/80 flex items-center justify-between border-b px-[18px] py-3.5">
+        <div className="flex items-center justify-between border-b border-xp-border px-[18px] py-3.5">
           <div className="flex min-w-0 items-center gap-3">
             <span
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/25 to-blue-500/10 text-violet-300 ring-1 ring-violet-400/20"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/25 to-blue-500/10 text-xp-purple ring-1 ring-violet-400/20"
               aria-hidden="true"
             >
               <Sparkles size={17} />
@@ -861,7 +861,7 @@ const CommandPaletteInner = ({
               </div>
             </div>
           </div>
-          <span className="bg-xp-bg/60 ml-4 max-w-[180px] truncate rounded-full border border-xp-border px-2.5 py-1 text-[10px] text-xp-text-muted">
+          <span className="ml-4 max-w-[180px] truncate rounded-full border border-xp-border bg-xp-bg px-2.5 py-1 text-[10px] text-xp-text-muted">
             {locationLabel}
           </span>
         </div>
@@ -886,7 +886,7 @@ const CommandPaletteInner = ({
               onClick={() => switchMode(mode)}
               className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
                 activeMode === mode
-                  ? 'bg-violet-500/15 text-violet-200 ring-1 ring-inset ring-violet-400/20'
+                  ? 'bg-violet-500/15 text-xp-purple ring-1 ring-inset ring-violet-400/20'
                   : 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
               }`}
             >

@@ -145,8 +145,8 @@ export const PermToggle = ({ enabled, onChange }: { enabled: boolean; onChange: 
     onClick={onChange}
     className={`rounded-md px-3 py-1 text-xs font-semibold tracking-wide transition-all ${
       enabled
-        ? 'border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
-        : 'border border-red-500/20 bg-red-500/10 text-red-400/70 hover:bg-red-500/20'
+        ? 'border border-emerald-500/40 bg-emerald-500/20 text-xp-green hover:bg-emerald-500/30'
+        : 'border border-red-500/20 bg-red-500/10 text-xp-red hover:bg-red-500/20'
     }`}
   >
     {enabled ? 'ON' : 'OFF'}
@@ -229,7 +229,7 @@ export const SystemIntegrationSettings = () => {
         />
       </SettingRow>
       {isDefaultHandler && (
-        <div className="flex items-center gap-2 px-4 py-2 text-xs text-amber-400">
+        <div className="flex items-center gap-2 px-4 py-2 text-xs text-xp-yellow">
           <AlertTriangle size={12} />
           Folders will open in Wisp. Disable to restore Windows Explorer.
         </div>

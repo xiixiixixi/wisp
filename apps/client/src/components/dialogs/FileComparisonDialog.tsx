@@ -111,7 +111,7 @@ const FileComparisonDialog = ({
             <h3 className="text-sm font-medium text-xp-text-secondary">File 1</h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <FileIcon className="h-4 w-4 text-blue-500" />
+                <FileIcon className="h-4 w-4 text-xp-blue" />
                 <span className="truncate font-mono" title={file1.path}>
                   {file1.name}
                 </span>
@@ -131,7 +131,7 @@ const FileComparisonDialog = ({
             <h3 className="text-sm font-medium text-xp-text-secondary">File 2</h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <FileIcon className="h-4 w-4 text-green-500" />
+                <FileIcon className="h-4 w-4 text-xp-green" />
                 <span className="truncate font-mono" title={file2.path}>
                   {file2.name}
                 </span>
@@ -287,7 +287,7 @@ const FileComparisonDialog = ({
                   className="flex items-center gap-2 truncate text-sm font-medium"
                   title={file.path}
                 >
-                  <FileIcon className={`h-4 w-4 ${i === 0 ? 'text-blue-500' : 'text-green-500'}`} />
+                  <FileIcon className={`h-4 w-4 ${i === 0 ? 'text-xp-blue' : 'text-xp-green'}`} />
                   {file.name}
                   <span className="ml-auto text-xs text-xp-text-muted">
                     {formatFileSize(file.size)}
@@ -318,7 +318,7 @@ const FileComparisonDialog = ({
                   className="flex items-center gap-2 truncate text-sm font-medium"
                   title={file.path}
                 >
-                  <FileIcon className={`h-4 w-4 ${i === 0 ? 'text-blue-500' : 'text-green-500'}`} />
+                  <FileIcon className={`h-4 w-4 ${i === 0 ? 'text-xp-blue' : 'text-xp-green'}`} />
                   {file.name}
                   <span className="ml-auto text-xs text-xp-text-muted">
                     {formatFileSize(file.size)}

@@ -179,7 +179,7 @@ export const itemBaseStyle: React.CSSProperties = {
 
 export const itemSelectedStyle: React.CSSProperties = {
   ...itemBaseStyle,
-  backgroundColor: 'rgba(var(--xp-blue-rgb, 122, 162, 247), 0.2)',
+  backgroundColor: 'var(--xp-selection-bg)',
   color: 'var(--xp-text, #c0caf5)',
 };
 
@@ -196,12 +196,12 @@ export const iconWrapStyle: React.CSSProperties = {
 export const shortcutStyle: React.CSSProperties = {
   flexShrink: 0,
   fontSize: '11px',
-  color: 'var(--xp-text-muted, #565f89)',
+  color: 'var(--xp-text-secondary, #a9b1d6)',
   fontFamily: 'monospace',
-  backgroundColor: 'rgba(var(--xp-bg-rgb, 26, 27, 38), 0.5)',
+  backgroundColor: 'var(--xp-surface-light)',
   padding: '2px 6px',
   borderRadius: '4px',
-  border: '1px solid rgba(var(--xp-border-rgb, 41, 46, 66), 0.5)',
+  border: '1px solid var(--xp-border)',
 };
 
 export const timestampStyle: React.CSSProperties = {
@@ -224,9 +224,10 @@ export const starBtnBaseStyle: React.CSSProperties = {
 
 export const kbdStyle: React.CSSProperties = {
   padding: '2px 4px',
-  backgroundColor: 'rgba(var(--xp-bg-rgb, 26, 27, 38), 0.5)',
+  color: 'var(--xp-text-secondary, #a9b1d6)',
+  backgroundColor: 'var(--xp-surface-light)',
   borderRadius: '3px',
-  border: '1px solid rgba(var(--xp-border-rgb, 41, 46, 66), 0.5)',
+  border: '1px solid var(--xp-border)',
   fontSize: '10px',
   fontFamily: 'monospace',
 };
@@ -282,7 +283,7 @@ export const dialogStyle: React.CSSProperties = {
     'linear-gradient(165deg, color-mix(in srgb, var(--xp-popover, #1a1b2e) 96%, #7c3aed 4%), var(--xp-popover, #1a1b2e))',
   border: '1px solid color-mix(in srgb, var(--xp-border, #292e42) 70%, #8b5cf6 30%)',
   borderRadius: '16px',
-  boxShadow: '0 32px 90px -28px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(139, 92, 246, 0.08)',
+  boxShadow: 'var(--xp-shadow-popover)',
   overflow: 'hidden',
   backdropFilter: 'blur(24px)',
   WebkitBackdropFilter: 'blur(24px)',

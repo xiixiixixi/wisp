@@ -291,7 +291,7 @@ const ExtensionsPanel = ({ themes, theme, applyTheme }: ExtensionsPanelProps) =>
                         {ext.manifest.display_name || ext.manifest.name}
                         {ext.isDev && (
                           <span
-                            className="inline-flex items-center rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-emerald-400"
+                            className="inline-flex items-center rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-xp-green"
                             title={`${t('extensions.devWatching')} — ${t('extensions.devReloaded')}: ${ext.reloadCount ?? 0}`}
                           >
                             {t('extensions.devMode')}
@@ -299,7 +299,7 @@ const ExtensionsPanel = ({ themes, theme, applyTheme }: ExtensionsPanelProps) =>
                         )}
                         {update && (
                           <span
-                            className="inline-flex items-center rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-amber-400"
+                            className="inline-flex items-center rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-xp-yellow"
                             title={t('extensions.updateAvailable', {
                               version: update.latestVersion,
                             })}

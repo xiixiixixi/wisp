@@ -68,9 +68,7 @@ const RenamePatternForm = ({
               borderRadius: 6,
               border: `1px solid ${activeTemplateLabel === tmpl.label ? 'var(--xp-blue)' : 'var(--xp-border)'}`,
               background:
-                activeTemplateLabel === tmpl.label
-                  ? 'rgba(var(--xp-blue-rgb, 59, 130, 246), 0.15)'
-                  : 'var(--xp-bg)',
+                activeTemplateLabel === tmpl.label ? 'var(--xp-selection-bg)' : 'var(--xp-bg)',
               color: activeTemplateLabel === tmpl.label ? 'var(--xp-blue)' : 'var(--xp-text)',
               cursor: renaming ? 'not-allowed' : 'pointer',
               opacity: renaming ? 0.5 : 1,

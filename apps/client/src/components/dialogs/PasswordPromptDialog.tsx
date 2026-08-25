@@ -220,7 +220,7 @@ export const PasswordPromptDialog = ({
           >
             <div className="flex items-start space-x-2">
               <svg
-                className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-500"
+                className="mt-0.5 h-5 w-5 flex-shrink-0 text-xp-yellow"
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 aria-hidden="true"
@@ -232,8 +232,8 @@ export const PasswordPromptDialog = ({
                 />
               </svg>
               <div className="text-sm">
-                <p className="font-medium text-yellow-400">Security Notice</p>
-                <p className="mt-1 text-xs text-yellow-300">
+                <p className="font-medium text-xp-yellow">Security Notice</p>
+                <p className="mt-1 text-xs text-xp-yellow">
                   Passwords are stored securely in memory and are not saved to disk unless you
                   explicitly save the connection with a password.
                 </p>

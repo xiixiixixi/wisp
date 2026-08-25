@@ -128,18 +128,18 @@ const EncryptionDialog = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div
-        className="bg-xp-surface w-[480px] max-w-[90vw] overflow-hidden rounded-lg shadow-2xl"
+        className="w-[480px] max-w-[90vw] overflow-hidden rounded-lg bg-xp-surface shadow-2xl"
         onKeyDown={handleKeyDown}
       >
         {/* Header */}
-        <div className="border-xp-border flex items-center justify-between border-b p-6">
+        <div className="flex items-center justify-between border-b border-xp-border p-6">
           <div className="flex items-center space-x-3">
             {isEncrypt ? (
               <Lock size={20} className="text-xp-blue" />
             ) : (
               <Unlock size={20} className="text-xp-green" />
             )}
-            <h2 className="text-xp-text text-xl font-semibold">
+            <h2 className="text-xl font-semibold text-xp-text">
               {isEncrypt
                 ? t('dialogs.encryption.titleEncrypt')
                 : t('dialogs.encryption.titleDecrypt')}
@@ -148,7 +148,7 @@ const EncryptionDialog = ({
           <button
             onClick={handleClose}
             disabled={processing}
-            className="hover:bg-xp-surface-light rounded-md p-2 transition-colors disabled:opacity-50"
+            className="rounded-md p-2 transition-colors hover:bg-xp-surface-light disabled:opacity-50"
             aria-label={t('dialogs.encryption.closeAriaLabel')}
           >
             <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
@@ -164,23 +164,23 @@ const EncryptionDialog = ({
         {/* Content */}
         <div className="space-y-5 p-6">
           {/* File info */}
-          <div className="bg-xp-bg rounded-lg p-4">
-            <div className="text-xp-text-muted mb-1 text-sm">
+          <div className="rounded-lg bg-xp-bg p-4">
+            <div className="mb-1 text-sm text-xp-text-muted">
               {t('dialogs.encryption.fileLabel')}
             </div>
-            <div className="text-xp-text truncate text-sm font-medium" title={filePath}>
+            <div className="truncate text-sm font-medium text-xp-text" title={filePath}>
               {fileName}
             </div>
           </div>
 
           {/* Description */}
-          <p className="text-xp-text-muted text-sm">
+          <p className="text-sm text-xp-text-muted">
             {isEncrypt ? t('dialogs.encryption.descEncrypt') : t('dialogs.encryption.descDecrypt')}
           </p>
 
           {/* Password field */}
           <div>
-            <label className="text-xp-text mb-2 block text-sm font-medium">
+            <label className="mb-2 block text-sm font-medium text-xp-text">
               {t('dialogs.encryption.passwordLabel')}
             </label>
             <div className="relative">
@@ -191,7 +191,7 @@ const EncryptionDialog = ({
                   setPassword(e.target.value);
                   setError(null);
                 }}
-                className="border-xp-border bg-xp-bg text-xp-text focus:ring-xp-blue focus:border-xp-blue w-full rounded-md border px-3 py-2 pr-10 focus:ring-2"
+                className="w-full rounded-md border border-xp-border bg-xp-bg px-3 py-2 pr-10 text-xp-text focus:border-xp-blue focus:ring-2 focus:ring-xp-blue"
                 placeholder={t('dialogs.encryption.passwordPlaceholder')}
                 autoFocus
                 disabled={processing}
@@ -199,7 +199,7 @@ const EncryptionDialog = ({
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="text-xp-text-muted hover:text-xp-text absolute right-2 top-1/2 -translate-y-1/2 p-1 transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-xp-text-muted transition-colors hover:text-xp-text"
                 aria-label={
                   showPassword
                     ? t('dialogs.encryption.hidePassword')
@@ -215,7 +215,7 @@ const EncryptionDialog = ({
           {/* Confirm password field (encrypt mode only) */}
           {isEncrypt && (
             <div>
-              <label className="text-xp-text mb-2 block text-sm font-medium">
+              <label className="mb-2 block text-sm font-medium text-xp-text">
                 {t('dialogs.encryption.confirmPasswordLabel')}
               </label>
               <div className="relative">
@@ -226,14 +226,14 @@ const EncryptionDialog = ({
                     setConfirmPassword(e.target.value);
                     setError(null);
                   }}
-                  className="border-xp-border bg-xp-bg text-xp-text focus:ring-xp-blue focus:border-xp-blue w-full rounded-md border px-3 py-2 pr-10 focus:ring-2"
+                  className="w-full rounded-md border border-xp-border bg-xp-bg px-3 py-2 pr-10 text-xp-text focus:border-xp-blue focus:ring-2 focus:ring-xp-blue"
                   placeholder={t('dialogs.encryption.confirmPasswordPlaceholder')}
                   disabled={processing}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="text-xp-text-muted hover:text-xp-text absolute right-2 top-1/2 -translate-y-1/2 p-1 transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-xp-text-muted transition-colors hover:text-xp-text"
                   aria-label={
                     showConfirmPassword
                       ? t('dialogs.encryption.hideConfirmPassword')
@@ -250,16 +250,16 @@ const EncryptionDialog = ({
           {/* Error message */}
           {error && (
             <div className="flex items-start space-x-2 rounded-md border border-red-500 border-opacity-30 bg-red-500 bg-opacity-10 p-3">
-              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-red-400" />
-              <span className="text-sm text-red-400">{error}</span>
+              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-xp-red" />
+              <span className="text-sm text-xp-red">{error}</span>
             </div>
           )}
 
           {/* Processing indicator */}
           {processing && (
             <div className="flex items-center justify-center py-2">
-              <div className="border-xp-blue h-5 w-5 animate-spin rounded-full border-b-2" />
-              <span className="text-xp-text-muted ml-3 text-sm">
+              <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-xp-blue" />
+              <span className="ml-3 text-sm text-xp-text-muted">
                 {isEncrypt
                   ? t('dialogs.encryption.encrypting')
                   : t('dialogs.encryption.decrypting')}
@@ -269,11 +269,11 @@ const EncryptionDialog = ({
         </div>
 
         {/* Footer */}
-        <div className="border-xp-border bg-xp-bg flex justify-end space-x-3 border-t p-6">
+        <div className="flex justify-end space-x-3 border-t border-xp-border bg-xp-bg p-6">
           <button
             onClick={handleClose}
             disabled={processing}
-            className="text-xp-text hover:bg-xp-surface-light rounded px-4 py-2 transition-colors disabled:opacity-50"
+            className="rounded px-4 py-2 text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
             aria-label={t('common.cancel')}
           >
             {t('common.cancel')}
@@ -281,7 +281,7 @@ const EncryptionDialog = ({
           <button
             onClick={handleSubmit}
             disabled={processing || !password}
-            className="bg-xp-blue hover:bg-xp-blue-dark flex items-center space-x-2 rounded px-4 py-2 text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center space-x-2 rounded bg-xp-blue px-4 py-2 text-white transition-colors hover:bg-xp-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={
               isEncrypt
                 ? t('dialogs.encryption.encryptFileAriaLabel')

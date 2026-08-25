@@ -774,7 +774,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                       key={tc.id}
                       className="rounded-lg border border-yellow-500/40 bg-yellow-500/5 p-3"
                     >
-                      <p className="mb-1.5 text-xs font-medium text-yellow-400">
+                      <p className="mb-1.5 text-xs font-medium text-xp-yellow">
                         {t('home.approve')}: {tc.name}
                       </p>
                       <p className="mb-2 truncate font-mono text-xs text-xp-text-muted">

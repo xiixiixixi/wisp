@@ -105,7 +105,7 @@ export const SelectByExtensionDialog = ({
                   <button
                     key={type.label}
                     onClick={() => selectCategory(type.extensions)}
-                    className="hover:bg-xp-primary/20 rounded-md border border-xp-border bg-xp-bg px-3 py-1.5 text-sm transition-colors"
+                    className="hover:bg-xp-accent/20 rounded-md border border-xp-border bg-xp-bg px-3 py-1.5 text-sm transition-colors"
                   >
                     {type.label}
                   </button>
@@ -127,7 +127,7 @@ export const SelectByExtensionDialog = ({
                   key={ext}
                   className={`flex cursor-pointer items-center gap-2 rounded p-2 transition-colors ${
                     selectedExtensions.has(ext)
-                      ? 'bg-xp-primary/20 border-xp-primary border'
+                      ? 'border border-xp-accent bg-blue-500/20'
                       : 'border border-transparent bg-xp-bg hover:bg-xp-surface-light'
                   }`}
                 >
@@ -163,7 +163,7 @@ export const SelectByExtensionDialog = ({
               <button
                 onClick={addCustomExtension}
                 disabled={!customExtension.trim()}
-                className="bg-xp-primary rounded-md px-4 py-2 text-sm text-white disabled:opacity-50"
+                className="rounded-md bg-xp-accent px-4 py-2 text-sm text-white disabled:opacity-50"
               >
                 {t('advancedSelection.dialog.add')}
               </button>
@@ -188,7 +188,7 @@ export const SelectByExtensionDialog = ({
                 {Array.from(selectedExtensions).map((ext) => (
                   <span
                     key={ext}
-                    className="bg-xp-primary/20 text-xp-primary inline-flex items-center gap-1 rounded px-2 py-1 text-sm"
+                    className="inline-flex items-center gap-1 rounded bg-blue-500/20 px-2 py-1 text-sm text-xp-accent"
                   >
                     .{ext}
                     <button onClick={() => toggleExtension(ext)} className="hover:text-xp-text">
@@ -224,7 +224,7 @@ export const SelectByExtensionDialog = ({
           <button
             onClick={handleSelect}
             disabled={selectedExtensions.size === 0}
-            className="bg-xp-primary rounded-md px-4 py-2 text-sm text-white disabled:opacity-50"
+            className="rounded-md bg-xp-accent px-4 py-2 text-sm text-white disabled:opacity-50"
           >
             {t('advancedSelection.dialog.selectFiles')}
           </button>

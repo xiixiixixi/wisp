@@ -313,7 +313,7 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
                       e.stopPropagation();
                       handleDeleteNote(note.id);
                     }}
-                    className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-red-400"
+                    className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-red"
                     title="Delete"
                   >
                     <Trash2 className="h-3 w-3" />
@@ -419,7 +419,7 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
         )}
 
         {error && (
-          <p className="rounded border border-red-400 border-opacity-30 bg-red-400 bg-opacity-10 px-2 py-1 text-xs text-red-400">
+          <p className="rounded border border-red-400 border-opacity-30 bg-red-400 bg-opacity-10 px-2 py-1 text-xs text-xp-red">
             {error}
           </p>
         )}
@@ -535,7 +535,7 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
                     >
                       <button
                         onClick={() => handleToggleResolved(a.id)}
-                        className="mt-0.5 flex-shrink-0 text-xp-text-muted transition-colors hover:text-green-400"
+                        className="mt-0.5 flex-shrink-0 text-xp-text-muted transition-colors hover:text-xp-green"
                         title={t('dialogs.fileDetails.markResolved')}
                       >
                         <Circle className="h-4 w-4" />
@@ -548,7 +548,7 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
                       </div>
                       <button
                         onClick={() => handleDelete(a.id)}
-                        className="flex-shrink-0 rounded p-1 text-xp-text-muted opacity-0 transition-all hover:bg-xp-surface-light hover:text-red-400 group-hover:opacity-100"
+                        className="flex-shrink-0 rounded p-1 text-xp-text-muted opacity-0 transition-all hover:bg-xp-surface-light hover:text-xp-red group-hover:opacity-100"
                         title="Delete"
                       >
                         <Trash2 className="h-3 w-3" />
@@ -570,7 +570,7 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
                     >
                       <button
                         onClick={() => handleToggleResolved(a.id)}
-                        className="mt-0.5 flex-shrink-0 text-green-400 transition-colors hover:text-xp-text-muted"
+                        className="mt-0.5 flex-shrink-0 text-xp-green transition-colors hover:text-xp-text-muted"
                         title={t('dialogs.fileDetails.unresolve')}
                       >
                         <CheckCircle className="h-4 w-4" />
@@ -583,7 +583,7 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
                       </div>
                       <button
                         onClick={() => handleDelete(a.id)}
-                        className="flex-shrink-0 rounded p-1 text-xp-text-muted opacity-0 transition-all hover:bg-xp-surface-light hover:text-red-400 group-hover:opacity-100"
+                        className="flex-shrink-0 rounded p-1 text-xp-text-muted opacity-0 transition-all hover:bg-xp-surface-light hover:text-xp-red group-hover:opacity-100"
                         title="Delete"
                       >
                         <Trash2 className="h-3 w-3" />
@@ -597,7 +597,7 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
         })()}
 
         {error && (
-          <p className="rounded border border-red-400 border-opacity-30 bg-red-400 bg-opacity-10 px-2 py-1 text-xs text-red-400">
+          <p className="rounded border border-red-400 border-opacity-30 bg-red-400 bg-opacity-10 px-2 py-1 text-xs text-xp-red">
             {error}
           </p>
         )}
@@ -852,7 +852,7 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
 
                   <button
                     onClick={() => handleRemoveField(field._localId)}
-                    className="rounded p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-red-400"
+                    className="rounded p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-red"
                     title={t('dialogs.fileDetails.removeField')}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -872,7 +872,7 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
         </button>
 
         {error && (
-          <p className="rounded border border-red-400 border-opacity-30 bg-red-400 bg-opacity-10 px-2 py-1 text-xs text-red-400">
+          <p className="rounded border border-red-400 border-opacity-30 bg-red-400 bg-opacity-10 px-2 py-1 text-xs text-xp-red">
             {error}
           </p>
         )}

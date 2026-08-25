@@ -808,7 +808,7 @@ export const GroupedSearchResults = ({
                         )}
                         <button
                           onClick={(e) => onFindSimilar(e, result.path)}
-                          className="mt-1 text-xs text-indigo-400 transition-colors hover:text-indigo-300"
+                          className="mt-1 text-xs text-xp-blue transition-colors hover:text-xp-accent-hover"
                           title={t('explorer.searchFilter.findSimilarTitle')}
                         >
                           {t('explorer.searchFilter.findSimilar')}

@@ -586,7 +586,7 @@ const Toolbar = ({
         border: 'none',
         cursor: canUndo && !actionInProgress ? 'pointer' : 'default',
         color: canUndo ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
-        backgroundColor: canUndo ? 'rgba(var(--xp-blue-rgb, 96,165,250), 0.12)' : 'transparent',
+        backgroundColor: canUndo ? 'var(--xp-selection-bg)' : 'transparent',
         opacity: canUndo && !actionInProgress ? 1 : 0.5,
       }}
     >

@@ -176,7 +176,7 @@ const BottomPanel = ({
           >
             {getTabLabel(tab)}
             {tab === 'changes' && fileChanges && fileChanges.totalCount > 0 && (
-              <span className="ml-0.5 rounded bg-yellow-500/20 px-1 text-[10px] font-bold text-yellow-400">
+              <span className="ml-0.5 rounded bg-yellow-500/20 px-1 text-[10px] font-bold text-xp-yellow">
                 {fileChanges.totalCount}
               </span>
             )}
@@ -276,7 +276,7 @@ const BottomPanel = ({
                 ) : (
                   <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
                     <svg
-                      className="mr-2 h-4 w-4 text-green-400"
+                      className="mr-2 h-4 w-4 text-xp-green"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >

@@ -131,7 +131,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
   if (error) {
     return (
       <div className="flex h-full items-center justify-center gap-2 text-xs text-xp-text-muted">
-        <span className="text-red-400">{t('panels.properties.errorPrefix', { error })}</span>
+        <span className="text-xp-red">{t('panels.properties.errorPrefix', { error })}</span>
         <button
           onClick={loadProperties}
           className="rounded bg-xp-blue px-2 py-0.5 text-[10px] text-white hover:bg-xp-blue-dark"
@@ -424,7 +424,7 @@ const PermBadge = ({ label, value }: { label: string; value: boolean }) => {
   return (
     <div
       className={`flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium ${
-        value ? 'bg-xp-green/10 text-green-400' : 'bg-red-500/10 text-red-400'
+        value ? 'bg-green-500/10 text-xp-green' : 'bg-red-500/10 text-xp-red'
       }`}
     >
       <span>{value ? '\u2713' : '\u2717'}</span>

@@ -596,7 +596,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
     const getRelevanceBadge = (relevanceType: string): { label: string; color: string } => {
       switch (relevanceType) {
         case 'exact':
-          return { label: 'Exact', color: 'bg-xp-green' };
+          return { label: 'Exact', color: 'bg-green-500' };
         case 'semantic':
           return { label: 'Semantic', color: 'bg-indigo-500' };
         case 'fuzzy':
@@ -608,7 +608,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
         case 'ai_reranked':
           return { label: 'AI Ranked', color: 'bg-purple-500' };
         default:
-          return { label: relevanceType, color: 'bg-xp-blue' };
+          return { label: relevanceType, color: 'bg-blue-500' };
       }
     };
 
@@ -724,7 +724,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                 onClick={() => setShowProviderMenu(!showProviderMenu)}
                 className={`flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs transition-colors ${
                   searchProvider !== 'local'
-                    ? 'border border-purple-500 border-opacity-30 bg-purple-500 bg-opacity-20 text-purple-400'
+                    ? 'border border-purple-500 border-opacity-30 bg-purple-500 bg-opacity-20 text-xp-purple'
                     : 'text-xp-text-muted hover:text-xp-text'
                 }`}
                 title={`Search provider: ${PROVIDER_LABELS[searchProvider]}`}
@@ -747,7 +747,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                           setShowProviderMenu(false);
                         }}
                         className={`w-full px-3 py-1.5 text-left text-xs transition-colors hover:bg-xp-surface-light ${
-                          searchProvider === p ? 'bg-xp-blue bg-opacity-20 text-xp-blue' : ''
+                          searchProvider === p ? 'bg-blue-500 bg-opacity-20 text-xp-blue' : ''
                         }`}
                       >
                         {PROVIDER_LABELS[p]}
@@ -770,7 +770,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                 }}
                 className={`rounded px-1.5 py-0.5 text-xs transition-colors ${
                   searchScope === 'everywhere'
-                    ? 'border border-teal-500 border-opacity-30 bg-teal-500 bg-opacity-20 text-teal-400'
+                    ? 'border border-teal-500 border-opacity-30 bg-teal-500 bg-opacity-20 text-xp-cyan'
                     : 'text-xp-text-muted hover:text-xp-text'
                 }`}
                 title={
@@ -793,7 +793,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
               }}
               className={`rounded px-1.5 py-0.5 text-xs transition-colors ${
                 searchContent
-                  ? 'border border-blue-500 border-opacity-30 bg-blue-500 bg-opacity-20 text-blue-400'
+                  ? 'border border-blue-500 border-opacity-30 bg-blue-500 bg-opacity-20 text-xp-blue'
                   : 'text-xp-text-muted hover:text-xp-text'
               }`}
               title={
@@ -816,7 +816,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
             {query.trim() && (
               <button
                 onClick={handleSaveSearch}
-                className="text-xp-text-muted transition-colors hover:text-yellow-400"
+                className="text-xp-text-muted transition-colors hover:text-xp-yellow"
                 title={t('smartSearch.saveSearchTitle')}
               >
                 <Star size={14} />
@@ -831,7 +831,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                   setShowResults(false);
                 }}
                 className={`transition-colors ${
-                  showSavedSearches ? 'text-yellow-400' : 'text-xp-text-muted hover:text-xp-text'
+                  showSavedSearches ? 'text-xp-yellow' : 'text-xp-text-muted hover:text-xp-text'
                 }`}
                 title={t('smartSearch.savedSearchesTitle')}
               >
@@ -876,12 +876,12 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                 <span
                   key={`token-${chip.key}-${chip.rawValue}`}
                   className={`rounded-full px-2 py-0.5 text-xs font-medium ${(() => {
-                    if (chip.variant === 'kind') return 'bg-blue-500 bg-opacity-20 text-blue-400';
-                    if (chip.variant === 'size') return 'bg-xp-green bg-opacity-20 text-green-400';
+                    if (chip.variant === 'kind') return 'bg-blue-500 bg-opacity-20 text-xp-blue';
+                    if (chip.variant === 'size') return 'bg-green-500 bg-opacity-20 text-xp-green';
                     if (chip.variant === 'date') {
-                      return 'bg-orange-500 bg-opacity-20 text-orange-400';
+                      return 'bg-orange-500 bg-opacity-20 text-xp-orange';
                     }
-                    return 'bg-purple-500 bg-opacity-20 text-purple-400';
+                    return 'bg-purple-500 bg-opacity-20 text-xp-purple';
                   })()}`}
                 >
                   {chip.key}:{chip.rawValue}
@@ -893,12 +893,12 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                   <span
                     key={`nl-${chip.type}-${chip.label}`}
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${(() => {
-                      if (chip.type === 'type') return 'bg-blue-500 bg-opacity-20 text-blue-400';
-                      if (chip.type === 'size') return 'bg-xp-green bg-opacity-20 text-green-400';
+                      if (chip.type === 'type') return 'bg-blue-500 bg-opacity-20 text-xp-blue';
+                      if (chip.type === 'size') return 'bg-green-500 bg-opacity-20 text-xp-green';
                       if (chip.type === 'date') {
-                        return 'bg-orange-500 bg-opacity-20 text-orange-400';
+                        return 'bg-orange-500 bg-opacity-20 text-xp-orange';
                       }
-                      return 'bg-purple-500 bg-opacity-20 text-purple-400';
+                      return 'bg-purple-500 bg-opacity-20 text-xp-purple';
                     })()}`}
                   >
                     {chip.label}
@@ -944,13 +944,13 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                           const badge = getRelevanceBadge(result.relevance_type);
                           return (
                             <span
-                              className={`text-xs ${badge.color} rounded bg-opacity-20 px-1.5 py-0.5 text-white`}
+                              className={`text-xs ${badge.color} rounded bg-opacity-20 px-1.5 py-0.5 text-xp-text`}
                             >
                               {badge.label}
                             </span>
                           );
                         })()}
-                        <span className="rounded bg-xp-blue bg-opacity-20 px-1.5 py-0.5 text-xs text-xp-blue">
+                        <span className="rounded bg-blue-500 bg-opacity-20 px-1.5 py-0.5 text-xs text-xp-blue">
                           {result.score.toFixed(1)}
                         </span>
                       </div>
@@ -983,7 +983,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                     )}
                     <button
                       onClick={(e) => handleFindSimilar(e, result.path)}
-                      className="mt-1 text-xs text-indigo-400 transition-colors hover:text-indigo-300"
+                      className="mt-1 text-xs text-xp-blue transition-colors hover:text-xp-accent-hover"
                       title={t('smartSearch.findSimilarTitle')}
                     >
                       {t('smartSearch.findSimilar')}
@@ -1124,7 +1124,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                         setSearchProvider('claude');
                         debouncedSearch(query);
                       }}
-                      className="mt-2 text-xs text-purple-400 hover:text-purple-300"
+                      className="mt-2 text-xs text-xp-purple hover:text-xp-accent-hover"
                     >
                       {t('smartSearch.tryAiSearch')}
                     </button>
@@ -1147,7 +1147,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                         setSearchProvider('claude');
                         debouncedSearch(query);
                       }}
-                      className="mt-2 text-xs text-purple-400 hover:text-purple-300"
+                      className="mt-2 text-xs text-xp-purple hover:text-xp-accent-hover"
                     >
                       {t('smartSearch.tryAiSearch')}
                     </button>

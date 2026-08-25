@@ -41,7 +41,7 @@ const UndoPositionMarker = React.forwardRef<HTMLDivElement>((_props, ref) => (
       alignItems: 'center',
       gap: '6px',
       padding: '2px 10px',
-      backgroundColor: 'rgba(var(--xp-blue-rgb, 96,165,250), 0.08)',
+      backgroundColor: 'var(--xp-selection-bg)',
     }}
   >
     <div

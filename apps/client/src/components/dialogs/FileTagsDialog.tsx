@@ -236,7 +236,7 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
 
           {/* Error */}
           {error && (
-            <p className="rounded border border-red-400 border-opacity-30 bg-red-400 bg-opacity-10 px-2 py-1 text-xs text-red-400">
+            <p className="rounded border border-red-400 border-opacity-30 bg-red-400 bg-opacity-10 px-2 py-1 text-xs text-xp-red">
               {error}
             </p>
           )}

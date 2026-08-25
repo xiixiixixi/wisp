@@ -114,7 +114,7 @@ export const SelectByDateDialog = ({
                   onClick={() => applyPreset(preset)}
                   className={`rounded-md px-3 py-2 text-sm transition-colors ${
                     selectedPreset === preset.label
-                      ? 'bg-xp-primary text-white'
+                      ? 'bg-xp-accent text-white'
                       : 'border border-xp-border bg-xp-bg hover:bg-xp-surface-light'
                   }`}
                 >
@@ -165,11 +165,11 @@ export const SelectByDateDialog = ({
 
           {/* Preview Count */}
           {dateFrom && dateTo && (
-            <div className="bg-xp-primary/10 border-xp-primary/30 flex items-center justify-between rounded-md border p-3">
+            <div className="flex items-center justify-between rounded-md border border-blue-500/30 bg-blue-500/10 p-3">
               <span className="text-sm text-xp-text">
                 {t('advancedSelection.dialog.filesMatching')}
               </span>
-              <span className="text-xp-primary text-lg font-semibold">{matchCount}</span>
+              <span className="text-lg font-semibold text-xp-accent">{matchCount}</span>
             </div>
           )}
         </div>
@@ -189,7 +189,7 @@ export const SelectByDateDialog = ({
             <button
               onClick={handleSelect}
               disabled={!dateFrom || !dateTo || matchCount === 0}
-              className="bg-xp-primary rounded-md px-4 py-2 text-sm text-white disabled:opacity-50"
+              className="rounded-md bg-xp-accent px-4 py-2 text-sm text-white disabled:opacity-50"
             >
               {t('advancedSelection.dialog.selectNFiles', { count: matchCount })}
             </button>

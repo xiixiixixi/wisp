@@ -72,7 +72,7 @@ const BatchConfirmDialog = ({
   > = {
     delete: {
       label: t('dialogs.batchConfirm.operationDelete'),
-      icon: <Trash2 size={20} className="text-red-400" />,
+      icon: <Trash2 size={20} className="text-xp-red" />,
       destructive: true,
       warning: t('dialogs.batchConfirm.warningDelete'),
       confirmLabel: t('dialogs.batchConfirm.confirmDelete'),
@@ -94,7 +94,7 @@ const BatchConfirmDialog = ({
     },
     'secure-delete': {
       label: t('dialogs.batchConfirm.operationSecureDelete'),
-      icon: <ShieldAlert size={20} className="text-red-400" />,
+      icon: <ShieldAlert size={20} className="text-xp-red" />,
       destructive: true,
       warning: t('dialogs.batchConfirm.warningSecureDelete'),
       confirmLabel: t('dialogs.batchConfirm.confirmSecureDelete'),
@@ -180,8 +180,8 @@ const BatchConfirmDialog = ({
         {/* Warning Banner (destructive ops only) */}
         {meta.destructive && meta.warning && (
           <div className="mx-5 mt-4 flex shrink-0 items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
-            <AlertTriangle size={18} className="mt-0.5 shrink-0 text-red-400" />
-            <p id="batch-confirm-warning" className="text-sm text-red-300">
+            <AlertTriangle size={18} className="mt-0.5 shrink-0 text-xp-red" />
+            <p id="batch-confirm-warning" className="text-sm text-xp-red">
               {meta.warning}
             </p>
           </div>

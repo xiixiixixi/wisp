@@ -286,7 +286,7 @@ const InputToast = ({
           <button
             onClick={handleSubmit}
             disabled={!value.trim()}
-            className="rounded bg-xp-blue px-3 py-1 text-xs text-white transition-colors hover:bg-opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded bg-xp-blue px-3 py-1 text-xs text-white transition-colors hover:bg-xp-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
           >
             {submitText}
           </button>
@@ -362,7 +362,7 @@ const InputPromptContent = ({
           }
         }}
         placeholder={placeholder}
-        className="focus:ring-xp-blue/20 w-full rounded-xl border border-xp-border bg-xp-bg px-4 py-3 text-sm text-xp-text shadow-inner outline-none transition placeholder:text-xp-text-muted focus:border-xp-blue focus:ring-4"
+        className="w-full rounded-xl border border-xp-border bg-xp-bg px-4 py-3 text-sm text-xp-text shadow-inner outline-none transition placeholder:text-xp-text-muted focus:border-xp-blue focus:ring-4 focus:ring-xp-blue"
         autoFocus
         autoComplete="off"
         spellCheck={false}

@@ -250,7 +250,7 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
                       />
                       <button
                         onClick={() => handleUpdate(node.category.id)}
-                        className="rounded p-1 text-green-400 transition-colors hover:bg-xp-surface-light"
+                        className="rounded p-1 text-xp-green transition-colors hover:bg-xp-surface-light"
                       >
                         <Check className="h-3 w-3" />
                       </button>
@@ -284,7 +284,7 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
                         </button>
                         <button
                           onClick={() => handleDelete(node.category.id)}
-                          className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-red-400"
+                          className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-red"
                           title="Delete"
                           aria-label={`Delete category ${node.category.name}`}
                         >
@@ -383,7 +383,7 @@ const TagCategoryDialog = ({ isOpen, onClose }: TagCategoryDialogProps) => {
 
           {/* Error */}
           {error && (
-            <p className="rounded border border-red-400 border-opacity-30 bg-red-400 bg-opacity-10 px-2 py-1 text-xs text-red-400">
+            <p className="rounded border border-red-400 border-opacity-30 bg-red-400 bg-opacity-10 px-2 py-1 text-xs text-xp-red">
               {error}
             </p>
           )}

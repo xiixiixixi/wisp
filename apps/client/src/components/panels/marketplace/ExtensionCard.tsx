@@ -66,7 +66,7 @@ const ExtensionCard = React.memo(
               <h4 className="truncate text-sm font-medium text-xp-text">{extension.displayName}</h4>
               <div className="flex-shrink-0">
                 {isDev ? (
-                  <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
+                  <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-xp-green">
                     Dev Mode
                   </span>
                 ) : isInstalled ? (

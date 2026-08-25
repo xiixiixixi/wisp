@@ -526,8 +526,8 @@ const ExtensionPermissionDialog = () => {
                     borderRadius: '8px',
                     backgroundColor: isDangerous
                       ? 'rgba(249, 115, 22, 0.06)'
-                      : 'rgba(255, 255, 255, 0.02)',
-                    border: `1px solid ${isDangerous ? 'rgba(249, 115, 22, 0.15)' : 'rgba(var(--xp-border-rgb, 41, 46, 66), 0.3)'}`,
+                      : 'var(--xp-surface-light)',
+                    border: `1px solid ${isDangerous ? 'rgba(249, 115, 22, 0.15)' : 'var(--xp-border)'}`,
                   }}
                 >
                   <div
@@ -611,7 +611,7 @@ const ExtensionPermissionDialog = () => {
               fontWeight: 500,
               borderRadius: '8px',
               cursor: 'pointer',
-              border: '1px solid rgba(var(--xp-border-rgb, 41, 46, 66), 0.5)',
+              border: '1px solid var(--xp-border)',
               backgroundColor: 'transparent',
               color: 'var(--xp-text, #c0caf5)',
               transition: 'background-color 0.15s',

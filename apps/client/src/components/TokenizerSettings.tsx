@@ -253,7 +253,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
           className={`rounded-md px-4 py-2 transition-colors ${
             settings.enabled
               ? 'bg-green-600 text-white hover:bg-green-700'
-              : 'bg-xp-surface-light text-white hover:bg-xp-border'
+              : 'bg-xp-surface-light text-xp-text hover:bg-xp-border'
           }`}
         >
           {settings.enabled ? t('settings.tokenizer.enabled') : t('settings.tokenizer.disabled')}
@@ -271,7 +271,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
           className={`rounded-md px-4 py-2 transition-colors ${
             autoWhitelist
               ? 'bg-green-600 text-white hover:bg-green-700'
-              : 'bg-xp-surface-light text-white hover:bg-xp-border'
+              : 'bg-xp-surface-light text-xp-text hover:bg-xp-border'
           }`}
         >
           {autoWhitelist ? t('settings.tokenizer.enabled') : t('settings.tokenizer.disabled')}
@@ -373,7 +373,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
               <span className="font-mono text-sm">{path}</span>
               <button
                 onClick={() => removeWhitelistedPath(path)}
-                className="p-1 text-red-500 hover:text-red-400"
+                className="p-1 text-xp-red"
                 title={t('settings.tokenizer.removePathTitle')}
               >
                 ×
@@ -421,7 +421,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
               .{ext}
               <button
                 onClick={() => removeBlacklistedExtension(ext)}
-                className="ml-2 text-red-500 hover:text-red-400"
+                className="ml-2 text-xp-red"
                 title={t('settings.tokenizer.removeExtensionTitle')}
               >
                 ×
@@ -461,7 +461,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
               <span className="font-mono text-sm">{path}</span>
               <button
                 onClick={() => removeBlacklistedPath(path)}
-                className="p-1 text-red-500 hover:text-red-400"
+                className="p-1 text-xp-red"
                 title={t('settings.tokenizer.removeBlacklistPathTitle')}
               >
                 &times;

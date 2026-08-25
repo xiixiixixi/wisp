@@ -646,7 +646,7 @@ const MarketplacePanel = () => {
                   <div className="flex items-start gap-3">
                     <div
                       className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg"
-                      style={{ background: 'rgba(var(--xp-blue-rgb, 122,162,247), 0.15)' }}
+                      style={{ background: 'var(--xp-selection-bg)' }}
                     >
                       <svg
                         className="text-xp-blue h-5 w-5"
