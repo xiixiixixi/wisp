@@ -571,6 +571,10 @@ const FileGrid = ({
     getFolderSize,
     isCalculatingSize,
     calculateFolderSize,
+    renamingPath,
+    onRenameConfirm: handleRenameConfirm,
+    onRenameCancel: handleRenameCancel,
+    onRenameFile,
   };
 
   if (viewMode === 'tree') {

@@ -6,6 +6,7 @@ import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
 import { ViewComponentProps } from './FileGridTypes';
 import { getDateGroupTranslationKey, type FileGroup } from '@/lib/utils';
 import { FileReferenceBadge, getFileReferenceLabel } from './FileReferenceBadge';
+import { InlineRenameInput } from './FileGridItem';
 
 // Kept inline (not from FileGridHelpers) so tests don't pull the real i18n singleton.
 const isHiddenFile = (file: FileEntry): boolean => file.name.startsWith('.');
@@ -36,6 +37,10 @@ interface FileRowProps {
   getFolderSize: (path: string) => FolderSizeInfo | null;
   isCalculatingSize: (path: string) => boolean;
   onCalculateFolderSize?: (path: string) => void;
+  renamingPath?: string | null;
+  onRenameConfirm?: (oldPath: string, newName: string) => void;
+  onRenameCancel?: () => void;
+  onRenameFile?: (oldPath: string, newName: string) => Promise<boolean>;
 }
 
 const FileRow = React.memo(
@@ -53,6 +58,10 @@ const FileRow = React.memo(
     getFolderSize,
     isCalculatingSize,
     onCalculateFolderSize,
+    renamingPath,
+    onRenameConfirm,
+    onRenameCancel,
+    onRenameFile,
   }: FileRowProps) => {
     const { t } = useTranslation();
     const dragHandlers = useDraggable({ file, selectedFiles, allFiles });
@@ -132,9 +141,28 @@ const FileRow = React.memo(
           </span>
         </div>
         <div className="col-span-5 min-w-0">
-          <div className={`truncate font-medium ${isHiddenFile(file) ? 'text-xp-text-muted' : ''}`}>
-            {file.name}
-          </div>
+          {renamingPath === file.path && onRenameFile ? (
+            <InlineRenameInput
+              fileName={file.name}
+              isDir={file.is_dir}
+              isListView
+              existingNames={allFiles.map((f) => f.name)}
+              filePath={file.path}
+              onConfirm={(oldPath, newName) => {
+                onRenameConfirm?.(oldPath, newName);
+              }}
+              onCancel={() => onRenameCancel?.()}
+              onTab={(oldPath, newName) => {
+                onRenameConfirm?.(oldPath, newName);
+              }}
+            />
+          ) : (
+            <div
+              className={`truncate font-medium ${isHiddenFile(file) ? 'text-xp-text-muted' : ''}`}
+            >
+              {file.name}
+            </div>
+          )}
         </div>
         <div className="col-span-2 text-right text-xs text-xp-text-muted">
           {(() => {
@@ -195,6 +223,10 @@ const DetailsView = (props: DetailsViewProps) => {
     isCalculatingSize,
     calculateFolderSize,
     fileGroups,
+    renamingPath,
+    onRenameConfirm,
+    onRenameCancel,
+    onRenameFile,
   } = props;
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -312,6 +344,10 @@ const DetailsView = (props: DetailsViewProps) => {
     getFolderSize,
     isCalculatingSize,
     onCalculateFolderSize: calculateFolderSize,
+    renamingPath,
+    onRenameConfirm,
+    onRenameCancel,
+    onRenameFile,
   };
 
   const renderFlatItem = (item: FlatItem) => {

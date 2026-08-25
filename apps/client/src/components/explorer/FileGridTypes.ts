@@ -17,6 +17,14 @@ export interface ViewComponentProps {
   getFolderSize: (path: string) => FolderSizeInfo | null;
   isCalculatingSize: (path: string) => boolean;
   calculateFolderSize?: (path: string) => void;
+  /** Path of the file currently being renamed inline (details/column views render an input for it) */
+  renamingPath?: string | null;
+  /** Commit an inline rename; clears the editing state */
+  onRenameConfirm?: (oldPath: string, newName: string) => void;
+  /** Abort the inline rename; clears the editing state */
+  onRenameCancel?: () => void;
+  /** Commit an inline rename; resolves false on failure */
+  onRenameFile?: (oldPath: string, newName: string) => Promise<boolean>;
 }
 
 export interface SizeBadgeInfo {

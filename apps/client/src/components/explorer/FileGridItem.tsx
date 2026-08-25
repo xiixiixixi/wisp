@@ -148,7 +148,7 @@ const selectFileNameWithoutExtension = (input: HTMLInputElement, name: string, i
 
 // ─── Inline rename input component ──────────────────────────────────────────
 
-const InlineRenameInput = React.memo(
+export const InlineRenameInput = React.memo(
   ({
     fileName,
     isDir,

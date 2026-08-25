@@ -652,6 +652,17 @@ export class ContextMenuFactory {
         action: () => this.actions.copyName(file),
       });
 
+      // Keyword tags — kept under "More"; unlike Finder's coloured labels
+      // these are custom text tags, and the user finds them not useful.
+      if (!isMultiSelect) {
+        moreItems.push({
+          id: 'manage-tags',
+          label: i18n.t('contextMenu.tags'),
+          icon: mi(Tag),
+          action: () => this.actions.manageTags(file),
+        });
+      }
+
       // Copy path stays top level (one click away for every file and folder),
       // followed by the Finder-parity items collected above.
       items.push({
@@ -664,16 +675,6 @@ export class ContextMenuFactory {
       if (finderParityItems.length > 0) {
         items.push({ id: 'sep-finder-parity', label: '', separator: true });
         items.push(...finderParityItems);
-      }
-
-      // Tags (Finder's 标签… lives on the first level)
-      if (!isMultiSelect) {
-        items.push({
-          id: 'manage-tags',
-          label: i18n.t('contextMenu.tags'),
-          icon: mi(Tag),
-          action: () => this.actions.manageTags(file),
-        });
       }
 
       // Properties (Finder's 显示简介, ⌘I) — first level
