@@ -1,4 +1,5 @@
 import { transport, listenToEvent as transportListen } from '../transport';
+import { getDemoDirectory, isBrowserDemoMode } from '../browser-demo-files';
 import type {
   FileEntry,
   FileProperties,
@@ -27,8 +28,10 @@ import type {
 
 // ── File read / metadata ────────────────────────────────────────────────────
 
-export const readDirectory = async (path: string): Promise<FileEntry[]> =>
-  await transport('read_directory', { path });
+export const readDirectory = async (path: string): Promise<FileEntry[]> => {
+  if (isBrowserDemoMode()) return getDemoDirectory(path) ?? [];
+  return await transport('read_directory', { path });
+};
 
 export const getFileProperties = async (path: string): Promise<FileProperties> =>
   await transport('get_file_properties', { path });
@@ -43,8 +46,10 @@ export const getDetailedFileProperties = async (
 export const getDirectorySize = async (dirPath: string): Promise<number> =>
   await transport('get_directory_size', { dirPath });
 
-export const getDirectoryItemCount = async (dirPath: string): Promise<number> =>
-  await transport('get_directory_item_count', { dirPath });
+export const getDirectoryItemCount = async (dirPath: string): Promise<number> => {
+  if (isBrowserDemoMode()) return getDemoDirectory(dirPath)?.length ?? 0;
+  return await transport('get_directory_item_count', { dirPath });
+};
 
 export const setFilePermissions = async (filePath: string, permissions: string): Promise<void> =>
   await transport('set_file_permissions', { filePath, permissions });

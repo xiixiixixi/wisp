@@ -1,4 +1,5 @@
 import { transport, listenToEvent as transportListen } from '../transport';
+import { getDemoUserDirectories, isBrowserDemoMode } from '../browser-demo-files';
 import type {
   FileEntry,
   ShortcutKey,
@@ -68,7 +69,10 @@ export const getUserDirectories = async (): Promise<{
   pictures: string;
   videos: string;
   music: string;
-}> => await transport('get_user_directories');
+}> => {
+  if (isBrowserDemoMode()) return getDemoUserDirectories();
+  return await transport('get_user_directories');
+};
 
 export const getRecentFolders = async (): Promise<string[]> =>
   await transport('get_recent_folders');

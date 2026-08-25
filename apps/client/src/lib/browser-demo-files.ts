@@ -73,7 +73,17 @@ const launch = [
   }),
 ];
 
+const homeRoot = ['Documents', 'Downloads', 'Desktop', 'Pictures', 'Videos', 'Music'].map((name) =>
+  makeEntry(DEMO_HOME_PATH, name, {
+    is_dir: true,
+    size: 0,
+    modified: '2026-08-21T09:40:00Z',
+    file_type: 'folder',
+  }),
+);
+
 const demoDirectories: Record<string, FileEntry[]> = {
+  [DEMO_HOME_PATH]: homeRoot,
   [`${DEMO_HOME_PATH}/Documents`]: documents,
   [`${DEMO_HOME_PATH}/Documents/Launch`]: launch,
   [`${DEMO_HOME_PATH}/Documents/Research`]: [],
