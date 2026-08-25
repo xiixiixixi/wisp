@@ -19,7 +19,6 @@ interface TermTab {
 
 interface XTermPanelProps {
   cwd: string;
-  collapsed?: boolean;
 }
 
 // ── Theme helper ─────────────────────────────────────────────────────────────
@@ -107,6 +106,8 @@ const TermInstance = ({ tab, cwd, isActive }: { tab: TermTab; cwd: string; isAct
     if (!isActive || !containerRef.current) return;
 
     const observer = new ResizeObserver(() => {
+      // Skip degenerate sizes while the panel is hidden (display: none)
+      if (!containerRef.current?.clientWidth || !containerRef.current?.clientHeight) return;
       try {
         tab.fitAddon.fit();
         TauriAPI.ptyResize(tab.id, tab.terminal.cols, tab.terminal.rows).catch(() => {});
@@ -152,7 +153,7 @@ const createTab = (): TermTab => {
   return { id, label: `Terminal ${tabCounter}`, terminal, fitAddon };
 };
 
-const XTermPanel = ({ cwd, collapsed }: XTermPanelProps) => {
+const XTermPanel = ({ cwd }: XTermPanelProps) => {
   const [tabs, setTabs] = useState<TermTab[]>(() => [createTab()]);
   const [activeTabId, setActiveTabId] = useState(() => tabs[0]?.id || '');
 
@@ -232,7 +233,8 @@ const XTermPanel = ({ cwd, collapsed }: XTermPanelProps) => {
     [activeTabId],
   );
 
-  if (collapsed) return null;
+  // The panel is kept mounted (hidden) by BottomPanel when inactive or
+  // collapsed — never return null here, that would destroy the sessions.
 
   return (
     <div

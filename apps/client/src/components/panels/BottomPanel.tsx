@@ -119,7 +119,15 @@ const BottomPanel = ({
     return () => window.removeEventListener('wisp-set-bottom-tab', handler);
   }, [setBottomPanelTab]);
 
-  if (bottomPanelCollapsed) return null;
+  if (bottomPanelCollapsed) {
+    // Keep XTermPanel mounted (hidden) so PTY sessions and scrollback survive
+    // collapsing the panel, not just tab switches.
+    return (
+      <div className="hidden">
+        <XTermPanel cwd={terminalCwd} />
+      </div>
+    );
+  }
 
   // Check if the active tab is an extension tab
   const isExtensionTab = !CORE_TABS.includes(bottomPanelTab);
@@ -224,100 +232,121 @@ const BottomPanel = ({
         </button>
       </div>
 
-      {/* Bottom Panel Content */}
+      {/* Terminal content: mounted once and only hidden, so switching bottom
+          tabs never kills the PTY sessions or loses their scrollback. */}
       <div
         role="tabpanel"
-        id={`bottom-panel-${bottomPanelTab}`}
-        aria-labelledby={`bottom-tab-${bottomPanelTab}`}
+        id="bottom-panel-terminal"
+        aria-labelledby="bottom-tab-terminal"
+        aria-hidden={bottomPanelTab !== 'terminal'}
         className="flex min-h-0 flex-1 flex-col overflow-hidden"
+        style={{ display: bottomPanelTab === 'terminal' ? 'flex' : 'none' }}
       >
         <ErrorBoundary>
-          {!isExtensionTab && (
-            <React.Suspense
-              fallback={
-                <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
-                  Loading...
-                </div>
-              }
-            >
-              {bottomPanelTab === 'terminal' && (
-                <XTermPanel cwd={terminalCwd} collapsed={bottomPanelCollapsed} />
-              )}
-
-              {bottomPanelTab === 'activity-log' && (
-                <ActivityLogContent
-                  activityLogFilter={activityLogFilter}
-                  setActivityLogFilter={setActivityLogFilter}
-                  outputMessages={outputMessages}
-                  files={files}
-                  currentPath={currentPath}
-                  themes={themes}
-                  theme={theme}
-                  terminalCwd={terminalCwd}
-                  selectedFiles={selectedFiles}
-                  selectedFile={selectedFile}
-                  onNavigate={onNavigate}
-                />
-              )}
-
-              {bottomPanelTab === 'clipboard' && onPasteFromHistory && (
-                <ClipboardHistoryPanel onPaste={onPasteFromHistory} />
-              )}
-
-              {bottomPanelTab === 'notifications' && <NotificationCenter />}
-
-              {bottomPanelTab === 'changes' &&
-                (fileChanges && fileChanges.totalCount > 0 ? (
-                  <ChangeReviewPanel
-                    changes={fileChanges}
-                    onDismiss={onDismissChanges ?? (() => {})}
-                    onNavigate={onNavigate}
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
-                    <svg
-                      className="mr-2 h-4 w-4 text-xp-green"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    No external file changes detected
-                  </div>
-                ))}
-
-              {bottomPanelTab === 'properties' && (
-                <PropertiesPanel filePath={propertiesFilePath ?? ''} />
-              )}
-
-              {bottomPanelTab === 'agents' && (
-                <AgentBottomPanel
-                  sessions={[]}
-                  onStopSession={() => {}}
-                  onOpenWorkspace={() => {
-                    window.dispatchEvent(new CustomEvent('wisp-open-agent-workspace'));
-                  }}
-                />
-              )}
-            </React.Suspense>
-          )}
-
-          {/* Extension tab: sole flex child gets all available height */}
-          {isExtensionTab && (
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              {(() => {
-                const renderer = extensionHost.getBottomTabRenderer(bottomPanelTab);
-                if (!renderer) return null;
-                return renderer({ currentPath, isActive: true });
-              })()}
-            </div>
-          )}
+          <React.Suspense
+            fallback={
+              <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
+                Loading...
+              </div>
+            }
+          >
+            <XTermPanel cwd={terminalCwd} />
+          </React.Suspense>
         </ErrorBoundary>
       </div>
+
+      {/* Bottom Panel Content (non-terminal tabs) */}
+      {bottomPanelTab !== 'terminal' && (
+        <div
+          role="tabpanel"
+          id={`bottom-panel-${bottomPanelTab}`}
+          aria-labelledby={`bottom-tab-${bottomPanelTab}`}
+          className="flex min-h-0 flex-1 flex-col overflow-hidden"
+        >
+          <ErrorBoundary>
+            {!isExtensionTab && (
+              <React.Suspense
+                fallback={
+                  <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
+                    Loading...
+                  </div>
+                }
+              >
+                {bottomPanelTab === 'activity-log' && (
+                  <ActivityLogContent
+                    activityLogFilter={activityLogFilter}
+                    setActivityLogFilter={setActivityLogFilter}
+                    outputMessages={outputMessages}
+                    files={files}
+                    currentPath={currentPath}
+                    themes={themes}
+                    theme={theme}
+                    terminalCwd={terminalCwd}
+                    selectedFiles={selectedFiles}
+                    selectedFile={selectedFile}
+                    onNavigate={onNavigate}
+                  />
+                )}
+
+                {bottomPanelTab === 'clipboard' && onPasteFromHistory && (
+                  <ClipboardHistoryPanel onPaste={onPasteFromHistory} />
+                )}
+
+                {bottomPanelTab === 'notifications' && <NotificationCenter />}
+
+                {bottomPanelTab === 'changes' &&
+                  (fileChanges && fileChanges.totalCount > 0 ? (
+                    <ChangeReviewPanel
+                      changes={fileChanges}
+                      onDismiss={onDismissChanges ?? (() => {})}
+                      onNavigate={onNavigate}
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
+                      <svg
+                        className="mr-2 h-4 w-4 text-xp-green"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      No external file changes detected
+                    </div>
+                  ))}
+
+                {bottomPanelTab === 'properties' && (
+                  <PropertiesPanel filePath={propertiesFilePath ?? ''} />
+                )}
+
+                {bottomPanelTab === 'agents' && (
+                  <AgentBottomPanel
+                    sessions={[]}
+                    onStopSession={() => {}}
+                    onOpenWorkspace={() => {
+                      window.dispatchEvent(new CustomEvent('wisp-open-agent-workspace'));
+                    }}
+                  />
+                )}
+              </React.Suspense>
+            )}
+
+            {/* Extension tab: sole flex child gets all available height */}
+            {isExtensionTab && (
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                {(() => {
+                  const renderer = extensionHost.getBottomTabRenderer(bottomPanelTab);
+                  if (!renderer) return null;
+                  return renderer({ currentPath, isActive: true });
+                })()}
+              </div>
+            )}
+          </ErrorBoundary>
+        </div>
+      )}
     </div>
   );
 };
