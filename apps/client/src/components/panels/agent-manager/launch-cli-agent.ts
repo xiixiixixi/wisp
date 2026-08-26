@@ -6,6 +6,7 @@
  * pick up the running process.
  */
 import { TauriAPI } from '@/lib/tauri-api';
+import { emitCliAgentLaunched } from './cli-launch-bus';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -44,9 +45,18 @@ const quoteArg = (arg: string): string => `"${arg.replace(/"/g, '\\"')}"`;
 /**
  * Spawn a PTY, then write the initial command after a short delay so the
  * shell has finished initialising.
+ *
+ * Right after spawn, notifies the terminal panel to attach a labelled tab to
+ * this session (before any output starts flowing).
  */
-const spawnWithCommand = async (sessionId: string, cwd: string, command: string): Promise<void> => {
+const spawnWithCommand = async (
+  sessionId: string,
+  cwd: string,
+  command: string,
+  label: string,
+): Promise<void> => {
   await TauriAPI.ptySpawn(sessionId, cwd, DEFAULT_COLS, DEFAULT_ROWS);
+  emitCliAgentLaunched({ sessionId, label });
 
   // Send the command followed by a newline to execute it
   if (command) {
@@ -70,9 +80,9 @@ export const launchClaudeCode = async (
   prompt?: string,
 ): Promise<CliAgentResult> => {
   const sessionId = generateSessionId('claude');
-  const command = prompt ? `claude "${prompt.replace(/"/g, '\\"')}"` : 'claude';
+  const command = prompt ? `claude ${quoteArg(prompt)}` : 'claude';
 
-  await spawnWithCommand(sessionId, workingDir, command);
+  await spawnWithCommand(sessionId, workingDir, command, 'Claude Code');
 
   return { sessionId, label: 'Claude Code' };
 };
@@ -87,7 +97,7 @@ export const launchCodex = async (workingDir: string, prompt?: string): Promise<
   const sessionId = generateSessionId('codex');
   const command = prompt ? `codex ${quoteArg(prompt)}` : 'codex';
 
-  await spawnWithCommand(sessionId, workingDir, command);
+  await spawnWithCommand(sessionId, workingDir, command, 'Codex');
 
   return { sessionId, label: 'Codex' };
 };
@@ -105,7 +115,7 @@ export const launchGeminiCli = async (
   const sessionId = generateSessionId('gemini');
   const command = prompt ? `gemini ${quoteArg(prompt)}` : 'gemini';
 
-  await spawnWithCommand(sessionId, workingDir, command);
+  await spawnWithCommand(sessionId, workingDir, command, 'Gemini CLI');
 
   return { sessionId, label: 'Gemini CLI' };
 };
@@ -126,10 +136,9 @@ export const launchCustomCli = async (
   const sessionId = generateSessionId('custom');
 
   const fullCommand = prompt ? `${command} ${quoteArg(prompt)}` : command;
-  await spawnWithCommand(sessionId, workingDir, fullCommand);
-
   // Use the first token of the command as label
   const label = command.split(/\s+/)[0] || 'Custom CLI';
+  await spawnWithCommand(sessionId, workingDir, fullCommand, label);
 
   return { sessionId, label };
 };

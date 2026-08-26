@@ -4,6 +4,11 @@ import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { TauriAPI } from '@/lib/tauri-api';
 import type { PtyOutputPayload } from '@/lib/tauri-api/pty';
+import {
+  CLI_AGENT_LAUNCHED_EVENT,
+  consumePendingCliLaunches,
+  type CliAgentLaunch,
+} from './agent-manager/cli-launch-bus';
 import { Plus, X, Terminal as TerminalIcon } from 'lucide-react';
 
 import '@xterm/xterm/css/xterm.css';
@@ -15,6 +20,9 @@ interface TermTab {
   label: string;
   terminal: Terminal;
   fitAddon: FitAddon;
+  /** True when the PTY session was spawned elsewhere (CLI agent launcher)
+   *  and this tab merely attaches to it — do not spawn again on mount. */
+  attached?: boolean;
 }
 
 interface XTermPanelProps {
@@ -88,13 +96,17 @@ const TermInstance = ({ tab, cwd, isActive }: { tab: TermTab; cwd: string; isAct
     if (spawnedRef.current) return;
     spawnedRef.current = true;
 
-    const cols = tab.terminal.cols || 80;
-    const rows = tab.terminal.rows || 24;
+    // Attached tabs wire into an already-running PTY (spawned by the CLI
+    // agent launcher) — only fresh tabs spawn their own session.
+    if (!tab.attached) {
+      const cols = tab.terminal.cols || 80;
+      const rows = tab.terminal.rows || 24;
 
-    TauriAPI.ptySpawn(tab.id, initialCwdRef.current, cols, rows).catch((err) => {
-      console.error(`[XTerm] Failed to spawn PTY ${tab.id}:`, err);
-      tab.terminal.writeln(`\r\nFailed to start terminal: ${err}`);
-    });
+      TauriAPI.ptySpawn(tab.id, initialCwdRef.current, cols, rows).catch((err) => {
+        console.error(`[XTerm] Failed to spawn PTY ${tab.id}:`, err);
+        tab.terminal.writeln(`\r\nFailed to start terminal: ${err}`);
+      });
+    }
 
     tab.terminal.onData((data) => {
       TauriAPI.ptyWrite(tab.id, data).catch(() => {});
@@ -138,9 +150,9 @@ const TermInstance = ({ tab, cwd, isActive }: { tab: TermTab; cwd: string; isAct
 
 let tabCounter = 0;
 
-const createTab = (): TermTab => {
+const createTab = (label?: string, attachSessionId?: string): TermTab => {
   tabCounter++;
-  const id = `pty-${Date.now()}-${tabCounter}`;
+  const id = attachSessionId ?? `pty-${Date.now()}-${tabCounter}`;
   const theme = getTermTheme();
   const terminal = new Terminal({
     cursorBlink: true,
@@ -153,7 +165,13 @@ const createTab = (): TermTab => {
   const fitAddon = new FitAddon();
   terminal.loadAddon(fitAddon);
 
-  return { id, label: `Terminal ${tabCounter}`, terminal, fitAddon };
+  return {
+    id,
+    label: label ?? `Terminal ${tabCounter}`,
+    terminal,
+    fitAddon,
+    attached: attachSessionId !== undefined,
+  };
 };
 
 const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
@@ -172,6 +190,30 @@ const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
     setTabs([tab]);
     setActiveTabId(tab.id);
   }, [visible, tabs.length]);
+
+  // Attach tabs to CLI-agent PTY sessions launched outside this panel
+  // (NewAgentForm). Drains launches that fired before this lazy panel
+  // mounted, then keeps listening for new ones.
+  useEffect(() => {
+    const attach = (launch: CliAgentLaunch) => {
+      setTabs((prev) => {
+        if (prev.some((t) => t.id === launch.sessionId)) return prev;
+        const tab = createTab(launch.label, launch.sessionId);
+        setActiveTabId(launch.sessionId);
+        return [...prev, tab];
+      });
+    };
+
+    consumePendingCliLaunches().forEach(attach);
+
+    const onLaunched = (e: Event) => {
+      attach((e as CustomEvent<CliAgentLaunch>).detail);
+    };
+    window.addEventListener(CLI_AGENT_LAUNCHED_EVENT, onLaunched);
+    return () => {
+      window.removeEventListener(CLI_AGENT_LAUNCHED_EVENT, onLaunched);
+    };
+  }, []);
 
   // Refit and focus the active terminal whenever the panel becomes visible
   // again (switching bottom tabs / expanding the panel).

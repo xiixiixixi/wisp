@@ -16,7 +16,13 @@ import type { PtyOutputPayload } from '@/lib/tauri-api/pty';
 // Types
 // ---------------------------------------------------------------------------
 
-export type ExternalAgentType = 'claude-code' | 'codex' | 'gemini' | 'aider' | 'unknown';
+export type ExternalAgentType =
+  | 'claude-code'
+  | 'codex'
+  | 'gemini'
+  | 'opencode'
+  | 'aider'
+  | 'unknown';
 
 export type ExternalAgentStatus = 'active' | 'idle' | 'exited';
 
@@ -57,6 +63,10 @@ const CODEX_PATTERNS = [/Codex CLI/i, /codex>/, /\bcodex\b.*v[\d.]/i, /openai\/c
 
 const GEMINI_PATTERNS = [/Gemini CLI/i, /gemini>/, /\bgemini-cli\b/i, /╭─.*gemini/i];
 
+// OpenCode's TUI paints its logo as block art; the plain word "opencode"
+// only shows up in version/help banners.
+const OPENCODE_PATTERNS = [/█▀▀█ █▀▀█/, /opencode\s+tui/i, /opencode\s+v?\d+(\.\d+)+/i];
+
 const AIDER_PATTERNS = [/\baider\b.*v[\d.]/i, /aider>/i, /Aider chat/i];
 
 const GENERIC_AI_PATTERNS = [
@@ -83,6 +93,9 @@ const detectAgentType = (text: string): ExternalAgentType | null => {
   for (const pat of GEMINI_PATTERNS) {
     if (pat.test(text)) return 'gemini';
   }
+  for (const pat of OPENCODE_PATTERNS) {
+    if (pat.test(text)) return 'opencode';
+  }
   for (const pat of AIDER_PATTERNS) {
     if (pat.test(text)) return 'aider';
   }
@@ -100,6 +113,8 @@ const getDisplayName = (type: ExternalAgentType): string => {
       return 'Codex CLI';
     case 'gemini':
       return 'Gemini CLI';
+    case 'opencode':
+      return 'OpenCode';
     case 'aider':
       return 'Aider';
     case 'unknown':

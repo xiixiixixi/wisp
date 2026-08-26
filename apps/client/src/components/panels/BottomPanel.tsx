@@ -16,6 +16,7 @@ import type { ClipboardEntry } from '@/hooks/use-clipboard-history';
 import type { FileChangeSet } from '@/hooks/use-focus-change-tracker';
 import type { BottomPanelTabId } from '@/hooks/use-layout-state';
 import { extensionHost } from '@/lib/extension-host';
+import { CLI_AGENT_LAUNCHED_EVENT } from './agent-manager/cli-launch-bus';
 
 type BottomPanelTab = BottomPanelTabId;
 
@@ -91,6 +92,19 @@ const BottomPanel = ({
   const { t } = useTranslation();
   const { unreadCount } = useNotificationHistory();
   const [activityLogFilter, setActivityLogFilter] = useState<ActivityLogFilter>('all');
+
+  // When a CLI agent launches, expand this panel and switch to the terminal
+  // tab so the attached session is immediately visible.
+  useEffect(() => {
+    const onLaunched = () => {
+      setBottomPanelCollapsed(false);
+      setBottomPanelTab('terminal');
+    };
+    window.addEventListener(CLI_AGENT_LAUNCHED_EVENT, onLaunched);
+    return () => {
+      window.removeEventListener(CLI_AGENT_LAUNCHED_EVENT, onLaunched);
+    };
+  }, [setBottomPanelCollapsed, setBottomPanelTab]);
 
   // Collect extension-registered bottom tabs, re-evaluate when extensions change
   const extRefreshKey = useSyncExternalStore(
