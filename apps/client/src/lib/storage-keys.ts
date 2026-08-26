@@ -21,6 +21,7 @@ export const STORAGE_KEYS = {
   SEARCH_HISTORY: 'wisp-search-history',
   COMMAND_HISTORY: 'wisp:command-history',
   COMMAND_FAVORITES: 'wisp:command-favorites',
+  RECENT_CLI_COMMANDS: 'wisp:recent-cli-commands',
 
   // Explorer UI
   SIDEBAR_SECTIONS: 'wisp-sidebar-sections',

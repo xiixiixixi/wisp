@@ -295,6 +295,7 @@ fn main() {
             operations::get_file_icon,
             operations::execute_command,
             operations::execute_command_stream,
+            operations::check_cli_installed,
             operations::get_current_shell,
             operations::find_files,
             operations::search_in_files,

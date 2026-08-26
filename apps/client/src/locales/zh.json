@@ -2423,8 +2423,15 @@
       "launching": "启动中...",
       "typeCloud": "Wisp 云端",
       "typeClaudeCode": "Claude Code",
+      "typeGeminiCli": "Gemini CLI",
       "typeCodex": "Codex",
-      "typeCustomCli": "自定义 CLI"
+      "typeCustomCli": "自定义 CLI",
+      "notDetected": "（未检测到）",
+      "cliMissingHint": "未检测到 {{command}}，可能未安装。装在其他位置也可直接启动。",
+      "copyInstall": "复制安装命令",
+      "copied": "已复制",
+      "launchFailed": "启动失败",
+      "promptPlaceholderCustom": "初始提示（可选，会附加到命令末尾）"
     },
     "taskQueue": {
       "empty": "没有排队的任务",

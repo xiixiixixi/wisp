@@ -32,6 +32,16 @@ export const executeCommandStream = async (command: string, workingDir: string):
 
 export const getCurrentShell = async (): Promise<string> => await transport('get_current_shell');
 
+// ── CLI agent helpers ───────────────────────────────────────────────────────
+
+/**
+ * Check which CLI binaries are installed (found on PATH).
+ * Desktop only — in the web demo the transport rejects and callers fall back
+ * to unknown (no badges shown).
+ */
+export const checkCliInstalled = async (commands: string[]): Promise<Record<string, boolean>> =>
+  await transport('check_cli_installed', { commands });
+
 export const openUrl = async (url: string): Promise<void> => await transport('open_url', { url });
 
 export const openInTerminal = async (path: string): Promise<void> =>

@@ -16,7 +16,7 @@ import type { PtyOutputPayload } from '@/lib/tauri-api/pty';
 // Types
 // ---------------------------------------------------------------------------
 
-export type ExternalAgentType = 'claude-code' | 'codex' | 'aider' | 'unknown';
+export type ExternalAgentType = 'claude-code' | 'codex' | 'gemini' | 'aider' | 'unknown';
 
 export type ExternalAgentStatus = 'active' | 'idle' | 'exited';
 
@@ -55,6 +55,8 @@ const CLAUDE_CODE_PATTERNS = [
 
 const CODEX_PATTERNS = [/Codex CLI/i, /codex>/, /\bcodex\b.*v[\d.]/i, /openai\/codex/i];
 
+const GEMINI_PATTERNS = [/Gemini CLI/i, /gemini>/, /\bgemini-cli\b/i, /╭─.*gemini/i];
+
 const AIDER_PATTERNS = [/\baider\b.*v[\d.]/i, /aider>/i, /Aider chat/i];
 
 const GENERIC_AI_PATTERNS = [
@@ -78,6 +80,9 @@ const detectAgentType = (text: string): ExternalAgentType | null => {
   for (const pat of CODEX_PATTERNS) {
     if (pat.test(text)) return 'codex';
   }
+  for (const pat of GEMINI_PATTERNS) {
+    if (pat.test(text)) return 'gemini';
+  }
   for (const pat of AIDER_PATTERNS) {
     if (pat.test(text)) return 'aider';
   }
@@ -93,6 +98,8 @@ const getDisplayName = (type: ExternalAgentType): string => {
       return 'Claude Code';
     case 'codex':
       return 'Codex CLI';
+    case 'gemini':
+      return 'Gemini CLI';
     case 'aider':
       return 'Aider';
     case 'unknown':

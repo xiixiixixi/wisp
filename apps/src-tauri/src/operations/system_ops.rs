@@ -2127,3 +2127,53 @@ pub async fn get_file_icon(path: String) -> Result<String, String> {
 pub async fn get_file_icon(_path: String) -> Result<String, String> {
     Err("Not supported on this platform".to_string())
 }
+
+/// Check which CLI binaries are installed (found on PATH).
+/// Used by the agent launcher to badge Claude Code / Codex / Gemini CLI etc.
+#[command]
+pub async fn check_cli_installed(
+    commands: Vec<String>,
+) -> Result<std::collections::HashMap<String, bool>, String> {
+    #[cfg(windows)]
+    let path_sep = ';';
+    #[cfg(not(windows))]
+    let path_sep = ':';
+
+    let path_var = std::env::var("PATH").unwrap_or_default();
+    let dirs: Vec<std::path::PathBuf> = path_var
+        .split(path_sep)
+        .filter(|s| !s.is_empty())
+        .map(std::path::PathBuf::from)
+        .collect();
+
+    #[cfg(windows)]
+    let extensions: Vec<String> = std::env::var("PATHEXT")
+        .unwrap_or_else(|_| ".COM;.EXE;.BAT;.CMD".to_string())
+        .split(';')
+        .map(|s| s.to_lowercase())
+        .collect();
+
+    let mut result = std::collections::HashMap::new();
+    for cmd in commands {
+        let installed = if cmd.contains('/') || cmd.contains('\\') {
+            std::path::Path::new(&cmd).is_file()
+        } else {
+            dirs.iter().any(|dir| {
+                #[cfg(windows)]
+                {
+                    extensions.iter().any(|ext| {
+                        let candidate = dir.join(format!("{cmd}.{ext}"));
+                        candidate.is_file()
+                    })
+                }
+                #[cfg(not(windows))]
+                {
+                    let candidate = dir.join(&cmd);
+                    candidate.is_file()
+                }
+            })
+        };
+        result.insert(cmd, installed);
+    }
+    Ok(result)
+}

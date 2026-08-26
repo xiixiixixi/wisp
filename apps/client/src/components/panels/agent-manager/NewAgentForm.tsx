@@ -16,13 +16,78 @@ import {
   buildWorkspacePrompt,
 } from '@/components/panels/chat-workspace-awareness';
 import AgentScopeConfig, { DEFAULT_SCOPE } from './AgentScopeConfig';
-import { launchClaudeCode, launchCodex, launchCustomCli } from './launch-cli-agent';
+import {
+  launchClaudeCode,
+  launchCodex,
+  launchGeminiCli,
+  launchCustomCli,
+} from './launch-cli-agent';
+import { TauriAPI } from '@/lib/tauri-api';
+import { isTauri } from '@/lib/transport';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 // ---------------------------------------------------------------------------
-// Types
+// Types & constants
 // ---------------------------------------------------------------------------
 
-export type AgentType = 'cloud' | 'claude-code' | 'codex' | 'custom-cli';
+export type AgentType = 'cloud' | 'claude-code' | 'gemini-cli' | 'codex' | 'custom-cli';
+
+/** Known external CLI agents: binary to detect + install hint when missing. */
+const CLI_AGENTS: Array<{
+  type: AgentType;
+  command: string;
+  installCmd: string;
+  labelKey: string;
+}> = [
+  {
+    type: 'claude-code',
+    command: 'claude',
+    installCmd: 'npm install -g @anthropic-ai/claude-code',
+    labelKey: 'agentManager.newAgent.typeClaudeCode',
+  },
+  {
+    type: 'gemini-cli',
+    command: 'gemini',
+    installCmd: 'npm install -g @google/gemini-cli',
+    labelKey: 'agentManager.newAgent.typeGeminiCli',
+  },
+  {
+    type: 'codex',
+    command: 'codex',
+    installCmd: 'npm install -g @openai/codex',
+    labelKey: 'agentManager.newAgent.typeCodex',
+  },
+];
+
+/** One-tap suggestions for the custom CLI input. */
+const CUSTOM_SUGGESTIONS = ['gemini', 'aider', 'opencode', 'goose'];
+
+const RECENT_COMMANDS_LIMIT = 5;
+
+const loadRecentCommands = (): string[] => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEYS.RECENT_CLI_COMMANDS) ?? '[]');
+    return Array.isArray(parsed)
+      ? parsed.filter((s) => typeof s === 'string').slice(0, RECENT_COMMANDS_LIMIT)
+      : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveRecentCommand = (command: string): void => {
+  const trimmed = command.trim();
+  if (!trimmed) return;
+  const next = [trimmed, ...loadRecentCommands().filter((c) => c !== trimmed)].slice(
+    0,
+    RECENT_COMMANDS_LIMIT,
+  );
+  try {
+    localStorage.setItem(STORAGE_KEYS.RECENT_CLI_COMMANDS, JSON.stringify(next));
+  } catch {
+    /* storage unavailable — recents just won't persist */
+  }
+};
 
 interface NewAgentFormProps {
   onSubmit: (params: CreateSessionParams) => void;
@@ -56,9 +121,22 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
   const [scope, setScope] = useState<ScopeConfigType>({ ...DEFAULT_SCOPE });
   const [showScope, setShowScope] = useState(false);
   const [isLaunching, setIsLaunching] = useState(false);
+  const [launchError, setLaunchError] = useState<string | null>(null);
+  const [copiedInstall, setCopiedInstall] = useState(false);
+  /** Binary name -> installed; only populated on desktop after detection. */
+  const [cliInstalled, setCliInstalled] = useState<Record<string, boolean>>({});
+  const [recentCommands, setRecentCommands] = useState<string[]>([]);
 
   // Auto-detect context from Wisp state on mount
   useEffect(() => {
+    setRecentCommands(loadRecentCommands());
+    if (isTauri()) {
+      TauriAPI.checkCliInstalled(CLI_AGENTS.map((a) => a.command))
+        .then(setCliInstalled)
+        .catch(() => {
+          /* detection unavailable — badges simply not shown */
+        });
+    }
     const xState = getWispState();
     if (xState?.currentPath) {
       setWorkingDirectory(xState.currentPath);
@@ -91,6 +169,7 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
 
   const handleSubmit = async () => {
     if (isLaunching) return;
+    setLaunchError(null);
 
     if (agentType === 'cloud') {
       if (!prompt.trim()) return;
@@ -121,6 +200,8 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
       let result;
       if (agentType === 'claude-code') {
         result = await launchClaudeCode(workingDirectory, prompt.trim() || undefined);
+      } else if (agentType === 'gemini-cli') {
+        result = await launchGeminiCli(workingDirectory, prompt.trim() || undefined);
       } else if (agentType === 'codex') {
         result = await launchCodex(workingDirectory, prompt.trim() || undefined);
       } else {
@@ -130,7 +211,9 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
           setIsLaunching(false);
           return;
         }
-        result = await launchCustomCli(workingDirectory, cmd);
+        result = await launchCustomCli(workingDirectory, cmd, prompt.trim() || undefined);
+        saveRecentCommand(cmd);
+        setRecentCommands(loadRecentCommands());
       }
       onCliLaunched?.(result.sessionId, result.label);
       // Clear form after successful launch
@@ -139,6 +222,9 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
       setCustomCommand('');
     } catch (err) {
       console.error('[NewAgentForm] Failed to launch CLI agent:', err);
+      setLaunchError(
+        `${t('agentManager.newAgent.launchFailed')}: ${err instanceof Error ? err.message : String(err)}`,
+      );
     } finally {
       setIsLaunching(false);
     }
@@ -155,6 +241,38 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
 
   const isCliAgent = agentType !== 'cloud';
 
+  const promptPlaceholder = (() => {
+    if (agentType === 'custom-cli') return t('agentManager.newAgent.promptPlaceholderCustom');
+    if (isCliAgent) return t('agentManager.newAgent.promptPlaceholderCli');
+    return t('agentManager.newAgent.promptPlaceholder');
+  })();
+
+  /** The known CLI agent currently selected (null for cloud/custom). */
+  const selectedCli = CLI_AGENTS.find((a) => a.type === agentType) ?? null;
+  const cliMissing =
+    !!selectedCli &&
+    isTauri() &&
+    selectedCli.command in cliInstalled &&
+    !cliInstalled[selectedCli.command];
+
+  const handleCopyInstall = () => {
+    if (!selectedCli) return;
+    navigator.clipboard.writeText(selectedCli.installCmd).catch(() => {});
+    setCopiedInstall(true);
+    setTimeout(() => setCopiedInstall(false), 2000);
+  };
+
+  const chipStyle: React.CSSProperties = {
+    background: 'var(--xp-surface-light)',
+    border: '1px solid var(--xp-border)',
+    borderRadius: '10px',
+    padding: '1px 8px',
+    fontSize: '10px',
+    color: 'var(--xp-text-muted)',
+    cursor: 'pointer',
+    fontFamily: 'monospace',
+  };
+
   return (
     <div
       style={{
@@ -170,12 +288,25 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
       {/* Agent type selector */}
       <select
         value={agentType}
-        onChange={(e) => setAgentType(e.target.value as AgentType)}
+        onChange={(e) => {
+          setAgentType(e.target.value as AgentType);
+          setLaunchError(null);
+        }}
         style={{ ...inputStyle, cursor: 'pointer' }}
       >
         <option value="cloud">{t('agentManager.newAgent.typeCloud')}</option>
-        <option value="claude-code">{t('agentManager.newAgent.typeClaudeCode')}</option>
-        <option value="codex">{t('agentManager.newAgent.typeCodex')}</option>
+        {CLI_AGENTS.map((a) => {
+          // Badge the option once detection has run (desktop only)
+          let suffix = '';
+          if (a.command in cliInstalled) {
+            suffix = cliInstalled[a.command] ? ' ●' : t('agentManager.newAgent.notDetected');
+          }
+          return (
+            <option key={a.type} value={a.type}>
+              {`${t(a.labelKey)}${suffix}`}
+            </option>
+          );
+        })}
         <option value="custom-cli">{t('agentManager.newAgent.typeCustomCli')}</option>
       </select>
 
@@ -190,24 +321,45 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
         />
       )}
 
-      {/* Custom CLI command input */}
+      {/* Custom CLI command input with one-tap suggestions */}
       {agentType === 'custom-cli' && (
-        <input
-          type="text"
-          placeholder={t('agentManager.newAgent.commandPlaceholder')}
-          value={customCommand}
-          onChange={(e) => setCustomCommand(e.target.value)}
-          style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '11px' }}
-        />
+        <>
+          {(recentCommands.length > 0 || CUSTOM_SUGGESTIONS.length > 0) && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+              {recentCommands.map((cmd) => (
+                <button
+                  key={`recent-${cmd}`}
+                  type="button"
+                  onClick={() => setCustomCommand(cmd)}
+                  style={chipStyle}
+                  title={cmd}
+                >
+                  ↺ {cmd}
+                </button>
+              ))}
+              {CUSTOM_SUGGESTIONS.filter((s) => !recentCommands.includes(s)).map((s) => (
+                <button key={s} type="button" onClick={() => setCustomCommand(s)} style={chipStyle}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+          <input
+            type="text"
+            placeholder={t('agentManager.newAgent.commandPlaceholder')}
+            value={customCommand}
+            onChange={(e) => {
+              setCustomCommand(e.target.value);
+              setLaunchError(null);
+            }}
+            style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '11px' }}
+          />
+        </>
       )}
 
       {/* Prompt — always shown but optional for CLI agents */}
       <textarea
-        placeholder={
-          isCliAgent
-            ? t('agentManager.newAgent.promptPlaceholderCli')
-            : t('agentManager.newAgent.promptPlaceholder')
-        }
+        placeholder={promptPlaceholder}
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
         rows={3}
@@ -301,6 +453,65 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
             onScopeChange={handleScopeChange}
             compact
           />
+        </div>
+      )}
+
+      {/* Not-installed hint for known CLI agents */}
+      {cliMissing && selectedCli && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '10px',
+            color: 'var(--xp-text-muted)',
+            background: 'var(--xp-bg)',
+            border: '1px solid var(--xp-border)',
+            borderRadius: '4px',
+            padding: '4px 6px',
+          }}
+        >
+          <span
+            style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          >
+            {t('agentManager.newAgent.cliMissingHint', { command: selectedCli.command })}
+          </span>
+          <button
+            type="button"
+            onClick={handleCopyInstall}
+            style={{
+              background: 'none',
+              border: '1px solid var(--xp-border)',
+              borderRadius: '4px',
+              padding: '2px 6px',
+              fontSize: '10px',
+              color: copiedInstall ? 'var(--xp-green, #73daca)' : 'var(--xp-text-muted)',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            {copiedInstall
+              ? t('agentManager.newAgent.copied')
+              : t('agentManager.newAgent.copyInstall')}
+          </button>
+        </div>
+      )}
+
+      {/* Launch failure feedback */}
+      {launchError && (
+        <div
+          style={{
+            fontSize: '10px',
+            color: 'var(--xp-red)',
+            background: 'var(--xp-bg)',
+            border: '1px solid var(--xp-border)',
+            borderRadius: '4px',
+            padding: '4px 6px',
+            wordBreak: 'break-all',
+          }}
+          role="alert"
+        >
+          {launchError}
         </div>
       )}
 

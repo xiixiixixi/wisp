@@ -287,6 +287,7 @@ export class TauriAPI {
   // ── System ──────────────────────────────────────────────────────────────
   static executeCommand = system.executeCommand;
   static executeCommandStream = system.executeCommandStream;
+  static checkCliInstalled = system.checkCliInstalled;
   static getCurrentShell = system.getCurrentShell;
   static openUrl = system.openUrl;
   static openInTerminal = system.openInTerminal;

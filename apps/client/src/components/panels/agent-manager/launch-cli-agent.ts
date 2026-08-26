@@ -33,14 +33,24 @@ const DEFAULT_COLS = 120;
 const DEFAULT_ROWS = 30;
 
 /**
- * Spawn a PTY, optionally writing an initial command string after a short
- * delay to let the shell initialise.
+ * Give the login shell a moment to finish init before typing the launch
+ * command — writing immediately after spawn can lose the first keystrokes
+ * while zsh/bash is still loading its profile.
+ */
+const SHELL_INIT_DELAY_MS = 600;
+
+const quoteArg = (arg: string): string => `"${arg.replace(/"/g, '\\"')}"`;
+
+/**
+ * Spawn a PTY, then write the initial command after a short delay so the
+ * shell has finished initialising.
  */
 const spawnWithCommand = async (sessionId: string, cwd: string, command: string): Promise<void> => {
   await TauriAPI.ptySpawn(sessionId, cwd, DEFAULT_COLS, DEFAULT_ROWS);
 
   // Send the command followed by a newline to execute it
   if (command) {
+    await new Promise((resolve) => setTimeout(resolve, SHELL_INIT_DELAY_MS));
     await TauriAPI.ptyWrite(sessionId, `${command}\n`);
   }
 };
@@ -75,7 +85,7 @@ export const launchClaudeCode = async (
  */
 export const launchCodex = async (workingDir: string, prompt?: string): Promise<CliAgentResult> => {
   const sessionId = generateSessionId('codex');
-  const command = prompt ? `codex "${prompt.replace(/"/g, '\\"')}"` : 'codex';
+  const command = prompt ? `codex ${quoteArg(prompt)}` : 'codex';
 
   await spawnWithCommand(sessionId, workingDir, command);
 
@@ -83,18 +93,40 @@ export const launchCodex = async (workingDir: string, prompt?: string): Promise<
 };
 
 /**
+ * Launch Google Gemini CLI in a new PTY session.
+ *
+ * @param workingDir - Directory to run `gemini` from
+ * @param prompt     - Optional initial prompt to pass via stdin
+ */
+export const launchGeminiCli = async (
+  workingDir: string,
+  prompt?: string,
+): Promise<CliAgentResult> => {
+  const sessionId = generateSessionId('gemini');
+  const command = prompt ? `gemini ${quoteArg(prompt)}` : 'gemini';
+
+  await spawnWithCommand(sessionId, workingDir, command);
+
+  return { sessionId, label: 'Gemini CLI' };
+};
+
+/**
  * Launch an arbitrary CLI command in a new PTY session.
  *
  * @param workingDir - Directory to run the command from
  * @param command    - Full CLI command string to execute
+ * @param prompt     - Optional initial prompt, appended as a quoted argument
+ *                     (works for agents that accept a positional prompt)
  */
 export const launchCustomCli = async (
   workingDir: string,
   command: string,
+  prompt?: string,
 ): Promise<CliAgentResult> => {
   const sessionId = generateSessionId('custom');
 
-  await spawnWithCommand(sessionId, workingDir, command);
+  const fullCommand = prompt ? `${command} ${quoteArg(prompt)}` : command;
+  await spawnWithCommand(sessionId, workingDir, fullCommand);
 
   // Use the first token of the command as label
   const label = command.split(/\s+/)[0] || 'Custom CLI';

@@ -2438,8 +2438,15 @@
       "launching": "Launching...",
       "typeCloud": "Wisp Cloud",
       "typeClaudeCode": "Claude Code",
+      "typeGeminiCli": "Gemini CLI",
       "typeCodex": "Codex",
-      "typeCustomCli": "Custom CLI"
+      "typeCustomCli": "Custom CLI",
+      "notDetected": " (not found)",
+      "cliMissingHint": "{{command}} was not found on PATH. You can still launch it if installed elsewhere.",
+      "copyInstall": "Copy install",
+      "copied": "Copied",
+      "launchFailed": "Launch failed",
+      "promptPlaceholderCustom": "Initial prompt (optional, appended to the command)"
     },
     "taskQueue": {
       "empty": "No queued tasks",
