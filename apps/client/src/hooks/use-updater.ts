@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
+import { isTauri } from '@/lib/transport';
 
 interface UpdateStatus {
   available: boolean;
@@ -18,30 +19,28 @@ const useUpdater = () => {
     progress: 0,
   });
 
+  // Returns the pending update, null when already on the latest version.
+  // Throws on network/config errors so manual checks can surface the failure;
+  // the automatic background check swallows errors via .catch().
   const checkForUpdate = useCallback(async () => {
-    try {
-      const update = await check();
-      if (update) {
-        setStatus((prev) => ({
-          ...prev,
-          available: true,
-          version: update.version,
-          body: update.body ?? undefined,
-          error: undefined,
-        }));
-        return update;
-      }
-    } catch (err) {
-      console.warn('Failed to check for updates:', err);
+    // The updater plugin only exists in the desktop build; the web demo must
+    // stay silent instead of erroring every poll.
+    if (!isTauri()) return null;
+    const update = await check();
+    if (update) {
       setStatus((prev) => ({
         ...prev,
-        error: err instanceof Error ? err.message : String(err),
+        available: true,
+        version: update.version,
+        body: update.body ?? undefined,
+        error: undefined,
       }));
     }
-    return null;
+    return update ?? null;
   }, []);
 
   const installUpdate = useCallback(async () => {
+    if (!isTauri()) return;
     try {
       const update = await check();
       if (!update) return;
@@ -83,8 +82,8 @@ const useUpdater = () => {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => checkForUpdate(), 5000);
-    const interval = setInterval(() => checkForUpdate(), 4 * 60 * 60 * 1000);
+    const timer = setTimeout(() => checkForUpdate().catch(() => {}), 5000);
+    const interval = setInterval(() => checkForUpdate().catch(() => {}), 4 * 60 * 60 * 1000);
     return () => {
       clearTimeout(timer);
       clearInterval(interval);

@@ -52,6 +52,12 @@
     }
   },
   "updater": {
+    "title": "Software Update",
+    "checkNow": "Check for Updates",
+    "checking": "Checking for updates…",
+    "upToDate": "You're on the latest version",
+    "failed": "Check failed, please try again later",
+    "current": "Current version v{{version}}",
     "available": "Wisp {{version}} is available",
     "install": "Update now",
     "dismiss": "Later",

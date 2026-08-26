@@ -21,6 +21,7 @@ import {
   ChevronRight,
   FileCode,
   RefreshCw,
+  Download,
   Heart,
   Github,
   ExternalLink,
@@ -37,6 +38,7 @@ import BackupRestoreSettings from '@/components/settings/BackupRestoreSettings';
 import AuditLogSettings from '@/components/settings/AuditLogSettings';
 import VersioningSettings from '@/components/settings/VersioningSettings';
 import ContextMenuRulesCard from '@/components/settings/ContextMenuRulesCard';
+import useUpdater from '@/hooks/use-updater';
 import ShortcutsSettingsPanel from '@/components/settings/ShortcutsSettings';
 import GeneralSettings from '@/components/settings/GeneralSettings';
 import ExplorerSettings from '@/components/settings/ExplorerSettings';
@@ -189,6 +191,77 @@ const MarketplaceSettings = ({
     </SettingRow>
   </div>
 );
+
+// Manual update entry on the About page: shows the running version and lets
+// the user trigger the same check/install flow as the startup auto-check.
+const AboutUpdateCard = () => {
+  const { t } = useTranslation();
+  const { status, checkForUpdate, installUpdate } = useUpdater();
+  const [phase, setPhase] = useState<'idle' | 'checking' | 'latest' | 'available' | 'failed'>(
+    'idle',
+  );
+
+  const handleCheck = async () => {
+    setPhase('checking');
+    try {
+      const update = await checkForUpdate();
+      setPhase(update ? 'available' : 'latest');
+    } catch {
+      setPhase('failed');
+    }
+  };
+
+  const statusText = () => {
+    if (phase === 'checking') return t('updater.checking');
+    if (phase === 'latest') return t('updater.upToDate');
+    if (phase === 'failed') return t('updater.failed');
+    if (phase === 'available' || status.available) {
+      return t('updater.available', { version: status.version });
+    }
+    return t('updater.current', { version: __APP_VERSION__ });
+  };
+
+  const renderAction = () => {
+    if (status.downloading) {
+      return (
+        <span className="text-sm text-xp-text-muted" aria-live="polite">
+          {t('updater.downloading')} {Math.round(status.progress)}%
+        </span>
+      );
+    }
+    if (phase === 'available' || status.available) {
+      return (
+        <button
+          onClick={installUpdate}
+          className="inline-flex items-center gap-2 rounded-md bg-xp-blue px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-xp-blue-dark"
+        >
+          <Download size={14} />
+          {t('updater.install')}
+        </button>
+      );
+    }
+    return (
+      <button
+        onClick={handleCheck}
+        disabled={phase === 'checking'}
+        className="inline-flex items-center gap-2 rounded-md border border-xp-border bg-xp-surface px-4 py-2 text-sm font-medium text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+      >
+        <RefreshCw size={14} className={phase === 'checking' ? 'animate-spin' : ''} />
+        {t('updater.checkNow')}
+      </button>
+    );
+  };
+
+  return (
+    <div className="rounded-lg border border-xp-border p-4">
+      <h3 className="mb-3 text-sm font-semibold text-xp-text">{t('updater.title')}</h3>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm text-xp-text-secondary">{statusText()}</p>
+        {renderAction()}
+      </div>
+    </div>
+  );
+};
 
 const Settings = () => {
   const { t, i18n } = useTranslation();
@@ -498,6 +571,8 @@ const Settings = () => {
                 {t('settings.about.description')}
               </p>
             </div>
+
+            {isTauri() && <AboutUpdateCard />}
 
             <div className="rounded-lg border border-xp-border p-4">
               <h3 className="mb-3 text-sm font-semibold text-xp-text">
