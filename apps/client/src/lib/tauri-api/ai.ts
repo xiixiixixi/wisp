@@ -1,4 +1,5 @@
 import { transport } from '../transport';
+import { STORAGE_KEYS } from '../storage-keys';
 import type {
   FileSystemNode,
   AgentProgress,
@@ -23,6 +24,27 @@ export const checkOllamaStatus = async (): Promise<boolean> =>
 
 // ── AI chat / analysis ──────────────────────────────────────────────────────
 
+/**
+ * Models routed to a user-configured OpenAI-compatible endpoint carry the
+ * "custom-openai:" prefix. The endpoint + key are injected here from settings
+ * so every caller (chat, agent loop, extensions) works without changes.
+ */
+const CUSTOM_OPENAI_PREFIX = 'custom-openai:';
+
+const readCustomOpenaiConfig = (): { endpoint: string; apiKey: string } | null => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+    if (!raw) return null;
+    const s = JSON.parse(raw) as Record<string, unknown>;
+    const endpoint = typeof s.aiCustomEndpoint === 'string' ? s.aiCustomEndpoint : '';
+    const apiKey = typeof s.aiCustomApiKey === 'string' ? s.aiCustomApiKey : '';
+    if (!endpoint || !apiKey) return null;
+    return { endpoint, apiKey };
+  } catch {
+    return null;
+  }
+};
+
 export const chatWithAI = async (
   model: string,
   messages: { role: string; content: string }[],
@@ -34,12 +56,16 @@ export const chatWithAI = async (
     image_base64?: string;
     image_mime_type?: string;
   } | null,
-): Promise<string> =>
-  await transport('chat_with_ai', {
+): Promise<string> => {
+  const custom = model.startsWith(CUSTOM_OPENAI_PREFIX) ? readCustomOpenaiConfig() : null;
+  return await transport('chat_with_ai', {
     model,
     messages,
     fileContext: fileContext || null,
+    customEndpoint: custom?.endpoint ?? null,
+    customApiKey: custom?.apiKey ?? null,
   });
+};
 
 export const analyzeFileWithAI = async (
   model: string,

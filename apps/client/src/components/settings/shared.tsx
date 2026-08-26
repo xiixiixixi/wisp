@@ -265,6 +265,7 @@ export interface AppSettings {
   aiCustomProvider: string;
   aiCustomModel: string;
   aiCustomApiKey: string;
+  aiCustomEndpoint: string;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -292,6 +293,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   aiCustomProvider: 'ollama',
   aiCustomModel: '',
   aiCustomApiKey: '',
+  aiCustomEndpoint: '',
 };
 
 export const SETTINGS_KEY = STORAGE_KEYS.SETTINGS;

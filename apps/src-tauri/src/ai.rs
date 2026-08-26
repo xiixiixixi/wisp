@@ -183,11 +183,13 @@ pub async fn chat_with_ai(
     model: String,
     messages: Vec<ChatMessage>,
     file_context: Option<FileContext>,
+    custom_endpoint: Option<String>,
+    custom_api_key: Option<String>,
 ) -> Result<String, String> {
     info!("Starting chat with AI using model: {}", model);
 
     // Route to appropriate AI service
-    route_ai_request(model, messages, file_context).await
+    route_ai_request(model, messages, file_context, custom_endpoint, custom_api_key).await
 }
 
 #[command]
@@ -211,7 +213,7 @@ pub async fn analyze_file_with_ai(
     };
 
     // Route to appropriate AI service
-    route_ai_request(model, vec![analysis_message], Some(file_context)).await
+    route_ai_request(model, vec![analysis_message], Some(file_context), None, None).await
 }
 
 #[command]
@@ -240,7 +242,7 @@ pub async fn get_file_help(
     };
 
     // Route to appropriate AI service
-    route_ai_request(model, vec![help_message], None).await
+    route_ai_request(model, vec![help_message], None, None, None).await
 }
 
 // User directory operations
@@ -469,6 +471,8 @@ async fn route_ai_request(
     model: String,
     messages: Vec<ChatMessage>,
     file_context: Option<FileContext>,
+    custom_endpoint: Option<String>,
+    custom_api_key: Option<String>,
 ) -> Result<String, String> {
     // Check if it's a Claude model
     if model.starts_with("claude-") {
@@ -480,6 +484,14 @@ async fn route_ai_request(
             .unwrap_or(&model)
             .to_string();
         chat_with_openrouter(or_model, messages, file_context, None).await
+    } else if model.starts_with("custom-openai:") {
+        // User-configured OpenAI-compatible endpoint (MiniMax, DeepSeek, GLM…)
+        let custom_model = model
+            .strip_prefix("custom-openai:")
+            .unwrap_or(&model)
+            .to_string();
+        chat_with_openai_compatible(custom_model, messages, file_context, custom_endpoint, custom_api_key)
+            .await
     } else {
         // Use existing Ollama chat function
         chat_with_ollama(model, messages, file_context).await
@@ -587,6 +599,133 @@ async fn chat_with_openrouter(
         .and_then(|t| t.as_str())
         .map(|s| s.to_string())
         .ok_or_else(|| "No content in OpenRouter response".to_string())
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Custom OpenAI-compatible endpoint (MiniMax, DeepSeek, GLM, Qwen, …)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Chat via a user-configured OpenAI-compatible endpoint. The endpoint must
+/// accept POST with an OpenAI chat/completions body and Bearer auth.
+async fn chat_with_openai_compatible(
+    model: String,
+    messages: Vec<ChatMessage>,
+    file_context: Option<FileContext>,
+    endpoint: Option<String>,
+    api_key: Option<String>,
+) -> Result<String, String> {
+    let endpoint = endpoint.filter(|s| !s.trim().is_empty()).ok_or_else(|| {
+        "Custom endpoint not configured. Set it in Settings → AI → 助手（高级）.".to_string()
+    })?;
+    let key = api_key
+        .filter(|s| !s.trim().is_empty())
+        .ok_or_else(|| "Custom API key not configured.".to_string())?;
+
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(60))
+        .connect_timeout(std::time::Duration::from_secs(10))
+        .build()
+        .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
+
+    let mut system_content = "You are an AI assistant integrated into the Wisp file explorer. You help users with file management, code analysis, and development tasks. Be helpful, thorough, and practical.".to_string();
+    if let Some(context) = &file_context {
+        system_content.push_str(&format!(
+            "\n\nYou are currently working with:\nFile: {}\nPath: {}\nType: {}",
+            context.name, context.path, context.file_type
+        ));
+        if let Some(content) = &context.content {
+            system_content.push_str(&format!("\nContent:\n{}", content));
+        }
+    }
+
+    let mut api_messages = vec![serde_json::json!({
+        "role": "system",
+        "content": system_content,
+    })];
+    for msg in &messages {
+        let role = if msg.role == "user" { "user" } else { "assistant" };
+        api_messages.push(serde_json::json!({
+            "role": role,
+            "content": msg.content,
+        }));
+    }
+    if messages.last().map(|m| m.role.as_str()) != Some("user") {
+        api_messages.push(serde_json::json!({
+            "role": "user",
+            "content": "Continue.",
+        }));
+    }
+
+    let body = serde_json::json!({
+        "model": model,
+        "max_tokens": 4096,
+        "messages": api_messages,
+    });
+
+    let response = client
+        .post(&endpoint)
+        .header("Authorization", format!("Bearer {}", key))
+        .header("content-type", "application/json")
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| format!("Failed to send request to {}: {}", endpoint, e))?;
+
+    if !response.status().is_success() {
+        let error_text = response
+            .text()
+            .await
+            .unwrap_or_else(|_| "Unknown error".to_string());
+        return Err(format!("Custom endpoint API error: {}", error_text));
+    }
+
+    let resp: serde_json::Value = response
+        .json()
+        .await
+        .map_err(|e| format!("Failed to parse custom endpoint response: {}", e))?;
+
+    resp.get("choices")
+        .and_then(|c| c.as_array())
+        .and_then(|arr| arr.first())
+        .and_then(|choice| choice.get("message"))
+        .and_then(|msg| msg.get("content"))
+        .and_then(|t| t.as_str())
+        .map(|s| s.to_string())
+        .ok_or_else(|| "No content in custom endpoint response".to_string())
+}
+
+/// Live test against the user's MiniMax endpoint (env: MINIMAX_API_HOST +
+/// MINIMAX_API_KEY). Ignored by default; run with:
+///   cargo test custom_openai_compatible_minimax_live -- --ignored --nocapture
+#[cfg(test)]
+mod custom_endpoint_tests {
+    use super::*;
+
+    #[tokio::test]
+    #[ignore]
+    async fn custom_openai_compatible_minimax_live() {
+        let host = std::env::var("MINIMAX_API_HOST").expect("MINIMAX_API_HOST not set");
+        let key = std::env::var("MINIMAX_API_KEY").expect("MINIMAX_API_KEY not set");
+        let endpoint = format!("{}/v1/text/chatcompletion_v2", host.trim_end_matches('/'));
+
+        let messages = vec![ChatMessage {
+            role: "user".to_string(),
+            content: "只回复两个字：收到".to_string(),
+        }];
+
+        let reply = chat_with_openai_compatible(
+            "MiniMax-Text-01".to_string(),
+            messages,
+            None,
+            Some(endpoint),
+            Some(key),
+        )
+        .await
+        .expect("MiniMax chat should succeed");
+
+        assert!(!reply.trim().is_empty(), "reply should not be empty");
+        println!("MiniMax live reply: {}", reply);
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
