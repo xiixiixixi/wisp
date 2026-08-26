@@ -75,7 +75,8 @@ if (!SKIP_BUILD) {
   run('pnpm run build', {
     env: {
       ...process.env,
-      TAURI_SIGNING_PRIVATE_KEY_PATH: KEY_PATH,
+      // Tauri accepts a file path as TAURI_SIGNING_PRIVATE_KEY
+      TAURI_SIGNING_PRIVATE_KEY: KEY_PATH,
       TAURI_SIGNING_PRIVATE_KEY_PASSWORD: '',
     },
   });
