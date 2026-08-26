@@ -59,7 +59,7 @@ const ColumnFileRow = React.memo(
           color: 'var(--xp-text)',
           backgroundColor: (() => {
             if (isActive) return 'var(--xp-accent)';
-            if (isSelected) return 'rgba(99, 102, 241, 0.2)';
+            if (isSelected) return 'var(--xp-selection-bg)';
             return 'transparent';
           })(),
           borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
@@ -69,14 +69,14 @@ const ColumnFileRow = React.memo(
         }}
         onMouseEnter={(e) => {
           if (!isActive) {
-            (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
+            (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--xp-surface-light)';
           }
         }}
         onMouseLeave={(e) => {
           if (!isActive && !isSelected) {
             (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
           } else if (isSelected && !isActive) {
-            (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(99, 102, 241, 0.2)';
+            (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--xp-selection-bg)';
           }
         }}
         onFocus={(e) => {

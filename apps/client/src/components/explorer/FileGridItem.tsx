@@ -416,7 +416,7 @@ const FileGridItem = React.memo(
         }
         className={`cursor-pointer rounded-lg transition-colors duration-150 ${
           isSelected
-            ? 'bg-xp-blue/20 ring-xp-blue/80 border border-xp-blue ring-2'
+            ? 'bg-xp-selection border border-xp-blue ring-1 ring-xp-blue'
             : 'border border-transparent hover:bg-xp-surface-light'
         } ${(() => {
           if (isGridView) return 'min-w-0 overflow-hidden p-3 text-center';

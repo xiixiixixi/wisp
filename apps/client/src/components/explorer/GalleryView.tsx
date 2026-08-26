@@ -62,9 +62,9 @@ const GalleryStripThumb = React.memo(
         aria-label={`${file.name}${file.is_dir ? ', folder' : ', file'}`}
         data-gallery-path={file.path}
         className={`h-16 w-16 flex-shrink-0 cursor-pointer overflow-hidden rounded-md border-2 transition-all ${(() => {
-          if (isFocused) return 'border-xp-blue/70 ring-xp-blue/50 scale-105 ring-1';
-          if (isSelected) return 'border-xp-blue/50';
-          return 'hover:border-xp-text-muted/30 border-transparent';
+          if (isFocused) return 'scale-105 border-xp-blue ring-1 ring-xp-blue';
+          if (isSelected) return 'border-xp-blue';
+          return 'border-transparent hover:border-xp-text-muted';
         })()} `}
         style={{ position: 'relative' }}
         onClick={onClick}

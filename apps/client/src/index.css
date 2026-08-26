@@ -61,7 +61,7 @@ body {
   --xp-text-muted: #7f8b99;
   --xp-border: #2a3440;
   --xp-border-light: #394552;
-  --xp-selection-bg: rgba(121, 168, 216, 0.13);
+  --xp-selection-bg: rgba(121, 168, 216, 0.26);
   --xp-selection-border: rgba(121, 168, 216, 0.32);
   --xp-shadow-popover: 0 14px 38px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.2);
   --glow-blue: none;
@@ -846,7 +846,7 @@ html.theme-rolex {
   --xp-text-muted: #7f8b99;
   --xp-border: #2a3440;
   --xp-border-light: #394552;
-  --xp-selection-bg: rgba(121, 168, 216, 0.13);
+  --xp-selection-bg: rgba(121, 168, 216, 0.26);
   --xp-selection-border: rgba(121, 168, 216, 0.32);
   --xp-shadow-popover: 0 14px 38px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.2);
   --glow-blue: none;
@@ -902,7 +902,7 @@ html.theme-glass {
   --xp-text-muted: #909aa5;
   --xp-border: #3b4550;
   --xp-border-light: #4b5662;
-  --xp-selection-bg: rgba(138, 168, 200, 0.14);
+  --xp-selection-bg: rgba(138, 168, 200, 0.3);
   --xp-selection-border: rgba(138, 168, 200, 0.34);
   --xp-shadow-popover: 0 14px 36px rgba(9, 12, 16, 0.26), 0 2px 8px rgba(9, 12, 16, 0.18);
   --glow-blue: none;
@@ -958,7 +958,7 @@ html.theme-light {
   --xp-text-muted: #64707c;
   --xp-border: #d2d8de;
   --xp-border-light: #bec7d0;
-  --xp-selection-bg: rgba(68, 104, 140, 0.1);
+  --xp-selection-bg: rgba(68, 104, 140, 0.22);
   --xp-selection-border: rgba(68, 104, 140, 0.28);
   --xp-shadow-popover: 0 14px 34px rgba(32, 43, 53, 0.14), 0 2px 7px rgba(32, 43, 53, 0.08);
   --glow-blue: none;
