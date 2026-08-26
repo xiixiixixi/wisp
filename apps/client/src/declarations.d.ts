@@ -2,6 +2,9 @@
 // The package ships no TypeScript types; these declarations provide enough
 // shape for PrismLight and its language/style helpers.
 
+// Inlined by Vite from apps/src-tauri/tauri.conf.json (see vite.config.ts).
+declare const __APP_VERSION__: string;
+
 declare module 'react-syntax-highlighter/dist/esm/prism-light' {
   import { FC, CSSProperties } from 'react';
 

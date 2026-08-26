@@ -493,7 +493,7 @@ const Settings = () => {
           <div className="space-y-6 px-4 py-2">
             <div className="rounded-lg border border-xp-border p-6 text-center">
               <h2 className="mb-1 text-2xl font-bold text-xp-text">Wisp</h2>
-              <p className="text-sm text-xp-text-muted">v1.0.0-alpha.1</p>
+              <p className="text-sm text-xp-text-muted">v{__APP_VERSION__}</p>
               <p className="mt-3 text-sm text-xp-text-secondary">
                 {t('settings.about.description')}
               </p>
@@ -505,7 +505,7 @@ const Settings = () => {
               </h3>
               <div className="space-y-2">
                 <button
-                  onClick={() => TauriAPI.openUrl('https://github.com/kimlimjustin/xplorer')}
+                  onClick={() => TauriAPI.openUrl('https://github.com/xiixiixixi/wisp')}
                   className="flex w-full items-center gap-3 rounded-md p-2 text-left text-xp-text transition-colors hover:bg-xp-surface-light"
                 >
                   <Github size={18} className="text-xp-text-muted" />
@@ -513,11 +513,11 @@ const Settings = () => {
                   <ExternalLink size={14} className="ml-auto text-xp-text-muted" />
                 </button>
                 <button
-                  onClick={() => TauriAPI.openUrl('https://xplorer.space')}
+                  onClick={() => TauriAPI.openUrl('https://github.com/xiixiixixi/wisp/releases')}
                   className="flex w-full items-center gap-3 rounded-md p-2 text-left text-xp-text transition-colors hover:bg-xp-surface-light"
                 >
-                  <ExternalLink size={18} className="text-xp-text-muted" />
-                  <span className="text-sm">xplorer.space</span>
+                  <Github size={18} className="text-xp-text-muted" />
+                  <span className="text-sm">Releases</span>
                   <ExternalLink size={14} className="ml-auto text-xp-text-muted" />
                 </button>
               </div>
@@ -534,7 +534,7 @@ const Settings = () => {
                     {t('settings.about.sponsorDescription')}
                   </p>
                   <button
-                    onClick={() => TauriAPI.openUrl('https://github.com/sponsors/kimlimjustin')}
+                    onClick={() => TauriAPI.openUrl('https://github.com/sponsors/xiixiixixi')}
                     className="hover:bg-xp-blue/80 mt-3 inline-flex items-center gap-2 rounded-md bg-xp-blue px-4 py-2 text-sm font-medium text-white transition-colors"
                   >
                     <Heart size={14} />

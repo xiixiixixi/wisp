@@ -1,6 +1,13 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import fs from 'fs';
+
+// Single source of truth for the app version is apps/src-tauri/tauri.conf.json;
+// it is inlined at dev/build time so the About page can show it synchronously.
+const tauriVersion = JSON.parse(
+  fs.readFileSync(path.resolve(import.meta.dirname, 'apps', 'src-tauri', 'tauri.conf.json'), 'utf8'),
+).version as string;
 
 export default defineConfig(({ mode }) => ({
   plugins: [
@@ -28,6 +35,9 @@ export default defineConfig(({ mode }) => ({
     },
   },
   root: path.resolve(import.meta.dirname, 'apps', 'client'),
+  define: {
+    __APP_VERSION__: JSON.stringify(tauriVersion),
+  },
   build: {
     outDir: path.resolve(import.meta.dirname, 'apps/client/dist'),
     emptyOutDir: true,
@@ -64,6 +74,7 @@ export default defineConfig(({ mode }) => ({
     define: {
       'import.meta.env.TAURI_FAMILY': '"test"',
       'window.__TAURI__': 'undefined',
+      __APP_VERSION__: JSON.stringify(tauriVersion),
     },
   },
 }));
