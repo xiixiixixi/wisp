@@ -643,8 +643,11 @@ async fn chat_with_openai_compatible(
     let raw_endpoint = endpoint.filter(|s| !s.trim().is_empty()).ok_or_else(|| {
         "Custom endpoint not configured. Set it in Settings → AI → 助手（高级）.".to_string()
     })?;
+    // Trim: pasted keys/URLs often carry stray whitespace, and unlike MiniMax
+    // most providers reject a "Bearer <key> " header outright.
     let key = api_key
-        .filter(|s| !s.trim().is_empty())
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
         .ok_or_else(|| "Custom API key not configured.".to_string())?;
 
     let endpoint = normalize_openai_endpoint(&raw_endpoint);
@@ -748,7 +751,8 @@ async fn chat_with_anthropic_compatible(
         "Custom endpoint not configured. Set it in Settings → AI → 助手（高级）.".to_string()
     })?;
     let key = api_key
-        .filter(|s| !s.trim().is_empty())
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
         .ok_or_else(|| "Custom API key not configured.".to_string())?;
 
     let endpoint = normalize_anthropic_endpoint(&raw_endpoint);
