@@ -605,8 +605,20 @@ async fn chat_with_openrouter(
 // Custom OpenAI-compatible endpoint (MiniMax, DeepSeek, GLM, Qwen, …)
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Chat via a user-configured OpenAI-compatible endpoint. The endpoint must
-/// accept POST with an OpenAI chat/completions body and Bearer auth.
+/// Normalize an OpenAI-compatible endpoint: base URLs get the standard
+/// chat/completions path appended; full paths pass through untouched.
+fn normalize_openai_endpoint(raw: &str) -> String {
+    let trimmed = raw.trim().trim_end_matches('/');
+    if trimmed.ends_with("chat/completions") || trimmed.contains("chatcompletion") {
+        trimmed.to_string()
+    } else {
+        format!("{}/chat/completions", trimmed)
+    }
+}
+
+/// Chat via a user-configured OpenAI-compatible endpoint. Accepts either a
+/// base URL (e.g. https://api.minimaxi.com/v1 — "/chat/completions" is
+/// appended automatically, the ZCode convention) or a full endpoint path.
 async fn chat_with_openai_compatible(
     model: String,
     messages: Vec<ChatMessage>,
@@ -614,12 +626,14 @@ async fn chat_with_openai_compatible(
     endpoint: Option<String>,
     api_key: Option<String>,
 ) -> Result<String, String> {
-    let endpoint = endpoint.filter(|s| !s.trim().is_empty()).ok_or_else(|| {
+    let raw_endpoint = endpoint.filter(|s| !s.trim().is_empty()).ok_or_else(|| {
         "Custom endpoint not configured. Set it in Settings → AI → 助手（高级）.".to_string()
     })?;
     let key = api_key
         .filter(|s| !s.trim().is_empty())
         .ok_or_else(|| "Custom API key not configured.".to_string())?;
+
+    let endpoint = normalize_openai_endpoint(&raw_endpoint);
 
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(60))
@@ -701,12 +715,33 @@ async fn chat_with_openai_compatible(
 mod custom_endpoint_tests {
     use super::*;
 
+    #[test]
+    fn normalizes_base_and_full_endpoints() {
+        assert_eq!(
+            normalize_openai_endpoint("https://api.minimaxi.com/v1"),
+            "https://api.minimaxi.com/v1/chat/completions"
+        );
+        assert_eq!(
+            normalize_openai_endpoint("https://api.minimaxi.com/v1/"),
+            "https://api.minimaxi.com/v1/chat/completions"
+        );
+        assert_eq!(
+            normalize_openai_endpoint("https://api.minimaxi.com/v1/chat/completions"),
+            "https://api.minimaxi.com/v1/chat/completions"
+        );
+        assert_eq!(
+            normalize_openai_endpoint("https://api.minimaxi.com/v1/text/chatcompletion_v2"),
+            "https://api.minimaxi.com/v1/text/chatcompletion_v2"
+        );
+    }
+
     #[tokio::test]
     #[ignore]
     async fn custom_openai_compatible_minimax_live() {
         let host = std::env::var("MINIMAX_API_HOST").expect("MINIMAX_API_HOST not set");
         let key = std::env::var("MINIMAX_API_KEY").expect("MINIMAX_API_KEY not set");
-        let endpoint = format!("{}/v1/text/chatcompletion_v2", host.trim_end_matches('/'));
+        // Base URL only — the standard /chat/completions path is appended
+        let endpoint = host.trim_end_matches('/').to_string() + "/v1";
 
         let messages = vec![ChatMessage {
             role: "user".to_string(),

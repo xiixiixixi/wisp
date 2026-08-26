@@ -14,6 +14,7 @@ import {
   Settings2,
   Globe,
   Workflow,
+  Zap,
 } from 'lucide-react';
 import {
   Select,
@@ -28,6 +29,35 @@ import {
 import { type SafeAgentSettings } from '@/lib/agent-service';
 import { Toggle, SettingRow, SectionTitle, Divider, type AppSettings } from './shared';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
+
+/** One-tap presets for common OpenAI-compatible services (base URLs follow
+ *  the same convention as ZCode's provider configuration). */
+const OPENAI_COMPATIBLE_PRESETS = [
+  {
+    id: 'minimax',
+    label: 'MiniMax',
+    endpoint: 'https://api.minimaxi.com/v1',
+    model: 'MiniMax-Text-01',
+  },
+  {
+    id: 'deepseek',
+    label: 'DeepSeek',
+    endpoint: 'https://api.deepseek.com/v1',
+    model: 'deepseek-chat',
+  },
+  {
+    id: 'glm',
+    label: '智谱 GLM',
+    endpoint: 'https://open.bigmodel.cn/api/paas/v4',
+    model: 'glm-4.6',
+  },
+  {
+    id: 'kimi',
+    label: 'Kimi',
+    endpoint: 'https://api.moonshot.cn/v1',
+    model: 'kimi-k2-0711-preview',
+  },
+];
 
 interface AISettingsProps {
   agentSettings: SafeAgentSettings;
@@ -206,6 +236,30 @@ const AISettings = ({
           {/* Custom endpoint + protocol — only for the OpenAI-compatible provider */}
           {settings.aiCustomProvider === 'openai-compatible' && (
             <>
+              {/* One-tap presets for common OpenAI-compatible services */}
+              <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+                <div className="mb-2 flex items-center gap-3">
+                  <Zap size={18} className="shrink-0 text-xp-text-secondary" />
+                  <div className="text-xs text-xp-text-secondary">
+                    {t('settings.ai.presetsLabel')}
+                  </div>
+                </div>
+                <div className="ml-[30px] flex flex-wrap gap-2">
+                  {OPENAI_COMPATIBLE_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => {
+                        updateSetting('aiCustomEndpoint', preset.endpoint);
+                        updateSetting('aiCustomModel', preset.model);
+                      }}
+                      className="rounded-full border border-xp-border bg-xp-surface px-3 py-1 text-xs text-xp-text transition-colors hover:border-xp-accent"
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
                 <div className="mb-2 flex items-center gap-3">
                   <Globe size={18} className="shrink-0 text-xp-text-secondary" />
@@ -223,7 +277,7 @@ const AISettings = ({
                     type="text"
                     value={settings.aiCustomEndpoint || ''}
                     onChange={(e) => updateSetting('aiCustomEndpoint', e.target.value)}
-                    placeholder="https://api.minimaxi.com/v1/text/chatcompletion_v2"
+                    placeholder="https://api.minimaxi.com/v1"
                     className="h-9 w-full rounded-md border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-accent focus:outline-none focus:ring-1 focus:ring-xp-accent"
                   />
                 </div>
