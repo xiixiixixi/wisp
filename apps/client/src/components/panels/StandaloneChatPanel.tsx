@@ -171,7 +171,9 @@ const StandaloneChatPanel = () => {
           const cp = (s.aiCustomProvider as string) || 'ollama';
           const cm = (s.aiCustomModel as string) || '';
           if (cp === 'openai-compatible' && cm) {
-            setModel(`custom-openai:${cm}`);
+            const prefix =
+              s.aiCustomProtocol === 'anthropic' ? 'custom-anthropic:' : 'custom-openai:';
+            setModel(`${prefix}${cm}`);
             return;
           }
           if (cp === 'openrouter' && cm) {

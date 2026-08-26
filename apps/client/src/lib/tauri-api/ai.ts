@@ -25,13 +25,14 @@ export const checkOllamaStatus = async (): Promise<boolean> =>
 // ── AI chat / analysis ──────────────────────────────────────────────────────
 
 /**
- * Models routed to a user-configured OpenAI-compatible endpoint carry the
- * "custom-openai:" prefix. The endpoint + key are injected here from settings
- * so every caller (chat, agent loop, extensions) works without changes.
+ * Models routed to a user-configured endpoint carry the "custom-openai:" or
+ * "custom-anthropic:" prefix. The endpoint + key are injected here from
+ * settings so every caller (chat, agent loop, extensions) works unchanged.
  */
 const CUSTOM_OPENAI_PREFIX = 'custom-openai:';
+const CUSTOM_ANTHROPIC_PREFIX = 'custom-anthropic:';
 
-const readCustomOpenaiConfig = (): { endpoint: string; apiKey: string } | null => {
+const readCustomEndpointConfig = (): { endpoint: string; apiKey: string } | null => {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
     if (!raw) return null;
@@ -57,7 +58,9 @@ export const chatWithAI = async (
     image_mime_type?: string;
   } | null,
 ): Promise<string> => {
-  const custom = model.startsWith(CUSTOM_OPENAI_PREFIX) ? readCustomOpenaiConfig() : null;
+  const usesCustom =
+    model.startsWith(CUSTOM_OPENAI_PREFIX) || model.startsWith(CUSTOM_ANTHROPIC_PREFIX);
+  const custom = usesCustom ? readCustomEndpointConfig() : null;
   return await transport('chat_with_ai', {
     model,
     messages,

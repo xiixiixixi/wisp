@@ -492,6 +492,20 @@ async fn route_ai_request(
             .to_string();
         chat_with_openai_compatible(custom_model, messages, file_context, custom_endpoint, custom_api_key)
             .await
+    } else if model.starts_with("custom-anthropic:") {
+        // User-configured Anthropic-compatible endpoint (/v1/messages)
+        let custom_model = model
+            .strip_prefix("custom-anthropic:")
+            .unwrap_or(&model)
+            .to_string();
+        chat_with_anthropic_compatible(
+            custom_model,
+            messages,
+            file_context,
+            custom_endpoint,
+            custom_api_key,
+        )
+        .await
     } else {
         // Use existing Ollama chat function
         chat_with_ollama(model, messages, file_context).await
@@ -708,6 +722,109 @@ async fn chat_with_openai_compatible(
         .ok_or_else(|| "No content in custom endpoint response".to_string())
 }
 
+/// Normalize an Anthropic-compatible endpoint: base URLs get /v1/messages
+/// appended; full paths pass through untouched.
+fn normalize_anthropic_endpoint(raw: &str) -> String {
+    let trimmed = raw.trim().trim_end_matches('/');
+    if trimmed.ends_with("/messages") || trimmed.ends_with("/v1/messages") {
+        trimmed.to_string()
+    } else if trimmed.ends_with("/v1") {
+        format!("{}/messages", trimmed)
+    } else {
+        format!("{}/v1/messages", trimmed)
+    }
+}
+
+/// Chat via a user-configured Anthropic-compatible endpoint (MiniMax, GLM,
+/// DeepSeek and Kimi all expose /v1/messages). Text-only for now.
+async fn chat_with_anthropic_compatible(
+    model: String,
+    mut messages: Vec<ChatMessage>,
+    file_context: Option<FileContext>,
+    endpoint: Option<String>,
+    api_key: Option<String>,
+) -> Result<String, String> {
+    let raw_endpoint = endpoint.filter(|s| !s.trim().is_empty()).ok_or_else(|| {
+        "Custom endpoint not configured. Set it in Settings → AI → 助手（高级）.".to_string()
+    })?;
+    let key = api_key
+        .filter(|s| !s.trim().is_empty())
+        .ok_or_else(|| "Custom API key not configured.".to_string())?;
+
+    let endpoint = normalize_anthropic_endpoint(&raw_endpoint);
+
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(60))
+        .connect_timeout(std::time::Duration::from_secs(10))
+        .build()
+        .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
+
+    let mut system_content = "You are an AI assistant integrated into the Wisp file explorer. You help users with file management, code analysis, and development tasks. Be helpful, thorough, and practical.".to_string();
+    if let Some(context) = &file_context {
+        system_content.push_str(&format!(
+            "\n\nYou are currently working with:\nFile: {}\nPath: {}\nType: {}",
+            context.name, context.path, context.file_type
+        ));
+        if let Some(content) = &context.content {
+            system_content.push_str(&format!("\nContent:\n{}", content));
+        }
+    }
+
+    // Anthropic requires the conversation to end with a user message
+    if messages.last().map(|m| m.role.as_str()) != Some("user") {
+        messages.push(ChatMessage {
+            role: "user".to_string(),
+            content: "Continue.".to_string(),
+        });
+    }
+
+    let api_messages: Vec<serde_json::Value> = messages
+        .into_iter()
+        .map(|msg| {
+            let role = if msg.role == "user" { "user" } else { "assistant" };
+            serde_json::json!({ "role": role, "content": msg.content })
+        })
+        .collect();
+
+    let body = serde_json::json!({
+        "model": model,
+        "max_tokens": 4096,
+        "system": system_content,
+        "messages": api_messages,
+    });
+
+    let response = client
+        .post(&endpoint)
+        .header("x-api-key", &key)
+        .header("anthropic-version", "2023-06-01")
+        .header("content-type", "application/json")
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| format!("Failed to send request to {}: {}", endpoint, e))?;
+
+    if !response.status().is_success() {
+        let error_text = response
+            .text()
+            .await
+            .unwrap_or_else(|_| "Unknown error".to_string());
+        return Err(format!("Custom Anthropic endpoint error: {}", error_text));
+    }
+
+    let resp: serde_json::Value = response
+        .json()
+        .await
+        .map_err(|e| format!("Failed to parse Anthropic response: {}", e))?;
+
+    resp.get("content")
+        .and_then(|c| c.as_array())
+        .and_then(|arr| arr.first())
+        .and_then(|block| block.get("text"))
+        .and_then(|t| t.as_str())
+        .map(|s| s.to_string())
+        .ok_or_else(|| "No text in Anthropic response".to_string())
+}
+
 /// Live test against the user's MiniMax endpoint (env: MINIMAX_API_HOST +
 /// MINIMAX_API_KEY). Ignored by default; run with:
 ///   cargo test custom_openai_compatible_minimax_live -- --ignored --nocapture
@@ -733,6 +850,53 @@ mod custom_endpoint_tests {
             normalize_openai_endpoint("https://api.minimaxi.com/v1/text/chatcompletion_v2"),
             "https://api.minimaxi.com/v1/text/chatcompletion_v2"
         );
+    }
+
+    #[test]
+    fn normalizes_anthropic_endpoints() {
+        assert_eq!(
+            normalize_anthropic_endpoint("https://api.minimaxi.com/anthropic"),
+            "https://api.minimaxi.com/anthropic/v1/messages"
+        );
+        assert_eq!(
+            normalize_anthropic_endpoint("https://api.anthropic.com"),
+            "https://api.anthropic.com/v1/messages"
+        );
+        assert_eq!(
+            normalize_anthropic_endpoint("https://api.anthropic.com/v1"),
+            "https://api.anthropic.com/v1/messages"
+        );
+        assert_eq!(
+            normalize_anthropic_endpoint("https://x/anthropic/v1/messages"),
+            "https://x/anthropic/v1/messages"
+        );
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn custom_anthropic_compatible_minimax_live() {
+        let host = std::env::var("MINIMAX_API_HOST").expect("MINIMAX_API_HOST not set");
+        let key = std::env::var("MINIMAX_API_KEY").expect("MINIMAX_API_KEY not set");
+        // Anthropic-compatible base URL; /v1/messages is appended
+        let endpoint = host.trim_end_matches('/').to_string() + "/anthropic";
+
+        let messages = vec![ChatMessage {
+            role: "user".to_string(),
+            content: "只回复两个字：收到".to_string(),
+        }];
+
+        let reply = chat_with_anthropic_compatible(
+            "MiniMax-Text-01".to_string(),
+            messages,
+            None,
+            Some(endpoint),
+            Some(key),
+        )
+        .await
+        .expect("MiniMax Anthropic chat should succeed");
+
+        assert!(!reply.trim().is_empty(), "reply should not be empty");
+        println!("MiniMax Anthropic live reply: {}", reply);
     }
 
     #[tokio::test]

@@ -266,6 +266,7 @@ export interface AppSettings {
   aiCustomModel: string;
   aiCustomApiKey: string;
   aiCustomEndpoint: string;
+  aiCustomProtocol: 'openai' | 'anthropic';
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -294,6 +295,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   aiCustomModel: '',
   aiCustomApiKey: '',
   aiCustomEndpoint: '',
+  aiCustomProtocol: 'openai',
 };
 
 export const SETTINGS_KEY = STORAGE_KEYS.SETTINGS;

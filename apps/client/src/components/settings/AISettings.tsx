@@ -250,6 +250,7 @@ const AISettings = ({
                       key={preset.id}
                       type="button"
                       onClick={() => {
+                        updateSetting('aiCustomProtocol', 'openai');
                         updateSetting('aiCustomEndpoint', preset.endpoint);
                         updateSetting('aiCustomModel', preset.model);
                       }}
@@ -258,6 +259,35 @@ const AISettings = ({
                       {preset.label}
                     </button>
                   ))}
+                </div>
+              </div>
+              <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+                <div className="mb-2 flex items-center gap-3">
+                  <Workflow size={18} className="shrink-0 text-xp-text-secondary" />
+                  <div>
+                    <div className="text-sm font-medium text-xp-text">
+                      {t('settings.ai.customProtocolLabel')}
+                    </div>
+                    <div className="mt-0.5 text-xs text-xp-text-secondary">
+                      {t('settings.ai.customProtocolDesc')}
+                    </div>
+                  </div>
+                </div>
+                <div className="ml-[30px]">
+                  <Select
+                    value={settings.aiCustomProtocol || 'openai'}
+                    onValueChange={(v) => updateSetting('aiCustomProtocol', v)}
+                  >
+                    <SelectTrigger className="h-9 w-full" aria-label="Custom endpoint protocol">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="openai">{t('settings.ai.protocolOpenai')}</SelectItem>
+                      <SelectItem value="anthropic">
+                        {t('settings.ai.protocolAnthropic')}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
@@ -277,22 +307,13 @@ const AISettings = ({
                     type="text"
                     value={settings.aiCustomEndpoint || ''}
                     onChange={(e) => updateSetting('aiCustomEndpoint', e.target.value)}
-                    placeholder="https://api.minimaxi.com/v1"
+                    placeholder={
+                      settings.aiCustomProtocol === 'anthropic'
+                        ? 'https://api.minimaxi.com/anthropic'
+                        : 'https://api.minimaxi.com/v1'
+                    }
                     className="h-9 w-full rounded-md border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-accent focus:outline-none focus:ring-1 focus:ring-xp-accent"
                   />
-                </div>
-              </div>
-              <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
-                <div className="flex items-center gap-3">
-                  <Workflow size={18} className="shrink-0 text-xp-text-secondary" />
-                  <div>
-                    <div className="text-sm font-medium text-xp-text">
-                      {t('settings.ai.customProtocolLabel')}
-                    </div>
-                    <div className="mt-0.5 text-xs text-xp-text-secondary">
-                      {t('settings.ai.customProtocolValue')}
-                    </div>
-                  </div>
                 </div>
               </div>
             </>
