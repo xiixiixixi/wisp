@@ -33,6 +33,7 @@ const BUNDLE_DIR = join(ROOT, 'apps/src-tauri/target/release/bundle');
 const STAGE_DIR = join(BUNDLE_DIR, 'release-stage');
 const REPO = 'xiixiixixi/wisp';
 const KEY_PATH = join(homedir(), '.tauri/wisp-updater.key');
+const KEY_PASSWORD_PATH = join(homedir(), '.tauri/wisp-updater.password');
 
 const SKIP_BUILD = process.argv.includes('--skip-build');
 const notesFileArg = process.argv.find((a) => a.startsWith('--notes-file='));
@@ -51,8 +52,15 @@ const version = JSON.parse(readFileSync(CONF, 'utf8')).version;
 const tag = `v${version}`;
 console.log(`▶ Releasing Wisp ${tag} → github.com/${REPO}`);
 
-if (!existsSync(KEY_PATH)) {
-  die(`Updater signing key not found at ${KEY_PATH}. Generate it with:\n  pnpm tauri signer generate -w ${KEY_PATH} -p ""`);
+if (!existsSync(KEY_PATH) || !existsSync(KEY_PASSWORD_PATH)) {
+  die(
+    `Updater signing key not found at ${KEY_PATH} (+ password file). Generate with:\n` +
+      `  PW=$(openssl rand -hex 16)\n` +
+      `  echo -n "$PW" > ${KEY_PASSWORD_PATH}\n` +
+      `  pnpm tauri signer generate -w ${KEY_PATH} -p "$PW"\n` +
+      `Then put the new public key into tauri.conf.json plugins.updater.pubkey.\n` +
+      `KEEP BACKUPS of both files — losing them permanently breaks self-updates.`,
+  );
 }
 
 try {
@@ -77,7 +85,7 @@ if (!SKIP_BUILD) {
       ...process.env,
       // Tauri accepts a file path as TAURI_SIGNING_PRIVATE_KEY
       TAURI_SIGNING_PRIVATE_KEY: KEY_PATH,
-      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: '',
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: readFileSync(KEY_PASSWORD_PATH, 'utf8').trim(),
     },
   });
 }
