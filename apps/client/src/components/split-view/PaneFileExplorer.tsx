@@ -99,6 +99,27 @@ const PaneFileExplorer = React.memo(
     const [showSizeBadges, setShowSizeBadges] = useState(false);
     const toggleSizeBadges = useCallback(() => setShowSizeBadges((prev) => !prev), []);
 
+    // Clicking blank space clears the selection (Finder/VS Code behaviour).
+    // The mouse-down position is tracked so a drag release (e.g. a file drag
+    // ending on empty space) is not mistaken for a genuine click.
+    const bgMouseDownPosRef = useRef<{ x: number; y: number } | null>(null);
+
+    const handleBackgroundClick = useCallback(
+      (e: React.MouseEvent) => {
+        const down = bgMouseDownPosRef.current;
+        bgMouseDownPosRef.current = null;
+        if (!down) return;
+        if (Math.abs(e.clientX - down.x) > 3 || Math.abs(e.clientY - down.y) > 3) return;
+        // Ignore clicks that landed on a file row or an interactive control
+        const hitInteractive = (e.target as HTMLElement).closest(
+          '[data-file-path], [data-gallery-path], [role="treeitem"], [role="option"], [role="row"], button, input, textarea, select, a',
+        );
+        if (hitInteractive) return;
+        setSelectedFiles(new Set());
+      },
+      [setSelectedFiles],
+    );
+
     // Preserve scroll position across file list refetches (hot-reload, file changes)
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const savedScrollTopRef = useRef<number>(0);
@@ -262,7 +283,14 @@ const PaneFileExplorer = React.memo(
           />
         )}
 
-        <div ref={scrollContainerRef} className="flex-1 overflow-auto p-4">
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 overflow-auto p-4"
+          onMouseDown={(e) => {
+            bgMouseDownPosRef.current = { x: e.clientX, y: e.clientY };
+          }}
+          onClick={handleBackgroundClick}
+        >
           <FileGrid
             files={displayFiles}
             fileGroups={colorFilter ? null : fileGroups}
