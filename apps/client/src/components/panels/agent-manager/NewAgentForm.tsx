@@ -4,7 +4,7 @@
  * Supports Wisp Cloud agents and launching external CLI agents
  * (Claude Code, Codex, or a custom command).
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type {
   CreateSessionParams,
@@ -60,7 +60,7 @@ const CLI_AGENTS: Array<{
 ];
 
 /** One-tap suggestions for the custom CLI input. */
-const CUSTOM_SUGGESTIONS = ['gemini', 'aider', 'opencode', 'goose'];
+const CUSTOM_SUGGESTIONS = ['zcode', 'gemini', 'aider', 'opencode', 'goose'];
 
 const RECENT_COMMANDS_LIMIT = 5;
 
@@ -114,6 +114,7 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
   const [name, setName] = useState('');
   const [prompt, setPrompt] = useState('');
   const [customCommand, setCustomCommand] = useState('');
+  const customCommandInputRef = useRef<HTMLInputElement>(null);
   const [model, setModel] = useState('claude-sonnet-4-20250514');
   const [workingDirectory, setWorkingDirectory] = useState('/');
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
@@ -273,6 +274,21 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
     fontFamily: 'monospace',
   };
 
+  /** Fill the custom command input from a chip and make the change obvious:
+   *  focus + select so the cursor jumps there and the text is highlighted. */
+  const applyChipCommand = (command: string) => {
+    setCustomCommand(command);
+    setLaunchError(null);
+    // Run after the state update renders the new value
+    requestAnimationFrame(() => {
+      const input = customCommandInputRef.current;
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    });
+  };
+
   return (
     <div
       style={{
@@ -330,7 +346,7 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
                 <button
                   key={`recent-${cmd}`}
                   type="button"
-                  onClick={() => setCustomCommand(cmd)}
+                  onClick={() => applyChipCommand(cmd)}
                   style={chipStyle}
                   title={cmd}
                 >
@@ -338,13 +354,14 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
                 </button>
               ))}
               {CUSTOM_SUGGESTIONS.filter((s) => !recentCommands.includes(s)).map((s) => (
-                <button key={s} type="button" onClick={() => setCustomCommand(s)} style={chipStyle}>
+                <button key={s} type="button" onClick={() => applyChipCommand(s)} style={chipStyle}>
                   {s}
                 </button>
               ))}
             </div>
           )}
           <input
+            ref={customCommandInputRef}
             type="text"
             placeholder={t('agentManager.newAgent.commandPlaceholder')}
             value={customCommand}
