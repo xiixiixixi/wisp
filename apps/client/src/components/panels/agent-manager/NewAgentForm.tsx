@@ -20,6 +20,7 @@ import {
   launchClaudeCode,
   launchCodex,
   launchGeminiCli,
+  launchOpenCode,
   launchCustomCli,
 } from './launch-cli-agent';
 import { TauriAPI } from '@/lib/tauri-api';
@@ -30,7 +31,13 @@ import { STORAGE_KEYS } from '@/lib/storage-keys';
 // Types & constants
 // ---------------------------------------------------------------------------
 
-export type AgentType = 'cloud' | 'claude-code' | 'gemini-cli' | 'codex' | 'custom-cli';
+export type AgentType =
+  | 'cloud'
+  | 'claude-code'
+  | 'gemini-cli'
+  | 'opencode'
+  | 'codex'
+  | 'custom-cli';
 
 /** Known external CLI agents: binary to detect + install hint when missing. */
 const CLI_AGENTS: Array<{
@@ -50,6 +57,12 @@ const CLI_AGENTS: Array<{
     command: 'gemini',
     installCmd: 'npm install -g @google/gemini-cli',
     labelKey: 'agentManager.newAgent.typeGeminiCli',
+  },
+  {
+    type: 'opencode',
+    command: 'opencode',
+    installCmd: 'curl -fsSL https://opencode.ai/install | bash',
+    labelKey: 'agentManager.newAgent.typeOpenCode',
   },
   {
     type: 'codex',
@@ -203,6 +216,9 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
         result = await launchClaudeCode(workingDirectory, prompt.trim() || undefined);
       } else if (agentType === 'gemini-cli') {
         result = await launchGeminiCli(workingDirectory, prompt.trim() || undefined);
+      } else if (agentType === 'opencode') {
+        // opencode's TUI takes no initial prompt argument; launch bare
+        result = await launchOpenCode(workingDirectory);
       } else if (agentType === 'codex') {
         result = await launchCodex(workingDirectory, prompt.trim() || undefined);
       } else {

@@ -121,6 +121,19 @@ export const launchGeminiCli = async (
 };
 
 /**
+ * Launch OpenCode in a new PTY session. The TUI takes no initial prompt
+ * argument, so it always starts bare (in the interactive zsh the user's
+ * proxy alias resolves the binary).
+ */
+export const launchOpenCode = async (workingDir: string): Promise<CliAgentResult> => {
+  const sessionId = generateSessionId('opencode');
+
+  await spawnWithCommand(sessionId, workingDir, 'opencode', 'OpenCode');
+
+  return { sessionId, label: 'OpenCode' };
+};
+
+/**
  * Launch an arbitrary CLI command in a new PTY session.
  *
  * @param workingDir - Directory to run the command from

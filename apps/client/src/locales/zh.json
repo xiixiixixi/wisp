@@ -2456,7 +2456,8 @@
       "copyInstall": "复制安装命令",
       "copied": "已复制",
       "launchFailed": "启动失败",
-      "promptPlaceholderCustom": "初始提示（可选，会附加到命令末尾）"
+      "promptPlaceholderCustom": "初始提示（可选，会附加到命令末尾）",
+      "typeOpenCode": "OpenCode"
     },
     "taskQueue": {
       "empty": "没有排队的任务",

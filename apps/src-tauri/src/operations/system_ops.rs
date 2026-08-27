@@ -2158,7 +2158,30 @@ pub async fn check_cli_installed(
         let installed = if cmd.contains('/') || cmd.contains('\\') {
             std::path::Path::new(&cmd).is_file()
         } else {
-            dirs.iter().any(|dir| {
+            // Official installer locations that are not on PATH by default
+            // (e.g. opencode lives at ~/.opencode/bin/opencode and is often
+            // reached through a shell alias instead).
+            let home_bins = [
+                std::env::var("HOME")
+                    .ok()
+                    .map(|h| std::path::PathBuf::from(h).join(".opencode/bin")),
+            ];
+            let in_home_bin = home_bins.iter().flatten().any(|dir| {
+                let candidate = dir.join(&cmd);
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::PermissionsExt;
+                    std::fs::metadata(&candidate)
+                        .map(|m| m.is_file() && m.permissions().mode() & 0o111 != 0)
+                        .unwrap_or(false)
+                }
+                #[cfg(not(unix))]
+                {
+                    candidate.is_file()
+                }
+            });
+            in_home_bin
+                || dirs.iter().any(|dir| {
                 #[cfg(windows)]
                 {
                     extensions.iter().any(|ext| {
@@ -2176,4 +2199,30 @@ pub async fn check_cli_installed(
         result.insert(cmd, installed);
     }
     Ok(result)
+}
+
+#[cfg(test)]
+mod cli_detect_tests {
+    use super::check_cli_installed;
+
+    /// Live check on this machine: claude is on PATH, opencode lives at
+    /// ~/.opencode/bin (reached via a shell alias, not on PATH).
+    #[tokio::test]
+    #[ignore]
+    async fn detects_path_and_home_bin_installs() {
+        let result = check_cli_installed(vec![
+            "claude".to_string(),
+            "opencode".to_string(),
+            "definitely-not-installed-xyz".to_string(),
+        ])
+        .await
+        .expect("check succeeds");
+        assert_eq!(result.get("claude"), Some(&true), "claude found on PATH");
+        assert_eq!(
+            result.get("opencode"),
+            Some(&true),
+            "opencode found in ~/.opencode/bin"
+        );
+        assert_eq!(result.get("definitely-not-installed-xyz"), Some(&false));
+    }
 }

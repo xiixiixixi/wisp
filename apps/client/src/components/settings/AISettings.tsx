@@ -101,7 +101,7 @@ const AISettings = ({
 
   useEffect(() => {
     if (!isTauri()) return;
-    TauriAPI.checkCliInstalled(['claude', 'gemini', 'codex'])
+    TauriAPI.checkCliInstalled(['claude', 'gemini', 'opencode', 'codex'])
       .then(setCliInstalled)
       .catch(() => {
         /* detection unavailable — statuses stay unknown */
@@ -120,6 +120,12 @@ const AISettings = ({
       label: 'Gemini CLI',
       installed: cliInstalled['gemini'],
       installCmd: 'npm install -g @google/gemini-cli',
+    },
+    {
+      command: 'opencode',
+      label: 'OpenCode',
+      installed: cliInstalled['opencode'],
+      installCmd: 'curl -fsSL https://opencode.ai/install | bash',
     },
     {
       command: 'codex',

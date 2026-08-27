@@ -2471,7 +2471,8 @@
       "copyInstall": "Copy install",
       "copied": "Copied",
       "launchFailed": "Launch failed",
-      "promptPlaceholderCustom": "Initial prompt (optional, appended to the command)"
+      "promptPlaceholderCustom": "Initial prompt (optional, appended to the command)",
+      "typeOpenCode": "OpenCode"
     },
     "taskQueue": {
       "empty": "No queued tasks",
