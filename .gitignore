@@ -55,3 +55,4 @@ CLAUDE.md
 apps/src-tauri/shortcuts/
 packages/extensions/*/native/target/
 *.dylib
+docs/
