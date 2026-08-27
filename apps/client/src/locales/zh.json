@@ -416,7 +416,12 @@
       "modelGroupMetaOllama": "Meta（经 Ollama）",
       "modelGroupMistral": "Mistral",
       "modelGroupLocalOllama": "本地（Ollama）",
-      "agentSection": "智能体"
+      "agentSection": "智能体",
+      "externalTitle": "外部 Agent（推荐）",
+      "externalDesc": "用你电脑上装的 Claude Code 等工具，在内嵌终端里干活。零配置、钥匙和模型都在它们自己那边管，Wisp 一概不经手。",
+      "externalCopied": "已复制",
+      "builtInTitle": "内置 AI（可选）",
+      "builtInDesc": "自带对话/搜索用的 AI 服务，需要配置 API 密钥；只用外部 Agent 可忽略"
     },
     "permissions": {
       "readTools": "读取工具",
@@ -2464,7 +2469,13 @@
       "generateReadme": "生成 README",
       "smartRename": "智能重命名",
       "summarize": "总结文件夹",
-      "cleanup": "清理"
+      "cleanup": "清理",
+      "organizePrompt": "分析当前文件夹并把文件整理成清晰的结构：按类型或用途把相关文件归入子文件夹。先给出整理方案征求确认，再动手。",
+      "findDuplicatesPrompt": "在当前目录中查找重复或高度相似的文件：根据文件名、大小和内容特征列出疑似重复项，先列清单再建议处理方式。",
+      "generateReadmePrompt": "分析当前目录的文件，生成一份 README.md：包含项目简介、安装步骤和使用示例。",
+      "smartRenamePrompt": "分析这个文件夹里的文件名，提出统一的命名改进建议：识别规律，先给出重命名方案再执行。",
+      "summarizePrompt": "总结这个文件夹的内容：列出关键文件，简要说明这个目录是做什么用的。",
+      "cleanupPrompt": "分析这个文件夹，找出可以删除或归档的文件：重点关注临时文件、旧备份和无用的资源，先列清单再建议处理方式。"
     },
     "recentActions": {
       "empty": "没有最近的操作",

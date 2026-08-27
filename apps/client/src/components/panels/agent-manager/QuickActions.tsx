@@ -13,7 +13,7 @@ interface QuickActionDef {
   id: string;
   labelKey: string;
   icon: React.ReactNode;
-  prompt: string;
+  promptKey: string;
 }
 
 interface QuickActionsProps {
@@ -30,43 +30,37 @@ const QUICK_ACTIONS: QuickActionDef[] = [
     id: 'organize',
     labelKey: 'agentManager.quickActions.organize',
     icon: <FolderTree size={16} />,
-    prompt:
-      'Analyze this folder and organize files into a clean structure. Group related files into subfolders by type or purpose.',
+    promptKey: 'agentManager.quickActions.organizePrompt',
   },
   {
     id: 'duplicates',
     labelKey: 'agentManager.quickActions.findDuplicates',
     icon: <Search size={16} />,
-    prompt:
-      'Search this directory for duplicate or very similar files. List any files that appear to be duplicates based on name, size, and content patterns.',
+    promptKey: 'agentManager.quickActions.findDuplicatesPrompt',
   },
   {
     id: 'readme',
     labelKey: 'agentManager.quickActions.generateReadme',
     icon: <FileDown size={16} />,
-    prompt:
-      'Analyze the files in this directory and generate a README.md with a project description, setup instructions, and usage examples.',
+    promptKey: 'agentManager.quickActions.generateReadmePrompt',
   },
   {
     id: 'rename',
     labelKey: 'agentManager.quickActions.smartRename',
     icon: <PenLine size={16} />,
-    prompt:
-      'Analyze filenames in this folder and suggest consistent naming improvements. Detect patterns and propose a rename plan.',
+    promptKey: 'agentManager.quickActions.smartRenamePrompt',
   },
   {
     id: 'summarize',
     labelKey: 'agentManager.quickActions.summarize',
     icon: <FileText size={16} />,
-    prompt:
-      'Summarize the contents of this folder. List key files and provide a brief description of what this directory contains and its purpose.',
+    promptKey: 'agentManager.quickActions.summarizePrompt',
   },
   {
     id: 'cleanup',
     labelKey: 'agentManager.quickActions.cleanup',
     icon: <Trash2 size={16} />,
-    prompt:
-      'Analyze this folder and suggest files that could be deleted or archived. Look for temp files, old backups, and unused assets.',
+    promptKey: 'agentManager.quickActions.cleanupPrompt',
   },
 ];
 
@@ -87,12 +81,13 @@ const QuickActions = ({ onAction, disabled }: QuickActionsProps) => {
     >
       {QUICK_ACTIONS.map((action) => {
         const label = t(action.labelKey);
+        const prompt = t(action.promptKey);
         return (
           <button
             key={action.id}
-            onClick={() => onAction(action.prompt)}
+            onClick={() => onAction(prompt)}
             disabled={disabled}
-            title={action.prompt}
+            title={prompt}
             aria-label={label}
             style={{
               display: 'flex',

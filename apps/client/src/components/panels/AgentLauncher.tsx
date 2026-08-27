@@ -4,14 +4,14 @@
  * Activated by Cmd+K (macOS) or Ctrl+K (Windows/Linux). Presents a
  * centered floating card with:
  * - Text input for the agent task description
- * - Model picker dropdown (popular OpenRouter models)
  * - Scope picker (current directory / selected files / browse)
  * - Recent agent prompts
  * - Launch button that dispatches to the AI chat
+ * (The model is decided by Settings → AI, not here.)
  */
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Rocket, ChevronDown, Clock, X, Folder, FolderOpen } from 'lucide-react';
+import { Rocket, Clock, X, Folder, FolderOpen } from 'lucide-react';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { getWispState } from '@/components/panels/chat-context-helpers';
 import {
@@ -38,25 +38,6 @@ interface RecentPrompt {
 }
 
 type ScopeOption = 'current-dir' | 'selected-files' | 'browse';
-
-// ---------------------------------------------------------------------------
-// Model list — popular OpenRouter models
-// ---------------------------------------------------------------------------
-
-const MODEL_OPTIONS = [
-  { value: 'anthropic/claude-sonnet-4', label: 'Claude Sonnet 4' },
-  { value: 'anthropic/claude-opus-4', label: 'Claude Opus 4' },
-  { value: 'anthropic/claude-haiku-3.5', label: 'Claude Haiku 3.5' },
-  { value: 'openai/gpt-4.1', label: 'GPT-4.1' },
-  { value: 'openai/o3', label: 'o3' },
-  { value: 'openai/o4-mini', label: 'o4-mini' },
-  { value: 'google/gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
-  { value: 'meta-llama/llama-4-scout', label: 'Llama 4 Scout' },
-  { value: 'deepseek/deepseek-r1', label: 'DeepSeek R1' },
-  { value: 'qwen/qwen3-235b', label: 'Qwen3 235B' },
-];
-
-const DEFAULT_MODEL = MODEL_OPTIONS[0].value;
 
 const MAX_RECENT_PROMPTS = 10;
 
@@ -222,7 +203,6 @@ const AgentLauncher = ({
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [prompt, setPrompt] = useState('');
-  const [model, setModel] = useState(DEFAULT_MODEL);
   const [scope, setScope] = useState<ScopeOption>('current-dir');
   const [workingDir, setWorkingDir] = useState(currentPath);
   const [showDirInput, setShowDirInput] = useState(false);
@@ -307,10 +287,10 @@ const AgentLauncher = ({
       dispatchChatPrompt(fullPrompt);
     };
 
-    // Save to recent
+    // Save to recent (model field kept for storage compatibility)
     const newRecent: RecentPrompt = {
       text: trimmed,
-      model,
+      model: '',
       scope,
       timestamp: Date.now(),
     };
@@ -329,11 +309,10 @@ const AgentLauncher = ({
     });
 
     onClose();
-  }, [prompt, model, scope, workingDir, selectedFileCount, recentPrompts, onClose]);
+  }, [prompt, scope, workingDir, selectedFileCount, recentPrompts, onClose]);
 
   const handleRecentClick = useCallback((recent: RecentPrompt) => {
     setPrompt(recent.text);
-    setModel(recent.model || DEFAULT_MODEL);
     if (
       recent.scope === 'current-dir' ||
       recent.scope === 'selected-files' ||
@@ -413,30 +392,8 @@ const AgentLauncher = ({
           />
         </div>
 
-        {/* Model picker */}
-        <div style={rowStyle}>
-          <span style={labelStyle}>{t('agentManager.launcher.modelLabel')}</span>
-          <div style={{ flex: 1, position: 'relative' }}>
-            <select value={model} onChange={(e) => setModel(e.target.value)} style={selectStyle}>
-              {MODEL_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={12}
-              style={{
-                position: 'absolute',
-                right: 8,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                pointerEvents: 'none',
-                color: 'var(--xp-text-muted)',
-              }}
-            />
-          </div>
-        </div>
+        {/* Model picker removed — the model is decided by Settings → AI
+            (custom endpoint), so a fake OpenRouter list here was misleading. */}
 
         {/* Scope picker */}
         <div style={rowStyle}>

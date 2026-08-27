@@ -416,7 +416,12 @@
       "modelGroupMetaOllama": "Meta (via Ollama)",
       "modelGroupMistral": "Mistral",
       "modelGroupLocalOllama": "Local (Ollama)",
-      "agentSection": "Agent"
+      "agentSection": "Agent",
+      "externalTitle": "External Agents (recommended)",
+      "externalDesc": "Run Claude Code & friends in the embedded terminal. Zero config — keys and models stay with the agents themselves.",
+      "externalCopied": "Copied",
+      "builtInTitle": "Built-in AI (optional)",
+      "builtInDesc": "Wisp's own chat/search AI; needs an API key. Ignore if you only use external agents"
     },
     "permissions": {
       "readTools": "Read Tools",
@@ -2479,7 +2484,13 @@
       "generateReadme": "Generate README",
       "smartRename": "Smart Rename",
       "summarize": "Summarize Folder",
-      "cleanup": "Clean Up"
+      "cleanup": "Clean Up",
+      "organizePrompt": "Analyze this folder and organize files into a clean structure. Group related files into subfolders by type or purpose. Propose the plan first, then act on approval.",
+      "findDuplicatesPrompt": "Search this directory for duplicate or very similar files based on name, size and content patterns. List them first, then suggest how to handle them.",
+      "generateReadmePrompt": "Analyze the files in this directory and generate a README.md with a project description, setup instructions, and usage examples.",
+      "smartRenamePrompt": "Analyze filenames in this folder and suggest consistent naming improvements. Detect patterns and propose a rename plan before executing.",
+      "summarizePrompt": "Summarize the contents of this folder. List key files and provide a brief description of what this directory contains and its purpose.",
+      "cleanupPrompt": "Analyze this folder and suggest files that could be deleted or archived: temp files, old backups, unused assets. List them first, then suggest actions."
     },
     "recentActions": {
       "empty": "No recent actions",
