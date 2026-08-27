@@ -9,7 +9,6 @@ const ClipboardHistoryPanel = React.lazy(() => import('./ClipboardHistoryPanel')
 const ChangeReviewPanel = React.lazy(() => import('./ChangeReviewPanel'));
 const ActivityFeedWrapper = React.lazy(() => import('./ActivityFeedWrapper'));
 const PropertiesPanel = React.lazy(() => import('./PropertiesPanel'));
-const AgentBottomPanel = React.lazy(() => import('./agent-manager/AgentBottomPanel'));
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useNotificationHistory } from '@/hooks/use-notification-history';
 import type { ClipboardEntry } from '@/hooks/use-clipboard-history';
@@ -62,7 +61,6 @@ const CORE_TABS: BottomPanelTab[] = [
   'clipboard',
   'notifications',
   'properties',
-  'agents',
 ];
 
 const BottomPanel = ({
@@ -143,7 +141,6 @@ const BottomPanel = ({
     clipboard: 'bottomPanel.clipboard',
     notifications: 'bottomPanel.notifications',
     properties: 'bottomPanel.properties',
-    agents: 'bottomPanel.agents',
   };
 
   const getTabLabel = (tab: BottomPanelTab): string => {
@@ -329,16 +326,6 @@ const BottomPanel = ({
 
                 {bottomPanelTab === 'properties' && (
                   <PropertiesPanel filePath={propertiesFilePath ?? ''} />
-                )}
-
-                {bottomPanelTab === 'agents' && (
-                  <AgentBottomPanel
-                    sessions={[]}
-                    onStopSession={() => {}}
-                    onOpenWorkspace={() => {
-                      window.dispatchEvent(new CustomEvent('wisp-open-agent-workspace'));
-                    }}
-                  />
                 )}
               </React.Suspense>
             )}

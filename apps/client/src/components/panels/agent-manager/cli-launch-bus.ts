@@ -12,6 +12,8 @@
 export interface CliAgentLaunch {
   sessionId: string;
   label: string;
+  workingDirectory: string;
+  agentType: string;
 }
 
 export const CLI_AGENT_LAUNCHED_EVENT = 'wisp:cli-agent-launched';

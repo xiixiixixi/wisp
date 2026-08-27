@@ -268,8 +268,8 @@ export const ACTION_LABELS: Record<string, string> = {
   SplitPaneHorizontal: 'Split Pane Horizontally',
 
   OpenTerminal: 'Open Terminal',
-  ToggleAgentLauncher: 'AI Agent Launcher',
-  ToggleAgentWorkspace: 'AI Agent Workspace',
+  ToggleAgentLauncher: 'Open Agent',
+  ToggleAgentWorkspace: 'Open Agent',
   OpenAIAssistant: 'AI Assistant',
   OpenExtensions: 'Extensions',
 };

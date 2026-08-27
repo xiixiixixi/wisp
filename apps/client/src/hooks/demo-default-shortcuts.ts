@@ -217,12 +217,5 @@ export const DEMO_DEFAULT_SHORTCUTS: ShortcutBinding[] = [
   ),
   // ── Terminal / AI ──
   B('open-terminal', ['ctrl', '`'], 'OpenTerminal', 'Open terminal', 'ctrl+`'),
-  B('agent-launcher', ['ctrl', 'k'], 'ToggleAgentLauncher', 'Toggle AI agent launcher', 'ctrl+k'),
-  B(
-    'agent-workspace',
-    ['ctrl', 'alt', 'a'],
-    'ToggleAgentWorkspace',
-    'Toggle AI agent workspace',
-    'ctrl+alt+a',
-  ),
+  B('agent-launcher', ['ctrl', 'k'], 'ToggleAgentLauncher', 'Open Agent', 'ctrl+k'),
 ];

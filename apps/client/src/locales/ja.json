@@ -862,6 +862,7 @@
     "contentSearch": "コンテンツ検索",
     "aiChat": "AI アシスタント",
     "agentManager": "エージェント管理",
+    "agent": "エージェント",
     "moreTools": "その他のツール",
     "performance": "パフォーマンス",
     "extensions": "拡張機能",
@@ -1463,6 +1464,7 @@
     }
   },
   "smartSearch": {
+    "placeholder": "ファイルと内容を検索...",
     "scopeFolder": "このフォルダ",
     "scopeEverywhere": "すべて",
     "scopeFolderTitle": "現在のフォルダのみ検索",
@@ -2287,6 +2289,26 @@
     "freeSpace": "空き {{size}} GB"
   },
   "agentManager": {
+    "cockpit": {
+      "description": "エージェントは実際のターミナルで動作します。Wisp は起動、監視、再開のみを担当します。",
+      "startTitle": "設定して起動",
+      "runningTitle": "実行中",
+      "historyTitle": "プロジェクト履歴",
+      "agentLabel": "エージェント",
+      "commandLabel": "コマンド",
+      "toolTitle": "エージェントツール",
+      "detectedCount": "{{detected}} / {{total}} インストール済み",
+      "detectionUnavailable": "検出待ち",
+      "refreshDetection": "ツールを再検出",
+      "statusInstalled": "インストール済み",
+      "statusMissing": "未検出",
+      "statusUnknown": "未確認",
+      "statusCustom": "カスタム",
+      "externalOwnership": "アカウント、モデル、権限は選択したツールが管理します。Wisp は保存しません。",
+      "promptLabel": "タスク（任意）",
+      "promptPlaceholder": "タスクを入力するか、空欄のまま対話ターミナルを開きます",
+      "noRunning": "実行中のエージェントはありません。新しいセッションは下のターミナルに表示されます。"
+    },
     "sections": {
       "activeAgents": "アクティブエージェント",
       "externalAgents": "外部エージェント",

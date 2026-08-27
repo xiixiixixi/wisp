@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import type { FileEntry, FolderSizeInfo, ConflictFileInfo } from '@/lib/tauri-api';
 import { formatFileSize, formatDate, type ThemeDef, type SortField } from '@/lib/utils';
 import type { TabItem, SplitLayoutState } from '@/types/split-view';
@@ -31,9 +31,6 @@ import SplitContainer from '@/components/split-view/SplitContainer';
 import { DragDropProvider } from '@/contexts/DragDropContext';
 import { CrossTabSelectionProvider } from '@/contexts/CrossTabSelectionContext';
 import { ExplorerProvider, type ExplorerContextValue } from '@/contexts/ExplorerContext';
-
-const AgentLauncher = React.lazy(() => import('@/components/panels/AgentLauncher'));
-const AgentWorkspace = React.lazy(() => import('@/components/panels/agent-manager/AgentWorkspace'));
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -296,45 +293,6 @@ const MainLayout = (props: MainLayoutProps) => {
 
   const activeTabObj = activeGroup.tabs.find((t: TabItem) => t.id === activeGroup.activeTabId);
 
-  // ── Agent Launcher (Cmd+K) ──────────────────────────────────────────────
-  const [agentLauncherOpen, setAgentLauncherOpen] = useState(false);
-
-  const handleCloseAgentLauncher = useCallback(() => {
-    setAgentLauncherOpen(false);
-  }, []);
-
-  useEffect(() => {
-    // ⌘K is owned by the configurable shortcut system (agent-launcher
-    // binding); it dispatches this event so the key stays editable in
-    // settings while the launcher lives here.
-    const handleAgentLauncherKey = () => setAgentLauncherOpen((v) => !v);
-    window.addEventListener('wisp-toggle-agent-launcher', handleAgentLauncherKey);
-    return () => window.removeEventListener('wisp-toggle-agent-launcher', handleAgentLauncherKey);
-  }, []);
-
-  // ── Agent Workspace (⌥⌘A) ────────────────────────────────────────────────
-  const [agentWorkspaceOpen, setAgentWorkspaceOpen] = useState(false);
-
-  const handleCloseAgentWorkspace = useCallback(() => {
-    setAgentWorkspaceOpen(false);
-  }, []);
-
-  useEffect(() => {
-    // Toggled by the configurable shortcut system (agent-workspace binding).
-    const handleAgentWorkspaceKey = () => setAgentWorkspaceOpen((v) => !v);
-    window.addEventListener('wisp-toggle-agent-workspace', handleAgentWorkspaceKey);
-    return () => window.removeEventListener('wisp-toggle-agent-workspace', handleAgentWorkspaceKey);
-  }, []);
-
-  // Listen for workspace open events (from bottom panel "expand" button)
-  useEffect(() => {
-    const handleOpenWorkspace = () => {
-      setAgentWorkspaceOpen(true);
-    };
-    window.addEventListener('wisp-open-agent-workspace', handleOpenWorkspace);
-    return () => window.removeEventListener('wisp-open-agent-workspace', handleOpenWorkspace);
-  }, []);
-
   // ── Build ExplorerContext value ───────────────────────────────────────────
   const explorerContextValue: ExplorerContextValue = React.useMemo(
     () => ({
@@ -546,7 +504,6 @@ const MainLayout = (props: MainLayoutProps) => {
                 rightSidebarCollapsed={rightSidebarCollapsed}
                 setRightSidebarCollapsed={setRightSidebarCollapsed}
                 rightPanelTab={rightPanelTab}
-                setRightPanelTab={setRightPanelTab}
                 width={rightSidebarWidth}
                 selectedFile={selectedFile}
                 formatFileSize={formatFileSize}
@@ -678,32 +635,6 @@ const MainLayout = (props: MainLayoutProps) => {
             onCloseCollectionEditor={handleCloseCollectionEditor}
             editingCollection={editingCollection}
           />
-
-          {/* Agent Launcher (Cmd+K) */}
-          {agentLauncherOpen && (
-            <React.Suspense fallback={null}>
-              <AgentLauncher
-                isOpen={agentLauncherOpen}
-                onClose={handleCloseAgentLauncher}
-                currentPath={currentPath}
-                selectedFileCount={selectedFiles.size}
-              />
-            </React.Suspense>
-          )}
-
-          {/* Agent Workspace (Cmd+Shift+A) */}
-          {agentWorkspaceOpen && (
-            <React.Suspense fallback={null}>
-              <AgentWorkspace
-                isOpen={agentWorkspaceOpen}
-                onClose={handleCloseAgentWorkspace}
-                sessions={[]}
-                onStopSession={() => {}}
-                onRemoveSession={() => {}}
-                changesByAgent={new Map()}
-              />
-            </React.Suspense>
-          )}
         </div>
       </CrossTabSelectionProvider>
     </DragDropProvider>

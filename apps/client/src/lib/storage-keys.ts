@@ -105,6 +105,8 @@ export const STORAGE_KEYS = {
 
   // Agent launcher recent prompts
   AGENT_LAUNCHER_RECENT: 'wisp:agent-launcher-recent',
+  AGENT_LAUNCHER_LAST_TYPE: 'wisp:agent-launcher-last-type',
+  AGENT_LAUNCHER_CUSTOM_COMMAND: 'wisp:agent-launcher-custom-command',
 
   // Extension auto-update
   AUTO_UPDATE_EXTENSIONS: 'wisp:auto-update-extensions',

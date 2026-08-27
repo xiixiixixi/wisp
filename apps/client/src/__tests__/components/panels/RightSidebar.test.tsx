@@ -29,6 +29,11 @@ vi.mock('@/components/panels/MarketplacePanel', () => ({
 vi.mock('@/components/panels/PerformanceDashboard', () => ({
   default: () => <div data-testid="performance-dashboard">Performance</div>,
 }));
+vi.mock('@/components/panels/AgentManagerPanel', () => ({
+  default: ({ currentPath }: { currentPath: string }) => (
+    <div data-testid="agent-manager-panel">{currentPath}</div>
+  ),
+}));
 vi.mock('@/components/panels/ExtensionPanelHost', () => ({
   default: ({ panelId }: { panelId?: string }) => (
     <div data-testid="extension-panel-host" data-panel-id={panelId}>
@@ -130,6 +135,17 @@ describe('RightSidebar', () => {
   });
 
   describe('Tab titles', () => {
+    it('renders the external Agent panel for the Agent tab', async () => {
+      renderWithSuspense(<RightSidebar {...defaultProps} rightPanelTab="agent-manager" />);
+      expect(await screen.findByTestId('agent-manager-panel')).toHaveTextContent('C:\\Users\\Test');
+    });
+
+    it('migrates the retired chat tab to the external Agent panel', async () => {
+      renderWithSuspense(<RightSidebar {...defaultProps} rightPanelTab="chat" />);
+      expect(await screen.findByTestId('agent-manager-panel')).toBeInTheDocument();
+      expect(screen.queryByTestId('ai-panel-switch')).not.toBeInTheDocument();
+    });
+
     it('shows extensions panel when tab is extensions', async () => {
       renderWithSuspense(<RightSidebar {...defaultProps} rightPanelTab="extensions" />);
       expect(await screen.findByTestId('extensions-panel')).toBeInTheDocument();

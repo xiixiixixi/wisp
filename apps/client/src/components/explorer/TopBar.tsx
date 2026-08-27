@@ -10,10 +10,8 @@ import {
   Rows,
   ChevronUp,
   RefreshCw,
-  MessageSquare,
   Search,
 } from 'lucide-react';
-import { TauriAPI } from '@/lib/tauri-api';
 import { ROOT_PATH } from '@/lib/constants';
 import type { TabItem } from '@/types/split-view';
 import { getTabIcon } from '@/lib/tab-utils';
@@ -277,25 +275,6 @@ const TopBar = React.memo(
                 aria-label={t('topBar.refresh')}
               >
                 <RefreshCw size={14} />
-              </button>
-            )}
-
-            {/* New Chat button — available in any folder */}
-            {!currentPath.startsWith('wisp://') && (
-              <button
-                onClick={async () => {
-                  try {
-                    await TauriAPI.createChatFile(currentPath);
-                    refetch?.();
-                  } catch (err) {
-                    console.error('Failed to create chat:', err);
-                  }
-                }}
-                className="flex-shrink-0 rounded p-1 transition-colors hover:bg-xp-surface-light"
-                title={t('topBar.newChatDesc')}
-                aria-label={t('topBar.newChat')}
-              >
-                <MessageSquare size={14} />
               </button>
             )}
 

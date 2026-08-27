@@ -910,6 +910,7 @@
     "aiChat": "AI 对话",
     "agentManager": "AI 任务",
     "ai": "AI",
+    "agent": "Agent",
     "moreTools": "更多工具",
     "performance": "性能",
     "extensions": "扩展",
@@ -1524,6 +1525,7 @@
     }
   },
   "smartSearch": {
+    "placeholder": "搜索文件和内容…",
     "scopeFolder": "此文件夹",
     "scopeEverywhere": "全局",
     "scopeFolderTitle": "仅在当前文件夹中搜索",
@@ -2352,6 +2354,26 @@
     "freeSpace": "{{size}} GB 可用"
   },
   "agentManager": {
+    "cockpit": {
+      "description": "Agent 在真实终端中运行，Wisp 只负责启动、观察和恢复会话。",
+      "startTitle": "配置与启动",
+      "runningTitle": "正在运行",
+      "historyTitle": "项目历史",
+      "agentLabel": "Agent",
+      "commandLabel": "命令",
+      "toolTitle": "Agent 工具",
+      "detectedCount": "已安装 {{detected}} / {{total}}",
+      "detectionUnavailable": "等待检测",
+      "refreshDetection": "重新检测工具",
+      "statusInstalled": "已安装",
+      "statusMissing": "未检测到",
+      "statusUnknown": "未检测",
+      "statusCustom": "自定义",
+      "externalOwnership": "账号、模型和权限由所选工具自行管理；Wisp 不保存这些配置。",
+      "promptLabel": "任务（可选）",
+      "promptPlaceholder": "告诉 Agent 要做什么；留空则进入交互终端",
+      "noRunning": "暂无运行中的 Agent。启动后会在下方终端中显示。"
+    },
     "sections": {
       "activeAgents": "活跃代理",
       "externalAgents": "外部代理",

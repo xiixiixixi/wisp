@@ -1124,21 +1124,6 @@ export class ContextMenuFactory {
       },
     ];
 
-    // Add "New Chat" option — available in any folder
-    newSubmenu.push({
-      id: 'new-chat',
-      label: i18n.t('contextMenu.chat'),
-      icon: mi(MessageSquare),
-      action: async () => {
-        try {
-          await TauriAPI.createChatFile(currentPath);
-          this.actions.refresh();
-        } catch (error) {
-          console.error('Failed to create chat file:', error);
-        }
-      },
-    });
-
     items.push({
       id: 'new',
       label: i18n.t('common.new'),

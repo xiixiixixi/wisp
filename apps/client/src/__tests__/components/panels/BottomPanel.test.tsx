@@ -111,11 +111,11 @@ describe('BottomPanel', () => {
         'Clipboard',
         'Notifications',
         'Properties',
-        'Agents',
       ];
       tabs.forEach((tab) => {
         expect(screen.getByRole('tab', { name: tab })).toBeInTheDocument();
       });
+      expect(screen.queryByRole('tab', { name: 'Agents' })).not.toBeInTheDocument();
     });
 
     it('highlights the active tab', () => {

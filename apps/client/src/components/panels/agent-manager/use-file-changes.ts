@@ -11,7 +11,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { TauriAPI } from '@/lib/tauri-api';
 import type { AgentSessionSummary } from '@/lib/tauri-api-types';
-import type { ExternalAgent } from './TerminalAgentDetector';
+import type { ExternalAgent } from './external-agent-registry';
 
 // ---------------------------------------------------------------------------
 // Types

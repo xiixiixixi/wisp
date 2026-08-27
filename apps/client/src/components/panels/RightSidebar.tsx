@@ -13,9 +13,7 @@ const TokenizerStatusPanel = React.lazy(() => import('./TokenizerStatusPanel'));
 const ExtensionsPanel = React.lazy(() => import('./ExtensionsPanel'));
 const MarketplacePanel = React.lazy(() => import('./MarketplacePanel'));
 const PerformanceDashboard = React.lazy(() => import('./PerformanceDashboard'));
-const StandaloneChatPanel = React.lazy(() => import('./StandaloneChatPanel'));
 const AgentManagerPanel = React.lazy(() => import('./AgentManagerPanel'));
-const AiPanelSwitch = React.lazy(() => import('./agent-manager/AiPanelSwitch'));
 const ComparePreview = React.lazy(() => import('@/components/previews/ComparePreview'));
 
 interface Theme {
@@ -30,7 +28,6 @@ interface RightSidebarProps {
   rightSidebarCollapsed: boolean;
   setRightSidebarCollapsed: (collapsed: boolean) => void;
   rightPanelTab: string;
-  setRightPanelTab?: (tab: string) => void;
   width?: number;
   selectedFile: FileEntry | null;
   formatFileSize: (bytes: number) => string;
@@ -50,7 +47,6 @@ const RightSidebar = ({
   rightSidebarCollapsed,
   setRightSidebarCollapsed,
   rightPanelTab,
-  setRightPanelTab,
   width,
   selectedFile,
   formatFileSize,
@@ -277,8 +273,9 @@ const RightSidebar = ({
     if (scrubberCompareFiles) return i18n.t('dialogs.compareFiles.title');
     if (rightPanelTab === 'preview') return i18n.t('extensionsBar.preview');
     if (rightPanelTab === 'tokenizer') return i18n.t('extensionsBar.contentSearch');
-    if (rightPanelTab === 'chat') return i18n.t('extensionsBar.aiChat');
-    if (rightPanelTab === 'agent-manager') return i18n.t('extensionsBar.agentManager');
+    if (rightPanelTab === 'chat' || rightPanelTab === 'agent-manager') {
+      return i18n.t('extensionsBar.agent');
+    }
     if (rightPanelTab === 'performance') return i18n.t('extensionsBar.performance');
     if (rightPanelTab === 'extensions') return i18n.t('extensionsBar.extensions');
     if (rightPanelTab === 'marketplace') return i18n.t('extensionsBar.marketplace');
@@ -425,28 +422,9 @@ const RightSidebar = ({
                 );
               }
               if (rightPanelTab === 'chat' || rightPanelTab === 'agent-manager') {
-                // Unified AI sidebar: one rail entry, two sub-panels behind
-                // a segmented switch (对话 = chat, 任务 = agent manager).
                 return (
                   <ErrorBoundary>
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        flex: 1,
-                        minHeight: 0,
-                      }}
-                    >
-                      <AiPanelSwitch
-                        active={rightPanelTab === 'chat' ? 'chat' : 'agent-manager'}
-                        onChange={(tab) => setRightPanelTab?.(tab)}
-                        labels={{
-                          chat: i18n.t('extensionsBar.aiChat'),
-                          tasks: i18n.t('extensionsBar.agentManager'),
-                        }}
-                      />
-                      {rightPanelTab === 'chat' ? <StandaloneChatPanel /> : <AgentManagerPanel />}
-                    </div>
+                    <AgentManagerPanel currentPath={currentPath} />
                   </ErrorBoundary>
                 );
               }

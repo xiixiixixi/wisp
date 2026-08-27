@@ -910,6 +910,7 @@
     "aiChat": "AI Chat",
     "agentManager": "AI Tasks",
     "ai": "AI",
+    "agent": "Agent",
     "moreTools": "More tools",
     "performance": "Performance",
     "extensions": "Extensions",
@@ -1524,6 +1525,7 @@
     }
   },
   "smartSearch": {
+    "placeholder": "Search files and content...",
     "scopeFolder": "This Folder",
     "scopeEverywhere": "Everywhere",
     "scopeFolderTitle": "Search only within the current folder",
@@ -2352,6 +2354,26 @@
     "freeSpace": "{{size}} GB free"
   },
   "agentManager": {
+    "cockpit": {
+      "description": "Agents run in a real terminal. Wisp only launches, observes, and resumes sessions.",
+      "startTitle": "Configure & launch",
+      "runningTitle": "Running",
+      "historyTitle": "Project history",
+      "agentLabel": "Agent",
+      "commandLabel": "Command",
+      "toolTitle": "Agent tool",
+      "detectedCount": "{{detected}} / {{total}} installed",
+      "detectionUnavailable": "Waiting for detection",
+      "refreshDetection": "Detect tools again",
+      "statusInstalled": "Installed",
+      "statusMissing": "Not detected",
+      "statusUnknown": "Unchecked",
+      "statusCustom": "Custom",
+      "externalOwnership": "The selected tool manages its own account, model, and permissions. Wisp does not store them.",
+      "promptLabel": "Task (optional)",
+      "promptPlaceholder": "Describe the task, or leave blank to open an interactive terminal",
+      "noRunning": "No agents are running. New sessions appear in the terminal below."
+    },
     "sections": {
       "activeAgents": "Active Agents",
       "externalAgents": "External Agents",

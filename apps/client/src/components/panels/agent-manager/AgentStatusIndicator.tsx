@@ -3,12 +3,13 @@
  * in VerticalExtensionsBar. Shows count of active agents plus a pulsing
  * dot when any agent is currently running.
  *
- * Fully event-driven: listens for the `wisp-agent-active-count` event
- * dispatched by AgentManagerPanel whenever the total active count changes.
+ * Reads the shared external-agent registry directly so the badge stays accurate
+ * even while the Agent panel itself is closed.
  *
  * Usage: wrap the Bot icon in VerticalExtensionsBar with this component.
  */
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from 'react';
+import { getExternalAgentsSnapshot, subscribeToExternalAgents } from './external-agent-registry';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -23,30 +24,20 @@ interface AgentStatusIndicatorProps {
 // ---------------------------------------------------------------------------
 
 const AgentStatusIndicator = ({ children }: AgentStatusIndicatorProps) => {
-  const [activeCount, setActiveCount] = useState(0);
-
-  useEffect(() => {
-    const handleCountUpdate = (e: Event) => {
-      const detail = (e as CustomEvent<{ count: number }>).detail;
-      if (detail && typeof detail.count === 'number') {
-        setActiveCount(detail.count);
-      }
-    };
-
-    window.addEventListener('wisp-agent-active-count', handleCountUpdate);
-    return () => {
-      window.removeEventListener('wisp-agent-active-count', handleCountUpdate);
-    };
-  }, []);
-
-  const hasRunning = activeCount > 0;
+  const agents = useSyncExternalStore(
+    subscribeToExternalAgents,
+    getExternalAgentsSnapshot,
+    getExternalAgentsSnapshot,
+  );
+  const runningCount = agents.filter((agent) => agent.status !== 'exited').length;
+  const hasActive = agents.some((agent) => agent.status === 'active');
 
   return (
     <div style={{ position: 'relative', display: 'inline-flex' }}>
       {children}
 
       {/* Count badge — only shown when agents are active */}
-      {activeCount > 0 && (
+      {runningCount > 0 && (
         <span
           style={{
             position: 'absolute',
@@ -68,12 +59,12 @@ const AgentStatusIndicator = ({ children }: AgentStatusIndicatorProps) => {
             zIndex: 10,
           }}
         >
-          {activeCount}
+          {runningCount}
         </span>
       )}
 
       {/* Pulsing dot — indicates activity */}
-      {hasRunning && (
+      {hasActive && (
         <span
           style={{
             position: 'absolute',

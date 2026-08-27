@@ -15,7 +15,10 @@ import { startTour, isTourCompleted } from '@/hooks/use-tour';
 import { useShortcuts } from '@/hooks/use-shortcuts';
 import { useVimMode, isVimModeEnabled, type VimModeActions } from '@/hooks/use-vim-mode';
 import { useCommandPaletteCommands } from '@/hooks/use-command-palette-commands';
-import { queueExternalChatPrompt } from '@/hooks/use-external-chat-prompt';
+import {
+  AGENT_LAUNCH_REQUEST_EVENT,
+  requestAgentLaunch,
+} from '@/components/panels/agent-manager/agent-launch-request';
 import type { TabItem, EditorGroup } from '@/types/split-view';
 import type { BottomPanelTabId } from '@/hooks/use-layout-state';
 import type { SortField } from '@/lib/utils';
@@ -486,10 +489,12 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
         splitLayoutRef.current.splitGroup(activeGroupRef.current.id, 'horizontal');
       },
       onToggleAgentLauncher: () => {
-        window.dispatchEvent(new CustomEvent('wisp-toggle-agent-launcher'));
+        setRightSidebarCollapsed(false);
+        setRightPanelTab('agent-manager');
       },
       onToggleAgentWorkspace: () => {
-        window.dispatchEvent(new CustomEvent('wisp-toggle-agent-workspace'));
+        setRightSidebarCollapsed(false);
+        setRightPanelTab('agent-manager');
       },
     },
     'file-explorer',
@@ -796,22 +801,26 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
     [splitLayoutRef],
   );
 
-  // ── AI Chat request bridge ───────────────────────────────────────────────
-  // When a component (e.g. code preview AI actions) dispatches
-  // wisp-ai-chat-request, open the chat panel and store the prompt
-  // so the chat panel can pick it up on its next render cycle.
+  // ── Legacy AI request bridge ─────────────────────────────────────────────
+  // Existing code actions now prefill the external Agent launcher instead of
+  // opening the retired built-in chat loop.
   useWindowEvent(
     'wisp-ai-chat-request',
     (e: Event) => {
       const prompt = (e as CustomEvent<{ prompt: string }>).detail?.prompt;
       if (prompt) {
         setRightSidebarCollapsed(false);
-        setRightPanelTab('chat');
-        queueExternalChatPrompt(prompt);
+        setRightPanelTab('agent-manager');
+        requestAgentLaunch(prompt);
       }
     },
     [setRightSidebarCollapsed, setRightPanelTab],
   );
+
+  useWindowEvent(AGENT_LAUNCH_REQUEST_EVENT, () => {
+    setRightSidebarCollapsed(false);
+    setRightPanelTab('agent-manager');
+  }, [setRightSidebarCollapsed, setRightPanelTab]);
 
   // ── Spring-loaded folder navigation ──────────────────────────────────────
   // When DragDropContext fires 'spring-load-folder' (a folder hovered for

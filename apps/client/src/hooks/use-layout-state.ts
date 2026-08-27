@@ -87,13 +87,15 @@ export const useLayoutState = (): LayoutState => {
   );
 
   // Panel tabs
-  const [rightPanelTab, setRightPanelTab] = useState<string>(() =>
-    loadUiState('rightPanelTab', 'preview'),
-  );
+  const [rightPanelTab, setRightPanelTab] = useState<string>(() => {
+    const stored = loadUiState<string>('rightPanelTab', 'preview');
+    return stored === 'chat' ? 'agent-manager' : stored;
+  });
   const [bottomPanelTab, _setBottomPanelTabRaw] = useState<BottomPanelTabId>(() => {
     const stored = loadUiState<string>('bottomPanelTab', 'terminal');
     // Migrate old tab IDs that were merged into 'activity-log'
     if (stored === 'output' || stored === 'activity' || stored === 'history') return 'activity-log';
+    if (stored === 'agents') return 'terminal';
     return stored as BottomPanelTabId;
   });
 

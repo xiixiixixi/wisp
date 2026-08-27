@@ -12,7 +12,6 @@ import { History, RefreshCw } from 'lucide-react';
 import { isTauri } from '@/lib/transport';
 import { projectMemorySessions, type ProjectSession } from '@/lib/tauri-api/project-memory';
 import { launchCustomCli } from './launch-cli-agent';
-import { getWispState } from '../chat-context-helpers';
 import { formatRelativeTime } from '../chat-history';
 
 const agentLabel = (agent: ProjectSession['agent']): string =>
@@ -29,7 +28,11 @@ const rowStyle: React.CSSProperties = {
   marginBottom: '4px',
 };
 
-const ProjectMemorySection = () => {
+interface ProjectMemorySectionProps {
+  currentPath?: string;
+}
+
+const ProjectMemorySection = ({ currentPath }: ProjectMemorySectionProps) => {
   const { t } = useTranslation();
   const [sessions, setSessions] = useState<ProjectSession[]>([]);
   const [loading, setLoading] = useState(false);
@@ -37,7 +40,7 @@ const ProjectMemorySection = () => {
   const [cwd, setCwd] = useState('');
 
   const load = useCallback(async () => {
-    const path = getWispState()?.currentPath;
+    const path = currentPath;
     if (!path) return;
     setCwd(path);
     setLoading(true);
@@ -51,7 +54,7 @@ const ProjectMemorySection = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentPath]);
 
   useEffect(() => {
     if (isTauri()) void load();

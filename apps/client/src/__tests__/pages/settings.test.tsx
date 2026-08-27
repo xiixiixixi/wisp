@@ -9,10 +9,14 @@ vi.mock('wouter', async () => {
   return {
     useLocation: vi.fn(() => ['/settings', mockSetLocation]),
     Route: ({ children }: { children: React.ReactNode }) => children,
-    Link: ({ children, href }: { children: React.ReactNode; href: string }) =>
-      React.createElement('a', { href }, children),
+    Link: ({ children, href, ...props }: { children: React.ReactNode; href: string }) =>
+      React.createElement('a', { href, ...props }, children),
   };
 });
+
+vi.mock('@/lib/transport', () => ({
+  isTauri: () => false,
+}));
 
 // Shared mock prop types for Radix UI
 type MockProps = Record<string, unknown> & { children?: React.ReactNode };
@@ -31,7 +35,11 @@ vi.mock('@radix-ui/react-select', async () => {
       React.createElement('span', {}, children || (placeholder as string)),
     Content: ({ children }: MockProps) => React.createElement('div', {}, children),
     Item: React.forwardRef(({ children, value, ...props }: MockProps, ref: MockRef) =>
-      React.createElement('option', { ...props, ref, value: value as string }, children),
+      React.createElement(
+        'div',
+        { ...props, ref, role: 'option', 'data-value': value as string },
+        children,
+      ),
     ),
     Icon: ({ children }: MockProps) => React.createElement('span', {}, children),
     Viewport: ({ children }: MockProps) => React.createElement('div', {}, children),
@@ -194,13 +202,12 @@ describe('Settings Page', () => {
       });
     });
 
-    it('navigates home when back button is clicked', async () => {
+    it('links the back button to home', async () => {
       render(<Settings />);
 
       await waitFor(() => {
         const backBtn = screen.getByTitle('Back to Home');
-        fireEvent.click(backBtn);
-        expect(mockSetLocation).toHaveBeenCalledWith('/');
+        expect(backBtn.closest('a')).toHaveAttribute('href', '/');
       });
     });
 
@@ -234,8 +241,8 @@ describe('Settings Page', () => {
         expect(navSection.getByText('General')).toBeInTheDocument();
         expect(navSection.getByText('File Explorer')).toBeInTheDocument();
         expect(navSection.getByText('Context Menu')).toBeInTheDocument();
-        expect(navSection.getByText('AI Agent')).toBeInTheDocument();
-        expect(navSection.getByText('Permissions')).toBeInTheDocument();
+        expect(navSection.queryByText('AI Agent')).not.toBeInTheDocument();
+        expect(navSection.queryByText('Permissions')).not.toBeInTheDocument();
         expect(navSection.getByText('Indexing')).toBeInTheDocument();
         expect(navSection.getByText('Shortcuts')).toBeInTheDocument();
         expect(navSection.getByText('Marketplace')).toBeInTheDocument();
@@ -255,7 +262,7 @@ describe('Settings Page', () => {
       await waitFor(() => {
         expect(navSection.getByText('Appearance, layout & system')).toBeInTheDocument();
         expect(navSection.getByText('Views & file display')).toBeInTheDocument();
-        expect(navSection.getByText('AI provider settings')).toBeInTheDocument();
+        expect(navSection.queryByText('AI provider settings')).not.toBeInTheDocument();
       });
     });
 
@@ -288,24 +295,6 @@ describe('Settings Page', () => {
       await waitFor(() => {
         expect(mainSection.getByText('Default View')).toBeInTheDocument();
         expect(mainSection.getByText('Show Hidden Files')).toBeInTheDocument();
-      });
-    });
-
-    it('switches to AI Agent tab when clicked', async () => {
-      render(<Settings />);
-
-      await waitFor(() => {
-        expect(document.querySelector('nav')).toBeInTheDocument();
-      });
-
-      clickSidebarTab('AI Agent');
-
-      const mainContent = document.querySelector('main')!;
-      const mainSection = within(mainContent);
-
-      await waitFor(() => {
-        expect(mainSection.getByText('Enable Agent')).toBeInTheDocument();
-        expect(mainSection.getByText('Auto-Approve Actions')).toBeInTheDocument();
       });
     });
 
@@ -353,6 +342,7 @@ describe('Settings Page', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('tokenizer-settings')).toBeInTheDocument();
+        expect(screen.getByTestId('search-provider-settings')).toBeInTheDocument();
       });
     });
 
@@ -366,7 +356,7 @@ describe('Settings Page', () => {
       clickSidebarTab('Marketplace');
 
       await waitFor(() => {
-        expect(screen.getByText('Marketplace API URL')).toBeInTheDocument();
+        expect(screen.getByText('Auto-update extensions')).toBeInTheDocument();
       });
     });
 
@@ -652,71 +642,6 @@ describe('Settings Page', () => {
       await waitFor(() => {
         const updatedToggle = document.getElementById('reducedMotion') as HTMLButtonElement;
         expect(updatedToggle.getAttribute('aria-checked')).toBe('true');
-      });
-    });
-  });
-
-  describe('Permissions Tab', () => {
-    it('renders permissions settings with tool listings', async () => {
-      render(<Settings />);
-
-      await waitFor(() => {
-        expect(document.querySelector('nav')).toBeInTheDocument();
-      });
-
-      clickSidebarTab('Permissions');
-
-      const mainContent = document.querySelector('main')!;
-      const mainSection = within(mainContent);
-
-      await waitFor(() => {
-        expect(mainSection.getByText('Block Internet Access')).toBeInTheDocument();
-        expect(mainSection.getByText('Read Tools')).toBeInTheDocument();
-        expect(mainSection.getByText('Write Tools')).toBeInTheDocument();
-      });
-    });
-
-    it('lists individual read tools', async () => {
-      render(<Settings />);
-
-      await waitFor(() => {
-        expect(document.querySelector('nav')).toBeInTheDocument();
-      });
-
-      clickSidebarTab('Permissions');
-
-      const mainContent = document.querySelector('main')!;
-      const mainSection = within(mainContent);
-
-      await waitFor(() => {
-        expect(mainSection.getByText('Read File')).toBeInTheDocument();
-        expect(mainSection.getByText('List Directory')).toBeInTheDocument();
-        expect(mainSection.getByText('Search Files')).toBeInTheDocument();
-      });
-    });
-
-    it('lists individual write tools', async () => {
-      render(<Settings />);
-
-      await waitFor(() => {
-        expect(document.querySelector('nav')).toBeInTheDocument();
-      });
-
-      clickSidebarTab('Permissions');
-
-      const mainContent = document.querySelector('main')!;
-      const mainSection = within(mainContent);
-
-      await waitFor(() => {
-        // Use getAllByText since some labels appear in both tool list and auto-approve list
-        const writeFileElements = mainSection.getAllByText('Write File');
-        expect(writeFileElements.length).toBeGreaterThanOrEqual(1);
-
-        const createDirElements = mainSection.getAllByText('Create Directory');
-        expect(createDirElements.length).toBeGreaterThanOrEqual(1);
-
-        expect(mainSection.getAllByText('Rename').length).toBeGreaterThanOrEqual(1);
-        expect(mainSection.getAllByText('Execute Command').length).toBeGreaterThanOrEqual(1);
       });
     });
   });

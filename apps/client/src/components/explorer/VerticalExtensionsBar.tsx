@@ -55,15 +55,13 @@ const VerticalExtensionsBar = ({
       { id: 'preview', icon: <Eye size={18} />, label: t('extensionsBar.preview') },
       { id: 'tokenizer', icon: <Search size={18} />, label: t('extensionsBar.contentSearch') },
       {
-        // Unified AI entry: opens the chat sub-panel; the AI 任务 sub-panel
-        // is reachable via the in-panel switch (RightSidebar).
         id: 'ai',
         icon: (
           <AgentStatusIndicator>
             <Bot size={18} />
           </AgentStatusIndicator>
         ),
-        label: t('extensionsBar.ai'),
+        label: t('extensionsBar.agent'),
       },
     ],
     [t],
@@ -97,8 +95,7 @@ const VerticalExtensionsBar = ({
   }, [moreOpen]);
 
   const handlePanelClick = (id: string) => {
-    // The unified AI rail entry maps onto the chat sub-panel
-    setRightPanelTab(id === 'ai' ? 'chat' : id);
+    setRightPanelTab(id === 'ai' ? 'agent-manager' : id);
     if (rightSidebarCollapsed) {
       setRightSidebarCollapsed(false);
     }

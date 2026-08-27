@@ -22,6 +22,10 @@ vi.mock('wouter', async () => {
   };
 });
 
+vi.mock('@/lib/transport', () => ({
+  isTauri: () => false,
+}));
+
 // Radix select mock that wires Item clicks through Root's onValueChange
 type MockProps = Record<string, unknown> & { children?: React.ReactNode };
 type MockRef = React.Ref<HTMLElement>;
@@ -45,11 +49,12 @@ vi.mock('@radix-ui/react-select', async () => {
     Item: React.forwardRef(({ children, value, ...props }: MockProps, ref: MockRef) => {
       const ctx = React.useContext(SelectCtx);
       return React.createElement(
-        'option',
+        'div',
         {
           ...props,
           ref,
-          value: value as string,
+          role: 'option',
+          'data-value': value as string,
           onClick: () => ctx.onValueChange?.(value as string),
         },
         children,
@@ -71,36 +76,6 @@ vi.mock('@radix-ui/react-select', async () => {
     Separator: () => React.createElement('hr'),
   };
 });
-
-// Mock agent-service (Settings page fetches agent settings on mount)
-vi.mock('@/lib/agent-service', () => ({
-  AgentService: {
-    getSettings: vi.fn(() =>
-      Promise.resolve({
-        enabled: true,
-        api_key: '',
-        openai_api_key: '',
-        model: 'claude-sonnet-4-6',
-        max_turns: 25,
-        auto_approve: false,
-        thinking_enabled: false,
-        thinking_budget: 10000,
-      }),
-    ),
-    updateSettings: vi.fn(() => Promise.resolve()),
-    getPermissions: vi.fn(() =>
-      Promise.resolve({
-        disabled_tools: [],
-        auto_approve_tools: [],
-        allowed_paths: [],
-        blocked_paths: [],
-        custom_blocked_commands: [],
-        block_internet: true,
-      }),
-    ),
-    updatePermissions: vi.fn(() => Promise.resolve()),
-  },
-}));
 
 vi.mock('@/hooks/use-vim-mode', () => ({
   isVimModeEnabled: vi.fn(() => false),

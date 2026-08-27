@@ -1,527 +1,220 @@
-/**
- * Terminal Agent Detector — monitors PTY terminal output for
- * Claude Code, Codex, and other AI agents running in Wisp's
- * integrated terminal tabs.
- *
- * When an external agent is detected, it emits events so the
- * Agent Manager can display them alongside built-in agents.
- */
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Terminal, Eye, EyeOff, FileText } from 'lucide-react';
+import { FileText, Folder, Terminal, X } from 'lucide-react';
 import { TauriAPI } from '@/lib/tauri-api';
 import type { PtyOutputPayload } from '@/lib/tauri-api/pty';
+import {
+  dismissExternalAgent,
+  getExternalAgent,
+  getExternalAgentsSnapshot,
+  markExternalAgentExited,
+  subscribeToExternalAgents,
+  updateExternalAgent,
+  upsertExternalAgent,
+  type ExternalAgent,
+  type ExternalAgentType,
+} from './external-agent-registry';
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
+export type {
+  ExternalAgent,
+  ExternalAgentStatus,
+  ExternalAgentType,
+} from './external-agent-registry';
 
-export type ExternalAgentType =
-  | 'claude-code'
-  | 'codex'
-  | 'gemini'
-  | 'opencode'
-  | 'aider'
-  | 'unknown';
-
-export type ExternalAgentStatus = 'active' | 'idle' | 'exited';
-
-export interface ExternalAgent {
-  id: string;
-  type: ExternalAgentType;
-  displayName: string;
-  terminalSessionId: string;
-  terminalLabel: string;
-  workingDirectory: string;
-  status: ExternalAgentStatus;
-  detectedAt: number;
-  lastActivityAt: number;
-  filesChanged: string[];
-}
-
-export interface TerminalAgentDetectorProps {
-  /** Suppress rendered output (hook-only mode) */
-  hidden?: boolean;
-}
-
-// ---------------------------------------------------------------------------
-// Detection patterns
-// ---------------------------------------------------------------------------
-
-const CLAUDE_CODE_PATTERNS = [
-  /Claude Code v[\d.]/i,
-  /claude>/,
-  /Opus 4/i,
-  /Sonnet 4/i,
-  /claude-opus/i,
-  /claude-sonnet/i,
-  /╭─.*claude/i,
-  /\bclaude\s+code\b/i,
+const DETECTION_PATTERNS: Array<[ExternalAgentType, RegExp[]]> = [
+  [
+    'claude-code',
+    [/Claude Code v[\d.]/i, /claude>/, /claude-(?:opus|sonnet)/i, /\bclaude\s+code\b/i],
+  ],
+  ['codex', [/Codex CLI/i, /codex>/, /\bcodex\b.*v[\d.]/i, /openai\/codex/i]],
+  ['gemini', [/Gemini CLI/i, /gemini>/, /\bgemini-cli\b/i]],
+  ['opencode', [/█▀▀█ █▀▀█/, /opencode\s+tui/i, /opencode\s+v?\d+(\.\d+)+/i]],
+  ['aider', [/\baider\b.*v[\d.]/i, /aider>/i, /Aider chat/i]],
 ];
 
-const CODEX_PATTERNS = [/Codex CLI/i, /codex>/, /\bcodex\b.*v[\d.]/i, /openai\/codex/i];
+const DISPLAY_NAMES: Record<ExternalAgentType, string> = {
+  'claude-code': 'Claude Code',
+  codex: 'Codex',
+  gemini: 'Gemini CLI',
+  opencode: 'OpenCode',
+  aider: 'Aider',
+  unknown: 'Agent',
+};
 
-const GEMINI_PATTERNS = [/Gemini CLI/i, /gemini>/, /\bgemini-cli\b/i, /╭─.*gemini/i];
-
-// OpenCode's TUI paints its logo as block art; the plain word "opencode"
-// only shows up in version/help banners.
-const OPENCODE_PATTERNS = [/█▀▀█ █▀▀█/, /opencode\s+tui/i, /opencode\s+v?\d+(\.\d+)+/i];
-
-const AIDER_PATTERNS = [/\baider\b.*v[\d.]/i, /aider>/i, /Aider chat/i];
-
-const GENERIC_AI_PATTERNS = [
-  /\bagent\s+loop\b/i,
-  /\btool\s+call\b/i,
-  /\bthinking\.\.\.\b/i,
-  /\b(reading|writing|editing)\s+file\b/i,
-];
-
-/** Idle timeout: if no output for 30s, mark as idle */
+const FILE_PATH_RE =
+  /(?:(?:reading|writing|editing|created|modified|deleted)\s+)?(?:file\s+)?['"`]?((?:\/|[A-Z]:\\)[\w/.\\-]+\.\w+)['"`]?/gi;
 const IDLE_TIMEOUT_MS = 30_000;
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 const detectAgentType = (text: string): ExternalAgentType | null => {
-  for (const pat of CLAUDE_CODE_PATTERNS) {
-    if (pat.test(text)) return 'claude-code';
-  }
-  for (const pat of CODEX_PATTERNS) {
-    if (pat.test(text)) return 'codex';
-  }
-  for (const pat of GEMINI_PATTERNS) {
-    if (pat.test(text)) return 'gemini';
-  }
-  for (const pat of OPENCODE_PATTERNS) {
-    if (pat.test(text)) return 'opencode';
-  }
-  for (const pat of AIDER_PATTERNS) {
-    if (pat.test(text)) return 'aider';
-  }
-  for (const pat of GENERIC_AI_PATTERNS) {
-    if (pat.test(text)) return 'unknown';
+  for (const [type, patterns] of DETECTION_PATTERNS) {
+    if (patterns.some((pattern) => pattern.test(text))) return type;
   }
   return null;
 };
 
-const getDisplayName = (type: ExternalAgentType): string => {
-  switch (type) {
-    case 'claude-code':
-      return 'Claude Code';
-    case 'codex':
-      return 'Codex CLI';
-    case 'gemini':
-      return 'Gemini CLI';
-    case 'opencode':
-      return 'OpenCode';
-    case 'aider':
-      return 'Aider';
-    case 'unknown':
-      return 'AI Agent';
-  }
-};
-
-/** Detect file paths mentioned in terminal output */
-const FILE_PATH_RE =
-  /(?:(?:reading|writing|editing|created|modified|deleted)\s+)?(?:file\s+)?['"`]?((?:\/|[A-Z]:\\)[\w/.\\-]+\.\w+)['"`]?/gi;
-
 const extractFilePaths = (text: string): string[] => {
-  const matches: string[] = [];
-  let m: RegExpExecArray | null;
-  // Reset lastIndex to ensure global regex works correctly
+  const paths: string[] = [];
   FILE_PATH_RE.lastIndex = 0;
-  while ((m = FILE_PATH_RE.exec(text)) !== null) {
-    if (m[1]) matches.push(m[1]);
+  let match: RegExpExecArray | null;
+  while ((match = FILE_PATH_RE.exec(text)) !== null) {
+    if (match[1]) paths.push(match[1]);
   }
-  return matches;
+  return paths;
 };
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
-
-const TerminalAgentDetector = ({ hidden }: TerminalAgentDetectorProps) => {
+const TerminalAgentDetector = () => {
   const { t } = useTranslation();
-  const [agents, setAgents] = useState<Map<string, ExternalAgent>>(new Map());
-  const [monitoringEnabled, setMonitoringEnabled] = useState(true);
-  const idleTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-
-  // Broadcast detected agents to the Agent Manager
-  const emitAgentUpdate = useCallback(
-    (agent: ExternalAgent, action: 'detected' | 'updated' | 'exited') => {
-      window.dispatchEvent(
-        new CustomEvent('wisp-external-agent', {
-          detail: { agent, action },
-        }),
-      );
-    },
-    [],
+  const agents = useSyncExternalStore(
+    subscribeToExternalAgents,
+    getExternalAgentsSnapshot,
+    getExternalAgentsSnapshot,
   );
+  const idleTimers = useRef<Map<string, number>>(new Map());
 
-  // Mark an agent as idle after timeout
-  const scheduleIdleCheck = useCallback(
-    (sessionId: string) => {
-      const existing = idleTimersRef.current.get(sessionId);
-      if (existing) clearTimeout(existing);
+  const scheduleIdle = useCallback((sessionId: string) => {
+    const existingTimer = idleTimers.current.get(sessionId);
+    if (existingTimer) window.clearTimeout(existingTimer);
+    const timer = window.setTimeout(() => {
+      const agent = getExternalAgent(sessionId);
+      if (agent?.status === 'active') {
+        updateExternalAgent(sessionId, { status: 'idle' });
+      }
+    }, IDLE_TIMEOUT_MS);
+    idleTimers.current.set(sessionId, timer);
+  }, []);
 
-      const timer = setTimeout(() => {
-        setAgents((prev) => {
-          const next = new Map(prev);
-          const agent = next.get(sessionId);
-          if (agent && agent.status === 'active') {
-            const updated = { ...agent, status: 'idle' as const };
-            next.set(sessionId, updated);
-            emitAgentUpdate(updated, 'updated');
-          }
-          return next;
-        });
-      }, IDLE_TIMEOUT_MS);
-
-      idleTimersRef.current.set(sessionId, timer);
-    },
-    [emitAgentUpdate],
-  );
-
-  // Process PTY output and detect agents
   const handlePtyOutput = useCallback(
     (payload: PtyOutputPayload) => {
-      if (!monitoringEnabled) return;
-
-      const { session_id, data } = payload;
-      // Strip ANSI escape codes for pattern matching
       // eslint-disable-next-line no-control-regex
-      const cleanData = data.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
+      const cleanData = payload.data.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
+      const existing = getExternalAgent(payload.session_id);
+      const mentionedFiles = extractFilePaths(cleanData);
 
-      setAgents((prev) => {
-        const existing = prev.get(session_id);
-
-        if (existing) {
-          // Already tracking — update activity and check for file paths
-          const filePaths = extractFilePaths(cleanData);
-          const newFiles = filePaths.filter((f) => !existing.filesChanged.includes(f));
-
-          const updated: ExternalAgent = {
-            ...existing,
-            status: 'active',
-            lastActivityAt: Date.now(),
-            filesChanged:
-              newFiles.length > 0
-                ? [...existing.filesChanged, ...newFiles].slice(-100)
-                : existing.filesChanged,
-          };
-          const next = new Map(prev);
-          next.set(session_id, updated);
-          emitAgentUpdate(updated, 'updated');
-          scheduleIdleCheck(session_id);
-          return next;
-        }
-
-        // Try to detect a new agent
-        const agentType = detectAgentType(cleanData);
-        if (!agentType) return prev;
-
-        const newAgent: ExternalAgent = {
-          id: `ext-${session_id}`,
-          type: agentType,
-          displayName: getDisplayName(agentType),
-          terminalSessionId: session_id,
-          terminalLabel: `Terminal (${session_id.slice(-6)})`,
-          workingDirectory: '',
+      if (existing) {
+        updateExternalAgent(payload.session_id, {
           status: 'active',
-          detectedAt: Date.now(),
           lastActivityAt: Date.now(),
-          filesChanged: extractFilePaths(cleanData),
-        };
+          filesChanged: Array.from(new Set([...existing.filesChanged, ...mentionedFiles])).slice(
+            -100,
+          ),
+        });
+        scheduleIdle(payload.session_id);
+        return;
+      }
 
-        const next = new Map(prev);
-        next.set(session_id, newAgent);
-        emitAgentUpdate(newAgent, 'detected');
-        scheduleIdleCheck(session_id);
-        return next;
+      // Agents started manually in a regular Wisp terminal remain discoverable.
+      const type = detectAgentType(cleanData);
+      if (!type) return;
+      const now = Date.now();
+      upsertExternalAgent({
+        id: `ext-${payload.session_id}`,
+        type,
+        displayName: DISPLAY_NAMES[type],
+        terminalSessionId: payload.session_id,
+        terminalLabel: `Terminal (${payload.session_id.slice(-6)})`,
+        workingDirectory: '',
+        status: 'active',
+        detectedAt: now,
+        lastActivityAt: now,
+        filesChanged: mentionedFiles,
       });
+      scheduleIdle(payload.session_id);
     },
-    [monitoringEnabled, emitAgentUpdate, scheduleIdleCheck],
+    [scheduleIdle],
   );
 
-  // Listen to PTY output
   useEffect(() => {
-    if (!monitoringEnabled) return;
+    let unlistenOutput: (() => void) | undefined;
+    let unlistenExit: (() => void) | undefined;
 
-    let unlisten: (() => void) | undefined;
-    TauriAPI.listenToPtyOutput((payload: PtyOutputPayload) => {
-      handlePtyOutput(payload);
-    }).then((fn) => {
-      unlisten = fn;
+    void TauriAPI.listenToPtyOutput(handlePtyOutput).then((unlisten) => {
+      unlistenOutput = unlisten;
+    });
+    void TauriAPI.listenToPtyExit((sessionId) => {
+      markExternalAgentExited(sessionId);
+      const timer = idleTimers.current.get(sessionId);
+      if (timer) window.clearTimeout(timer);
+      idleTimers.current.delete(sessionId);
+    }).then((unlisten) => {
+      unlistenExit = unlisten;
     });
 
+    const timers = idleTimers.current;
     return () => {
-      unlisten?.();
-    };
-  }, [monitoringEnabled, handlePtyOutput]);
-
-  // Listen to PTY exit to mark agents as exited
-  useEffect(() => {
-    let unlisten: (() => void) | undefined;
-    TauriAPI.listenToPtyExit((sessionId: string) => {
-      setAgents((prev) => {
-        const agent = prev.get(sessionId);
-        if (!agent) return prev;
-
-        const updated = { ...agent, status: 'exited' as const };
-        const next = new Map(prev);
-        next.set(sessionId, updated);
-        emitAgentUpdate(updated, 'exited');
-        return next;
-      });
-
-      // Clear idle timer
-      const timer = idleTimersRef.current.get(sessionId);
-      if (timer) {
-        clearTimeout(timer);
-        idleTimersRef.current.delete(sessionId);
-      }
-    }).then((fn) => {
-      unlisten = fn;
-    });
-
-    return () => {
-      unlisten?.();
-    };
-  }, [emitAgentUpdate]);
-
-  // Cleanup idle timers on unmount
-  useEffect(() => {
-    const timers = idleTimersRef.current;
-    return () => {
-      timers.forEach((t) => clearTimeout(t));
+      unlistenOutput?.();
+      unlistenExit?.();
+      timers.forEach((timer) => window.clearTimeout(timer));
       timers.clear();
     };
-  }, []);
+  }, [handlePtyOutput]);
 
-  const toggleMonitoring = useCallback(() => {
-    setMonitoringEnabled((v) => !v);
-  }, []);
-
-  const dismissAgent = useCallback(
-    (sessionId: string) => {
-      setAgents((prev) => {
-        const agent = prev.get(sessionId);
-        if (agent) emitAgentUpdate(agent, 'exited');
-        const next = new Map(prev);
-        next.delete(sessionId);
-        return next;
-      });
-    },
-    [emitAgentUpdate],
-  );
-
-  if (hidden) return null;
-
-  const agentList = Array.from(agents.values());
-  const activeCount = agentList.filter((a) => a.status === 'active').length;
+  const visibleAgents = agents.filter((agent) => agent.status !== 'exited');
+  if (visibleAgents.length === 0) {
+    return (
+      <div className="rounded-md border border-dashed border-xp-border px-3 py-4 text-center text-[11px] leading-5 text-xp-text-muted">
+        {t('agentManager.cockpit.noRunning')}
+      </div>
+    );
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '4px 0',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '11px',
-            color: 'var(--xp-text-muted)',
-          }}
-        >
-          <Terminal size={12} />
-          <span>{t('agentManager.externalAgents.title')}</span>
-          {activeCount > 0 && (
-            <span
-              style={{
-                background: 'var(--xp-cyan, #7dcfff)',
-                color: '#fff',
-                fontSize: '9px',
-                fontWeight: 700,
-                padding: '1px 5px',
-                borderRadius: '8px',
-              }}
-            >
-              {activeCount}
-            </span>
-          )}
-        </div>
-        <button
-          onClick={toggleMonitoring}
-          title={
-            monitoringEnabled
-              ? t('agentManager.externalAgents.disableMonitoring')
-              : t('agentManager.externalAgents.enableMonitoring')
-          }
-          aria-label={
-            monitoringEnabled
-              ? t('agentManager.externalAgents.disableMonitoring')
-              : t('agentManager.externalAgents.enableMonitoring')
-          }
-          style={{
-            background: 'none',
-            border: '1px solid var(--xp-border)',
-            borderRadius: '4px',
-            padding: '2px 6px',
-            cursor: 'pointer',
-            color: monitoringEnabled ? 'var(--xp-green, #73daca)' : 'var(--xp-text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            fontSize: '10px',
-          }}
-        >
-          {monitoringEnabled ? <Eye size={10} /> : <EyeOff size={10} />}
-        </button>
-      </div>
-
-      {/* Agent list */}
-      {agentList.length === 0 ? (
-        <div
-          style={{
-            padding: '8px',
-            color: 'var(--xp-text-muted)',
-            fontSize: '10px',
-            textAlign: 'center',
-          }}
-        >
-          {monitoringEnabled
-            ? t('agentManager.externalAgents.noDetected')
-            : t('agentManager.externalAgents.monitoringOff')}
-        </div>
-      ) : (
-        agentList.map((agent) => {
-          const statusColor =
-            agent.status === 'active'
-              ? 'var(--xp-green, #73daca)'
-              : agent.status === 'idle'
-                ? 'var(--xp-warning, #e0af68)'
-                : 'var(--xp-text-muted)';
-
-          return (
-            <div
-              key={agent.id}
-              style={{
-                border: '1px solid var(--xp-border)',
-                borderRadius: '6px',
-                padding: '8px',
-                background: 'var(--xp-surface)',
-              }}
-            >
-              {/* Row 1: Name + status */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
+    <div className="flex flex-col gap-2">
+      {visibleAgents.map((agent: ExternalAgent) => {
+        const active = agent.status === 'active';
+        return (
+          <div
+            key={agent.terminalSessionId}
+            className="rounded-md border border-xp-border bg-xp-bg px-2.5 py-2.5"
+          >
+            <div className="flex items-center gap-2">
+              <span
+                className={`h-1.5 w-1.5 shrink-0 rounded-full ${active ? 'bg-xp-green' : 'bg-xp-yellow'}`}
+                aria-hidden="true"
+              />
+              <span className="min-w-0 flex-1 truncate text-xs font-medium text-xp-text">
+                {agent.displayName}
+              </span>
+              <span className="text-[10px] text-xp-text-muted">
+                {t(`agentManager.externalAgents.status.${agent.status}`)}
+              </span>
+              <button
+                type="button"
+                onClick={() => dismissExternalAgent(agent.terminalSessionId)}
+                className="rounded p-0.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                aria-label={t('agentManager.externalAgents.dismiss')}
+                title={t('agentManager.externalAgents.dismiss')}
               >
-                {/* Status dot */}
-                <span
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: '50%',
-                    background: statusColor,
-                    flexShrink: 0,
-                    animation: agent.status === 'active' ? 'pulse 2s infinite' : undefined,
-                  }}
-                />
-
-                <span
-                  style={{
-                    flex: 1,
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    color: 'var(--xp-text)',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {agent.displayName}
-                </span>
-
-                <span
-                  style={{
-                    fontSize: '9px',
-                    color: statusColor,
-                    fontWeight: 500,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {t(`agentManager.externalAgents.status.${agent.status}`)}
-                </span>
-
-                <button
-                  onClick={() => dismissAgent(agent.terminalSessionId)}
-                  title={t('agentManager.externalAgents.dismiss')}
-                  aria-label={t('agentManager.externalAgents.dismiss')}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: 'var(--xp-text-muted)',
-                    padding: '0 2px',
-                    fontSize: '14px',
-                    lineHeight: 1,
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-
-              {/* Row 2: Terminal tab */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  marginTop: '4px',
-                  fontSize: '10px',
-                  color: 'var(--xp-text-muted)',
-                }}
-              >
-                <Terminal size={10} />
-                <span>{agent.terminalLabel}</span>
-              </div>
-
-              {/* Row 3: Files changed */}
-              {agent.filesChanged.length > 0 && (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    marginTop: '4px',
-                    fontSize: '10px',
-                    color: 'var(--xp-text-muted)',
-                  }}
-                >
-                  <FileText size={10} />
-                  <span>
-                    {t('agentManager.externalAgents.filesChanged', {
-                      count: agent.filesChanged.length,
-                    })}
-                  </span>
-                </div>
-              )}
+                <X size={11} />
+              </button>
             </div>
-          );
-        })
-      )}
+
+            <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-xp-text-muted">
+              <Terminal size={10} aria-hidden="true" />
+              <span className="truncate">{agent.terminalLabel}</span>
+            </div>
+
+            {agent.workingDirectory && (
+              <div className="mt-1 flex items-center gap-1.5 text-[10px] text-xp-text-muted">
+                <Folder size={10} className="shrink-0" aria-hidden="true" />
+                <span className="truncate font-mono" title={agent.workingDirectory}>
+                  {agent.workingDirectory}
+                </span>
+              </div>
+            )}
+
+            {agent.filesChanged.length > 0 && (
+              <div className="mt-1 flex items-center gap-1.5 text-[10px] text-xp-text-muted">
+                <FileText size={10} aria-hidden="true" />
+                <span>
+                  {t('agentManager.externalAgents.filesChanged', {
+                    count: agent.filesChanged.length,
+                  })}
+                </span>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };

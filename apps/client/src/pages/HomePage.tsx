@@ -514,7 +514,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
         </div>
 
         {/* Quick Links */}
-        <div className="order-1 lg:col-span-5">
+        <div className="order-1 lg:col-span-12">
           <div className="mb-2.5 flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-xp-text">{t('home.quickAccess')}</p>
@@ -523,7 +523,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 rounded-2xl border border-xp-border bg-muted p-3 shadow-sm">
+          <div className="grid grid-cols-2 gap-2 rounded-2xl border border-xp-border bg-muted p-3 shadow-sm sm:grid-cols-4">
             {quickAccessFolders.map((folder) => {
               const Icon = folder.icon;
               return (
@@ -680,8 +680,8 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
           </div>
         )}
 
-        {/* AI Assistant */}
-        <div className="order-2 flex flex-col lg:col-span-7">
+        {/* Legacy built-in Agent: intentionally disconnected from the product UI. */}
+        <div className="hidden" aria-hidden="true">
           <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-xp-border bg-muted shadow-xl shadow-black/10">
             {/* Chat messages area */}
             <div ref={aiScrollRef} className="max-h-72 overflow-y-auto px-5 pb-2 pt-4 sm:px-6">

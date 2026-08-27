@@ -862,6 +862,7 @@
     "contentSearch": "Pencarian Konten",
     "aiChat": "Asisten AI",
     "agentManager": "Pengelola Agen",
+    "agent": "Agen",
     "moreTools": "Alat lainnya",
     "performance": "Performa",
     "extensions": "Ekstensi",
@@ -1463,6 +1464,7 @@
     }
   },
   "smartSearch": {
+    "placeholder": "Cari file dan konten...",
     "scopeFolder": "Folder Ini",
     "scopeEverywhere": "Di Mana Saja",
     "scopeFolderTitle": "Cari hanya dalam folder saat ini",
@@ -2287,6 +2289,26 @@
     "freeSpace": "{{size}} GB tersedia"
   },
   "agentManager": {
+    "cockpit": {
+      "description": "Agen berjalan di terminal nyata. Wisp hanya meluncurkan, memantau, dan melanjutkan sesi.",
+      "startTitle": "Konfigurasi & jalankan",
+      "runningTitle": "Berjalan",
+      "historyTitle": "Riwayat proyek",
+      "agentLabel": "Agen",
+      "commandLabel": "Perintah",
+      "toolTitle": "Alat agen",
+      "detectedCount": "{{detected}} / {{total}} terpasang",
+      "detectionUnavailable": "Menunggu deteksi",
+      "refreshDetection": "Deteksi ulang alat",
+      "statusInstalled": "Terpasang",
+      "statusMissing": "Tidak terdeteksi",
+      "statusUnknown": "Belum diperiksa",
+      "statusCustom": "Kustom",
+      "externalOwnership": "Akun, model, dan izin dikelola oleh alat yang dipilih. Wisp tidak menyimpannya.",
+      "promptLabel": "Tugas (opsional)",
+      "promptPlaceholder": "Jelaskan tugas, atau kosongkan untuk membuka terminal interaktif",
+      "noRunning": "Tidak ada agen yang berjalan. Sesi baru muncul di terminal di bawah."
+    },
     "sections": {
       "activeAgents": "Agen Aktif",
       "externalAgents": "Agen Eksternal",

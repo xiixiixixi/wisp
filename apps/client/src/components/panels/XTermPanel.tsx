@@ -9,6 +9,7 @@ import {
   consumePendingCliLaunches,
   type CliAgentLaunch,
 } from './agent-manager/cli-launch-bus';
+import { markExternalAgentExited } from './agent-manager/external-agent-registry';
 import { Plus, X, Terminal as TerminalIcon } from 'lucide-react';
 
 import '@xterm/xterm/css/xterm.css';
@@ -253,6 +254,7 @@ const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
   useEffect(() => {
     let unlisten: (() => void) | undefined;
     TauriAPI.listenToPtyExit((sessionId: string) => {
+      markExternalAgentExited(sessionId);
       setTabs((prev) => {
         const tab = prev.find((t) => t.id === sessionId);
         if (tab) tab.terminal.writeln('\r\n[Process exited]');
