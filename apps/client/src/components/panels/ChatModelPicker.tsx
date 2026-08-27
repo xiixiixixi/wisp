@@ -147,8 +147,11 @@ const ChatModelPicker = ({ currentModel, onModelChange }: ChatModelPickerProps) 
     try {
       const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
       const s = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
-      s.aiServiceMode = 'cloud';
-      s.aiCloudModel = modelId;
+      // The dead 'cloud' mode is gone — persist as the custom OpenRouter
+      // provider so the model routing (openrouter:<id>) stays consistent.
+      s.aiServiceMode = 'custom';
+      s.aiCustomProvider = 'openrouter';
+      s.aiCustomModel = modelId;
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(s));
       window.dispatchEvent(new CustomEvent('wisp-settings-changed'));
     } catch (err) {

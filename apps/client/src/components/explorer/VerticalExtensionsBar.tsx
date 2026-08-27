@@ -4,7 +4,6 @@ import { extensionHost } from '@/lib/extension-host';
 import {
   Eye,
   Search,
-  MessageSquare,
   Bot,
   Puzzle,
   ShoppingCart,
@@ -55,15 +54,16 @@ const VerticalExtensionsBar = ({
     () => [
       { id: 'preview', icon: <Eye size={18} />, label: t('extensionsBar.preview') },
       { id: 'tokenizer', icon: <Search size={18} />, label: t('extensionsBar.contentSearch') },
-      { id: 'chat', icon: <MessageSquare size={18} />, label: t('extensionsBar.aiChat') },
       {
-        id: 'agent-manager',
+        // Unified AI entry: opens the chat sub-panel; the AI 任务 sub-panel
+        // is reachable via the in-panel switch (RightSidebar).
+        id: 'ai',
         icon: (
           <AgentStatusIndicator>
             <Bot size={18} />
           </AgentStatusIndicator>
         ),
-        label: t('extensionsBar.agentManager'),
+        label: t('extensionsBar.ai'),
       },
     ],
     [t],
@@ -97,15 +97,22 @@ const VerticalExtensionsBar = ({
   }, [moreOpen]);
 
   const handlePanelClick = (id: string) => {
-    setRightPanelTab(id);
+    // The unified AI rail entry maps onto the chat sub-panel
+    setRightPanelTab(id === 'ai' ? 'chat' : id);
     if (rightSidebarCollapsed) {
       setRightSidebarCollapsed(false);
     }
   };
 
+  const isActivePanel = (id: string) => {
+    if (rightSidebarCollapsed) return false;
+    if (id === 'ai') return rightPanelTab === 'chat' || rightPanelTab === 'agent-manager';
+    return rightPanelTab === id;
+  };
+
   const btnClass = (id: string) =>
     `relative w-10 h-10 mx-1 mb-1 rounded-xl flex items-center justify-center text-lg transition-all ${
-      rightPanelTab === id && !rightSidebarCollapsed
+      isActivePanel(id)
         ? 'bg-xp-blue text-white shadow-md shadow-black/15'
         : 'text-xp-text-secondary hover:text-xp-text hover:bg-xp-surface-light'
     }`;

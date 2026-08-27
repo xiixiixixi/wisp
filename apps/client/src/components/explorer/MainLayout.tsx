@@ -546,6 +546,7 @@ const MainLayout = (props: MainLayoutProps) => {
                 rightSidebarCollapsed={rightSidebarCollapsed}
                 setRightSidebarCollapsed={setRightSidebarCollapsed}
                 rightPanelTab={rightPanelTab}
+                setRightPanelTab={setRightPanelTab}
                 width={rightSidebarWidth}
                 selectedFile={selectedFile}
                 formatFileSize={formatFileSize}

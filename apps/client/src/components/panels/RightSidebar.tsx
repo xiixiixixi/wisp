@@ -15,6 +15,7 @@ const MarketplacePanel = React.lazy(() => import('./MarketplacePanel'));
 const PerformanceDashboard = React.lazy(() => import('./PerformanceDashboard'));
 const StandaloneChatPanel = React.lazy(() => import('./StandaloneChatPanel'));
 const AgentManagerPanel = React.lazy(() => import('./AgentManagerPanel'));
+const AiPanelSwitch = React.lazy(() => import('./agent-manager/AiPanelSwitch'));
 const ComparePreview = React.lazy(() => import('@/components/previews/ComparePreview'));
 
 interface Theme {
@@ -29,6 +30,7 @@ interface RightSidebarProps {
   rightSidebarCollapsed: boolean;
   setRightSidebarCollapsed: (collapsed: boolean) => void;
   rightPanelTab: string;
+  setRightPanelTab?: (tab: string) => void;
   width?: number;
   selectedFile: FileEntry | null;
   formatFileSize: (bytes: number) => string;
@@ -48,6 +50,7 @@ const RightSidebar = ({
   rightSidebarCollapsed,
   setRightSidebarCollapsed,
   rightPanelTab,
+  setRightPanelTab,
   width,
   selectedFile,
   formatFileSize,
@@ -421,17 +424,29 @@ const RightSidebar = ({
                   </ErrorBoundary>
                 );
               }
-              if (rightPanelTab === 'chat') {
+              if (rightPanelTab === 'chat' || rightPanelTab === 'agent-manager') {
+                // Unified AI sidebar: one rail entry, two sub-panels behind
+                // a segmented switch (对话 = chat, 任务 = agent manager).
                 return (
                   <ErrorBoundary>
-                    <StandaloneChatPanel />
-                  </ErrorBoundary>
-                );
-              }
-              if (rightPanelTab === 'agent-manager') {
-                return (
-                  <ErrorBoundary>
-                    <AgentManagerPanel />
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        flex: 1,
+                        minHeight: 0,
+                      }}
+                    >
+                      <AiPanelSwitch
+                        active={rightPanelTab === 'chat' ? 'chat' : 'agent-manager'}
+                        onChange={(tab) => setRightPanelTab?.(tab)}
+                        labels={{
+                          chat: i18n.t('extensionsBar.aiChat'),
+                          tasks: i18n.t('extensionsBar.agentManager'),
+                        }}
+                      />
+                      {rightPanelTab === 'chat' ? <StandaloneChatPanel /> : <AgentManagerPanel />}
+                    </div>
                   </ErrorBoundary>
                 );
               }

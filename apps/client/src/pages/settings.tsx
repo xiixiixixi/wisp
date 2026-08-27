@@ -54,6 +54,7 @@ import {
   SETTINGS_KEY,
   Toggle,
   SettingRow,
+  migrateLegacyAiSettings,
 } from '@/components/settings/shared';
 import wispLogo from '../../../src-tauri/icons/icon.png';
 
@@ -305,7 +306,11 @@ const Settings = () => {
     let initialSettings = DEFAULT_SETTINGS;
     try {
       const saved = localStorage.getItem(SETTINGS_KEY);
-      if (saved) initialSettings = { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+      if (saved)
+        {initialSettings = migrateLegacyAiSettings({
+          ...DEFAULT_SETTINGS,
+          ...JSON.parse(saved),
+        });}
     } catch {
       /* ignore localStorage/parse errors */
     }
@@ -452,7 +457,7 @@ const Settings = () => {
         const saved = localStorage.getItem(SETTINGS_KEY);
         if (!saved) return;
         setSettings((prev) => {
-          const merged = { ...prev, ...JSON.parse(saved) };
+          const merged = migrateLegacyAiSettings({ ...prev, ...JSON.parse(saved) });
           // Avoid re-triggering the persist effect when nothing changed
           return JSON.stringify(merged) === JSON.stringify(prev) ? prev : merged;
         });

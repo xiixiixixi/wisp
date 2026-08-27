@@ -269,6 +269,18 @@ export interface AppSettings {
   aiCustomProtocol: 'openai' | 'anthropic';
 }
 
+/**
+ * The "Wisp 云（免费）" chat mode was a dead shell (its backend only reads
+ * an OPENROUTER_API_KEY env var that no UI ever sets). Legacy profiles that
+ * still carry aiServiceMode 'cloud' are migrated to 'custom' on load.
+ */
+export const migrateLegacyAiSettings = <T extends { aiServiceMode?: string }>(s: T): T => {
+  if (s.aiServiceMode === 'cloud') {
+    return { ...s, aiServiceMode: 'custom' };
+  }
+  return s;
+};
+
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'glass',
   language: DEFAULT_LANGUAGE,
@@ -289,7 +301,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   aiSearchProvider: 'auto',
   aiSearchModel: '',
   aiSearchApiKey: '',
-  aiServiceMode: 'cloud',
+  aiServiceMode: 'custom',
   aiCloudModel: 'anthropic/claude-sonnet-4',
   aiCustomProvider: 'ollama',
   aiCustomModel: '',

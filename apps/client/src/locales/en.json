@@ -902,8 +902,9 @@
   "extensionsBar": {
     "preview": "File Preview",
     "contentSearch": "Content Search",
-    "aiChat": "AI Assistant",
-    "agentManager": "Agent Manager",
+    "aiChat": "AI Chat",
+    "agentManager": "AI Tasks",
+    "ai": "AI",
     "moreTools": "More tools",
     "performance": "Performance",
     "extensions": "Extensions",

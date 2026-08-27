@@ -902,8 +902,9 @@
   "extensionsBar": {
     "preview": "文件预览",
     "contentSearch": "内容搜索",
-    "aiChat": "AI 助手",
-    "agentManager": "智能体管理",
+    "aiChat": "AI 对话",
+    "agentManager": "AI 任务",
+    "ai": "AI",
     "moreTools": "更多工具",
     "performance": "性能",
     "extensions": "扩展",
