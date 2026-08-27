@@ -29,6 +29,7 @@ import QuickActions from './agent-manager/QuickActions';
 import RecentActions from './agent-manager/RecentActions';
 import AgentSettingsBar from './agent-manager/AgentSettingsBar';
 import TerminalAgentDetector from './agent-manager/TerminalAgentDetector';
+import ProjectMemorySection from './agent-manager/ProjectMemorySection';
 import NewAgentForm from './agent-manager/NewAgentForm';
 import SessionHistory from './agent-manager/SessionHistory';
 import SharedDiscoveriesBadge from './agent-manager/SharedDiscoveriesBadge';
@@ -43,6 +44,7 @@ import { useSessionHistory } from './agent-manager/use-session-history';
 import useCostTracking from './agent-manager/use-cost-tracking';
 import { useFileChanges } from './agent-manager/use-file-changes';
 import useAgentSessions from '@/hooks/use-agent-sessions';
+import { isTauri } from '@/lib/transport';
 import { subscribeToDiscoveries, getDiscoveryCount } from './agent-manager/agent-shared-context';
 import type { CreateSessionParams } from '@/lib/tauri-api-types';
 
@@ -86,6 +88,7 @@ const AgentManagerPanel = () => {
   // Section collapse state
   const [activeExpanded, setActiveExpanded] = useState(true);
   const [externalExpanded, setExternalExpanded] = useState(true);
+  const [memoryExpanded, setMemoryExpanded] = useState(true);
   const [queueExpanded, setQueueExpanded] = useState(true);
   const [quickActionsExpanded, setQuickActionsExpanded] = useState(true);
   const [recentExpanded, setRecentExpanded] = useState(true);
@@ -384,6 +387,30 @@ const AgentManagerPanel = () => {
             </div>
           )}
         </div>
+
+        {/* Project Memory Section (CLI agent session logs for this folder) */}
+        {isTauri() && (
+          <div style={{ borderTop: '1px solid var(--xp-border)' }}>
+            <div
+              style={sectionHeaderStyle}
+              onClick={() => setMemoryExpanded((v) => !v)}
+              role="button"
+              tabIndex={0}
+              aria-expanded={memoryExpanded}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') setMemoryExpanded((v) => !v);
+              }}
+            >
+              {memoryExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+              {t('agentManager.sections.projectMemory')}
+            </div>
+            {memoryExpanded && (
+              <div style={{ padding: '0 8px 8px' }}>
+                <ProjectMemorySection />
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Task Queue Section */}
         <div style={{ borderTop: '1px solid var(--xp-border)' }}>

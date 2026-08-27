@@ -2349,6 +2349,7 @@
     "sections": {
       "activeAgents": "活跃代理",
       "externalAgents": "外部代理",
+      "projectMemory": "项目记忆",
       "taskQueue": "任务队列",
       "quickActions": "快捷操作",
       "recentActions": "最近操作",
@@ -2417,6 +2418,16 @@
       "gitFilter_staged": "已暂存",
       "filesSelected": "个文件已选中",
       "contextDetected": "已检测到上下文"
+    },
+    "projectMemory": {
+      "loading": "正在读取会话记录…",
+      "noFolder": "未打开文件夹",
+      "refresh": "刷新",
+      "empty": "这个文件夹还没有 AI 会话记录",
+      "loadError": "读取会话记录失败",
+      "changedFiles": "{{count}} 个文件改动",
+      "resume": "续上",
+      "resumeHint": "在内嵌终端恢复这个会话"
     },
     "newAgent": {
       "title": "新建代理",

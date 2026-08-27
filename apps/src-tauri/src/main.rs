@@ -8,6 +8,7 @@ use tauri::{Emitter, Listener, Manager, WindowEvent};
 use wisp::agent;
 use wisp::agent_sessions;
 use wisp::ai;
+use wisp::project_memory;
 use wisp::duplicate_finder;
 use wisp::extensions;
 use wisp::file_organizer;
@@ -478,6 +479,7 @@ fn main() {
             // Agent session management
             agent_sessions::create_agent_session,
             agent_sessions::list_agent_sessions,
+            project_memory::project_memory_sessions,
             agent_sessions::get_agent_session,
             agent_sessions::stop_agent_session,
             agent_sessions::remove_agent_session,

@@ -2349,6 +2349,7 @@
     "sections": {
       "activeAgents": "Active Agents",
       "externalAgents": "External Agents",
+      "projectMemory": "Project Memory",
       "taskQueue": "Task Queue",
       "quickActions": "Quick Actions",
       "recentActions": "Recent Actions",
@@ -2432,6 +2433,16 @@
       "gitFilter_staged": "Staged",
       "filesSelected": "files selected",
       "contextDetected": "context detected"
+    },
+    "projectMemory": {
+      "loading": "Reading session logs…",
+      "noFolder": "No folder open",
+      "refresh": "Refresh",
+      "empty": "No AI sessions recorded for this folder yet",
+      "loadError": "Failed to read session logs",
+      "changedFiles": "{{count}} files changed",
+      "resume": "Resume",
+      "resumeHint": "Resume this session in the embedded terminal"
     },
     "newAgent": {
       "title": "New Agent",

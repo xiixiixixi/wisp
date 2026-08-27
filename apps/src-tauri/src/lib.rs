@@ -4,6 +4,7 @@ pub mod utils;
 pub mod agent;
 pub mod agent_sessions;
 pub mod ai;
+pub mod project_memory;
 pub mod audit_log;
 pub mod backup;
 pub mod document_extractor;
