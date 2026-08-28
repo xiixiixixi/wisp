@@ -16,6 +16,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+#[cfg(target_os = "macos")]
 use std::io::Cursor;
 
 /// A Finder-style tag: a name plus a colour.
@@ -87,6 +88,7 @@ fn encode_tag_string(name: &str, index: u8) -> String {
 }
 
 /// Read the raw tag strings from a file's Finder-tag extended attribute.
+#[cfg(target_os = "macos")]
 pub fn read_tag_strings(path: &str) -> Result<Vec<String>, String> {
     let bytes = xattr::get(path, USER_TAGS_XATTR)
         .map_err(|e| format!("Failed to read tags: {}", e))?;
@@ -105,7 +107,14 @@ pub fn read_tag_strings(path: &str) -> Result<Vec<String>, String> {
     }
 }
 
+/// No Finder tag store exists outside macOS — reads are simply empty.
+#[cfg(not(target_os = "macos"))]
+pub fn read_tag_strings(_path: &str) -> Result<Vec<String>, String> {
+    Ok(Vec::new())
+}
+
 /// Write the tag strings back to the file (removes the attribute when empty).
+#[cfg(target_os = "macos")]
 pub fn write_tag_strings(path: &str, strings: &[String]) -> Result<(), String> {
     if strings.is_empty() {
         // Ignore "attribute missing" — clearing an untagged file is fine.
@@ -123,6 +132,11 @@ pub fn write_tag_strings(path: &str, strings: &[String]) -> Result<(), String> {
         .map_err(|e| format!("Failed to serialize tag plist: {}", e))?;
     xattr::set(path, USER_TAGS_XATTR, &buf)
         .map_err(|e| format!("Failed to write tags: {}", e))
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn write_tag_strings(_path: &str, _strings: &[String]) -> Result<(), String> {
+    Err("File tags are only supported on macOS".to_string())
 }
 
 pub fn strings_to_tags(strings: &[String]) -> Vec<FileTag> {
@@ -145,8 +159,19 @@ pub fn tags_to_strings(tags: &[FileTag]) -> Vec<String> {
         .collect()
 }
 
+fn standard_palette() -> Vec<FileTag> {
+    STANDARD_TAGS
+        .iter()
+        .map(|(name, idx)| FileTag {
+            name: name.to_string(),
+            color: color_hex_for_index(*idx),
+        })
+        .collect()
+}
+
 /// The palette shown in pickers: Finder's own UserTags list when present,
 /// otherwise the seven standard colours.
+#[cfg(target_os = "macos")]
 fn finder_palette() -> Vec<FileTag> {
     let home = std::env::var("HOME").unwrap_or_default();
     let prefs = format!("{}/Library/Preferences/com.apple.finder.plist", home);
@@ -186,13 +211,12 @@ fn finder_palette() -> Vec<FileTag> {
             }
         }
     }
-    STANDARD_TAGS
-        .iter()
-        .map(|(name, idx)| FileTag {
-            name: name.to_string(),
-            color: color_hex_for_index(*idx),
-        })
-        .collect()
+    standard_palette()
+}
+
+#[cfg(not(target_os = "macos"))]
+fn finder_palette() -> Vec<FileTag> {
+    standard_palette()
 }
 
 // ─── Tauri commands ──────────────────────────────────────────────────────────
@@ -338,7 +362,7 @@ pub async fn find_files_by_tag(tag_name: String) -> Result<Vec<crate::operations
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-#[cfg(test)]
+#[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::*;
 

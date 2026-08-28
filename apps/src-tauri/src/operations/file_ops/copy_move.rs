@@ -228,10 +228,16 @@ fn volume_id(path: &Path) -> Result<u64, String> {
 /// Volume identifier used for cross-volume comparisons.
 #[cfg(windows)]
 fn volume_id(path: &Path) -> Result<u64, String> {
-    use std::os::windows::fs::MetadataExt;
-    fs::metadata(path)
-        .map(|m| m.volume_serial_number().unwrap_or(0) as u64)
-        .map_err(|e| format!("Failed to stat {}: {}", path.display(), e))
+    // MetadataExt's volume_serial_number needs the unstable windows_by_handle
+    // feature, so fall back to the drive letter (A=1..Z=26). Two paths on the
+    // same drive letter are on the same volume for all practical purposes.
+    let letter = path
+        .to_string_lossy()
+        .chars()
+        .next()
+        .unwrap_or('C')
+        .to_ascii_uppercase();
+    Ok((letter as u8 - b'A' + 1) as u64)
 }
 
 /// Whether two paths live on the same volume. macOS drag semantics default
