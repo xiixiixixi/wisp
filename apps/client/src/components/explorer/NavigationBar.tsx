@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { ChevronRight, Pencil, HardDrive, Home, Trash2, Cloud, Folder, Tag } from 'lucide-react';
+import {
+  ChevronRight,
+  ChevronUp,
+  RefreshCw,
+  Pencil,
+  HardDrive,
+  Home,
+  Trash2,
+  Cloud,
+  Folder,
+  Tag,
+} from 'lucide-react';
 import { PATH_SEPARATOR, isWindows } from '@/lib/constants';
 import { TauriAPI } from '@/lib/tauri-api';
 import { getCollection } from '@/lib/collections';
@@ -12,6 +23,13 @@ interface NavigationBarProps {
   refetch?: () => void;
   /** Only the active pane responds to ⇧⌘G (focus the address bar) */
   active?: boolean;
+  /** Per-pane history navigation — Finder-style, lives next to the path */
+  onNavigateBack?: () => void;
+  onNavigateForward?: () => void;
+  canNavigateBack?: boolean;
+  canNavigateForward?: boolean;
+  onNavigateUp?: () => void;
+  canNavigateUp?: boolean;
 }
 
 interface PathSegment {
@@ -129,8 +147,14 @@ type PathValidation = 'idle' | 'valid' | 'invalid' | 'checking';
 const NavigationBar = ({
   currentPath,
   navigateToPath,
-  refetch: _refetch,
+  refetch,
   active = true,
+  onNavigateBack,
+  onNavigateForward,
+  canNavigateBack = false,
+  canNavigateForward = false,
+  onNavigateUp,
+  canNavigateUp = false,
 }: NavigationBarProps) => {
   const { t } = useTranslation();
   const [isEditingPath, setIsEditingPath] = useState(false);
@@ -443,9 +467,70 @@ const NavigationBar = ({
   }, [currentPath, t]);
 
   return (
-    <div className="wisp-no-select border-b border-xp-border bg-xp-surface px-3 py-1">
+    <div className="wisp-no-select flex h-9 items-center gap-1.5 border-b border-xp-border bg-xp-surface px-3">
+      {/* Per-pane navigation — kept right next to the path it acts on */}
+      {(onNavigateBack || onNavigateForward || onNavigateUp || refetch) && (
+        <div className="flex flex-shrink-0 items-center gap-0.5">
+          {onNavigateBack && (
+            <button
+              onClick={onNavigateBack}
+              disabled={!canNavigateBack}
+              className="rounded p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
+              title={t('topBar.goBack')}
+              aria-label={t('topBar.goBack')}
+            >
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+          )}
+          {onNavigateForward && (
+            <button
+              onClick={onNavigateForward}
+              disabled={!canNavigateForward}
+              className="rounded p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
+              title={t('topBar.goForward')}
+              aria-label={t('topBar.goForward')}
+            >
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+          )}
+          {onNavigateUp && (
+            <button
+              onClick={onNavigateUp}
+              disabled={!canNavigateUp}
+              className="rounded p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
+              title={t('topBar.goUp')}
+              aria-label={t('topBar.goUp')}
+            >
+              <ChevronUp size={16} />
+            </button>
+          )}
+          {refetch && (
+            <button
+              onClick={refetch}
+              className="rounded p-1 transition-colors hover:bg-xp-surface-light"
+              title={t('topBar.refresh')}
+              aria-label={t('topBar.refresh')}
+            >
+              <RefreshCw size={14} />
+            </button>
+          )}
+          <div className="mx-0.5 h-5 w-px bg-xp-border" />
+        </div>
+      )}
       <div
-        className="relative flex min-w-0 items-center rounded border border-xp-border bg-xp-bg px-2 py-0.5"
+        className="relative flex min-w-0 flex-1 items-center rounded border border-xp-border bg-xp-bg px-2 py-0.5"
         style={
           isEditingPath && validationBorderColor
             ? {

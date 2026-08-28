@@ -6,6 +6,8 @@ import NavigationBar from '@/components/explorer/NavigationBar';
 // Mock lucide-react icons - use non-conflicting text in icon mocks
 vi.mock('lucide-react', () => ({
   ChevronRight: () => <span data-testid="chevron-right">&gt;</span>,
+  ChevronUp: () => <span data-testid="chevron-up" />,
+  RefreshCw: () => <span data-testid="refresh-icon" />,
   Pencil: () => <span data-testid="pencil-icon" />,
   HardDrive: () => <span data-testid="hard-drive-icon" />,
   Home: () => <span data-testid="home-icon" />,
@@ -43,6 +45,41 @@ describe('NavigationBar', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  describe('Per-pane navigation buttons', () => {
+    it('renders back/forward/up/refresh and disables them per history state', () => {
+      render(
+        <NavigationBar
+          {...defaultProps}
+          onNavigateBack={vi.fn()}
+          canNavigateBack={true}
+          onNavigateForward={vi.fn()}
+          canNavigateForward={false}
+          onNavigateUp={vi.fn()}
+          canNavigateUp={true}
+        />,
+      );
+
+      expect(screen.getByTitle('Go back in history')).toBeEnabled();
+      expect(screen.getByTitle('Go forward in history')).toBeDisabled();
+      expect(screen.getByTitle('Go up one level')).toBeEnabled();
+      expect(screen.getByTitle('Refresh')).toBeInTheDocument();
+    });
+
+    it('calls the pane-scoped back handler', () => {
+      const onNavigateBack = vi.fn();
+      render(<NavigationBar {...defaultProps} onNavigateBack={onNavigateBack} canNavigateBack />);
+
+      fireEvent.click(screen.getByTitle('Go back in history'));
+      expect(onNavigateBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the whole cluster when no handlers are provided', () => {
+      render(<NavigationBar {...defaultProps} refetch={undefined} />);
+      expect(screen.queryByTitle('Go back in history')).not.toBeInTheDocument();
+      expect(screen.queryByTitle('Refresh')).not.toBeInTheDocument();
+    });
   });
 
   describe('Breadcrumb rendering', () => {

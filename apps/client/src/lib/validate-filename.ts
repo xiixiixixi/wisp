@@ -57,6 +57,24 @@ const WINDOWS_RESERVED = new Set([
 ]);
 
 /**
+ * Extension of `name` ('' when it has none). Dotfiles like `.bashrc` and
+ * extensionless names return '' — Finder treats those as "no extension".
+ */
+export const getExtension = (name: string): string => {
+  const lastDot = name.lastIndexOf('.');
+  return lastDot > 0 ? name.slice(lastDot + 1) : '';
+};
+
+/**
+ * `name` with its extension removed. Dotfiles and extensionless names pass
+ * through unchanged.
+ */
+export const stripExtension = (name: string): string => {
+  const lastDot = name.lastIndexOf('.');
+  return lastDot > 0 ? name.slice(0, lastDot) : name;
+};
+
+/**
  * Validate a file name for inline renaming.
  *
  * @param name         The proposed new file name (basename only, no path separators).

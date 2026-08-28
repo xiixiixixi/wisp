@@ -18,6 +18,7 @@ use wisp::git;
 use wisp::google_drive;
 use wisp::mcp_host;
 use wisp::mcp_server;
+use wisp::mouse_navigation;
 use wisp::operations;
 use wisp::pty;
 use wisp::shortcuts;
@@ -59,6 +60,9 @@ fn main() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .setup(|app| {
+            // Mouse side buttons (back/forward) → frontend navigation events
+            mouse_navigation::install_mouse_navigation(app.handle().clone());
+
             // Initialize the search engine eagerly: it loads the cached
             // index, reconciles it against the filesystem, and starts the
             // watcher, so search is warm before the user types anything.
@@ -258,6 +262,7 @@ fn main() {
             operations::get_file_properties,
             operations::get_file_meta_data,
             operations::copy,
+            operations::copy_files_to_clipboard,
             operations::copy_with_progress,
             operations::cancel_file_operation,
             operations::accelerated_copy_file,
@@ -278,6 +283,7 @@ fn main() {
             operations::get_directory_size,
             operations::get_directory_item_count,
             operations::set_file_permissions,
+            operations::get_system_stats,
             // AI Agent operations
             operations::agent_read_file_tree,
             operations::agent_request_write_permission,

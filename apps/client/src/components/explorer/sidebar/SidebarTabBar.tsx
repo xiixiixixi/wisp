@@ -31,7 +31,8 @@ const SidebarTabBar = ({ activeTabId, onTabClick, extensionTabs }: SidebarTabBar
       style={{
         display: 'flex',
         alignItems: 'center',
-        padding: '4px 8px',
+        height: '36px',
+        padding: '0 8px',
         gap: '2px',
         flexShrink: 0,
       }}

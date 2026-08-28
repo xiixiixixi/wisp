@@ -128,7 +128,7 @@ const FileRow = React.memo(
             ? 'bg-xp-selection border border-xp-blue'
             : 'border border-transparent text-xp-text'
         } `}
-        {...dragHandlers}
+        {...(renamingPath === file.path ? {} : dragHandlers)}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
@@ -154,7 +154,8 @@ const FileRow = React.memo(
               }}
               onCancel={() => onRenameCancel?.()}
               onTab={(oldPath, newName) => {
-                onRenameConfirm?.(oldPath, newName);
+                // Details rows have no Tab-hop flow of their own; commit only.
+                if (newName) onRenameConfirm?.(oldPath, newName);
               }}
             />
           ) : (

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import CommandPalette, { type Command } from '@/components/CommandPalette';
+import CommandPalette from '@/components/CommandPalette';
 
 vi.mock('@tanstack/react-virtual', () => ({
   useVirtualizer: ({
@@ -35,43 +35,42 @@ vi.mock('@/lib/tauri-api', () => ({
   },
 }));
 
-const commands: Command[] = [
-  { id: 'new-folder', title: 'New folder', action: vi.fn() },
-  { id: 'home', title: 'Go home', action: vi.fn() },
-  { id: 'toggle-preview', title: 'Toggle preview', action: vi.fn() },
-  { id: 'toggle-terminal', title: 'Toggle terminal', action: vi.fn() },
-  { id: 'settings', title: 'Open settings', action: vi.fn() },
-  { id: 'keyboard-shortcuts', title: 'Keyboard shortcuts', action: vi.fn() },
-  { id: 'extra-command', title: 'Extra command', action: vi.fn() },
-];
-
 describe('CommandPalette', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
   });
 
-  it('opens with a calm set of quick actions and exposes the full command catalogue by mode', async () => {
+  // The commands mode was removed: the palette is file search + Ask Wisp only.
+  it('offers only Files and Ask Wisp modes', async () => {
+    render(<CommandPalette isOpen onClose={vi.fn()} currentPath="/Users/test/Documents" />);
+
+    expect(screen.getByRole('tab', { name: 'Files' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Ask Wisp' })).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'Commands' })).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText('Search files and folders...')).toHaveFocus(),
+    );
+  });
+
+  it('offers a go-to-folder action for path-like queries', async () => {
+    const onFileSelect = vi.fn();
     render(
       <CommandPalette
         isOpen
         onClose={vi.fn()}
-        commands={commands}
+        onFileSelect={onFileSelect}
         currentPath="/Users/test/Documents"
       />,
     );
 
-    expect(screen.getByRole('dialog', { name: 'Wisp Command Center' })).toBeInTheDocument();
-    expect(screen.getByText('Quick Actions')).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /New folder/ })).toBeInTheDocument();
-    expect(screen.queryByRole('option', { name: /Extra command/ })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText('Search files and folders...'), {
+      target: { value: '/Users/test/Downloads' },
+    });
 
-    fireEvent.click(screen.getByRole('tab', { name: 'Commands' }));
-
-    expect(screen.getByRole('option', { name: /Extra command/ })).toBeInTheDocument();
-    await waitFor(() =>
-      expect(screen.getByPlaceholderText('Search every Wisp command...')).toHaveFocus(),
-    );
+    const goTo = await screen.findByRole('option', { name: /Go to folder/ });
+    fireEvent.click(goTo);
+    await waitFor(() => expect(onFileSelect).toHaveBeenCalledWith('/Users/test/Downloads', true));
   });
 
   it('sends an assistant request with the prompt and current folder context', async () => {
@@ -79,14 +78,7 @@ describe('CommandPalette', () => {
     const listener = vi.fn();
     window.addEventListener('wisp-ai-chat-request', listener);
 
-    render(
-      <CommandPalette
-        isOpen
-        onClose={onClose}
-        commands={commands}
-        currentPath="/Users/test/Documents"
-      />,
-    );
+    render(<CommandPalette isOpen onClose={onClose} currentPath="/Users/test/Documents" />);
     fireEvent.click(screen.getByRole('tab', { name: 'Ask Wisp' }));
     const input = screen.getByPlaceholderText('Ask Wisp about your files...');
     fireEvent.change(input, { target: { value: 'Summarize the PDFs in this folder' } });

@@ -286,6 +286,9 @@ const FileGrid = ({
 
   // ─── Inline rename state ─────────────────────────────────────────────────
   const [internalRenamingPath, internalSetRenamingPath] = useState<string | null>(null);
+  // Caret offset carried from a label-click rename (Finder: caret lands
+  // where the name was clicked). Null = select the base name (Enter/F2/Tab).
+  const [renameCaretOffset, setRenameCaretOffset] = useState<number | null>(null);
 
   // Use external state when provided, otherwise fall back to internal state
   const renamingPath =
@@ -299,6 +302,13 @@ const FileGrid = ({
       }
     },
     [externalSetRenamingPath],
+  );
+  const startRename = useCallback(
+    (path: string, caretOffset: number | null) => {
+      setRenameCaretOffset(caretOffset);
+      setRenamingPath(path);
+    },
+    [setRenamingPath],
   );
 
   // Build list of existing file names for conflict detection
@@ -315,12 +325,12 @@ const FileGrid = ({
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<{ path: string }>).detail;
       if (detail?.path && files.some((f) => f.path === detail.path)) {
-        setRenamingPath(detail.path);
+        startRename(detail.path, null);
       }
     };
     window.addEventListener('start-inline-rename', handler);
     return () => window.removeEventListener('start-inline-rename', handler);
-  }, [onRenameFile, files, setRenamingPath]);
+  }, [onRenameFile, files, startRename]);
 
   // ─── Slow double-click detection (click → 500ms pause → click = rename) ──
   const lastClickRef = useRef<{ path: string; time: number } | null>(null);
@@ -364,7 +374,7 @@ const FileGrid = ({
             clearTimeout(slowDoubleClickTimerRef.current);
             slowDoubleClickTimerRef.current = null;
           }
-          setRenamingPath(file.path);
+          startRename(file.path, null);
           return;
         }
       }
@@ -382,7 +392,15 @@ const FileGrid = ({
 
       onFileClick(file, event);
     },
-    [renamingPath, setRenamingPath, selectedFiles, onRenameFile, handleFileClick, onFileClick],
+    [
+      renamingPath,
+      setRenamingPath,
+      startRename,
+      selectedFiles,
+      onRenameFile,
+      handleFileClick,
+      onFileClick,
+    ],
   );
 
   const wrappedFileDoubleClick = useCallback(
@@ -415,22 +433,39 @@ const FileGrid = ({
   }, [setRenamingPath]);
 
   const handleRenameTab = useCallback(
-    async (oldPath: string, newName: string) => {
-      // Confirm rename on current file, then move to next file in the list
-      if (onRenameFile) {
-        const success = await onRenameFile(oldPath, newName);
-        if (success) {
-          // Find the next file in the list to start renaming
-          const currentIndex = files.findIndex((f) => f.path === oldPath);
-          if (currentIndex >= 0 && currentIndex < files.length - 1) {
-            setRenamingPath(files[currentIndex + 1].path);
-            return;
-          }
+    async (oldPath: string, newName: string | null, direction: 1 | -1) => {
+      // Commit the rename (if the name changed), then hop to the neighbour —
+      // wrapping at the ends — so a batch of files can be renamed with
+      // consecutive Tab presses, Finder-style. Shift+Tab hops backwards.
+      if (newName) {
+        if (!onRenameFile) {
+          setRenamingPath(null);
+          return;
         }
+        const success = await onRenameFile(oldPath, newName);
+        if (!success) {
+          setRenamingPath(null);
+          return;
+        }
+      }
+      const currentIndex = files.findIndex((f) => f.path === oldPath);
+      if (currentIndex >= 0 && files.length > 0) {
+        const nextIndex = (currentIndex + direction + files.length) % files.length;
+        startRename(files[nextIndex].path, null);
+        return;
       }
       setRenamingPath(null);
     },
-    [onRenameFile, files, setRenamingPath],
+    [onRenameFile, files, setRenamingPath, startRename],
+  );
+
+  // Finder: clicking the name label of the already-selected item starts a
+  // rename with the caret where the label was clicked
+  const handleRenameStart = useCallback(
+    (file: FileEntry, caretOffset?: number) => {
+      if (onRenameFile) startRename(file.path, caretOffset ?? null);
+    },
+    [onRenameFile, startRename],
   );
 
   // Background drop target — the whole grid accepts drops into currentPath
@@ -666,9 +701,11 @@ const FileGrid = ({
           thumbnailUrl={isImageFile(file) ? getThumbnailUrl(file.path) : undefined}
           isRenaming={isFileRenaming}
           existingNames={isFileRenaming ? existingNames : undefined}
+          initialRenameCaretOffset={isFileRenaming ? renameCaretOffset : undefined}
           onRenameConfirm={isFileRenaming ? handleRenameConfirm : undefined}
           onRenameCancel={isFileRenaming ? handleRenameCancel : undefined}
           onRenameTab={isFileRenaming ? handleRenameTab : undefined}
+          onRenameStart={onRenameFile ? handleRenameStart : undefined}
         />
       </div>
     );

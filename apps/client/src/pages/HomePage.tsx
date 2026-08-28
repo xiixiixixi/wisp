@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { TauriAPI, type RecentFile } from '@/lib/tauri-api';
 import { AgentService, type AgentEvent, type AgentToolCall } from '@/lib/agent-service';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
+import SystemDashboard from '@/components/explorer/SystemDashboard';
 import { formatFileSize, applyTheme } from '@/lib/utils';
 import { isWindows, ROOT_PATH, PATH_SEPARATOR, CLOCK_UPDATE_INTERVAL_MS } from '@/lib/constants';
 import { useAllThemes } from '@/lib/theme-registry';
@@ -13,22 +14,7 @@ import {
   getDemoUserDirectories,
   isBrowserDemoMode,
 } from '@/lib/browser-demo-files';
-import {
-  ArrowRight,
-  Clock3,
-  Download,
-  FileText,
-  Folder,
-  HardDrive,
-  Image,
-  Monitor,
-  Music,
-  Search,
-  Sparkles,
-  Trash2,
-  Video,
-  X,
-} from 'lucide-react';
+import { ArrowRight, Clock3, FileText, Folder, Search, Sparkles, X } from 'lucide-react';
 import wispLogo from '../../../src-tauri/icons/icon.png';
 
 interface QuickStats {
@@ -138,37 +124,26 @@ const Clock = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const hour = currentTime.getHours();
-  let greeting = t('home.goodEvening');
-  if (hour < 12) greeting = t('home.goodMorning');
-  else if (hour < 17) greeting = t('home.goodAfternoon');
-
   const locale = i18n.language || 'en';
 
   return (
-    <div className="flex items-end justify-between gap-8">
-      <div className="min-w-0">
-        <div className="mb-3 flex items-center gap-2.5">
-          <img src={wispLogo} alt="" className="h-9 w-9 rounded-xl shadow-lg" aria-hidden="true" />
-          <div>
-            <p className="text-sm font-semibold leading-tight text-xp-text">Wisp</p>
-            <p className="text-[11px] text-xp-text-muted">{t('home.workspace')}</p>
-          </div>
+    <div className="flex items-center justify-between gap-8">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <img src={wispLogo} alt="" className="h-9 w-9 rounded-xl shadow-lg" aria-hidden="true" />
+        <div>
+          <p className="text-sm font-semibold leading-tight text-xp-text">Wisp</p>
+          <p className="text-[11px] text-xp-text-muted">{t('home.workspace')}</p>
         </div>
-        <p className="mb-1.5 flex items-center gap-1.5 text-xs text-xp-text-muted">
-          <Clock3 size={16} aria-hidden="true" />
+        <p className="ml-3 flex items-center gap-1.5 text-xs text-xp-text-muted">
+          <Clock3 size={14} aria-hidden="true" />
           {currentTime.toLocaleDateString(locale, {
             weekday: 'long',
             month: 'long',
             day: 'numeric',
           })}
         </p>
-        <h1 className="text-4xl font-semibold tracking-[-0.03em] text-xp-text">{greeting}</h1>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-xp-text-secondary">
-          {t('home.heroSubtitle')}
-        </p>
       </div>
-      <p className="hidden text-3xl font-light tabular-nums text-xp-text-muted sm:block">
+      <p className="text-2xl font-light tabular-nums text-xp-text-muted">
         {currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
       </p>
     </div>
@@ -464,132 +439,45 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
     });
   };
 
-  const quickAccessFolders = userDirectories
-    ? [
-        {
-          name: t('sidebar.documents'),
-          path: userDirectories.documents,
-          icon: FileText,
-          gradient: 'from-blue-500 to-blue-600',
-        },
-        {
-          name: t('sidebar.downloads'),
-          path: userDirectories.downloads,
-          icon: Download,
-          gradient: 'from-emerald-500 to-emerald-600',
-        },
-        {
-          name: t('sidebar.desktop'),
-          path: userDirectories.desktop,
-          icon: Monitor,
-          gradient: 'from-violet-500 to-violet-600',
-        },
-        {
-          name: t('sidebar.pictures'),
-          path: userDirectories.pictures,
-          icon: Image,
-          gradient: 'from-pink-500 to-pink-600',
-        },
-        {
-          name: t('home.videos'),
-          path: userDirectories.videos,
-          icon: Video,
-          gradient: 'from-orange-500 to-orange-600',
-        },
-        {
-          name: t('home.music'),
-          path: userDirectories.music,
-          icon: Music,
-          gradient: 'from-cyan-500 to-cyan-600',
-        },
-      ]
-    : [];
-
   return (
-    <div className="flex h-full flex-col overflow-auto bg-xp-bg text-xp-text">
+    <div className="relative flex h-full flex-col overflow-auto bg-xp-bg text-xp-text">
       <div className="mx-auto grid min-h-0 w-full max-w-6xl flex-1 grid-cols-1 gap-y-5 px-6 py-6 lg:grid-cols-12 lg:gap-x-5 lg:px-8">
-        {/* Hero / Greeting */}
+        {/* Compact header */}
         <div className="order-0 lg:col-span-12">
           <Clock />
         </div>
 
-        {/* Quick Links */}
+        {/* System dashboard: live CPU / memory / disk gauges */}
         <div className="order-1 lg:col-span-12">
-          <div className="mb-2.5 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-xp-text">{t('home.quickAccess')}</p>
-              <p className="mt-0.5 text-xs text-xp-text-muted">
-                {t('home.quickAccessDescription')}
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2 rounded-2xl border border-xp-border bg-muted p-3 shadow-sm sm:grid-cols-4">
-            {quickAccessFolders.map((folder) => {
-              const Icon = folder.icon;
-              return (
-                <button
-                  key={folder.name}
-                  onClick={() => handleNavigate(folder.path)}
-                  className="group flex min-h-12 items-center gap-3 rounded-xl border border-xp-border bg-transparent px-3 py-2.5 text-left transition-all duration-150 hover:-translate-y-0.5 hover:border-primary hover:bg-xp-surface hover:shadow-md"
-                >
-                  <div
-                    className={`h-7 w-7 rounded-md bg-gradient-to-br ${folder.gradient} flex flex-shrink-0 items-center justify-center`}
-                  >
-                    <Icon className="h-3.5 w-3.5 text-white" />
-                  </div>
-                  <span className="text-sm font-medium text-xp-text">{folder.name}</span>
-                </button>
-              );
-            })}
-            <button
-              onClick={() => handleNavigate('wisp://trash')}
-              className="group flex min-h-12 items-center gap-3 rounded-xl border border-xp-border bg-transparent px-3 py-2.5 text-left transition-all duration-150 hover:-translate-y-0.5 hover:border-primary hover:bg-xp-surface hover:shadow-md"
-            >
-              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-red-500 to-red-600">
-                <Trash2 className="h-3.5 w-3.5 text-white" />
-              </div>
-              <span className="text-sm font-medium text-xp-text">{t('navigation.trash')}</span>
-            </button>
-            <button
-              onClick={() => handleNavigate(ROOT_PATH)}
-              className="group flex min-h-12 items-center gap-3 rounded-xl border border-xp-border bg-transparent px-3 py-2.5 text-left transition-all duration-150 hover:-translate-y-0.5 hover:border-primary hover:bg-xp-surface hover:shadow-md"
-            >
-              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-slate-500 to-slate-600">
-                <HardDrive className="h-3.5 w-3.5 text-white" />
-              </div>
-              <span className="text-sm font-medium text-xp-text">
-                {isWindows ? 'C:' : t('home.macintoshHD')}
-              </span>
-            </button>
-          </div>
-
-          {/* Recent folders inline */}
-          {recommendedFolders.length > 0 && (
-            <div className="mt-3">
-              <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-xp-text-muted">
-                {t('home.recentFolders')}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {recommendedFolders.map((path) => {
-                  const name = path.split(/[\\/]/).pop() || path;
-                  return (
-                    <button
-                      key={path}
-                      onClick={() => handleNavigate(path)}
-                      className="group flex items-center gap-2 rounded-md border border-xp-border bg-muted px-3 py-1.5 text-xs transition-colors hover:border-primary"
-                      title={path}
-                    >
-                      <Folder className="h-3 w-3 flex-shrink-0 text-xp-blue" />
-                      <span className="max-w-[140px] truncate text-xp-text-muted group-hover:text-xp-text">
-                        {name}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          <SystemDashboard />
         </div>
+
+        {/* Recent folders inline */}
+        {recommendedFolders.length > 0 && (
+          <div className="order-2 lg:col-span-12">
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-xp-text-muted">
+              {t('home.recentFolders')}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {recommendedFolders.map((path) => {
+                const name = path.split(/[\\/]/).pop() || path;
+                return (
+                  <button
+                    key={path}
+                    onClick={() => handleNavigate(path)}
+                    className="group flex items-center gap-2 rounded-md border border-xp-border bg-muted px-3 py-1.5 text-xs transition-colors hover:border-primary"
+                    title={path}
+                  >
+                    <Folder className="h-3 w-3 flex-shrink-0 text-xp-blue" />
+                    <span className="max-w-[140px] truncate text-xp-text-muted group-hover:text-xp-text">
+                      {name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Recent Files */}
         {!recentFilesLoading && recentFiles.length > 0 && (

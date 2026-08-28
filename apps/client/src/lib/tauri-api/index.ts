@@ -77,6 +77,7 @@ export class TauriAPI {
   static writeBinaryFile = fileSystem.writeBinaryFile;
   static createSymlink = fileSystem.createSymlink;
   static sameVolume = fileSystem.sameVolume;
+  static copyFilesToClipboard = fileSystem.copyFilesToClipboard;
   static getFileIconPng = fileSystem.getFileIconPng;
   static getDirSize = fileSystem.getDirSize;
   static readTextFile = fileSystem.readTextFile;
@@ -293,6 +294,7 @@ export class TauriAPI {
   static openInTerminal = system.openInTerminal;
   static listenToTerminalOutput = system.listenToTerminalOutput;
   static listenToEvent = system.listenToEvent;
+  static getSystemStats = system.getSystemStats;
   static getAppVersion = system.getAppVersion;
   static getSystemInfo = system.getSystemInfo;
   static getUserDirectories = system.getUserDirectories;

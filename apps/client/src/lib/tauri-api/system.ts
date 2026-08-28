@@ -403,3 +403,14 @@ export const getGdriveSettings = async (): Promise<{
 
 export const updateGdriveSettings = async (clientId: string, clientSecret: string): Promise<void> =>
   await transport('update_gdrive_settings', { clientId, clientSecret });
+
+export interface SystemStats {
+  cpu_usage: number;
+  mem_total: number;
+  mem_used: number;
+  disk_total: number;
+  disk_available: number;
+}
+
+/** Live CPU / memory / disk metrics for the home dashboard. */
+export const getSystemStats = async (): Promise<SystemStats> => await transport('get_system_stats');

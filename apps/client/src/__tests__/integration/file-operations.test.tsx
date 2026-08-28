@@ -32,6 +32,7 @@ vi.mock('@/lib/tauri-api', () => ({
     removeFile: vi.fn(() => Promise.resolve()),
     rename: mockRename,
     moveToTrash: mockMoveToTrash,
+    copyFilesToClipboard: vi.fn(() => Promise.resolve()),
     fileExists: mockFileExists,
     createDirRecursive: mockCreateDirRecursive,
     createFile: mockCreateFile,
@@ -288,6 +289,78 @@ describe('File Operations Integration', () => {
         expect.objectContaining({
           title: 'Nothing to paste',
         }),
+      );
+    });
+  });
+
+  describe('Inline rename extension-change guard (Finder)', () => {
+    it('renames without asking when the extension is unchanged', async () => {
+      const confirmExtensionChange = vi.fn();
+      const deps = createDeps({ confirmExtensionChange });
+      const { result } = renderHook(() => useFileOperations(deps));
+
+      let ok = false;
+      await act(async () => {
+        ok = await result.current.renameFileInline('C:\\Users\\Test\\document.txt', 'notes.txt');
+      });
+
+      expect(ok).toBe(true);
+      expect(confirmExtensionChange).not.toHaveBeenCalled();
+      expect(mockRename).toHaveBeenCalledWith(
+        'C:\\Users\\Test\\document.txt',
+        'C:\\Users\\Test\\notes.txt',
+      );
+    });
+
+    it('asks when the extension changes and honours "use-new"', async () => {
+      const confirmExtensionChange = vi.fn(() =>
+        Promise.resolve<'use-new' | 'keep-old'>('use-new'),
+      );
+      const deps = createDeps({ confirmExtensionChange });
+      const { result } = renderHook(() => useFileOperations(deps));
+
+      await act(async () => {
+        await result.current.renameFileInline('C:\\Users\\Test\\document.txt', 'notes.md');
+      });
+
+      expect(confirmExtensionChange).toHaveBeenCalledWith('document.txt', 'txt', 'md');
+      expect(mockRename).toHaveBeenCalledWith(
+        'C:\\Users\\Test\\document.txt',
+        'C:\\Users\\Test\\notes.md',
+      );
+    });
+
+    it('keeps the original extension when the user chooses "keep-old"', async () => {
+      const confirmExtensionChange = vi.fn(() =>
+        Promise.resolve<'use-new' | 'keep-old'>('keep-old'),
+      );
+      const deps = createDeps({ confirmExtensionChange });
+      const { result } = renderHook(() => useFileOperations(deps));
+
+      await act(async () => {
+        await result.current.renameFileInline('C:\\Users\\Test\\image.png', 'holiday');
+      });
+
+      expect(confirmExtensionChange).toHaveBeenCalledWith('image.png', 'png', '');
+      expect(mockRename).toHaveBeenCalledWith(
+        'C:\\Users\\Test\\image.png',
+        'C:\\Users\\Test\\holiday.png',
+      );
+    });
+
+    it('does not ask for folders even when dots appear in the name', async () => {
+      const confirmExtensionChange = vi.fn();
+      const deps = createDeps({ confirmExtensionChange });
+      const { result } = renderHook(() => useFileOperations(deps));
+
+      await act(async () => {
+        await result.current.renameFileInline('C:\\Users\\Test\\folder1', 'folder1.backup');
+      });
+
+      expect(confirmExtensionChange).not.toHaveBeenCalled();
+      expect(mockRename).toHaveBeenCalledWith(
+        'C:\\Users\\Test\\folder1',
+        'C:\\Users\\Test\\folder1.backup',
       );
     });
   });

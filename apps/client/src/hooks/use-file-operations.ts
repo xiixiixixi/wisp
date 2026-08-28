@@ -21,12 +21,20 @@ import {
 import { executePaste, showPasteResultToast } from '@/lib/paste-helpers';
 import type { BottomPanelTabId } from '@/hooks/use-layout-state';
 import type { SortField } from '@/lib/utils';
-import { validateFileName } from '@/lib/validate-filename';
+import { validateFileName, getExtension, stripExtension } from '@/lib/validate-filename';
 
 // ── Re-exports (preserve public API) ─────────────────────────────────────────
 
 export type { ClipboardState };
 export { formatError };
+
+/** Mirror an internal copy onto the system clipboard as file URLs so other
+ *  apps (WeChat, Mail…) accept ⌘V as file attachments, matching Finder's ⌘C. */
+const mirrorCopyToSystemClipboard = (files: FileEntry[]) => {
+  TauriAPI.copyFilesToClipboard(files.map((f) => f.path)).catch((error) => {
+    console.error('Failed to write files to system clipboard:', error);
+  });
+};
 
 const getFileNameValidationError = (
   value: string,
@@ -127,6 +135,14 @@ interface UseFileOperationsDeps {
     resolution: import('@/components/dialogs/FileConflictDialog').ConflictResolution;
     applyToAll: boolean;
   }>;
+  /** Finder's extension-change guard: called when an inline rename would
+   *  change a file's extension. 'keep-old' rewrites the name to keep the
+   *  original extension; 'use-new' accepts the new one. */
+  confirmExtensionChange?: (
+    oldName: string,
+    oldExt: string,
+    newExt: string,
+  ) => Promise<'use-new' | 'keep-old'>;
 }
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
@@ -151,6 +167,7 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
     setSortOrder,
     navigateToPath,
     resolveConflict,
+    confirmExtensionChange,
   } = deps;
 
   // Use refs so that memoized actions (useMemo with [] deps) always read
@@ -161,6 +178,10 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
   toastRef.current = toast;
   const resolveConflictRef = useRef(resolveConflict);
   resolveConflictRef.current = resolveConflict;
+  const confirmExtensionChangeRef = useRef(confirmExtensionChange);
+  confirmExtensionChangeRef.current = confirmExtensionChange;
+  const filesRef = useRef(files);
+  filesRef.current = files;
   const splitLayoutRef = useRef(splitLayout);
   splitLayoutRef.current = splitLayout;
   const activeGroupIdRef = useRef(activeGroupId);
@@ -169,8 +190,6 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
   fileComparisonRef.current = fileComparison;
   const dialogsRef = useRef(dialogs);
   dialogsRef.current = dialogs;
-  const filesRef = useRef(files);
-  filesRef.current = files;
   const selectedFilesRef = useRef(selectedFiles);
   selectedFilesRef.current = selectedFiles;
   const setSelectedFilesRef = useRef(setSelectedFiles);
@@ -319,6 +338,7 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
               }),
             }),
         );
+        mirrorCopyToSystemClipboard(filesToCopy);
       },
       cut: (filesToCut: FileEntry[]) => {
         setClipboardEntries(
@@ -922,6 +942,7 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
         (f, op) => contextMenuFactoryRef.current.updateClipboard(f, op),
         toast,
       );
+      mirrorCopyToSystemClipboard(selected);
     }
   }, [selectedFiles, files, toast, setClipboardBoth]);
 
@@ -1007,9 +1028,27 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
         const sep = detectSep(oldPath);
         const lastSepIdx = oldPath.lastIndexOf(sep);
         const parentDir = oldPath.substring(0, lastSepIdx);
+        const oldName = oldPath.substring(lastSepIdx + 1);
+
+        // Finder asks before an inline rename changes a file's extension.
+        // 'keep-old' rewrites the typed name to carry the original extension.
+        const entry = filesRef.current.find((f) => f.path === oldPath);
+        const confirmExtensionChange = confirmExtensionChangeRef.current;
+        if (entry && !entry.is_dir && confirmExtensionChange) {
+          const oldExt = getExtension(oldName);
+          const newExt = getExtension(newName);
+          if (oldExt.toLowerCase() !== newExt.toLowerCase()) {
+            const choice = await confirmExtensionChange(oldName, oldExt, newExt);
+            if (choice === 'keep-old') {
+              const kept = stripExtension(newName) + (oldExt ? `.${oldExt}` : '');
+              if (kept === oldName) return true; // rewrite landed on the old name
+              newName = kept;
+            }
+          }
+        }
+
         const newPath = `${parentDir}${sep}${newName}`;
         await TauriAPI.rename(oldPath, newPath);
-        const oldName = oldPath.substring(lastSepIdx + 1);
         emitFileActivity('file-renamed', newPath, newName, oldPath);
         emitFilesChanged();
         toast({

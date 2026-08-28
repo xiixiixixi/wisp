@@ -4,9 +4,12 @@ interface ResizeHandleProps {
   direction: 'horizontal' | 'vertical';
   onResize: (delta: number) => void;
   onResizeEnd?: () => void;
+  /** Extra classes — e.g. `-ml-1` to overlap the handle over the pane on its
+   *  left so the two panes sit flush with no visible gap between them. */
+  className?: string;
 }
 
-const ResizeHandle = ({ direction, onResize, onResizeEnd }: ResizeHandleProps) => {
+const ResizeHandle = ({ direction, onResize, onResizeEnd, className = '' }: ResizeHandleProps) => {
   const isDragging = useRef(false);
   const lastPos = useRef(0);
 
@@ -50,7 +53,7 @@ const ResizeHandle = ({ direction, onResize, onResizeEnd }: ResizeHandleProps) =
         isHorizontal
           ? 'hover:bg-xp-blue/40 active:bg-xp-blue/60 w-1 cursor-col-resize'
           : 'hover:bg-xp-blue/40 active:bg-xp-blue/60 h-1 cursor-row-resize'
-      } transition-colors`}
+      } transition-colors ${className}`}
     />
   );
 };

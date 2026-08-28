@@ -1,28 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { TauriAPI, SearchResult, RecentFile } from '@/lib/tauri-api';
-import { Command as CommandIcon, File, Files, Folder, Search, Sparkles, X } from 'lucide-react';
+import { File, Files, Folder, Search, Sparkles, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
-  loadHistory,
-  addToHistory,
-  loadFavorites,
-  saveFavorites,
   formatTimestamp,
-  fuzzyMatch,
-  fuzzyScore,
-  HighlightedText,
-  StarIcon,
-  ClockIcon,
   sectionHeaderStyle,
   itemBaseStyle,
   itemSelectedStyle,
   iconWrapStyle,
   shortcutStyle,
   timestampStyle,
-  starBtnBaseStyle,
   kbdStyle,
-  textEllipsisStyle,
   fileNameContainerStyle,
   fileNameStyle,
   filePathStyle,
@@ -42,32 +31,18 @@ import {
   ASSISTANT_ROW_HEIGHT,
   SECTION_HEADER_HEIGHT,
   LOADING_ROW_HEIGHT,
-  type Command,
   type CommandPaletteProps,
-  type HistoryEntry,
   type PaletteItem,
   type VirtualRow,
 } from './command-palette-helpers';
 
-export type { Command } from './command-palette-helpers';
-
-const SUGGESTED_COMMAND_IDS = [
-  'new-folder',
-  'home',
-  'toggle-preview',
-  'toggle-terminal',
-  'settings',
-  'keyboard-shortcuts',
-];
-
-type PaletteMode = 'files' | 'commands' | 'assistant';
+type PaletteMode = 'files' | 'assistant';
 
 // ── Main Component ──────────────────────────────────────────────────────────
 
 const CommandPaletteInner = ({
   isOpen,
   onClose,
-  commands,
   onFileSelect,
   currentPath,
 }: CommandPaletteProps) => {
@@ -77,8 +52,6 @@ const CommandPaletteInner = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [fileResults, setFileResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -87,15 +60,12 @@ const CommandPaletteInner = ({
   // Deferred query for filtering - input stays responsive while filtering catches up
   const deferredQuery = useDeferredValue(query);
 
-  const isCommandMode = mode === 'commands';
   const isAssistantMode = mode === 'assistant';
   const effectiveQuery = deferredQuery.trim();
 
-  // Load history, favorites, and recent files when palette opens
+  // Load recent files when palette opens
   useEffect(() => {
     if (isOpen) {
-      setFavorites(loadFavorites());
-      setHistory(loadHistory());
       setQuery('');
       setMode('files');
       setSelectedIndex(0);
@@ -114,70 +84,6 @@ const CommandPaletteInner = ({
     }
   }, [isOpen]);
 
-  const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
-
-  const toggleFavorite = useCallback((commandId: string, e: React.SyntheticEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setFavorites((prev) => {
-      const newFavs = prev.includes(commandId)
-        ? prev.filter((id) => id !== commandId)
-        : [...prev, commandId];
-      saveFavorites(newFavs);
-      return newFavs;
-    });
-  }, []);
-
-  // Build command lookup map
-  const commandMap = useMemo(() => {
-    const map = new Map<string, Command>();
-    for (const cmd of commands) map.set(cmd.id, cmd);
-    return map;
-  }, [commands]);
-
-  // Filter and rank commands by fuzzy match (uses deferred query to avoid blocking input)
-  const filteredCommands = useMemo(() => {
-    if (!effectiveQuery) {
-      return commands.map((cmd) => ({ command: cmd, matchIndices: [] as number[], score: 0 }));
-    }
-
-    const results: { command: Command; matchIndices: number[]; score: number }[] = [];
-
-    for (const cmd of commands) {
-      // Match against title
-      const titleMatch = fuzzyMatch(effectiveQuery, cmd.title);
-      if (titleMatch) {
-        results.push({
-          command: cmd,
-          matchIndices: titleMatch,
-          score:
-            fuzzyScore(effectiveQuery, cmd.title, titleMatch) +
-            (favoriteSet.has(cmd.id) ? -100 : 0),
-        });
-        continue;
-      }
-
-      // Match against category + title
-      if (cmd.category) {
-        const combined = `${cmd.category}: ${cmd.title}`;
-        const combinedMatch = fuzzyMatch(effectiveQuery, combined);
-        if (combinedMatch) {
-          results.push({
-            command: cmd,
-            matchIndices: [],
-            score:
-              fuzzyScore(effectiveQuery, combined, combinedMatch) +
-              5 +
-              (favoriteSet.has(cmd.id) ? -100 : 0),
-          });
-        }
-      }
-    }
-
-    results.sort((a, b) => a.score - b.score);
-    return results;
-  }, [commands, effectiveQuery, favoriteSet]);
-
   // Build the flat item list for keyboard navigation
   const paletteItems = useMemo((): PaletteItem[] => {
     const items: PaletteItem[] = [];
@@ -191,44 +97,7 @@ const CommandPaletteInner = ({
           sectionLabel: t('commandPalette.askWisp'),
         });
       }
-    } else if (isEmptyQuery && !isCommandMode) {
-      // Favorites section
-      const favCommands = favorites
-        .map((id) => commandMap.get(id))
-        .filter((cmd): cmd is Command => cmd !== undefined);
-      if (favCommands.length > 0) {
-        favCommands.forEach((cmd, i) => {
-          items.push({
-            type: 'command',
-            command: cmd,
-            matchIndices: [],
-            sectionLabel: i === 0 ? t('commandPalette.favorites') : undefined,
-          });
-        });
-      }
-
-      // Recent Commands section
-      const recentCommands = history
-        .map((entry) => {
-          const cmd = commandMap.get(entry.commandId);
-          if (!cmd) return null;
-          // Skip if already in favorites
-          if (favoriteSet.has(entry.commandId)) return null;
-          return { cmd, timestamp: entry.timestamp };
-        })
-        .filter((x): x is { cmd: Command; timestamp: number } => x !== null);
-
-      if (recentCommands.length > 0) {
-        recentCommands.forEach((entry, i) => {
-          items.push({
-            type: 'command',
-            command: entry.cmd,
-            matchIndices: [],
-            sectionLabel: i === 0 ? t('commandPalette.recentCommands') : undefined,
-          });
-        });
-      }
-
+    } else if (isEmptyQuery) {
       // Recent Files section
       if (recentFiles.length > 0) {
         recentFiles.forEach((file, i) => {
@@ -239,36 +108,8 @@ const CommandPaletteInner = ({
           });
         });
       }
-
-      // Keep the default surface calm and intentional. The full catalogue
-      // remains one keystroke away in command mode (`>`).
-      const suggestedCommands = SUGGESTED_COMMAND_IDS.map((id) => commandMap.get(id))
-        .filter((cmd): cmd is Command => cmd !== undefined)
-        .filter(
-          (cmd) => !favoriteSet.has(cmd.id) && !history.some((entry) => entry.commandId === cmd.id),
-        );
-      const fallbackCommands =
-        suggestedCommands.length > 0 ? suggestedCommands : commands.slice(0, 6);
-      fallbackCommands.forEach((command, i) => {
-        items.push({
-          type: 'command',
-          command,
-          matchIndices: [],
-          sectionLabel: i === 0 ? t('commandPalette.quickActions') : undefined,
-        });
-      });
-    } else if (isCommandMode && isEmptyQuery) {
-      // ">" with no query: show all commands
-      commands.forEach((cmd, i) => {
-        items.push({
-          type: 'command',
-          command: cmd,
-          matchIndices: [],
-          sectionLabel: i === 0 ? t('commandPalette.commands') : undefined,
-        });
-      });
     } else {
-      // If the query looks like a path, add a "Go to folder" item at the top
+      // If the query looks like a path, offer a "Go to folder" item at the top
       const trimmedQ = effectiveQuery;
       const looksLikePath =
         trimmedQ.startsWith('/') ||
@@ -277,59 +118,18 @@ const CommandPaletteInner = ({
         trimmedQ.startsWith('wisp://');
       if (looksLikePath && onFileSelect) {
         items.push({
-          type: 'command',
-          command: {
-            id: '__go-to-path__',
-            title: t('commandPalette.goToFolder', { path: trimmedQ }),
-            category: t('commandPalette.goToCategory'),
-            action: () => {
-              onFileSelect(trimmedQ, true);
-            },
-          },
-          matchIndices: [],
-          sectionLabel: t('commandPalette.commands'),
+          type: 'go-to-path',
+          path: trimmedQ,
+          sectionLabel: t('commandPalette.goToCategory'),
         });
       }
-
-      // Query is typed: show filtered commands with section header
-      filteredCommands.forEach((item, i) => {
-        items.push({
-          type: 'command',
-          command: item.command,
-          matchIndices: item.matchIndices,
-          sectionLabel: i === 0 && !looksLikePath ? t('commandPalette.commands') : undefined,
-        });
-      });
     }
 
     return items;
-  }, [
-    effectiveQuery,
-    isCommandMode,
-    isAssistantMode,
-    commands,
-    favorites,
-    history,
-    recentFiles,
-    filteredCommands,
-    commandMap,
-    favoriteSet,
-    onFileSelect,
-    t,
-  ]);
+  }, [effectiveQuery, isAssistantMode, recentFiles, onFileSelect, t]);
 
-  // History timestamps lookup for display
-  const historyTimestamps = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const entry of history) {
-      map.set(entry.commandId, entry.timestamp);
-    }
-    return map;
-  }, [history]);
-
-  // Show file results only when query is typed, not in command mode, and there are results
-  const showFileResults =
-    !isCommandMode && !isAssistantMode && effectiveQuery.length >= 2 && fileResults.length > 0;
+  // Show file results only when a query is typed and there are results
+  const showFileResults = !isAssistantMode && effectiveQuery.length >= 2 && fileResults.length > 0;
   const totalItems = paletteItems.length + (showFileResults ? fileResults.length : 0);
 
   // Build flat virtual rows for the virtualizer
@@ -341,13 +141,8 @@ const CommandPaletteInner = ({
       if (item.sectionLabel) {
         rows.push({ kind: 'section-header', label: item.sectionLabel });
       }
-      if (item.type === 'command') {
-        rows.push({
-          kind: 'command',
-          command: item.command,
-          matchIndices: item.matchIndices,
-          itemIndex,
-        });
+      if (item.type === 'go-to-path') {
+        rows.push({ kind: 'go-to-path', path: item.path, itemIndex });
       } else if (item.type === 'recent-file') {
         rows.push({ kind: 'recent-file', file: item.file, itemIndex });
       } else {
@@ -379,7 +174,7 @@ const CommandPaletteInner = ({
       switch (row.kind) {
         case 'section-header':
           return SECTION_HEADER_HEIGHT;
-        case 'command':
+        case 'go-to-path':
           return COMMAND_ROW_HEIGHT;
         case 'recent-file':
           return FILE_ROW_HEIGHT;
@@ -407,13 +202,13 @@ const CommandPaletteInner = ({
   // Reset selection when effective query changes
   useEffect(() => {
     setSelectedIndex(0);
-  }, [effectiveQuery, isCommandMode, isAssistantMode]);
+  }, [effectiveQuery, isAssistantMode]);
 
   // Search files when query has no good command matches (skip in command mode)
   useEffect(() => {
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     const q = query.trim();
-    if (!q || q.length < 2 || isCommandMode || isAssistantMode) {
+    if (!q || q.length < 2 || isAssistantMode) {
       setFileResults([]);
       return;
     }
@@ -455,7 +250,7 @@ const CommandPaletteInner = ({
     return () => {
       if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     };
-  }, [query, currentPath, isCommandMode, isAssistantMode]);
+  }, [query, currentPath, isAssistantMode]);
 
   // Scroll selected item into view via virtualizer
   useEffect(() => {
@@ -473,13 +268,14 @@ const CommandPaletteInner = ({
     (index: number) => {
       if (index < paletteItems.length) {
         const item = paletteItems[index];
-        if (item.type === 'command') {
-          // Record in history
-          addToHistory(item.command.id, item.command.title);
+        if (item.type === 'go-to-path') {
+          const path = item.path;
           onClose();
-          requestAnimationFrame(() => {
-            item.command.action();
-          });
+          if (onFileSelect) {
+            requestAnimationFrame(() => {
+              onFileSelect(path, true);
+            });
+          }
         } else if (item.type === 'recent-file') {
           onClose();
           if (onFileSelect) {
@@ -564,11 +360,6 @@ const CommandPaletteInner = ({
   }, []);
 
   const handleQueryChange = useCallback((value: string) => {
-    if (value.startsWith('>')) {
-      setMode('commands');
-      setQuery(value.slice(1).trimStart());
-      return;
-    }
     if (value.startsWith('?')) {
       setMode('assistant');
       setQuery(value.slice(1).trimStart());
@@ -603,78 +394,28 @@ const CommandPaletteInner = ({
       case 'section-header':
         return <div style={sectionHeaderStyle}>{row.label}</div>;
 
-      case 'command': {
+      case 'go-to-path': {
         const isSelected = row.itemIndex === selectedIndex;
-        const isFav = favoriteSet.has(row.command.id);
-        const ts = historyTimestamps.get(row.command.id);
-        let iconContent: React.ReactNode;
-        if (row.command.icon) {
-          iconContent = <span style={iconWrapStyle}>{row.command.icon}</span>;
-        } else if (ts !== undefined) {
-          iconContent = (
-            <span style={iconWrapStyle}>
-              <ClockIcon size={14} />
-            </span>
-          );
-        } else {
-          iconContent = (
-            <span style={iconWrapStyle}>
-              <CommandIcon size={14} />
-            </span>
-          );
-        }
-        let starOpacity: number;
-        if (isFav) {
-          starOpacity = 1;
-        } else if (isSelected) {
-          starOpacity = 0.6;
-        } else {
-          starOpacity = 0.4;
-        }
         return (
-          <div
+          <button
+            id={`command-palette-option-${row.itemIndex}`}
             role="option"
             aria-selected={isSelected}
-            id={`command-palette-option-${row.itemIndex}`}
             data-index={row.itemIndex}
             style={isSelected ? itemSelectedStyle : itemBaseStyle}
             onClick={() => executeItem(row.itemIndex)}
             onMouseEnter={() => setSelectedIndex(row.itemIndex)}
           >
-            {iconContent}
-            <span style={textEllipsisStyle}>
-              <HighlightedText text={row.command.title} matchIndices={row.matchIndices} />
+            <span style={iconWrapStyle}>
+              <Folder size={14} />
             </span>
-            {/* Timestamp for recent commands */}
-            {ts !== undefined && !effectiveQuery && (
-              <span style={timestampStyle}>{formatTimestamp(ts)}</span>
-            )}
-            {/* Shortcut badge */}
-            {row.command.shortcut && <span style={shortcutStyle}>{row.command.shortcut}</span>}
-            {/* Star toggle */}
-            <button
-              type="button"
-              style={{
-                ...starBtnBaseStyle,
-                opacity: starOpacity,
-              }}
-              onClick={(e) => toggleFavorite(row.command.id, e)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  toggleFavorite(row.command.id, e);
-                }
-              }}
-              title={
-                isFav ? t('commandPalette.removeFromFavorites') : t('commandPalette.addToFavorites')
-              }
-              aria-label={
-                isFav ? t('commandPalette.removeFromFavorites') : t('commandPalette.addToFavorites')
-              }
-            >
-              <StarIcon filled={isFav} size={13} />
-            </button>
-          </div>
+            <span style={fileNameContainerStyle}>
+              <span style={fileNameStyle}>
+                {t('commandPalette.goToFolder', { path: row.path })}
+              </span>
+            </span>
+            <span style={shortcutStyle}>Enter</span>
+          </button>
         );
       }
 
@@ -774,16 +515,11 @@ const CommandPaletteInner = ({
   const hasContent = virtualRows.length > 0;
 
   let SearchModeIcon = Search;
-  let placeholderKey:
-    | 'commandPalette.placeholder'
-    | 'commandPalette.commandPlaceholder'
-    | 'commandPalette.assistantPlaceholder' = 'commandPalette.placeholder';
+  let placeholderKey: 'commandPalette.placeholder' | 'commandPalette.assistantPlaceholder' =
+    'commandPalette.placeholder';
   if (activeMode === 'assistant') {
     SearchModeIcon = Sparkles;
     placeholderKey = 'commandPalette.assistantPlaceholder';
-  } else if (activeMode === 'commands') {
-    SearchModeIcon = CommandIcon;
-    placeholderKey = 'commandPalette.commandPlaceholder';
   }
 
   const renderResultsContent = () => {
@@ -874,7 +610,6 @@ const CommandPaletteInner = ({
           {(
             [
               ['files', Files, t('commandPalette.modes.files')],
-              ['commands', CommandIcon, t('commandPalette.modes.commands')],
               ['assistant', Sparkles, t('commandPalette.modes.assistant')],
             ] as const
           ).map(([mode, Icon, label]) => (
@@ -947,11 +682,6 @@ const CommandPaletteInner = ({
           <span>
             <kbd style={kbdStyle}>Esc</kbd> {t('commandPalette.closeAction')}
           </span>
-          {activeMode !== 'assistant' && (
-            <span style={{ marginLeft: 'auto' }}>
-              <StarIcon filled={false} size={11} /> {t('commandPalette.favorite')}
-            </span>
-          )}
         </div>
       </div>
     </div>

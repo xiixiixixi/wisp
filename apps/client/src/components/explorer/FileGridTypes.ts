@@ -65,12 +65,20 @@ export interface FileGridItemProps {
   thumbnailUrl?: string;
   /** When true, the file name label is replaced with an inline rename input */
   isRenaming?: boolean;
+  /** Caret offset for a label-click rename (caret lands where clicked);
+   *  null/undefined selects the base name like Enter/F2 do */
+  initialRenameCaretOffset?: number | null;
   /** List of existing file/folder names in the directory (for conflict detection) */
   existingNames?: string[];
   /** Called when the user confirms the rename (Enter key or Tab key) */
   onRenameConfirm?: (oldPath: string, newName: string) => void;
   /** Called when the user cancels the rename (Escape key or blur) */
   onRenameCancel?: () => void;
-  /** Called when Tab is pressed during rename to move to next file */
-  onRenameTab?: (oldPath: string, newName: string) => void;
+  /** Called when Tab/Shift+Tab is pressed during rename to hop to the
+   *  neighbour (direction 1 = next, -1 = previous). `newName` is null when
+   *  the name was left unchanged and only the hop should happen. */
+  onRenameTab?: (oldPath: string, newName: string | null, direction: 1 | -1) => void;
+  /** Finder: clicking the name label of the already-selected item starts an
+   *  inline rename, with the caret placed at the clicked character. */
+  onRenameStart?: (file: FileEntry, caretOffset?: number) => void;
 }

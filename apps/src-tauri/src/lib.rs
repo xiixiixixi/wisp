@@ -18,6 +18,7 @@ pub mod git;
 pub mod google_drive;
 pub mod mcp_host;
 pub mod mcp_server;
+pub mod mouse_navigation;
 pub mod operations;
 pub mod pty;
 pub mod search;

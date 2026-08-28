@@ -129,11 +129,6 @@ vi.mock('@/hooks/use-tour', () => ({
   resetTourCompleted: vi.fn(),
 }));
 
-// Mock beta warning dialog
-vi.mock('@/components/dialogs/BetaWarningDialog', () => ({
-  resetBetaWarning: vi.fn(),
-}));
-
 // Mock heavy sub-components that are not the focus of this test
 vi.mock('@/components/TokenizerSettings', () => ({
   default: () => <div data-testid="tokenizer-settings">Tokenizer Settings</div>,
@@ -490,14 +485,6 @@ describe('Settings Page', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Replay Tour')).toBeInTheDocument();
-      });
-    });
-
-    it('renders the Show Warning button for beta warning', async () => {
-      render(<Settings />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Show Warning')).toBeInTheDocument();
       });
     });
 

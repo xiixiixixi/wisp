@@ -96,10 +96,6 @@ vi.mock('@/lib/utils', async () => {
   return { ...actual };
 });
 
-vi.mock('@/components/dialogs/BetaWarningDialog', () => ({
-  resetBetaWarning: vi.fn(),
-}));
-
 import Settings from '@/pages/settings';
 import { useThemeManager } from '@/hooks/use-theme-manager';
 import { STORAGE_KEYS } from '@/lib/storage-keys';

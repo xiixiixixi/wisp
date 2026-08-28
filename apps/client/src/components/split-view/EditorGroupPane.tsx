@@ -19,6 +19,7 @@ import {
 } from '@/hooks/use-pane-sync';
 import { useFolderViewSettings } from '@/hooks/use-folder-view-settings';
 import { getDemoDirectory, isBrowserDemoMode } from '@/lib/browser-demo-files';
+import { ancestorPaths } from '@/lib/path-ancestry';
 
 // Re-export components needed by the pane content
 import HomePage from '@/pages/HomePage';
@@ -115,6 +116,9 @@ interface EditorGroupPaneProps {
   onCloseGroup: (groupId: string) => void;
   onSetActiveGroup: (groupId: string) => void;
   onNavigate: (groupId: string, path: string, name: string) => void;
+  // Group-scoped history navigation (per-pane ‹ ›)
+  onNavigateBackHistory?: (groupId: string) => void;
+  onNavigateForwardHistory?: (groupId: string) => void;
   // Tab management actions
   onTogglePin?: (groupId: string, tabId: string) => void;
   onDuplicateTab?: (groupId: string, tabId: string) => void;
@@ -157,6 +161,8 @@ const EditorGroupPane = ({
   onCloseGroup,
   onSetActiveGroup,
   onNavigate,
+  onNavigateBackHistory,
+  onNavigateForwardHistory,
   onTogglePin,
   onDuplicateTab,
   onCloseOtherTabs,
@@ -244,7 +250,18 @@ const EditorGroupPane = ({
       if (currentPath.startsWith('ssh://')) {
         return await TauriAPI.sshReadDirectory(currentPath);
       }
-      return await TauriAPI.readDirectory(currentPath);
+      try {
+        return await TauriAPI.readDirectory(currentPath);
+      } catch (err) {
+        if (String(err).includes('does not exist')) {
+          // The folder was deleted out from under this pane. Returning an
+          // empty listing drops the stale contents immediately; the ancestor
+          // navigation above moves the pane to a surviving folder.
+          void navigateToSurvivingAncestor();
+          return [];
+        }
+        throw err;
+      }
     },
     // A short freshness window makes back/forward and split-pane navigation
     // instant without hiding external changes for long. Watchers and explicit
@@ -284,6 +301,34 @@ const EditorGroupPane = ({
   const files = isCollectionPath ? collectionResult.files : queryFiles;
   const isLoading = isCollectionPath ? collectionResult.isLoading : queryLoading;
   const refetch = isCollectionPath ? collectionResult.refetch : queryRefetch;
+
+  // When the current folder disappears (deleted externally), land on the
+  // nearest ancestor that still exists — Finder's behaviour — falling back
+  // to Home if the whole chain is gone (e.g. unmounted volume). The exists
+  // re-check first also covers delete-then-recreate races (build tooling
+  // doing rm -rf + mkdir): if the folder is already back, just refresh.
+  const navigateToSurvivingAncestor = useCallback(async () => {
+    try {
+      if (await TauriAPI.isDir(currentPath)) {
+        void refetch();
+        return;
+      }
+    } catch {
+      /* fall through to the ancestor walk */
+    }
+    for (const ancestor of ancestorPaths(currentPath)) {
+      try {
+        if (await TauriAPI.isDir(ancestor)) {
+          const sep = ancestor.includes('\\') ? '\\' : '/';
+          onNavigate(group.id, ancestor, ancestor.split(sep).pop() || ancestor);
+          return;
+        }
+      } catch {
+        /* keep climbing */
+      }
+    }
+    onNavigate(group.id, 'wisp://home', 'Home');
+  }, [currentPath, group.id, onNavigate, refetch]);
 
   // Push files + refetch up to parent when this pane is active.
   // Guard: only push when the files array reference actually changes to avoid
@@ -328,6 +373,85 @@ const EditorGroupPane = ({
     window.addEventListener('files-changed', onFilesChanged);
     return () => window.removeEventListener('files-changed', onFilesChanged);
   }, [refetch]);
+
+  // ── Live folder watcher ───────────────────────────────────────────────────
+  // Every pane watches its own folder (not just the active one) so external
+  // changes — editor saves, agent CLI writes, deletions — refresh the listing,
+  // and a deleted current folder navigates to a surviving ancestor instead of
+  // showing stale contents.
+  const isRealDirPath =
+    activeTab?.type !== 'editor' &&
+    !currentPath.startsWith('wisp://') &&
+    !currentPath.startsWith('gdrive://') &&
+    !currentPath.startsWith('ssh://') &&
+    !currentPath.startsWith('comparison://') &&
+    !currentPath.startsWith('collection://') &&
+    !isBrowserDemoMode();
+  const navigateToSurvivingAncestorRef = useRef(navigateToSurvivingAncestor);
+  navigateToSurvivingAncestorRef.current = navigateToSurvivingAncestor;
+  useEffect(() => {
+    if (!isRealDirPath) return;
+    let disposed = false;
+    let watcherId: string | null = null;
+    let unlisten: (() => void) | undefined;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const scheduleRefetch = () => {
+      // Trailing debounce: always re-read after the last event settles, so a
+      // burst of writes can never leave the listing half-applied.
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        debounceTimer = null;
+        void refetch();
+      }, 400);
+    };
+
+    (async () => {
+      try {
+        // Listen before watching so no event can slip through the gap between
+        // registering the watcher and registering the listener.
+        unlisten = await TauriAPI.listenToEvent<{
+          watcher_id: string;
+          path: string;
+          event_type: string;
+        }>('fs-change', (event) => {
+          if (!watcherId || event.watcher_id !== watcherId) return;
+          if (event.event_type === 'file-deleted' && event.path === currentPath) {
+            void navigateToSurvivingAncestorRef.current();
+            return;
+          }
+          scheduleRefetch();
+        });
+        if (disposed) return;
+        watcherId = await TauriAPI.watchDirectory(currentPath, false);
+      } catch (err) {
+        console.warn('[pane] Failed to watch directory:', err);
+      }
+    })();
+
+    return () => {
+      disposed = true;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      unlisten?.();
+      if (watcherId) {
+        TauriAPI.unwatchDirectory(watcherId).catch(() => undefined);
+      }
+    };
+  }, [isRealDirPath, currentPath, refetch]);
+
+  // Per-pane "go up a level" for the navigation bar next to the breadcrumbs —
+  // scoped to THIS pane's path, not the active group's.
+  const paneAncestors = useMemo(
+    () => (isRealDirPath ? ancestorPaths(currentPath) : []),
+    [isRealDirPath, currentPath],
+  );
+  const canNavigateUp = paneAncestors.length > 0;
+  const handlePaneNavigateUp = useCallback(() => {
+    const parent = paneAncestors[0];
+    if (!parent) return;
+    const sep = parent.includes('\\') ? '\\' : '/';
+    onNavigate(group.id, parent, parent.split(sep).pop() || parent);
+  }, [paneAncestors, group.id, onNavigate]);
 
   // Sort files using per-folder settings
   const sortedFilesRaw = useMemo(
@@ -723,6 +847,14 @@ const EditorGroupPane = ({
           navigateToPath={sharedActions.navigateToPath}
           refetch={refetch}
           active={isActive}
+          onNavigateBack={onNavigateBackHistory ? () => onNavigateBackHistory(group.id) : undefined}
+          canNavigateBack={group.historyIndex > 0}
+          onNavigateForward={
+            onNavigateForwardHistory ? () => onNavigateForwardHistory(group.id) : undefined
+          }
+          canNavigateForward={group.historyIndex < group.pathHistory.length - 1}
+          onNavigateUp={handlePaneNavigateUp}
+          canNavigateUp={canNavigateUp}
         />
       )}
 

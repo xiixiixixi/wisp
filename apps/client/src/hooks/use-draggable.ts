@@ -57,6 +57,16 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
   // never conflicts with selecting text.
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return; // only left button
+    // Never hijack editing surfaces (inline-rename input, any nested
+    // editable): preventDefault here would kill caret placement and drag
+    // selection inside them.
+    const target = e.target as HTMLElement | null;
+    if (
+      target instanceof HTMLElement &&
+      target.closest('input, textarea, [contenteditable="true"], [contenteditable=""]')
+    ) {
+      return;
+    }
     // Suppress the browser's selection gesture before it can begin. Waiting
     // until the movement threshold is crossed is one event too late: the
     // WebView may already have anchored a text selection on mousedown.

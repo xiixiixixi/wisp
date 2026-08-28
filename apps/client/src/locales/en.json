@@ -317,10 +317,7 @@
       "help": "Help",
       "onboardingTour": "Onboarding Tour",
       "onboardingTourDesc": "Replay the interactive guided tour of the app",
-      "replayTour": "Replay Tour",
-      "betaWarning": "Beta Warning",
-      "betaWarningDesc": "Show the early beta warning dialog again",
-      "showWarning": "Show Warning"
+      "replayTour": "Replay Tour"
     },
     "explorer": {
       "display": "Display",
@@ -778,11 +775,9 @@
     "modeLabel": "Command center mode",
     "modes": {
       "files": "Files",
-      "commands": "Commands",
       "assistant": "Ask Wisp"
     },
     "placeholder": "Search files and folders...",
-    "commandPlaceholder": "Search every Wisp command...",
     "assistantPlaceholder": "Ask Wisp about your files...",
     "clear": "Clear search",
     "noResults": "No matching commands or files",
@@ -790,13 +785,7 @@
     "navigate": "navigate",
     "selectAction": "select",
     "closeAction": "close",
-    "favorite": "favorite",
-    "addToFavorites": "Add to favorites",
-    "removeFromFavorites": "Remove from favorites",
-    "favorites": "Favorites",
-    "recentCommands": "Recent Commands",
     "recentFiles": "Recent Files",
-    "quickActions": "Quick Actions",
     "allCommands": "All Commands",
     "commands": "Commands",
     "filesAndFolders": "Files & Folders",
@@ -807,7 +796,9 @@
     "assistantEmptyDescription": "Ask to find, summarize, compare, organize, or act on files in your current workspace.",
     "everywhere": "Everywhere",
     "folderType": "Folder",
-    "fileType": "File"
+    "fileType": "File",
+    "goToFolder": "Go to folder: {{path}}",
+    "goToCategory": "Folders"
   },
   "operationBar": {
     "selectionActions": "Selected file actions",
@@ -1052,7 +1043,6 @@
     "createSymlink": "Create Symbolic Link",
     "movePreview": "Move Preview",
     "openWith": "Open With",
-    "betaWarning": "Beta Warning",
     "extensionInstall": "Install Extension",
     "advancedSelection": "Advanced Selection",
     "fileOp": {
@@ -1199,24 +1189,6 @@
       "unresolve": "Unresolve",
       "resolved": "Resolved ({{count}})",
       "inputPlaceholder": "Add an annotation..."
-    },
-    "beta": {
-      "title": "Welcome to Wisp",
-      "subtitle": "Your intelligent file workspace",
-      "previewBadge": "Preview",
-      "intro": "Find, understand, and act on files without breaking your flow.",
-      "bullet1": "Search files, commands, and actions from one place",
-      "bullet2": "Preview, organize, and automate everyday file work",
-      "bullet3": "Keep every change visible, recoverable, and under your control",
-      "cautionTitle": "Preview release",
-      "cautionDesc": "Keep important files backed up while some workflows continue to evolve.",
-      "bugReport": "Found a bug? Report it on",
-      "githubIssues": "Report an issue",
-      "supportTitle": "Support Development",
-      "supportDesc": "Wisp is free and open source. If you find it useful, consider sponsoring to help keep development going.",
-      "becomeSponsor": "Support Wisp",
-      "showAgainHint": "Replay from Settings → General",
-      "iUnderstand": "Enter workspace"
     },
     "crossTab": {
       "title": "Batch Operations",
@@ -1436,6 +1408,14 @@
       "purple": "Purple",
       "gray": "Gray",
       "pink": "Pink"
+    },
+    "extensionChange": {
+      "title": "Change File Extension",
+      "message": "Are you sure you want to change the extension from “{{old}}” to “{{new}}”?",
+      "hint": "Changing the extension may make this file unopenable in some apps.",
+      "useNew": "Use {{new}}",
+      "keepOld": "Don't use {{new}}",
+      "noExtension": "none"
     }
   },
   "openWith": {
@@ -1582,13 +1562,7 @@
     "agents": "Agents"
   },
   "home": {
-    "goodMorning": "Good morning",
-    "goodAfternoon": "Good afternoon",
-    "goodEvening": "Good evening",
     "workspace": "Intelligent workspace",
-    "heroSubtitle": "Find anything, understand it, and act without leaving your files.",
-    "quickAccess": "Quick access",
-    "quickAccessDescription": "Jump back into the places you use most.",
     "recentFolders": "Recent folders",
     "ready": "Ready",
     "recentEmptyTitle": "Your workspace is ready",
@@ -1615,7 +1589,15 @@
     "send": "Send",
     "suggestionListRecent": "List my recent files",
     "suggestionOrganize": "Organize my Downloads",
-    "suggestionLargeFiles": "What large files do I have?"
+    "suggestionLargeFiles": "What large files do I have?",
+    "systemDashboard": "System",
+    "systemDashboardLive": "Live resource usage, refreshed every 2 seconds",
+    "cpu": "CPU",
+    "cpuCores": "{{count}} cores",
+    "memory": "Memory",
+    "disk": "Disk",
+    "diskAvailable": "{{size}} available",
+    "statsUnavailable": "Live system stats are available in the desktop app"
   },
   "toast": {
     "invalidExtension": "Invalid Extension",

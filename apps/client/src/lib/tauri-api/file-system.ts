@@ -197,6 +197,9 @@ export const createSymlink = async (target: string, linkPath: string): Promise<v
 export const sameVolume = async (a: string, b: string): Promise<boolean> =>
   await transport('same_volume', { a, b });
 
+export const copyFilesToClipboard = async (paths: string[]): Promise<void> =>
+  await transport('copy_files_to_clipboard', { paths });
+
 export const getFileIconPng = async (path: string): Promise<string> =>
   await transport('get_file_icon', { path });
 

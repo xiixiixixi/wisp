@@ -317,10 +317,7 @@
       "help": "帮助",
       "onboardingTour": "引导教程",
       "onboardingTourDesc": "重新播放应用交互式引导教程",
-      "replayTour": "重新播放",
-      "betaWarning": "Beta 警告",
-      "betaWarningDesc": "再次显示早期 Beta 警告对话框",
-      "showWarning": "显示警告"
+      "replayTour": "重新播放"
     },
     "explorer": {
       "display": "显示",
@@ -778,11 +775,9 @@
     "modeLabel": "命令中心模式",
     "modes": {
       "files": "文件",
-      "commands": "命令",
       "assistant": "询问 Wisp"
     },
     "placeholder": "搜索文件和文件夹...",
-    "commandPlaceholder": "搜索所有 Wisp 命令...",
     "assistantPlaceholder": "询问 Wisp 与文件相关的问题...",
     "clear": "清除搜索",
     "noResults": "没有匹配的命令或文件",
@@ -790,13 +785,7 @@
     "navigate": "导航",
     "selectAction": "选择",
     "closeAction": "关闭",
-    "favorite": "收藏",
-    "addToFavorites": "添加到收藏",
-    "removeFromFavorites": "从收藏中移除",
-    "favorites": "收藏夹",
-    "recentCommands": "最近的命令",
     "recentFiles": "最近的文件",
-    "quickActions": "快捷操作",
     "allCommands": "所有命令",
     "commands": "命令",
     "filesAndFolders": "文件和文件夹",
@@ -807,7 +796,9 @@
     "assistantEmptyDescription": "让 Wisp 在当前工作区中查找、总结、比较、整理或处理文件。",
     "everywhere": "所有位置",
     "folderType": "文件夹",
-    "fileType": "文件"
+    "fileType": "文件",
+    "goToFolder": "前往文件夹 {{path}}",
+    "goToCategory": "文件夹"
   },
   "operationBar": {
     "selectionActions": "选中文件操作",
@@ -1114,7 +1105,6 @@
     "createSymlink": "创建符号链接",
     "movePreview": "移动预览",
     "openWith": "打开方式",
-    "betaWarning": "Beta 警告",
     "extensionInstall": "安装扩展",
     "advancedSelection": "高级选择",
     "fileOp": {
@@ -1199,24 +1189,6 @@
       "unresolve": "取消解决",
       "resolved": "已解决（{{count}}）",
       "inputPlaceholder": "添加批注…"
-    },
-    "beta": {
-      "title": "欢迎使用 Wisp",
-      "subtitle": "您的智能文件工作区",
-      "previewBadge": "预览版",
-      "intro": "查找、理解并处理文件，不必打断当前工作流。",
-      "bullet1": "从同一个入口搜索文件、命令和操作",
-      "bullet2": "快速预览、整理并自动化日常文件工作",
-      "bullet3": "让每次更改都清晰可见、可恢复并由您掌控",
-      "cautionTitle": "预览版本提示",
-      "cautionDesc": "部分工作流仍在持续完善，请为重要文件保留备份。",
-      "bugReport": "发现问题？请前往",
-      "githubIssues": "报告问题",
-      "supportTitle": "支持开发",
-      "supportDesc": "Wisp 是自由开源软件。您的反馈与支持会帮助产品持续改进。",
-      "becomeSponsor": "支持 Wisp",
-      "showAgainHint": "可在“设置 → 通用”中再次查看",
-      "iUnderstand": "进入工作区"
     },
     "crossTab": {
       "title": "批量操作",
@@ -1436,6 +1408,14 @@
       "purple": "紫色",
       "gray": "灰色",
       "pink": "粉色"
+    },
+    "extensionChange": {
+      "title": "更改文件扩展名",
+      "message": "您确定要将扩展名从“{{old}}”更改为“{{new}}”吗？",
+      "hint": "更改扩展名后，某些应用程序可能无法打开此文件。",
+      "useNew": "使用 {{new}}",
+      "keepOld": "不使用 {{new}}",
+      "noExtension": "无扩展名"
     }
   },
   "openWith": {
@@ -1582,13 +1562,7 @@
     "agents": "代理"
   },
   "home": {
-    "goodMorning": "早上好",
-    "goodAfternoon": "下午好",
-    "goodEvening": "晚上好",
     "workspace": "智能工作区",
-    "heroSubtitle": "查找、理解并处理任何文件，无需离开当前工作区。",
-    "quickAccess": "快速访问",
-    "quickAccessDescription": "快速回到您最常使用的位置。",
     "recentFolders": "最近的文件夹",
     "ready": "已就绪",
     "recentEmptyTitle": "工作区已就绪",
@@ -1615,7 +1589,15 @@
     "send": "发送",
     "suggestionListRecent": "列出我最近的文件",
     "suggestionOrganize": "整理我的下载文件夹",
-    "suggestionLargeFiles": "我有哪些大文件？"
+    "suggestionLargeFiles": "我有哪些大文件？",
+    "systemDashboard": "系统状态",
+    "systemDashboardLive": "实时资源占用，每 2 秒刷新",
+    "cpu": "处理器",
+    "cpuCores": "{{count}} 核心",
+    "memory": "内存",
+    "disk": "磁盘",
+    "diskAvailable": "可用 {{size}}",
+    "statsUnavailable": "实时系统状态需要在桌面版中查看"
   },
   "toast": {
     "invalidExtension": "无效的扩展",

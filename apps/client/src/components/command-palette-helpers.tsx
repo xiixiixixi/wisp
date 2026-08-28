@@ -1,6 +1,5 @@
 import React from 'react';
 import type { SearchResult, RecentFile } from '@/lib/tauri-api';
-import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,25 +15,18 @@ export interface Command {
 export interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
-  commands: Command[];
   onFileSelect?: (filePath: string, isDir: boolean) => void;
   currentPath?: string;
 }
 
-export interface HistoryEntry {
-  commandId: string;
-  title: string;
-  timestamp: number;
-}
-
 export type PaletteItem =
-  | { type: 'command'; command: Command; matchIndices: number[]; sectionLabel?: string }
+  | { type: 'go-to-path'; path: string; sectionLabel?: string }
   | { type: 'recent-file'; file: RecentFile; sectionLabel?: string }
   | { type: 'assistant'; prompt: string; sectionLabel?: string };
 
 export type VirtualRow =
   | { kind: 'section-header'; label: string }
-  | { kind: 'command'; command: Command; matchIndices: number[]; itemIndex: number }
+  | { kind: 'go-to-path'; path: string; itemIndex: number }
   | { kind: 'recent-file'; file: RecentFile; itemIndex: number }
   | { kind: 'search-file'; result: SearchResult; itemIndex: number }
   | { kind: 'assistant'; prompt: string; itemIndex: number }
@@ -42,54 +34,11 @@ export type VirtualRow =
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-export const HISTORY_KEY = STORAGE_KEYS.COMMAND_HISTORY;
-export const FAVORITES_KEY = STORAGE_KEYS.COMMAND_FAVORITES;
-export const MAX_HISTORY = 20;
-
 export const COMMAND_ROW_HEIGHT = 40;
 export const FILE_ROW_HEIGHT = 50;
 export const ASSISTANT_ROW_HEIGHT = 64;
 export const SECTION_HEADER_HEIGHT = 28;
 export const LOADING_ROW_HEIGHT = 36;
-
-// ── localStorage helpers ────────────────────────────────────────────────────
-
-export const loadHistory = (): HistoryEntry[] => {
-  try {
-    const raw = localStorage.getItem(HISTORY_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
-
-export const saveHistory = (entries: HistoryEntry[]) => {
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, MAX_HISTORY)));
-};
-
-export const addToHistory = (commandId: string, title: string) => {
-  const entries = loadHistory();
-  const filtered = entries.filter((e) => e.commandId !== commandId);
-  filtered.unshift({ commandId, title, timestamp: Date.now() });
-  saveHistory(filtered);
-};
-
-export const loadFavorites = (): string[] => {
-  try {
-    const raw = localStorage.getItem(FAVORITES_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
-
-export const saveFavorites = (ids: string[]) => {
-  localStorage.setItem(FAVORITES_KEY, JSON.stringify(ids));
-};
 
 export const formatTimestamp = (ts: number): string => {
   const now = Date.now();

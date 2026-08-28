@@ -52,6 +52,7 @@ vi.mock('@/lib/extension-host', () => ({
 vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {
     readDirectory: vi.fn(() => Promise.resolve([])),
+    getAllFileTags: vi.fn(() => Promise.resolve([])),
     getUserDirectories: vi.fn(() =>
       Promise.resolve({
         home: 'C:\\Users\\Test',

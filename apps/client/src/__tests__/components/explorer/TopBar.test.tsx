@@ -70,34 +70,14 @@ describe('TopBar', () => {
   });
 
   describe('Navigation Controls', () => {
-    it('renders history navigation buttons', () => {
+    // Navigation moved to each pane's address bar (NavigationBar), right
+    // next to the file window it acts on — the top bar no longer hosts it.
+    it('does not render navigation buttons', () => {
       render(<TopBar {...mockProps} />);
-      expect(screen.getByTitle('Go back in history')).toBeInTheDocument();
-      expect(screen.getByTitle('Go forward in history')).toBeInTheDocument();
-    });
-
-    it('enables/disables history buttons correctly', () => {
-      render(<TopBar {...mockProps} />);
-      expect(screen.getByTitle('Go back in history')).not.toBeDisabled();
-      expect(screen.getByTitle('Go forward in history')).toBeDisabled();
-    });
-
-    it('calls navigateBackInHistory when back button is clicked', () => {
-      render(<TopBar {...mockProps} />);
-      fireEvent.click(screen.getByTitle('Go back in history'));
-      expect(mockProps.navigateBackInHistory).toHaveBeenCalled();
-    });
-
-    it('renders up and refresh buttons', () => {
-      render(<TopBar {...mockProps} />);
-      expect(screen.getByTitle('Go up one level')).toBeInTheDocument();
-      expect(screen.getByTitle('Refresh')).toBeInTheDocument();
-    });
-
-    it('disables up button when at root', () => {
-      const rootProps = { ...mockProps, currentPath: 'C:\\' };
-      render(<TopBar {...rootProps} />);
-      expect(screen.getByTitle('Go up one level')).toBeDisabled();
+      expect(screen.queryByTitle('Go back in history')).not.toBeInTheDocument();
+      expect(screen.queryByTitle('Go forward in history')).not.toBeInTheDocument();
+      expect(screen.queryByTitle('Go up one level')).not.toBeInTheDocument();
+      expect(screen.queryByTitle('Refresh')).not.toBeInTheDocument();
     });
   });
 
@@ -106,6 +86,19 @@ describe('TopBar', () => {
       render(<TopBar {...mockProps} />);
       expect(screen.getByText('Home')).toBeInTheDocument();
       expect(screen.getByText('Documents')).toBeInTheDocument();
+    });
+
+    // Finder-style: a single tab is the whole window — no tab strip
+    it('hides the tab strip when there is only one tab', () => {
+      const singleTabProps = {
+        ...mockProps,
+        tabs: [mockProps.tabs[0]],
+        activeTabId: mockProps.tabs[0].id,
+      };
+      render(<TopBar {...singleTabProps} />);
+      expect(screen.queryByText('Home')).not.toBeInTheDocument();
+      // The new-tab button stays available either way
+      expect(screen.getByTitle('New tab (Ctrl+T)')).toBeInTheDocument();
     });
 
     it('calls onSwitchTab when tab is clicked', () => {

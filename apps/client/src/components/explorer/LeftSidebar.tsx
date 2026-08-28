@@ -15,6 +15,7 @@ import SidebarTabBar from '@/components/explorer/sidebar/SidebarTabBar';
 import SidebarQuickAccess from '@/components/explorer/sidebar/SidebarQuickAccess';
 import SidebarDrives from '@/components/explorer/sidebar/SidebarDrives';
 import SidebarTags from '@/components/explorer/sidebar/SidebarTags';
+import { Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export interface LeftSidebarHandle {
@@ -145,13 +146,34 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
       {/* Explorer content (default) */}
       {activeTabId === '__explorer__' && (
         <>
-          <SidebarQuickAccess
-            currentPath={currentPath}
-            navigateToPath={navigateToPath}
-            handleFileRightClick={handleFileRightClick}
-          />
-          <SidebarDrives navigateToPath={navigateToPath} />
-          <SidebarTags currentPath={currentPath} navigateToPath={navigateToPath} />
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <SidebarQuickAccess
+              currentPath={currentPath}
+              navigateToPath={navigateToPath}
+              handleFileRightClick={handleFileRightClick}
+            />
+            <SidebarDrives navigateToPath={navigateToPath} />
+            <SidebarTags currentPath={currentPath} navigateToPath={navigateToPath} />
+          </div>
+
+          {/* Trash — pinned to the sidebar's very bottom, its own row (Finder) */}
+          <button
+            onClick={() => navigateToPath('wisp://trash')}
+            aria-label={t('navigation.trash')}
+            title={t('navigation.trash')}
+            className={`flex w-full flex-shrink-0 items-center border-t border-xp-border px-5 py-2.5 text-xs transition-colors ${
+              currentPath === 'wisp://trash'
+                ? 'bg-xp-blue/15 text-xp-blue'
+                : 'text-xp-text hover:bg-xp-surface-light'
+            }`}
+          >
+            <Trash2
+              size={15}
+              className="mr-2.5 flex-shrink-0 text-xp-text-secondary"
+              aria-hidden="true"
+            />
+            {t('navigation.trash')}
+          </button>
         </>
       )}
     </nav>

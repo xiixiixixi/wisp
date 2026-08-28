@@ -1,18 +1,6 @@
 import React, { useRef, useState, useEffect, forwardRef } from 'react';
 import { isTauri } from '@/lib/transport';
-import {
-  Minus,
-  Square,
-  Copy,
-  X,
-  Plus,
-  Columns,
-  Rows,
-  ChevronUp,
-  RefreshCw,
-  Search,
-} from 'lucide-react';
-import { ROOT_PATH } from '@/lib/constants';
+import { Minus, Square, Copy, X, Plus, Columns, Rows, Search } from 'lucide-react';
 import type { TabItem } from '@/types/split-view';
 import { getTabIcon } from '@/lib/tab-utils';
 import { useTranslation } from 'react-i18next';
@@ -24,14 +12,6 @@ export interface TopBarHandle {
 interface TopBarProps {
   leftSidebarCollapsed: boolean;
   setLeftSidebarCollapsed: (collapsed: boolean) => void;
-  currentPath: string;
-  // Navigation
-  navigateUp?: () => void;
-  refetch?: () => void;
-  navigateBackInHistory?: () => void;
-  navigateForwardInHistory?: () => void;
-  canNavigateBackInHistory?: () => boolean;
-  canNavigateForwardInHistory?: () => boolean;
   // Tabs
   tabs?: TabItem[];
   activeTabId?: string;
@@ -56,13 +36,6 @@ const TopBar = React.memo(
       {
         leftSidebarCollapsed,
         setLeftSidebarCollapsed,
-        currentPath,
-        navigateUp,
-        refetch,
-        navigateBackInHistory,
-        navigateForwardInHistory,
-        canNavigateBackInHistory,
-        canNavigateForwardInHistory,
         tabs,
         activeTabId,
         onSwitchTab,
@@ -219,101 +192,50 @@ const TopBar = React.memo(
             )}
           </div>
 
-          {/* Row 2: Nav buttons + Tabs + Split controls */}
+          {/* Row 2: Tabs + Split controls (navigation lives in each pane's
+              address bar, right next to the file window it acts on) */}
           <div className="flex min-h-9 items-center gap-0.5 px-2">
-            {/* Nav buttons */}
-            {navigateBackInHistory && (
-              <button
-                onClick={navigateBackInHistory}
-                disabled={!canNavigateBackInHistory?.()}
-                className="flex-shrink-0 rounded p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
-                title={t('topBar.goBack')}
-                aria-label={t('topBar.goBack')}
-              >
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            )}
-            {navigateForwardInHistory && (
-              <button
-                onClick={navigateForwardInHistory}
-                disabled={!canNavigateForwardInHistory?.()}
-                className="flex-shrink-0 rounded p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
-                title={t('topBar.goForward')}
-                aria-label={t('topBar.goForward')}
-              >
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            )}
-            {navigateUp && (
-              <button
-                onClick={navigateUp}
-                disabled={currentPath === ROOT_PATH}
-                className="flex-shrink-0 rounded p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
-                title={t('topBar.goUp')}
-                aria-label={t('topBar.goUp')}
-              >
-                <ChevronUp size={16} />
-              </button>
-            )}
-            {refetch && (
-              <button
-                onClick={refetch}
-                className="flex-shrink-0 rounded p-1 transition-colors hover:bg-xp-surface-light"
-                title={t('topBar.refresh')}
-                aria-label={t('topBar.refresh')}
-              >
-                <RefreshCw size={14} />
-              </button>
-            )}
-
             {/* Separator */}
             <div className="mx-0.5 h-5 w-px flex-shrink-0 bg-xp-border" />
 
-            {/* Tabs */}
-            <div className="scrollbar-none flex min-w-0 flex-1 overflow-x-auto">
-              {tabs?.map((tab) => {
-                const TabIcon = getTabIcon(tab);
-                const isActive = activeTabId === tab.id;
-                return (
-                  <div
-                    key={tab.id}
-                    className={`group flex min-w-0 max-w-[180px] flex-shrink-0 cursor-pointer items-center border-r border-xp-border px-3 py-1 ${
-                      isActive
-                        ? 'border-b-2 border-b-xp-blue bg-xp-bg'
-                        : 'hover:bg-xp-surface-light'
-                    }`}
-                    onClick={() => onSwitchTab?.(tab.id)}
-                  >
-                    <TabIcon size={13} className="mr-1.5 flex-shrink-0 text-xp-text-secondary" />
-                    <span className="truncate text-xs font-medium">{tab.name}</span>
-                    {tabs.length > 1 && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onCloseTab?.(tab.id);
-                        }}
-                        className="ml-1 flex-shrink-0 rounded p-0.5 opacity-0 hover:bg-xp-surface-light group-hover:opacity-100"
-                        aria-label={`Close ${tab.name}`}
-                      >
-                        <X size={12} />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            {/* Tabs — Finder-style: a single tab is the whole window, so the
+                strip only appears once there is a second tab to switch to. */}
+            {(tabs?.length ?? 0) > 1 ? (
+              <div className="scrollbar-none flex min-w-0 flex-1 overflow-x-auto">
+                {tabs?.map((tab) => {
+                  const TabIcon = getTabIcon(tab);
+                  const isActive = activeTabId === tab.id;
+                  return (
+                    <div
+                      key={tab.id}
+                      className={`group flex min-w-0 max-w-[180px] flex-shrink-0 cursor-pointer items-center border-r border-xp-border px-3 py-1 ${
+                        isActive
+                          ? 'border-b-2 border-b-xp-blue bg-xp-bg'
+                          : 'hover:bg-xp-surface-light'
+                      }`}
+                      onClick={() => onSwitchTab?.(tab.id)}
+                    >
+                      <TabIcon size={13} className="mr-1.5 flex-shrink-0 text-xp-text-secondary" />
+                      <span className="truncate text-xs font-medium">{tab.name}</span>
+                      {tabs.length > 1 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCloseTab?.(tab.id);
+                          }}
+                          className="ml-1 flex-shrink-0 rounded p-0.5 opacity-0 hover:bg-xp-surface-light group-hover:opacity-100"
+                          aria-label={`Close ${tab.name}`}
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="min-w-0 flex-1" />
+            )}
 
             {/* Split/tab actions */}
             <div className="ml-0.5 flex flex-shrink-0 items-center gap-0.5">

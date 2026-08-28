@@ -36,6 +36,9 @@ export interface SplitActionsContextValue {
   onCloseGroup: (groupId: string) => void;
   onSetActiveGroup: (groupId: string) => void;
   onNavigate: (groupId: string, path: string, name: string) => void;
+  /** Group-scoped history navigation for the per-pane nav bar */
+  onNavigateBackHistory?: (groupId: string) => void;
+  onNavigateForwardHistory?: (groupId: string) => void;
   onResizeSplit: (path: number[], sizes: number[]) => void;
   maximizedGroupId?: string | null;
   onMaximizePane?: (groupId: string) => void;

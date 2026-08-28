@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useWindowEvent } from '@/hooks/use-window-event';
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
+import { isTauri } from '@/lib/transport';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { patchUiState } from '@/lib/ui-state';
 import { formatError } from '@/lib/file-operation-helpers';
@@ -14,7 +15,6 @@ import { extensionHost } from '@/lib/extension-host';
 import { startTour, isTourCompleted } from '@/hooks/use-tour';
 import { useShortcuts } from '@/hooks/use-shortcuts';
 import { useVimMode, isVimModeEnabled, type VimModeActions } from '@/hooks/use-vim-mode';
-import { useCommandPaletteCommands } from '@/hooks/use-command-palette-commands';
 import {
   AGENT_LAUNCH_REQUEST_EVENT,
   requestAgentLaunch,
@@ -76,11 +76,8 @@ export interface WispEffectsDeps {
   navigateToPathRef: React.MutableRefObject<(path: string) => void>;
   splitLayout: SplitLayoutHook;
   activeGroup: EditorGroup;
-  activeTabObj: TabItem | undefined;
   tabs: TabItem[];
   activeTab: string | null;
-  pathHistory: string[];
-  historyIndex: number;
 
   // Layout state
   viewMode: string;
@@ -166,11 +163,8 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
     navigateToPathRef,
     splitLayout,
     activeGroup,
-    activeTabObj,
     tabs,
     activeTab,
-    pathHistory,
-    historyIndex,
     viewMode,
     setViewMode,
     leftSidebarCollapsed,
@@ -616,56 +610,45 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
   }, [selectedFiles, files]);
 
   // ── File watcher ──────────────────────────────────────────────────────────
+  // Directory watching lives in EditorGroupPane: every pane watches its own
+  // folder, which also covers split view (inactive panes refresh too) and
+  // handles a deleted current folder by navigating to a surviving ancestor.
+
+  // ── Mouse side buttons (back/forward) ─────────────────────────────────────
+  // Desktop: the backend NSEvent monitor emits `mouse-back` / `mouse-forward`
+  // (WKWebView does not reliably surface auxiliary buttons to the DOM).
+  // Web: browsers deliver them as mouseup with button 3 / 4 directly.
   useEffect(() => {
-    const isRealPath =
-      currentPath &&
-      activeTabObj?.type !== 'editor' &&
-      !currentPath.startsWith('wisp://') &&
-      !currentPath.startsWith('gdrive://') &&
-      !currentPath.startsWith('comparison://') &&
-      !currentPath.startsWith('collection://');
-    if (!isRealPath) return;
-    let watcherId: string | null = null;
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-    let unlisten: (() => void) | undefined;
-    const debouncedRefetch = () => {
-      if (debounceTimer) return;
-      debounceTimer = setTimeout(() => {
-        debounceTimer = null;
-        refetch();
-      }, 1000);
-    };
-    (async () => {
-      try {
-        watcherId = await TauriAPI.watchDirectory(currentPath, false);
-      } catch (err) {
-        console.warn('[watcher] Failed to watch directory:', err);
-      }
-      try {
-        unlisten = await TauriAPI.listenToEvent<{
-          watcher_id: string;
-          path: string;
-          event_type: string;
-          timestamp: number;
-        }>('fs-change', (event) => {
-          if (watcherId && event.watcher_id === watcherId) {
-            debouncedRefetch();
-          }
-        });
-      } catch (err) {
-        console.warn('[watcher] Failed to listen for fs-change events:', err);
-      }
-    })();
-    return () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      unlisten?.();
-      if (watcherId) {
-        TauriAPI.unwatchDirectory(watcherId).catch((err) =>
-          console.error('Failed to unwatch directory:', err),
+    if (isTauri()) {
+      let disposed = false;
+      const unlisteners: Array<() => void> = [];
+      (async () => {
+        const back = await TauriAPI.listenToEvent('mouse-back', () => navigateBackInHistory());
+        if (disposed) return void back();
+        unlisteners.push(back);
+        const forward = await TauriAPI.listenToEvent('mouse-forward', () =>
+          navigateForwardInHistory(),
         );
+        if (disposed) return void forward();
+        unlisteners.push(forward);
+      })().catch(console.error);
+      return () => {
+        disposed = true;
+        unlisteners.forEach((unlisten) => unlisten());
+      };
+    }
+    const onMouseUp = (event: MouseEvent) => {
+      if (event.button === 3) {
+        event.preventDefault();
+        navigateBackInHistory();
+      } else if (event.button === 4) {
+        event.preventDefault();
+        navigateForwardInHistory();
       }
     };
-  }, [currentPath, refetch, activeTabObj]);
+    window.addEventListener('mouseup', onMouseUp);
+    return () => window.removeEventListener('mouseup', onMouseUp);
+  }, [navigateBackInHistory, navigateForwardInHistory]);
 
   // ── Vim mode ──────────────────────────────────────────────────────────────
   const [vimEnabled, setVimEnabled] = useState(() => isVimModeEnabled());
@@ -834,43 +817,8 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
     [navigateWithHistory],
   );
 
-  // ── Command Palette commands ──────────────────────────────────────────────
-  const builtinCommands = useCommandPaletteCommands({
-    currentPath,
-    pathHistory,
-    historyIndex,
-    files,
-    navigateWithHistory,
-    refetch,
-    setViewMode,
-    setRightSidebarCollapsed,
-    setBottomPanelCollapsed,
-    setBottomPanelTab,
-    bottomPanelTab,
-    bottomPanelCollapsed,
-    setLeftSidebarCollapsed,
-    setSelectedFiles,
-    setShortcutsDialogOpen,
-    handleCreateFolder: fileOps.handleCreateFolder,
-    handleDelete: fileOps.handleDelete,
-  });
-
-  // Merge extension commands into the palette
-  const [extCommandVersion, setExtCommandVersion] = useState(0);
-  useEffect(() => {
-    const sub = extensionHost.onCommandsChanged(() => setExtCommandVersion((v) => v + 1));
-    return () => sub.dispose();
-  }, []);
-
-  const commandPaletteCommands = useMemo(() => {
-    void extCommandVersion; // trigger re-compute when extension commands change
-    const extCommands = extensionHost.getCommandPaletteEntries();
-    return extCommands.length > 0 ? [...builtinCommands, ...extCommands] : builtinCommands;
-  }, [builtinCommands, extCommandVersion]);
-
   return {
     vimState,
     vimEnabled,
-    commandPaletteCommands,
   };
 };

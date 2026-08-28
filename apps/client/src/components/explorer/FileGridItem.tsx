@@ -146,6 +146,40 @@ const selectFileNameWithoutExtension = (input: HTMLInputElement, name: string, i
   }
 };
 
+// ─── Helper: character offset inside a label for a pixel position ───────────
+
+/**
+ * Map a click position onto the label's text and return the character offset
+ * the caret should land on — Finder's label-click rename places the caret
+ * exactly where the name was clicked. Falls back to undefined when the
+ * point does not resolve onto the label's text node.
+ */
+const caretOffsetAtPoint = (label: HTMLElement, x: number, y: number): number | undefined => {
+  const doc = document as Document & {
+    caretRangeFromPoint?: (x: number, y: number) => Range | null;
+    caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null;
+  };
+  let node: Node | null = null;
+  let offset: number | undefined;
+  if (doc.caretRangeFromPoint) {
+    // WebKit / Blink
+    const range = doc.caretRangeFromPoint(x, y);
+    if (range) {
+      node = range.startContainer;
+      offset = range.startOffset;
+    }
+  } else if (doc.caretPositionFromPoint) {
+    // Firefox
+    const pos = doc.caretPositionFromPoint(x, y);
+    if (pos) {
+      node = pos.offsetNode;
+      offset = pos.offset;
+    }
+  }
+  if (!node || node.nodeType !== Node.TEXT_NODE || !label.contains(node)) return undefined;
+  return offset;
+};
+
 // ─── Inline rename input component ──────────────────────────────────────────
 
 export const InlineRenameInput = React.memo(
@@ -154,6 +188,7 @@ export const InlineRenameInput = React.memo(
     isDir,
     isListView,
     existingNames,
+    initialCaretOffset,
     onConfirm,
     onCancel,
     onTab,
@@ -163,47 +198,68 @@ export const InlineRenameInput = React.memo(
     isDir: boolean;
     isListView: boolean;
     existingNames: string[];
+    /** Character offset for a label-click rename (caret where clicked);
+     *  null/undefined selects the base name (Enter/F2 path, Finder-like). */
+    initialCaretOffset?: number | null;
     onConfirm: (oldPath: string, newName: string) => void;
     onCancel: () => void;
-    onTab: (oldPath: string, newName: string) => void;
+    onTab: (oldPath: string, newName: string | null, direction: 1 | -1) => void;
     filePath: string;
   }) => {
     const [value, setValue] = useState(fileName);
     const inputRef = useRef<HTMLInputElement>(null);
     const confirmedRef = useRef(false);
 
-    // Auto-focus and select filename (without extension) on mount
+    // Auto-focus on mount. Label-click renames place a collapsed caret where
+    // the name was clicked; keyboard-triggered renames select the base name
+    // (extension excluded), matching Finder.
     useEffect(() => {
       const input = inputRef.current;
-      if (input) {
-        input.focus();
+      if (!input) return;
+      input.focus();
+      if (typeof initialCaretOffset === 'number' && initialCaretOffset >= 0) {
+        const pos = Math.min(initialCaretOffset, fileName.length);
+        input.setSelectionRange(pos, pos);
+      } else {
         selectFileNameWithoutExtension(input, fileName, isDir);
       }
-    }, [fileName, isDir]);
+      // Mount-only: the caret offset applies to how editing started.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const validation = validateFileName(value, existingNames, fileName);
 
-    const handleConfirm = useCallback(() => {
-      if (confirmedRef.current) return;
-      const trimmed = value.trim();
-      if (trimmed.length === 0 || trimmed === fileName) {
-        onCancel();
-        return;
-      }
-      if (!validation.valid) {
-        onCancel();
-        return;
-      }
-      confirmedRef.current = true;
-      onConfirm(filePath, trimmed);
-    }, [value, fileName, validation.valid, onConfirm, onCancel, filePath]);
+    const handleConfirm = useCallback(
+      (viaBlur: boolean) => {
+        if (confirmedRef.current) return;
+        const trimmed = value.trim();
+        if (trimmed === fileName) {
+          confirmedRef.current = true;
+          onCancel();
+          return;
+        }
+        if (!validation.valid) {
+          // Finder keeps the editor open on an invalid name (empty, illegal
+          // characters, conflict): the inline warning stays visible instead
+          // of silently discarding the edit. Abandon only when focus left.
+          if (viaBlur) {
+            confirmedRef.current = true;
+            onCancel();
+          }
+          return;
+        }
+        confirmedRef.current = true;
+        onConfirm(filePath, trimmed);
+      },
+      [value, fileName, validation.valid, onConfirm, onCancel, filePath],
+    );
 
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
           e.preventDefault();
           e.stopPropagation();
-          handleConfirm();
+          handleConfirm(false);
         } else if (e.key === 'Escape') {
           e.preventDefault();
           e.stopPropagation();
@@ -213,13 +269,16 @@ export const InlineRenameInput = React.memo(
           e.preventDefault();
           e.stopPropagation();
           const trimmed = value.trim();
-          if (trimmed.length > 0 && validation.valid && trimmed !== fileName) {
+          const direction: 1 | -1 = e.shiftKey ? -1 : 1;
+          if (trimmed === fileName) {
+            // Nothing to commit — hop to the neighbour, Finder-style.
             confirmedRef.current = true;
-            onTab(filePath, trimmed);
-          } else {
+            onTab(filePath, null, direction);
+          } else if (validation.valid) {
             confirmedRef.current = true;
-            onCancel();
+            onTab(filePath, trimmed, direction);
           }
+          // Invalid name: Finder blocks the hop and keeps editing.
         }
       },
       [handleConfirm, onCancel, onTab, value, validation.valid, fileName, filePath],
@@ -227,7 +286,7 @@ export const InlineRenameInput = React.memo(
 
     const handleBlur = useCallback(() => {
       if (confirmedRef.current) return;
-      handleConfirm();
+      handleConfirm(true);
     }, [handleConfirm]);
 
     // Determine border color based on validation
@@ -268,6 +327,10 @@ export const InlineRenameInput = React.memo(
             outline: 'none',
             boxShadow: `0 0 6px ${borderColor}40`,
             transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+            // The grid is permanently user-select:none (drag UX), but this
+            // input must still allow caret placement and in-field selection.
+            userSelect: 'text',
+            WebkitUserSelect: 'text',
           }}
         />
         <ValidationIcon valid={validation.valid} warning={validation.warning} />
@@ -332,9 +395,11 @@ const FileGridItem = React.memo(
     thumbnailUrl,
     isRenaming,
     existingNames,
+    initialRenameCaretOffset,
     onRenameConfirm,
     onRenameCancel,
     onRenameTab,
+    onRenameStart,
   }: FileGridItemProps) => {
     // Native drag via tauri-plugin-drag (mousedown/mousemove/mouseup)
     const dragHandlers = useDraggable({ file, selectedFiles, allFiles });
@@ -373,6 +438,33 @@ const FileGridItem = React.memo(
       setShowThumb(false);
     }, []);
 
+    // Finder: clicking the name label of the already-selected item starts an
+    // inline rename. The native drag (mousedown/mousemove/mouseup) still fires
+    // a click on mouseup, so only treat it as a label click when the pointer
+    // barely moved — dragging the item by its label must keep working.
+    const labelPointerDownRef = useRef<{ x: number; y: number } | null>(null);
+    const handleLabelPointerDown = useCallback((e: React.PointerEvent) => {
+      labelPointerDownRef.current = { x: e.clientX, y: e.clientY };
+    }, []);
+    const handleLabelClick = useCallback(
+      (e: React.MouseEvent<HTMLSpanElement>) => {
+        const start = labelPointerDownRef.current;
+        labelPointerDownRef.current = null;
+        if (!start || !isSelected) return;
+        const moved = Math.abs(e.clientX - start.x) + Math.abs(e.clientY - start.y);
+        if (moved > 4) return;
+        e.stopPropagation();
+        // Finder places the edit caret exactly where the label was clicked,
+        // instead of selecting the whole base name (Enter still selects it).
+        const offset = caretOffsetAtPoint(e.currentTarget, e.clientX, e.clientY);
+        onRenameStart?.(file, offset);
+      },
+      [isSelected, onRenameStart, file],
+    );
+    const labelClickHandlers = onRenameStart
+      ? { onPointerDown: handleLabelPointerDown, onClick: handleLabelClick }
+      : {};
+
     // ─── Render the file name area (normal label or inline rename input) ──────
 
     const renderNameArea = () => {
@@ -383,6 +475,7 @@ const FileGridItem = React.memo(
             isDir={file.is_dir}
             isListView={isListView}
             existingNames={existingNames}
+            initialCaretOffset={initialRenameCaretOffset}
             onConfirm={onRenameConfirm}
             onCancel={onRenameCancel}
             onTab={onRenameTab}
@@ -393,7 +486,7 @@ const FileGridItem = React.memo(
 
       return (
         <>
-          <span className="min-w-0 truncate">
+          <span className="min-w-0 cursor-text truncate" {...labelClickHandlers}>
             {file.name.endsWith('.chat') ? getChatDisplayName(file.name) : file.name}
           </span>
           {!isRenaming && <TagDots tags={tags} />}

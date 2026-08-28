@@ -7,7 +7,6 @@ import type { FileChangeSet } from '@/hooks/use-focus-change-tracker';
 import type { CrossTabSelection } from '@/hooks/use-cross-tab-selection';
 import type { WorkspaceLayoutUiState } from '@/lib/workspace-layouts';
 import type { SplitLayoutState } from '@/types/split-view';
-import type { Command } from '@/components/CommandPalette';
 import type { EncryptionMode } from '@/components/dialogs/EncryptionDialog';
 import type { FileDetailsTab } from '@/components/dialogs/FileDetailsDialog';
 import type { BatchOperationType } from '@/components/dialogs/BatchConfirmDialog';
@@ -29,7 +28,6 @@ const ExtensionPermissionDialog = React.lazy(
 const WorkspaceLayoutDialog = React.lazy(
   () => import('@/components/dialogs/WorkspaceLayoutDialog'),
 );
-const BetaWarningDialog = React.lazy(() => import('@/components/dialogs/BetaWarningDialog'));
 const CommandPalette = React.lazy(() => import('@/components/CommandPalette'));
 const TourOverlay = React.lazy(() => import('@/components/tour/TourOverlay'));
 const FileOperationProgressDialog = React.lazy(
@@ -142,7 +140,6 @@ export interface DialogsOverlayProps {
   // ── Command Palette ──────────────────────────────────────────────────────
   commandPaletteOpen: boolean;
   onCloseCommandPalette: () => void;
-  commandPaletteCommands: Command[];
   onCommandPaletteFileSelect: (filePath: string, isDir: boolean) => void;
 
   // ── Change Summary Toast ─────────────────────────────────────────────────
@@ -215,7 +212,6 @@ const DialogsOverlay = ({
   // Command Palette
   commandPaletteOpen,
   onCloseCommandPalette,
-  commandPaletteCommands,
   onCommandPaletteFileSelect,
   // Change Summary Toast
   showChangeSummaryToast,
@@ -298,7 +294,6 @@ const DialogsOverlay = ({
           <CommandPalette
             isOpen={commandPaletteOpen}
             onClose={onCloseCommandPalette}
-            commands={commandPaletteCommands}
             currentPath={currentPath}
             onFileSelect={onCommandPaletteFileSelect}
           />
@@ -363,9 +358,6 @@ const DialogsOverlay = ({
 
         {/* Quick Look Overlay (pulls in react-syntax-highlighter) */}
         {quickLookFile && <QuickLookOverlay file={quickLookFile} onClose={onCloseQuickLook} />}
-
-        {/* Beta Warning (first launch) */}
-        <BetaWarningDialog />
 
         {/* Extension Permission Consent Dialog */}
         <ExtensionPermissionDialog />

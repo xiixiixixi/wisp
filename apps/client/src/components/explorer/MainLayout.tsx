@@ -12,7 +12,6 @@ import type { VimModeState } from '@/hooks/use-vim-mode';
 import type { CrossTabSelectionState } from '@/hooks/use-cross-tab-selection';
 import type { PaneSyncState } from '@/hooks/use-pane-sync';
 import type { Toast } from '@/hooks/use-toast';
-import type { Command } from '@/components/CommandPalette';
 import type { WorkspaceLayoutUiState } from '@/lib/workspace-layouts';
 import type { FileChangeSet } from '@/hooks/use-focus-change-tracker';
 import type { ConflictResolution } from '@/components/dialogs/FileConflictDialog';
@@ -155,7 +154,6 @@ export interface MainLayoutProps {
   folderComparePaths: { left: string; right: string };
   commandPaletteOpen: boolean;
   handleCloseCommandPalette: () => void;
-  commandPaletteCommands: Command[];
   handleCommandPaletteFileSelect: (filePath: string, isDir: boolean) => void;
   showChangeSummaryToast: boolean;
   fileChanges: FileChangeSet | null;
@@ -230,12 +228,7 @@ const MainLayout = (props: MainLayoutProps) => {
     sortOrder,
     setSortOrder,
     navigateWithHistory,
-    navigateUp,
     navigateToPath,
-    navigateBackInHistory,
-    navigateForwardInHistory,
-    canNavigateBackInHistory,
-    canNavigateForwardInHistory,
     handleFileClick,
     handleFileDoubleClick,
     ctxMenu,
@@ -261,7 +254,6 @@ const MainLayout = (props: MainLayoutProps) => {
     folderComparePaths,
     commandPaletteOpen,
     handleCloseCommandPalette,
-    commandPaletteCommands,
     handleCommandPaletteFileSelect,
     showChangeSummaryToast,
     fileChanges,
@@ -328,6 +320,8 @@ const MainLayout = (props: MainLayoutProps) => {
         onCloseGroup: splitLayout.closeGroup,
         onSetActiveGroup: splitLayout.setActiveGroup,
         onNavigate: splitLayout.navigate,
+        onNavigateBackHistory: splitLayout.navigateBack,
+        onNavigateForwardHistory: splitLayout.navigateForward,
         onResizeSplit: splitLayout.resizeSplit,
         maximizedGroupId: layoutState.maximizedGroupId,
         onMaximizePane: splitLayout.maximizePane,
@@ -400,13 +394,6 @@ const MainLayout = (props: MainLayoutProps) => {
             ref={topBarRef}
             leftSidebarCollapsed={leftSidebarCollapsed}
             setLeftSidebarCollapsed={setLeftSidebarCollapsed}
-            currentPath={currentPath}
-            navigateUp={navigateUp}
-            refetch={refetch}
-            navigateBackInHistory={navigateBackInHistory}
-            navigateForwardInHistory={navigateForwardInHistory}
-            canNavigateBackInHistory={canNavigateBackInHistory}
-            canNavigateForwardInHistory={canNavigateForwardInHistory}
             tabs={activeGroup.tabs}
             activeTabId={activeGroup.activeTabId}
             onSwitchTab={(tabId) => splitLayout.switchTab(activeGroup.id, tabId)}
@@ -446,7 +433,13 @@ const MainLayout = (props: MainLayoutProps) => {
                   searchPanelOpen={searchPanelOpen}
                   onToggleSearchPanel={() => setSearchPanelOpen((prev) => !prev)}
                 />
-                <ResizeHandle direction="horizontal" onResize={handleLeftResize} />
+                {/* -ml-1 overlaps the handle onto the sidebar edge so the
+                    sidebar and content sit flush (no gap in the toolbar row) */}
+                <ResizeHandle
+                  direction="horizontal"
+                  onResize={handleLeftResize}
+                  className="-ml-1"
+                />
               </>
             )}
 
@@ -497,7 +490,7 @@ const MainLayout = (props: MainLayoutProps) => {
 
             {/* Right Sidebar */}
             {!rightSidebarCollapsed && (
-              <ResizeHandle direction="horizontal" onResize={handleRightResize} />
+              <ResizeHandle direction="horizontal" onResize={handleRightResize} className="-mr-1" />
             )}
             <ErrorBoundary>
               <RightSidebar
@@ -602,7 +595,6 @@ const MainLayout = (props: MainLayoutProps) => {
             currentFiles={files}
             commandPaletteOpen={commandPaletteOpen}
             onCloseCommandPalette={handleCloseCommandPalette}
-            commandPaletteCommands={commandPaletteCommands}
             onCommandPaletteFileSelect={handleCommandPaletteFileSelect}
             showChangeSummaryToast={showChangeSummaryToast}
             fileChanges={fileChanges}

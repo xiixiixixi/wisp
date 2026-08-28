@@ -178,10 +178,13 @@ html.theme-glass {
   background: transparent;
 }
 .theme-glass ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: transparent;
   border-radius: 4px;
 }
-.theme-glass ::-webkit-scrollbar-thumb:hover {
+.theme-glass .is-scrolling::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+}
+.theme-glass .is-scrolling::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.18);
 }
 
@@ -383,22 +386,38 @@ html.theme-glass {
     animation: pulse-neon 2s ease-in-out infinite;
   }
 
-  /* Scrollbar Styling */
+  /* Scrollbar Styling — auto-hide overlay bars: thumbs stay transparent
+     until the container actually scrolls (.is-scrolling is toggled by
+     lib/auto-scrollbars.ts), Finder-style. */
   ::-webkit-scrollbar {
     width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-track {
-    background: var(--xp-surface);
+    background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--xp-border);
+    background: transparent;
     border-radius: 4px;
   }
 
-  ::-webkit-scrollbar-thumb:hover {
+  .is-scrolling::-webkit-scrollbar-thumb {
+    background: var(--xp-border);
+  }
+
+  .is-scrolling::-webkit-scrollbar-thumb:hover {
     background: var(--xp-blue);
+  }
+
+  /* Firefox: scrollbar-color is inherited, so one rule covers everything */
+  html {
+    scrollbar-color: transparent transparent;
+  }
+
+  .is-scrolling {
+    scrollbar-color: var(--xp-border) transparent;
   }
 
   /* 3D View Styles */
@@ -581,9 +600,12 @@ html.theme-glass {
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
 }
 
-/* Gallery filmstrip — thin scrollbar for thumbnail strip */
+/* Gallery filmstrip — thin auto-hide scrollbar for the thumbnail strip */
 .gallery-filmstrip {
   scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.gallery-filmstrip.is-scrolling {
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 .gallery-filmstrip::-webkit-scrollbar {
@@ -593,13 +615,19 @@ html.theme-glass {
   background: transparent;
 }
 .gallery-filmstrip::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: transparent;
   border-radius: 2px;
 }
+.gallery-filmstrip.is-scrolling::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
 
-/* Context menu — thin scrollbar matching glass theme */
+/* Context menu — thin auto-hide scrollbar matching glass theme */
 .context-menu-scroll {
   scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.context-menu-scroll.is-scrolling {
   scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 .context-menu-scroll::-webkit-scrollbar {
@@ -609,10 +637,13 @@ html.theme-glass {
   background: transparent;
 }
 .context-menu-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: transparent;
   border-radius: 2px;
 }
-.context-menu-scroll::-webkit-scrollbar-thumb:hover {
+.context-menu-scroll.is-scrolling::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+.context-menu-scroll.is-scrolling::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.35);
 }
 

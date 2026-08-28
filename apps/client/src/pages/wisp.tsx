@@ -28,6 +28,7 @@ import MainLayout from '@/components/explorer/MainLayout';
 import { useSplitLayout } from '@/hooks/use-split-layout';
 import { useCrossTabSelection } from '@/hooks/use-cross-tab-selection';
 import { usePaneSync } from '@/hooks/use-pane-sync';
+import { ExtensionChangeDialog } from '@/components/dialogs/ExtensionChangeDialog';
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -47,9 +48,6 @@ const ExplorerUnified = () => {
   const currentPath = activeGroup.currentPath;
   const tabs = activeGroup.tabs;
   const activeTab = activeGroup.activeTabId;
-  const activeTabObj = tabs.find((t) => t.id === activeTab);
-  const pathHistory = activeGroup.pathHistory;
-  const historyIndex = activeGroup.historyIndex;
 
   // Per-pane selection
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
@@ -78,6 +76,21 @@ const ExplorerUnified = () => {
 
   // Selected file for preview
   const [selectedFile, setSelectedFile] = useState<FileEntry | null>(null);
+
+  // Finder's extension-change guard for inline renames
+  const [extensionChange, setExtensionChange] = useState<{
+    oldName: string;
+    oldExt: string;
+    newExt: string;
+    resolve: (choice: 'use-new' | 'keep-old') => void;
+  } | null>(null);
+  const confirmExtensionChange = useCallback(
+    (oldName: string, oldExt: string, newExt: string) =>
+      new Promise<'use-new' | 'keep-old'>((resolve) => {
+        setExtensionChange({ oldName, oldExt, newExt, resolve });
+      }),
+    [],
+  );
 
   // ── Dependent hooks ───────────────────────────────────────────────────────
   const { changes: fileChanges, dismissChanges: dismissFileChanges } =
@@ -139,6 +152,7 @@ const ExplorerUnified = () => {
     files,
     refetch,
     toast,
+    confirmExtensionChange,
     splitLayout,
     activeGroupId: activeGroup.id,
     fileComparison,
@@ -279,11 +293,8 @@ const ExplorerUnified = () => {
     navigateToPathRef: actions.navigateToPathRef,
     splitLayout,
     activeGroup,
-    activeTabObj,
     tabs,
     activeTab,
-    pathHistory,
-    historyIndex,
     viewMode: layout.viewMode,
     setViewMode: layout.setViewMode,
     leftSidebarCollapsed: layout.leftSidebarCollapsed,
@@ -335,84 +346,96 @@ const ExplorerUnified = () => {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <MainLayout
-      topBarRef={topBarRef}
-      leftSidebarRef={leftSidebarRef}
-      pendingSelectRef={pendingSelectRef}
-      currentPath={currentPath}
-      files={files}
-      filteredFiles={filteredFiles}
-      selectedFiles={selectedFiles}
-      setSelectedFiles={setSelectedFiles}
-      selectedFile={selectedFile}
-      setSelectedFile={setSelectedFile}
-      refetch={refetch}
-      toast={toast}
-      splitLayout={splitLayout}
-      layoutState={layoutState}
-      activeGroup={activeGroup}
-      sharedActions={actions.sharedActions}
-      {...layout}
-      navigateWithHistory={actions.navigateWithHistory}
-      navigateUp={actions.navigateUp}
-      navigateToPath={actions.navigateToPath}
-      navigateBackInHistory={actions.navigateBackInHistory}
-      navigateForwardInHistory={actions.navigateForwardInHistory}
-      canNavigateBackInHistory={actions.canNavigateBackInHistory}
-      canNavigateForwardInHistory={actions.canNavigateForwardInHistory}
-      handleFileClick={actions.handleFileClick}
-      handleFileDoubleClick={actions.handleFileDoubleClick}
-      ctxMenu={ctxMenu}
-      dialogManager={dialogManager}
-      fileComparison={fileComparison}
-      fileConflict={fileConflict}
-      terminal={terminal}
-      themes={themes}
-      theme={theme}
-      handleApplyTheme={handleApplyTheme}
-      getFolderSize={getFolderSize}
-      isCalculatingSize={isCalculatingSize}
-      vimState={effects.vimState}
-      crossTabSelection={crossTabSelection}
-      setCrossTabDialogOpen={dialogManager.setCrossTabDialogOpen}
-      paneSync={paneSync}
-      fileOps={fileOps}
-      templatePickerOpen={dialogManager.templatePickerOpen}
-      handleCloseTemplatePicker={actions.handleCloseTemplatePicker}
-      folderCompareOpen={dialogManager.folderCompareOpen}
-      handleCloseFolderCompare={actions.handleCloseFolderCompare}
-      folderComparePaths={dialogManager.folderComparePaths}
-      commandPaletteOpen={dialogManager.commandPaletteOpen}
-      handleCloseCommandPalette={actions.handleCloseCommandPalette}
-      commandPaletteCommands={effects.commandPaletteCommands}
-      handleCommandPaletteFileSelect={actions.handleCommandPaletteFileSelect}
-      showChangeSummaryToast={dialogManager.showChangeSummaryToast}
-      fileChanges={fileChanges}
-      handleDismissChangesToast={actions.handleDismissChangesToast}
-      handleReviewChanges={actions.handleReviewChanges}
-      quickLookFile={dialogManager.quickLookFile}
-      handleCloseQuickLook={actions.handleCloseQuickLook}
-      pathBookmarksDialogOpen={dialogManager.pathBookmarksDialogOpen}
-      handleClosePathBookmarks={actions.handleClosePathBookmarks}
-      workspaceLayoutDialogOpen={dialogManager.workspaceLayoutDialogOpen}
-      handleCloseWorkspaceLayout={actions.handleCloseWorkspaceLayout}
-      workspaceUiState={actions.workspaceUiState}
-      handleApplyLayout={actions.handleApplyLayout}
-      crossTabDialogOpen={dialogManager.crossTabDialogOpen}
-      handleCloseCrossTabDialog={actions.handleCloseCrossTabDialog}
-      handleCrossTabMoveAll={actions.handleCrossTabMoveAll}
-      handleCrossTabCopyAll={actions.handleCrossTabCopyAll}
-      handleCrossTabCompressAll={actions.handleCrossTabCompressAll}
-      handleCrossTabDeleteAll={actions.handleCrossTabDeleteAll}
-      handleCrossTabPickFolder={actions.handleCrossTabPickFolder}
-      shortcutsDialogOpen={dialogManager.shortcutsDialogOpen}
-      handleCloseShortcutsDialog={actions.handleCloseShortcutsDialog}
-      handleOpenSettings={actions.handleOpenSettings}
-      collectionEditorOpen={dialogManager.collectionEditorOpen}
-      handleCloseCollectionEditor={actions.handleCloseCollectionEditor}
-      editingCollection={dialogManager.editingCollection}
-      handleDismissAllChanges={actions.handleDismissAllChanges}
-    />
+    <>
+      <MainLayout
+        topBarRef={topBarRef}
+        leftSidebarRef={leftSidebarRef}
+        pendingSelectRef={pendingSelectRef}
+        currentPath={currentPath}
+        files={files}
+        filteredFiles={filteredFiles}
+        selectedFiles={selectedFiles}
+        setSelectedFiles={setSelectedFiles}
+        selectedFile={selectedFile}
+        setSelectedFile={setSelectedFile}
+        refetch={refetch}
+        toast={toast}
+        splitLayout={splitLayout}
+        layoutState={layoutState}
+        activeGroup={activeGroup}
+        sharedActions={actions.sharedActions}
+        {...layout}
+        navigateWithHistory={actions.navigateWithHistory}
+        navigateUp={actions.navigateUp}
+        navigateToPath={actions.navigateToPath}
+        navigateBackInHistory={actions.navigateBackInHistory}
+        navigateForwardInHistory={actions.navigateForwardInHistory}
+        canNavigateBackInHistory={actions.canNavigateBackInHistory}
+        canNavigateForwardInHistory={actions.canNavigateForwardInHistory}
+        handleFileClick={actions.handleFileClick}
+        handleFileDoubleClick={actions.handleFileDoubleClick}
+        ctxMenu={ctxMenu}
+        dialogManager={dialogManager}
+        fileComparison={fileComparison}
+        fileConflict={fileConflict}
+        terminal={terminal}
+        themes={themes}
+        theme={theme}
+        handleApplyTheme={handleApplyTheme}
+        getFolderSize={getFolderSize}
+        isCalculatingSize={isCalculatingSize}
+        vimState={effects.vimState}
+        crossTabSelection={crossTabSelection}
+        setCrossTabDialogOpen={dialogManager.setCrossTabDialogOpen}
+        paneSync={paneSync}
+        fileOps={fileOps}
+        templatePickerOpen={dialogManager.templatePickerOpen}
+        handleCloseTemplatePicker={actions.handleCloseTemplatePicker}
+        folderCompareOpen={dialogManager.folderCompareOpen}
+        handleCloseFolderCompare={actions.handleCloseFolderCompare}
+        folderComparePaths={dialogManager.folderComparePaths}
+        commandPaletteOpen={dialogManager.commandPaletteOpen}
+        handleCloseCommandPalette={actions.handleCloseCommandPalette}
+        handleCommandPaletteFileSelect={actions.handleCommandPaletteFileSelect}
+        showChangeSummaryToast={dialogManager.showChangeSummaryToast}
+        fileChanges={fileChanges}
+        handleDismissChangesToast={actions.handleDismissChangesToast}
+        handleReviewChanges={actions.handleReviewChanges}
+        quickLookFile={dialogManager.quickLookFile}
+        handleCloseQuickLook={actions.handleCloseQuickLook}
+        pathBookmarksDialogOpen={dialogManager.pathBookmarksDialogOpen}
+        handleClosePathBookmarks={actions.handleClosePathBookmarks}
+        workspaceLayoutDialogOpen={dialogManager.workspaceLayoutDialogOpen}
+        handleCloseWorkspaceLayout={actions.handleCloseWorkspaceLayout}
+        workspaceUiState={actions.workspaceUiState}
+        handleApplyLayout={actions.handleApplyLayout}
+        crossTabDialogOpen={dialogManager.crossTabDialogOpen}
+        handleCloseCrossTabDialog={actions.handleCloseCrossTabDialog}
+        handleCrossTabMoveAll={actions.handleCrossTabMoveAll}
+        handleCrossTabCopyAll={actions.handleCrossTabCopyAll}
+        handleCrossTabCompressAll={actions.handleCrossTabCompressAll}
+        handleCrossTabDeleteAll={actions.handleCrossTabDeleteAll}
+        handleCrossTabPickFolder={actions.handleCrossTabPickFolder}
+        shortcutsDialogOpen={dialogManager.shortcutsDialogOpen}
+        handleCloseShortcutsDialog={actions.handleCloseShortcutsDialog}
+        handleOpenSettings={actions.handleOpenSettings}
+        collectionEditorOpen={dialogManager.collectionEditorOpen}
+        handleCloseCollectionEditor={actions.handleCloseCollectionEditor}
+        editingCollection={dialogManager.editingCollection}
+        handleDismissAllChanges={actions.handleDismissAllChanges}
+      />
+      {extensionChange && (
+        <ExtensionChangeDialog
+          oldName={extensionChange.oldName}
+          oldExt={extensionChange.oldExt}
+          newExt={extensionChange.newExt}
+          onChoose={(choice) => {
+            extensionChange.resolve(choice);
+            setExtensionChange(null);
+          }}
+        />
+      )}
+    </>
   );
 };
 

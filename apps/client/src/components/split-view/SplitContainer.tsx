@@ -58,6 +58,8 @@ const SplitContainer = ({ node, groups, activeGroupId, path }: SplitContainerPro
         onCloseGroup={splitActions.onCloseGroup}
         onSetActiveGroup={splitActions.onSetActiveGroup}
         onNavigate={splitActions.onNavigate}
+        onNavigateBackHistory={splitActions.onNavigateBackHistory}
+        onNavigateForwardHistory={splitActions.onNavigateForwardHistory}
         isMaximized={splitActions.maximizedGroupId === group.id}
         onMaximizePane={splitActions.onMaximizePane}
         onRestorePane={splitActions.onRestorePane}

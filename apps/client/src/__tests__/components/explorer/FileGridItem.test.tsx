@@ -155,7 +155,8 @@ describe('FileGridItem', () => {
       render(<FileGridItem {...defaultProps} isSelected={true} />);
       const item = screen.getByRole('option');
       expect(item).toHaveAttribute('aria-selected', 'true');
-      expect(item.className).toContain('bg-xp-blue');
+      expect(item.className).toContain('bg-xp-selection');
+      expect(item.className).toContain('border-xp-blue');
     });
 
     it('does not apply selected styling when isSelected is false', () => {
@@ -280,6 +281,128 @@ describe('FileGridItem', () => {
       const item = screen.getByRole('option');
       fireEvent.click(item);
       expect(mockOnFileClick).not.toHaveBeenCalled();
+    });
+
+    it('keeps editing when Enter is pressed on an invalid name (Finder)', () => {
+      const mockOnRenameConfirm = vi.fn();
+      const mockOnRenameCancel = vi.fn();
+
+      render(
+        <FileGridItem
+          {...defaultProps}
+          isRenaming={true}
+          existingNames={['other.txt']}
+          onRenameConfirm={mockOnRenameConfirm}
+          onRenameCancel={mockOnRenameCancel}
+          onRenameTab={vi.fn()}
+        />,
+      );
+
+      const input = screen.getByLabelText('Rename file');
+      fireEvent.change(input, { target: { value: '' } });
+      fireEvent.keyDown(input, { key: 'Enter' });
+
+      // Finder keeps the editor open instead of silently discarding the edit
+      expect(mockOnRenameConfirm).not.toHaveBeenCalled();
+      expect(mockOnRenameCancel).not.toHaveBeenCalled();
+      expect(screen.getByLabelText('Rename file')).toBeInTheDocument();
+    });
+
+    it('cancels on Escape', () => {
+      const mockOnRenameCancel = vi.fn();
+
+      render(
+        <FileGridItem
+          {...defaultProps}
+          isRenaming={true}
+          existingNames={['other.txt']}
+          onRenameConfirm={vi.fn()}
+          onRenameCancel={mockOnRenameCancel}
+          onRenameTab={vi.fn()}
+        />,
+      );
+
+      fireEvent.keyDown(screen.getByLabelText('Rename file'), { key: 'Escape' });
+      expect(mockOnRenameCancel).toHaveBeenCalledTimes(1);
+    });
+
+    it('commits on Tab and hops backwards on Shift+Tab', () => {
+      const mockOnRenameTab = vi.fn();
+
+      render(
+        <FileGridItem
+          {...defaultProps}
+          isRenaming={true}
+          existingNames={['other.txt']}
+          onRenameConfirm={vi.fn()}
+          onRenameCancel={vi.fn()}
+          onRenameTab={mockOnRenameTab}
+        />,
+      );
+
+      const input = screen.getByLabelText('Rename file');
+      fireEvent.change(input, { target: { value: 'renamed.txt' } });
+      fireEvent.keyDown(input, { key: 'Tab', shiftKey: true });
+      expect(mockOnRenameTab).toHaveBeenCalledWith(sampleFile.path, 'renamed.txt', -1);
+
+      fireEvent.change(input, { target: { value: 'renamed2.txt' } });
+      fireEvent.keyDown(input, { key: 'Tab' });
+      expect(mockOnRenameTab).toHaveBeenCalledWith(sampleFile.path, 'renamed2.txt', 1);
+    });
+
+    it('hops without renaming when Tab is pressed on an unchanged name', () => {
+      const mockOnRenameTab = vi.fn();
+      const mockOnRenameConfirm = vi.fn();
+
+      render(
+        <FileGridItem
+          {...defaultProps}
+          isRenaming={true}
+          existingNames={['other.txt']}
+          onRenameConfirm={mockOnRenameConfirm}
+          onRenameCancel={vi.fn()}
+          onRenameTab={mockOnRenameTab}
+        />,
+      );
+
+      fireEvent.keyDown(screen.getByLabelText('Rename file'), { key: 'Tab' });
+      expect(mockOnRenameTab).toHaveBeenCalledWith(sampleFile.path, null, 1);
+      expect(mockOnRenameConfirm).not.toHaveBeenCalled();
+    });
+
+    it('places a collapsed caret at the clicked offset for label-click renames', () => {
+      render(
+        <FileGridItem
+          {...defaultProps}
+          isRenaming={true}
+          existingNames={['other.txt']}
+          initialRenameCaretOffset={8}
+          onRenameConfirm={vi.fn()}
+          onRenameCancel={vi.fn()}
+          onRenameTab={vi.fn()}
+        />,
+      );
+
+      const input = screen.getByLabelText('Rename file') as HTMLInputElement;
+      expect(input.selectionStart).toBe(8);
+      expect(input.selectionEnd).toBe(8);
+    });
+
+    it('selects the base name when no caret offset is given (Enter/F2 path)', () => {
+      render(
+        <FileGridItem
+          {...defaultProps}
+          isRenaming={true}
+          existingNames={['other.txt']}
+          onRenameConfirm={vi.fn()}
+          onRenameCancel={vi.fn()}
+          onRenameTab={vi.fn()}
+        />,
+      );
+
+      const input = screen.getByLabelText('Rename file') as HTMLInputElement;
+      expect(input.selectionStart).toBe(0);
+      expect(input.selectionEnd).toBe('document'.length);
     });
   });
 
