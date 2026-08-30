@@ -1,16 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import React, { useMemo, useSyncExternalStore } from 'react';
 import { Link } from 'wouter';
 import { extensionHost } from '@/lib/extension-host';
-import {
-  Eye,
-  Search,
-  Bot,
-  Puzzle,
-  ShoppingCart,
-  Settings,
-  Activity,
-  MoreHorizontal,
-} from 'lucide-react';
+import { Eye, Bot, ShoppingCart, Settings, Activity } from 'lucide-react';
 import AgentStatusIndicator from '@/components/panels/agent-manager/AgentStatusIndicator';
 import { useTranslation } from 'react-i18next';
 
@@ -30,9 +21,6 @@ const VerticalExtensionsBar = ({
   'data-tour': dataTour,
 }: VerticalExtensionsBarProps) => {
   const { t } = useTranslation();
-  const [moreOpen, setMoreOpen] = useState(false);
-  const moreMenuRef = useRef<HTMLDivElement>(null);
-
   // useSyncExternalStore ensures re-renders when extension host state changes
   const extRefreshKey = useSyncExternalStore(
     extensionHost.subscribe,
@@ -53,7 +41,6 @@ const VerticalExtensionsBar = ({
   const corePanels = useMemo(
     () => [
       { id: 'preview', icon: <Eye size={18} />, label: t('extensionsBar.preview') },
-      { id: 'tokenizer', icon: <Search size={18} />, label: t('extensionsBar.contentSearch') },
       {
         id: 'ai',
         icon: (
@@ -75,7 +62,6 @@ const VerticalExtensionsBar = ({
         label: panel.title,
       })),
       { id: 'performance', icon: <Activity size={18} />, label: t('extensionsBar.performance') },
-      { id: 'extensions', icon: <Puzzle size={18} />, label: t('extensionsBar.extensions') },
       {
         id: 'marketplace',
         icon: <ShoppingCart size={18} />,
@@ -84,15 +70,6 @@ const VerticalExtensionsBar = ({
     ],
     [registeredPanels, t],
   );
-
-  useEffect(() => {
-    if (!moreOpen) return;
-    const close = (event: MouseEvent) => {
-      if (!moreMenuRef.current?.contains(event.target as Node)) setMoreOpen(false);
-    };
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
-  }, [moreOpen]);
 
   const handlePanelClick = (id: string) => {
     setRightPanelTab(id === 'ai' ? 'agent-manager' : id);
@@ -132,45 +109,18 @@ const VerticalExtensionsBar = ({
           </button>
         ))}
 
-        {/* Advanced and extension panels stay one click away without crowding the rail. */}
+        {/* Advanced and extension panels, directly on the rail */}
         <div className="mx-2 my-1 border-t border-xp-border" />
-        <div ref={moreMenuRef} className="relative">
+        {advancedPanels.map(({ id, icon, label }) => (
           <button
-            onClick={() => setMoreOpen((open) => !open)}
-            className="mx-1 mb-1 flex h-10 w-10 items-center justify-center rounded-xl text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-            title={t('extensionsBar.moreTools')}
-            aria-label={t('extensionsBar.moreTools')}
-            aria-haspopup="menu"
-            aria-expanded={moreOpen}
+            key={id}
+            onClick={() => handlePanelClick(id)}
+            className={btnClass(id)}
+            title={label}
           >
-            <MoreHorizontal size={18} />
+            {icon}
           </button>
-          {moreOpen && (
-            <div
-              role="menu"
-              className="absolute right-full top-0 z-[100] mr-2 w-48 rounded-xl border border-xp-border bg-xp-popover p-1.5 shadow-2xl backdrop-blur-xl"
-            >
-              {advancedPanels.map(({ id, icon, label }) => (
-                <button
-                  key={id}
-                  role="menuitem"
-                  onClick={() => {
-                    handlePanelClick(id);
-                    setMoreOpen(false);
-                  }}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-xs transition-colors hover:bg-xp-surface-light ${
-                    rightPanelTab === id && !rightSidebarCollapsed ? 'text-xp-blue' : 'text-xp-text'
-                  }`}
-                >
-                  <span className="flex h-5 w-5 items-center justify-center text-xp-text-secondary">
-                    {icon}
-                  </span>
-                  <span className="min-w-0 flex-1 truncate">{label}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        ))}
       </div>
 
       {/* Spacer */}

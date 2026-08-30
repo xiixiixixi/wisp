@@ -89,7 +89,10 @@ export const useLayoutState = (): LayoutState => {
   // Panel tabs
   const [rightPanelTab, setRightPanelTab] = useState<string>(() => {
     const stored = loadUiState<string>('rightPanelTab', 'preview');
-    return stored === 'chat' ? 'agent-manager' : stored;
+    // 'chat' merged into 'agent-manager'; 'tokenizer'/'extensions' panels removed
+    if (stored === 'chat') return 'agent-manager';
+    if (stored === 'tokenizer' || stored === 'extensions') return 'preview';
+    return stored;
   });
   const [bottomPanelTab, _setBottomPanelTabRaw] = useState<BottomPanelTabId>(() => {
     const stored = loadUiState<string>('bottomPanelTab', 'terminal');

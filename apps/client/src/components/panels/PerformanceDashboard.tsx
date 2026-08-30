@@ -1,4 +1,4 @@
-import i18n from '@/i18n';
+import { useTranslation } from 'react-i18next';
 import React, { useState, useCallback } from 'react';
 import { TauriAPI } from '@/lib/tauri-api';
 import { ChevronDown, ChevronRight } from 'lucide-react';
@@ -14,27 +14,12 @@ import OrganizerTabContent from './performance/PerformanceCharts';
 
 const PerformanceDashboard = React.memo(
   ({ currentPath, allFiles, navigateToPath }: PerformanceDashboardProps) => {
+    const { t } = useTranslation();
     const [metricsExpanded, setMetricsExpanded] = useState(true);
     const [organizerExpanded, setOrganizerExpanded] = useState(true);
 
-    const {
-      directoryStats,
-      indexingStatus,
-      recentOps,
-      suggestions,
-      memoryUsage,
-      isLoading,
-      refreshStats,
-    } = usePerformanceStats(currentPath, allFiles, true);
-
-    const handleReindex = useCallback(async () => {
-      try {
-        await TauriAPI.rebuildTokenIndex();
-      } catch {
-        // silently fail
-      }
-      refreshStats();
-    }, [refreshStats]);
+    const { directoryStats, recentOps, suggestions, memoryUsage, isLoading, refreshStats } =
+      usePerformanceStats(currentPath, allFiles, true);
 
     const handleEmptyTrash = useCallback(async () => {
       try {
@@ -95,7 +80,7 @@ const PerformanceDashboard = React.memo(
                 ) : (
                   <ChevronRight size={14} style={{ flexShrink: 0 }} />
                 )}
-                Performance Metrics
+                {t('performanceDashboard.title')}
               </button>
               <button
                 onClick={handleCollapseAll}
@@ -111,22 +96,20 @@ const PerformanceDashboard = React.memo(
                   opacity: 0.7,
                   transition: 'opacity 0.15s',
                 }}
-                title={i18n.t('performanceDashboard.collapseAll')}
+                title={t('performanceDashboard.collapseAll')}
               >
-                collapse all
+                {t('performanceDashboard.collapseAll')}
               </button>
             </div>
 
             {metricsExpanded && (
               <MetricCards
                 directoryStats={directoryStats}
-                indexingStatus={indexingStatus}
                 recentOps={recentOps}
                 suggestions={suggestions}
                 memoryUsage={memoryUsage}
                 isLoading={isLoading}
                 onRefresh={refreshStats}
-                onReindex={handleReindex}
                 onSuggestionAction={handleSuggestionAction}
               />
             )}
@@ -144,7 +127,7 @@ const PerformanceDashboard = React.memo(
               ) : (
                 <ChevronRight size={14} style={{ flexShrink: 0 }} />
               )}
-              File Organizer
+              {t('performanceDashboard.fileOrganizer')}
             </button>
 
             {organizerExpanded && (

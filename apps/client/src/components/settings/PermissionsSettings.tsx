@@ -154,7 +154,7 @@ const PermissionsSettings = ({
   };
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-4">
       {/* Internet Sandbox */}
       <SectionTitle title={t('settings.permissions.network')} />
       <div className="hover:bg-xp-surface-light/50 flex items-center justify-between gap-4 rounded-lg px-4 py-3 transition-colors">
@@ -277,7 +277,7 @@ const PermissionsSettings = ({
         title={t('settings.permissions.allowedPaths')}
         description={t('settings.permissions.allowedPathsDesc')}
       />
-      <div className="space-y-2 px-4">
+      <div className="space-y-4 px-4">
         <div className="flex gap-2">
           <input
             type="text"
@@ -302,7 +302,7 @@ const PermissionsSettings = ({
           </button>
         </div>
         {permissions.allowed_paths.length > 0 && (
-          <div className="space-y-1">
+          <div className="space-y-4">
             {permissions.allowed_paths.map((p, i) => (
               <div
                 key={p}
@@ -327,7 +327,7 @@ const PermissionsSettings = ({
         title={t('settings.permissions.blockedPaths')}
         description={t('settings.permissions.blockedPathsDesc')}
       />
-      <div className="space-y-2 px-4">
+      <div className="space-y-4 px-4">
         <div className="flex gap-2">
           <input
             type="text"
@@ -352,7 +352,7 @@ const PermissionsSettings = ({
           </button>
         </div>
         {permissions.blocked_paths.length > 0 && (
-          <div className="space-y-1">
+          <div className="space-y-4">
             {permissions.blocked_paths.map((p, i) => (
               <div
                 key={p}
@@ -377,7 +377,7 @@ const PermissionsSettings = ({
         title={t('settings.permissions.customBlockedCommands')}
         description={t('settings.permissions.customBlockedCommandsDesc')}
       />
-      <div className="space-y-2 px-4">
+      <div className="space-y-4 px-4">
         <div className="flex gap-2">
           <input
             type="text"
@@ -402,7 +402,7 @@ const PermissionsSettings = ({
           </button>
         </div>
         {permissions.custom_blocked_commands.length > 0 && (
-          <div className="space-y-1">
+          <div className="space-y-4">
             {permissions.custom_blocked_commands.map((c, i) => (
               <div
                 key={c}

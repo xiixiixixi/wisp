@@ -149,7 +149,7 @@ const MarketplaceSettings = ({
   setAutoUpdateExtensions: (v: boolean) => void;
   t: (key: string) => string;
 }) => (
-  <div className="space-y-1">
+  <div className="space-y-4">
     <div className="mb-1 px-4 pb-1 pt-2">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-xp-text-secondary">
         {t('settings.marketplace.updatesSection')}
@@ -403,7 +403,7 @@ const Settings = () => {
         return <ContextMenuRulesCard />;
       case 'indexing':
         return (
-          <div className="space-y-8 px-4 py-2">
+          <div className="space-y-4 px-4 py-2">
             <TokenizerSettings />
             <SearchProviderSettings settings={settings} updateSetting={updateSetting} />
           </div>
@@ -428,7 +428,7 @@ const Settings = () => {
         return <VersioningSettings />;
       case 'about':
         return (
-          <div className="space-y-6 px-4 py-2">
+          <div className="space-y-4 px-4 py-2">
             <div className="rounded-lg border border-xp-border p-6 text-center">
               <h2 className="mb-1 text-2xl font-bold text-xp-text">Wisp</h2>
               <p className="text-sm text-xp-text-muted">v{__APP_VERSION__}</p>
@@ -443,7 +443,7 @@ const Settings = () => {
               <h3 className="mb-3 text-sm font-semibold text-xp-text">
                 {t('settings.about.links')}
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <button
                   onClick={() => TauriAPI.openUrl('https://github.com/xiixiixixi/wisp')}
                   className="flex w-full items-center gap-3 rounded-md p-2 text-left text-xp-text transition-colors hover:bg-xp-surface-light"
@@ -525,7 +525,7 @@ const Settings = () => {
         <div className="mx-auto flex h-full max-w-7xl">
           {/* Sidebar */}
           <nav className="border-xp-border/50 w-64 shrink-0 overflow-y-auto border-r px-3 py-4">
-            <div className="space-y-1">
+            <div className="space-y-4">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;

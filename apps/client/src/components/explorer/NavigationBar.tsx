@@ -530,7 +530,7 @@ const NavigationBar = ({
         </div>
       )}
       <div
-        className="relative flex min-w-0 flex-1 items-center rounded border border-xp-border bg-xp-bg px-2 py-0.5"
+        className="relative flex h-7 min-w-0 flex-1 items-center self-center rounded border border-xp-border bg-xp-bg px-2"
         style={
           isEditingPath && validationBorderColor
             ? {

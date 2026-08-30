@@ -14,56 +14,69 @@ body {
 }
 
 :root {
-  /* Wisp Ink defaults (html boots with class="theme-rolex" before JS loads) */
-  --background: #11161d;
-  --foreground: #e6ebf1;
-  --muted: #202833;
-  --muted-foreground: #9ca8b5;
-  --popover: #1b222c;
-  --popover-foreground: #e6ebf1;
-  --card: #171d25;
-  --card-foreground: #e6ebf1;
-  --border: #2a3440;
-  --input: #2f3a47;
-  --primary: #79a8d8;
-  --primary-foreground: #101820;
-  --secondary: #202833;
-  --secondary-foreground: #d9e0e7;
-  --accent: #202b36;
-  --accent-foreground: #e6ebf1;
-  --destructive: #d08282;
-  --destructive-foreground: #1b1010;
-  --ring: #79a8d8;
-  --radius: 0.5rem;
+  /* Liquid Glass defaults (html boots with class="theme-rolex" before JS loads).
+     Every chrome surface is a translucent pane over a fixed ambient aurora;
+     --glass-* vars carry the material so all themes share one glass vocabulary. */
+  --background: #0d1219;
+  --foreground: #e8eef6;
+  --muted: rgba(255, 255, 255, 0.055);
+  --muted-foreground: #97a5b8;
+  --popover: rgba(23, 30, 42, 0.86);
+  --popover-foreground: #e8eef6;
+  --card: rgba(255, 255, 255, 0.055);
+  --card-foreground: #e8eef6;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.08);
+  --primary: #8fb7e8;
+  --primary-foreground: #0c1520;
+  --secondary: rgba(255, 255, 255, 0.07);
+  --secondary-foreground: #dbe4ee;
+  --accent: rgba(255, 255, 255, 0.08);
+  --accent-foreground: #e8eef6;
+  --destructive: #e08c8c;
+  --destructive-foreground: #200f0f;
+  --ring: #8fb7e8;
+  --radius: 0.75rem;
 
-  --xp-bg: #11161d;
-  --xp-bg-gradient: #11161d;
-  --xp-surface: #171d25;
-  --xp-surface-light: #202833;
-  --xp-sidebar: #151b23;
-  --xp-chrome: #141a22;
-  --xp-rail: #131920;
-  --xp-inspector: #161c24;
-  --xp-popover: #1b222c;
-  --xp-blue: #79a8d8;
-  --xp-blue-dark: #608bb5;
-  --xp-accent: #79a8d8;
-  --xp-accent-hover: #8cb6df;
-  --xp-purple: #9d96bd;
-  --xp-pink: #bd8fa0;
-  --xp-green: #7fb394;
-  --xp-orange: #c49a72;
-  --xp-yellow: #c6aa70;
-  --xp-red: #d08282;
-  --xp-cyan: #79aeb5;
-  --xp-text: #e6ebf1;
-  --xp-text-secondary: #a8b2bf;
-  --xp-text-muted: #7f8b99;
-  --xp-border: #2a3440;
-  --xp-border-light: #394552;
-  --xp-selection-bg: rgba(121, 168, 216, 0.26);
-  --xp-selection-border: rgba(121, 168, 216, 0.32);
-  --xp-shadow-popover: 0 14px 38px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.2);
+  /* Glass material */
+  --glass-tint: rgba(16, 22, 32, 0.44);
+  --glass-tint-strong: rgba(22, 29, 41, 0.82);
+  --glass-hairline: rgba(255, 255, 255, 0.12);
+  --glass-highlight: rgba(255, 255, 255, 0.14);
+  --glass-well: rgba(255, 255, 255, 0.05);
+  --glass-blur: 32px;
+  --glass-saturate: 1.65;
+  --glass-shadow: 0 16px 48px rgba(3, 7, 15, 0.42), 0 2px 10px rgba(3, 7, 15, 0.3);
+  --glass-dotted: rgba(255, 255, 255, 0.22);
+
+  --xp-bg: #0d1219;
+  --xp-bg-gradient: #0d1219;
+  --xp-surface: rgba(255, 255, 255, 0.05);
+  --xp-surface-light: rgba(255, 255, 255, 0.1);
+  --xp-sidebar: rgba(16, 22, 32, 0.42);
+  --xp-chrome: rgba(14, 20, 29, 0.46);
+  --xp-rail: rgba(12, 17, 26, 0.4);
+  --xp-inspector: rgba(15, 21, 31, 0.44);
+  --xp-popover: rgba(23, 30, 42, 0.86);
+  --xp-blue: #8fb7e8;
+  --xp-blue-dark: #6f9dd4;
+  --xp-accent: #8fb7e8;
+  --xp-accent-hover: #a5c6ef;
+  --xp-purple: #a89fd4;
+  --xp-pink: #d498b4;
+  --xp-green: #85c2a0;
+  --xp-orange: #d4a987;
+  --xp-yellow: #d4bc85;
+  --xp-red: #e08c8c;
+  --xp-cyan: #85bcc2;
+  --xp-text: #e8eef6;
+  --xp-text-secondary: #a3b1c2;
+  --xp-text-muted: #7e8da0;
+  --xp-border: rgba(255, 255, 255, 0.1);
+  --xp-border-light: rgba(255, 255, 255, 0.18);
+  --xp-selection-bg: rgba(143, 183, 232, 0.26);
+  --xp-selection-border: rgba(143, 183, 232, 0.36);
+  --xp-shadow-popover: 0 18px 50px rgba(3, 7, 15, 0.5), 0 4px 14px rgba(3, 7, 15, 0.35);
   --glow-blue: none;
   --glow-purple: none;
   --glow-pink: none;
@@ -107,96 +120,6 @@ html.enhanced-focus *:focus-visible {
   outline: 3px solid var(--xp-blue) !important;
   outline-offset: 2px !important;
   border-radius: 2px;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   FONT SIZE SCALING
-   Applied to html element so all rem-based sizes scale accordingly.
-   ═══════════════════════════════════════════════════════════════════ */
-
-/* Gradient background on the html element itself (Windows/Linux fallback) */
-html.theme-glass {
-  background: linear-gradient(
-    135deg,
-    #0a0a1a 0%,
-    #0f0f2e 25%,
-    #1a0a2e 50%,
-    #0a1a2e 75%,
-    #0a0a1a 100%
-  );
-  background-attachment: fixed;
-  min-height: 100vh;
-}
-
-/* Body gets the gradient background */
-.theme-glass body {
-  background: transparent !important;
-}
-
-/* ── Surface panels ──────────────────────────────────────────── */
-.theme-glass .bg-xp-surface {
-  background-color: #111122;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.theme-glass .bg-xp-surface-light {
-  background-color: #161630;
-}
-
-/* Input fields */
-.theme-glass input,
-.theme-glass select,
-.theme-glass textarea {
-  background-color: rgba(0, 0, 0, 0.3) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-}
-
-/* ── Interactive states ───────────────────────────────────────── */
-.theme-glass .file-item:hover {
-  background-color: rgba(255, 255, 255, 0.06);
-}
-.theme-glass .file-item.selected {
-  background-color: rgba(167, 139, 250, 0.2);
-  border: 1px solid rgba(167, 139, 250, 0.4);
-}
-.theme-glass .sidebar-item:hover {
-  background-color: rgba(255, 255, 255, 0.06);
-}
-.theme-glass .sidebar-item.active {
-  background-color: rgba(99, 102, 241, 0.2);
-}
-.theme-glass .extension-card:hover {
-  border-color: rgba(99, 102, 241, 0.3);
-}
-.theme-glass .tab-item.active {
-  background-color: rgba(99, 102, 241, 0.12);
-  border-bottom-color: #6366f1;
-}
-
-/* ── Scrollbar ────────────────────────────────────────────────── */
-.theme-glass ::-webkit-scrollbar-track {
-  background: transparent;
-}
-.theme-glass ::-webkit-scrollbar-thumb {
-  background: transparent;
-  border-radius: 4px;
-}
-.theme-glass .is-scrolling::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-}
-.theme-glass .is-scrolling::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.18);
-}
-
-/* ── Borders ──────────────────────────────────────────────────── */
-.theme-glass .border-xp-border {
-  border-color: rgba(255, 255, 255, 0.06);
-}
-
-/* ── Nested panels ────────────────────────────────────────────── */
-.theme-glass .bg-xp-surface .bg-xp-bg,
-.theme-glass .bg-xp-bg .bg-xp-bg {
-  background-color: rgba(0, 0, 0, 0.2);
 }
 
 .dark {
@@ -825,199 +748,275 @@ html.high-contrast *:focus-visible {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   WISP QUIET WORKBENCH
-   One restrained interface language across Ink, Slate, and Paper.
-   Legacy theme class names remain for saved-preference compatibility.
+   WISP LIQUID GLASS
+   One glass material language across all themes: translucent chrome
+   floating over a fixed ambient aurora. Legacy theme class names remain
+   for saved-preference compatibility.
    ═══════════════════════════════════════════════════════════════════ */
 
 html.theme-rolex {
   color-scheme: dark;
-  --background: #11161d;
-  --foreground: #e6ebf1;
-  --muted: #202833;
-  --muted-foreground: #9ca8b5;
-  --popover: #1b222c;
-  --popover-foreground: #e6ebf1;
-  --card: #171d25;
-  --card-foreground: #e6ebf1;
-  --border: #2a3440;
-  --input: #2f3a47;
-  --primary: #79a8d8;
-  --primary-foreground: #101820;
-  --secondary: #202833;
-  --secondary-foreground: #d9e0e7;
-  --accent: #202b36;
-  --accent-foreground: #e6ebf1;
-  --destructive: #d08282;
-  --destructive-foreground: #1b1010;
-  --ring: #79a8d8;
+  --background: #0d1219;
+  --foreground: #e8eef6;
+  --muted: rgba(255, 255, 255, 0.055);
+  --muted-foreground: #97a5b8;
+  --popover: rgba(23, 30, 42, 0.86);
+  --popover-foreground: #e8eef6;
+  --card: rgba(255, 255, 255, 0.055);
+  --card-foreground: #e8eef6;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.08);
+  --primary: #8fb7e8;
+  --primary-foreground: #0c1520;
+  --secondary: rgba(255, 255, 255, 0.07);
+  --secondary-foreground: #dbe4ee;
+  --accent: rgba(255, 255, 255, 0.08);
+  --accent-foreground: #e8eef6;
+  --destructive: #e08c8c;
+  --destructive-foreground: #200f0f;
+  --ring: #8fb7e8;
+  --radius: 0.75rem;
 
-  --xp-bg: #11161d;
-  --xp-bg-gradient: #11161d;
-  --xp-surface: #171d25;
-  --xp-surface-light: #202833;
-  --xp-sidebar: #151b23;
-  --xp-chrome: #141a22;
-  --xp-rail: #131920;
-  --xp-inspector: #161c24;
-  --xp-popover: #1b222c;
-  --xp-blue: #79a8d8;
-  --xp-blue-dark: #608bb5;
-  --xp-accent: #79a8d8;
-  --xp-accent-hover: #8cb6df;
-  --xp-purple: #9d96bd;
-  --xp-pink: #bd8fa0;
-  --xp-green: #7fb394;
-  --xp-orange: #c49a72;
-  --xp-yellow: #c6aa70;
-  --xp-red: #d08282;
-  --xp-cyan: #79aeb5;
-  --xp-text: #e6ebf1;
-  --xp-text-secondary: #a8b2bf;
-  --xp-text-muted: #7f8b99;
-  --xp-border: #2a3440;
-  --xp-border-light: #394552;
-  --xp-selection-bg: rgba(121, 168, 216, 0.26);
-  --xp-selection-border: rgba(121, 168, 216, 0.32);
-  --xp-shadow-popover: 0 14px 38px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.2);
+  --glass-tint: rgba(16, 22, 32, 0.44);
+  --glass-tint-strong: rgba(22, 29, 41, 0.82);
+  --glass-hairline: rgba(255, 255, 255, 0.12);
+  --glass-highlight: rgba(255, 255, 255, 0.14);
+  --glass-well: rgba(255, 255, 255, 0.05);
+  --glass-blur: 32px;
+  --glass-saturate: 1.65;
+  --glass-shadow: 0 16px 48px rgba(3, 7, 15, 0.42), 0 2px 10px rgba(3, 7, 15, 0.3);
+  --glass-dotted: rgba(255, 255, 255, 0.22);
+
+  --xp-bg: #0d1219;
+  --xp-bg-gradient: #0d1219;
+  --xp-surface: rgba(255, 255, 255, 0.05);
+  --xp-surface-light: rgba(255, 255, 255, 0.1);
+  --xp-sidebar: rgba(16, 22, 32, 0.42);
+  --xp-chrome: rgba(14, 20, 29, 0.46);
+  --xp-rail: rgba(12, 17, 26, 0.4);
+  --xp-inspector: rgba(15, 21, 31, 0.44);
+  --xp-popover: rgba(23, 30, 42, 0.86);
+  --xp-blue: #8fb7e8;
+  --xp-blue-dark: #6f9dd4;
+  --xp-accent: #8fb7e8;
+  --xp-accent-hover: #a5c6ef;
+  --xp-purple: #a89fd4;
+  --xp-pink: #d498b4;
+  --xp-green: #85c2a0;
+  --xp-orange: #d4a987;
+  --xp-yellow: #d4bc85;
+  --xp-red: #e08c8c;
+  --xp-cyan: #85bcc2;
+  --xp-text: #e8eef6;
+  --xp-text-secondary: #a3b1c2;
+  --xp-text-muted: #7e8da0;
+  --xp-border: rgba(255, 255, 255, 0.1);
+  --xp-border-light: rgba(255, 255, 255, 0.18);
+  --xp-selection-bg: rgba(143, 183, 232, 0.26);
+  --xp-selection-border: rgba(143, 183, 232, 0.36);
+  --xp-shadow-popover: 0 18px 50px rgba(3, 7, 15, 0.5), 0 4px 14px rgba(3, 7, 15, 0.35);
   --glow-blue: none;
   --glow-purple: none;
   --glow-pink: none;
   --glow-green: none;
+
+  /* Ambient aurora — the fixed scene every glass pane refracts */
+  background:
+    radial-gradient(1100px 720px at 12% -8%, rgba(93, 95, 239, 0.34), transparent 62%),
+    radial-gradient(900px 620px at 90% 10%, rgba(45, 183, 196, 0.2), transparent 60%),
+    radial-gradient(1000px 760px at 80% 94%, rgba(196, 74, 140, 0.26), transparent 64%),
+    radial-gradient(820px 640px at 16% 90%, rgba(59, 86, 180, 0.32), transparent 62%), var(--xp-bg);
+  background-attachment: fixed;
 }
 
 html.theme-glass {
-  color-scheme: dark;
-  --background: #242a32;
-  --foreground: #edf0f3;
-  --muted: #343c46;
-  --muted-foreground: #b2bac3;
-  --popover: #303842;
-  --popover-foreground: #edf0f3;
-  --card: #2b323b;
-  --card-foreground: #edf0f3;
-  --border: #3b4550;
-  --input: #414b57;
-  --primary: #8aa8c8;
-  --primary-foreground: #18202a;
-  --secondary: #343c46;
-  --secondary-foreground: #e3e7eb;
-  --accent: #35404b;
-  --accent-foreground: #edf0f3;
-  --destructive: #d69191;
-  --destructive-foreground: #211313;
-  --ring: #8aa8c8;
+  color-scheme: light;
+  --background: #eef1f6;
+  --foreground: #1c2733;
+  --muted: rgba(22, 36, 54, 0.055);
+  --muted-foreground: #4f5e70;
+  --popover: rgba(255, 255, 255, 0.88);
+  --popover-foreground: #1c2733;
+  --card: rgba(255, 255, 255, 0.55);
+  --card-foreground: #1c2733;
+  --border: rgba(28, 39, 51, 0.1);
+  --input: rgba(255, 255, 255, 0.55);
+  --primary: #4a6fa5;
+  --primary-foreground: #ffffff;
+  --secondary: rgba(22, 36, 54, 0.06);
+  --secondary-foreground: #2b3a4b;
+  --accent: rgba(22, 36, 54, 0.07);
+  --accent-foreground: #1c2733;
+  --destructive: #c26060;
+  --destructive-foreground: #ffffff;
+  --ring: #4a6fa5;
+  --radius: 0.75rem;
 
-  --xp-bg: #242a32;
-  --xp-bg-gradient: #242a32;
-  --xp-surface: #2b323b;
-  --xp-surface-light: #343c46;
-  --xp-sidebar: #292f38;
-  --xp-chrome: #282f37;
-  --xp-rail: #272d35;
-  --xp-inspector: #2a3139;
-  --xp-popover: #303842;
-  --xp-blue: #8aa8c8;
-  --xp-blue-dark: #708dab;
-  --xp-accent: #8aa8c8;
-  --xp-accent-hover: #9bb6d2;
-  --xp-purple: #aaa1c1;
-  --xp-pink: #c09ba8;
-  --xp-green: #8bb69a;
-  --xp-orange: #c3a17f;
-  --xp-yellow: #c8ae78;
-  --xp-red: #d69191;
-  --xp-cyan: #88b1b7;
-  --xp-text: #edf0f3;
-  --xp-text-secondary: #bac1c9;
-  --xp-text-muted: #909aa5;
-  --xp-border: #3b4550;
-  --xp-border-light: #4b5662;
-  --xp-selection-bg: rgba(138, 168, 200, 0.3);
-  --xp-selection-border: rgba(138, 168, 200, 0.34);
-  --xp-shadow-popover: 0 14px 36px rgba(9, 12, 16, 0.26), 0 2px 8px rgba(9, 12, 16, 0.18);
+  --glass-tint: rgba(255, 255, 255, 0.46);
+  --glass-tint-strong: rgba(255, 255, 255, 0.86);
+  --glass-hairline: rgba(255, 255, 255, 0.75);
+  --glass-highlight: rgba(255, 255, 255, 0.9);
+  --glass-well: rgba(255, 255, 255, 0.5);
+  --glass-blur: 32px;
+  --glass-saturate: 1.7;
+  --glass-shadow:
+    0 0 0 1px rgba(30, 42, 56, 0.08), 0 16px 44px rgba(45, 60, 85, 0.16),
+    0 2px 8px rgba(45, 60, 85, 0.08);
+  --glass-dotted: rgba(30, 45, 65, 0.3);
+
+  --xp-bg: #eef1f6;
+  --xp-bg-gradient: #eef1f6;
+  --xp-surface: rgba(255, 255, 255, 0.55);
+  --xp-surface-light: rgba(255, 255, 255, 0.72);
+  --xp-sidebar: rgba(255, 255, 255, 0.44);
+  --xp-chrome: rgba(255, 255, 255, 0.46);
+  --xp-rail: rgba(255, 255, 255, 0.4);
+  --xp-inspector: rgba(255, 255, 255, 0.5);
+  --xp-popover: rgba(255, 255, 255, 0.88);
+  --xp-blue: #4a6fa5;
+  --xp-blue-dark: #3c5d8a;
+  --xp-accent: #4a6fa5;
+  --xp-accent-hover: #3c5d8a;
+  --xp-purple: #7a6fae;
+  --xp-pink: #b06484;
+  --xp-green: #3f8463;
+  --xp-orange: #a5744a;
+  --xp-yellow: #9a7d3f;
+  --xp-red: #c26060;
+  --xp-cyan: #3f7f88;
+  --xp-text: #1c2733;
+  --xp-text-secondary: #4c5b6d;
+  --xp-text-muted: #6a7787;
+  --xp-border: rgba(30, 42, 56, 0.1);
+  --xp-border-light: rgba(30, 42, 56, 0.16);
+  --xp-selection-bg: rgba(74, 111, 165, 0.22);
+  --xp-selection-border: rgba(74, 111, 165, 0.3);
+  --xp-shadow-popover:
+    0 0 0 1px rgba(30, 42, 56, 0.08), 0 18px 44px rgba(45, 60, 85, 0.18),
+    0 4px 12px rgba(45, 60, 85, 0.1);
   --glow-blue: none;
   --glow-purple: none;
   --glow-pink: none;
   --glow-green: none;
+
+  /* Daylight aurora — periwinkle / aqua / blossom over pale ground */
+  background:
+    radial-gradient(1000px 680px at 10% -6%, rgba(148, 160, 244, 0.55), transparent 62%),
+    radial-gradient(900px 600px at 92% 8%, rgba(140, 214, 232, 0.5), transparent 60%),
+    radial-gradient(950px 700px at 82% 95%, rgba(238, 168, 214, 0.48), transparent 64%),
+    radial-gradient(800px 600px at 12% 92%, rgba(250, 206, 168, 0.42), transparent 62%),
+    var(--xp-bg);
+  background-attachment: fixed;
 }
 
 html.theme-light {
   color-scheme: light;
-  --background: #f1f3f5;
-  --foreground: #26313b;
-  --muted: #e4e8ec;
-  --muted-foreground: #5f6a76;
-  --popover: #f8f9fa;
-  --popover-foreground: #26313b;
-  --card: #e8ecf0;
-  --card-foreground: #26313b;
-  --border: #d2d8de;
-  --input: #cbd2d9;
+  --background: #f0f2f5;
+  --foreground: #202b37;
+  --muted: rgba(25, 38, 55, 0.05);
+  --muted-foreground: #53616f;
+  --popover: rgba(255, 255, 255, 0.9);
+  --popover-foreground: #202b37;
+  --card: rgba(255, 255, 255, 0.6);
+  --card-foreground: #202b37;
+  --border: rgba(30, 42, 56, 0.1);
+  --input: rgba(255, 255, 255, 0.6);
   --primary: #44688c;
-  --primary-foreground: #f7f9fa;
-  --secondary: #e4e8ec;
-  --secondary-foreground: #34414d;
-  --accent: #dfe5ea;
-  --accent-foreground: #26313b;
-  --destructive: #9e5151;
+  --primary-foreground: #ffffff;
+  --secondary: rgba(25, 38, 55, 0.055);
+  --secondary-foreground: #31404f;
+  --accent: rgba(25, 38, 55, 0.065);
+  --accent-foreground: #202b37;
+  --destructive: #a95252;
   --destructive-foreground: #ffffff;
   --ring: #44688c;
+  --radius: 0.75rem;
 
-  --xp-bg: #f1f3f5;
-  --xp-bg-gradient: #f1f3f5;
-  --xp-surface: #e8ecf0;
-  --xp-surface-light: #dde3e8;
-  --xp-sidebar: #eceff2;
-  --xp-chrome: #e7ebef;
-  --xp-rail: #e4e8ec;
-  --xp-inspector: #edf0f2;
-  --xp-popover: #f8f9fa;
+  --glass-tint: rgba(255, 255, 255, 0.52);
+  --glass-tint-strong: rgba(255, 255, 255, 0.88);
+  --glass-hairline: rgba(255, 255, 255, 0.78);
+  --glass-highlight: rgba(255, 255, 255, 0.92);
+  --glass-well: rgba(255, 255, 255, 0.55);
+  --glass-blur: 30px;
+  --glass-saturate: 1.55;
+  --glass-shadow:
+    0 0 0 1px rgba(30, 42, 56, 0.07), 0 14px 40px rgba(45, 60, 85, 0.14),
+    0 2px 8px rgba(45, 60, 85, 0.07);
+  --glass-dotted: rgba(30, 45, 65, 0.26);
+
+  --xp-bg: #f0f2f5;
+  --xp-bg-gradient: #f0f2f5;
+  --xp-surface: rgba(255, 255, 255, 0.6);
+  --xp-surface-light: rgba(255, 255, 255, 0.75);
+  --xp-sidebar: rgba(255, 255, 255, 0.48);
+  --xp-chrome: rgba(255, 255, 255, 0.5);
+  --xp-rail: rgba(255, 255, 255, 0.44);
+  --xp-inspector: rgba(255, 255, 255, 0.55);
+  --xp-popover: rgba(255, 255, 255, 0.9);
   --xp-blue: #44688c;
   --xp-blue-dark: #3a5c7e;
-  --xp-accent: #44668c;
+  --xp-accent: #44688c;
   --xp-accent-hover: #3a5d80;
-  --xp-purple: #655d7e;
-  --xp-pink: #8a5f6d;
-  --xp-green: #437357;
-  --xp-orange: #866647;
-  --xp-yellow: #7d6739;
-  --xp-red: #9e5151;
-  --xp-cyan: #447279;
-  --xp-text: #26313b;
-  --xp-text-secondary: #57646f;
-  --xp-text-muted: #64707c;
-  --xp-border: #d2d8de;
-  --xp-border-light: #bec7d0;
-  --xp-selection-bg: rgba(68, 104, 140, 0.22);
+  --xp-purple: #6d6795;
+  --xp-pink: #a05f74;
+  --xp-green: #417a5a;
+  --xp-orange: #96684a;
+  --xp-yellow: #8d7440;
+  --xp-red: #a95252;
+  --xp-cyan: #40757d;
+  --xp-text: #202b37;
+  --xp-text-secondary: #4e5d6d;
+  --xp-text-muted: #6b7887;
+  --xp-border: rgba(30, 42, 56, 0.1);
+  --xp-border-light: rgba(30, 42, 56, 0.16);
+  --xp-selection-bg: rgba(68, 104, 140, 0.2);
   --xp-selection-border: rgba(68, 104, 140, 0.28);
-  --xp-shadow-popover: 0 14px 34px rgba(32, 43, 53, 0.14), 0 2px 7px rgba(32, 43, 53, 0.08);
+  --xp-shadow-popover:
+    0 0 0 1px rgba(30, 42, 56, 0.07), 0 16px 40px rgba(45, 60, 85, 0.15),
+    0 4px 12px rgba(45, 60, 85, 0.09);
   --glow-blue: none;
   --glow-purple: none;
   --glow-pink: none;
   --glow-green: none;
-}
 
-html.theme-rolex,
-html.theme-glass,
-html.theme-light {
-  background: var(--xp-bg);
-  background-image: none;
-  min-height: 100vh;
+  /* Mist aurora — softer daylight washes */
+  background:
+    radial-gradient(1000px 680px at 10% -6%, rgba(158, 172, 240, 0.4), transparent 62%),
+    radial-gradient(900px 600px at 92% 8%, rgba(150, 216, 230, 0.36), transparent 60%),
+    radial-gradient(950px 700px at 82% 95%, rgba(238, 180, 214, 0.32), transparent 64%),
+    radial-gradient(800px 600px at 12% 92%, rgba(248, 214, 182, 0.3), transparent 62%), var(--xp-bg);
+  background-attachment: fixed;
 }
 
 :is(.theme-rolex, .theme-glass, .theme-light) body {
-  background: var(--xp-bg) !important;
+  background: transparent !important;
   color: var(--xp-text);
   font-family:
     -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable", "Segoe UI", sans-serif;
   letter-spacing: -0.006em;
 }
 
+/* Grounds become frosted panes over the aurora — page canvases, dialog
+   sheets, and popovers that reuse the ground token all read as glass. */
+:is(.theme-rolex, .theme-glass, .theme-light) .bg-xp-bg,
+:is(.theme-rolex, .theme-glass, .theme-light) .bg-background {
+  background-color: var(--glass-tint);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.75)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(calc(var(--glass-blur) * 0.75)) saturate(var(--glass-saturate));
+}
+
+:is(.theme-rolex, .theme-glass, .theme-light) .bg-xp-bg\/60 {
+  background-color: var(--glass-well);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 :is(.theme-rolex, .theme-glass, .theme-light) .bg-xp-surface {
-  background-color: var(--xp-surface);
+  background-color: var(--glass-tint);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.75)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(calc(var(--glass-blur) * 0.75)) saturate(var(--glass-saturate));
   border-width: 0;
-  box-shadow: none;
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
 }
 
 :is(.theme-rolex, .theme-glass, .theme-light) .bg-xp-surface.border,
@@ -1054,10 +1053,25 @@ html.theme-light {
 :is(.theme-rolex, .theme-glass, .theme-light) input,
 :is(.theme-rolex, .theme-glass, .theme-light) select,
 :is(.theme-rolex, .theme-glass, .theme-light) textarea {
-  background-color: var(--xp-popover) !important;
-  border-color: var(--xp-border) !important;
+  background-color: var(--glass-well) !important;
+  border-color: var(--glass-hairline) !important;
   color: var(--xp-text) !important;
-  box-shadow: none;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* Floating layers — menus, popovers, dialogs read as thicker glass */
+:is(.theme-rolex, .theme-glass, .theme-light) .bg-xp-popover,
+:is(.theme-rolex, .theme-glass, .theme-light) .bg-popover {
+  background-color: var(--glass-tint-strong) !important;
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.25)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.25)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow);
+}
+
+:is(.theme-rolex, .theme-glass, .theme-light) .bg-card {
+  background-color: var(--glass-tint-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
 }
 
 :is(.theme-rolex, .theme-glass, .theme-light) .file-item:hover,
@@ -1112,15 +1126,54 @@ html.theme-light {
 }
 
 .wisp-shell {
-  background: var(--xp-bg) !important;
+  background: transparent !important;
+}
+
+/* Window chrome — every pane is real glass over the aurora */
+.wisp-titlebar,
+.wisp-sidebar,
+.wisp-panel-rail,
+.wisp-inspector,
+.wisp-operationbar,
+.wisp-statusbar {
+  background: var(--glass-tint) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
 }
 
 .wisp-titlebar {
-  background: var(--xp-chrome) !important;
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    inset 0 -1px 0 var(--glass-hairline) !important;
 }
 
 .wisp-sidebar {
-  background: var(--xp-sidebar) !important;
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    inset -1px 0 0 var(--glass-hairline) !important;
+}
+
+.wisp-panel-rail {
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    inset -1px 0 0 var(--glass-hairline) !important;
+}
+
+.wisp-inspector {
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    inset 1px 0 0 var(--glass-hairline) !important;
+}
+
+.wisp-operationbar {
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    inset 0 -1px 0 var(--glass-hairline) !important;
+}
+
+.wisp-statusbar {
+  box-shadow: inset 0 1px 0 var(--glass-hairline) !important;
+  min-height: 22px;
 }
 
 .wisp-sidebar button:focus {
@@ -1139,23 +1192,6 @@ html.theme-light {
   color: var(--xp-text) !important;
 }
 
-.wisp-panel-rail {
-  background: var(--xp-rail) !important;
-}
-
-.wisp-inspector {
-  background: var(--xp-inspector) !important;
-}
-
-.wisp-operationbar {
-  background: var(--xp-bg) !important;
-}
-
-.wisp-statusbar {
-  background: var(--xp-chrome) !important;
-  min-height: 22px;
-}
-
 .wisp-panel-button-active {
   background: var(--xp-selection-bg) !important;
   color: var(--xp-blue) !important;
@@ -1163,8 +1199,8 @@ html.theme-light {
 }
 
 .wisp-home-icon {
-  background: var(--xp-surface-light);
-  border: 1px solid var(--xp-border);
+  background: var(--glass-well);
+  border: 1px solid var(--glass-hairline);
   color: var(--xp-blue);
 }
 
@@ -1177,10 +1213,205 @@ html.theme-light {
   box-shadow: var(--xp-shadow-popover);
 }
 
-.wisp-shell .backdrop-blur-xl,
-.wisp-shell .backdrop-blur-sm {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
+/* ═══════════════════════════════════════════════════════════════════
+   LIQUID GLASS CARDS
+   .glass-card — frosted pane with a soft ambient color wash behind the
+   content (set --tint-a/--tint-b per card). The backdrop-filter lives on
+   the ::before layer with border-radius: inherit — applying it to the
+   rounded element itself makes Chromium paint square-corner frost ghosts
+   past the radius.
+   .glass-dotted — the signature fine dotted hairline inset from the edge.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.glass-card {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    var(--glass-shadow);
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      40% 50% at 26% 20%,
+      color-mix(in srgb, var(--tint-a, transparent) 45%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      46% 56% at 80% 86%,
+      color-mix(in srgb, var(--tint-b, transparent) 45%, transparent),
+      transparent 64%
+    ),
+    var(--glass-tint);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.75)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(calc(var(--glass-blur) * 0.75)) saturate(var(--glass-saturate));
+  pointer-events: none;
+}
+
+.glass-dotted::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px dotted var(--glass-dotted);
+  border-radius: calc(1rem - 5px);
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MARKDOWN PREVIEW TYPOGRAPHY (react-markdown output)
+   Sized for the inspector panel; colours come from the theme tokens.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.md-preview {
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--xp-text);
+}
+
+.md-preview > :first-child {
+  margin-top: 0;
+}
+
+.md-preview h1,
+.md-preview h2,
+.md-preview h3,
+.md-preview h4 {
+  color: var(--xp-text);
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.4em 0 0.5em;
+}
+
+.md-preview h1 {
+  font-size: 1.45em;
+  border-bottom: 1px solid var(--xp-border);
+  padding-bottom: 0.3em;
+}
+
+.md-preview h2 {
+  font-size: 1.25em;
+}
+
+.md-preview h3 {
+  font-size: 1.1em;
+}
+
+.md-preview p {
+  margin: 0.65em 0;
+}
+
+.md-preview a {
+  color: var(--xp-blue);
+  text-decoration: none;
+}
+
+.md-preview a:hover {
+  text-decoration: underline;
+}
+
+.md-preview ul,
+.md-preview ol {
+  padding-left: 1.4em;
+  margin: 0.6em 0;
+}
+
+.md-preview ul {
+  list-style: disc;
+}
+
+.md-preview ol {
+  list-style: decimal;
+}
+
+.md-preview li {
+  margin: 0.25em 0;
+}
+
+.md-preview li input[type="checkbox"] {
+  margin-right: 0.4em;
+  accent-color: var(--xp-blue);
+}
+
+.md-preview blockquote {
+  border-left: 2px solid var(--xp-border-light);
+  color: var(--xp-text-secondary);
+  padding: 0.1em 0.9em;
+  margin: 0.8em 0;
+}
+
+.md-preview hr {
+  border: none;
+  border-top: 1px solid var(--xp-border);
+  margin: 1.4em 0;
+}
+
+.md-preview table {
+  border-collapse: collapse;
+  margin: 0.8em 0;
+  font-size: 12px;
+  display: block;
+  overflow-x: auto;
+}
+
+.md-preview th,
+.md-preview td {
+  border: 1px solid var(--xp-border);
+  padding: 0.35em 0.7em;
+  text-align: left;
+}
+
+.md-preview th {
+  background: var(--glass-well);
+  font-weight: 600;
+}
+
+.md-preview img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.md-inline-code {
+  font-family: "SF Mono", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  background: var(--glass-well);
+  border: 1px solid var(--xp-border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  color: var(--xp-pink);
+}
+
+.md-code-fallback,
+.md-code.shiki {
+  font-family: "SF Mono", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.55;
+  background: var(--glass-well) !important;
+  border: 1px solid var(--xp-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  margin: 0.8em 0;
+}
+
+.md-code-fallback code {
+  color: var(--xp-text);
+}
+
+/* Shiki dual theme: light tokens by default, ink theme flips to dark */
+.code-highlight span {
+  color: var(--shiki-light);
+}
+
+html.theme-rolex .code-highlight span {
+  color: var(--shiki-dark);
 }
 
 :is(.theme-rolex, .theme-glass, .theme-light) .transition-all {
@@ -1220,4 +1451,394 @@ html.high-contrast.theme-light {
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   WEATHER FX — global ambience driven by live weather.
+   A fixed, pointer-transparent layer at z-index:-1: above the html
+   aurora, below every panel — so frosted panes refract falling rain
+   and snow. Pure CSS animation; layers only exist when the scene needs
+   them. Tints are additive over whichever theme is active.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.weather-fx {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.weather-fx-tint {
+  position: absolute;
+  inset: 0;
+  transition: background 2.5s ease;
+}
+
+/* Scene tints (additive washes over the theme aurora) */
+.weather-scene-clear-day .weather-fx-tint {
+  background:
+    radial-gradient(900px 520px at 82% 10%, rgba(255, 200, 115, 0.2), transparent 65%),
+    radial-gradient(1100px 640px at 18% 100%, rgba(255, 176, 96, 0.1), transparent 60%);
+}
+.weather-scene-clear-night .weather-fx-tint {
+  background:
+    radial-gradient(900px 550px at 80% 12%, rgba(150, 170, 255, 0.14), transparent 65%),
+    radial-gradient(1000px 600px at 14% 92%, rgba(88, 110, 200, 0.12), transparent 62%);
+}
+.weather-scene-partly-day .weather-fx-tint {
+  background:
+    radial-gradient(900px 500px at 80% 10%, rgba(255, 212, 130, 0.14), transparent 62%),
+    radial-gradient(1000px 600px at 30% 30%, rgba(165, 185, 225, 0.1), transparent 65%);
+}
+.weather-scene-partly-night .weather-fx-tint {
+  background:
+    radial-gradient(900px 520px at 80% 12%, rgba(150, 170, 255, 0.1), transparent 62%),
+    radial-gradient(900px 600px at 25% 42%, rgba(120, 140, 190, 0.1), transparent 65%);
+}
+.weather-scene-cloudy .weather-fx-tint {
+  background: linear-gradient(180deg, rgba(125, 135, 155, 0.15), rgba(92, 102, 122, 0.1));
+}
+.weather-scene-fog .weather-fx-tint {
+  background: linear-gradient(180deg, rgba(150, 160, 175, 0.17), rgba(130, 140, 155, 0.12));
+}
+.weather-scene-rain .weather-fx-tint {
+  background: linear-gradient(180deg, rgba(58, 88, 120, 0.22), rgba(38, 58, 90, 0.17));
+}
+.weather-scene-snow .weather-fx-tint {
+  background: linear-gradient(180deg, rgba(168, 190, 220, 0.17), rgba(140, 160, 200, 0.12));
+}
+.weather-scene-storm .weather-fx-tint {
+  background: linear-gradient(180deg, rgba(38, 48, 78, 0.3), rgba(24, 30, 52, 0.24));
+}
+
+/* ── Light (abstract — no celestial bodies) ─────────────────── */
+.weather-glow {
+  position: absolute;
+  pointer-events: none;
+}
+
+.weather-glow-sun {
+  top: -140px;
+  right: -80px;
+  width: 680px;
+  height: 620px;
+  background: radial-gradient(
+    ellipse at 62% 38%,
+    rgba(255, 210, 130, 0.34),
+    rgba(255, 186, 110, 0.14) 46%,
+    transparent 72%
+  );
+  animation: weather-breathe 14s ease-in-out infinite;
+}
+
+.weather-glow-moon {
+  top: -110px;
+  right: -60px;
+  width: 620px;
+  height: 560px;
+  background: radial-gradient(
+    ellipse at 58% 40%,
+    rgba(214, 226, 252, 0.26),
+    rgba(168, 190, 240, 0.1) 48%,
+    transparent 74%
+  );
+  opacity: var(--moon-glow, 0.5);
+  transition: opacity 3s ease;
+}
+
+@keyframes weather-breathe {
+  0%,
+  100% {
+    opacity: 0.82;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ── Clouds ─────────────────────────────────────────────────── */
+.weather-cloud {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(30px);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(202, 212, 232, 0.5),
+    rgba(182, 196, 222, 0.16) 60%,
+    transparent 76%
+  );
+  will-change: transform;
+}
+.weather-cloud-a {
+  width: 430px;
+  height: 150px;
+  top: 12%;
+  left: 5%;
+  opacity: 0.85;
+  animation: weather-drift 80s ease-in-out infinite alternate;
+}
+.weather-cloud-b {
+  width: 540px;
+  height: 170px;
+  top: 25%;
+  right: 3%;
+  opacity: 0.6;
+  animation: weather-drift 120s ease-in-out infinite alternate-reverse;
+}
+.weather-cloud-c {
+  width: 660px;
+  height: 210px;
+  top: 5%;
+  left: 28%;
+  opacity: 0.75;
+  animation: weather-drift 95s ease-in-out infinite alternate;
+}
+
+@keyframes weather-drift {
+  from {
+    transform: translateX(-7%);
+  }
+  to {
+    transform: translateX(7%);
+  }
+}
+
+/* ── Rain (SVG streak tiles, two parallax layers) ───────────── */
+.weather-precip {
+  position: absolute;
+  inset: -80px 0 0;
+  opacity: 0.55;
+  will-change: background-position;
+}
+.weather-rain-a {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='190'%3E%3Cg stroke='%23a9c4e2' stroke-width='1' stroke-linecap='round' opacity='0.55'%3E%3Cline x1='12' y1='0' x2='8' y2='28'/%3E%3Cline x1='54' y1='36' x2='50' y2='64'/%3E%3Cline x1='98' y1='6' x2='94' y2='34'/%3E%3Cline x1='126' y1='74' x2='122' y2='102'/%3E%3Cline x1='32' y1='100' x2='28' y2='128'/%3E%3Cline x1='80' y1='128' x2='76' y2='156'/%3E%3C/g%3E%3C/svg%3E");
+  animation: weather-rainfall 0.9s linear infinite;
+}
+.weather-rain-b {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='210' height='260'%3E%3Cg stroke='%23bcd2ea' stroke-width='1.4' stroke-linecap='round' opacity='0.35'%3E%3Cline x1='26' y1='0' x2='20' y2='40'/%3E%3Cline x1='120' y1='52' x2='114' y2='92'/%3E%3Cline x1='182' y1='10' x2='176' y2='50'/%3E%3Cline x1='66' y1='130' x2='60' y2='170'/%3E%3Cline x1='158' y1='176' x2='152' y2='216'/%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.35;
+  animation: weather-rainfall 1.4s linear infinite;
+}
+
+@keyframes weather-rainfall {
+  to {
+    background-position: -110px 760px;
+  }
+}
+
+/* ── Snow (sparse radial dots, gentle sway) ─────────────────── */
+.weather-snow-a {
+  background-image:
+    radial-gradient(2.5px 2.5px at 22px 34px, rgba(255, 255, 255, 0.95), transparent 60%),
+    radial-gradient(2px 2px at 74px 92px, rgba(255, 255, 255, 0.75), transparent 60%),
+    radial-gradient(1.6px 1.6px at 112px 26px, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(2.2px 2.2px at 46px 128px, rgba(255, 255, 255, 0.8), transparent 60%);
+  background-size: 150px 150px;
+  opacity: 0.85;
+  animation: weather-snowfall 15s linear infinite;
+}
+.weather-snow-b {
+  background-image:
+    radial-gradient(1.8px 1.8px at 30px 60px, rgba(255, 255, 255, 0.65), transparent 60%),
+    radial-gradient(2.6px 2.6px at 96px 18px, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(1.4px 1.4px at 140px 110px, rgba(255, 255, 255, 0.45), transparent 60%);
+  background-size: 190px 190px;
+  opacity: 0.55;
+  animation: weather-snowfall 24s linear infinite;
+}
+
+@keyframes weather-snowfall {
+  to {
+    background-position:
+      14px 600px,
+      -12px 600px,
+      22px 600px,
+      -6px 600px;
+  }
+}
+
+/* ── Fog bands ──────────────────────────────────────────────── */
+.weather-fog {
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  height: 190px;
+  filter: blur(28px);
+  background: linear-gradient(90deg, transparent, rgba(192, 202, 218, 0.28), transparent);
+  will-change: transform;
+}
+.weather-fog-a {
+  top: 28%;
+  animation: weather-fogdrift 42s ease-in-out infinite alternate;
+}
+.weather-fog-b {
+  top: 58%;
+  animation: weather-fogdrift 58s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes weather-fogdrift {
+  from {
+    transform: translateX(-6%);
+  }
+  to {
+    transform: translateX(6%);
+  }
+}
+
+/* ── Lightning ──────────────────────────────────────────────── */
+.weather-lightning {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(760px 420px at 68% 16%, rgba(214, 226, 255, 0.3), transparent 70%);
+  opacity: 0;
+  animation: weather-flash 11s linear infinite;
+}
+
+@keyframes weather-flash {
+  0%,
+  91.5%,
+  96%,
+  100% {
+    opacity: 0;
+  }
+  92.5%,
+  94.5% {
+    opacity: 1;
+  }
+  93.5% {
+    opacity: 0.15;
+  }
+}
+
+/* Motion-sensitive users get the tint, none of the movement */
+html.reduce-motion .weather-fx *,
+html.reduce-motion .weather-fx {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SKY-DRIVEN PALETTE — when live weather is known, the whole UI follows
+   the sky: bright days force the light palette, nights / rain / storms
+   force the dark one, cloud & fog keep the theme but wear a gray veil.
+   Appended after the theme blocks so it wins specificity ties.
+   ═══════════════════════════════════════════════════════════════════ */
+
+html[data-sky="day"] {
+  color-scheme: light;
+  --background: #eef1f6;
+  --foreground: #1c2733;
+  --muted: rgba(22, 36, 54, 0.055);
+  --muted-foreground: #4f5e70;
+  --popover: rgba(255, 255, 255, 0.88);
+  --popover-foreground: #1c2733;
+  --card: rgba(255, 255, 255, 0.55);
+  --card-foreground: #1c2733;
+  --border: rgba(28, 39, 51, 0.1);
+  --input: rgba(255, 255, 255, 0.55);
+  --primary: #4a6fa5;
+  --primary-foreground: #ffffff;
+  --secondary: rgba(22, 36, 54, 0.06);
+  --secondary-foreground: #2b3a4b;
+  --accent: rgba(22, 36, 54, 0.07);
+  --accent-foreground: #1c2733;
+  --destructive: #c26060;
+  --destructive-foreground: #ffffff;
+  --ring: #4a6fa5;
+
+  --glass-tint: rgba(255, 255, 255, 0.46);
+  --glass-tint-strong: rgba(255, 255, 255, 0.86);
+  --glass-hairline: rgba(255, 255, 255, 0.75);
+  --glass-highlight: rgba(255, 255, 255, 0.9);
+  --glass-well: rgba(255, 255, 255, 0.5);
+  --glass-shadow:
+    0 0 0 1px rgba(30, 42, 56, 0.08), 0 16px 44px rgba(45, 60, 85, 0.16),
+    0 2px 8px rgba(45, 60, 85, 0.08);
+  --glass-dotted: rgba(30, 45, 65, 0.3);
+
+  --xp-bg: #eef1f6;
+  --xp-bg-gradient: #eef1f6;
+  --xp-surface: rgba(255, 255, 255, 0.55);
+  --xp-surface-light: rgba(255, 255, 255, 0.72);
+  --xp-sidebar: rgba(255, 255, 255, 0.44);
+  --xp-chrome: rgba(255, 255, 255, 0.46);
+  --xp-rail: rgba(255, 255, 255, 0.4);
+  --xp-inspector: rgba(255, 255, 255, 0.5);
+  --xp-popover: rgba(255, 255, 255, 0.88);
+  --xp-text: #1c2733;
+  --xp-text-secondary: #4c5b6d;
+  --xp-text-muted: #6a7787;
+  --xp-border: rgba(30, 42, 56, 0.1);
+  --xp-border-light: rgba(30, 42, 56, 0.16);
+
+  background:
+    radial-gradient(1000px 680px at 12% -8%, rgba(120, 170, 245, 0.5), transparent 62%),
+    radial-gradient(900px 600px at 92% 10%, rgba(255, 208, 130, 0.42), transparent 60%),
+    radial-gradient(950px 700px at 80% 96%, rgba(140, 200, 235, 0.35), transparent 64%),
+    var(--xp-bg);
+  background-attachment: fixed;
+}
+
+html[data-sky="dark"] {
+  color-scheme: dark;
+  --background: #0d1219;
+  --foreground: #e8eef6;
+  --muted: rgba(255, 255, 255, 0.055);
+  --muted-foreground: #97a5b8;
+  --popover: rgba(23, 30, 42, 0.86);
+  --popover-foreground: #e8eef6;
+  --card: rgba(255, 255, 255, 0.055);
+  --card-foreground: #e8eef6;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.08);
+  --primary: #8fb7e8;
+  --primary-foreground: #0c1520;
+  --secondary: rgba(255, 255, 255, 0.07);
+  --secondary-foreground: #dbe4ee;
+  --accent: rgba(255, 255, 255, 0.08);
+  --accent-foreground: #e8eef6;
+  --destructive: #e08c8c;
+  --destructive-foreground: #200f0f;
+  --ring: #8fb7e8;
+
+  --glass-tint: rgba(16, 22, 32, 0.44);
+  --glass-tint-strong: rgba(22, 29, 41, 0.82);
+  --glass-hairline: rgba(255, 255, 255, 0.12);
+  --glass-highlight: rgba(255, 255, 255, 0.14);
+  --glass-well: rgba(255, 255, 255, 0.05);
+  --glass-shadow: 0 16px 48px rgba(3, 7, 15, 0.42), 0 2px 10px rgba(3, 7, 15, 0.3);
+  --glass-dotted: rgba(255, 255, 255, 0.22);
+
+  --xp-bg: #0d1219;
+  --xp-bg-gradient: #0d1219;
+  --xp-surface: rgba(255, 255, 255, 0.05);
+  --xp-surface-light: rgba(255, 255, 255, 0.1);
+  --xp-sidebar: rgba(16, 22, 32, 0.42);
+  --xp-chrome: rgba(14, 20, 29, 0.46);
+  --xp-rail: rgba(12, 17, 26, 0.4);
+  --xp-inspector: rgba(15, 21, 31, 0.44);
+  --xp-popover: rgba(23, 30, 42, 0.86);
+  --xp-text: #e8eef6;
+  --xp-text-secondary: #a3b1c2;
+  --xp-text-muted: #7e8da0;
+  --xp-border: rgba(255, 255, 255, 0.1);
+  --xp-border-light: rgba(255, 255, 255, 0.18);
+
+  background:
+    radial-gradient(1100px 720px at 12% -8%, rgba(70, 78, 190, 0.3), transparent 62%),
+    radial-gradient(900px 620px at 90% 10%, rgba(38, 90, 120, 0.18), transparent 60%),
+    radial-gradient(1000px 760px at 80% 94%, rgba(120, 52, 105, 0.22), transparent 64%),
+    radial-gradient(820px 640px at 16% 90%, rgba(40, 55, 120, 0.3), transparent 62%), #070b12;
+  background-attachment: fixed;
+}
+
+/* Gloom keeps the theme's tokens but wears a gray veil instead of the
+   theme aurora — 阴天稍微压暗，不翻暗色 */
+html[data-sky="gloom"] {
+  background:
+    radial-gradient(1100px 720px at 14% -8%, rgba(140, 150, 168, 0.28), transparent 62%),
+    radial-gradient(900px 620px at 88% 12%, rgba(120, 132, 152, 0.2), transparent 60%),
+    linear-gradient(180deg, rgba(108, 118, 138, 0.16), rgba(90, 100, 120, 0.14)), var(--xp-bg);
+  background-attachment: fixed;
 }

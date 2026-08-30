@@ -17,12 +17,6 @@ vi.mock('@/components/panels/PreviewPanel', () => ({
     </div>
   ),
 }));
-vi.mock('@/components/panels/TokenizerStatusPanel', () => ({
-  default: () => <div data-testid="tokenizer-panel">Content Search</div>,
-}));
-vi.mock('@/components/panels/ExtensionsPanel', () => ({
-  default: () => <div data-testid="extensions-panel">Extensions</div>,
-}));
 vi.mock('@/components/panels/MarketplacePanel', () => ({
   default: () => <div data-testid="marketplace-panel">Marketplace</div>,
 }));
@@ -146,13 +140,6 @@ describe('RightSidebar', () => {
       expect(screen.queryByTestId('ai-panel-switch')).not.toBeInTheDocument();
     });
 
-    it('shows extensions panel when tab is extensions', async () => {
-      renderWithSuspense(<RightSidebar {...defaultProps} rightPanelTab="extensions" />);
-      expect(await screen.findByTestId('extensions-panel')).toBeInTheDocument();
-      const elements = screen.getAllByText('Extensions');
-      expect(elements.length).toBeGreaterThanOrEqual(1);
-    });
-
     it('shows marketplace panel when tab is marketplace', async () => {
       renderWithSuspense(<RightSidebar {...defaultProps} rightPanelTab="marketplace" />);
       expect(await screen.findByTestId('marketplace-panel')).toBeInTheDocument();
@@ -188,11 +175,6 @@ describe('RightSidebar', () => {
         <RightSidebar {...defaultProps} rightPanelTab="preview" selectedFile={file} />,
       );
       expect(await screen.findByText('Preview: test.txt')).toBeInTheDocument();
-    });
-
-    it('renders TokenizerStatusPanel for tokenizer tab', async () => {
-      renderWithSuspense(<RightSidebar {...defaultProps} rightPanelTab="tokenizer" />);
-      expect(await screen.findByTestId('tokenizer-panel')).toBeInTheDocument();
     });
   });
 
@@ -352,7 +334,7 @@ describe('RightSidebar', () => {
       render(
         <RightSidebar
           {...defaultProps}
-          rightPanelTab="extensions"
+          rightPanelTab="performance"
           allFiles={allFiles}
           selectedFiles={selectedFiles}
         />,

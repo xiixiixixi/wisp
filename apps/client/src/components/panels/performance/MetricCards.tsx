@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { formatFileSize } from '@/lib/utils';
 import type { CleanupSuggestion } from '@/hooks/use-performance-stats';
 import {
@@ -7,7 +8,6 @@ import {
   smallBtnStyle,
   suggestionRowStyle,
   StatRow,
-  ProgressBar,
   opColor,
   formatRelativeTime,
 } from '../performance-dashboard-helpers';
@@ -21,17 +21,6 @@ interface DirectoryStats {
   cachedFolderCount: number;
 }
 
-interface IndexingStatus {
-  isAiProcessing: boolean;
-  aiIndexed: number;
-  aiQueueLength: number;
-  currentAiFile?: string;
-  isTokenizerIndexing: boolean;
-  tokenTotalFiles: number;
-  tokenTotalTokens: number;
-  tokenLastUpdated: number;
-}
-
 interface RecentOp {
   id?: number | string;
   operation: string;
@@ -43,13 +32,11 @@ interface RecentOp {
 
 interface MetricCardsProps {
   directoryStats: DirectoryStats;
-  indexingStatus: IndexingStatus;
   recentOps: RecentOp[];
   suggestions: CleanupSuggestion[];
   memoryUsage: number | null;
   isLoading: boolean;
   onRefresh: () => void;
-  onReindex: () => void;
   onSuggestionAction: (s: CleanupSuggestion) => void;
 }
 
@@ -57,15 +44,14 @@ interface MetricCardsProps {
 
 const MetricCards = ({
   directoryStats,
-  indexingStatus,
   recentOps,
   suggestions,
   memoryUsage,
   isLoading,
   onRefresh,
-  onReindex,
   onSuggestionAction,
 }: MetricCardsProps) => {
+  const { t } = useTranslation();
   return (
     <div style={{ padding: '4px 12px 10px' }}>
       {/* Header with refresh */}
@@ -84,144 +70,39 @@ const MetricCards = ({
             ...smallBtnStyle,
             opacity: isLoading ? 0.5 : 1,
           }}
-          title="Refresh stats"
+          title={t('performanceDashboard.refresh')}
         >
-          {isLoading ? 'Loading...' : 'Refresh'}
+          {isLoading ? t('performanceDashboard.refreshing') : t('performanceDashboard.refresh')}
         </button>
       </div>
 
       {/* System Stats Card */}
       <div style={cardStyle}>
-        <div style={cardTitleStyle}>System Stats</div>
-        <StatRow label="Files" value={directoryStats.fileCount.toLocaleString()} />
-        <StatRow label="Folders" value={directoryStats.folderCount.toLocaleString()} />
-        <StatRow label="Total Size" value={formatFileSize(directoryStats.totalSize)} />
-        <StatRow label="Folders Cached" value={`${directoryStats.cachedFolderCount} folders`} />
+        <div style={cardTitleStyle}>{t('performanceDashboard.systemStats')}</div>
+        <StatRow
+          label={t('performanceDashboard.files')}
+          value={directoryStats.fileCount.toLocaleString()}
+        />
+        <StatRow
+          label={t('performanceDashboard.folders')}
+          value={directoryStats.folderCount.toLocaleString()}
+        />
+        <StatRow
+          label={t('performanceDashboard.totalSize')}
+          value={formatFileSize(directoryStats.totalSize)}
+        />
         {memoryUsage !== null && (
-          <StatRow label="JS Heap Usage" value={formatFileSize(memoryUsage)} />
+          <StatRow label={t('performanceDashboard.jsHeap')} value={formatFileSize(memoryUsage)} />
         )}
-      </div>
-
-      {/* Indexing Status Card */}
-      <div style={cardStyle}>
-        <div style={cardTitleStyle}>Indexing Status</div>
-
-        {/* AI Indexer */}
-        <div style={{ marginBottom: 8 }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <span style={{ fontSize: 12, color: 'var(--xp-text-secondary)' }}>AI Indexer</span>
-            <span
-              style={{
-                fontSize: 11,
-                padding: '1px 6px',
-                borderRadius: 3,
-                background: indexingStatus.isAiProcessing
-                  ? 'rgba(59, 130, 246, 0.2)'
-                  : 'rgba(34, 197, 94, 0.15)',
-                color: indexingStatus.isAiProcessing ? '#60a5fa' : '#4ade80',
-              }}
-            >
-              {indexingStatus.isAiProcessing ? 'Indexing' : 'Idle'}
-            </span>
-          </div>
-          <StatRow label="Indexed Files" value={indexingStatus.aiIndexed.toLocaleString()} />
-          {indexingStatus.aiQueueLength > 0 && (
-            <StatRow label="Queue" value={indexingStatus.aiQueueLength.toLocaleString()} />
-          )}
-          {indexingStatus.isAiProcessing && indexingStatus.currentAiFile && (
-            <div
-              style={{
-                fontSize: 11,
-                color: 'var(--xp-text-secondary)',
-                marginTop: 4,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-              title={indexingStatus.currentAiFile}
-            >
-              Current: {indexingStatus.currentAiFile.split(/[\\/]/).pop()}
-            </div>
-          )}
-          {indexingStatus.isAiProcessing && indexingStatus.aiQueueLength > 0 && (
-            <ProgressBar
-              value={indexingStatus.aiIndexed}
-              max={indexingStatus.aiIndexed + indexingStatus.aiQueueLength}
-              color="#3b82f6"
-            />
-          )}
-        </div>
-
-        {/* Separator */}
-        <div style={{ borderTop: '1px solid var(--xp-border)', margin: '8px 0' }} />
-
-        {/* Search Tokenizer */}
-        <div>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <span style={{ fontSize: 12, color: 'var(--xp-text-secondary)' }}>
-              Search Tokenizer
-            </span>
-            <span
-              style={{
-                fontSize: 11,
-                padding: '1px 6px',
-                borderRadius: 3,
-                background: indexingStatus.isTokenizerIndexing
-                  ? 'rgba(59, 130, 246, 0.2)'
-                  : 'rgba(34, 197, 94, 0.15)',
-                color: indexingStatus.isTokenizerIndexing ? '#60a5fa' : '#4ade80',
-              }}
-            >
-              {indexingStatus.isTokenizerIndexing ? 'Indexing' : 'Ready'}
-            </span>
-          </div>
-          <StatRow label="Indexed Files" value={indexingStatus.tokenTotalFiles.toLocaleString()} />
-          <StatRow label="Total Tokens" value={indexingStatus.tokenTotalTokens.toLocaleString()} />
-          {indexingStatus.tokenLastUpdated > 0 && (
-            <StatRow
-              label="Last Updated"
-              value={new Date(indexingStatus.tokenLastUpdated * 1000).toLocaleTimeString()}
-            />
-          )}
-          {indexingStatus.isTokenizerIndexing && (
-            <ProgressBar value={70} max={100} color="#22c55e" />
-          )}
-        </div>
-
-        {/* Reindex button */}
-        <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
-          <button
-            onClick={onReindex}
-            disabled={indexingStatus.isTokenizerIndexing}
-            style={{
-              ...smallBtnStyle,
-              opacity: indexingStatus.isTokenizerIndexing ? 0.5 : 1,
-            }}
-          >
-            Reindex
-          </button>
-        </div>
       </div>
 
       {/* Recent Operations Card */}
       <div style={cardStyle}>
-        <div style={cardTitleStyle}>Recent Operations</div>
+        <div style={cardTitleStyle}>{t('performanceDashboard.recentOps')}</div>
 
         {recentOps.length === 0 ? (
           <div style={{ fontSize: 12, color: 'var(--xp-text-secondary)', padding: '4px 0' }}>
-            No recent operations
+            {t('performanceDashboard.noRecentOps')}
           </div>
         ) : (
           <>
@@ -308,7 +189,7 @@ const MetricCards = ({
                         flexShrink: 0,
                       }}
                     >
-                      {op.paths.length} file{op.paths.length !== 1 ? 's' : ''}
+                      {t('performanceDashboard.filesUnit', { count: op.paths.length })}
                     </span>
                   )}
                   <span
@@ -330,7 +211,7 @@ const MetricCards = ({
       {/* Cleanup Suggestions Card */}
       {suggestions.length > 0 && (
         <div style={cardStyle}>
-          <div style={cardTitleStyle}>Cleanup Suggestions</div>
+          <div style={cardTitleStyle}>{t('performanceDashboard.cleanupSuggestions')}</div>
           {suggestions.map((s, i) => (
             <div
               key={s.id}

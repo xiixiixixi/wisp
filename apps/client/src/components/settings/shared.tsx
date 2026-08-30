@@ -55,7 +55,7 @@ export const SelectField = ({
   label?: string;
 }) => (
   <Select value={value} onValueChange={onChange}>
-    <SelectTrigger className="h-9 min-w-[140px]" aria-label={label}>
+    <SelectTrigger className="h-8 w-44" aria-label={label}>
       <SelectValue />
     </SelectTrigger>
     <SelectContent>
@@ -66,6 +66,29 @@ export const SelectField = ({
       ))}
     </SelectContent>
   </Select>
+);
+
+/**
+ * A grouped settings card: glass panel with a heading, rows separated by
+ * hairlines. The standard container for every settings group — rows go
+ * inside as SettingRow children.
+ */
+export const SettingsSection = ({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) => (
+  <section className="glass-card rounded-xl p-1">
+    <div className="px-3 pb-1 pt-2.5">
+      <h3 className="text-[13px] font-semibold text-xp-text">{title}</h3>
+      {description && <p className="mt-0.5 text-xs text-xp-text-secondary">{description}</p>}
+    </div>
+    <div className="divide-xp-border/40 divide-y">{children}</div>
+  </section>
 );
 
 /** A single setting row: icon + label/desc on the left, control on the right. */
@@ -80,9 +103,9 @@ export const SettingRow = ({
   description?: string;
   children: React.ReactNode;
 }) => (
-  <div className="hover:bg-xp-surface-light/50 group flex items-center justify-between gap-4 rounded-lg px-4 py-3 transition-colors">
+  <div className="hover:bg-xp-surface-light/50 group flex items-center justify-between gap-4 rounded-md px-3 py-3 transition-colors">
     <div className="flex min-w-0 items-center gap-3">
-      {Icon && <Icon size={18} className="shrink-0 text-xp-text-secondary" />}
+      {Icon && <Icon size={17} className="shrink-0 text-xp-text-secondary" />}
       <div className="min-w-0">
         <div className="text-sm font-medium text-xp-text">{label}</div>
         {description && (
@@ -267,6 +290,10 @@ export interface AppSettings {
   aiCustomApiKey: string;
   aiCustomEndpoint: string;
   aiCustomProtocol: 'openai' | 'anthropic';
+  weatherCity: string;
+  weatherLat: number;
+  weatherLon: number;
+  weatherSync: boolean;
 }
 
 /**
@@ -308,6 +335,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   aiCustomApiKey: '',
   aiCustomEndpoint: '',
   aiCustomProtocol: 'openai',
+  weatherCity: '上海',
+  weatherLat: 31.2304,
+  weatherLon: 121.4737,
+  weatherSync: true,
 };
 
 export const SETTINGS_KEY = STORAGE_KEYS.SETTINGS;

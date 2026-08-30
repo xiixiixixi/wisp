@@ -14,6 +14,7 @@ use wisp::extensions;
 use wisp::file_organizer;
 use wisp::file_watcher;
 use wisp::search;
+use wisp::weather;
 use wisp::git;
 use wisp::google_drive;
 use wisp::mcp_host;
@@ -257,8 +258,11 @@ fn main() {
             // File system operations (modular)
             operations::read_directory,
             operations::read_text_file,
+            operations::write_text_file,
             operations::extract_document_text,
             operations::read_binary_file,
+            weather::get_weather,
+            weather::geocode_city,
             operations::get_file_properties,
             operations::get_file_meta_data,
             operations::copy,

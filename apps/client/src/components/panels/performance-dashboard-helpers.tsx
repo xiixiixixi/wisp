@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import React from 'react';
 import {
   Image as ImageIcon,
@@ -157,10 +158,12 @@ export const formatRelativeTime = (timestamp: string): string => {
     const date = new Date(timestamp);
     const now = Date.now();
     const diff = now - date.getTime();
-    if (diff < 60_000) return 'just now';
-    if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-    if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
-    return `${Math.floor(diff / 86_400_000)}d ago`;
+    if (diff < 60_000) return i18n.t('performanceDashboard.justNow');
+    if (diff < 3_600_000)
+      {return i18n.t('performanceDashboard.minutesAgo', { count: Math.floor(diff / 60_000) });}
+    if (diff < 86_400_000)
+      {return i18n.t('performanceDashboard.hoursAgo', { count: Math.floor(diff / 3_600_000) });}
+    return i18n.t('performanceDashboard.daysAgo', { count: Math.floor(diff / 86_400_000) });
   } catch {
     return timestamp;
   }

@@ -6,6 +6,7 @@ import { migrateFolderColorsToFinderTags } from '@/lib/folder-colors';
 import { ensureTagPalette } from '@/lib/file-tags-cache';
 import { installAutoScrollbars } from '@/lib/auto-scrollbars';
 import App from './App';
+import SkySync from '@/components/weather/SkySync';
 import './index.css';
 import { migrateLegacyDefaultView } from './lib/view-default';
 
@@ -38,4 +39,9 @@ window.addEventListener('unhandledrejection', (event) => {
 migrateFolderColorsToFinderTags();
 ensureTagPalette();
 
-createRoot(document.getElementById('root')!).render(<App />);
+createRoot(document.getElementById('root')!).render(
+  <>
+    <SkySync />
+    <App />
+  </>,
+);

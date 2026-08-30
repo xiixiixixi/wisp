@@ -21,26 +21,9 @@ vi.mock('@/lib/constants', () => ({
 }));
 
 describe('TopBar', () => {
-  const mockTabs = [
-    { id: 'home', name: 'Home', path: 'wisp://home', type: 'folder' as const },
-    { id: 'docs', name: 'Documents', path: 'C:\\Users\\Test\\Documents', type: 'folder' as const },
-  ];
-
   const mockProps = {
     leftSidebarCollapsed: false,
     setLeftSidebarCollapsed: vi.fn(),
-    currentPath: 'C:\\Users\\Test',
-    navigateUp: vi.fn(),
-    refetch: vi.fn(),
-    navigateBackInHistory: vi.fn(),
-    navigateForwardInHistory: vi.fn(),
-    canNavigateBackInHistory: vi.fn(() => true),
-    canNavigateForwardInHistory: vi.fn(() => false),
-    tabs: mockTabs,
-    activeTabId: 'home',
-    onSwitchTab: vi.fn(),
-    onCloseTab: vi.fn(),
-    onAddTab: vi.fn(),
     onSplitRight: vi.fn(),
     onSplitDown: vi.fn(),
   };
@@ -82,50 +65,16 @@ describe('TopBar', () => {
   });
 
   describe('Tabs', () => {
-    it('renders all tabs', () => {
+    // Tabs live in each split pane's own tab bar (PaneTabBar); the title bar
+    // no longer duplicates them.
+    it('does not render a tab strip or new-tab button', () => {
       render(<TopBar {...mockProps} />);
-      expect(screen.getByText('Home')).toBeInTheDocument();
-      expect(screen.getByText('Documents')).toBeInTheDocument();
-    });
-
-    // Finder-style: a single tab is the whole window — no tab strip
-    it('hides the tab strip when there is only one tab', () => {
-      const singleTabProps = {
-        ...mockProps,
-        tabs: [mockProps.tabs[0]],
-        activeTabId: mockProps.tabs[0].id,
-      };
-      render(<TopBar {...singleTabProps} />);
-      expect(screen.queryByText('Home')).not.toBeInTheDocument();
-      // The new-tab button stays available either way
-      expect(screen.getByTitle('New tab (Ctrl+T)')).toBeInTheDocument();
-    });
-
-    it('calls onSwitchTab when tab is clicked', () => {
-      render(<TopBar {...mockProps} />);
-      fireEvent.click(screen.getByText('Documents'));
-      expect(mockProps.onSwitchTab).toHaveBeenCalledWith('docs');
-    });
-
-    it('shows close buttons when multiple tabs exist', () => {
-      render(<TopBar {...mockProps} />);
-      expect(screen.getByRole('button', { name: 'Close Documents' })).toBeInTheDocument();
-    });
-
-    it('calls onCloseTab when close button is clicked', () => {
-      render(<TopBar {...mockProps} />);
-      fireEvent.click(screen.getByRole('button', { name: 'Close Documents' }));
-      expect(mockProps.onCloseTab).toHaveBeenCalledWith('docs');
+      expect(screen.queryByTitle('New tab (Ctrl+T)')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'New tab' })).not.toBeInTheDocument();
     });
   });
 
-  describe('Split/Tab Controls', () => {
-    it('calls onAddTab when new tab button is clicked', () => {
-      render(<TopBar {...mockProps} />);
-      fireEvent.click(screen.getByRole('button', { name: 'New tab' }));
-      expect(mockProps.onAddTab).toHaveBeenCalled();
-    });
-
+  describe('Split Controls', () => {
     it('calls onSplitRight when split right button is clicked', () => {
       render(<TopBar {...mockProps} />);
       fireEvent.click(screen.getByRole('button', { name: 'Split right' }));
@@ -144,7 +93,6 @@ describe('TopBar', () => {
       const minimalProps = {
         leftSidebarCollapsed: false,
         setLeftSidebarCollapsed: vi.fn(),
-        currentPath: 'C:\\',
       };
       expect(() => render(<TopBar {...minimalProps} />)).not.toThrow();
     });

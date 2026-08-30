@@ -152,7 +152,6 @@ export const DEMO_DEFAULT_SHORTCUTS: ShortcutBinding[] = [
   B('zoom-out', ['ctrl', '-'], 'ZoomOut', 'Zoom out', 'ctrl+-'),
   // ── Application ──
   B('open-settings', ['ctrl', ','], 'OpenSettings', 'Open settings', 'ctrl+,'),
-  B('new-tab', ['ctrl', 't'], 'NewTab', 'Open new tab', 'ctrl+t'),
   B('close-tab', ['ctrl', 'w'], 'CloseTab', 'Close current tab', 'ctrl+w'),
   B('next-tab', ['ctrl', 'tab'], 'NextTab', 'Switch to next tab', 'ctrl+tab'),
   B(

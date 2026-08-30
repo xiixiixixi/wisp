@@ -16,7 +16,7 @@ const FileAssociationsSettings = () => {
   const entries = Object.entries(prefs);
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-4">
       <SectionTitle title={t('settings.fileAssociations.title')} />
       <p className="px-4 pb-2 text-xs text-xp-text-secondary">
         {t('settings.fileAssociations.description')}
@@ -28,7 +28,7 @@ const FileAssociationsSettings = () => {
         </div>
       ) : (
         <>
-          <div className="space-y-1 px-2">
+          <div className="space-y-4 px-2">
             {entries.map(([ext, handler]) => (
               <div
                 key={ext}

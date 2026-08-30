@@ -49,7 +49,9 @@
     "error": {
       "somethingWentWrong": "出了点问题",
       "tryAgain": "重试"
-    }
+    },
+    "unsaved": "未保存",
+    "saving": "保存中…"
   },
   "updater": {
     "title": "软件更新",
@@ -317,7 +319,12 @@
       "help": "帮助",
       "onboardingTour": "引导教程",
       "onboardingTourDesc": "重新播放应用交互式引导教程",
-      "replayTour": "重新播放"
+      "replayTour": "重新播放",
+      "weatherCity": "天气城市",
+      "weatherCityDesc": "主页天气卡片与全局氛围效果随实际天气变化（雨、雪、阴晴、月相）",
+      "weatherCityPlaceholder": "城市名，如 上海",
+      "weatherSync": "天气氛围",
+      "weatherSyncDesc": "跟随实际天气自动切换整套配色：晴天亮色、夜晚暗色（含月相）、阴天压灰、雨雪有雨雪"
     },
     "explorer": {
       "display": "显示",
@@ -1597,7 +1604,12 @@
     "memory": "内存",
     "disk": "磁盘",
     "diskAvailable": "可用 {{size}}",
-    "statsUnavailable": "实时系统状态需要在桌面版中查看"
+    "statsUnavailable": "实时系统状态需要在桌面版中查看",
+    "greetingMorning": "早上好",
+    "greetingNoon": "中午好",
+    "greetingAfternoon": "下午好",
+    "greetingEvening": "晚上好",
+    "greetingNight": "夜深了"
   },
   "toast": {
     "invalidExtension": "无效的扩展",
@@ -3052,6 +3064,108 @@
       "documents": "前往文稿",
       "applications": "前往应用程序",
       "home": "前往个人文件夹"
+    }
+  },
+  "preview": {
+    "edit": "编辑",
+    "doneEditing": "完成",
+    "rendered": "预览",
+    "cannotPreview": "无法预览此文件",
+    "saveFailed": "保存失败：{{message}}",
+    "unsavedChanges": "有未保存的修改，切换文件将丢弃这些修改。继续？",
+    "htmlPreview": "HTML 预览"
+  },
+  "weather": {
+    "clear": "晴",
+    "partly": "晴间多云",
+    "cloudy": "多云",
+    "overcast": "阴",
+    "fog": "雾",
+    "drizzle": "毛毛雨",
+    "rain": "雨",
+    "snow": "雪",
+    "storm": "雷暴",
+    "moonNew": "新月",
+    "moonWaxingCrescent": "娥眉月",
+    "moonFirstQuarter": "上弦月",
+    "moonWaxingGibbous": "盈凸月",
+    "moonFull": "满月",
+    "moonWaningGibbous": "亏凸月",
+    "moonLastQuarter": "下弦月",
+    "moonWaningCrescent": "残月"
+  },
+  "performanceDashboard": {
+    "title": "性能指标",
+    "collapseAll": "全部折叠",
+    "refresh": "刷新",
+    "refreshing": "刷新中…",
+    "systemStats": "系统统计",
+    "files": "文件",
+    "folders": "文件夹",
+    "totalSize": "总大小",
+    "foldersCached": "已缓存文件夹",
+    "jsHeap": "JS 内存占用",
+    "recentOps": "最近操作",
+    "noRecentOps": "暂无最近操作",
+    "fileOrganizer": "文件整理器",
+    "justNow": "刚刚",
+    "minutesAgo": "{{count}} 分钟前",
+    "hoursAgo": "{{count}} 小时前",
+    "daysAgo": "{{count}} 天前",
+    "filesUnit": "{{count}} 个文件",
+    "cleanupSuggestions": "清理建议"
+  },
+  "organizer": {
+    "analyze": "分析",
+    "analyzing": "分析中…",
+    "scanning": "正在扫描目录…",
+    "clickAnalyze": "点「分析」扫描当前目录",
+    "duplicateCleanup": "重复文件清理",
+    "insights": "洞察",
+    "files": "文件数",
+    "size": "大小",
+    "avg": "平均",
+    "projectNotice": "{{type}}项目",
+    "organize": "自动整理",
+    "organizing": "整理中…",
+    "confirm": "确认",
+    "moving": "移动中…",
+    "previewMoves": "预览：将移动 {{count}} 个文件",
+    "noSuggestions": "没有整理建议——目录已经很整洁！",
+    "Unknown": "未知",
+    "disabledForProjects": "项目目录已停用整理建议",
+    "categoryNames": {
+      "Images": "图片",
+      "Videos": "视频",
+      "Audio": "音频",
+      "Documents": "文档",
+      "Code": "代码",
+      "Archives": "压缩包",
+      "Data": "数据",
+      "Other": "其他",
+      "Software": "软件",
+      "Game": "游戏"
+    },
+    "categories": "分类",
+    "smartSuggestions": "智能建议（{{count}}）",
+    "noDuplicates": "此目录中没有发现重复文件。",
+    "typeDistribution": "类型分布",
+    "largestFiles": "最大的文件",
+    "oldestFiles": "最旧的文件",
+    "typeCount": "{{name}}：{{count}} 个文件（{{pct}}%）",
+    "newest": "（最新）"
+  },
+  "performance": {
+    "suggestions": {
+      "trashTitle": "回收站有 {{count}} 个项目",
+      "trashDesc": "清空回收站可立即释放空间",
+      "emptyTrash": "清空回收站",
+      "largeFilesTitle": "发现 {{count}} 个大文件",
+      "largeFilesDesc": "当前文件夹中有超过 100 MB 的大文件",
+      "showLargeFiles": "查看大文件",
+      "untaggedTitle": "{{count}} 个文件未打标签{{suffix}}",
+      "untaggedDesc": "给文件打上标签，方便整理和搜索",
+      "tagFiles": "去打标签"
     }
   }
 }

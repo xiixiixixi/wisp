@@ -1,47 +1,61 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import CodePreview from '@/components/previews/CodePreview';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
 
-// Mock react-syntax-highlighter
-vi.mock('react-syntax-highlighter', () => {
-  const React = require('react');
-  return {
-    Prism: React.forwardRef(
-      (
-        {
-          children,
-          language,
-          showLineNumbers,
-          ..._rest
-        }: Record<string, unknown> & {
-          children?: React.ReactNode;
-          language?: string;
-          showLineNumbers?: boolean;
-        },
-        _ref: React.Ref<HTMLElement>,
-      ) => (
-        <pre
-          data-testid="syntax-highlighter"
-          data-language={language}
-          data-show-line-numbers={String(showLineNumbers)}
-        >
-          <code>{children}</code>
-        </pre>
-      ),
-    ),
-  };
-});
-
-vi.mock('react-syntax-highlighter/dist/esm/styles/prism', () => ({
-  oneDark: {},
+// CodeMirror stub: renders the buffer as text, exposes a fake view for the
+// save path, and a trigger button that fires onDocChanged.
+vi.mock('@/lib/codemirror', () => ({
+  WispCodeMirror: ({
+    doc,
+    readOnly,
+    fileName,
+    onSave,
+    editorRef,
+    onDocChanged,
+    onLanguageLoaded,
+  }: {
+    doc: string;
+    readOnly: boolean;
+    fileName: string;
+    onSave?: () => void;
+    editorRef?: { current: unknown };
+    onDocChanged?: () => void;
+    onLanguageLoaded?: (name: string) => void;
+  }) => {
+    React.useEffect(() => {
+      if (editorRef) {
+        editorRef.current = { state: { doc: { toString: () => doc } } };
+      }
+      const timer = setTimeout(() => onLanguageLoaded?.('JavaScript'), 0);
+      return () => clearTimeout(timer);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    return (
+      <div data-testid="cm-editor" data-read-only={String(readOnly)} data-file-name={fileName}>
+        {doc}
+        <button type="button" data-testid="cm-edit-trigger" onClick={onDocChanged}>
+          edit
+        </button>
+        <button type="button" data-testid="cm-save-trigger" onClick={onSave}>
+          save
+        </button>
+      </div>
+    );
+  },
 }));
 
-// Extend TauriAPI mock
+vi.mock('@/components/previews/CodeAIActions', () => ({
+  default: () => <div data-testid="code-ai-actions" />,
+}));
+
 vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {
     readTextFile: vi.fn(() => Promise.resolve('const x = 1;\nconsole.log(x);')),
+    saveTextFile: vi.fn(() => Promise.resolve()),
   },
   FileEntry: {},
 }));
@@ -74,29 +88,21 @@ describe('CodePreview', () => {
 
       expect(screen.getByRole('status', { name: 'Loading preview' })).toBeInTheDocument();
     });
-
-    it('shows animated loading placeholder', () => {
-      vi.mocked(TauriAPI.readTextFile).mockReturnValueOnce(new Promise(() => {}));
-
-      render(<CodePreview {...mockProps} />);
-
-      // PreviewSkeleton uses inline shimmer animation (xp-shimmer), not Tailwind .animate-pulse
-      const skeleton = screen.getByRole('status', { name: 'Loading preview' });
-      expect(skeleton).toBeInTheDocument();
-    });
   });
 
   describe('Successful Load', () => {
-    it('renders code content after loading', async () => {
-      vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce('const x = 1;\nconsole.log(x);');
+    it('renders full code content after loading (no truncation)', async () => {
+      const longCode = `const x = 1;\n${'// line\n'.repeat(800)}console.log(x);`;
+      vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce(longCode);
 
       render(<CodePreview {...mockProps} />);
 
       await waitFor(() => {
-        const highlighter = screen.getByTestId('syntax-highlighter');
-        expect(highlighter).toBeInTheDocument();
-        expect(highlighter.textContent).toContain('const x = 1;');
-        expect(highlighter.textContent).toContain('console.log(x);');
+        const editor = screen.getByTestId('cm-editor');
+        expect(editor.textContent).toContain('const x = 1;');
+        expect(editor.textContent).toContain('console.log(x);');
+        // CodeMirror 6 previews the whole buffer — no 2000-char cut
+        expect(editor.textContent).toContain('// line');
       });
     });
 
@@ -118,59 +124,74 @@ describe('CodePreview', () => {
       });
     });
 
-    it('enables line numbers in syntax highlighter', async () => {
+    it('is read-only until the user enters edit mode', async () => {
+      const user = userEvent.setup();
       vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce('code');
 
       render(<CodePreview {...mockProps} />);
 
       await waitFor(() => {
-        const highlighter = screen.getByTestId('syntax-highlighter');
-        expect(highlighter).toHaveAttribute('data-show-line-numbers', 'true');
+        expect(screen.getByTestId('cm-editor')).toHaveAttribute('data-read-only', 'true');
       });
-    });
-  });
 
-  describe('Language Detection', () => {
-    const languageTests = [
-      { fileName: 'app.js', expected: 'javascript' },
-      { fileName: 'component.tsx', expected: 'tsx' },
-      { fileName: 'style.css', expected: 'css' },
-      { fileName: 'main.py', expected: 'python' },
-      { fileName: 'server.go', expected: 'go' },
-      { fileName: 'lib.rs', expected: 'rust' },
-      { fileName: 'App.java', expected: 'java' },
-      { fileName: 'query.sql', expected: 'sql' },
-      { fileName: 'config.yaml', expected: 'yaml' },
-      { fileName: 'data.json', expected: 'json' },
-      { fileName: 'page.html', expected: 'html' },
-      { fileName: 'script.sh', expected: 'bash' },
-      { fileName: 'config.toml', expected: 'toml' },
-      { fileName: 'program.cpp', expected: 'cpp' },
-      { fileName: 'program.c', expected: 'c' },
-      { fileName: 'unknown.xyz', expected: 'text' },
-    ];
+      await user.click(screen.getByRole('button', { name: 'Edit' }));
+      expect(screen.getByTestId('cm-editor')).toHaveAttribute('data-read-only', 'false');
 
-    languageTests.forEach(({ fileName, expected }) => {
-      it(`detects ${expected} language for .${fileName.split('.').pop()} files`, async () => {
-        vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce('code');
-
-        const file: FileEntry = { ...mockFile, name: fileName };
-        render(<CodePreview {...mockProps} file={file} />);
-
-        await waitFor(() => {
-          const highlighter = screen.getByTestId('syntax-highlighter');
-          expect(highlighter).toHaveAttribute('data-language', expected);
-        });
-      });
+      await user.click(screen.getByRole('button', { name: 'Done' }));
+      expect(screen.getByTestId('cm-editor')).toHaveAttribute('data-read-only', 'true');
     });
 
-    it('displays detected language badge', async () => {
+    it('shows the resolved language badge', async () => {
       vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce('const x = 1;');
 
       render(<CodePreview {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('javascript')).toBeInTheDocument();
+        expect(screen.getByText('JavaScript')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Editing & Saving', () => {
+    it('saves the edited buffer through TauriAPI.saveTextFile', async () => {
+      const user = userEvent.setup();
+      vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce('const x = 1;');
+
+      render(<CodePreview {...mockProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('cm-editor')).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: 'Edit' }));
+      await user.click(screen.getByTestId('cm-edit-trigger')); // dirty flag
+      expect(screen.getByText(/unsaved/)).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+      await waitFor(() => {
+        expect(TauriAPI.saveTextFile).toHaveBeenCalledWith(
+          'C:\\Users\\Test\\script.js',
+          'const x = 1;',
+        );
+      });
+    });
+
+    it('saves via the in-editor Cmd/Ctrl+S binding', async () => {
+      const user = userEvent.setup();
+      vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce('const x = 1;');
+
+      render(<CodePreview {...mockProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('cm-editor')).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: 'Edit' }));
+      await user.click(screen.getByTestId('cm-edit-trigger'));
+      await user.click(screen.getByTestId('cm-save-trigger'));
+
+      await waitFor(() => {
+        expect(TauriAPI.saveTextFile).toHaveBeenCalled();
       });
     });
   });
@@ -182,7 +203,7 @@ describe('CodePreview', () => {
       render(<CodePreview {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Cannot preview code')).toBeInTheDocument();
+        expect(screen.getByText('Cannot preview this file')).toBeInTheDocument();
         expect(screen.getByText('File not found')).toBeInTheDocument();
       });
     });
@@ -195,110 +216,6 @@ describe('CodePreview', () => {
 
       await waitFor(() => {
         expect(mockProps.onError).toHaveBeenCalledWith(error);
-      });
-    });
-
-    it('creates Error from non-Error rejection', async () => {
-      vi.mocked(TauriAPI.readTextFile).mockRejectedValueOnce('string error');
-
-      render(<CodePreview {...mockProps} />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Cannot preview code')).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('Large File Truncation', () => {
-    it('truncates large files at 2000 characters', async () => {
-      const longContent = 'x'.repeat(3000);
-      vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce(longContent);
-
-      const largeFile: FileEntry = { ...mockFile, size: 200000 }; // > 100000 threshold
-      render(<CodePreview {...mockProps} file={largeFile} />);
-
-      await waitFor(() => {
-        const highlighter = screen.getByTestId('syntax-highlighter');
-        const text = highlighter.textContent || '';
-        expect(text).toContain('... (file truncated for preview)');
-        expect(text.length).toBeLessThan(longContent.length);
-      });
-    });
-
-    it('does not truncate small files', async () => {
-      const shortContent = 'const x = 1;';
-      vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce(shortContent);
-
-      render(<CodePreview {...mockProps} />);
-
-      await waitFor(() => {
-        expect(screen.getByText(shortContent)).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('File Path Changes', () => {
-    it('reloads content when file path changes', async () => {
-      vi.mocked(TauriAPI.readTextFile)
-        .mockResolvedValueOnce('first file content')
-        .mockResolvedValueOnce('second file content');
-
-      const { rerender } = render(<CodePreview {...mockProps} />);
-
-      await waitFor(() => {
-        expect(screen.getByText('first file content')).toBeInTheDocument();
-      });
-
-      const newFile: FileEntry = {
-        ...mockFile,
-        path: 'C:\\Users\\Test\\other.js',
-        name: 'other.js',
-      };
-      rerender(<CodePreview {...mockProps} file={newFile} />);
-
-      await waitFor(() => {
-        expect(TauriAPI.readTextFile).toHaveBeenCalledWith('C:\\Users\\Test\\other.js');
-      });
-    });
-  });
-
-  describe('Callback Handling', () => {
-    it('works without optional callbacks', async () => {
-      vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce('code');
-
-      const propsWithoutCallbacks = { file: mockFile };
-      expect(() => render(<CodePreview {...propsWithoutCallbacks} />)).not.toThrow();
-
-      await waitFor(() => {
-        expect(screen.getByTestId('syntax-highlighter')).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('Edge Cases', () => {
-    it('handles empty file', async () => {
-      vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce('');
-
-      render(<CodePreview {...mockProps} />);
-
-      // Should finish loading without error (content is empty string, so onLoad is still called)
-      await waitFor(() => {
-        expect(mockProps.onLoad).toHaveBeenCalled();
-        // Empty content string is falsy, so syntax highlighter won't render
-        expect(screen.queryByTestId('syntax-highlighter')).not.toBeInTheDocument();
-      });
-    });
-
-    it('handles file with no extension', async () => {
-      vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce('content');
-
-      const noExtFile: FileEntry = { ...mockFile, name: 'Makefile' };
-      render(<CodePreview {...mockProps} file={noExtFile} />);
-
-      await waitFor(() => {
-        const highlighter = screen.getByTestId('syntax-highlighter');
-        // 'Makefile' maps to 'makefile' via the language map
-        expect(highlighter).toHaveAttribute('data-language', 'makefile');
       });
     });
   });

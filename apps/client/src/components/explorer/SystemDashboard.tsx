@@ -30,18 +30,29 @@ const Gauge = ({
   label,
   subtitle,
   icon,
+  tint,
 }: {
   pct: number | null;
   label: string;
   subtitle: string;
   icon: React.ReactNode;
+  /** Ambient wash colours for the liquid-glass card, [top-left, bottom-right]. */
+  tint: [string, string];
 }) => {
   const hasData = pct !== null;
   const value = hasData ? (pct as number) : 0;
   const color = hasData ? gaugeColor(value) : 'var(--xp-border)';
 
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-xp-border bg-muted p-4 shadow-sm">
+    <div
+      className="glass-card glass-dotted flex items-center gap-4 rounded-2xl p-4"
+      style={
+        {
+          '--tint-a': tint[0],
+          '--tint-b': tint[1],
+        } as React.CSSProperties
+      }
+    >
       <div className="relative flex h-[76px] w-[76px] shrink-0 items-center justify-center">
         <svg viewBox="0 0 76 76" className="h-full w-full -rotate-90" aria-hidden="true">
           <circle
@@ -125,6 +136,7 @@ const SystemDashboard = () => {
           label={t('home.cpu')}
           subtitle={stats ? t('home.cpuCores', { count: navigator.hardwareConcurrency || 0 }) : '—'}
           icon={<Cpu size={13} aria-hidden="true" />}
+          tint={['rgba(99, 112, 255, 0.55)', 'rgba(64, 200, 220, 0.4)']}
         />
         <Gauge
           pct={memPct}
@@ -133,6 +145,7 @@ const SystemDashboard = () => {
             stats ? `${formatFileSize(stats.mem_used)} / ${formatFileSize(stats.mem_total)}` : '—'
           }
           icon={<MemoryStick size={13} aria-hidden="true" />}
+          tint={['rgba(150, 108, 240, 0.5)', 'rgba(235, 108, 180, 0.42)']}
         />
         <Gauge
           pct={diskPct}
@@ -141,6 +154,7 @@ const SystemDashboard = () => {
             stats ? t('home.diskAvailable', { size: formatFileSize(stats.disk_available) }) : '—'
           }
           icon={<HardDrive size={13} aria-hidden="true" />}
+          tint={['rgba(245, 150, 90, 0.48)', 'rgba(235, 90, 110, 0.4)']}
         />
       </div>
     </section>

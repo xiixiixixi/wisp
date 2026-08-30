@@ -43,6 +43,17 @@ pub async fn read_binary_file(path: String) -> Result<Vec<u8>, String> {
 }
 
 #[command]
+pub async fn write_text_file(path: String, content: String) -> Result<(), String> {
+    validate_file_path(&path)?;
+
+    tokio::task::spawn_blocking(move || {
+        fs::write(&path, content).map_err(|e| format!("Failed to write file {}: {}", path, e))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[command]
 pub async fn file_exist(path: String) -> Result<bool, String> {
     validate_file_path(&path)?;
     let path = Path::new(&path);
@@ -73,6 +84,20 @@ mod tests {
     async fn test_read_text_file_nonexistent_returns_error() {
         let result = read_text_file("/nonexistent/path/file.txt".to_string()).await;
         assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_write_text_file_roundtrip() {
+        let temp = tempdir().expect("Failed to create temp dir");
+        let file_path = temp.path().join("written.txt");
+        let content = "edited content\nline 2";
+
+        write_text_file(file_path.to_string_lossy().to_string(), content.to_string())
+            .await
+            .expect("write should succeed");
+
+        let read_back = fs::read_to_string(&file_path).expect("Failed to read back");
+        assert_eq!(read_back, content);
     }
 
     #[tokio::test]

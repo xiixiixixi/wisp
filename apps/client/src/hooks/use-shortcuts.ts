@@ -59,7 +59,6 @@ export interface ShortcutHandlers {
   onToggleFullscreen?: () => void;
   onQuit?: () => void;
   onNewWindow?: () => void;
-  onNewTab?: () => void;
   onCloseTab?: () => void;
   onNextTab?: () => void;
   onPreviousTab?: () => void;
@@ -216,9 +215,6 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
         break;
       case 'GoToPath':
         h.onGoToPath?.();
-        break;
-      case 'NewTab':
-        h.onNewTab?.();
         break;
       case 'ToggleShortcutsDialog':
         h.onToggleShortcutsDialog?.();

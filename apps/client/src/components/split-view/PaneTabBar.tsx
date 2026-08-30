@@ -234,7 +234,7 @@ const PaneTabBar = ({
   groupId: _groupId,
   tabs,
   activeTabId,
-  isActiveGroup,
+  isActiveGroup: _isActiveGroup,
   canClose,
   onSwitchTab,
   onCloseTab,
@@ -444,9 +444,11 @@ const PaneTabBar = ({
       style={{
         display: 'flex',
         alignItems: 'center',
-        borderBottom: `1px solid ${isActiveGroup ? 'var(--xp-blue)' : 'var(--xp-border)'}`,
+        borderBottom: '1px solid var(--xp-border)',
         flexShrink: 0,
         background: 'var(--xp-surface)',
+        padding: '3px 5px',
+        gap: 2,
       }}
       onMouseDown={onFocus}
       onDoubleClick={(e) => {
@@ -461,7 +463,9 @@ const PaneTabBar = ({
       }}
     >
       {/* Tabs */}
-      <div style={{ flex: 1, display: 'flex', overflowX: 'auto', minWidth: 0 }}>
+      <div
+        style={{ flex: 1, display: 'flex', alignItems: 'center', overflowX: 'auto', minWidth: 0 }}
+      >
         {sortedTabs.map((tab, index) => {
           const TabIcon = getTabIcon(tab);
           const isActive = activeTabId === tab.id;
@@ -506,24 +510,22 @@ const PaneTabBar = ({
                 position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
-                padding: isPinned ? '6px 8px' : '6px 12px',
-                borderRight: '1px solid var(--xp-border)',
+                padding: isPinned ? '4px 8px' : '4px 12px',
+                borderRadius: 7,
+                border: '1px solid transparent',
                 cursor: 'pointer',
                 minWidth: 0,
                 maxWidth: isPinned ? 120 : 180,
                 userSelect: 'none',
                 background: (() => {
                   if (isCrossDropTarget) {
-                    return 'color-mix(in srgb, var(--xp-blue) 20%, var(--xp-surface))';
+                    return 'color-mix(in srgb, var(--xp-blue) 20%, var(--xp-surface-light))';
                   }
-                  if (isActive) return 'var(--xp-bg)';
-                  if (isPinned) return 'color-mix(in srgb, var(--xp-blue) 8%, var(--xp-surface))';
+                  if (isActive) return 'var(--xp-surface-light)';
+                  if (isPinned) return 'var(--glass-well)';
                   return 'transparent';
                 })(),
-                borderBottom: (() => {
-                  if (isCrossDropTarget || isActive) return '2px solid var(--xp-blue)';
-                  return '2px solid transparent';
-                })(),
+                boxShadow: 'none',
                 outline: isCrossDropTarget ? '1px dashed var(--xp-blue)' : 'none',
                 outlineOffset: -1,
                 opacity: isBeingDragged ? 0.5 : 1,
@@ -532,14 +534,14 @@ const PaneTabBar = ({
               onMouseEnter={(e) => {
                 if (!isActive) {
                   (e.currentTarget as HTMLElement).style.background = isPinned
-                    ? 'color-mix(in srgb, var(--xp-blue) 12%, var(--xp-surface-light))'
-                    : 'var(--xp-surface-light)';
+                    ? 'color-mix(in srgb, var(--xp-blue) 10%, transparent)'
+                    : 'var(--glass-well)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isActive) {
                   (e.currentTarget as HTMLElement).style.background = isPinned
-                    ? 'color-mix(in srgb, var(--xp-blue) 8%, var(--xp-surface))'
+                    ? 'var(--glass-well)'
                     : 'transparent';
                 }
               }}
@@ -567,11 +569,11 @@ const PaneTabBar = ({
               <span
                 style={{
                   fontSize: 12,
-                  fontWeight: 500,
+                  fontWeight: isActive ? 600 : 500,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  color: 'var(--xp-text)',
+                  color: isActive ? 'var(--xp-text)' : 'var(--xp-text-secondary)',
                 }}
               >
                 {tab.name}

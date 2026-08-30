@@ -125,3 +125,9 @@ declare module 'react-syntax-highlighter/dist/esm/languages/prism/markdown' {
   const lang: unknown;
   export default lang;
 }
+
+// Vite asset imports
+declare module '*?url' {
+  const src: string;
+  export default src;
+}

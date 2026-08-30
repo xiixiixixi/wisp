@@ -11,6 +11,7 @@ export type PreviewType =
   | 'csv'
   | 'json'
   | 'markdown'
+  | 'html'
   | 'video'
   | 'audio'
   | 'archive'
@@ -55,6 +56,7 @@ const DEFAULT_CONFIG: PreviewFactoryConfig = {
     'csv',
     'json',
     'markdown',
+    'html',
     'video',
     'audio',
   ],
@@ -121,18 +123,18 @@ export class PreviewFactory {
         import('@/components/previews/SpreadsheetPreview').then((m) => m.default),
     });
 
-    // Text previews
+    // Text previews — CodeMirror-backed, virtualised so large files are fine
     this.capabilities.set('text', {
       type: 'text',
       extensions: ['txt', 'log', 'ini', 'cfg', 'conf'],
       mimeTypes: ['text/plain'],
-      maxSize: 5 * 1024 * 1024, // 5MB
+      maxSize: 10 * 1024 * 1024, // 10MB
       priority: 8,
       canPreview: (file) => this.canPreviewText(file),
       getPreviewComponent: () => import('@/components/previews/TextPreview').then((m) => m.default),
     });
 
-    // Code previews
+    // Code previews — CodeMirror 6 preview + edit, 100+ lazy languages
     this.capabilities.set('code', {
       type: 'code',
       extensions: [
@@ -149,15 +151,20 @@ export class PreviewFactory {
         'rb',
         'go',
         'rs',
-        'html',
         'css',
         'scss',
         'less',
         'vue',
         'svelte',
+        'sh',
+        'bash',
+        'toml',
+        'sql',
+        'swift',
+        'kt',
       ],
       mimeTypes: ['text/', 'application/javascript', 'application/typescript'],
-      maxSize: 2 * 1024 * 1024, // 2MB
+      maxSize: 10 * 1024 * 1024, // 10MB
       priority: 9,
       canPreview: (file) => this.canPreviewCode(file),
       getPreviewComponent: () => import('@/components/previews/CodePreview').then((m) => m.default),
@@ -185,16 +192,27 @@ export class PreviewFactory {
       getPreviewComponent: () => import('@/components/previews/JsonPreview').then((m) => m.default),
     });
 
-    // Markdown previews
+    // Markdown previews — rendered + editable source tabs
     this.capabilities.set('markdown', {
       type: 'markdown',
       extensions: ['md', 'markdown', 'mdown', 'mkd'],
       mimeTypes: ['text/markdown'],
-      maxSize: 5 * 1024 * 1024, // 5MB
-      priority: 9,
+      maxSize: 10 * 1024 * 1024, // 10MB
+      priority: 10, // beats 'code', whose text/* mime would otherwise match .md first
       canPreview: (file) => this.canPreviewMarkdown(file),
       getPreviewComponent: () =>
         import('@/components/previews/MarkdownPreview').then((m) => m.default),
+    });
+
+    // HTML previews — sandboxed iframe render + editable source
+    this.capabilities.set('html', {
+      type: 'html',
+      extensions: ['html', 'htm'],
+      mimeTypes: ['text/html'],
+      maxSize: 10 * 1024 * 1024, // 10MB
+      priority: 10, // beats 'code' so .html files render instead of showing markup
+      canPreview: (file) => this.canPreviewHtml(file),
+      getPreviewComponent: () => import('@/components/previews/HtmlPreview').then((m) => m.default),
     });
 
     // Video previews
@@ -275,7 +293,19 @@ export class PreviewFactory {
       return await capability.getPreviewComponent();
     } catch (error) {
       console.error(`Failed to load preview component for ${fileType}:`, error);
-      return null;
+      // Rethrow with the top stack frames so the preview panel surfaces the
+      // real cause (and where) instead of a generic "not supported".
+      const err = error instanceof Error ? error : new Error(String(error));
+      const frames = (err.stack || '')
+        .split('\n')
+        .filter((l) => l.includes('.mjs') || l.includes('.js'))
+        .slice(0, 3)
+        .map((l) => l.trim().replace(/^at\s+/, ''));
+      const wrapped = new Error(
+        frames.length ? `${err.message} — ${frames.join(' <- ')}` : err.message,
+      );
+      wrapped.cause = err;
+      throw wrapped;
     }
   }
 
@@ -358,6 +388,11 @@ export class PreviewFactory {
     const capability = this.capabilities.get('markdown')!;
 
     return capability.extensions.includes(ext) || (file.mime_type?.includes('markdown') ?? false);
+  }
+
+  private canPreviewHtml(file: FileEntry): boolean {
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    return ext === 'html' || ext === 'htm' || file.mime_type === 'text/html';
   }
 
   private canPreviewVideo(file: FileEntry): boolean {

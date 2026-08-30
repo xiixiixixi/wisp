@@ -7793,6 +7793,7 @@ dependencies = [
  "tracing-subscriber",
  "trash",
  "unrar",
+ "urlencoding",
  "walkdir",
  "wasmi",
  "winreg 0.55.0",

@@ -9,8 +9,6 @@ import { usePreviewHistory } from '@/hooks/use-preview-history';
 
 // Lazy-loaded panels -- only loaded when the user switches to their tab
 const PreviewPanel = React.lazy(() => import('./PreviewPanel'));
-const TokenizerStatusPanel = React.lazy(() => import('./TokenizerStatusPanel'));
-const ExtensionsPanel = React.lazy(() => import('./ExtensionsPanel'));
 const MarketplacePanel = React.lazy(() => import('./MarketplacePanel'));
 const PerformanceDashboard = React.lazy(() => import('./PerformanceDashboard'));
 const AgentManagerPanel = React.lazy(() => import('./AgentManagerPanel'));
@@ -51,9 +49,9 @@ const RightSidebar = ({
   selectedFile,
   formatFileSize,
   formatDate,
-  themes,
-  theme,
-  applyTheme,
+  themes: _themes,
+  theme: _theme,
+  applyTheme: _applyTheme,
   allFiles,
   selectedFiles,
   getFolderSize,
@@ -272,12 +270,10 @@ const RightSidebar = ({
     if (showCompare) return i18n.t('dialogs.compareFiles.title');
     if (scrubberCompareFiles) return i18n.t('dialogs.compareFiles.title');
     if (rightPanelTab === 'preview') return i18n.t('extensionsBar.preview');
-    if (rightPanelTab === 'tokenizer') return i18n.t('extensionsBar.contentSearch');
     if (rightPanelTab === 'chat' || rightPanelTab === 'agent-manager') {
       return i18n.t('extensionsBar.agent');
     }
     if (rightPanelTab === 'performance') return i18n.t('extensionsBar.performance');
-    if (rightPanelTab === 'extensions') return i18n.t('extensionsBar.extensions');
     if (rightPanelTab === 'marketplace') return i18n.t('extensionsBar.marketplace');
     const panel = extensionHost.getPanel(rightPanelTab);
     if (panel) return panel.title;
@@ -396,13 +392,6 @@ const RightSidebar = ({
                   </ErrorBoundary>
                 );
               }
-              if (rightPanelTab === 'tokenizer') {
-                return (
-                  <ErrorBoundary>
-                    <TokenizerStatusPanel />
-                  </ErrorBoundary>
-                );
-              }
               if (rightPanelTab === 'performance') {
                 return (
                   <ErrorBoundary>
@@ -411,13 +400,6 @@ const RightSidebar = ({
                       allFiles={allFiles}
                       navigateToPath={navigateToPath}
                     />
-                  </ErrorBoundary>
-                );
-              }
-              if (rightPanelTab === 'extensions') {
-                return (
-                  <ErrorBoundary>
-                    <ExtensionsPanel themes={themes} theme={theme} applyTheme={applyTheme} />
                   </ErrorBoundary>
                 );
               }

@@ -423,15 +423,6 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
           .then(({ getCurrentWindow }) => getCurrentWindow().close())
           .catch((err) => console.error('Failed to quit:', err));
       },
-      onNewTab: () => {
-        const name = currentPath.split(/[/\\]/).pop() || currentPath;
-        splitLayout.addTab(
-          activeGroup.id,
-          { id: `folder-${Date.now()}`, name, path: currentPath, type: 'folder' },
-          true,
-        );
-        refetch();
-      },
       onToggleFullscreen: () => {
         document.fullscreenElement
           ? document.exitFullscreen()

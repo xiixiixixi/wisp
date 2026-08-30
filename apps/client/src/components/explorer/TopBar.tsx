@@ -1,8 +1,6 @@
 import React, { useRef, useState, useEffect, forwardRef } from 'react';
 import { isTauri } from '@/lib/transport';
-import { Minus, Square, Copy, X, Plus, Columns, Rows, Search } from 'lucide-react';
-import type { TabItem } from '@/types/split-view';
-import { getTabIcon } from '@/lib/tab-utils';
+import { Minus, Square, Copy, X, Columns, Rows, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import wispLogo from '../../../../src-tauri/icons/icon.png';
 
@@ -12,13 +10,7 @@ export interface TopBarHandle {
 interface TopBarProps {
   leftSidebarCollapsed: boolean;
   setLeftSidebarCollapsed: (collapsed: boolean) => void;
-  // Tabs
-  tabs?: TabItem[];
-  activeTabId?: string;
-  onSwitchTab?: (tabId: string) => void;
-  onCloseTab?: (tabId: string) => void;
-  // Split/tab actions
-  onAddTab?: () => void;
+  // Split actions
   onSplitRight?: () => void;
   onSplitDown?: () => void;
   'data-tour'?: string;
@@ -36,11 +28,6 @@ const TopBar = React.memo(
       {
         leftSidebarCollapsed,
         setLeftSidebarCollapsed,
-        tabs,
-        activeTabId,
-        onSwitchTab,
-        onCloseTab,
-        onAddTab,
         onSplitRight,
         onSplitDown,
         'data-tour': dataTour,
@@ -102,7 +89,8 @@ const TopBar = React.memo(
           data-tour={dataTour}
           className="wisp-titlebar wisp-no-select flex-none border-b border-xp-border bg-xp-surface backdrop-blur-xl"
         >
-          {/* Row 1: Title bar (draggable) */}
+          {/* Single title row (draggable): toggle, brand, search, split
+              actions, window controls. */}
           <div
             className="relative flex h-11 items-center justify-between px-3"
             onMouseDown={(e) => {
@@ -125,7 +113,10 @@ const TopBar = React.memo(
               }
             }}
           >
-            <div className="flex items-center" style={isMac ? { paddingLeft: '80px' } : undefined}>
+            <div
+              className="flex items-center"
+              style={isMac && isTauri() ? { paddingLeft: '80px' } : undefined}
+            >
               <div className="flex items-center gap-2.5">
                 <button
                   onClick={() => setLeftSidebarCollapsed(!leftSidebarCollapsed)}
@@ -165,6 +156,31 @@ const TopBar = React.memo(
             </button>
 
             <div className="flex-1" />
+
+            {/* Split actions */}
+            <div className="ml-1 flex flex-shrink-0 items-center gap-0.5">
+              {onSplitRight && (
+                <button
+                  onClick={onSplitRight}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  title={t('topBar.splitRightShortcut')}
+                  aria-label={t('topBar.splitRight')}
+                >
+                  <Columns size={14} />
+                </button>
+              )}
+              {onSplitDown && (
+                <button
+                  onClick={onSplitDown}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  title={t('topBar.splitDownShortcut')}
+                  aria-label={t('topBar.splitDown')}
+                >
+                  <Rows size={14} />
+                </button>
+              )}
+            </div>
+
             {!isMac && (
               <div className="ml-2 flex items-center" role="toolbar" aria-label="Window controls">
                 <button
@@ -190,86 +206,6 @@ const TopBar = React.memo(
                 </button>
               </div>
             )}
-          </div>
-
-          {/* Row 2: Tabs + Split controls (navigation lives in each pane's
-              address bar, right next to the file window it acts on) */}
-          <div className="flex min-h-9 items-center gap-0.5 px-2">
-            {/* Separator */}
-            <div className="mx-0.5 h-5 w-px flex-shrink-0 bg-xp-border" />
-
-            {/* Tabs — Finder-style: a single tab is the whole window, so the
-                strip only appears once there is a second tab to switch to. */}
-            {(tabs?.length ?? 0) > 1 ? (
-              <div className="scrollbar-none flex min-w-0 flex-1 overflow-x-auto">
-                {tabs?.map((tab) => {
-                  const TabIcon = getTabIcon(tab);
-                  const isActive = activeTabId === tab.id;
-                  return (
-                    <div
-                      key={tab.id}
-                      className={`group flex min-w-0 max-w-[180px] flex-shrink-0 cursor-pointer items-center border-r border-xp-border px-3 py-1 ${
-                        isActive
-                          ? 'border-b-2 border-b-xp-blue bg-xp-bg'
-                          : 'hover:bg-xp-surface-light'
-                      }`}
-                      onClick={() => onSwitchTab?.(tab.id)}
-                    >
-                      <TabIcon size={13} className="mr-1.5 flex-shrink-0 text-xp-text-secondary" />
-                      <span className="truncate text-xs font-medium">{tab.name}</span>
-                      {tabs.length > 1 && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onCloseTab?.(tab.id);
-                          }}
-                          className="ml-1 flex-shrink-0 rounded p-0.5 opacity-0 hover:bg-xp-surface-light group-hover:opacity-100"
-                          aria-label={`Close ${tab.name}`}
-                        >
-                          <X size={12} />
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="min-w-0 flex-1" />
-            )}
-
-            {/* Split/tab actions */}
-            <div className="ml-0.5 flex flex-shrink-0 items-center gap-0.5">
-              {onAddTab && (
-                <button
-                  onClick={onAddTab}
-                  className="rounded p-1 text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text"
-                  title={t('topBar.newTabShortcut')}
-                  aria-label={t('topBar.newTab')}
-                >
-                  <Plus size={14} />
-                </button>
-              )}
-              {onSplitRight && (
-                <button
-                  onClick={onSplitRight}
-                  className="rounded p-1 text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text"
-                  title={t('topBar.splitRightShortcut')}
-                  aria-label={t('topBar.splitRight')}
-                >
-                  <Columns size={14} />
-                </button>
-              )}
-              {onSplitDown && (
-                <button
-                  onClick={onSplitDown}
-                  className="rounded p-1 text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text"
-                  title={t('topBar.splitDownShortcut')}
-                  aria-label={t('topBar.splitDown')}
-                >
-                  <Rows size={14} />
-                </button>
-              )}
-            </div>
           </div>
 
           {/* Cross-tab selection floating action bar */}

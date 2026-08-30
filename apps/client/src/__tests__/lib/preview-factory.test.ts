@@ -83,7 +83,6 @@ describe('PreviewFactory', () => {
       'rb',
       'go',
       'rs',
-      'html',
       'css',
       'scss',
       'less',
@@ -91,6 +90,12 @@ describe('PreviewFactory', () => {
       'svelte',
     ])('identifies .%s as code', (ext) => {
       expect(factory.getFileType(makeFile(`app.${ext}`))).toBe('code');
+    });
+
+    // HTML renders in its own sandboxed preview instead of showing markup
+    it('identifies .html and .htm as html', () => {
+      expect(factory.getFileType(makeFile('index.html'))).toBe('html');
+      expect(factory.getFileType(makeFile('page.htm'))).toBe('html');
     });
 
     // CSV/TSV

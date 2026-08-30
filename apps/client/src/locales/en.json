@@ -49,7 +49,9 @@
     "error": {
       "somethingWentWrong": "Something went wrong",
       "tryAgain": "Try again"
-    }
+    },
+    "unsaved": "unsaved",
+    "saving": "Saving…"
   },
   "updater": {
     "title": "Software Update",
@@ -317,7 +319,12 @@
       "help": "Help",
       "onboardingTour": "Onboarding Tour",
       "onboardingTourDesc": "Replay the interactive guided tour of the app",
-      "replayTour": "Replay Tour"
+      "replayTour": "Replay Tour",
+      "weatherCity": "Weather city",
+      "weatherCityDesc": "The home weather card and the whole app ambience follow live conditions (rain, snow, clouds, moon phase)",
+      "weatherCityPlaceholder": "City name, e.g. Shanghai",
+      "weatherSync": "Weather ambience",
+      "weatherSyncDesc": "Let live weather drive the whole palette: sunny days go light, nights go dark (with moon phase), overcast dims, rain and snow fall"
     },
     "explorer": {
       "display": "Display",
@@ -1597,7 +1604,12 @@
     "memory": "Memory",
     "disk": "Disk",
     "diskAvailable": "{{size}} available",
-    "statsUnavailable": "Live system stats are available in the desktop app"
+    "statsUnavailable": "Live system stats are available in the desktop app",
+    "greetingMorning": "Good morning",
+    "greetingNoon": "Good afternoon",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "greetingNight": "Working late"
   },
   "toast": {
     "invalidExtension": "Invalid Extension",
@@ -3067,6 +3079,108 @@
       "documents": "Go to Documents",
       "applications": "Go to Applications",
       "home": "Go to Home"
+    }
+  },
+  "preview": {
+    "edit": "Edit",
+    "doneEditing": "Done",
+    "rendered": "Preview",
+    "cannotPreview": "Cannot preview this file",
+    "saveFailed": "Save failed: {{message}}",
+    "unsavedChanges": "You have unsaved changes. Switching files will discard them. Continue?",
+    "htmlPreview": "HTML Preview"
+  },
+  "weather": {
+    "clear": "Clear",
+    "partly": "Partly cloudy",
+    "cloudy": "Cloudy",
+    "overcast": "Overcast",
+    "fog": "Fog",
+    "drizzle": "Drizzle",
+    "rain": "Rain",
+    "snow": "Snow",
+    "storm": "Storm",
+    "moonNew": "New moon",
+    "moonWaxingCrescent": "Waxing crescent",
+    "moonFirstQuarter": "First quarter",
+    "moonWaxingGibbous": "Waxing gibbous",
+    "moonFull": "Full moon",
+    "moonWaningGibbous": "Waning gibbous",
+    "moonLastQuarter": "Last quarter",
+    "moonWaningCrescent": "Waning crescent"
+  },
+  "performanceDashboard": {
+    "title": "Performance Metrics",
+    "collapseAll": "Collapse all",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing…",
+    "systemStats": "System Stats",
+    "files": "Files",
+    "folders": "Folders",
+    "totalSize": "Total Size",
+    "foldersCached": "Folders Cached",
+    "jsHeap": "JS Heap Usage",
+    "recentOps": "Recent Operations",
+    "noRecentOps": "No recent operations",
+    "fileOrganizer": "File Organizer",
+    "justNow": "just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago",
+    "filesUnit": "{{count}} files",
+    "cleanupSuggestions": "Cleanup Suggestions"
+  },
+  "organizer": {
+    "analyze": "Analyze",
+    "analyzing": "Analyzing…",
+    "scanning": "Scanning directory…",
+    "clickAnalyze": "Click \"Analyze\" to scan the current directory",
+    "duplicateCleanup": "Duplicate Cleanup",
+    "insights": "Insights",
+    "files": "Files",
+    "size": "Size",
+    "avg": "Avg",
+    "projectNotice": "{{type}} project",
+    "organize": "Organize",
+    "organizing": "Organizing…",
+    "confirm": "Confirm",
+    "moving": "Moving…",
+    "previewMoves": "Preview: {{count}} files to move",
+    "noSuggestions": "No organization suggestions - directory looks well-organized!",
+    "Unknown": "Unknown",
+    "disabledForProjects": "Organization suggestions are disabled for project directories.",
+    "categoryNames": {
+      "Images": "Images",
+      "Videos": "Videos",
+      "Audio": "Audio",
+      "Documents": "Documents",
+      "Code": "Code",
+      "Archives": "Archives",
+      "Data": "Data",
+      "Other": "Other",
+      "Software": "Software",
+      "Game": "Game"
+    },
+    "categories": "Categories",
+    "smartSuggestions": "Smart Suggestions ({{count}})",
+    "noDuplicates": "No duplicates found in this directory.",
+    "typeDistribution": "Type Distribution",
+    "largestFiles": "Largest Files",
+    "oldestFiles": "Oldest Files",
+    "typeCount": "{{name}}: {{count}} files ({{pct}}%)",
+    "newest": "(newest)"
+  },
+  "performance": {
+    "suggestions": {
+      "trashTitle": "{{count}} items in Trash",
+      "trashDesc": "Empty the Trash to free up space",
+      "emptyTrash": "Empty Trash",
+      "largeFilesTitle": "{{count}} large files found",
+      "largeFilesDesc": "Files over 100 MB in this folder",
+      "showLargeFiles": "Show large files",
+      "untaggedTitle": "{{count}} untagged files{{suffix}}",
+      "untaggedDesc": "Tag files to make them easier to organize and find",
+      "tagFiles": "Tag files"
     }
   }
 }

@@ -209,6 +209,9 @@ export const getDirSize = async (path: string): Promise<DirectorySize> =>
 export const readTextFile = async (path: string): Promise<string> =>
   await transport('read_text_file', { path });
 
+export const saveTextFile = async (path: string, content: string): Promise<void> =>
+  await transport('write_text_file', { path, content });
+
 export const extractDocumentText = async (path: string): Promise<string> =>
   await transport('extract_document_text', { path });
 

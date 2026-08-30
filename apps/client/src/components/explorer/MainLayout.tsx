@@ -30,6 +30,7 @@ import SplitContainer from '@/components/split-view/SplitContainer';
 import { DragDropProvider } from '@/contexts/DragDropContext';
 import { CrossTabSelectionProvider } from '@/contexts/CrossTabSelectionContext';
 import { ExplorerProvider, type ExplorerContextValue } from '@/contexts/ExplorerContext';
+import WeatherFx from '@/components/weather/WeatherFx';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -388,25 +389,14 @@ const MainLayout = (props: MainLayoutProps) => {
             background: 'var(--xp-bg-gradient, var(--xp-bg, #1e1e2e))',
           }}
         >
+          {/* Weather ambience — painted behind every glass panel */}
+          <WeatherFx />
           {/* Top Bar */}
           <TopBar
             data-tour="top-bar"
             ref={topBarRef}
             leftSidebarCollapsed={leftSidebarCollapsed}
             setLeftSidebarCollapsed={setLeftSidebarCollapsed}
-            tabs={activeGroup.tabs}
-            activeTabId={activeGroup.activeTabId}
-            onSwitchTab={(tabId) => splitLayout.switchTab(activeGroup.id, tabId)}
-            onCloseTab={(tabId) => splitLayout.closeTab(activeGroup.id, tabId)}
-            onAddTab={() => {
-              const newTab: TabItem = {
-                id: `tab-${Date.now()}`,
-                name: 'Home',
-                path: 'wisp://home',
-                type: 'folder',
-              };
-              splitLayout.addTab(activeGroup.id, newTab, true);
-            }}
             onSplitRight={() => splitLayout.splitGroup(activeGroup.id, 'horizontal')}
             onSplitDown={() => splitLayout.splitGroup(activeGroup.id, 'vertical')}
             crossTabTotalCount={crossTabSelection.totalSelectedCount}
@@ -490,7 +480,14 @@ const MainLayout = (props: MainLayoutProps) => {
 
             {/* Right Sidebar */}
             {!rightSidebarCollapsed && (
-              <ResizeHandle direction="horizontal" onResize={handleRightResize} className="-mr-1" />
+              /* -mr-1 overlaps the handle onto the sidebar's left edge for a
+                 flush seam; relative+z-10 keeps the handle grabbable, since the
+                 later-painted sidebar would otherwise cover it. */
+              <ResizeHandle
+                direction="horizontal"
+                onResize={handleRightResize}
+                className="relative z-10 -mr-1"
+              />
             )}
             <ErrorBoundary>
               <RightSidebar

@@ -1,12 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import i18n from '@/i18n';
-import {
-  TauriAPI,
-  type FileEntry,
-  type AuditEntry,
-  type AIIndexStatus,
-  type TokenIndex,
-} from '@/lib/tauri-api';
+import { TauriAPI, type FileEntry, type AuditEntry } from '@/lib/tauri-api';
 
 export interface DirectoryStats {
   fileCount: number;
@@ -37,7 +31,6 @@ export interface CleanupSuggestion {
 
 export interface PerformanceStats {
   directoryStats: DirectoryStats;
-  indexingStatus: IndexingStatus;
   recentOps: AuditEntry[];
   suggestions: CleanupSuggestion[];
   memoryUsage: number | null;
@@ -53,15 +46,6 @@ export const usePerformanceStats = (
   visible: boolean,
 ): PerformanceStats => {
   const [recentOps, setRecentOps] = useState<AuditEntry[]>([]);
-  const [indexingStatus, setIndexingStatus] = useState<IndexingStatus>({
-    aiIndexed: 0,
-    aiQueueLength: 0,
-    isAiProcessing: false,
-    tokenTotalFiles: 0,
-    tokenTotalTokens: 0,
-    tokenLastUpdated: 0,
-    isTokenizerIndexing: false,
-  });
   const [suggestions, setSuggestions] = useState<CleanupSuggestion[]>([]);
   const [memoryUsage, setMemoryUsage] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -88,14 +72,10 @@ export const usePerformanceStats = (
     setIsLoading(true);
     try {
       // Fetch all async data in parallel
-      const [auditResult, aiStatus, tokenizerStats, tokenizerIndexing, trashItems] =
-        await Promise.allSettled([
-          TauriAPI.getAuditLog(10, 0),
-          TauriAPI.getAIIndexStatus(),
-          TauriAPI.getTokenizerStats(),
-          TauriAPI.isTokenizerIndexing(),
-          TauriAPI.getTrashItems(),
-        ]);
+      const [auditResult, trashItems] = await Promise.allSettled([
+        TauriAPI.getAuditLog(10, 0),
+        TauriAPI.getTrashItems(),
+      ]);
 
       // Audit log
       if (auditResult.status === 'fulfilled') {
@@ -111,24 +91,6 @@ export const usePerformanceStats = (
         }
         setRecentOps(entries);
       }
-
-      // Indexing status
-      const ai: AIIndexStatus | null = aiStatus.status === 'fulfilled' ? aiStatus.value : null;
-      const tok: TokenIndex | null =
-        tokenizerStats.status === 'fulfilled' ? tokenizerStats.value : null;
-      const tokIsIndexing =
-        tokenizerIndexing.status === 'fulfilled' ? tokenizerIndexing.value : false;
-
-      setIndexingStatus({
-        aiIndexed: ai?.total_indexed ?? 0,
-        aiQueueLength: ai?.queue_length ?? 0,
-        isAiProcessing: ai?.is_processing ?? false,
-        currentAiFile: ai?.current_file,
-        tokenTotalFiles: tok?.total_files ?? 0,
-        tokenTotalTokens: tok?.total_tokens ?? 0,
-        tokenLastUpdated: tok?.last_updated ?? 0,
-        isTokenizerIndexing: tokIsIndexing,
-      });
 
       // Cleanup suggestions
       const newSuggestions: CleanupSuggestion[] = [];
@@ -244,7 +206,6 @@ export const usePerformanceStats = (
 
   return {
     directoryStats,
-    indexingStatus,
     recentOps,
     suggestions,
     memoryUsage,

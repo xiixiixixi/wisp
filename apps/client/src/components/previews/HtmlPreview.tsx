@@ -1,41 +1,17 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { PreviewProps } from '@/lib/preview-factory';
 import { WispCodeMirror } from '@/lib/codemirror';
 import type { EditorView } from '@codemirror/view';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
 import { useTextFileEditor } from '@/hooks/use-text-file-editor';
-import { highlightCode } from '@/lib/shiki';
-
-/** Async Shiki block; output is generated HTML (code is escaped by Shiki). */
-const ShikiBlock = ({ code, lang }: { code: string; lang: string }) => {
-  const [html, setHtml] = useState('');
-  useEffect(() => {
-    let cancelled = false;
-    void highlightCode(code, lang).then((result) => {
-      if (!cancelled) setHtml(result ?? '');
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [code, lang]);
-  if (!html) {
-    return (
-      <pre className="md-code-fallback">
-        <code>{code}</code>
-      </pre>
-    );
-  }
-  return <div className="code-highlight md-code" dangerouslySetInnerHTML={{ __html: html }} />;
-};
 
 /**
- * Markdown preview v2: rendered view (react-markdown + GFM + Shiki) and a
- * live CodeMirror source editor sharing one ⌘S save path.
+ * HTML preview: rendered in a sandboxed iframe (scripts stay sandboxed and
+ * the app CSP keeps inline script from executing — a static render), with a
+ * CodeMirror source tab and ⌘S save.
  */
-const MarkdownPreview = ({ file, onError, onLoad }: PreviewProps) => {
+const HtmlPreview = ({ file, onError, onLoad }: PreviewProps) => {
   const { t } = useTranslation();
   const [tab, setTab] = useState<'rendered' | 'edit'>('rendered');
   const editorRef = useRef<EditorView | null>(null);
@@ -103,28 +79,13 @@ const MarkdownPreview = ({ file, onError, onLoad }: PreviewProps) => {
       )}
 
       {!loading && !error && tab === 'rendered' && (
-        <div className="md-preview min-h-0 flex-1 overflow-auto rounded-lg border border-xp-border bg-xp-surface p-3">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              pre: ({ children }) => <>{children}</>,
-              code: ({ className, children }) => {
-                const text = String(children);
-                const match = /language-([\w-]+)/.exec(className || '');
-                if (match || text.includes('\n')) {
-                  return <ShikiBlock code={text.replace(/\n$/, '')} lang={match?.[1] ?? 'text'} />;
-                }
-                return <code className="md-inline-code">{children}</code>;
-              },
-              a: ({ href, children }) => (
-                <a href={href} target="_blank" rel="noreferrer noopener">
-                  {children}
-                </a>
-              ),
-            }}
-          >
-            {content}
-          </ReactMarkdown>
+        <div className="min-h-0 flex-1 overflow-hidden rounded-lg border border-xp-border bg-white">
+          <iframe
+            title={t('preview.htmlPreview')}
+            sandbox="allow-scripts"
+            srcDoc={content}
+            className="h-full w-full border-0"
+          />
         </div>
       )}
 
@@ -133,7 +94,7 @@ const MarkdownPreview = ({ file, onError, onLoad }: PreviewProps) => {
           <WispCodeMirror
             doc={content}
             readOnly={false}
-            language="markdown"
+            language="html"
             fileName={file.name}
             editorRef={editorRef}
             onDocChanged={handleDocChanged}
@@ -147,4 +108,4 @@ const MarkdownPreview = ({ file, onError, onLoad }: PreviewProps) => {
   );
 };
 
-export default MarkdownPreview;
+export default HtmlPreview;

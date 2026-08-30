@@ -1,123 +1,94 @@
 import React, { useState, useEffect } from 'react';
 import { PreviewProps } from '@/lib/preview-factory';
 import { TauriAPI } from '@/lib/tauri-api';
+import { PreviewSkeleton } from '@/components/ui/Skeleton';
 
+const MAX_ROWS = 50;
+
+/**
+ * Spreadsheet preview via SheetJS (browser-first parser). The workbook is
+ * read from the raw bytes and only the first MAX_ROWS rows of each sheet
+ * are materialised for the panel.
+ */
 const SpreadsheetPreview = ({ file, onError, onLoad }: PreviewProps) => {
-  const [sheets, setSheets] = useState<
-    { name: string; data: (string | number | boolean | null)[][] }[]
-  >([]);
+  const [sheets, setSheets] = useState<{ name: string; rows: (string | number | boolean)[][] }[]>(
+    [],
+  );
   const [activeSheet, setActiveSheet] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     const loadSpreadsheet = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Read the file as binary data using TauriAPI
-        const binaryData = await TauriAPI.readBinaryFile(file.path);
+        const bytes = await TauriAPI.readBinaryFile(file.path);
+        const XLSX = await import('xlsx');
+        // type: 'array' — bytes is a Uint8Array view over the IPC buffer
+        const workbook = XLSX.read(bytes, { type: 'array' });
 
-        // Dynamically import exceljs to avoid synchronous bundle cost
-        const ExcelJS = await import('exceljs');
-
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(binaryData.buffer);
-
-        // Convert sheets to data arrays
-        const sheetsData: { name: string; data: (string | number | boolean | null)[][] }[] = [];
-
-        workbook.eachSheet((worksheet) => {
-          const data: (string | number | boolean | null)[][] = [];
-          let rowCount = 0;
-
-          worksheet.eachRow({ includeEmpty: false }, (row) => {
-            if (rowCount >= 50) return; // Limit to first 50 rows for preview
-            const rowValues = row.values as unknown[];
-            // ExcelJS row.values is 1-indexed (index 0 is empty), so slice from 1
-            const cells = rowValues.slice(1).map((cell) => {
-              if (cell == null) return '';
-              if (typeof cell === 'object') {
-                const cellObj = cell as Record<string, unknown>;
-                // Handle formulas
-                if ('result' in cellObj) return String(cellObj.result ?? '');
-                // Handle rich text
-                if ('richText' in cellObj && Array.isArray(cellObj.richText)) {
-                  return (cellObj.richText as { text: string }[]).map((rt) => rt.text).join('');
-                }
-                // Handle hyperlinks or other text objects
-                if ('text' in cellObj) return String(cellObj.text);
-                return String(cell);
-              }
-              return cell as string | number | boolean;
-            });
-            data.push(cells);
-            rowCount++;
+        const sheetsData = workbook.SheetNames.map((name) => {
+          const worksheet = workbook.Sheets[name];
+          const matrix = XLSX.utils.sheet_to_json<(string | number | boolean)[]>(worksheet, {
+            header: 1,
+            blankrows: false,
+            defval: '',
           });
-
-          sheetsData.push({
-            name: worksheet.name,
-            data,
-          });
+          return { name, rows: matrix.slice(0, MAX_ROWS) };
         });
 
+        if (cancelled) return;
         setSheets(sheetsData);
+        setActiveSheet(0);
         onLoad?.();
       } catch (err) {
+        if (cancelled) return;
         const errorMessage = err instanceof Error ? err.message : 'Failed to load spreadsheet';
         setError(errorMessage);
         onError?.(err instanceof Error ? err : new Error(errorMessage));
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    loadSpreadsheet();
+    void loadSpreadsheet();
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file.path]);
 
   const currentSheet = sheets[activeSheet];
 
   return (
-    <div className="mt-4">
-      <h4 className="text-xp-text-muted mb-2 text-xs font-medium">Spreadsheet Preview</h4>
+    <div className="flex h-full flex-col">
+      {loading && <PreviewSkeleton />}
 
-      {loading && (
-        <div className="bg-xp-surface border-xp-border text-xp-text-muted rounded border p-4 text-center">
-          <div className="animate-pulse">
-            <div className="bg-xp-bg mb-2 h-48 w-full rounded" />
-            <p className="text-xs">Loading spreadsheet...</p>
+      {!loading && error && (
+        <div className="flex flex-1 items-center justify-center rounded border border-xp-border bg-xp-surface">
+          <div className="text-center text-xp-text-muted">
+            <p className="text-sm">Cannot preview spreadsheet</p>
+            <p className="mt-1 text-xs opacity-70">{error}</p>
           </div>
         </div>
       )}
 
-      {error ? (
-        <div className="bg-xp-surface border-xp-border text-xp-text-muted rounded border p-4 text-center">
-          <svg className="mx-auto mb-2 h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <p className="text-xs">Cannot preview spreadsheet</p>
-          <p className="mt-1 text-xs opacity-70">{error}</p>
-        </div>
-      ) : null}
-      {!error && sheets.length > 0 && (
-        <>
-          {/* Sheet tabs */}
+      {!loading && !error && sheets.length > 0 && (
+        <div className="flex min-h-0 flex-1 flex-col">
           {sheets.length > 1 && (
-            <div className="mb-2 flex space-x-1 overflow-x-auto">
-              {sheets.map((sheet) => (
+            <div className="scrollbar-none mb-1.5 flex flex-shrink-0 gap-1 overflow-x-auto">
+              {sheets.map((sheet, i) => (
                 <button
                   key={sheet.name}
-                  onClick={() => setActiveSheet(sheets.indexOf(sheet))}
-                  className={`whitespace-nowrap rounded px-2 py-1 text-xs ${
-                    sheets.indexOf(sheet) === activeSheet
-                      ? 'bg-xp-blue text-white'
-                      : 'bg-xp-bg border-xp-border hover:bg-xp-surface-light border'
+                  type="button"
+                  onClick={() => setActiveSheet(i)}
+                  className={`whitespace-nowrap rounded-md px-2 py-1 text-xs transition-colors ${
+                    i === activeSheet
+                      ? 'bg-xp-selection-bg text-xp-blue'
+                      : 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
                   }`}
                 >
                   {sheet.name}
@@ -126,37 +97,34 @@ const SpreadsheetPreview = ({ file, onError, onLoad }: PreviewProps) => {
             </div>
           )}
 
-          {/* Table */}
-          <div className="bg-xp-surface border-xp-border overflow-hidden rounded border">
-            <div className="max-h-64 overflow-auto">
-              <table className="w-full text-xs">
-                <tbody>
-                  {currentSheet?.data.map((row, rowIndex) => (
-                    // eslint-disable-next-line react/no-array-index-key
-                    <tr key={rowIndex} className={rowIndex === 0 ? 'bg-xp-bg font-medium' : ''}>
-                      {row.map((cell, cellIndex) => (
-                        <td
-                          // eslint-disable-next-line react/no-array-index-key
-                          key={cellIndex}
-                          className="border-xp-border text-xp-text max-w-20 truncate border-b border-r px-2 py-1"
-                          title={String(cell)}
-                        >
-                          {String(cell)}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-xp-border bg-xp-surface">
+            <table className="w-full text-xs">
+              <tbody>
+                {currentSheet?.rows.map((row, rowIndex) => (
+                  // eslint-disable-next-line react/no-array-index-key
+                  <tr key={rowIndex} className={rowIndex === 0 ? 'bg-muted font-medium' : ''}>
+                    {row.map((cell, cellIndex) => (
+                      <td
+                        // eslint-disable-next-line react/no-array-index-key
+                        key={cellIndex}
+                        className="max-w-24 truncate border-b border-r border-xp-border px-2 py-1 text-xp-text"
+                        title={String(cell)}
+                      >
+                        {String(cell)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
-          {currentSheet?.data.length >= 50 && (
-            <p className="text-xp-text-muted mt-2 text-center text-xs">
-              Showing first 50 rows. Double-click to open full file.
+          {currentSheet && currentSheet.rows.length >= MAX_ROWS && (
+            <p className="mt-1.5 flex-shrink-0 text-center text-[10px] text-xp-text-muted">
+              Showing first {MAX_ROWS} rows
             </p>
           )}
-        </>
+        </div>
       )}
     </div>
   );

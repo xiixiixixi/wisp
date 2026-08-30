@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TauriAPI, type RecentFile } from '@/lib/tauri-api';
 import { AgentService, type AgentEvent, type AgentToolCall } from '@/lib/agent-service';
@@ -14,8 +14,24 @@ import {
   getDemoUserDirectories,
   isBrowserDemoMode,
 } from '@/lib/browser-demo-files';
-import { ArrowRight, Clock3, FileText, Folder, Search, Sparkles, X } from 'lucide-react';
-import wispLogo from '../../../src-tauri/icons/icon.png';
+import WeatherGlyph from '@/components/weather/WeatherGlyph';
+import { useWeather } from '@/hooks/use-weather';
+import { getWeatherLocation } from '@/lib/weather-location';
+import { describeWeatherCode } from '@/lib/weather';
+import {
+  ArrowRight,
+  Clock3,
+  Download,
+  FileText,
+  Folder,
+  Home as HomeIcon,
+  Image as ImageIcon,
+  Monitor,
+  Music,
+  Search,
+  Sparkles,
+  X,
+} from 'lucide-react';
 
 interface QuickStats {
   totalFiles: number;
@@ -125,27 +141,68 @@ const Clock = () => {
   }, []);
 
   const locale = i18n.language || 'en';
+  const hour = currentTime.getHours();
+  const greetingKey =
+    hour < 5
+      ? 'home.greetingNight'
+      : hour < 11
+        ? 'home.greetingMorning'
+        : hour < 14
+          ? 'home.greetingNoon'
+          : hour < 18
+            ? 'home.greetingAfternoon'
+            : 'home.greetingEvening';
+
+  const location = getWeatherLocation();
+  const { report } = useWeather();
+  const descriptor = report ? describeWeatherCode(report.weather_code) : null;
 
   return (
-    <div className="flex items-center justify-between gap-8">
-      <div className="flex min-w-0 items-center gap-2.5">
-        <img src={wispLogo} alt="" className="h-9 w-9 rounded-xl shadow-lg" aria-hidden="true" />
-        <div>
-          <p className="text-sm font-semibold leading-tight text-xp-text">Wisp</p>
-          <p className="text-[11px] text-xp-text-muted">{t('home.workspace')}</p>
-        </div>
-        <p className="ml-3 flex items-center gap-1.5 text-xs text-xp-text-muted">
-          <Clock3 size={14} aria-hidden="true" />
+    <div className="flex items-end justify-between gap-8">
+      <div>
+        <p className="text-2xl font-semibold leading-tight tracking-tight text-xp-text">
+          {t(greetingKey)}
+        </p>
+        <p className="mt-1 flex items-center gap-1.5 text-xs text-xp-text-muted">
+          <Clock3 size={13} aria-hidden="true" />
           {currentTime.toLocaleDateString(locale, {
             weekday: 'long',
             month: 'long',
             day: 'numeric',
           })}
+          <span className="text-xp-text-muted opacity-60">·</span>
+          {t('home.workspace')}
         </p>
       </div>
-      <p className="text-2xl font-light tabular-nums text-xp-text-muted">
-        {currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
-      </p>
+      <div className="flex flex-col items-end gap-1.5">
+        <p className="text-4xl font-extralight tabular-nums leading-none text-xp-text-muted">
+          {currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+        </p>
+        {report && descriptor && (
+          <div
+            className="glass-card flex items-center gap-2 rounded-full px-3 py-1"
+            style={
+              {
+                '--tint-a': 'rgba(120, 150, 240, 0.35)',
+                '--tint-b': 'rgba(90, 200, 220, 0.28)',
+              } as React.CSSProperties
+            }
+          >
+            <WeatherGlyph
+              code={report.weather_code}
+              isDay={report.is_day}
+              size={14}
+              className="text-xp-text-secondary"
+            />
+            <span className="text-xs font-medium text-xp-text">
+              {Math.round(report.temperature)}°
+            </span>
+            <span className="text-[11px] text-xp-text-muted">
+              {t(descriptor.labelKey)} · {location.city}
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -419,6 +476,61 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
     }
   };
 
+  const quickAccessTiles = useMemo(() => {
+    if (!userDirectories) return [];
+    return [
+      {
+        key: 'home',
+        label: t('sidebar.home'),
+        path: userDirectories.home,
+        Icon: HomeIcon,
+        tintA: 'rgba(99, 112, 255, 0.5)',
+        tintB: 'rgba(64, 200, 220, 0.38)',
+      },
+      {
+        key: 'documents',
+        label: t('sidebar.documents'),
+        path: userDirectories.documents,
+        Icon: FileText,
+        tintA: 'rgba(80, 150, 240, 0.45)',
+        tintB: 'rgba(120, 90, 240, 0.38)',
+      },
+      {
+        key: 'downloads',
+        label: t('sidebar.downloads'),
+        path: userDirectories.downloads,
+        Icon: Download,
+        tintA: 'rgba(60, 190, 160, 0.45)',
+        tintB: 'rgba(90, 200, 130, 0.35)',
+      },
+      {
+        key: 'desktop',
+        label: t('sidebar.desktop'),
+        path: userDirectories.desktop,
+        Icon: Monitor,
+        tintA: 'rgba(150, 108, 240, 0.46)',
+        tintB: 'rgba(235, 108, 180, 0.38)',
+      },
+      {
+        key: 'pictures',
+        label: t('sidebar.pictures'),
+        path: userDirectories.pictures,
+        Icon: ImageIcon,
+        tintA: 'rgba(245, 150, 90, 0.45)',
+        tintB: 'rgba(235, 90, 110, 0.38)',
+      },
+      {
+        key: 'music',
+        label: t('home.music'),
+        path: userDirectories.music,
+        Icon: Music,
+        tintA: 'rgba(240, 120, 150, 0.42)',
+        tintB: 'rgba(150, 90, 235, 0.4)',
+      },
+    ].filter((tile) => Boolean(tile.path));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userDirectories]);
+
   const handleNavigate = (path: string) => {
     // Persisting a recent destination is secondary and must never block navigation.
     if (!isBrowserDemoMode()) {
@@ -452,9 +564,38 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
           <SystemDashboard />
         </div>
 
+        {/* Quick access — ambient glass tiles for the everyday locations */}
+        {quickAccessTiles.length > 0 && (
+          <div className="order-2 lg:col-span-12">
+            <p className="mb-2 text-sm font-medium text-xp-text">{t('sidebar.quickAccess')}</p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+              {quickAccessTiles.map(({ key, label, path, Icon, tintA, tintB }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => handleNavigate(path)}
+                  title={path}
+                  className="glass-card group flex flex-col items-start gap-6 rounded-2xl p-3.5 text-left transition-transform duration-150 hover:-translate-y-0.5"
+                  style={
+                    {
+                      '--tint-a': tintA,
+                      '--tint-b': tintB,
+                    } as React.CSSProperties
+                  }
+                >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-xp-border bg-muted text-xp-text">
+                    <Icon size={16} aria-hidden="true" />
+                  </span>
+                  <span className="w-full truncate text-xs font-medium text-xp-text">{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Recent folders inline */}
         {recommendedFolders.length > 0 && (
-          <div className="order-2 lg:col-span-12">
+          <div className="order-3 lg:col-span-12">
             <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-xp-text-muted">
               {t('home.recentFolders')}
             </p>
@@ -481,7 +622,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
 
         {/* Recent Files */}
         {!recentFilesLoading && recentFiles.length > 0 && (
-          <div className="order-3 lg:col-span-12">
+          <div className="order-4 lg:col-span-12">
             <div className="mb-2 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <Clock3 size={16} aria-hidden="true" />
@@ -509,7 +650,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                     }}
                     role="button"
                     tabIndex={0}
-                    className="bg-xp-surface/50 group relative flex cursor-pointer items-center gap-2.5 rounded-lg border border-xp-border px-3 py-2.5 text-left transition-all duration-150 hover:border-xp-text-muted hover:bg-xp-surface"
+                    className="glass-card group relative flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-all duration-150"
                     title={file.path}
                   >
                     <div
@@ -543,7 +684,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
         )}
 
         {!recentFilesLoading && recentFiles.length === 0 && (
-          <div className="order-3 lg:col-span-12">
+          <div className="order-4 lg:col-span-12">
             <div className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-xp-border bg-muted px-5 py-4 sm:flex-row sm:items-center">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-xp-blue">

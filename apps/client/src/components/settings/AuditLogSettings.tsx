@@ -130,7 +130,7 @@ const AuditLogSettings = () => {
   };
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-4">
       <SectionTitle
         title={t('settings.audit.filtersTitle')}
         description={t('settings.audit.filtersDesc')}
@@ -229,7 +229,7 @@ const AuditLogSettings = () => {
                       </span>
                     </td>
                     <td className="max-w-[300px] px-3 py-2 text-xs text-xp-text">
-                      <div className="space-y-0.5">
+                      <div className="space-y-4">
                         {entry.paths.map((p) => (
                           <div key={p} className="truncate" title={p}>
                             {truncatePath(p)}

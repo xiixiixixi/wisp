@@ -12,6 +12,7 @@ import * as ai from './ai';
 import * as agentSessions from './agent-sessions';
 import * as storage from './storage';
 import * as system from './system';
+import * as weather from './weather';
 import * as pty from './pty';
 
 // Re-export all types so `import { FileEntry } from '@/lib/tauri-api'` keeps working
@@ -26,6 +27,8 @@ export * from './ai';
 export * from './agent-sessions';
 export * from './storage';
 export * from './system';
+export * from './weather';
+export type { WeatherReport, WeatherDailyEntry, GeoPlace } from './weather';
 export * from './pty';
 
 // ---------------------------------------------------------------------------
@@ -81,6 +84,9 @@ export class TauriAPI {
   static getFileIconPng = fileSystem.getFileIconPng;
   static getDirSize = fileSystem.getDirSize;
   static readTextFile = fileSystem.readTextFile;
+  static getWeather = weather.getWeather;
+  static geocodeCity = weather.geocodeCity;
+  static saveTextFile = fileSystem.saveTextFile;
   static extractDocumentText = fileSystem.extractDocumentText;
   static readBinaryFile = fileSystem.readBinaryFile;
   static calculateFolderSize = fileSystem.calculateFolderSize;

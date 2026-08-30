@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, Upload, Clock, CheckCircle, AlertTriangle, FileJson } from 'lucide-react';
-import { SectionTitle, SettingRow, Divider } from './shared';
+import { SettingRow, SettingsSection } from './shared';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 const EXPORT_VERSION = '0.4.0';
@@ -237,157 +237,157 @@ const BackupRestoreSettings = () => {
   };
 
   return (
-    <div className="space-y-1">
-      <SectionTitle
+    <div className="space-y-4">
+      <SettingsSection
         title={t('settings.backup.exportSection')}
         description={t('settings.backup.exportSectionDesc')}
-      />
-
-      <SettingRow
-        icon={Download}
-        label={t('settings.backup.exportLabel')}
-        description={t('settings.backup.exportDesc')}
       >
-        <button
-          onClick={handleExport}
-          className="flex items-center gap-2 rounded-md bg-xp-accent px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+        <SettingRow
+          icon={Download}
+          label={t('settings.backup.exportLabel')}
+          description={t('settings.backup.exportDesc')}
         >
-          <Download size={14} />
-          {t('settings.backup.exportButton')}
-        </button>
-      </SettingRow>
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 rounded-md bg-xp-accent px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+          >
+            <Download size={14} />
+            {t('settings.backup.exportButton')}
+          </button>
+        </SettingRow>
 
-      {lastExportDate && (
-        <div className="flex items-center gap-2 px-4 py-1.5 text-xs text-xp-text-secondary">
-          <Clock size={12} className="shrink-0" />
-          <span>{t('settings.backup.lastExported', { date: formatDate(lastExportDate) })}</span>
-        </div>
-      )}
-
-      <Divider />
-      <SectionTitle
+        {lastExportDate && (
+          <div className="flex items-center gap-2 px-4 py-1.5 text-xs text-xp-text-secondary">
+            <Clock size={12} className="shrink-0" />
+            <span>{t('settings.backup.lastExported', { date: formatDate(lastExportDate) })}</span>
+          </div>
+        )}
+      </SettingsSection>{' '}
+      <SettingsSection
         title={t('settings.backup.importSection')}
         description={t('settings.backup.importSectionDesc')}
-      />
-
-      <SettingRow
-        icon={Upload}
-        label={t('settings.backup.importLabel')}
-        description={t('settings.backup.importDesc')}
       >
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-2 rounded-md border border-xp-border bg-xp-surface px-3 py-2 text-sm font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
+        <SettingRow
+          icon={Upload}
+          label={t('settings.backup.importLabel')}
+          description={t('settings.backup.importDesc')}
         >
-          <Upload size={14} />
-          {t('settings.backup.chooseFile')}
-        </button>
-      </SettingRow>
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".json,application/json"
-        className="hidden"
-        onChange={handleFileSelect}
-      />
-
-      {importStatus.type === 'error' && (
-        <div className="mx-4 mt-2 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
-          <AlertTriangle size={16} className="mt-0.5 shrink-0 text-xp-red" />
-          <div>
-            <div className="text-sm font-medium text-xp-red">
-              {t('settings.backup.importErrorTitle')}
-            </div>
-            <div className="mt-0.5 text-xs text-xp-red">{importStatus.message}</div>
-          </div>
           <button
-            onClick={handleCancelImport}
-            className="text-xp-red/60 ml-auto shrink-0 text-xs transition-colors hover:text-xp-red"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-2 rounded-md border border-xp-border bg-xp-surface px-3 py-2 text-sm font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
           >
-            {t('settings.backup.dismiss')}
+            <Upload size={14} />
+            {t('settings.backup.chooseFile')}
           </button>
-        </div>
-      )}
+        </SettingRow>
 
-      {importStatus.type === 'preview' && (
-        <div className="mx-4 mt-2 rounded-lg border border-xp-border bg-xp-surface p-4">
-          <div className="mb-3 flex items-center gap-2">
-            <FileJson size={16} className="text-xp-accent" />
-            <span className="text-sm font-medium text-xp-text">
-              {t('settings.backup.importPreviewTitle')}
-            </span>
-          </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json,application/json"
+          className="hidden"
+          onChange={handleFileSelect}
+        />
 
-          <div className="mb-3 space-y-1 text-xs text-xp-text-secondary">
+        {importStatus.type === 'error' && (
+          <div className="mx-4 mt-2 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
+            <AlertTriangle size={16} className="mt-0.5 shrink-0 text-xp-red" />
             <div>
-              {t('settings.backup.previewVersion')}{' '}
-              <span className="font-mono text-xp-text">{importStatus.payload.version}</span>
-            </div>
-            <div>
-              {t('settings.backup.previewExported')}{' '}
-              <span className="text-xp-text">{formatDate(importStatus.payload.exportDate)}</span>
-            </div>
-            <div>
-              {t('settings.backup.previewTotalKeys')}{' '}
-              <span className="font-mono text-xp-text">
-                {Object.keys(importStatus.payload.settings).length}
-              </span>
-            </div>
-          </div>
-
-          <div className="mb-4 space-y-2">
-            {importStatus.categories.map((cat) => (
-              <div key={cat.label} className="bg-xp-bg/50 rounded-md px-3 py-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-xp-text">{t(cat.label)}</span>
-                  <span className="font-mono text-[10px] text-xp-text-secondary">
-                    {t('settings.backup.previewKeyCount', { count: cat.keys.length })}
-                  </span>
-                </div>
-                <div className="text-xp-text-secondary/70 mt-1 font-mono text-[10px] leading-relaxed">
-                  {cat.keys.join(', ')}
-                </div>
+              <div className="text-sm font-medium text-xp-red">
+                {t('settings.backup.importErrorTitle')}
               </div>
-            ))}
-          </div>
-
-          <div className="mb-4 flex items-center gap-2 rounded-md border border-amber-500/20 bg-amber-500/10 p-2">
-            <AlertTriangle size={14} className="shrink-0 text-xp-yellow" />
-            <span className="text-xs text-xp-yellow">{t('settings.backup.overwriteWarning')}</span>
-          </div>
-
-          <div className="flex justify-end gap-2">
+              <div className="mt-0.5 text-xs text-xp-red">{importStatus.message}</div>
+            </div>
             <button
               onClick={handleCancelImport}
-              className="rounded-md border border-xp-border bg-xp-surface px-3 py-1.5 text-sm text-xp-text transition-colors hover:bg-xp-surface-light"
+              className="text-xp-red/60 ml-auto shrink-0 text-xs transition-colors hover:text-xp-red"
             >
-              {t('common.cancel')}
-            </button>
-            <button
-              onClick={handleApplyImport}
-              className="flex items-center gap-1.5 rounded-md bg-xp-accent px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
-            >
-              <CheckCircle size={14} />
-              {t('settings.backup.applyImport')}
+              {t('settings.backup.dismiss')}
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {importStatus.type === 'success' && (
-        <div className="mx-4 mt-2 flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
-          <CheckCircle size={16} className="shrink-0 text-xp-green" />
-          <div>
-            <div className="text-sm font-medium text-xp-green">
-              {t('settings.backup.importSuccessTitle')}
+        {importStatus.type === 'preview' && (
+          <div className="mx-4 mt-2 rounded-lg border border-xp-border bg-xp-surface p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <FileJson size={16} className="text-xp-accent" />
+              <span className="text-sm font-medium text-xp-text">
+                {t('settings.backup.importPreviewTitle')}
+              </span>
             </div>
-            <div className="mt-0.5 text-xs text-xp-green">
-              {t('settings.backup.importSuccessDesc', { count: importStatus.count })}
+
+            <div className="mb-3 space-y-1 text-xs text-xp-text-secondary">
+              <div>
+                {t('settings.backup.previewVersion')}{' '}
+                <span className="font-mono text-xp-text">{importStatus.payload.version}</span>
+              </div>
+              <div>
+                {t('settings.backup.previewExported')}{' '}
+                <span className="text-xp-text">{formatDate(importStatus.payload.exportDate)}</span>
+              </div>
+              <div>
+                {t('settings.backup.previewTotalKeys')}{' '}
+                <span className="font-mono text-xp-text">
+                  {Object.keys(importStatus.payload.settings).length}
+                </span>
+              </div>
+            </div>
+
+            <div className="mb-4 space-y-2">
+              {importStatus.categories.map((cat) => (
+                <div key={cat.label} className="bg-xp-bg/50 rounded-md px-3 py-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-xp-text">{t(cat.label)}</span>
+                    <span className="font-mono text-[10px] text-xp-text-secondary">
+                      {t('settings.backup.previewKeyCount', { count: cat.keys.length })}
+                    </span>
+                  </div>
+                  <div className="text-xp-text-secondary/70 mt-1 font-mono text-[10px] leading-relaxed">
+                    {cat.keys.join(', ')}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mb-4 flex items-center gap-2 rounded-md border border-amber-500/20 bg-amber-500/10 p-2">
+              <AlertTriangle size={14} className="shrink-0 text-xp-yellow" />
+              <span className="text-xs text-xp-yellow">
+                {t('settings.backup.overwriteWarning')}
+              </span>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={handleCancelImport}
+                className="rounded-md border border-xp-border bg-xp-surface px-3 py-1.5 text-sm text-xp-text transition-colors hover:bg-xp-surface-light"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleApplyImport}
+                className="flex items-center gap-1.5 rounded-md bg-xp-accent px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              >
+                <CheckCircle size={14} />
+                {t('settings.backup.applyImport')}
+              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {importStatus.type === 'success' && (
+          <div className="mx-4 mt-2 flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
+            <CheckCircle size={16} className="shrink-0 text-xp-green" />
+            <div>
+              <div className="text-sm font-medium text-xp-green">
+                {t('settings.backup.importSuccessTitle')}
+              </div>
+              <div className="mt-0.5 text-xs text-xp-green">
+                {t('settings.backup.importSuccessDesc', { count: importStatus.count })}
+              </div>
+            </div>
+          </div>
+        )}
+      </SettingsSection>
     </div>
   );
 };

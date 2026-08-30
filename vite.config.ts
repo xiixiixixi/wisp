@@ -22,19 +22,36 @@ export default defineConfig(({ mode }) => ({
     ),
   ],
   resolve: {
-    alias: {
-      '@': path.resolve(import.meta.dirname, 'apps', 'client', 'src'),
-      '@wisp/sdk': path.resolve(import.meta.dirname, 'packages', 'sdk', 'src', 'index.ts'),
-      '@wisp/extension-sdk': path.resolve(
-        import.meta.dirname,
-        'packages',
-        'extension-sdk',
-        'src',
-        'index.ts',
-      ),
-    },
+    alias: [
+      {
+        find: '@',
+        replacement: path.resolve(import.meta.dirname, 'apps', 'client', 'src'),
+      },
+      {
+        find: '@wisp/sdk',
+        replacement: path.resolve(import.meta.dirname, 'packages', 'sdk', 'src', 'index.ts'),
+      },
+      {
+        find: '@wisp/extension-sdk',
+        replacement: path.resolve(
+          import.meta.dirname,
+          'packages',
+          'extension-sdk',
+          'src',
+          'index.ts',
+        ),
+      },
+    ],
   },
   root: path.resolve(import.meta.dirname, 'apps', 'client'),
+  optimizeDeps: {
+    // pdfjs-dist must stay unbundled so the JSC patch plugin below can
+    // rewrite its readonly-prototype assignment. react-pdf stays optimized:
+    // served unbundled, its dist files form an import cycle that dies with
+    // "Cannot access 'default' before initialization" in the browser.
+    exclude: ['pdfjs-dist'],
+    include: ['react-pdf'],
+  },
   define: {
     __APP_VERSION__: JSON.stringify(tauriVersion),
   },
