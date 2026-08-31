@@ -313,7 +313,10 @@ const DetailsView = (props: DetailsViewProps) => {
   });
 
   const header = (
-    <div className="sticky top-0 z-20 border-b border-xp-border bg-xp-surface" role="row">
+    <div
+      className="border-xp-border/60 bg-xp-surface/80 sticky top-0 z-20 border-b backdrop-blur-md"
+      role="row"
+    >
       <div className="grid grid-cols-12 items-center gap-3 px-3 py-3 text-xs font-medium text-xp-text-muted">
         <div
           className="col-span-1"

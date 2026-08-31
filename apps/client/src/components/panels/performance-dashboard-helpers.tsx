@@ -27,18 +27,19 @@ export interface PerformanceDashboardProps {
 
 export const cardStyle: React.CSSProperties = {
   background: 'var(--xp-surface-light)',
-  borderRadius: 8,
-  padding: '12px 14px',
+  borderRadius: 14,
+  padding: '13px 15px',
   marginBottom: 10,
-  border: '1px solid var(--xp-border)',
+  border: '1px solid color-mix(in srgb, var(--xp-border) 55%, transparent)',
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
 };
 
 export const cardTitleStyle: React.CSSProperties = {
-  fontSize: 12,
+  fontSize: 11,
   fontWeight: 600,
   textTransform: 'uppercase' as const,
-  letterSpacing: '0.5px',
-  color: 'var(--xp-text-secondary)',
+  letterSpacing: '0.06em',
+  color: 'var(--xp-text-muted)',
   marginBottom: 10,
 };
 
@@ -63,21 +64,21 @@ export const statValueStyle: React.CSSProperties = {
 export const progressBarContainer: React.CSSProperties = {
   width: '100%',
   height: 4,
-  borderRadius: 2,
-  background: 'var(--xp-border)',
+  borderRadius: 999,
+  background: 'color-mix(in srgb, var(--xp-border) 55%, transparent)',
   marginTop: 6,
   overflow: 'hidden',
 };
 
 export const smallBtnStyle: React.CSSProperties = {
   fontSize: 11,
-  padding: '3px 8px',
-  borderRadius: 4,
-  border: '1px solid var(--xp-border)',
+  padding: '3px 10px',
+  borderRadius: 999,
+  border: '1px solid color-mix(in srgb, var(--xp-border) 60%, transparent)',
   background: 'var(--xp-surface)',
   color: 'var(--xp-text)',
   cursor: 'pointer',
-  transition: 'background 0.15s',
+  transition: 'background 0.15s, border-color 0.15s',
   whiteSpace: 'nowrap' as const,
 };
 
@@ -87,7 +88,7 @@ export const suggestionRowStyle: React.CSSProperties = {
   alignItems: 'center',
   gap: 8,
   padding: '6px 0',
-  borderBottom: '1px solid var(--xp-border)',
+  borderBottom: '1px solid color-mix(in srgb, var(--xp-border) 50%, transparent)',
 };
 
 export const sectionHeaderStyle: React.CSSProperties = {
@@ -102,7 +103,7 @@ export const sectionHeaderStyle: React.CSSProperties = {
   fontSize: 11,
   fontWeight: 600,
   textTransform: 'uppercase' as const,
-  letterSpacing: '0.05em',
+  letterSpacing: '0.06em',
   color: 'var(--xp-text-secondary)',
   transition: 'background 0.15s',
 };
@@ -159,10 +160,12 @@ export const formatRelativeTime = (timestamp: string): string => {
     const now = Date.now();
     const diff = now - date.getTime();
     if (diff < 60_000) return i18n.t('performanceDashboard.justNow');
-    if (diff < 3_600_000)
-      {return i18n.t('performanceDashboard.minutesAgo', { count: Math.floor(diff / 60_000) });}
-    if (diff < 86_400_000)
-      {return i18n.t('performanceDashboard.hoursAgo', { count: Math.floor(diff / 3_600_000) });}
+    if (diff < 3_600_000) {
+      return i18n.t('performanceDashboard.minutesAgo', { count: Math.floor(diff / 60_000) });
+    }
+    if (diff < 86_400_000) {
+      return i18n.t('performanceDashboard.hoursAgo', { count: Math.floor(diff / 3_600_000) });
+    }
     return i18n.t('performanceDashboard.daysAgo', { count: Math.floor(diff / 86_400_000) });
   } catch {
     return timestamp;

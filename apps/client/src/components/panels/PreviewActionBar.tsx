@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Copy, ExternalLink, Files, Link2, Pencil, Trash2, Type } from 'lucide-react';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
 import { defaultPreviewFactory, PreviewType } from '@/lib/preview-factory';
 import { showConfirmationToast, showInputToast } from '@/components/ui/Toast';
@@ -27,61 +28,6 @@ const useFeedback = (): [string | null, (msg: string) => void] => {
     }, 1500);
   }, []);
   return [msg, show];
-};
-
-// Inline SVG icons -- kept tiny & self-contained to avoid extra deps.
-const icons = {
-  open: (
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
-      <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-      <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-    </svg>
-  ),
-  copyPath: (
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
-      <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-      <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
-    </svg>
-  ),
-  copyName: (
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
-      <path
-        fillRule="evenodd"
-        d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-        clipRule="evenodd"
-      />
-    </svg>
-  ),
-  copyContent: (
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
-      <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-      <path
-        fillRule="evenodd"
-        d="M4 5a2 2 0 012-2 1 1 0 000 2h8a1 1 0 000-2 2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h6a1 1 0 100-2H7zm0 3a1 1 0 100 2h4a1 1 0 100-2H7z"
-        clipRule="evenodd"
-      />
-    </svg>
-  ),
-  duplicate: (
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
-      <path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" />
-      <path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h8a2 2 0 00-2-2H5z" />
-    </svg>
-  ),
-  rename: (
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
-      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-    </svg>
-  ),
-  delete: (
-    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
-      <path
-        fillRule="evenodd"
-        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-        clipRule="evenodd"
-      />
-    </svg>
-  ),
 };
 
 const PATH_SEP_RE = /[/\\]/;
@@ -204,7 +150,7 @@ const PreviewActionBar = ({ file }: PreviewActionBarProps) => {
 
   const actions: {
     key: string;
-    icon: React.ReactElement;
+    icon: React.ReactNode;
     label: string;
     tooltip: string;
     onClick: () => void;
@@ -212,21 +158,21 @@ const PreviewActionBar = ({ file }: PreviewActionBarProps) => {
   }[] = [
     {
       key: 'open',
-      icon: icons.open,
+      icon: <ExternalLink size={14} strokeWidth={1.75} />,
       label: t('common.open'),
       tooltip: t('panels.previewAction.openTooltip'),
       onClick: handleOpen,
     },
     {
       key: 'copy-path',
-      icon: icons.copyPath,
+      icon: <Link2 size={14} strokeWidth={1.75} />,
       label: t('panels.previewAction.copyPath'),
       tooltip: t('panels.previewAction.copyPathTooltip'),
       onClick: handleCopyPath,
     },
     {
       key: 'copy-name',
-      icon: icons.copyName,
+      icon: <Type size={14} strokeWidth={1.75} />,
       label: t('panels.previewAction.copyName'),
       tooltip: t('panels.previewAction.copyNameTooltip'),
       onClick: handleCopyName,
@@ -235,7 +181,7 @@ const PreviewActionBar = ({ file }: PreviewActionBarProps) => {
       ? [
           {
             key: 'copy-content',
-            icon: icons.copyContent,
+            icon: <Copy size={14} strokeWidth={1.75} />,
             label: t('panels.previewAction.copyContent'),
             tooltip: t('panels.previewAction.copyContentTooltip'),
             onClick: handleCopyContent,
@@ -244,21 +190,21 @@ const PreviewActionBar = ({ file }: PreviewActionBarProps) => {
       : []),
     {
       key: 'duplicate',
-      icon: icons.duplicate,
+      icon: <Files size={14} strokeWidth={1.75} />,
       label: t('common.duplicate'),
       tooltip: t('panels.previewAction.duplicateTooltip'),
       onClick: handleDuplicate,
     },
     {
       key: 'rename',
-      icon: icons.rename,
+      icon: <Pencil size={14} strokeWidth={1.75} />,
       label: t('common.rename'),
       tooltip: t('panels.previewAction.renameTooltip'),
       onClick: handleRename,
     },
     {
       key: 'delete',
-      icon: icons.delete,
+      icon: <Trash2 size={14} strokeWidth={1.75} />,
       label: t('common.delete'),
       tooltip: t('panels.previewAction.deleteTooltip'),
       onClick: handleDelete,
@@ -273,7 +219,7 @@ const PreviewActionBar = ({ file }: PreviewActionBarProps) => {
     flexWrap: 'wrap',
     gap: '2px',
     padding: '6px 8px',
-    borderBottom: '1px solid var(--xp-border)',
+    borderBottom: '1px solid color-mix(in srgb, var(--xp-border) 55%, transparent)',
     background: 'var(--xp-surface)',
     alignItems: 'center',
     position: 'relative',
@@ -283,14 +229,14 @@ const PreviewActionBar = ({ file }: PreviewActionBarProps) => {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '4px',
-    padding: '4px 8px',
-    borderRadius: '4px',
+    gap: '5px',
+    padding: '4px 10px',
+    borderRadius: 999,
     border: '1px solid transparent',
     background: 'transparent',
     color: 'var(--xp-text-secondary)',
     fontSize: '11px',
-    lineHeight: 1,
+    lineHeight: 1.2,
     cursor: 'pointer',
     transition: 'background 0.15s, color 0.15s, border-color 0.15s',
     whiteSpace: 'nowrap',
@@ -299,7 +245,7 @@ const PreviewActionBar = ({ file }: PreviewActionBarProps) => {
 
   const feedbackStyle: React.CSSProperties = {
     position: 'absolute',
-    right: 8,
+    right: 10,
     top: '50%',
     transform: 'translateY(-50%)',
     fontSize: '10px',
@@ -320,10 +266,12 @@ const PreviewActionBar = ({ file }: PreviewActionBarProps) => {
           onMouseEnter={(e) => {
             const target = e.currentTarget;
             target.style.background = danger
-              ? 'rgba(247, 118, 142, 0.15)'
+              ? 'color-mix(in srgb, var(--xp-red) 12%, transparent)'
               : 'var(--xp-surface-light, rgba(255,255,255,0.06))';
-            target.style.color = danger ? 'var(--xp-red, #f7768e)' : 'var(--xp-text)';
-            target.style.borderColor = danger ? 'rgba(247, 118, 142, 0.3)' : 'var(--xp-border)';
+            target.style.color = danger ? 'var(--xp-red)' : 'var(--xp-text)';
+            target.style.borderColor = danger
+              ? 'color-mix(in srgb, var(--xp-red) 30%, transparent)'
+              : 'color-mix(in srgb, var(--xp-border) 70%, transparent)';
           }}
           onMouseLeave={(e) => {
             const target = e.currentTarget;

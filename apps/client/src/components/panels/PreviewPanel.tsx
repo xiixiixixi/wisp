@@ -484,45 +484,53 @@ const PreviewPanel = ({
         {/* Properties Content - Collapsible */}
         {showProperties && (
           <div className="px-3 pb-3">
-            <div className="space-y-2 text-xs">
+            <div className="space-y-1.5 text-xs">
               <div className="flex justify-between">
-                <span className="text-xp-text-secondary">Type:</span>
-                <span>{selectedFile.is_dir ? 'Folder' : 'File'}</span>
+                <span className="text-xp-text-muted">Type:</span>
+                <span className="font-medium text-xp-text">
+                  {selectedFile.is_dir ? 'Folder' : 'File'}
+                </span>
               </div>
 
               {!selectedFile.is_dir && (
                 <div className="flex justify-between">
-                  <span className="text-xp-text-secondary">Size:</span>
-                  <span>{formatFileSize(selectedFile.size)}</span>
+                  <span className="text-xp-text-muted">Size:</span>
+                  <span className="font-medium tabular-nums text-xp-text">
+                    {formatFileSize(selectedFile.size)}
+                  </span>
                 </div>
               )}
 
               <div className="flex justify-between">
-                <span className="text-xp-text-secondary">Modified:</span>
-                <span>{formatDate(selectedFile.modified)}</span>
+                <span className="text-xp-text-muted">Modified:</span>
+                <span className="font-medium tabular-nums text-xp-text">
+                  {formatDate(selectedFile.modified)}
+                </span>
               </div>
 
               {selectedFile.mime_type && (
                 <div className="flex justify-between">
-                  <span className="text-xp-text-secondary">MIME Type:</span>
-                  <span className="break-all">{selectedFile.mime_type}</span>
+                  <span className="text-xp-text-muted">MIME Type:</span>
+                  <span className="break-all text-right text-xp-text">
+                    {selectedFile.mime_type}
+                  </span>
                 </div>
               )}
 
               <div className="flex justify-between">
-                <span className="text-xp-text-secondary">Category:</span>
-                <span className="capitalize">{category}</span>
+                <span className="text-xp-text-muted">Category:</span>
+                <span className="font-medium capitalize text-xp-text">{category}</span>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1 pt-0.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xp-text-secondary">Path:</span>
+                  <span className="text-xp-text-muted">Path:</span>
                   <button
                     onClick={handleCopyPath}
-                    className={`rounded border border-xp-border px-2 py-1 text-xs transition-colors ${
+                    className={`rounded-full border px-2.5 py-0.5 text-[11px] transition-colors ${
                       copyFeedback
-                        ? 'border-xp-border bg-xp-green bg-opacity-20 text-xp-green'
-                        : 'bg-xp-bg hover:bg-xp-surface-light'
+                        ? 'border-xp-green/40 bg-xp-green/10 text-xp-green'
+                        : 'border-xp-border/60 bg-xp-surface-light/60 text-xp-text-secondary hover:text-xp-text'
                     }`}
                     title={i18n.t('previewPanel.copyPath')}
                     aria-label={
@@ -534,7 +542,7 @@ const PreviewPanel = ({
                     {copyFeedback ? i18n.t('previewPanel.copied') : i18n.t('common.copy')}
                   </button>
                 </div>
-                <div className="break-all rounded border border-xp-border bg-xp-bg p-2 font-mono text-xs">
+                <div className="border-xp-border/40 bg-xp-bg/60 break-all rounded-lg border p-2 font-mono text-[11px] leading-relaxed text-xp-text-secondary">
                   {selectedFile.path}
                 </div>
               </div>

@@ -301,7 +301,7 @@ const OperationBar = ({
             </button>
 
             {isSortDropdownOpen && sortOptions && (
-              <div className="absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-lg border border-xp-border bg-xp-popover py-1 shadow-xl backdrop-blur-xl">
+              <div className="border-xp-border/60 bg-xp-popover/95 absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-xl border py-1 shadow-xl backdrop-blur-xl">
                 {Object.values(sortOptions).map((option) => (
                   <button
                     key={option.id}
@@ -373,7 +373,7 @@ const OperationBar = ({
             </button>
 
             {isViewDropdownOpen && (
-              <div className="absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-lg border border-xp-border bg-xp-popover py-1 shadow-xl backdrop-blur-xl">
+              <div className="border-xp-border/60 bg-xp-popover/95 absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-xl border py-1 shadow-xl backdrop-blur-xl">
                 {Object.values(viewModes).map((mode) => (
                   <button
                     key={mode.id}

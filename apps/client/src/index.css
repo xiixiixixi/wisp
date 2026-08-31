@@ -36,7 +36,7 @@ body {
   --destructive: #e08c8c;
   --destructive-foreground: #200f0f;
   --ring: #8fb7e8;
-  --radius: 0.75rem;
+  --radius: 0.875rem;
 
   /* Glass material */
   --glass-tint: rgba(16, 22, 32, 0.44);
@@ -318,6 +318,18 @@ html.enhanced-focus *:focus-visible {
     to {
       width: 0%;
     }
+  }
+
+  /* Tactile feedback — every button physically presses in. */
+  :is(.theme-rolex, .theme-glass, .theme-light) button:not(:disabled):active {
+    transform: scale(0.97);
+  }
+
+  /* One consistent keyboard focus ring across the app. */
+  :is(.theme-rolex, .theme-glass, .theme-light)
+    :is(button, input, textarea, select, [role="button"]):focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--xp-blue) 55%, transparent);
+    outline-offset: 1px;
   }
 
   /* Scrollbar Styling — auto-hide overlay bars: thumbs stay transparent
@@ -797,7 +809,7 @@ html.theme-rolex {
   --destructive: #e08c8c;
   --destructive-foreground: #200f0f;
   --ring: #8fb7e8;
-  --radius: 0.75rem;
+  --radius: 0.875rem;
 
   --glass-tint: rgba(16, 22, 32, 0.44);
   --glass-tint-strong: rgba(22, 29, 41, 0.82);
@@ -872,7 +884,7 @@ html.theme-glass {
   --destructive: #c26060;
   --destructive-foreground: #ffffff;
   --ring: #4a6fa5;
-  --radius: 0.75rem;
+  --radius: 0.875rem;
 
   --glass-tint: rgba(255, 255, 255, 0.46);
   --glass-tint-strong: rgba(255, 255, 255, 0.86);
@@ -952,7 +964,7 @@ html.theme-light {
   --destructive: #a95252;
   --destructive-foreground: #ffffff;
   --ring: #44688c;
-  --radius: 0.75rem;
+  --radius: 0.875rem;
 
   --glass-tint: rgba(255, 255, 255, 0.52);
   --glass-tint-strong: rgba(255, 255, 255, 0.88);
