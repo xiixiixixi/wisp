@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useWeather } from '@/hooks/use-weather';
 import { moonPhase, moonRender, skyScene, type SkyScene } from '@/lib/weather';
+import { isWeatherSyncEnabled } from '@/lib/weather-location';
 
 /**
  * Global weather ambience: a fixed, pointer-transparent layer painted behind
@@ -12,7 +13,18 @@ import { moonPhase, moonRender, skyScene, type SkyScene } from '@/lib/weather';
  */
 const WeatherFx = () => {
   const { report } = useWeather();
-  const scene: SkyScene | null = report ? skyScene(report.weather_code, report.is_day) : null;
+  // Weather ambience is opt-in (氛围跟随天气) — respect the settings toggle
+  // live, exactly like SkySync, or the night wash veils light themes.
+  const [enabled, setEnabled] = useState(isWeatherSyncEnabled());
+
+  useEffect(() => {
+    const sync = () => setEnabled(isWeatherSyncEnabled());
+    window.addEventListener('wisp-settings-changed', sync);
+    return () => window.removeEventListener('wisp-settings-changed', sync);
+  }, []);
+
+  const scene: SkyScene | null =
+    enabled && report ? skyScene(report.weather_code, report.is_day) : null;
 
   // Abstract moonlight: night scenes carry a cold wash whose intensity
   // follows the real lunar phase — full-moon nights glow, new-moon nights

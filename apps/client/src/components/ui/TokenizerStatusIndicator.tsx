@@ -24,7 +24,7 @@ const TokenizerStatusIndicator = () => {
   if (!stats || !stats.total_files) return null;
 
   return (
-    <div className="text-xp-text-muted flex items-center gap-1 text-xs" title="Search index">
+    <div className="flex items-center gap-1 text-xs text-xp-text-muted" title="Search index">
       <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
         <path
           fillRule="evenodd"
@@ -32,7 +32,10 @@ const TokenizerStatusIndicator = () => {
           clipRule="evenodd"
         />
       </svg>
-      <span>{stats.total_files.toLocaleString()} indexed</span>
+      <span className="font-dot text-[11px] leading-none">
+        {stats.total_files.toLocaleString()}
+      </span>
+      <span>indexed</span>
     </div>
   );
 };

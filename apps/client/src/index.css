@@ -106,6 +106,11 @@ body {
      always paired with ink text, so it only needs a :root definition. */
   --xp-lime: #d6f220;
   --xp-lime-rgb: 214 242 32;
+
+  /* Surfaces are white in every theme (alpha lives in the rgba token), so a
+     single triplet wakes the bg-xp-surface/N opacity variants everywhere. */
+  --xp-surface-rgb: 255 255 255;
+  --xp-surface-light-rgb: 255 255 255;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1998,4 +2003,68 @@ html.theme-light .wisp-operationbar {
   box-shadow:
     0 1px 2px rgba(29, 28, 26, 0.05),
     0 12px 28px rgba(29, 28, 26, 0.1) !important;
+}
+
+/* ── Paper component vocabulary ─────────────────────────────────────
+   The shared primitives re-expressed in the Subvecta language: white
+   borderless menus, quiet wells and hairlines — nothing outlined. */
+
+/* Menus & popovers: borderless white sheets with a deep soft shadow */
+html.theme-light .bg-xp-popover,
+html.theme-light .bg-popover {
+  background-color: rgba(255, 255, 255, 0.97);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-color: transparent;
+  box-shadow:
+    0 0 0 1px rgba(29, 28, 26, 0.04),
+    0 18px 44px rgba(29, 28, 26, 0.13),
+    0 4px 12px rgba(29, 28, 26, 0.06);
+}
+
+/* Inputs become quiet white wells with no outline */
+html.theme-light input,
+html.theme-light select,
+html.theme-light textarea {
+  background-color: rgba(255, 255, 255, 0.82);
+  border-color: transparent;
+  border-radius: 0.75rem;
+  box-shadow: inset 0 1px 2px rgba(29, 28, 26, 0.05);
+}
+
+/* The file-list column header is a hairline, not a band */
+html.theme-light .wisp-list-header {
+  background-color: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-color: rgba(29, 28, 26, 0.06);
+}
+
+/* Status bar melts into the ground, hairline only */
+html.theme-light .wisp-statusbar {
+  background-color: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Thin quiet scrollbars */
+html.theme-light ::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+html.theme-light ::-webkit-scrollbar-track {
+  background: transparent;
+}
+html.theme-light ::-webkit-scrollbar-thumb {
+  background: rgba(29, 28, 26, 0.16);
+  background-clip: content-box;
+  border: 2px solid transparent;
+  border-radius: 999px;
+}
+html.theme-light ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(29, 28, 26, 0.28);
+}
+html.theme-light {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(29, 28, 26, 0.18) transparent;
 }

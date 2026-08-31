@@ -15,8 +15,8 @@ export default {
         foreground: 'var(--foreground)',
         xp: {
           bg: 'var(--xp-bg)',
-          surface: 'var(--xp-surface)',
-          'surface-light': 'var(--xp-surface-light)',
+          surface: 'rgb(var(--xp-surface-rgb) / <alpha-value>)',
+          'surface-light': 'rgb(var(--xp-surface-light-rgb) / <alpha-value>)',
           popover: 'var(--xp-popover)',
           blue: 'rgb(var(--xp-blue-rgb) / <alpha-value>)',
           'blue-dark': 'rgb(var(--xp-blue-dark-rgb) / <alpha-value>)',
