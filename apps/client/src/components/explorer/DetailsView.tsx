@@ -123,8 +123,8 @@ const FileRow = React.memo(
         data-file-path={file.path}
         data-drop-target={file.is_dir ? file.path : undefined}
         data-is-folder={file.is_dir ? 'true' : undefined}
-        className={`hover:bg-xp-surface-light/60 grid cursor-pointer grid-cols-12 items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
-          selectedFiles.has(file.path) ? 'bg-xp-blue/25' : ''
+        className={`grid cursor-pointer grid-cols-12 items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-xp-surface-light ${
+          selectedFiles.has(file.path) ? 'bg-xp-blue/30' : ''
         } text-xp-text`}
         {...(renamingPath === file.path ? {} : dragHandlers)}
         onClick={handleClick}
