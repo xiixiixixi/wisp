@@ -2048,7 +2048,11 @@
       "renameTitle": "Rename",
       "renameDescription": "Enter new name:",
       "deleteTitle": "Delete File",
-      "deleteDescription": "Are you sure you want to delete \"{{name}}\"?"
+      "deleteDescription": "Are you sure you want to delete \"{{name}}\"?",
+      "copyContent": "Copy Content",
+      "copyContentTooltip": "Copy the file text content to the clipboard",
+      "contentCopied": "Content copied to clipboard",
+      "contentTooLarge": "File too large to copy content"
     },
     "notes": {
       "title": "Notes",

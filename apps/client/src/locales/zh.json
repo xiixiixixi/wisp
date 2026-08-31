@@ -2048,7 +2048,11 @@
       "renameTitle": "重命名",
       "renameDescription": "输入新名称：",
       "deleteTitle": "删除文件",
-      "deleteDescription": "确定要删除「{{name}}」吗？"
+      "deleteDescription": "确定要删除「{{name}}」吗？",
+      "copyContent": "复制内容",
+      "copyContentTooltip": "复制文件的文字内容到剪贴板",
+      "contentCopied": "内容已复制到剪贴板",
+      "contentTooLarge": "文件过大，无法复制内容"
     },
     "notes": {
       "title": "备注",

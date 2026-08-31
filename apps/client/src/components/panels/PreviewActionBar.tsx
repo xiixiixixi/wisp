@@ -1,7 +1,14 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
+import { defaultPreviewFactory, PreviewType } from '@/lib/preview-factory';
 import { showConfirmationToast, showInputToast } from '@/components/ui/Toast';
+
+/** Preview types whose content is plain text and can be copied verbatim. */
+const TEXT_LIKE_TYPES: PreviewType[] = ['text', 'code', 'csv', 'json', 'markdown', 'html'];
+
+/** Refuse to copy content of text files larger than this (clipboard flood guard). */
+const MAX_COPY_BYTES = 2 * 1024 * 1024;
 
 interface PreviewActionBarProps {
   file: FileEntry;
@@ -41,6 +48,16 @@ const icons = {
       <path
         fillRule="evenodd"
         d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+        clipRule="evenodd"
+      />
+    </svg>
+  ),
+  copyContent: (
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+      <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+      <path
+        fillRule="evenodd"
+        d="M4 5a2 2 0 012-2 1 1 0 000 2h8a1 1 0 000-2 2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h6a1 1 0 100-2H7zm0 3a1 1 0 100 2h4a1 1 0 100-2H7z"
         clipRule="evenodd"
       />
     </svg>
@@ -104,6 +121,20 @@ const PreviewActionBar = ({ file }: PreviewActionBarProps) => {
       console.error('Failed to copy name:', err);
     }
   }, [file.name, showFeedback, t]);
+
+  const handleCopyContent = useCallback(async () => {
+    if (file.size > MAX_COPY_BYTES) {
+      showFeedback(t('panels.previewAction.contentTooLarge'));
+      return;
+    }
+    try {
+      const content = await TauriAPI.readTextFile(file.path);
+      await navigator.clipboard.writeText(content);
+      showFeedback(t('panels.previewAction.contentCopied'));
+    } catch (err) {
+      console.error('Failed to copy content:', err);
+    }
+  }, [file.path, file.size, showFeedback, t]);
 
   const handleDuplicate = useCallback(async () => {
     try {
@@ -200,6 +231,17 @@ const PreviewActionBar = ({ file }: PreviewActionBarProps) => {
       tooltip: t('panels.previewAction.copyNameTooltip'),
       onClick: handleCopyName,
     },
+    ...(TEXT_LIKE_TYPES.includes(defaultPreviewFactory.getFileType(file))
+      ? [
+          {
+            key: 'copy-content',
+            icon: icons.copyContent,
+            label: t('panels.previewAction.copyContent'),
+            tooltip: t('panels.previewAction.copyContentTooltip'),
+            onClick: handleCopyContent,
+          },
+        ]
+      : []),
     {
       key: 'duplicate',
       icon: icons.duplicate,
