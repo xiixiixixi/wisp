@@ -125,15 +125,30 @@ const OperationBar = ({
   useEffect(() => {
     const anyOpen = isViewDropdownOpen || isSortDropdownOpen || isActionsDropdownOpen;
     if (!anyOpen) return;
-    const onMouseDown = (e: MouseEvent) => {
-      if (barRef.current && !barRef.current.contains(e.target as Node)) {
-        setIsViewDropdownOpen(false);
-        setIsSortDropdownOpen(false);
-        setIsActionsDropdownOpen(false);
-      }
+    const closeAll = () => {
+      setIsViewDropdownOpen(false);
+      setIsSortDropdownOpen(false);
+      setIsActionsDropdownOpen(false);
     };
-    document.addEventListener('mousedown', onMouseDown);
-    return () => document.removeEventListener('mousedown', onMouseDown);
+    // Capture phase: pane/drag handlers that stopPropagation on mousedown
+    // would otherwise swallow the event before it reaches this listener.
+    // The click fallback also covers synthetic accessibility presses that
+    // never dispatch pointer events.
+    const onPointerDown = (e: PointerEvent) => {
+      if (barRef.current && !barRef.current.contains(e.target as Node)) closeAll();
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeAll();
+    };
+    const onClick = () => closeAll();
+    document.addEventListener('pointerdown', onPointerDown, true);
+    document.addEventListener('keydown', onKeyDown, true);
+    document.addEventListener('click', onClick, true);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true);
+      document.removeEventListener('keydown', onKeyDown, true);
+      document.removeEventListener('click', onClick, true);
+    };
   }, [isViewDropdownOpen, isSortDropdownOpen, isActionsDropdownOpen]);
 
   const handleOpenTerminal = () => {
