@@ -343,6 +343,17 @@ html.enhanced-focus *:focus-visible {
     scrollbar-color: var(--xp-border) transparent;
   }
 
+  /* Fully hidden scrollbars — container stays scrollable but reserves no
+     gutter (breadcrumb path bar, sheet tabs). */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
   /* 3D View Styles */
   .perspective-1000 {
     perspective: 1000px;
