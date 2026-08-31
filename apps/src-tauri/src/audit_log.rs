@@ -32,25 +32,33 @@ struct AuditLog {
     entries: VecDeque<AuditEntry>,
     next_id: u64,
     pending_writes: usize,
+    log_file_path: Option<PathBuf>,
 }
 
 impl AuditLog {
     fn new() -> Self {
-        let mut log = Self {
-            entries: VecDeque::with_capacity(RING_BUFFER_CAPACITY),
-            next_id: 1,
-            pending_writes: 0,
-        };
+        let mut log = Self::with_path(default_log_file_path());
         log.load_from_disk();
         log
     }
 
-    fn log_file_path() -> Option<PathBuf> {
-        dirs::data_local_dir().map(|d| d.join("com.wisp.app").join(AUDIT_LOG_FILE))
+    /// Disk-less instance for tests: `flush_to_disk` becomes a no-op so unit
+    /// tests can never pollute the real user audit log.
+    fn in_memory() -> Self {
+        Self::with_path(None)
+    }
+
+    fn with_path(log_file_path: Option<PathBuf>) -> Self {
+        Self {
+            entries: VecDeque::with_capacity(RING_BUFFER_CAPACITY),
+            next_id: 1,
+            pending_writes: 0,
+            log_file_path,
+        }
     }
 
     fn load_from_disk(&mut self) {
-        let Some(path) = Self::log_file_path() else {
+        let Some(path) = self.log_file_path.clone() else {
             return;
         };
         if !path.exists() {
@@ -74,7 +82,7 @@ impl AuditLog {
     }
 
     fn flush_to_disk(&self) {
-        let Some(path) = Self::log_file_path() else {
+        let Some(path) = &self.log_file_path else {
             return;
         };
         if let Some(parent) = path.parent() {
@@ -82,7 +90,7 @@ impl AuditLog {
         }
         let entries: Vec<&AuditEntry> = self.entries.iter().collect();
         if let Ok(json) = serde_json::to_string(&entries) {
-            let _ = fs::write(&path, json);
+            let _ = fs::write(path, json);
         }
     }
 
@@ -190,6 +198,10 @@ fn whoami() -> String {
         .unwrap_or_else(|_| "unknown".to_string())
 }
 
+fn default_log_file_path() -> Option<PathBuf> {
+    dirs::data_local_dir().map(|d| d.join("com.wisp.app").join(AUDIT_LOG_FILE))
+}
+
 static AUDIT_LOG: LazyLock<Mutex<AuditLog>> = LazyLock::new(|| Mutex::new(AuditLog::new()));
 
 pub fn log_operation(operation: &str, paths: Vec<String>, details: Option<String>, success: bool) {
@@ -250,11 +262,7 @@ mod tests {
 
     #[test]
     fn test_ring_buffer_capacity() {
-        let mut log = AuditLog {
-            entries: VecDeque::with_capacity(RING_BUFFER_CAPACITY),
-            next_id: 1,
-            pending_writes: 0,
-        };
+        let mut log = AuditLog::in_memory();
         for i in 0..RING_BUFFER_CAPACITY + 100 {
             log.add_entry("test".to_string(), vec![format!("/path/{}", i)], None, true);
         }
@@ -264,11 +272,7 @@ mod tests {
 
     #[test]
     fn test_query_with_operation_filter() {
-        let mut log = AuditLog {
-            entries: VecDeque::new(),
-            next_id: 1,
-            pending_writes: 0,
-        };
+        let mut log = AuditLog::in_memory();
         log.add_entry("copy".to_string(), vec!["/a".to_string()], None, true);
         log.add_entry("delete".to_string(), vec!["/b".to_string()], None, true);
         log.add_entry("copy".to_string(), vec!["/c".to_string()], None, false);
@@ -281,11 +285,7 @@ mod tests {
 
     #[test]
     fn test_query_pagination() {
-        let mut log = AuditLog {
-            entries: VecDeque::new(),
-            next_id: 1,
-            pending_writes: 0,
-        };
+        let mut log = AuditLog::in_memory();
         for _ in 0..10 {
             log.add_entry("test".to_string(), vec!["/path".to_string()], None, true);
         }
@@ -301,11 +301,7 @@ mod tests {
 
     #[test]
     fn test_clear_log() {
-        let mut log = AuditLog {
-            entries: VecDeque::new(),
-            next_id: 1,
-            pending_writes: 0,
-        };
+        let mut log = AuditLog::in_memory();
         log.add_entry("test".to_string(), vec!["/a".to_string()], None, true);
         assert!(!log.entries.is_empty());
         log.clear();
@@ -314,11 +310,7 @@ mod tests {
 
     #[test]
     fn test_export_csv() {
-        let mut log = AuditLog {
-            entries: VecDeque::new(),
-            next_id: 1,
-            pending_writes: 0,
-        };
+        let mut log = AuditLog::in_memory();
         log.add_entry(
             "copy".to_string(),
             vec!["/src/file.txt".to_string(), "/dst/file.txt".to_string()],
@@ -345,11 +337,7 @@ mod tests {
 
     #[test]
     fn test_query_empty_filter_returns_all() {
-        let mut log = AuditLog {
-            entries: VecDeque::new(),
-            next_id: 1,
-            pending_writes: 0,
-        };
+        let mut log = AuditLog::in_memory();
         log.add_entry("copy".to_string(), vec!["/a".to_string()], None, true);
         log.add_entry("delete".to_string(), vec!["/b".to_string()], None, true);
 

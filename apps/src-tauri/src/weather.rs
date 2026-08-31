@@ -220,9 +220,9 @@ mod tests {
                 .get_or_insert_with(HashMap::new)
                 .insert(key, CacheEntry { report: report.clone(), fetched_at: Instant::now() });
         }
-        let guard = WEATHER_CACHE.lock().unwrap();
+        let mut guard = WEATHER_CACHE.lock().unwrap();
         let cached = guard.as_ref().unwrap().get(&key).unwrap();
         assert_eq!(cached.report.temperature, 27.2);
-        guard.as_ref().unwrap().clear();
+        guard.as_mut().unwrap().clear();
     }
 }

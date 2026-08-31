@@ -52,6 +52,8 @@ const MetricCards = ({
   onSuggestionAction,
 }: MetricCardsProps) => {
   const { t } = useTranslation();
+  const opLabel = (operation: string) =>
+    t(`performanceDashboard.ops.${operation}`, { defaultValue: operation });
   return (
     <div style={{ padding: '4px 12px 10px' }}>
       {/* Header with refresh */}
@@ -131,7 +133,7 @@ const MetricCards = ({
                 {recentOps.map((op, i) => (
                   <div
                     key={op.id || i}
-                    title={`${op.operation} - ${op.success ? 'success' : 'failed'}`}
+                    title={`${opLabel(op.operation)} - ${op.success ? t('performanceDashboard.opSuccess') : t('performanceDashboard.opFailed')}`}
                     style={{
                       width: 8,
                       height: 8,
@@ -177,9 +179,9 @@ const MetricCards = ({
                       whiteSpace: 'nowrap',
                       color: 'var(--xp-text)',
                     }}
-                    title={op.details || op.operation}
+                    title={op.details || opLabel(op.operation)}
                   >
-                    {op.operation}
+                    {opLabel(op.operation)}
                   </span>
                   {op.paths.length > 0 && (
                     <span
