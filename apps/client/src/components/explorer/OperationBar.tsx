@@ -160,14 +160,14 @@ const OperationBar = ({
     return (
       <div
         ref={barRef}
-        className="border-xp-blue/30 bg-xp-blue/5 border-b px-3 py-1.5"
+        className="border-b border-xp-blue/30 bg-xp-blue/5 px-3 py-1.5"
         role="toolbar"
         aria-label={t('operationBar.selectionActions')}
       >
         <div className="flex min-h-8 items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2.5">
             <span
-              className="flex h-5 min-w-5 items-center justify-center rounded-full bg-xp-blue px-1.5 text-[11px] font-semibold text-white"
+              className="flex h-5 min-w-5 items-center justify-center rounded-full bg-xp-lime px-1.5 text-[11px] font-bold text-[#1d1c1a]"
               aria-hidden="true"
             >
               {selectedFiles.size}
@@ -266,7 +266,7 @@ const OperationBar = ({
             <button
               type="button"
               onClick={handleDelete}
-              className="hover:bg-xp-red/10 flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-xp-red transition-colors"
+              className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-xp-red transition-colors hover:bg-xp-red/10"
               title={t('operationBar.deleteItems', { count: selectedFiles.size })}
               aria-label={t('operationBar.deleteItemsAria', { count: selectedFiles.size })}
             >
@@ -430,7 +430,7 @@ const OperationBar = ({
               )}
               <button
                 onClick={handleDelete}
-                className="hover:bg-xp-red/10 rounded p-1 text-xp-text-muted transition-colors hover:text-xp-red"
+                className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-red/10 hover:text-xp-red"
                 title={t('contextMenu.delete')}
                 aria-label={t('contextMenu.delete')}
               >

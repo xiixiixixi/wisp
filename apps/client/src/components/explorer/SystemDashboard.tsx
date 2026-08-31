@@ -22,15 +22,13 @@ const gaugeColor = (pct: number): string => {
   return 'var(--xp-red, #f44747)';
 };
 
-const RING_RADIUS = 30;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-
 const Gauge = ({
   pct,
   label,
   subtitle,
   icon,
   tint,
+  hero = false,
 }: {
   pct: number | null;
   label: string;
@@ -38,14 +36,53 @@ const Gauge = ({
   icon: React.ReactNode;
   /** Ambient wash colours for the liquid-glass card, [top-left, bottom-right]. */
   tint: [string, string];
+  /** hero renders as the vivid gradient stat card with white dot-matrix numerals */
+  hero?: boolean;
 }) => {
   const hasData = pct !== null;
   const value = hasData ? (pct as number) : 0;
   const color = hasData ? gaugeColor(value) : 'var(--xp-border)';
 
+  if (hero) {
+    return (
+      <div
+        className="relative overflow-hidden rounded-2xl p-4 text-white shadow-[0_14px_36px_rgba(232,113,29,0.28)]"
+        style={{
+          background: 'linear-gradient(135deg, #ffc46a 0%, #ff9d3f 34%, #f0609e 78%, #e0447f 100%)',
+        }}
+      >
+        <div
+          className="dot-grid pointer-events-none absolute inset-x-4 bottom-9 h-7 opacity-50"
+          style={{
+            backgroundImage: 'radial-gradient(rgba(255,255,255,0.8) 1.2px, transparent 1.3px)',
+          }}
+        />
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-1.5 text-xs font-medium text-white/85">
+            {icon}
+            <span>{label}</span>
+          </span>
+        </div>
+        <p className="font-dot mt-1.5 text-4xl leading-none">
+          {hasData ? Math.round(value) : '—'}
+          {hasData && <span className="ml-1 align-top text-lg">%</span>}
+        </p>
+        <p className="mt-1.5 truncate text-xs text-white/85" title={subtitle}>
+          {subtitle}
+        </p>
+        <div className="mt-2 h-1 rounded-full bg-white/30">
+          <div
+            className="h-1 rounded-full bg-white transition-all duration-500"
+            style={{ width: `${value}%` }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
-      className="glass-card glass-dotted flex items-center gap-4 rounded-2xl p-4"
+      className="glass-card glass-dotted flex flex-col rounded-2xl p-4"
       style={
         {
           '--tint-a': tint[0],
@@ -53,41 +90,24 @@ const Gauge = ({
         } as React.CSSProperties
       }
     >
-      <div className="relative flex h-[76px] w-[76px] shrink-0 items-center justify-center">
-        <svg viewBox="0 0 76 76" className="h-full w-full -rotate-90" aria-hidden="true">
-          <circle
-            cx="38"
-            cy="38"
-            r={RING_RADIUS}
-            fill="none"
-            stroke="var(--xp-border)"
-            strokeWidth="7"
-          />
-          <circle
-            cx="38"
-            cy="38"
-            r={RING_RADIUS}
-            fill="none"
-            stroke={color}
-            strokeWidth="7"
-            strokeLinecap="round"
-            strokeDasharray={RING_CIRCUMFERENCE}
-            strokeDashoffset={RING_CIRCUMFERENCE * (1 - value / 100)}
-            style={{ transition: 'stroke-dashoffset 0.6s ease, stroke 0.6s ease' }}
-          />
-        </svg>
-        <span className="absolute text-sm font-semibold tabular-nums text-xp-text">
-          {hasData ? `${Math.round(value)}%` : '—'}
-        </span>
-      </div>
-      <div className="min-w-0">
-        <div className="flex items-center gap-1.5 text-xs font-medium text-xp-text-muted">
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-card text-xp-text-secondary shadow-[0_1px_4px_rgba(29,28,26,0.08)]">
           {icon}
-          <span>{label}</span>
-        </div>
-        <p className="mt-1 truncate text-sm font-semibold text-xp-text" title={subtitle}>
-          {subtitle}
-        </p>
+        </span>
+        <span className="text-xs font-medium text-xp-text-muted">{label}</span>
+      </div>
+      <p className="font-dot mt-2 text-3xl leading-none text-xp-text">
+        {hasData ? Math.round(value) : '—'}
+        {hasData && <span className="ml-1 align-top text-base text-xp-text-secondary">%</span>}
+      </p>
+      <p className="mt-1 truncate text-xs text-xp-text-muted" title={subtitle}>
+        {subtitle}
+      </p>
+      <div className="bg-xp-border/60 mt-2.5 h-1 rounded-full">
+        <div
+          className="h-1 rounded-full transition-all duration-500"
+          style={{ width: `${value}%`, backgroundColor: color }}
+        />
       </div>
     </div>
   );
@@ -124,18 +144,20 @@ const SystemDashboard = () => {
 
   return (
     <section aria-label={t('home.systemDashboard')}>
-      <div className="mb-2.5">
-        <p className="text-sm font-semibold text-xp-text">{t('home.systemDashboard')}</p>
+      <div className="mb-3">
+        <p className="text-base font-semibold tracking-tight text-xp-text">
+          {t('home.systemDashboard')}
+        </p>
         <p className="mt-0.5 text-xs text-xp-text-muted">
           {stats ? t('home.systemDashboardLive') : t('home.statsUnavailable')}
         </p>
       </div>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Gauge
           pct={stats ? stats.cpu_usage : null}
           label={t('home.cpu')}
           subtitle={stats ? t('home.cpuCores', { count: navigator.hardwareConcurrency || 0 }) : '—'}
-          icon={<Cpu size={13} aria-hidden="true" />}
+          icon={<Cpu size={14} aria-hidden="true" />}
           tint={['rgba(99, 112, 255, 0.55)', 'rgba(64, 200, 220, 0.4)']}
         />
         <Gauge
@@ -144,7 +166,7 @@ const SystemDashboard = () => {
           subtitle={
             stats ? `${formatFileSize(stats.mem_used)} / ${formatFileSize(stats.mem_total)}` : '—'
           }
-          icon={<MemoryStick size={13} aria-hidden="true" />}
+          icon={<MemoryStick size={14} aria-hidden="true" />}
           tint={['rgba(150, 108, 240, 0.5)', 'rgba(235, 108, 180, 0.42)']}
         />
         <Gauge
@@ -153,8 +175,9 @@ const SystemDashboard = () => {
           subtitle={
             stats ? t('home.diskAvailable', { size: formatFileSize(stats.disk_available) }) : '—'
           }
-          icon={<HardDrive size={13} aria-hidden="true" />}
+          icon={<HardDrive size={14} aria-hidden="true" />}
           tint={['rgba(245, 150, 90, 0.48)', 'rgba(235, 90, 110, 0.4)']}
+          hero
         />
       </div>
     </section>

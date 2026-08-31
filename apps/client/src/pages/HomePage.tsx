@@ -175,7 +175,7 @@ const Clock = () => {
         </p>
       </div>
       <div className="flex flex-col items-end gap-1.5">
-        <p className="text-4xl font-extralight tabular-nums leading-none text-xp-text-muted">
+        <p className="font-dot text-5xl leading-none tracking-tight text-xp-text">
           {currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
         </p>
         {report && descriptor && (
@@ -567,7 +567,9 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
         {/* Quick access — ambient glass tiles for the everyday locations */}
         {quickAccessTiles.length > 0 && (
           <div className="order-2 lg:col-span-12">
-            <p className="mb-2 text-sm font-medium text-xp-text">{t('sidebar.quickAccess')}</p>
+            <p className="mb-2.5 text-base font-semibold tracking-tight text-xp-text">
+              {t('sidebar.quickAccess')}
+            </p>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
               {quickAccessTiles.map(({ key, label, path, Icon, tintA, tintB }) => (
                 <button
@@ -583,7 +585,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                     } as React.CSSProperties
                   }
                 >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-xp-border bg-muted text-xp-text">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-card text-xp-text shadow-[0_1px_5px_rgba(29,28,26,0.1)]">
                     <Icon size={16} aria-hidden="true" />
                   </span>
                   <span className="w-full truncate text-xs font-medium text-xp-text">{label}</span>
@@ -606,11 +608,11 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                   <button
                     key={path}
                     onClick={() => handleNavigate(path)}
-                    className="group flex items-center gap-2 rounded-md border border-xp-border bg-muted px-3 py-1.5 text-xs transition-colors hover:border-primary"
+                    className="group flex items-center gap-2 rounded-full bg-card px-3.5 py-2 text-xs shadow-[0_1px_5px_rgba(29,28,26,0.08)] transition-transform hover:-translate-y-px"
                     title={path}
                   >
-                    <Folder className="h-3 w-3 flex-shrink-0 text-xp-blue" />
-                    <span className="max-w-[140px] truncate text-xp-text-muted group-hover:text-xp-text">
+                    <Folder className="h-3 w-3 flex-shrink-0 text-xp-text-secondary" />
+                    <span className="max-w-[140px] truncate text-xp-text-secondary group-hover:text-xp-text">
                       {name}
                     </span>
                   </button>

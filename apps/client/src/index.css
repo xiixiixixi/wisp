@@ -4,6 +4,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Doto — variable dot-matrix display face for dashboard numerals */
+@font-face {
+  font-family: "Doto";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("/fonts/Doto-var-latin.woff2") format("woff2");
+}
+
 /* Full height chain — #root styles are inline in index.html */
 html,
 body {
@@ -92,6 +101,11 @@ body {
   --glow-purple: none;
   --glow-pink: none;
   --glow-green: none;
+
+  /* Signature highlight chip (Best-Seller lime) — same value in every theme,
+     always paired with ink text, so it only needs a :root definition. */
+  --xp-lime: #d6f220;
+  --xp-lime-rgb: 214 242 32;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -386,6 +400,22 @@ html.enhanced-focus *:focus-visible {
 
   .scrollbar-none::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Dot-matrix dashboard numerals (Doto variable font) */
+  .font-dot {
+    font-family: "Doto", ui-monospace, "SF Mono", monospace;
+    font-weight: 800;
+    font-variation-settings: "ROND" 100;
+  }
+
+  /* Micro dot-grid decoration, as on the reference dashboard cards */
+  .dot-grid {
+    background-image: radial-gradient(
+      color-mix(in srgb, var(--xp-text) 22%, transparent) 1.2px,
+      transparent 1.3px
+    );
+    background-size: 11px 11px;
   }
 
   /* 3D View Styles */
@@ -1013,11 +1043,11 @@ html.theme-light {
 
   --xp-bg: #e9e8e4;
   --xp-bg-gradient: #e9e8e4;
-  --xp-surface: rgba(255, 255, 255, 0.62);
+  --xp-surface: rgba(255, 255, 255, 0.66);
   --xp-surface-light: rgba(255, 255, 255, 0.85);
-  --xp-sidebar: rgba(252, 251, 249, 0.46);
-  --xp-chrome: rgba(252, 251, 249, 0.52);
-  --xp-rail: rgba(248, 247, 244, 0.46);
+  --xp-sidebar: rgba(252, 251, 249, 0.32);
+  --xp-chrome: rgba(252, 251, 249, 0.38);
+  --xp-rail: rgba(248, 247, 244, 0.3);
   --xp-inspector: rgba(253, 252, 250, 0.56);
   --xp-popover: rgba(253, 252, 250, 0.93);
   /* Ink monochrome chrome — color lives only in the accent washes below */
@@ -1921,4 +1951,51 @@ html[data-sky="gloom"] {
     radial-gradient(900px 620px at 88% 12%, rgba(120, 132, 152, 0.2), transparent 60%),
     linear-gradient(180deg, rgba(108, 118, 138, 0.16), rgba(90, 100, 120, 0.14)), var(--xp-bg);
   background-attachment: fixed;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PAPER STRUCTURE — Subvecta elevation system (html.theme-light only)
+   The page canvas recedes into the warm ground (transparent, so the
+   aurora + weather scene read through) while .glass-card panes lift
+   as borderless near-white cards with a soft diffuse shadow.
+   ═══════════════════════════════════════════════════════════════════ */
+
+html.theme-light .bg-xp-bg,
+html.theme-light .bg-background {
+  background-color: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+html.theme-light .glass-card {
+  border: none;
+  border-radius: 1.25rem;
+  box-shadow:
+    0 1px 2px rgba(29, 28, 26, 0.05),
+    0 14px 36px rgba(29, 28, 26, 0.09);
+}
+
+html.theme-light .glass-card::before {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background:
+    radial-gradient(
+      40% 50% at 26% 20%,
+      color-mix(in srgb, var(--tint-a, transparent) 30%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      46% 56% at 80% 86%,
+      color-mix(in srgb, var(--tint-b, transparent) 30%, transparent),
+      transparent 64%
+    ),
+    rgba(255, 255, 255, 0.8);
+}
+
+/* The selection toolbar floats as a white card above the ground */
+html.theme-light .wisp-operationbar {
+  background-color: rgba(255, 255, 255, 0.74);
+  box-shadow:
+    0 1px 2px rgba(29, 28, 26, 0.05),
+    0 12px 28px rgba(29, 28, 26, 0.1) !important;
 }

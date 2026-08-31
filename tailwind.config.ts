@@ -29,6 +29,7 @@ export default {
           yellow: 'rgb(var(--xp-yellow-rgb) / <alpha-value>)',
           red: 'rgb(var(--xp-red-rgb) / <alpha-value>)',
           cyan: 'rgb(var(--xp-cyan-rgb) / <alpha-value>)',
+          lime: 'rgb(var(--xp-lime-rgb) / <alpha-value>)',
           text: 'var(--xp-text)',
           'text-secondary': 'var(--xp-text-secondary)',
           'text-muted': 'var(--xp-text-muted)',

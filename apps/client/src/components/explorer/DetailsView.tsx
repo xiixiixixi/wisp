@@ -196,14 +196,13 @@ const FileRow = React.memo(
 );
 
 const GroupHeader = React.memo(({ name, count }: { name: string; count: number }) => (
-  <div
-    className="border-xp-border/50 bg-xp-surface/60 flex items-center border-b px-3 py-2 backdrop-blur-sm"
-    style={{ height: GROUP_HEADER_HEIGHT }}
-  >
-    <span className="text-xs font-semibold uppercase tracking-wide text-xp-text-secondary">
-      {name}
+  <div className="flex items-center px-3" style={{ height: GROUP_HEADER_HEIGHT }}>
+    <span className="flex items-center gap-2 rounded-full bg-card px-3 py-1 shadow-[0_1px_5px_rgba(29,28,26,0.08)]">
+      <span className="text-xs font-semibold uppercase tracking-wide text-xp-text-secondary">
+        {name}
+      </span>
+      <span className="font-dot text-[11px] leading-none text-xp-text-muted">{count}</span>
     </span>
-    <span className="ml-2 text-xs text-xp-text-muted">({count})</span>
   </div>
 ));
 
