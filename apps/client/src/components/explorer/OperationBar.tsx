@@ -290,7 +290,7 @@ const OperationBar = ({
           <div className="relative">
             <button
               onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-              className="flex items-center gap-1 rounded px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+              className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               aria-label={t('operationBar.sortBy', {
                 name: currentSortLabel,
                 order: currentSortOrder,
@@ -362,7 +362,7 @@ const OperationBar = ({
           <div className="relative flex items-center gap-1">
             <button
               onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
-              className="flex items-center gap-1 rounded px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+              className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               aria-label={t('operationBar.viewMode', {
                 name: currentViewLabel,
               })}

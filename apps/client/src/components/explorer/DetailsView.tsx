@@ -123,11 +123,9 @@ const FileRow = React.memo(
         data-file-path={file.path}
         data-drop-target={file.is_dir ? file.path : undefined}
         data-is-folder={file.is_dir ? 'true' : undefined}
-        className={`grid cursor-pointer grid-cols-12 items-center gap-3 px-3 py-2.5 transition-colors hover:bg-xp-surface-light ${
-          selectedFiles.has(file.path)
-            ? 'bg-xp-selection border border-xp-blue'
-            : 'border border-transparent text-xp-text'
-        } `}
+        className={`hover:bg-xp-surface-light/60 grid cursor-pointer grid-cols-12 items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
+          selectedFiles.has(file.path) ? 'bg-xp-blue/12' : ''
+        } text-xp-text`}
         {...(renamingPath === file.path ? {} : dragHandlers)}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
@@ -185,7 +183,7 @@ const FileRow = React.memo(
           })()}
         </div>
         <div className="col-span-2 text-center text-xs text-xp-text-muted">
-          <span className="inline-block rounded bg-xp-surface px-2 py-1 font-mono text-xs capitalize">
+          <span className="text-xs capitalize">
             {file.is_dir ? t('common.folder') : file.file_type}
           </span>
         </div>
@@ -199,7 +197,7 @@ const FileRow = React.memo(
 
 const GroupHeader = React.memo(({ name, count }: { name: string; count: number }) => (
   <div
-    className="bg-xp-surface-secondary flex items-center border-b border-xp-border px-3 py-2"
+    className="border-xp-border/50 bg-xp-surface/60 flex items-center border-b px-3 py-2 backdrop-blur-sm"
     style={{ height: GROUP_HEADER_HEIGHT }}
   >
     <span className="text-xs font-semibold uppercase tracking-wide text-xp-text-secondary">

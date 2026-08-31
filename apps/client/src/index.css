@@ -1220,10 +1220,11 @@ html.theme-light {
 }
 
 .wisp-sidebar-item-active {
-  background: var(--xp-surface-light, var(--xp-surface)) !important;
+  background: color-mix(in srgb, var(--xp-blue) 13%, transparent) !important;
   border-color: transparent !important;
   box-shadow: none !important;
-  color: var(--xp-text) !important;
+  color: var(--xp-blue) !important;
+  font-weight: 500;
 }
 
 .wisp-panel-button-active {

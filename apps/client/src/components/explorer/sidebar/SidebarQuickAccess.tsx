@@ -77,48 +77,57 @@ const SidebarQuickAccess = ({
                 path: 'wisp://home',
                 Icon: Home,
                 labelKey: 'sidebar.home' as const,
+                tone: 'text-xp-blue',
               },
               {
                 path: userDirectories.home,
                 Icon: User,
                 labelKey: 'sidebar.userDirectory' as const,
+                tone: 'text-xp-cyan',
               },
               {
                 path: userDirectories.documents,
                 Icon: FileText,
                 labelKey: 'sidebar.documents' as const,
+                tone: 'text-xp-purple',
               },
               {
                 path: userDirectories.downloads,
                 Icon: Download,
                 labelKey: 'sidebar.downloads' as const,
+                tone: 'text-xp-orange',
               },
               {
                 path: userDirectories.desktop,
                 Icon: Monitor,
                 labelKey: 'sidebar.desktop' as const,
+                tone: 'text-xp-yellow',
               },
               {
                 path: userDirectories.pictures,
                 Icon: Image,
                 labelKey: 'sidebar.pictures' as const,
+                tone: 'text-xp-pink',
               },
             ] as const
-          ).map(({ path, Icon, labelKey }) => {
+          ).map(({ path, Icon, labelKey, tone }) => {
             const label = t(labelKey);
             const isActive = currentPath === path;
             return (
               <button
                 key={labelKey}
                 onClick={() => navigateToPath(path)}
-                className={`flex w-full items-center rounded px-2 py-1.5 text-xs transition-colors ${
-                  isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
+                className={`flex w-full items-center rounded-lg px-2.5 py-[7px] text-[13px] transition-colors ${
+                  isActive
+                    ? 'wisp-sidebar-item-active'
+                    : 'hover:bg-xp-surface-light/70 text-xp-text'
                 }`}
                 aria-label={t('sidebar.navigateTo', { label })}
               >
                 <Icon
-                  size={15}
-                  className="mr-2.5 flex-shrink-0 text-xp-text-secondary"
+                  size={16}
+                  strokeWidth={1.75}
+                  className={`mr-2.5 flex-shrink-0 ${tone}`}
                   aria-hidden="true"
                 />
                 {label}
@@ -133,14 +142,17 @@ const SidebarQuickAccess = ({
               <button
                 key="icloud"
                 onClick={() => navigateToPath(iCloudPath)}
-                className={`flex w-full items-center rounded px-2 py-1.5 text-xs transition-colors ${
-                  isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
+                className={`flex w-full items-center rounded-lg px-2.5 py-[7px] text-[13px] transition-colors ${
+                  isActive
+                    ? 'wisp-sidebar-item-active'
+                    : 'hover:bg-xp-surface-light/70 text-xp-text'
                 }`}
                 aria-label={t('sidebar.navigateTo', { label })}
               >
                 <Cloud
-                  size={15}
-                  className="mr-2.5 flex-shrink-0 text-xp-text-secondary"
+                  size={16}
+                  strokeWidth={1.75}
+                  className="mr-2.5 flex-shrink-0 text-xp-blue"
                   aria-hidden="true"
                 />
                 {label}
