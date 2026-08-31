@@ -82,8 +82,22 @@ const useUpdater = () => {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => checkForUpdate().catch(() => {}), 5000);
-    const interval = setInterval(() => checkForUpdate().catch(() => {}), 4 * 60 * 60 * 1000);
+    const timer = setTimeout(
+      () =>
+        checkForUpdate().catch((err) => {
+          // Network/endpoint failures must stay visible in the console —
+          // otherwise "no update prompt" is undiagnosable.
+          console.warn('[updater] automatic check failed:', err);
+        }),
+      5000,
+    );
+    const interval = setInterval(
+      () =>
+        checkForUpdate().catch((err) => {
+          console.warn('[updater] periodic check failed:', err);
+        }),
+      4 * 60 * 60 * 1000,
+    );
     return () => {
       clearTimeout(timer);
       clearInterval(interval);
