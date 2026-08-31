@@ -237,6 +237,22 @@ const ChangeSummaryToast = React.memo(
             ))}
           </div>
         )}
+
+        {/* Auto-dismiss countdown (pauses once the user interacts/expands) */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            height: 3,
+            width: '100%',
+            background: 'var(--xp-blue, #7aa2f7)',
+            opacity: interacted ? 0.35 : 1,
+            animation: `toast-countdown ${AUTO_DISMISS_MS}ms linear forwards`,
+            animationPlayState: interacted ? 'paused' : 'running',
+          }}
+          aria-hidden="true"
+        />
       </div>
     );
   },

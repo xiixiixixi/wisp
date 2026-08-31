@@ -14,7 +14,7 @@ type ToastProps = {
 
 const TOAST_LIMIT = 3;
 const TOAST_REMOVE_DELAY = 1000;
-const TOAST_AUTO_DISMISS_DELAY = 10000;
+export const TOAST_AUTO_DISMISS_DELAY = 10000;
 
 type ToasterToast = ToastProps & {
   id: string;

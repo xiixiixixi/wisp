@@ -1,7 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useToast, toast } from '@/hooks/use-toast';
+import { useToast, toast, TOAST_AUTO_DISMISS_DELAY } from '@/hooks/use-toast';
 
 interface ToastProps {
   id: string;
@@ -10,6 +10,8 @@ interface ToastProps {
   variant?: 'default' | 'destructive';
   presentation?: 'toast' | 'dialog';
   open?: boolean;
+  /** Show the shrinking countdown bar (matches the auto-dismiss timer). */
+  showCountdown?: boolean;
   onClose?: () => void;
 }
 
@@ -20,6 +22,7 @@ const Toast = ({
   variant = 'default',
   presentation = 'toast',
   open = true,
+  showCountdown = false,
   onClose,
 }: ToastProps) => {
   const { t } = useTranslation();
@@ -75,6 +78,16 @@ const Toast = ({
       >
         <X className="h-4 w-4" aria-hidden="true" />
       </button>
+
+      {presentation !== 'dialog' && showCountdown && (
+        <div
+          className={`absolute bottom-0 left-0 h-0.5 ${
+            variant === 'destructive' ? 'bg-red-500' : 'bg-xp-blue'
+          }`}
+          style={{ animation: `toast-countdown ${TOAST_AUTO_DISMISS_DELAY}ms linear forwards` }}
+          aria-hidden="true"
+        />
+      )}
     </div>
   );
 };
@@ -143,7 +156,7 @@ export const Toaster = () => {
 
   return (
     <>
-      <div className="fixed right-4 top-4 z-50 w-full max-w-sm space-y-2">
+      <div className="fixed bottom-4 right-4 z-50 flex w-full max-w-sm flex-col-reverse space-y-2 space-y-reverse">
         {notifications.map((item) => (
           <div key={item.id} className="relative">
             <Toast
@@ -152,6 +165,7 @@ export const Toaster = () => {
               description={item.description}
               variant={item.variant}
               open={item.open !== false}
+              showCountdown={item.autoDismiss !== false}
               onClose={() => closeToast(item.id, item.onOpenChange)}
             />
           </div>

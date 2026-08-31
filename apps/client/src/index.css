@@ -309,6 +309,17 @@ html.enhanced-focus *:focus-visible {
     animation: pulse-neon 2s ease-in-out infinite;
   }
 
+  /* Toast auto-dismiss countdown bar: width shrinks from 100% to 0.
+     Duration is set inline from TOAST_AUTO_DISMISS_DELAY / the toast's own timer. */
+  @keyframes toast-countdown {
+    from {
+      width: 100%;
+    }
+    to {
+      width: 0%;
+    }
+  }
+
   /* Scrollbar Styling — auto-hide overlay bars: thumbs stay transparent
      until the container actually scrolls (.is-scrolling is toggled by
      lib/auto-scrollbars.ts), Finder-style. */
