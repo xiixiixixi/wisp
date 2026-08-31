@@ -282,7 +282,7 @@ const OperationBar = ({
   return (
     <div
       ref={barRef}
-      className="wisp-operationbar wisp-no-select border-b border-xp-border bg-xp-surface px-3 py-1.5"
+      className="wisp-operationbar wisp-no-select relative z-30 border-b border-xp-border bg-xp-surface px-3 py-1.5"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-1">

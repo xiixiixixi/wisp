@@ -978,7 +978,8 @@
       "includeHidden": "Include hidden files",
       "followSymlinks": "Follow symbolic links",
       "compress": "Compress",
-      "compressing": "Compressing..."
+      "compressing": "Compressing...",
+      "filesCount": "Compress {{count}} items"
     },
     "extract": {
       "title": "Extract Archive",

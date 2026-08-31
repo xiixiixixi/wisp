@@ -978,7 +978,8 @@
       "includeHidden": "包含隐藏文件",
       "followSymlinks": "跟随符号链接",
       "compress": "压缩",
-      "compressing": "压缩中…"
+      "compressing": "压缩中…",
+      "filesCount": "压缩 {{count}} 个项目"
     },
     "extract": {
       "title": "解压压缩包",
