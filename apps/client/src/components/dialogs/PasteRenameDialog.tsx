@@ -288,7 +288,6 @@ const PasteRenameDialog = React.memo(
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: 'rgba(0,0,0,0.6)',
-          backdropFilter: 'blur(4px)',
         }}
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose();
@@ -302,8 +301,8 @@ const PasteRenameDialog = React.memo(
             flexDirection: 'column',
             backgroundColor: 'var(--xp-surface)',
             border: '1px solid var(--xp-border)',
-            borderRadius: '12px',
-            boxShadow: '0 24px 48px rgba(0,0,0,0.4)',
+            borderRadius: '8px',
+            boxShadow: 'var(--xp-shadow-popover)',
             overflow: 'hidden',
           }}
         >
@@ -323,7 +322,8 @@ const PasteRenameDialog = React.memo(
                 height="18"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="var(--xp-blue)"
+                stroke="currentColor"
+                className="text-[var(--xp-blue)]"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"

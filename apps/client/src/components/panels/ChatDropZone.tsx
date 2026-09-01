@@ -22,7 +22,7 @@ export const DragOverlay = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'rgba(122, 162, 247, 0.08)',
+        background: 'rgb(var(--xp-blue-rgb) / 0.08)',
         border: '2px dashed var(--xp-blue)',
         borderRadius: '8px',
         pointerEvents: 'none',
@@ -79,7 +79,7 @@ export const AttachedFilesBar = ({ files, onRemove, onClearAll }: AttachedFilesB
         gap: '4px',
         fontSize: '11px',
         flexShrink: 0,
-        background: 'rgba(122, 162, 247, 0.05)',
+        background: 'rgb(var(--xp-blue-rgb) / 0.05)',
       }}
     >
       <span
@@ -103,7 +103,7 @@ export const AttachedFilesBar = ({ files, onRemove, onClearAll }: AttachedFilesB
             gap: '3px',
             padding: '2px 6px',
             borderRadius: '4px',
-            background: 'rgba(122, 162, 247, 0.15)',
+            background: 'rgb(var(--xp-blue-rgb) / 0.15)',
             color: 'var(--xp-blue)',
           }}
         >

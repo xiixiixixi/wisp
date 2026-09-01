@@ -60,7 +60,7 @@ const ProactiveSuggestionCard = ({
           size={14}
           style={{
             flexShrink: 0,
-            color: 'var(--xp-yellow, #e0af68)',
+            color: 'var(--xp-yellow)',
             marginTop: '1px',
           }}
         />
@@ -123,7 +123,7 @@ const ProactiveSuggestionCard = ({
             padding: '4px 12px',
             borderRadius: '6px',
             border: '1px solid var(--xp-blue)',
-            background: 'rgba(122, 162, 247, 0.12)',
+            background: 'rgb(var(--xp-blue-rgb) / 0.12)',
             color: 'var(--xp-blue)',
             cursor: 'pointer',
             fontSize: '11px',
@@ -177,7 +177,7 @@ const ProactiveSuggestionCard = ({
                 borderRadius: '6px',
                 border: '1px solid var(--xp-border)',
                 background: 'var(--xp-surface)',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                boxShadow: '0 0 0 1px var(--xp-border)',
                 whiteSpace: 'nowrap',
                 zIndex: 10,
                 fontSize: '11px',

@@ -102,10 +102,10 @@ const ChatFileView = ({ filePath }: ChatFileViewProps) => {
 
   if (isLoading) {
     return (
-      <div className="bg-xp-bg flex h-full items-center justify-center">
+      <div className="flex h-full items-center justify-center bg-xp-bg">
         <div className="flex flex-col items-center gap-3">
-          <div className="border-xp-blue h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
-          <span className="text-xp-text-muted text-sm">Loading chat...</span>
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-xp-blue border-t-transparent" />
+          <span className="text-sm text-xp-text-muted">Loading chat...</span>
         </div>
       </div>
     );
@@ -114,17 +114,17 @@ const ChatFileView = ({ filePath }: ChatFileViewProps) => {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="bg-xp-bg flex h-full flex-col" role="region" aria-label="Chat file view">
+    <div className="flex h-full flex-col bg-xp-bg" role="region" aria-label="Chat file view">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="border-xp-border bg-xp-surface flex-shrink-0 border-b px-4 py-3">
+      <div className="flex-shrink-0 border-b border-xp-border bg-xp-surface px-4 py-3">
         <div className="mx-auto max-w-3xl">
           {/* Top row: title + model + thinking */}
           <div className="flex flex-wrap items-center gap-3">
             {/* Title */}
-            <h2 className="text-xp-text mr-auto truncate text-base font-semibold">{title}</h2>
+            <h2 className="mr-auto truncate text-base font-medium text-xp-text">{title}</h2>
 
             {/* Model display (configured in Settings > AI) */}
-            <span className="bg-xp-bg border-xp-border text-xp-text-muted rounded border px-3 py-1.5 text-xs">
+            <span className="rounded border border-xp-border bg-xp-bg px-3 py-1.5 text-xs text-xp-text-muted">
               {model}
             </span>
 
@@ -133,7 +133,7 @@ const ChatFileView = ({ filePath }: ChatFileViewProps) => {
               onClick={() => setThinkingEnabled(!thinkingEnabled)}
               className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${
                 thinkingEnabled
-                  ? 'bg-xp-cyan text-white hover:opacity-80'
+                  ? 'bg-xp-cyan text-[var(--xp-bg)] hover:opacity-80'
                   : 'bg-xp-border text-xp-text hover:bg-xp-surface-light'
               }`}
               aria-label={`Thinking mode: ${thinkingEnabled ? 'enabled' : 'disabled'}`}
@@ -146,16 +146,16 @@ const ChatFileView = ({ filePath }: ChatFileViewProps) => {
           {/* Context chips */}
           {contextFiles.length > 0 && (
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="text-xp-text-muted text-xs">Context:</span>
+              <span className="text-xs text-xp-text-muted">Context:</span>
               {contextFiles.map((file) => (
                 <span
                   key={file.path}
-                  className="bg-xp-blue/10 border-xp-blue/20 text-xp-text inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs"
+                  className="inline-flex items-center gap-1 rounded border border-xp-blue/20 bg-xp-blue/10 px-2 py-0.5 text-xs text-xp-text"
                 >
                   <span className="max-w-[150px] truncate">{file.name}</span>
                   <button
                     onClick={() => removeContextFile(file.path)}
-                    className="text-xp-text-muted hover:text-xp-text flex-shrink-0 transition-colors"
+                    className="flex-shrink-0 text-xp-text-muted transition-colors hover:text-xp-text"
                     aria-label={`Remove ${file.name} from context`}
                   >
                     {'\u00D7'}
@@ -209,13 +209,13 @@ const ChatFileView = ({ filePath }: ChatFileViewProps) => {
             <div className="flex justify-start">
               <details
                 open
-                className="bg-xp-bg border-xp-border min-w-0 max-w-[85%] overflow-hidden rounded-lg border"
+                className="min-w-0 max-w-[85%] overflow-hidden rounded-lg border border-xp-border bg-xp-bg"
               >
-                <summary className="text-xp-text-muted hover:bg-xp-bg-hover flex cursor-pointer select-none items-center gap-1.5 px-3 py-1.5 text-xs">
-                  <div className="bg-xp-cyan h-1.5 w-1.5 animate-pulse rounded-full" />
+                <summary className="hover:bg-xp-bg-hover flex cursor-pointer select-none items-center gap-1.5 px-3 py-1.5 text-xs text-xp-text-muted">
+                  <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-xp-cyan" />
                   <span>Thinking...</span>
                 </summary>
-                <div className="text-xp-text-muted border-xp-border max-h-48 overflow-y-auto whitespace-pre-wrap border-t px-3 py-2 text-xs">
+                <div className="max-h-48 overflow-y-auto whitespace-pre-wrap border-t border-xp-border px-3 py-2 text-xs text-xp-text-muted">
                   {streamingThinking}
                 </div>
               </details>
@@ -236,7 +236,7 @@ const ChatFileView = ({ filePath }: ChatFileViewProps) => {
       </div>
 
       {/* ── Input area ─────────────────────────────────────────────────────── */}
-      <div className="border-xp-border bg-xp-surface flex-shrink-0 border-t">
+      <div className="flex-shrink-0 border-t border-xp-border bg-xp-surface">
         <div className="mx-auto max-w-3xl">
           <ChatInput
             chatInput={chatInput}

@@ -58,7 +58,6 @@ const SizeBadge = ({
         border: '1.5px solid var(--xp-border)',
         zIndex: 5,
         cursor: 'default',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
         transition: 'transform 0.15s ease',
       }}
       onMouseEnter={(e) => {
@@ -86,12 +85,19 @@ const ValidationIcon = ({ valid, warning }: { valid: boolean; warning: boolean }
       >
         <path
           d="M12 2L1 21h22L12 2z"
-          fill="var(--xp-yellow, #e2b340)"
-          stroke="var(--xp-yellow, #e2b340)"
+          fill="currentColor"
+          stroke="currentColor"
+          className="text-[var(--xp-yellow)]"
           strokeWidth="1"
         />
-        <path d="M12 10v4" stroke="#000" strokeWidth="2" strokeLinecap="round" />
-        <circle cx="12" cy="17" r="1" fill="#000" />
+        <path
+          d="M12 10v4"
+          stroke="currentColor"
+          className="text-[var(--xp-text)]"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <circle cx="12" cy="17" r="1" fill="currentColor" className="text-[var(--xp-text)]" />
       </svg>
     );
   }
@@ -105,7 +111,7 @@ const ValidationIcon = ({ valid, warning }: { valid: boolean; warning: boolean }
         fill="none"
         style={{ flexShrink: 0, marginLeft: 4 }}
       >
-        <circle cx="12" cy="12" r="10" fill="var(--xp-red, #f44747)" />
+        <circle cx="12" cy="12" r="10" fill="currentColor" className="text-[var(--xp-red)]" />
         <path d="M8 8l8 8M16 8l-8 8" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
       </svg>
     );
@@ -119,7 +125,7 @@ const ValidationIcon = ({ valid, warning }: { valid: boolean; warning: boolean }
       fill="none"
       style={{ flexShrink: 0, marginLeft: 4 }}
     >
-      <circle cx="12" cy="12" r="10" fill="var(--xp-green, #4ec9b0)" />
+      <circle cx="12" cy="12" r="10" fill="currentColor" className="text-[var(--xp-green)]" />
       <path
         d="M7 12l3 3 7-7"
         stroke="#fff"
@@ -290,11 +296,11 @@ export const InlineRenameInput = React.memo(
     }, [handleConfirm]);
 
     // Determine border color based on validation
-    let borderColor = 'var(--xp-green, #4ec9b0)';
+    let borderColor = 'var(--xp-green)';
     if (!validation.valid && !validation.warning) {
-      borderColor = 'var(--xp-red, #f44747)';
+      borderColor = 'var(--xp-red)';
     } else if (validation.warning) {
-      borderColor = 'var(--xp-yellow, #e2b340)';
+      borderColor = 'var(--xp-yellow)';
     }
 
     return (
@@ -321,12 +327,11 @@ export const InlineRenameInput = React.memo(
             fontWeight: 500,
             fontFamily: 'inherit',
             color: 'var(--xp-text)',
-            background: 'var(--xp-surface, rgba(30, 30, 50, 0.9))',
+            background: 'var(--xp-surface)',
             border: `2px solid ${borderColor}`,
             borderRadius: 4,
             outline: 'none',
-            boxShadow: `0 0 6px ${borderColor}40`,
-            transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+            transition: 'border-color 0.15s ease',
             // The grid is permanently user-select:none (drag UX), but this
             // input must still allow caret placement and in-field selection.
             userSelect: 'text',
@@ -345,11 +350,11 @@ export const InlineRenameInput = React.memo(
               fontSize: '0.65rem',
               lineHeight: 1.3,
               color: (() => {
-                if (validation.warning) return 'var(--xp-yellow, #e2b340)';
-                if (!validation.valid) return 'var(--xp-red, #f44747)';
+                if (validation.warning) return 'var(--xp-yellow)';
+                if (!validation.valid) return 'var(--xp-red)';
                 return 'var(--xp-text-muted)';
               })(),
-              background: 'var(--xp-surface, rgba(30, 30, 50, 0.95))',
+              background: 'var(--xp-surface)',
               border: '1px solid var(--xp-border)',
               borderRadius: 3,
               whiteSpace: 'nowrap',
@@ -561,7 +566,7 @@ const FileGridItem = React.memo(
             {renderNameArea()}
           </div>
           {file.name.endsWith('.chat') && !isRenaming && (
-            <span className="bg-xp-purple/20 mt-0.5 inline-block rounded-full px-1.5 py-0.5 text-[9px] text-xp-purple">
+            <span className="mt-0.5 inline-block rounded bg-xp-purple/20 px-1.5 py-0.5 text-[9px] text-xp-purple">
               Chat
             </span>
           )}

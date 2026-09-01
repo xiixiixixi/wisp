@@ -84,8 +84,6 @@ const relativeTime = (
 };
 
 /** Icon gradient based on file type. */
-const recentFileGradient = (_fileType: string): string => 'from-stone-400 to-stone-500';
-
 /** Icon-library glyph for recent files based on type. */
 const RecentFileTypeIcon = ({
   fileType,
@@ -99,13 +97,13 @@ const RecentFileTypeIcon = ({
   return <FileText className={className} />;
 };
 
-/** Hero stat: big dot-matrix number with a small white pill label. */
+/** Hero stat: big light numeral with a small stone label. */
 const HeroStat = ({ value, label }: { value: string | number; label: string }) => (
   <div className="flex items-center gap-2">
     <span className="text-3xl font-light tabular-nums leading-none tracking-tight text-xp-text">
       {value}
     </span>
-    <span className="rounded-full bg-card px-2 py-0.5 text-[10px] font-medium text-xp-text-secondary shadow-[0_1px_4px_rgba(29,28,26,0.08)]">
+    <span className="rounded bg-xp-bg px-2 py-0.5 text-[10px] font-medium text-xp-text-secondary">
       {label}
     </span>
   </div>
@@ -178,15 +176,7 @@ const Clock = () => {
           {currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
         </p>
         {report && descriptor && (
-          <div
-            className="glass-card flex items-center gap-2 rounded-full px-3 py-1"
-            style={
-              {
-                '--tint-a': 'rgba(120, 150, 240, 0.35)',
-                '--tint-b': 'rgba(90, 200, 220, 0.28)',
-              } as React.CSSProperties
-            }
-          >
+          <div className="flex items-center gap-2 rounded border border-xp-border bg-xp-surface px-3 py-1">
             <WeatherGlyph
               code={report.weather_code}
               isDay={report.is_day}
@@ -501,48 +491,36 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
         label: t('sidebar.home'),
         path: userDirectories.home,
         Icon: HomeIcon,
-        tintA: 'rgba(99, 112, 255, 0.5)',
-        tintB: 'rgba(64, 200, 220, 0.38)',
       },
       {
         key: 'documents',
         label: t('sidebar.documents'),
         path: userDirectories.documents,
         Icon: FileText,
-        tintA: 'rgba(80, 150, 240, 0.45)',
-        tintB: 'rgba(120, 90, 240, 0.38)',
       },
       {
         key: 'downloads',
         label: t('sidebar.downloads'),
         path: userDirectories.downloads,
         Icon: Download,
-        tintA: 'rgba(60, 190, 160, 0.45)',
-        tintB: 'rgba(90, 200, 130, 0.35)',
       },
       {
         key: 'desktop',
         label: t('sidebar.desktop'),
         path: userDirectories.desktop,
         Icon: Monitor,
-        tintA: 'rgba(150, 108, 240, 0.46)',
-        tintB: 'rgba(235, 108, 180, 0.38)',
       },
       {
         key: 'pictures',
         label: t('sidebar.pictures'),
         path: userDirectories.pictures,
         Icon: ImageIcon,
-        tintA: 'rgba(245, 150, 90, 0.45)',
-        tintB: 'rgba(235, 90, 110, 0.38)',
       },
       {
         key: 'music',
         label: t('home.music'),
         path: userDirectories.music,
         Icon: Music,
-        tintA: 'rgba(240, 120, 150, 0.42)',
-        tintB: 'rgba(150, 90, 235, 0.4)',
       },
       ...(iCloudPath
         ? [
@@ -551,8 +529,6 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
               label: t('sidebar.icloudDrive'),
               path: iCloudPath,
               Icon: Cloud,
-              tintA: 'rgba(96, 165, 250, 0.45)',
-              tintB: 'rgba(129, 140, 248, 0.38)',
             },
           ]
         : []),
@@ -616,21 +592,15 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                 quickAccessTiles.length > 6 ? 'lg:grid-cols-4 xl:grid-cols-7' : 'lg:grid-cols-6'
               }`}
             >
-              {quickAccessTiles.map(({ key, label, path, Icon, tintA, tintB }) => (
+              {quickAccessTiles.map(({ key, label, path, Icon }) => (
                 <button
                   key={key}
                   type="button"
                   onClick={() => handleNavigate(path)}
                   title={path}
-                  className="glass-card group flex flex-col items-center gap-3 rounded-2xl p-4 text-center transition-transform duration-150 hover:-translate-y-0.5"
-                  style={
-                    {
-                      '--tint-a': tintA,
-                      '--tint-b': tintB,
-                    } as React.CSSProperties
-                  }
+                  className="glass-card group flex flex-col items-center gap-3 p-4 text-center transition-colors hover:border-xp-border-light"
                 >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-card text-xp-text shadow-[0_1px_5px_rgba(29,28,26,0.1)]">
+                  <span className="flex h-10 w-10 items-center justify-center rounded bg-xp-bg text-xp-text-secondary group-hover:text-xp-text">
                     <Icon size={16} aria-hidden="true" />
                   </span>
                   <span className="w-full truncate text-xs font-medium text-xp-text">{label}</span>
@@ -653,7 +623,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                   <button
                     key={path}
                     onClick={() => handleNavigate(path)}
-                    className="group flex items-center gap-2 rounded-full bg-card px-3.5 py-2 text-xs shadow-[0_1px_5px_rgba(29,28,26,0.08)] transition-transform hover:-translate-y-px"
+                    className="group flex items-center gap-2 rounded border border-xp-border bg-xp-surface px-3 py-1.5 text-xs transition-colors hover:bg-xp-surface-light"
                     title={path}
                   >
                     <Folder className="h-3 w-3 flex-shrink-0 text-xp-text-secondary" />
@@ -676,7 +646,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
               action={
                 <button
                   onClick={handleClearRecentFiles}
-                  className="flex h-8 items-center rounded-full bg-card px-3.5 text-xs font-medium text-xp-text-secondary shadow-[0_1px_5px_rgba(29,28,26,0.08)] transition-transform hover:-translate-y-px hover:text-xp-text"
+                  className="flex h-8 items-center rounded border border-xp-border bg-xp-surface px-3.5 text-xs font-medium text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                 >
                   {t('home.clearAll')}
                 </button>
@@ -684,7 +654,6 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
             />
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
               {recentFiles.map((file) => {
-                const gradient = recentFileGradient(file.file_type);
                 return (
                   <div
                     key={`${file.path}-${file.accessed_at}`}
@@ -697,15 +666,13 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                     }}
                     role="button"
                     tabIndex={0}
-                    className="glass-card group relative flex cursor-pointer flex-col items-center gap-2.5 rounded-2xl px-3 py-4 text-center transition-transform duration-150 hover:-translate-y-0.5"
+                    className="glass-card group relative flex cursor-pointer flex-col items-center gap-2.5 px-3 py-4 text-center transition-colors hover:border-xp-border-light"
                     title={file.path}
                   >
-                    <div
-                      className={`h-10 w-10 rounded-full bg-gradient-to-br ${gradient} flex flex-shrink-0 items-center justify-center shadow-[0_2px_8px_rgba(29,28,26,0.15)]`}
-                    >
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded bg-xp-bg">
                       <RecentFileTypeIcon
                         fileType={file.file_type}
-                        className="h-4 w-4 text-white"
+                        className="h-4 w-4 text-xp-text-secondary group-hover:text-xp-text"
                       />
                     </div>
                     <div className="w-full min-w-0">
@@ -717,7 +684,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                     {/* Remove button on hover */}
                     <button
                       onClick={(e) => handleRemoveRecentFile(e, file.path)}
-                      className="hover:bg-xp-error/20 hover:text-xp-error absolute right-1.5 top-1.5 rounded-full bg-card p-1 text-xp-text-muted opacity-0 shadow-sm transition-all group-hover:opacity-100"
+                      className="hover:bg-xp-selection absolute right-1.5 top-1.5 rounded bg-xp-surface p-1 text-xp-text-muted opacity-0 transition-opacity hover:text-xp-red group-hover:opacity-100"
                       title={t('home.removeFromRecent')}
                       aria-label={t('home.removeFromRecent')}
                     >
@@ -769,7 +736,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-base font-semibold text-xp-text">{t('home.agentTitle')}</p>
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-xp-blue">
+                      <span className="bg-xp-selection rounded px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-xp-lime">
                         {t('home.ready')}
                       </span>
                     </div>

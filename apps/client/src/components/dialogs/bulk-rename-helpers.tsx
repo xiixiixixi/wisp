@@ -442,9 +442,10 @@ export const WarningIcon = () => {
     >
       <path
         d="M8 1L15 14H1L8 1Z"
-        fill="var(--xp-orange)"
+        fill="currentColor"
         fillOpacity="0.2"
-        stroke="var(--xp-orange)"
+        stroke="currentColor"
+        className="text-[var(--xp-orange)]"
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
@@ -452,7 +453,8 @@ export const WarningIcon = () => {
         x="8"
         y="12.5"
         textAnchor="middle"
-        fill="var(--xp-orange)"
+        fill="currentColor"
+        className="text-[var(--xp-orange)]"
         fontSize="9"
         fontWeight="bold"
       >
@@ -473,7 +475,8 @@ export const CheckIcon = () => {
     >
       <path
         d="M3 8.5L6.5 12L13 4"
-        stroke="var(--xp-green)"
+        stroke="currentColor"
+        className="text-[var(--xp-green)]"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"

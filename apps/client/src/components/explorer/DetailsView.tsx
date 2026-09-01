@@ -197,8 +197,8 @@ const FileRow = React.memo(
 
 const GroupHeader = React.memo(({ name, count }: { name: string; count: number }) => (
   <div className="flex items-center px-3" style={{ height: GROUP_HEADER_HEIGHT }}>
-    <span className="flex items-center gap-2 rounded-full bg-card px-3 py-1 shadow-[0_1px_5px_rgba(29,28,26,0.08)]">
-      <span className="text-xs font-semibold uppercase tracking-wide text-xp-text-secondary">
+    <span className="flex items-center gap-2 rounded bg-xp-surface px-3 py-1">
+      <span className="text-xs font-medium uppercase tracking-wide text-xp-text-secondary">
         {name}
       </span>
       <span className="font-dot text-[11px] leading-none text-xp-text-muted">{count}</span>
@@ -311,7 +311,7 @@ const DetailsView = (props: DetailsViewProps) => {
 
   const header = (
     <div
-      className="wisp-list-header border-xp-border/60 sticky top-0 z-20 border-b bg-xp-surface/80 backdrop-blur-md"
+      className="wisp-list-header border-xp-border/60 sticky top-0 z-20 border-b bg-xp-bg"
       role="row"
     >
       <div className="grid grid-cols-12 items-center gap-3 px-3 py-3 text-xs font-medium text-xp-text-muted">

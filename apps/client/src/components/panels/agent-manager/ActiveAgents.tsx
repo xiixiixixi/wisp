@@ -56,9 +56,9 @@ interface ActiveAgentsProps {
 // ---------------------------------------------------------------------------
 
 const STATUS_COLORS: Record<AgentTask['status'], string> = {
-  thinking: 'var(--xp-green, #73daca)',
-  executing: 'var(--xp-green, #73daca)',
-  'waiting-approval': 'var(--xp-warning, #e0af68)',
+  thinking: 'var(--xp-green)',
+  executing: 'var(--xp-green)',
+  'waiting-approval': 'var(--xp-orange)',
 };
 
 const STATUS_LABELS: Record<AgentTask['status'], string> = {
@@ -68,13 +68,13 @@ const STATUS_LABELS: Record<AgentTask['status'], string> = {
 };
 
 const SESSION_STATUS_COLORS: Record<AgentSessionStatus, string> = {
-  idle: 'var(--xp-text-muted, #888)',
-  thinking: 'var(--xp-green, #73daca)',
-  executing: 'var(--xp-green, #73daca)',
-  waiting_approval: 'var(--xp-warning, #e0af68)',
-  done: 'var(--xp-blue, #7aa2f7)',
-  error: 'var(--xp-red, #f7768e)',
-  cancelled: 'var(--xp-text-muted, #888)',
+  idle: 'var(--xp-text-muted)',
+  thinking: 'var(--xp-green)',
+  executing: 'var(--xp-green)',
+  waiting_approval: 'var(--xp-orange)',
+  done: 'var(--xp-blue)',
+  error: 'var(--xp-red)',
+  cancelled: 'var(--xp-text-muted)',
 };
 
 const SESSION_STATUS_LABELS: Record<AgentSessionStatus, string> = {
@@ -373,7 +373,7 @@ const ActiveAgents = ({
                 style={{
                   marginTop: '4px',
                   fontSize: '10px',
-                  color: 'var(--xp-red, #f7768e)',
+                  color: 'var(--xp-red)',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',

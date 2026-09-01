@@ -308,8 +308,6 @@ const ExtensionPermissionDialog = () => {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
       }}
       onClick={handleDeny}
     >
@@ -319,12 +317,10 @@ const ExtensionPermissionDialog = () => {
           width: '420px',
           maxWidth: '90vw',
           maxHeight: '80vh',
-          borderRadius: '16px',
+          borderRadius: '6px',
           backgroundColor: 'var(--xp-surface, #1a1b26)',
           border: '1px solid var(--xp-border, #292e42)',
-          boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.4)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
+          boxShadow: 'var(--xp-shadow-popover)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column' as const,
@@ -347,10 +343,9 @@ const ExtensionPermissionDialog = () => {
               style={{
                 width: '36px',
                 height: '36px',
-                borderRadius: '10px',
-                background:
-                  'linear-gradient(135deg, rgba(122, 162, 247, 0.2), rgba(122, 162, 247, 0.08))',
-                border: '1px solid rgba(122, 162, 247, 0.2)',
+                borderRadius: '6px',
+                background: 'var(--xp-selection-bg)',
+                border: '1px solid var(--xp-selection-border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -362,7 +357,8 @@ const ExtensionPermissionDialog = () => {
                 height={18}
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="rgba(122, 162, 247, 0.9)"
+                stroke="currentColor"
+                className="text-[var(--xp-lime)]"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -374,7 +370,7 @@ const ExtensionPermissionDialog = () => {
               <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--xp-text, #c0caf5)' }}>
                 {t('permissions.title')}
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--xp-text-muted, #565f89)' }}>
+              <div style={{ fontSize: '11px', color: 'var(--xp-text-muted)' }}>
                 {t('dialogs.permissions.reviewBeforeActivating')}
               </div>
             </div>
@@ -385,7 +381,7 @@ const ExtensionPermissionDialog = () => {
               borderRadius: '6px',
               border: 'none',
               backgroundColor: 'transparent',
-              color: 'var(--xp-text-muted, #565f89)',
+              color: 'var(--xp-text-muted)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -393,12 +389,12 @@ const ExtensionPermissionDialog = () => {
             }}
             onClick={handleDeny}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)';
+              e.currentTarget.style.backgroundColor = 'var(--xp-surface-light)';
               e.currentTarget.style.color = 'var(--xp-text, #c0caf5)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = 'var(--xp-text-muted, #565f89)';
+              e.currentTarget.style.color = 'var(--xp-text-muted)';
             }}
             aria-label={t('permissions.denyClose')}
           >
@@ -428,7 +424,7 @@ const ExtensionPermissionDialog = () => {
             <div
               style={{
                 fontSize: '11px',
-                color: 'var(--xp-text-muted, #565f89)',
+                color: 'var(--xp-text-muted)',
                 marginTop: '2px',
                 display: 'flex',
                 alignItems: 'center',
@@ -449,9 +445,9 @@ const ExtensionPermissionDialog = () => {
                 alignItems: 'center',
                 gap: '8px',
                 padding: '8px 10px',
-                borderRadius: '8px',
-                backgroundColor: 'rgba(239, 68, 68, 0.08)',
-                border: '1px solid rgba(239, 68, 68, 0.15)',
+                borderRadius: '6px',
+                backgroundColor: 'rgb(var(--xp-red-rgb) / 0.08)',
+                border: '1px solid rgb(var(--xp-red-rgb) / 0.15)',
                 marginBottom: '12px',
               }}
             >
@@ -460,7 +456,8 @@ const ExtensionPermissionDialog = () => {
                 height={14}
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#f87171"
+                stroke="currentColor"
+                className="text-[var(--xp-red)]"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -478,7 +475,7 @@ const ExtensionPermissionDialog = () => {
                 }}
               >
                 {t('dialogs.permissions.dangerWarningPrefix')}{' '}
-                <span style={{ color: '#f87171', fontWeight: 500 }}>
+                <span style={{ color: 'var(--xp-red)', fontWeight: 500 }}>
                   {t('dialogs.permissions.sensitivePermCount', { count: dangerousCount })}
                 </span>
                 {t('dialogs.permissions.dangerWarningTrustSuffix')}
@@ -491,7 +488,7 @@ const ExtensionPermissionDialog = () => {
             style={{
               fontSize: '10px',
               fontWeight: 600,
-              color: 'var(--xp-text-muted, #565f89)',
+              color: 'var(--xp-text-muted)',
               textTransform: 'uppercase' as const,
               letterSpacing: '0.06em',
               marginBottom: '8px',
@@ -523,26 +520,26 @@ const ExtensionPermissionDialog = () => {
                     alignItems: 'center',
                     gap: '10px',
                     padding: '7px 10px',
-                    borderRadius: '8px',
+                    borderRadius: '6px',
                     backgroundColor: isDangerous
-                      ? 'rgba(249, 115, 22, 0.06)'
+                      ? 'rgb(var(--xp-orange-rgb) / 0.06)'
                       : 'var(--xp-surface-light)',
-                    border: `1px solid ${isDangerous ? 'rgba(249, 115, 22, 0.15)' : 'var(--xp-border)'}`,
+                    border: `1px solid ${isDangerous ? 'rgb(var(--xp-orange-rgb) / 0.15)' : 'var(--xp-border)'}`,
                   }}
                 >
                   <div
                     style={{
                       width: '28px',
                       height: '28px',
-                      borderRadius: '7px',
+                      borderRadius: '6px',
                       backgroundColor: isDangerous
-                        ? 'rgba(249, 115, 22, 0.1)'
-                        : 'rgba(122, 162, 247, 0.08)',
+                        ? 'rgb(var(--xp-orange-rgb) / 0.1)'
+                        : 'rgb(var(--xp-blue-rgb) / 0.08)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0,
-                      color: isDangerous ? '#fb923c' : 'rgba(122, 162, 247, 0.7)',
+                      color: isDangerous ? 'var(--xp-orange)' : 'rgb(var(--xp-blue-rgb) / 0.7)',
                     }}
                   >
                     <PermIcon perm={perm} />
@@ -552,12 +549,12 @@ const ExtensionPermissionDialog = () => {
                       style={{
                         fontSize: '12px',
                         fontWeight: 500,
-                        color: isDangerous ? '#fb923c' : 'var(--xp-text, #c0caf5)',
+                        color: isDangerous ? 'var(--xp-orange)' : 'var(--xp-text, #c0caf5)',
                       }}
                     >
                       {perm}
                     </div>
-                    <div style={{ fontSize: '11px', color: 'var(--xp-text-muted, #565f89)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--xp-text-muted)' }}>
                       {description}
                     </div>
                   </div>
@@ -583,11 +580,11 @@ const ExtensionPermissionDialog = () => {
               style={{
                 width: '14px',
                 height: '14px',
-                accentColor: 'var(--xp-blue, #7aa2f7)',
+                accentColor: 'var(--xp-text-muted)',
                 cursor: 'pointer',
               }}
             />
-            <span style={{ fontSize: '12px', color: 'var(--xp-text-muted, #565f89)' }}>
+            <span style={{ fontSize: '12px', color: 'var(--xp-text-muted)' }}>
               {t('permissions.remember')}
             </span>
           </label>
@@ -609,7 +606,7 @@ const ExtensionPermissionDialog = () => {
               padding: '7px 16px',
               fontSize: '12px',
               fontWeight: 500,
-              borderRadius: '8px',
+              borderRadius: '6px',
               cursor: 'pointer',
               border: '1px solid var(--xp-border)',
               backgroundColor: 'transparent',
@@ -618,7 +615,7 @@ const ExtensionPermissionDialog = () => {
             }}
             onClick={handleDeny}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)';
+              e.currentTarget.style.backgroundColor = 'var(--xp-surface-light)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent';
@@ -631,12 +628,10 @@ const ExtensionPermissionDialog = () => {
               padding: '7px 20px',
               fontSize: '12px',
               fontWeight: 500,
-              borderRadius: '8px',
+              borderRadius: '6px',
               cursor: 'pointer',
               border: 'none',
-              backgroundColor: hasDangerous
-                ? 'rgba(249, 115, 22, 0.85)'
-                : 'rgba(122, 162, 247, 0.85)',
+              backgroundColor: hasDangerous ? 'rgb(var(--xp-orange-rgb) / 0.85)' : 'var(--xp-lime)',
               color: '#fff',
               transition: 'opacity 0.15s',
             }}

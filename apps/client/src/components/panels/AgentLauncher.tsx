@@ -108,17 +108,16 @@ const backdropStyle: React.CSSProperties = {
   alignItems: 'flex-start',
   justifyContent: 'center',
   paddingTop: '15vh',
-  background: 'rgba(0, 0, 0, 0.5)',
-  backdropFilter: 'blur(4px)',
+  background: 'rgba(0, 0, 0, 0.4)',
 };
 
 const cardStyle: React.CSSProperties = {
   width: '100%',
   maxWidth: 520,
-  borderRadius: '12px',
+  borderRadius: '8px',
   border: '1px solid var(--xp-border)',
   background: 'var(--xp-surface)',
-  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+  boxShadow: '0 0 0 1px var(--xp-border)',
   overflow: 'hidden',
   animation: 'fadeSlideIn 0.15s ease-out',
 };
@@ -171,7 +170,7 @@ const launchBtnStyle: React.CSSProperties = {
   padding: '10px',
   border: 'none',
   borderRadius: '0',
-  background: 'var(--xp-blue, #7aa2f7)',
+  background: 'var(--xp-blue)',
   color: '#fff',
   fontSize: '13px',
   fontWeight: 600,
@@ -407,9 +406,9 @@ const AgentLauncher = ({
                   flex: 1,
                   padding: '4px 8px',
                   borderRadius: '6px',
-                  border: `1px solid ${scope === s ? 'var(--xp-blue, #7aa2f7)' : 'var(--xp-border)'}`,
-                  background: scope === s ? 'rgba(122, 162, 247, 0.15)' : 'var(--xp-bg)',
-                  color: scope === s ? 'var(--xp-blue, #7aa2f7)' : 'var(--xp-text-muted)',
+                  border: `1px solid ${scope === s ? 'var(--xp-blue)' : 'var(--xp-border)'}`,
+                  background: scope === s ? 'rgb(var(--xp-blue-rgb) / 0.15)' : 'var(--xp-bg)',
+                  color: scope === s ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
                   fontSize: '11px',
                   cursor: 'pointer',
                   display: 'flex',
@@ -449,7 +448,7 @@ const AgentLauncher = ({
               borderRadius: '4px',
               padding: '2px 6px',
               cursor: 'pointer',
-              color: showDirInput ? 'var(--xp-blue, #7aa2f7)' : 'var(--xp-text-muted)',
+              color: showDirInput ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
               display: 'flex',
               alignItems: 'center',
               gap: '3px',
@@ -544,10 +543,10 @@ const AgentLauncher = ({
             cursor: prompt.trim() ? 'pointer' : 'not-allowed',
           }}
           onMouseEnter={(e) => {
-            if (prompt.trim()) e.currentTarget.style.background = 'var(--xp-blue-bright, #89b4fa)';
+            if (prompt.trim()) e.currentTarget.style.background = 'var(--xp-cyan)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'var(--xp-blue, #7aa2f7)';
+            e.currentTarget.style.background = 'var(--xp-blue)';
           }}
         >
           <Rocket size={14} />

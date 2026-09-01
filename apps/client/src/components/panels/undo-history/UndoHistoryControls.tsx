@@ -44,15 +44,14 @@ const DetailsPopover = React.memo(
           top: Math.min(state.y, window.innerHeight - 300),
           width: '300px',
           maxHeight: '280px',
-          backgroundColor: 'var(--xp-surface, #1a1a2e)',
+          backgroundColor: 'var(--xp-surface)',
           border: '1px solid var(--xp-border)',
           borderRadius: '8px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          boxShadow: '0 0 0 1px var(--xp-border)',
           zIndex: 10000,
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
-          backdropFilter: 'blur(12px)',
         }}
       >
         <div
@@ -92,7 +91,7 @@ const DetailsPopover = React.memo(
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '1px',
-                borderBottom: '1px solid rgba(255,255,255,0.03)',
+                borderBottom: '1px solid var(--xp-border)',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -227,7 +226,7 @@ const ContextMenu = React.memo(
     };
 
     const menuItemHover = (e: React.MouseEvent<HTMLButtonElement>) => {
-      (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.08)';
+      (e.currentTarget as HTMLElement).style.backgroundColor = 'rgb(var(--xp-blue-rgb) / 0.08)';
     };
     const menuItemLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
       (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
@@ -241,13 +240,12 @@ const ContextMenu = React.memo(
           left: Math.min(state.x, window.innerWidth - 220),
           top: Math.min(state.y, window.innerHeight - 200),
           width: '210px',
-          backgroundColor: 'var(--xp-surface, #1a1a2e)',
+          backgroundColor: 'var(--xp-surface)',
           border: '1px solid var(--xp-border)',
           borderRadius: '6px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          boxShadow: '0 0 0 1px var(--xp-border)',
           zIndex: 10001,
           padding: '4px 0',
-          backdropFilter: 'blur(12px)',
         }}
       >
         {isUndoable && (
@@ -382,7 +380,7 @@ const ContextMenu = React.memo(
         <div style={{ height: '1px', backgroundColor: 'var(--xp-border)', margin: '4px 8px' }} />
 
         <button
-          style={{ ...menuItemStyle, color: 'var(--xp-red, #f87171)' }}
+          style={{ ...menuItemStyle, color: 'var(--xp-red)' }}
           onMouseEnter={menuItemHover}
           onMouseLeave={menuItemLeave}
           onClick={() => {
@@ -439,7 +437,7 @@ const ReplayConfirmDialog = React.memo(
         style={{
           position: 'fixed',
           inset: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
+          backgroundColor: 'rgba(0,0,0,0.4)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -450,12 +448,11 @@ const ReplayConfirmDialog = React.memo(
           ref={ref}
           style={{
             width: '380px',
-            backgroundColor: 'var(--xp-surface, #1a1a2e)',
+            backgroundColor: 'var(--xp-surface)',
             border: '1px solid var(--xp-border)',
-            borderRadius: '10px',
-            boxShadow: '0 16px 48px rgba(0,0,0,0.6)',
+            borderRadius: '8px',
+            boxShadow: '0 0 0 1px var(--xp-border)',
             padding: '20px',
-            backdropFilter: 'blur(16px)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
@@ -480,7 +477,7 @@ const ReplayConfirmDialog = React.memo(
             style={{
               fontSize: '11px',
               color: 'var(--xp-text)',
-              backgroundColor: 'rgba(255,255,255,0.04)',
+              backgroundColor: 'rgb(var(--xp-blue-rgb) / 0.08)',
               borderRadius: '6px',
               padding: '8px 10px',
               marginBottom: '16px',
@@ -620,8 +617,8 @@ const Toolbar = ({
         borderRadius: '4px',
         border: 'none',
         cursor: canRedo && !actionInProgress ? 'pointer' : 'default',
-        color: canRedo ? 'var(--xp-green, #34d399)' : 'var(--xp-text-muted)',
-        backgroundColor: canRedo ? 'rgba(52,211,153,0.12)' : 'transparent',
+        color: canRedo ? 'var(--xp-green)' : 'var(--xp-text-muted)',
+        backgroundColor: canRedo ? 'rgb(var(--xp-green-rgb) / 0.12)' : 'transparent',
         opacity: canRedo && !actionInProgress ? 1 : 0.5,
       }}
     >

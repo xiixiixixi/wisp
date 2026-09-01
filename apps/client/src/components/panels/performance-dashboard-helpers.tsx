@@ -26,12 +26,12 @@ export interface PerformanceDashboardProps {
 // ── Inline style helpers ────────────────────────────────────────────────────
 
 export const cardStyle: React.CSSProperties = {
-  background: 'var(--xp-surface-light)',
-  borderRadius: 14,
+  background: 'var(--xp-surface)',
+  borderRadius: 8,
   padding: '13px 15px',
   marginBottom: 10,
-  border: '1px solid color-mix(in srgb, var(--xp-border) 55%, transparent)',
-  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+  border: '1px solid var(--xp-border)',
+  boxShadow: 'none',
 };
 
 export const cardTitleStyle: React.CSSProperties = {
@@ -64,7 +64,7 @@ export const statValueStyle: React.CSSProperties = {
 export const progressBarContainer: React.CSSProperties = {
   width: '100%',
   height: 4,
-  borderRadius: 999,
+  borderRadius: 2,
   background: 'color-mix(in srgb, var(--xp-border) 55%, transparent)',
   marginTop: 6,
   overflow: 'hidden',
@@ -73,8 +73,8 @@ export const progressBarContainer: React.CSSProperties = {
 export const smallBtnStyle: React.CSSProperties = {
   fontSize: 11,
   padding: '3px 10px',
-  borderRadius: 999,
-  border: '1px solid color-mix(in srgb, var(--xp-border) 60%, transparent)',
+  borderRadius: 4,
+  border: '1px solid var(--xp-border)',
   background: 'var(--xp-surface)',
   color: 'var(--xp-text)',
   cursor: 'pointer',
@@ -143,15 +143,15 @@ ProgressBar.displayName = 'ProgressBar';
 // ── Operation color mapping ─────────────────────────────────────────────────
 
 export const opColor = (op: string, success: boolean): string => {
-  if (!success) return '#ef4444';
+  if (!success) return 'var(--xp-red)';
   const lower = op.toLowerCase();
-  if (lower.includes('copy')) return '#3b82f6';
-  if (lower.includes('move')) return '#8b5cf6';
-  if (lower.includes('delete') || lower.includes('trash')) return '#ef4444';
-  if (lower.includes('rename')) return '#f59e0b';
-  if (lower.includes('create') || lower.includes('mkdir')) return '#22c55e';
-  if (lower.includes('compress') || lower.includes('extract')) return '#06b6d4';
-  return '#94a3b8';
+  if (lower.includes('copy')) return 'var(--xp-blue)';
+  if (lower.includes('move')) return 'var(--xp-purple)';
+  if (lower.includes('delete') || lower.includes('trash')) return 'var(--xp-red)';
+  if (lower.includes('rename')) return 'var(--xp-yellow)';
+  if (lower.includes('create') || lower.includes('mkdir')) return 'var(--xp-green)';
+  if (lower.includes('compress') || lower.includes('extract')) return 'var(--xp-cyan)';
+  return 'var(--xp-text-muted)';
 };
 
 export const formatRelativeTime = (timestamp: string): string => {
@@ -175,14 +175,14 @@ export const formatRelativeTime = (timestamp: string): string => {
 // ── Category constants for Organizer tab ────────────────────────────────────
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  Images: '#a855f7',
-  Videos: '#3b82f6',
-  Audio: '#eab308',
-  Documents: '#22c55e',
-  Code: '#06b6d4',
-  Archives: '#ef4444',
-  Data: '#f97316',
-  Other: '#94a3b8',
+  Images: 'var(--xp-purple)',
+  Videos: 'var(--xp-blue)',
+  Audio: 'var(--xp-yellow)',
+  Documents: 'var(--xp-green)',
+  Code: 'var(--xp-cyan)',
+  Archives: 'var(--xp-red)',
+  Data: 'var(--xp-orange)',
+  Other: 'var(--xp-text-muted)',
 };
 
 export const CATEGORY_ICONS: Record<string, React.ReactNode> = {
@@ -269,8 +269,8 @@ export const OrganizerSuggestionItem = ({
         marginBottom: 4,
         padding: '8px 10px',
         cursor: 'pointer',
-        borderColor: selected ? 'var(--xp-blue, #3b82f6)' : 'var(--xp-border)',
-        background: selected ? 'rgba(59, 130, 246, 0.08)' : 'var(--xp-surface-light)',
+        borderColor: selected ? 'var(--xp-blue)' : 'var(--xp-border)',
+        background: selected ? 'rgb(var(--xp-blue-rgb) / 0.08)' : 'var(--xp-surface-light)',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

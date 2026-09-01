@@ -139,11 +139,11 @@ export const operationColor = (type: string): string => {
     case 'Copy':
       return 'var(--xp-blue)';
     case 'Move':
-      return 'var(--xp-purple, #a78bfa)';
+      return 'var(--xp-purple)';
     case 'Delete':
-      return 'var(--xp-red, #f87171)';
+      return 'var(--xp-red)';
     case 'Rename':
-      return 'var(--xp-green, #34d399)';
+      return 'var(--xp-green)';
     default:
       return 'var(--xp-text-muted)';
   }

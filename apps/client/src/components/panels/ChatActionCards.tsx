@@ -230,12 +230,12 @@ export const FileActionCard = ({
           pendingAction.undone ? (
             <Undo2 size={13} style={{ flexShrink: 0, color: 'var(--xp-text-muted)' }} />
           ) : (
-            <CheckCircle2 size={13} style={{ flexShrink: 0, color: 'var(--xp-green, #9ece6a)' }} />
+            <CheckCircle2 size={13} style={{ flexShrink: 0, color: 'var(--xp-green)' }} />
           )
         ) : isRejected ? (
           <XCircle size={13} style={{ flexShrink: 0, color: 'var(--xp-text-muted)' }} />
         ) : (
-          <XCircle size={13} style={{ flexShrink: 0, color: 'var(--xp-red, #f7768e)' }} />
+          <XCircle size={13} style={{ flexShrink: 0, color: 'var(--xp-red)' }} />
         )}
         <ActionIcon action={action.action} />
         <span
@@ -324,7 +324,7 @@ export const FileActionCard = ({
               fontSize: '10px',
               padding: '1px 6px',
               borderRadius: '4px',
-              background: 'rgba(122, 162, 247, 0.15)',
+              background: 'rgb(var(--xp-blue-rgb) / 0.15)',
               color: 'var(--xp-blue)',
               marginLeft: 'auto',
             }}
@@ -392,10 +392,7 @@ export const FileActionCard = ({
               borderTop: '1px dashed var(--xp-border)',
             }}
           >
-            <ArrowRightLeft
-              size={12}
-              style={{ flexShrink: 0, color: 'var(--xp-green, #9ece6a)' }}
-            />
+            <ArrowRightLeft size={12} style={{ flexShrink: 0, color: 'var(--xp-green)' }} />
             <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>
               {basename(action.destination!)}
             </span>
@@ -487,8 +484,8 @@ export const FileActionCard = ({
               marginTop: '6px',
               padding: '8px 10px',
               borderRadius: '6px',
-              background: 'rgba(255, 183, 77, 0.12)',
-              border: '1px solid rgba(255, 183, 77, 0.3)',
+              background: 'rgb(var(--xp-orange-rgb) / 0.12)',
+              border: '1px solid rgb(var(--xp-orange-rgb) / 0.3)',
               display: 'flex',
               flexDirection: 'column',
               gap: '4px',
@@ -502,7 +499,7 @@ export const FileActionCard = ({
                 gap: '6px',
                 fontWeight: 600,
                 fontSize: '12px',
-                color: 'var(--xp-yellow, #e0af68)',
+                color: 'var(--xp-yellow)',
               }}
             >
               <AlertTriangle size={13} />
@@ -531,8 +528,8 @@ export const FileActionCard = ({
               marginTop: '4px',
               padding: '6px 8px',
               borderRadius: '4px',
-              background: 'rgba(255, 100, 100, 0.1)',
-              color: 'var(--xp-red, #f7768e)',
+              background: 'rgb(var(--xp-red-rgb) / 0.1)',
+              color: 'var(--xp-red)',
               fontSize: '11px',
             }}
           >
@@ -674,7 +671,7 @@ export const FileActionCard = ({
               <>
                 <span
                   style={{
-                    color: 'var(--xp-green, #9ece6a)',
+                    color: 'var(--xp-green)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
@@ -737,7 +734,7 @@ export const FileActionCard = ({
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              color: 'var(--xp-red, #f7768e)',
+              color: 'var(--xp-red)',
               fontSize: '12px',
             }}
             role="alert"
@@ -796,7 +793,7 @@ export const BatchActionCard = ({
           gap: '8px',
           padding: '10px 12px',
           borderBottom: '1px solid var(--xp-border)',
-          background: 'rgba(122, 162, 247, 0.1)',
+          background: 'rgb(var(--xp-blue-rgb) / 0.1)',
         }}
       >
         <span style={{ fontWeight: 600, color: 'var(--xp-text)' }}>

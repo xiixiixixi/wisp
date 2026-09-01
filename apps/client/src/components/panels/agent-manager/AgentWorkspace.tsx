@@ -79,13 +79,13 @@ interface AgentWorkspaceProps {
 // ---------------------------------------------------------------------------
 
 const SESSION_STATUS_COLORS: Record<AgentSessionStatus, string> = {
-  idle: 'var(--xp-text-muted, #888)',
-  thinking: 'var(--xp-green, #73daca)',
-  executing: 'var(--xp-green, #73daca)',
-  waiting_approval: 'var(--xp-warning, #e0af68)',
-  done: 'var(--xp-blue, #7aa2f7)',
-  error: 'var(--xp-red, #f7768e)',
-  cancelled: 'var(--xp-text-muted, #888)',
+  idle: 'var(--xp-text-muted)',
+  thinking: 'var(--xp-green)',
+  executing: 'var(--xp-green)',
+  waiting_approval: 'var(--xp-orange)',
+  done: 'var(--xp-blue)',
+  error: 'var(--xp-red)',
+  cancelled: 'var(--xp-text-muted)',
 };
 
 const isSessionActive = (status: AgentSessionStatus): boolean =>
@@ -132,8 +132,8 @@ const AgentListItem = ({
         width: '100%',
         padding: '8px 12px',
         border: 'none',
-        borderLeft: isSelected ? '3px solid var(--xp-blue, #7aa2f7)' : '3px solid transparent',
-        background: isSelected ? 'var(--xp-surface-light, rgba(255,255,255,0.05))' : 'transparent',
+        borderLeft: isSelected ? '3px solid var(--xp-blue)' : '3px solid transparent',
+        background: isSelected ? 'var(--xp-surface-light)' : 'transparent',
         cursor: 'pointer',
         textAlign: 'left',
         color: 'var(--xp-text)',
@@ -205,7 +205,7 @@ const TerminalOutputSection = ({
     <div
       style={{
         borderTop: '1px solid var(--xp-border)',
-        background: 'var(--xp-bg, #1a1b26)',
+        background: 'var(--xp-bg)',
         flexShrink: 0,
       }}
     >
@@ -233,7 +233,7 @@ const TerminalOutputSection = ({
           <span
             style={{
               fontSize: '9px',
-              background: 'var(--xp-surface-light, rgba(255,255,255,0.05))',
+              background: 'var(--xp-surface-light)',
               padding: '1px 5px',
               borderRadius: '8px',
             }}
@@ -386,8 +386,8 @@ const AgentWorkspace = ({
         zIndex: 9999,
         display: 'flex',
         flexDirection: 'column',
-        background: 'var(--xp-bg, #1a1b26)',
-        color: 'var(--xp-text, #c0caf5)',
+        background: 'var(--xp-bg)',
+        color: 'var(--xp-text)',
       }}
       role="dialog"
       aria-modal="true"
@@ -401,11 +401,11 @@ const AgentWorkspace = ({
           gap: '12px',
           padding: '8px 16px',
           borderBottom: '1px solid var(--xp-border)',
-          background: 'var(--xp-surface, #24283b)',
+          background: 'var(--xp-surface)',
           flexShrink: 0,
         }}
       >
-        <Bot size={18} style={{ color: 'var(--xp-blue, #7aa2f7)', flexShrink: 0 }} />
+        <Bot size={18} style={{ color: 'var(--xp-blue)', flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           {selectedSession ? (
             <>
@@ -447,12 +447,12 @@ const AgentWorkspace = ({
         {activeCount > 0 && (
           <span
             style={{
-              background: 'var(--xp-green, #73daca)',
+              background: 'var(--xp-green)',
               color: '#fff',
               fontSize: '10px',
-              fontWeight: 700,
+              fontWeight: 500,
               padding: '2px 8px',
-              borderRadius: '10px',
+              borderRadius: '4px',
               flexShrink: 0,
             }}
           >
@@ -472,10 +472,10 @@ const AgentWorkspace = ({
                 alignItems: 'center',
                 gap: '4px',
                 padding: '4px 10px',
-                background: 'rgba(224, 175, 104, 0.15)',
-                border: '1px solid var(--xp-warning, #e0af68)',
+                background: 'rgb(var(--xp-orange-rgb) / 0.15)',
+                border: '1px solid var(--xp-orange)',
                 borderRadius: '4px',
-                color: 'var(--xp-warning, #e0af68)',
+                color: 'var(--xp-orange)',
                 cursor: 'pointer',
                 fontSize: '11px',
                 fontWeight: 500,
@@ -493,10 +493,10 @@ const AgentWorkspace = ({
                 alignItems: 'center',
                 gap: '4px',
                 padding: '4px 10px',
-                background: 'rgba(247, 118, 142, 0.15)',
-                border: '1px solid var(--xp-red, #f7768e)',
+                background: 'rgb(var(--xp-red-rgb) / 0.15)',
+                border: '1px solid var(--xp-red)',
                 borderRadius: '4px',
-                color: 'var(--xp-red, #f7768e)',
+                color: 'var(--xp-red)',
                 cursor: 'pointer',
                 fontSize: '11px',
                 fontWeight: 500,
@@ -548,7 +548,7 @@ const AgentWorkspace = ({
             borderRight: '1px solid var(--xp-border)',
             display: 'flex',
             flexDirection: 'column',
-            background: 'var(--xp-surface, #24283b)',
+            background: 'var(--xp-surface)',
           }}
         >
           <div
@@ -654,7 +654,7 @@ const AgentWorkspace = ({
             borderLeft: '1px solid var(--xp-border)',
             display: 'flex',
             flexDirection: 'column',
-            background: 'var(--xp-surface, #24283b)',
+            background: 'var(--xp-surface)',
           }}
         >
           <div

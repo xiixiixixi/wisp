@@ -51,14 +51,14 @@ const XtensionInstallDialog = ({
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
       {/* Dialog */}
       <div className="relative w-[420px] max-w-[90vw] overflow-hidden rounded-lg border border-xp-border bg-xp-bg shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-xp-border px-5 py-4">
           <div className="flex items-center gap-3">
-            <div className="bg-xp-blue/20 border-xp-blue/30 flex h-10 w-10 items-center justify-center rounded-lg border">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-xp-blue/30 bg-xp-blue/20">
               <Package className="h-5 w-5 text-xp-blue" />
             </div>
             <div>
@@ -107,7 +107,7 @@ const XtensionInstallDialog = ({
         </div>
 
         {/* Footer */}
-        <div className="bg-xp-surface/50 flex items-center justify-end gap-2 border-t border-xp-border px-5 py-3">
+        <div className="flex items-center justify-end gap-2 border-t border-xp-border bg-xp-surface/50 px-5 py-3">
           <button
             onClick={onClose}
             disabled={installing}
@@ -118,7 +118,7 @@ const XtensionInstallDialog = ({
           <button
             onClick={handleInstall}
             disabled={installing}
-            className="hover:bg-xp-blue/80 flex items-center gap-2 rounded-md bg-xp-blue px-4 py-2 text-sm text-white transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 rounded-md bg-xp-blue px-4 py-2 text-sm text-white transition-colors hover:bg-xp-blue/80 disabled:opacity-50"
           >
             {installing ? (
               <>

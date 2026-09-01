@@ -62,7 +62,7 @@ const ColumnFileRow = React.memo(
             if (isSelected) return 'var(--xp-selection-bg)';
             return 'transparent';
           })(),
-          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+          borderBottom: '1px solid var(--xp-border)',
           outline: 'none',
           height: `${COLUMN_ROW_HEIGHT}px`,
           boxSizing: 'border-box',

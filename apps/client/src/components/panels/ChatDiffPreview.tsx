@@ -85,22 +85,22 @@ const countChanges = (diff: DiffLine[]): { additions: number; removals: number }
 
 /** Get background color for a diff line type */
 const diffLineBg = (type: DiffLine['type']): string => {
-  if (type === 'add') return 'rgba(158, 206, 106, 0.1)';
-  if (type === 'remove') return 'rgba(247, 118, 142, 0.1)';
+  if (type === 'add') return 'rgb(var(--xp-green-rgb) / 0.12)';
+  if (type === 'remove') return 'rgb(var(--xp-red-rgb) / 0.12)';
   return 'transparent';
 };
 
 /** Get border-left color for a diff line type */
 const diffLineBorder = (type: DiffLine['type']): string => {
-  if (type === 'add') return '2px solid var(--xp-green, #9ece6a)';
-  if (type === 'remove') return '2px solid var(--xp-red, #f7768e)';
+  if (type === 'add') return '2px solid var(--xp-green)';
+  if (type === 'remove') return '2px solid var(--xp-red)';
   return '2px solid transparent';
 };
 
 /** Get text color for a diff line type */
 const diffLineColor = (type: DiffLine['type']): string => {
-  if (type === 'add') return 'var(--xp-green, #9ece6a)';
-  if (type === 'remove') return 'var(--xp-red, #f7768e)';
+  if (type === 'add') return 'var(--xp-green)';
+  if (type === 'remove') return 'var(--xp-red)';
   return 'var(--xp-text)';
 };
 
@@ -160,8 +160,8 @@ const ChatDiffPreview = ({ previousContent, newContent }: DiffPreviewProps) => {
         }}
       >
         <span style={{ color: 'var(--xp-text-muted)' }}>Changes:</span>
-        {additions > 0 && <span style={{ color: 'var(--xp-green, #9ece6a)' }}>+{additions}</span>}
-        {removals > 0 && <span style={{ color: 'var(--xp-red, #f7768e)' }}>-{removals}</span>}
+        {additions > 0 && <span style={{ color: 'var(--xp-green)' }}>+{additions}</span>}
+        {removals > 0 && <span style={{ color: 'var(--xp-red)' }}>-{removals}</span>}
         <button
           onClick={() => setExpanded((v) => !v)}
           aria-expanded={expanded}

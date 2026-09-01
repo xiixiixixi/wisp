@@ -19,13 +19,11 @@ const eventIcon = (event: SessionEvent) => {
     case 'text_delta':
       return <MessageSquare size={10} style={{ color: 'var(--xp-text-muted)', flexShrink: 0 }} />;
     case 'approval_request':
-      return <FileText size={10} style={{ color: '#e0af68', flexShrink: 0 }} />;
+      return <FileText size={10} style={{ color: 'var(--xp-orange)', flexShrink: 0 }} />;
     case 'error':
-      return <AlertCircle size={10} style={{ color: '#f7768e', flexShrink: 0 }} />;
+      return <AlertCircle size={10} style={{ color: 'var(--xp-red)', flexShrink: 0 }} />;
     default:
-      return (
-        <CheckCircle2 size={10} style={{ color: 'var(--xp-green, #73daca)', flexShrink: 0 }} />
-      );
+      return <CheckCircle2 size={10} style={{ color: 'var(--xp-green)', flexShrink: 0 }} />;
   }
 };
 
@@ -85,7 +83,7 @@ const SessionEventLog = ({ sessionId }: SessionEventLogProps) => {
         padding: '6px',
         maxHeight: '240px',
         overflowY: 'auto',
-        background: 'var(--xp-bg, rgba(0,0,0,0.2))',
+        background: 'var(--xp-bg)',
         border: '1px solid var(--xp-border)',
         borderRadius: '4px',
         fontSize: '10px',
@@ -126,7 +124,7 @@ const SessionEventLog = ({ sessionId }: SessionEventLogProps) => {
                 gap: '5px',
                 lineHeight: 1.4,
                 paddingLeft: '14px',
-                color: isError ? '#f7768e' : 'var(--xp-green, #73daca)',
+                color: isError ? 'var(--xp-red)' : 'var(--xp-green)',
               }}
             >
               <span style={{ flexShrink: 0 }}>{isError ? '✗' : '✓'}</span>
@@ -168,7 +166,7 @@ const SessionEventLog = ({ sessionId }: SessionEventLogProps) => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '5px',
-                color: '#e0af68',
+                color: 'var(--xp-orange)',
               }}
             >
               {eventIcon(event)}
@@ -186,7 +184,7 @@ const SessionEventLog = ({ sessionId }: SessionEventLogProps) => {
                 display: 'flex',
                 alignItems: 'flex-start',
                 gap: '5px',
-                color: '#f7768e',
+                color: 'var(--xp-red)',
               }}
             >
               {eventIcon(event)}

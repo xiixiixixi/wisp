@@ -74,7 +74,7 @@ const SidebarDrives = ({ navigateToPath }: SidebarDrivesProps) => {
       aria-label={t(isWindows ? 'sidebar.drives' : 'sidebar.volumes')}
       data-sidebar-section="drives"
     >
-      <div className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted">
+      <div className="mb-1.5 px-2 text-[10px] font-medium uppercase tracking-widest text-xp-text-muted">
         {t(isWindows ? 'sidebar.drives' : 'sidebar.volumes')}
       </div>
       <div className="space-y-1">
@@ -114,9 +114,9 @@ const SidebarDrives = ({ navigateToPath }: SidebarDrivesProps) => {
                   )}
                 </div>
                 {totalGB > 0 && (
-                  <div className="ml-[25px] mt-1 h-1 overflow-hidden rounded-full bg-xp-border">
+                  <div className="ml-[25px] mt-1 h-1 overflow-hidden rounded bg-xp-border">
                     <div
-                      className={`h-full rounded-full transition-all ${usedPct > 90 ? 'bg-xp-red' : 'bg-xp-blue'}`}
+                      className={`h-full rounded transition-all ${usedPct > 90 ? 'bg-xp-red' : 'bg-xp-blue'}`}
                       style={{ width: `${usedPct}%` }}
                     />
                   </div>

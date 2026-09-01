@@ -196,16 +196,16 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       onClick={(e) => {
         if (e.target === e.currentTarget) handleClose();
       }}
     >
-      <div className="bg-xp-surface/95 border-xp-border/60 mx-4 flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden rounded-xl border shadow-2xl shadow-black/30 backdrop-blur-xl duration-150 animate-in fade-in zoom-in-95">
+      <div className="border-xp-border/60 mx-4 flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden rounded-xl border bg-xp-surface/95 shadow-2xl shadow-black/30 duration-150 animate-in fade-in zoom-in-95">
         {/* Header */}
         <div className="border-xp-border/40 flex flex-shrink-0 items-center justify-between border-b px-5 py-3.5">
           <div className="flex min-w-0 items-center space-x-2.5">
-            <div className="bg-xp-blue/10 rounded-md p-1.5">
+            <div className="rounded-md bg-xp-blue/10 p-1.5">
               <Archive className="h-4 w-4 text-xp-blue" />
             </div>
             <div className="min-w-0">
@@ -223,7 +223,7 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
           <button
             onClick={handleClose}
             disabled={compressing}
-            className="rounded-md p-1.5 text-xp-text-muted transition-colors hover:bg-white/5 hover:text-xp-text disabled:opacity-50"
+            className="rounded-md p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-50"
             aria-label={t('common.close')}
           >
             <X className="h-4 w-4" />
@@ -305,12 +305,12 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
                     type="text"
                     value={outputPath}
                     onChange={(e) => setOutputPath(e.target.value)}
-                    className="border-xp-border/60 bg-xp-bg/60 focus:ring-xp-blue/40 flex-1 rounded-lg border px-3 py-1.5 text-xs text-xp-text focus:border-xp-blue focus:outline-none focus:ring-2"
+                    className="border-xp-border/60 bg-xp-bg/60 flex-1 rounded-lg border px-3 py-1.5 text-xs text-xp-text focus:border-xp-blue focus:outline-none focus:ring-2 focus:ring-xp-blue/40"
                     placeholder={t('dialogs.compress.outputPathPlaceholder')}
                   />
                   <button
                     onClick={handleBrowseOutputPath}
-                    className="border-xp-border/60 rounded-lg border px-2.5 text-xp-text-muted transition-colors hover:bg-white/5 hover:text-xp-text"
+                    className="border-xp-border/60 rounded-lg border px-2.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                     aria-label={t('dialogs.compress.browseOutputDir')}
                   >
                     <FolderOpen size={15} />
@@ -331,7 +331,7 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
                       className={`rounded-lg border px-2 py-2 text-center transition-colors ${
                         format === fmt
                           ? 'border-xp-blue/60 bg-xp-blue/10 text-xp-blue'
-                          : 'border-xp-border/60 text-xp-text hover:bg-white/5'
+                          : 'border-xp-border/60 text-xp-text hover:bg-xp-surface-light'
                       }`}
                     >
                       <div className="text-xs font-semibold">{fmt === 'SevenZ' ? '7z' : fmt}</div>
@@ -371,7 +371,7 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="border-xp-border/60 bg-xp-bg/60 focus:ring-xp-blue/40 w-full rounded-lg border px-3 py-1.5 text-xs text-xp-text focus:border-xp-blue focus:outline-none focus:ring-2"
+                  className="border-xp-border/60 bg-xp-bg/60 w-full rounded-lg border px-3 py-1.5 text-xs text-xp-text focus:border-xp-blue focus:outline-none focus:ring-2 focus:ring-xp-blue/40"
                   placeholder={t('dialogs.compress.passwordPlaceholder')}
                 />
                 <p className="mt-1 text-[10px] text-xp-text-muted">
@@ -418,7 +418,7 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
           <button
             onClick={handleClose}
             disabled={compressing}
-            className="border-xp-border/60 rounded-lg px-3.5 py-1.5 text-xs text-xp-text transition-colors hover:bg-white/5 disabled:opacity-50"
+            className="border-xp-border/60 rounded-lg px-3.5 py-1.5 text-xs text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
             aria-label={t('common.cancel')}
           >
             {t('common.cancel')}

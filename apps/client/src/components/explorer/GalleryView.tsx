@@ -334,7 +334,6 @@ const GalleryView = ({
                       background: 'rgba(0,0,0,0.55)',
                       color: '#fff',
                       pointerEvents: 'none',
-                      backdropFilter: 'blur(4px)',
                       fontVariantNumeric: 'tabular-nums',
                     }}
                   >
@@ -361,7 +360,7 @@ const GalleryView = ({
 
         {/* File info overlay */}
         {displayFile && (
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent px-4 py-2">
+          <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-4 py-2">
             <div className="truncate text-sm font-medium text-white">{displayFile.name}</div>
             <div className="text-xs text-white/70">
               {displayFile.is_dir ? 'Folder' : formatFileSize(displayFile.size)}

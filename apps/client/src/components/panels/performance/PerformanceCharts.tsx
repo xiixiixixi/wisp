@@ -139,7 +139,7 @@ const OrganizerTabContent = React.memo(
             style={{
               ...smallBtnStyle,
               opacity: loading ? 0.5 : 1,
-              background: 'var(--xp-blue, #3b82f6)',
+              background: '#6a6f8a',
               color: '#fff',
               border: 'none',
             }}
@@ -152,12 +152,12 @@ const OrganizerTabContent = React.memo(
           <div
             style={{
               ...cardStyle,
-              background: 'rgba(239,68,68,0.08)',
-              borderColor: 'rgba(239,68,68,0.3)',
+              background: 'rgb(var(--xp-red-rgb) / 0.08)',
+              borderColor: 'rgb(var(--xp-red-rgb) / 0.3)',
               marginBottom: 12,
             }}
           >
-            <span style={{ fontSize: 12, color: '#f87171' }}>{error}</span>
+            <span style={{ fontSize: 12, color: 'var(--xp-red)' }}>{error}</span>
           </div>
         )}
 
@@ -311,11 +311,10 @@ const CategoriesSection = ({
                   padding: '8px 10px',
                   textAlign: 'left',
                   cursor: 'pointer',
-                  borderColor:
-                    expandedCategory === cat.name ? 'var(--xp-blue, #3b82f6)' : 'var(--xp-border)',
+                  borderColor: expandedCategory === cat.name ? '#6a6f8a' : 'var(--xp-border)',
                   background:
                     expandedCategory === cat.name
-                      ? 'rgba(59, 130, 246, 0.08)'
+                      ? 'rgb(var(--xp-blue-rgb) / 0.08)'
                       : 'var(--xp-surface-light)',
                 }}
               >
@@ -356,7 +355,7 @@ const CategoriesSection = ({
                   style={{
                     ...cardStyle,
                     marginBottom: 8,
-                    borderColor: 'var(--xp-blue, #3b82f6)',
+                    borderColor: '#6a6f8a',
                   }}
                 >
                   <div
@@ -367,7 +366,7 @@ const CategoriesSection = ({
                       color: CATEGORY_COLORS[cat.name] || 'var(--xp-text-secondary)',
                     }}
                   >
-                    {t(`organizer.categoryNames.${  cat.name}`, { defaultValue: cat.name })} (
+                    {t(`organizer.categoryNames.${cat.name}`, { defaultValue: cat.name })} (
                     {cat.extensions.join(', ')})
                   </div>
                   <div style={{ maxHeight: 128, overflowY: 'auto' }}>
@@ -415,19 +414,19 @@ const ProjectNotice = ({ projectType }: { projectType?: string }) => {
       style={{
         ...cardStyle,
         marginBottom: 16,
-        background: 'rgba(59,130,246,0.08)',
-        borderColor: 'rgba(59,130,246,0.3)',
+        background: 'rgb(var(--xp-blue-rgb) / 0.08)',
+        borderColor: 'rgb(var(--xp-blue-rgb) / 0.3)',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="#3b82f6">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="#6a6f8a">
           <path
             fillRule="evenodd"
             d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
             clipRule="evenodd"
           />
         </svg>
-        <span style={{ fontSize: 12, fontWeight: 500, color: '#3b82f6' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--xp-blue)' }}>
           {t('organizer.projectNotice', {
             type: t(`organizer.categoryNames.${projectType || 'Software'}`, {
               defaultValue: projectType || 'Software',
@@ -526,7 +525,7 @@ const SuggestionsSection = ({
                     ...smallBtnStyle,
                     flex: 1,
                     textAlign: 'center',
-                    background: 'var(--xp-blue, #3b82f6)',
+                    background: '#6a6f8a',
                     color: '#fff',
                     border: 'none',
                     opacity: selectedSuggestions.size === 0 || organizing ? 0.4 : 1,
@@ -538,13 +537,19 @@ const SuggestionsSection = ({
 
               {/* Preview panel */}
               {showPreview && preview && (
-                <div style={{ ...cardStyle, marginTop: 8, borderColor: 'rgba(59,130,246,0.3)' }}>
+                <div
+                  style={{
+                    ...cardStyle,
+                    marginTop: 8,
+                    borderColor: 'rgb(var(--xp-blue-rgb) / 0.3)',
+                  }}
+                >
                   <div
                     style={{
                       fontSize: 12,
                       fontWeight: 500,
                       marginBottom: 4,
-                      color: '#3b82f6',
+                      color: 'var(--xp-blue)',
                     }}
                   >
                     {t('organizer.previewMoves', { count: preview.moves.length })}
@@ -584,14 +589,14 @@ const SuggestionsSection = ({
                         >
                           {truncatePath(move.from)}
                         </span>
-                        <span style={{ color: '#3b82f6', flexShrink: 0 }}>&rarr;</span>
+                        <span style={{ color: 'var(--xp-blue)', flexShrink: 0 }}>&rarr;</span>
                         <span
                           style={{
                             flex: 1,
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap',
-                            color: '#22c55e',
+                            color: 'var(--xp-green)',
                           }}
                         >
                           {truncatePath(move.to)}
@@ -616,7 +621,7 @@ const SuggestionsSection = ({
                         ...smallBtnStyle,
                         flex: 1,
                         textAlign: 'center',
-                        background: '#22c55e',
+                        background: 'var(--xp-green)',
                         color: '#000',
                         border: 'none',
                         opacity: organizing ? 0.4 : 1,
@@ -672,12 +677,12 @@ const DuplicatesSection = ({
                 }}
               >
                 <div style={{ fontSize: 12 }}>
-                  <span style={{ color: '#ef4444', fontWeight: 500 }}>
+                  <span style={{ color: 'var(--xp-red)', fontWeight: 500 }}>
                     {analysis.duplicate_summary.groups.length} group
                     {analysis.duplicate_summary.groups.length !== 1 ? 's' : ''}
                   </span>
                   <span style={{ color: 'var(--xp-text-secondary)' }}> &middot; </span>
-                  <span style={{ color: '#eab308', fontWeight: 500 }}>
+                  <span style={{ color: 'var(--xp-yellow)', fontWeight: 500 }}>
                     {formatFileSize(analysis.duplicate_summary.total_wasted_space)} wasted
                   </span>
                 </div>
@@ -718,7 +723,7 @@ const DuplicatesSection = ({
                       >
                         {file.name}
                         {j === 0 && (
-                          <span style={{ color: '#22c55e', marginLeft: 4 }}>
+                          <span style={{ color: 'var(--xp-green)', marginLeft: 4 }}>
                             {t('organizer.newest')}
                           </span>
                         )}
@@ -729,7 +734,7 @@ const DuplicatesSection = ({
                     <div
                       style={{
                         fontSize: 11,
-                        color: '#eab308',
+                        color: 'var(--xp-yellow)',
                         marginTop: 4,
                         fontStyle: 'italic',
                       }}
@@ -824,7 +829,7 @@ const InsightsSection = ({
                       key={td.category}
                       style={{
                         width: `${pct}%`,
-                        backgroundColor: CATEGORY_COLORS[td.category] || '#94a3b8',
+                        backgroundColor: CATEGORY_COLORS[td.category] || 'var(--xp-text-muted)',
                         transition: 'width 0.3s ease',
                       }}
                       title={t('organizer.typeCount', {
@@ -856,7 +861,7 @@ const InsightsSection = ({
                         height: 8,
                         borderRadius: '50%',
                         display: 'inline-block',
-                        backgroundColor: CATEGORY_COLORS[td.category] || '#94a3b8',
+                        backgroundColor: CATEGORY_COLORS[td.category] || 'var(--xp-text-muted)',
                       }}
                     />
                     {td.category} ({td.count})

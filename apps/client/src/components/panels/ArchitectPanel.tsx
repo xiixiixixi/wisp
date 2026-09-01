@@ -31,22 +31,22 @@ interface ArchData {
 let cachedAnalysis: { path: string; data: ArchData } | null = null;
 
 const BADGE_COLORS: Record<string, string> = {
-  react: '#61dafb',
-  typescript: '#3178c6',
-  rust: '#ce4a0a',
-  tauri: '#ffc131',
-  vite: '#646cff',
-  tailwind: '#06b6d4',
-  prisma: '#2d3748',
-  postgresql: '#336791',
-  nextjs: '#000',
-  node: '#339933',
-  python: '#3776ab',
-  go: '#00add8',
-  docker: '#2496ed',
-  redis: '#dc382d',
-  graphql: '#e10098',
-  pnpm: '#f69220',
+  react: 'var(--xp-cyan)',
+  typescript: 'var(--xp-blue)',
+  rust: 'var(--xp-orange)',
+  tauri: 'var(--xp-yellow)',
+  vite: 'var(--xp-purple)',
+  tailwind: 'var(--xp-cyan)',
+  prisma: 'var(--xp-text-secondary)',
+  postgresql: 'var(--xp-blue)',
+  nextjs: 'var(--xp-text)',
+  node: 'var(--xp-green)',
+  python: 'var(--xp-blue)',
+  go: 'var(--xp-cyan)',
+  docker: 'var(--xp-blue)',
+  redis: 'var(--xp-red)',
+  graphql: 'var(--xp-pink)',
+  pnpm: 'var(--xp-orange)',
 };
 
 const getBadgeColor = (tech: string): string => {
@@ -243,8 +243,8 @@ Return this exact JSON structure:
           <div
             style={{
               ...card,
-              borderColor: 'var(--xp-red, #f87171)',
-              color: 'var(--xp-red, #f87171)',
+              borderColor: 'var(--xp-red)',
+              color: 'var(--xp-red)',
             }}
           >
             {error}
@@ -350,7 +350,7 @@ Return this exact JSON structure:
                 >
                   <GitBranch
                     size={10}
-                    style={{ marginTop: '3px', flexShrink: 0, color: 'var(--xp-green, #9ece6a)' }}
+                    style={{ marginTop: '3px', flexShrink: 0, color: 'var(--xp-green)' }}
                   />
                   <span>{p}</span>
                 </div>

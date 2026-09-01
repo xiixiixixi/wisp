@@ -42,10 +42,10 @@ export const SizeDistributionChart = React.memo(({ files }: SizeDistributionChar
   const { largest, large, medium, small, total } = distribution;
 
   const segments = [
-    { count: small, color: '#22c55e', label: 'Small' },
-    { count: medium, color: '#eab308', label: 'Medium' },
-    { count: large, color: '#f97316', label: 'Large' },
-    { count: largest, color: '#ef4444', label: 'Largest' },
+    { count: small, color: 'var(--xp-green)', label: 'Small' },
+    { count: medium, color: 'var(--xp-yellow)', label: 'Medium' },
+    { count: large, color: 'var(--xp-orange)', label: 'Large' },
+    { count: largest, color: 'var(--xp-red)', label: 'Largest' },
   ].filter((s) => s.count > 0);
 
   const chartTitle = segments.map((s) => `${s.label}: ${s.count}`).join(', ');

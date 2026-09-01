@@ -17,7 +17,7 @@ export const Button = ({
     'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
 
   const variantClasses = {
-    default: 'bg-xp-blue text-white hover:bg-xp-accent-hover focus-visible:ring-xp-blue',
+    default: 'bg-xp-blue text-[var(--xp-bg)] hover:bg-xp-accent-hover focus-visible:ring-xp-blue',
     outline:
       'border border-xp-border bg-xp-popover text-xp-text hover:bg-xp-surface-light focus-visible:ring-xp-blue',
     ghost: 'text-xp-text hover:bg-xp-surface-light focus-visible:ring-xp-blue',

@@ -186,12 +186,12 @@ const VersionHistoryDialog = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
       <div className="relative flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-xp-border bg-xp-bg shadow-2xl">
         {/* Header */}
         <div className="border-xp-border/50 flex items-center justify-between border-b px-5 py-4">
           <div className="flex items-center gap-3">
-            <div className="bg-xp-accent/10 flex h-9 w-9 items-center justify-center rounded-lg">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-xp-accent/10">
               <History size={18} className="text-xp-accent" />
             </div>
             <div>
@@ -219,7 +219,7 @@ const VersionHistoryDialog = ({
           <button
             onClick={handleCreateVersion}
             disabled={!!actionInProgress}
-            className="bg-xp-accent/10 hover:bg-xp-accent/20 flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-xp-accent transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-md bg-xp-accent/10 px-3 py-1.5 text-xs font-medium text-xp-accent transition-colors hover:bg-xp-accent/20 disabled:opacity-50"
           >
             <Plus size={14} />
             {t('dialogs.versionHistory.createSnapshot')}
@@ -228,7 +228,7 @@ const VersionHistoryDialog = ({
             <button
               onClick={handleDeleteAll}
               disabled={!!actionInProgress}
-              className="flex items-center gap-1.5 rounded-md bg-red-500/10 px-3 py-1.5 text-xs font-medium text-xp-red transition-colors hover:bg-red-500/20 disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-md bg-xp-red/10 px-3 py-1.5 text-xs font-medium text-xp-red transition-colors hover:bg-xp-red/20 disabled:opacity-50"
             >
               <Trash size={14} />
               {t('dialogs.versionHistory.deleteAll')}
@@ -276,12 +276,12 @@ const VersionHistoryDialog = ({
               {versions.map((version) => (
                 <div
                   key={version.version_number}
-                  className="hover:bg-xp-surface-light/30 group px-5 py-3 transition-colors"
+                  className="group px-5 py-3 transition-colors hover:bg-xp-surface-light/30"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex min-w-0 items-center gap-3">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-xp-surface">
-                        <span className="text-xs font-bold text-xp-text-secondary">
+                        <span className="text-xs font-medium text-xp-text-secondary">
                           v{version.version_number}
                         </span>
                       </div>
@@ -322,7 +322,7 @@ const VersionHistoryDialog = ({
                         onClick={() => handleRestore(version.version_number)}
                         disabled={!!actionInProgress}
                         title={t('dialogs.versionHistory.restoreTitle')}
-                        className="flex h-7 w-7 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-emerald-500/10 hover:text-xp-green disabled:opacity-50"
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-xp-green/10 hover:text-xp-green disabled:opacity-50"
                       >
                         <RotateCcw size={14} />
                       </button>
@@ -330,7 +330,7 @@ const VersionHistoryDialog = ({
                         onClick={() => handleDelete(version.version_number)}
                         disabled={!!actionInProgress}
                         title={t('dialogs.versionHistory.deleteTitle')}
-                        className="flex h-7 w-7 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-red-500/10 hover:text-xp-red disabled:opacity-50"
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-xp-red/10 hover:text-xp-red disabled:opacity-50"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -340,7 +340,7 @@ const VersionHistoryDialog = ({
                   {/* Inline preview */}
                   {previewVersion === version.version_number && previewContent !== null && (
                     <div className="border-xp-border/50 mt-3 overflow-hidden rounded-md border bg-xp-bg">
-                      <div className="border-xp-border/30 bg-xp-surface/50 flex items-center justify-between border-b px-3 py-1.5">
+                      <div className="border-xp-border/30 flex items-center justify-between border-b bg-xp-surface/50 px-3 py-1.5">
                         <span className="text-[10px] font-medium uppercase tracking-wider text-xp-text-secondary">
                           {t('dialogs.versionHistory.previewLabel', { n: version.version_number })}
                         </span>

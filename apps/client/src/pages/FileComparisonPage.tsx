@@ -221,7 +221,7 @@ const FileComparisonPage = ({ file1Path, file2Path, onError }: FileComparisonPag
               fontSize: 12,
               borderRadius: 4,
               backgroundColor: 'var(--xp-blue)',
-              color: '#fff',
+              color: 'var(--xp-bg)',
               border: 'none',
               cursor: 'pointer',
             }}

@@ -57,11 +57,10 @@ const ChangeSummaryToast = React.memo(
       zIndex: 9999,
       minWidth: 320,
       maxWidth: 420,
-      background: 'var(--xp-surface, rgba(30, 30, 46, 0.95))',
-      border: '1px solid var(--xp-border, rgba(255, 255, 255, 0.1))',
-      borderRadius: 8,
-      backdropFilter: 'blur(12px)',
-      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+      background: 'var(--xp-surface)',
+      border: '1px solid var(--xp-border)',
+      borderRadius: 4,
+      boxShadow: '0 0 0 1px var(--xp-border)',
       transform: visible ? 'translateY(0)' : 'translateY(20px)',
       opacity: visible ? 1 : 0,
       transition: 'transform 0.3s ease, opacity 0.3s ease',
@@ -78,20 +77,20 @@ const ChangeSummaryToast = React.memo(
     const iconStyle: React.CSSProperties = {
       width: 18,
       height: 18,
-      color: 'var(--xp-blue, #7aa2f7)',
+      color: 'var(--xp-blue)',
       flexShrink: 0,
     };
 
     const titleStyle: React.CSSProperties = {
       flex: 1,
       fontSize: 12,
-      fontWeight: 600,
-      color: 'var(--xp-text, #c0caf5)',
+      fontWeight: 500,
+      color: 'var(--xp-text)',
     };
 
     const subtitleStyle: React.CSSProperties = {
       fontSize: 11,
-      color: 'var(--xp-text-muted, #565f89)',
+      color: 'var(--xp-text-muted)',
       display: 'flex',
       alignItems: 'center',
       gap: 8,
@@ -100,7 +99,7 @@ const ChangeSummaryToast = React.memo(
 
     const countStyle = (color: string): React.CSSProperties => ({
       fontSize: 11,
-      fontWeight: 600,
+      fontWeight: 500,
       color,
     });
 
@@ -122,26 +121,26 @@ const ChangeSummaryToast = React.memo(
 
     const reviewBtnStyle: React.CSSProperties = {
       ...btnBase,
-      background: 'var(--xp-blue, #7aa2f7)',
-      color: '#fff',
+      background: 'var(--xp-blue)',
+      color: 'var(--xp-bg)',
     };
 
     const expandBtnStyle: React.CSSProperties = {
       ...btnBase,
-      background: 'var(--xp-surface-light, rgba(255,255,255,0.06))',
-      color: 'var(--xp-text-muted, #565f89)',
+      background: 'var(--xp-surface-light)',
+      color: 'var(--xp-text-muted)',
     };
 
     const dismissBtnStyle: React.CSSProperties = {
       ...btnBase,
       background: 'transparent',
-      color: 'var(--xp-text-muted, #565f89)',
+      color: 'var(--xp-text-muted)',
     };
 
     const listStyle: React.CSSProperties = {
       maxHeight: 180,
       overflowY: 'auto',
-      borderTop: '1px solid var(--xp-border, rgba(255,255,255,0.06))',
+      borderTop: '1px solid var(--xp-border)',
       padding: '6px 0',
     };
 
@@ -151,7 +150,7 @@ const ChangeSummaryToast = React.memo(
       gap: 6,
       padding: '3px 12px',
       fontSize: 11,
-      color: 'var(--xp-text, #c0caf5)',
+      color: 'var(--xp-text)',
     });
 
     const typeIndicatorStyle = (color: string): React.CSSProperties => ({
@@ -163,9 +162,9 @@ const ChangeSummaryToast = React.memo(
     });
 
     const allChanges = [
-      ...changes.added.map((c) => ({ ...c, color: '#9ece6a' })),
-      ...changes.removed.map((c) => ({ ...c, color: '#f7768e' })),
-      ...changes.modified.map((c) => ({ ...c, color: '#e0af68' })),
+      ...changes.added.map((c) => ({ ...c, color: 'var(--xp-green)' })),
+      ...changes.removed.map((c) => ({ ...c, color: 'var(--xp-red)' })),
+      ...changes.modified.map((c) => ({ ...c, color: 'var(--xp-orange)' })),
     ];
 
     return (
@@ -193,13 +192,13 @@ const ChangeSummaryToast = React.memo(
 
         <div style={subtitleStyle}>
           {changes.added.length > 0 && (
-            <span style={countStyle('#9ece6a')}>+{changes.added.length} new</span>
+            <span style={countStyle('var(--xp-green)')}>+{changes.added.length} new</span>
           )}
           {changes.removed.length > 0 && (
-            <span style={countStyle('#f7768e')}>-{changes.removed.length} deleted</span>
+            <span style={countStyle('var(--xp-red)')}>-{changes.removed.length} deleted</span>
           )}
           {changes.modified.length > 0 && (
-            <span style={countStyle('#e0af68')}>~{changes.modified.length} modified</span>
+            <span style={countStyle('var(--xp-orange)')}>~{changes.modified.length} modified</span>
           )}
         </div>
 
@@ -230,9 +229,7 @@ const ChangeSummaryToast = React.memo(
                 >
                   {change.name}
                 </span>
-                <span style={{ fontSize: 10, color: 'var(--xp-text-muted, #565f89)' }}>
-                  {change.type}
-                </span>
+                <span style={{ fontSize: 10, color: 'var(--xp-text-muted)' }}>{change.type}</span>
               </div>
             ))}
           </div>
@@ -246,7 +243,7 @@ const ChangeSummaryToast = React.memo(
             left: 0,
             height: 3,
             width: '100%',
-            background: 'var(--xp-blue, #7aa2f7)',
+            background: 'var(--xp-blue)',
             opacity: interacted ? 0.35 : 1,
             animation: `toast-countdown ${AUTO_DISMISS_MS}ms linear forwards`,
             animationPlayState: interacted ? 'paused' : 'running',

@@ -374,7 +374,7 @@ export const SearchHistoryDropdown = ({ onSelect, onClear }: SearchHistoryDropdo
   if (history.length === 0) return null;
 
   return (
-    <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-xp-border bg-xp-popover shadow-xl backdrop-blur-xl">
+    <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-xp-border bg-xp-popover shadow-xl">
       <div className="flex items-center justify-between border-b border-xp-border px-3 py-2">
         <span className="flex items-center gap-1.5 text-xs font-medium text-xp-text-muted">
           <Clock size={12} />
@@ -460,7 +460,7 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
 
   return (
     <div
-      className="overflow-hidden rounded-lg border border-xp-border bg-xp-popover shadow-xl backdrop-blur-xl"
+      className="overflow-hidden rounded-lg border border-xp-border bg-xp-popover shadow-xl"
       onMouseDown={(e) => e.preventDefault()}
     >
       <div className="flex items-center justify-between border-b border-xp-border px-3 py-2">
@@ -468,7 +468,7 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
           <Filter size={12} className="text-xp-blue" />
           {t('explorer.searchFilter.title')}
           {activeCount > 0 && (
-            <span className="rounded-full bg-xp-blue bg-opacity-20 px-1.5 py-0.5 text-xs font-semibold text-xp-blue">
+            <span className="rounded bg-xp-bg px-1.5 py-0.5 text-xs font-medium text-xp-text-secondary">
               {activeCount}
             </span>
           )}
@@ -639,7 +639,7 @@ const FilterSection = ({ title, expanded, onToggle, badge, children }: FilterSec
           {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
           {title}
           {badge && (
-            <span className="rounded-full bg-xp-blue bg-opacity-20 px-1 py-0 text-xs text-xp-blue">
+            <span className="rounded bg-xp-bg px-1 py-0 text-xs text-xp-text-secondary">
               {badge}
             </span>
           )}
@@ -713,7 +713,7 @@ export const GroupedSearchResults = ({
           const isHL = tokens.some((t) => part.toLowerCase() === t.toLowerCase());
           return isHL ? (
             // eslint-disable-next-line react/no-array-index-key
-            <mark key={i} className="rounded bg-yellow-300 bg-opacity-30 px-0.5">
+            <mark key={i} className="bg-xp-selection rounded px-0.5">
               {part}
             </mark>
           ) : (
@@ -741,7 +741,7 @@ export const GroupedSearchResults = ({
               <span className="truncate text-xp-text-muted" title={group.folder}>
                 {group.folder}
               </span>
-              <span className="ml-auto flex-shrink-0 rounded-full bg-xp-surface px-1.5 py-0 text-xs text-xp-text-muted">
+              <span className="ml-auto flex-shrink-0 rounded bg-xp-surface px-1.5 py-0 text-xs text-xp-text-muted">
                 {group.results.length}
               </span>
             </button>
@@ -767,7 +767,7 @@ export const GroupedSearchResults = ({
                           </h4>
                           <div className="ml-2 flex flex-shrink-0 items-center space-x-1">
                             <span
-                              className={`text-xs ${badge.color} rounded bg-opacity-20 px-1.5 py-0.5 text-white`}
+                              className={`text-xs ${badge.color} rounded px-1.5 py-0.5 text-xp-text`}
                             >
                               {badge.label}
                             </span>
@@ -789,7 +789,7 @@ export const GroupedSearchResults = ({
                                 <span className="text-xp-text-muted">
                                   {t('explorer.searchFilter.matchLabel')}{' '}
                                 </span>
-                                <span className="rounded bg-yellow-300 bg-opacity-20 px-1">
+                                <span className="rounded bg-xp-bg px-1 text-xs text-xp-text-secondary">
                                   {match.token}
                                 </span>
                                 {match.context && (

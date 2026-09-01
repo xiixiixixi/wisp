@@ -123,7 +123,7 @@ const AudioPreview = ({ file, onError, onLoad }: PreviewProps) => {
       // Get xp-primary color from CSS variable
       const primaryColor =
         getComputedStyle(document.documentElement).getPropertyValue('--xp-accent').trim() ||
-        '#7aa2f7';
+        'var(--xp-blue)';
 
       for (let i = 0; i < bufferLength; i++) {
         const barHeight = (dataArray[i] / 255) * height;
@@ -281,9 +281,9 @@ const AudioPreview = ({ file, onError, onLoad }: PreviewProps) => {
                 step="0.1"
                 value={currentTime}
                 onChange={handleProgressChange}
-                className="h-1 flex-1 cursor-pointer appearance-none rounded-full"
+                className="h-1 flex-1 cursor-pointer appearance-none rounded"
                 style={{
-                  background: `linear-gradient(to right, #7aa2f7 0%, #7aa2f7 ${progressPercent}%, #1a1b26 ${progressPercent}%, #1a1b26 100%)`,
+                  background: `linear-gradient(to right, var(--xp-lime) 0%, var(--xp-lime) ${progressPercent}%, var(--xp-border) ${progressPercent}%, var(--xp-border) 100%)`,
                 }}
               />
               <span>{formatTime(safeDuration)}</span>
@@ -308,7 +308,7 @@ const AudioPreview = ({ file, onError, onLoad }: PreviewProps) => {
               <button
                 onClick={togglePlay}
                 title={isPlaying ? t('previews.audio.pause') : t('previews.audio.play')}
-                className="rounded-full bg-blue-500/20 p-2 text-xp-text hover:bg-xp-surface-light"
+                className="rounded border border-xp-border bg-xp-surface p-2 text-xp-text hover:bg-xp-surface-light"
               >
                 {isPlaying ? (
                   <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
@@ -357,9 +357,9 @@ const AudioPreview = ({ file, onError, onLoad }: PreviewProps) => {
                 step="0.1"
                 value={volume}
                 onChange={handleVolumeChange}
-                className="h-1 w-24 cursor-pointer appearance-none rounded-full"
+                className="h-1 w-24 cursor-pointer appearance-none rounded"
                 style={{
-                  background: `linear-gradient(to right, #7aa2f7 0%, #7aa2f7 ${volume * 100}%, #1a1b26 ${volume * 100}%, #1a1b26 100%)`,
+                  background: `linear-gradient(to right, var(--xp-text-muted) 0%, var(--xp-text-muted) ${volume * 100}%, var(--xp-border) ${volume * 100}%, var(--xp-border) 100%)`,
                 }}
               />
               <span className="w-8 text-xs text-xp-text-muted">{Math.round(volume * 100)}%</span>

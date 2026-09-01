@@ -45,14 +45,13 @@ export const FileReferenceBadge = ({
           bottom: compact ? -4 : -5,
           width: badgeSize,
           height: badgeSize,
-          borderRadius: '50%',
+          borderRadius: '3px',
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'white',
-          backgroundColor: isSymlink ? 'var(--xp-blue, #3b82f6)' : 'var(--xp-purple, #8b5cf6)',
+          color: 'var(--xp-bg)',
+          backgroundColor: isSymlink ? 'var(--xp-blue)' : 'var(--xp-purple)',
           border: '1.5px solid var(--xp-surface)',
-          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.5)',
           zIndex: 2,
         }}
       >

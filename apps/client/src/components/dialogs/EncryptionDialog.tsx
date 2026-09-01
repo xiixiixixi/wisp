@@ -249,7 +249,7 @@ const EncryptionDialog = ({
 
           {/* Error message */}
           {error && (
-            <div className="flex items-start space-x-2 rounded-md border border-red-500 border-opacity-30 bg-red-500 bg-opacity-10 p-3">
+            <div className="flex items-start space-x-2 rounded-md border border-xp-red/30 bg-xp-red/10 p-3">
               <AlertTriangle size={16} className="mt-0.5 shrink-0 text-xp-red" />
               <span className="text-sm text-xp-red">{error}</span>
             </div>
@@ -258,7 +258,7 @@ const EncryptionDialog = ({
           {/* Processing indicator */}
           {processing && (
             <div className="flex items-center justify-center py-2">
-              <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-xp-blue" />
+              <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-xp-text-muted" />
               <span className="ml-3 text-sm text-xp-text-muted">
                 {isEncrypt
                   ? t('dialogs.encryption.encrypting')

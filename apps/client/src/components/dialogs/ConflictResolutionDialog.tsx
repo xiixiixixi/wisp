@@ -71,7 +71,6 @@ export const ConflictResolutionDialog = ({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'rgba(0,0,0,0.6)',
-        backdropFilter: 'blur(4px)',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onCancel();
@@ -87,8 +86,8 @@ export const ConflictResolutionDialog = ({
           flexDirection: 'column',
           backgroundColor: 'var(--xp-surface)',
           border: '1px solid var(--xp-border)',
-          borderRadius: '12px',
-          boxShadow: '0 24px 48px rgba(0,0,0,0.4)',
+          borderRadius: '8px',
+          boxShadow: 'var(--xp-shadow-popover)',
           overflow: 'hidden',
         }}
       >
@@ -108,7 +107,7 @@ export const ConflictResolutionDialog = ({
               height="18"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="var(--xp-yellow, #e2b340)"
+              stroke="#b39a5d"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"

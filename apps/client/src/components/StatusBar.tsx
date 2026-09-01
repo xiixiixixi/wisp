@@ -563,7 +563,7 @@ const StatusBar = ({
           <>
             <button
               type="button"
-              className="flex items-center gap-1 rounded px-1.5 py-0.5 transition-colors hover:bg-white/10 active:bg-white/15"
+              className="flex items-center gap-1 rounded px-1.5 py-0.5 transition-colors hover:bg-xp-surface-light active:bg-xp-border"
               style={{
                 cursor: 'pointer',
                 border: 'none',

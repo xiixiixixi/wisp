@@ -33,7 +33,7 @@ const Toast = ({
       : 'relative flex w-full overflow-hidden rounded-lg border shadow-lg transition-all duration-200 ease-in-out transform';
   const variantClasses =
     variant === 'destructive'
-      ? 'bg-red-900 border-red-800 text-red-100'
+      ? 'bg-xp-surface border-xp-red/40 text-xp-red'
       : 'bg-xp-surface border-xp-border text-xp-text';
   const visibilityClasses = open
     ? 'opacity-100 scale-100 translate-y-0'
@@ -57,8 +57,8 @@ const Toast = ({
             id={titleId}
             className={
               presentation === 'dialog'
-                ? 'mb-1.5 text-base font-semibold'
-                : 'mb-1 text-sm font-semibold'
+                ? 'mb-1.5 text-base font-medium'
+                : 'mb-1 text-sm font-medium'
             }
           >
             {title}
@@ -82,7 +82,7 @@ const Toast = ({
       {presentation !== 'dialog' && showCountdown && (
         <div
           className={`absolute bottom-0 left-0 h-0.5 ${
-            variant === 'destructive' ? 'bg-red-500' : 'bg-xp-blue'
+            variant === 'destructive' ? 'bg-xp-red' : 'bg-xp-blue'
           }`}
           style={{ animation: `toast-countdown ${TOAST_AUTO_DISMISS_DELAY}ms linear forwards` }}
           aria-hidden="true"
@@ -174,7 +174,7 @@ export const Toaster = () => {
 
       {dialogToast && (
         <div
-          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/55 p-4 backdrop-blur-md"
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) {
               closeToast(dialogToast.id, dialogToast.onOpenChange);
@@ -223,12 +223,12 @@ const ConfirmationToast = ({
   return (
     <div className="relative flex w-full overflow-hidden rounded-lg border border-xp-border bg-xp-surface text-xp-text shadow-lg">
       <div className="flex-1 p-4">
-        <div className="mb-1 text-sm font-semibold">{title}</div>
+        <div className="mb-1 text-sm font-medium">{title}</div>
         {description && <div className="mb-3 text-xs opacity-90">{description}</div>}
         <div className="flex space-x-2">
           <button
             onClick={onConfirm}
-            className="rounded bg-red-600 px-3 py-1 text-xs text-white transition-colors hover:bg-red-700"
+            className="rounded bg-xp-red px-3 py-1 text-xs text-white transition-colors hover:bg-xp-red/80"
           >
             {confirmText}
           </button>
@@ -285,7 +285,7 @@ const InputToast = ({
   return (
     <div className="relative flex w-full overflow-hidden rounded-lg border border-xp-border bg-xp-surface text-xp-text shadow-lg">
       <div className="flex-1 p-4">
-        <div className="mb-1 text-sm font-semibold">{title}</div>
+        <div className="mb-1 text-sm font-medium">{title}</div>
         {description && <div className="mb-3 text-xs opacity-90">{description}</div>}
         <input
           type="text"
@@ -293,14 +293,14 @@ const InputToast = ({
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyPress}
           placeholder={placeholder}
-          className="mb-3 w-full rounded border border-xp-border bg-xp-bg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-xp-blue"
+          className="mb-3 w-full rounded border border-xp-border bg-xp-bg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-xp-blue"
           autoFocus
         />
         <div className="flex space-x-2">
           <button
             onClick={handleSubmit}
             disabled={!value.trim()}
-            className="rounded bg-xp-blue px-3 py-1 text-xs text-white transition-colors hover:bg-xp-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded bg-xp-blue px-3 py-1 text-xs text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
           >
             {submitText}
           </button>
@@ -376,7 +376,7 @@ const InputPromptContent = ({
           }
         }}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-xp-border bg-xp-bg px-4 py-3 text-sm text-xp-text shadow-inner outline-none transition placeholder:text-xp-text-muted focus:border-xp-blue focus:ring-4 focus:ring-xp-blue"
+        className="w-full rounded-xl border border-xp-border bg-xp-bg px-4 py-3 text-sm text-xp-text outline-none transition placeholder:text-xp-text-muted focus:border-xp-blue focus:ring-1 focus:ring-xp-blue"
         autoFocus
         autoComplete="off"
         spellCheck={false}
@@ -399,7 +399,7 @@ const InputPromptContent = ({
         <button
           type="submit"
           disabled={!canSubmit}
-          className="rounded-lg bg-xp-blue px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-blue-950/20 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-lg bg-xp-blue px-4 py-2 text-xs font-medium text-[var(--xp-bg)] transition hover:bg-xp-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
           {submitText}
         </button>
@@ -437,7 +437,7 @@ const ConfirmationPromptContent = ({
         type="button"
         onClick={onConfirm}
         autoFocus
-        className="rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-red-950/20 transition hover:bg-red-500"
+        className="rounded-lg bg-xp-red px-4 py-2 text-xs font-medium text-white transition hover:bg-xp-red/80"
       >
         {confirmText}
       </button>

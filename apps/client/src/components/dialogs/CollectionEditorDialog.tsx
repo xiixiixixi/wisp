@@ -26,7 +26,6 @@ const S = {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    backdropFilter: 'blur(4px)',
     animation: 'fadeIn 150ms ease-out',
   },
   dialog: {
@@ -35,10 +34,10 @@ const S = {
     maxWidth: '560px',
     maxHeight: '80vh',
     margin: '0 16px',
-    borderRadius: '12px',
+    borderRadius: '8px',
     backgroundColor: 'var(--xp-popover)',
     border: '1px solid var(--xp-border)',
-    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+    boxShadow: 'var(--xp-shadow-popover)',
     display: 'flex',
     flexDirection: 'column' as const,
     overflow: 'hidden',
@@ -108,7 +107,7 @@ const S = {
     borderRadius: '8px',
     border: selected ? '2px solid var(--xp-blue)' : '1px solid var(--xp-border)',
     backgroundColor: selected
-      ? 'var(--xp-blue-alpha, rgba(122, 162, 247, 0.15))'
+      ? 'var(--xp-blue-alpha, rgb(var(--xp-blue-rgb) / 0.15))'
       : 'var(--xp-surface)',
     cursor: 'pointer',
     transition: 'all 120ms ease',

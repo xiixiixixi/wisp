@@ -48,7 +48,7 @@ const UndoPositionMarker = React.forwardRef<HTMLDivElement>((_props, ref) => (
       style={{
         flex: 1,
         height: '2px',
-        background: 'linear-gradient(90deg, var(--xp-blue), transparent)',
+        background: 'var(--xp-border)',
         borderRadius: '1px',
       }}
     />
@@ -68,7 +68,7 @@ const UndoPositionMarker = React.forwardRef<HTMLDivElement>((_props, ref) => (
       style={{
         flex: 1,
         height: '2px',
-        background: 'linear-gradient(270deg, var(--xp-blue), transparent)',
+        background: 'var(--xp-border)',
         borderRadius: '1px',
       }}
     />
@@ -115,12 +115,10 @@ const UndoHistoryList = ({
             gap: '8px',
             padding: inGroup ? '3px 10px 3px 28px' : '4px 10px',
             fontSize: '11px',
-            borderBottom: isCurrentDivider
-              ? 'none'
-              : '1px solid var(--xp-border, rgba(255,255,255,0.06))',
+            borderBottom: isCurrentDivider ? 'none' : '1px solid var(--xp-border)',
             backgroundColor: (() => {
-              if (inGroup) return 'rgba(255,255,255,0.015)';
-              if (isRedone) return 'rgba(255,255,255,0.02)';
+              if (inGroup) return 'rgb(var(--xp-blue-rgb) / 0.03)';
+              if (isRedone) return 'rgb(var(--xp-blue-rgb) / 0.04)';
               return 'transparent';
             })(),
             opacity: isRedone ? 0.45 : 1,
@@ -199,11 +197,8 @@ const UndoHistoryList = ({
               gap: '8px',
               padding: '5px 10px',
               fontSize: '11px',
-              borderBottom:
-                hasMarker && !group.isExpanded
-                  ? 'none'
-                  : '1px solid var(--xp-border, rgba(255,255,255,0.06))',
-              backgroundColor: 'rgba(255,255,255,0.03)',
+              borderBottom: hasMarker && !group.isExpanded ? 'none' : '1px solid var(--xp-border)',
+              backgroundColor: 'rgb(var(--xp-blue-rgb) / 0.06)',
               opacity: isRedone ? 0.45 : 1,
               cursor: 'pointer',
               transition: 'opacity 200ms ease, background-color 200ms ease',
@@ -247,9 +242,9 @@ const UndoHistoryList = ({
                 fontSize: '9px',
                 fontWeight: 600,
                 color: 'var(--xp-text-muted)',
-                backgroundColor: 'rgba(255,255,255,0.06)',
+                backgroundColor: 'rgb(var(--xp-blue-rgb) / 0.12)',
                 padding: '1px 6px',
-                borderRadius: '8px',
+                borderRadius: '4px',
                 flexShrink: 0,
               }}
             >
@@ -262,7 +257,7 @@ const UndoHistoryList = ({
             )}
           </div>
           {group.isExpanded && (
-            <div style={{ borderBottom: '1px solid var(--xp-border, rgba(255,255,255,0.06))' }}>
+            <div style={{ borderBottom: '1px solid var(--xp-border)' }}>
               {group.entries.map((entry) => renderEntry(entry, true))}
             </div>
           )}

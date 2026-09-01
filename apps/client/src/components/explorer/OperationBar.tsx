@@ -182,12 +182,12 @@ const OperationBar = ({
         <div className="flex min-h-8 items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2.5">
             <span
-              className="flex h-5 min-w-5 items-center justify-center rounded-full bg-xp-lime px-1.5 text-[11px] font-bold text-[#1d1c1a]"
+              className="flex h-5 min-w-5 items-center justify-center rounded bg-xp-lime px-1.5 text-[11px] font-medium text-white"
               aria-hidden="true"
             >
               {selectedFiles.size}
             </span>
-            <span className="truncate text-xs font-semibold text-xp-text" aria-live="polite">
+            <span className="truncate text-xs font-medium text-xp-text" aria-live="polite">
               {t('common.selected', { count: selectedFiles.size })}
             </span>
             {onSelectNone && (
@@ -305,7 +305,7 @@ const OperationBar = ({
           <div className="relative">
             <button
               onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-              className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+              className="flex items-center gap-1 rounded px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               aria-label={t('operationBar.sortBy', {
                 name: currentSortLabel,
                 order: currentSortOrder,
@@ -377,7 +377,7 @@ const OperationBar = ({
           <div className="relative flex items-center gap-1">
             <button
               onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
-              className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+              className="flex items-center gap-1 rounded px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               aria-label={t('operationBar.viewMode', {
                 name: currentViewLabel,
               })}
@@ -537,7 +537,7 @@ const OperationBar = ({
             </button>
 
             {isActionsDropdownOpen && (
-              <div className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-xp-border bg-xp-popover py-1 shadow-xl backdrop-blur-xl">
+              <div className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-xp-border bg-xp-popover py-1 shadow-xl">
                 {/* New Folder */}
                 <button
                   onClick={() => {

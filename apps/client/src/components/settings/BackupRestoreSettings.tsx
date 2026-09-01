@@ -249,7 +249,7 @@ const BackupRestoreSettings = () => {
         >
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 rounded-md bg-xp-accent px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            className="flex items-center gap-2 rounded-md bg-xp-accent px-3 py-2 text-sm font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
           >
             <Download size={14} />
             {t('settings.backup.exportButton')}
@@ -290,7 +290,7 @@ const BackupRestoreSettings = () => {
         />
 
         {importStatus.type === 'error' && (
-          <div className="mx-4 mt-2 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
+          <div className="mx-4 mt-2 flex items-start gap-2 rounded-lg border border-xp-red/30 bg-xp-red/10 p-3">
             <AlertTriangle size={16} className="mt-0.5 shrink-0 text-xp-red" />
             <div>
               <div className="text-sm font-medium text-xp-red">
@@ -300,7 +300,7 @@ const BackupRestoreSettings = () => {
             </div>
             <button
               onClick={handleCancelImport}
-              className="text-xp-red/60 ml-auto shrink-0 text-xs transition-colors hover:text-xp-red"
+              className="ml-auto shrink-0 text-xs text-xp-red/60 transition-colors hover:text-xp-red"
             >
               {t('settings.backup.dismiss')}
             </button>
@@ -349,7 +349,7 @@ const BackupRestoreSettings = () => {
               ))}
             </div>
 
-            <div className="mb-4 flex items-center gap-2 rounded-md border border-amber-500/20 bg-amber-500/10 p-2">
+            <div className="mb-4 flex items-center gap-2 rounded-md border border-xp-yellow/20 bg-xp-yellow/10 p-2">
               <AlertTriangle size={14} className="shrink-0 text-xp-yellow" />
               <span className="text-xs text-xp-yellow">
                 {t('settings.backup.overwriteWarning')}
@@ -365,7 +365,7 @@ const BackupRestoreSettings = () => {
               </button>
               <button
                 onClick={handleApplyImport}
-                className="flex items-center gap-1.5 rounded-md bg-xp-accent px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                className="flex items-center gap-1.5 rounded-md bg-xp-accent px-3 py-1.5 text-sm font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
               >
                 <CheckCircle size={14} />
                 {t('settings.backup.applyImport')}
@@ -375,7 +375,7 @@ const BackupRestoreSettings = () => {
         )}
 
         {importStatus.type === 'success' && (
-          <div className="mx-4 mt-2 flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
+          <div className="mx-4 mt-2 flex items-center gap-2 rounded-lg border border-xp-green/30 bg-xp-green/10 p-3">
             <CheckCircle size={16} className="shrink-0 text-xp-green" />
             <div>
               <div className="text-sm font-medium text-xp-green">

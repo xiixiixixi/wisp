@@ -218,12 +218,10 @@ const ChatModelPicker = ({ currentModel, onModelChange }: ChatModelPickerProps) 
             minWidth: '240px',
             maxHeight: '360px',
             overflowY: 'auto',
-            background: 'var(--xp-popover, #1a1b2e)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            background: 'var(--xp-popover)',
             border: '1px solid var(--xp-border)',
             borderRadius: '6px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            boxShadow: '0 0 0 1px var(--xp-border)',
             padding: '4px',
           }}
         >
@@ -253,7 +251,7 @@ const ChatModelPicker = ({ currentModel, onModelChange }: ChatModelPickerProps) 
                   width: '100%',
                   padding: '6px 8px',
                   fontSize: '12px',
-                  background: selected ? 'rgba(122, 162, 247, 0.12)' : 'transparent',
+                  background: selected ? 'rgb(var(--xp-blue-rgb) / 0.12)' : 'transparent',
                   border: 'none',
                   borderRadius: '4px',
                   color: 'var(--xp-text)',

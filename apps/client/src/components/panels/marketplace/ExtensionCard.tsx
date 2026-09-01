@@ -40,7 +40,7 @@ const ExtensionCard = React.memo(
   }: ExtensionCardProps) => {
     return (
       <div
-        className="border-xp-border/50 hover:bg-xp-surface-light/50 cursor-pointer border-b px-3 py-2.5 transition-colors"
+        className="border-xp-border/50 cursor-pointer border-b px-3 py-2.5 transition-colors hover:bg-xp-surface-light/50"
         onClick={() => onSelect(extension)}
       >
         <div className="flex min-w-0 items-start gap-2">
@@ -66,7 +66,7 @@ const ExtensionCard = React.memo(
               <h4 className="truncate text-sm font-medium text-xp-text">{extension.displayName}</h4>
               <div className="flex-shrink-0">
                 {isDev ? (
-                  <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-xp-green">
+                  <span className="rounded border border-xp-green/30 bg-xp-green/10 px-2 py-0.5 text-[10px] font-medium text-xp-green">
                     Dev Mode
                   </span>
                 ) : isInstalled ? (
@@ -76,7 +76,7 @@ const ExtensionCard = React.memo(
                       onUninstall(extension);
                     }}
                     disabled={isInstalling}
-                    className="hover:bg-xp-red/10 flex items-center rounded p-1 text-xp-text-muted transition-colors hover:text-xp-red disabled:opacity-50"
+                    className="flex items-center rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-red/10 hover:text-xp-red disabled:opacity-50"
                     title="Uninstall"
                   >
                     {isInstalling ? (
@@ -92,7 +92,7 @@ const ExtensionCard = React.memo(
                       onInstall(extension);
                     }}
                     disabled={isInstalling}
-                    className="hover:bg-xp-blue/80 flex items-center gap-1 rounded bg-xp-blue px-2 py-0.5 text-[11px] text-white transition-colors disabled:opacity-50"
+                    className="flex items-center gap-1 rounded bg-xp-blue px-2 py-0.5 text-[11px] text-white transition-colors hover:bg-xp-blue/80 disabled:opacity-50"
                   >
                     {isInstalling ? (
                       <>

@@ -26,8 +26,8 @@ const sectionHeaderStyle = (color: string): React.CSSProperties => ({
   fontSize: 11,
   fontWeight: 600,
   color,
-  background: 'var(--xp-surface-light, rgba(255,255,255,0.03))',
-  borderBottom: '1px solid var(--xp-border, rgba(255,255,255,0.06))',
+  background: 'var(--xp-surface-light)',
+  borderBottom: '1px solid var(--xp-border)',
   position: 'sticky',
   top: 0,
   zIndex: 1,
@@ -40,7 +40,7 @@ const rowStyle: React.CSSProperties = {
   padding: '4px 12px 4px 24px',
   fontSize: 11,
   cursor: 'pointer',
-  borderBottom: '1px solid var(--xp-border, rgba(255,255,255,0.03))',
+  borderBottom: '1px solid var(--xp-border)',
   transition: 'background 0.1s',
 };
 
@@ -57,12 +57,12 @@ const nameStyle: React.CSSProperties = {
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
-  color: 'var(--xp-text, #c0caf5)',
+  color: 'var(--xp-text)',
 };
 
 const metaStyle: React.CSSProperties = {
   fontSize: 10,
-  color: 'var(--xp-text-muted, #565f89)',
+  color: 'var(--xp-text-muted)',
   whiteSpace: 'nowrap',
 };
 
@@ -75,7 +75,7 @@ const FileIcon = React.memo(() => {
       stroke="currentColor"
       strokeWidth={1.5}
       viewBox="0 0 24 24"
-      style={{ color: 'var(--xp-text-muted, #565f89)', flexShrink: 0 }}
+      style={{ color: 'var(--xp-text-muted)', flexShrink: 0 }}
     >
       <path
         strokeLinecap="round"
@@ -114,8 +114,7 @@ const ChangeSection = ({
           style={rowStyle}
           onClick={() => onClickChange(change)}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLDivElement).style.background =
-              'var(--xp-surface-light, rgba(255,255,255,0.06))';
+            (e.currentTarget as HTMLDivElement).style.background = 'var(--xp-surface-light)';
           }}
           onMouseLeave={(e) => {
             (e.currentTarget as HTMLDivElement).style.background = '';
@@ -160,14 +159,14 @@ const ChangeReviewPanel = React.memo(
       alignItems: 'center',
       gap: 8,
       padding: '6px 12px',
-      borderBottom: '1px solid var(--xp-border, rgba(255,255,255,0.06))',
-      background: 'var(--xp-surface-light, rgba(255,255,255,0.03))',
+      borderBottom: '1px solid var(--xp-border)',
+      background: 'var(--xp-surface-light)',
     };
 
     const summaryStyle: React.CSSProperties = {
       flex: 1,
       fontSize: 11,
-      color: 'var(--xp-text-muted, #565f89)',
+      color: 'var(--xp-text-muted)',
     };
 
     const acceptBtnStyle: React.CSSProperties = {
@@ -177,7 +176,7 @@ const ChangeReviewPanel = React.memo(
       borderRadius: 4,
       border: 'none',
       cursor: 'pointer',
-      background: 'var(--xp-blue, #7aa2f7)',
+      background: 'var(--xp-blue)',
       color: '#fff',
       transition: 'opacity 0.15s',
     };
@@ -193,7 +192,7 @@ const ChangeReviewPanel = React.memo(
             stroke="currentColor"
             strokeWidth={2}
             viewBox="0 0 24 24"
-            style={{ color: 'var(--xp-blue, #7aa2f7)', flexShrink: 0 }}
+            style={{ color: 'var(--xp-blue)', flexShrink: 0 }}
           >
             <path
               strokeLinecap="round"
@@ -204,13 +203,19 @@ const ChangeReviewPanel = React.memo(
           <span style={summaryStyle}>
             {t('panels.changeReview.changesDetected', { count: changes.totalCount })}
             {changes.added.length > 0 && (
-              <span style={{ color: '#9ece6a', marginLeft: 8 }}>+{changes.added.length}</span>
+              <span style={{ color: 'var(--xp-green)', marginLeft: 8 }}>
+                +{changes.added.length}
+              </span>
             )}
             {changes.removed.length > 0 && (
-              <span style={{ color: '#f7768e', marginLeft: 6 }}>-{changes.removed.length}</span>
+              <span style={{ color: 'var(--xp-red)', marginLeft: 6 }}>
+                -{changes.removed.length}
+              </span>
             )}
             {changes.modified.length > 0 && (
-              <span style={{ color: '#e0af68', marginLeft: 6 }}>~{changes.modified.length}</span>
+              <span style={{ color: 'var(--xp-orange)', marginLeft: 6 }}>
+                ~{changes.modified.length}
+              </span>
             )}
           </span>
           <button
@@ -231,7 +236,7 @@ const ChangeReviewPanel = React.memo(
         <div style={{ flex: 1, overflowY: 'auto' }}>
           <ChangeSection
             title={t('panels.changeReview.added')}
-            color="#9ece6a"
+            color="var(--xp-green)"
             icon={
               <svg width={12} height={12} fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -246,7 +251,7 @@ const ChangeReviewPanel = React.memo(
           />
           <ChangeSection
             title={t('panels.changeReview.removed')}
-            color="#f7768e"
+            color="var(--xp-red)"
             icon={
               <svg width={12} height={12} fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -261,7 +266,7 @@ const ChangeReviewPanel = React.memo(
           />
           <ChangeSection
             title={t('panels.changeReview.modified')}
-            color="#e0af68"
+            color="var(--xp-yellow)"
             icon={
               <svg
                 width={12}
@@ -290,7 +295,7 @@ const ChangeReviewPanel = React.memo(
                 justifyContent: 'center',
                 height: '100%',
                 fontSize: 12,
-                color: 'var(--xp-text-muted, #565f89)',
+                color: 'var(--xp-text-muted)',
               }}
             >
               {t('panels.changeReview.noChanges')}

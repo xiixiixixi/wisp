@@ -109,7 +109,9 @@ const ChatContextHeader = ({
             gap: '4px',
             padding: '2px 6px',
             borderRadius: '4px',
-            background: includeSelection ? 'rgba(122, 162, 247, 0.15)' : 'var(--xp-surface-light)',
+            background: includeSelection
+              ? 'rgb(var(--xp-blue-rgb) / 0.15)'
+              : 'var(--xp-surface-light)',
             color: includeSelection ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
           }}
         >

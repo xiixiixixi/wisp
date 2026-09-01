@@ -4,10 +4,10 @@ import type { VimMode } from '@/hooks/use-vim-mode';
 // ── Mode color mapping ───────────────────────────────────────────────────────
 
 const MODE_COLORS: Record<VimMode, string> = {
-  normal: '#3b82f6',
-  insert: '#22c55e',
-  visual: '#a855f7',
-  command: '#eab308',
+  normal: 'var(--xp-blue)',
+  insert: 'var(--xp-green)',
+  visual: 'var(--xp-purple)',
+  command: 'var(--xp-yellow)',
 };
 
 const MODE_LABELS: Record<VimMode, string> = {
@@ -35,12 +35,13 @@ interface VimModeIndicatorProps {
 }
 
 // ── Keyframe animation style (injected once) ────────────────────────────────
+// Paper feedback: a quiet opacity dip — no glow rings.
 
 const PULSE_KEYFRAMES = `
 @keyframes vim-mode-pulse {
-  0% { opacity: 1; box-shadow: 0 0 0 0 var(--vim-pulse-color); }
-  50% { opacity: 0.85; box-shadow: 0 0 8px 2px var(--vim-pulse-color); }
-  100% { opacity: 1; box-shadow: 0 0 0 0 var(--vim-pulse-color); }
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
 }
 `;
 
@@ -93,8 +94,8 @@ const VimModeIndicator = React.memo(
       gap: '4px',
       padding: '1px 8px',
       borderRadius: '3px',
-      background: `${color}22`,
-      border: `1px solid ${color}66`,
+      background: `color-mix(in srgb, ${color} 12%, transparent)`,
+      border: `1px solid color-mix(in srgb, ${color} 40%, transparent)`,
       color,
       fontSize: '11px',
       fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
@@ -105,8 +106,6 @@ const VimModeIndicator = React.memo(
       cursor: 'default',
       transition: 'background 0.15s ease, border-color 0.15s ease, color 0.15s ease',
       animation: isPulsing ? 'vim-mode-pulse 0.3s ease-out' : 'none',
-      // CSS variable for the pulse keyframe
-      ['--vim-pulse-color' as string]: `${color}44`,
     };
 
     // Pending keys display
@@ -142,16 +141,14 @@ const VimModeIndicator = React.memo(
       whiteSpace: 'nowrap',
       pointerEvents: 'none',
       zIndex: 50,
-      backdropFilter: 'blur(8px)',
-      WebkitBackdropFilter: 'blur(8px)',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+      boxShadow: '0 0 0 1px var(--xp-border), 0 4px 12px rgb(var(--xp-accent-rgb) / 0.08)',
     };
 
-    // The dot indicator before the mode label
+    // The square ink mark before the mode label
     const dotStyle: React.CSSProperties = {
       width: '6px',
       height: '6px',
-      borderRadius: '50%',
+      borderRadius: '2px',
       background: color,
       flexShrink: 0,
     };

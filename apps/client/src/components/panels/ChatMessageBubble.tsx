@@ -125,7 +125,7 @@ const ImageThumbnailStrip = ({
             position: 'fixed',
             inset: 0,
             zIndex: 9999,
-            background: 'rgba(0, 0, 0, 0.85)',
+            background: 'rgba(0, 0, 0, 0.4)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -140,7 +140,7 @@ const ImageThumbnailStrip = ({
               maxHeight: '90vh',
               objectFit: 'contain',
               borderRadius: '8px',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
+              boxShadow: '0 0 0 1px var(--xp-border)',
             }}
           />
           <span
@@ -214,7 +214,7 @@ const ChatMessageBubble = ({
                 gap: '3px',
                 padding: '2px 6px',
                 borderRadius: '4px',
-                background: 'rgba(122, 162, 247, 0.15)',
+                background: 'rgb(var(--xp-blue-rgb) / 0.15)',
                 color: 'var(--xp-blue)',
                 fontSize: '10px',
               }}
@@ -282,8 +282,6 @@ const ChatMessageBubble = ({
             bottom: 0,
             zIndex: 2,
             background: 'var(--xp-surface)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
             paddingTop: '4px',
             marginTop: '4px',
             borderTop: '1px solid var(--xp-border)',

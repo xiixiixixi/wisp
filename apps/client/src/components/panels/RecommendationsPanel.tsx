@@ -138,7 +138,7 @@ const SimilarFilesTab = ({
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="bg-xp-surface/30 border-b border-xp-border px-4 py-2">
+      <div className="border-b border-xp-border bg-xp-surface/30 px-4 py-2">
         <p className="text-xs text-xp-text-muted">
           {t('panels.recommendations.similarTo')}{' '}
           <span className="text-xp-blue">{selectedFile.name}</span>
@@ -159,7 +159,7 @@ const SimilarFilesTab = ({
               <div className="min-w-0 flex-1">
                 <div className="mb-0.5 flex items-center gap-2">
                   <span className="truncate text-xs text-xp-text">{rec.name}</span>
-                  <span className="bg-xp-blue/20 border-xp-blue/30 flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px] text-xp-blue">
+                  <span className="flex-shrink-0 rounded border border-xp-blue/30 bg-xp-blue/20 px-1.5 py-0.5 text-[10px] text-xp-blue">
                     {Math.round(rec.score * 100)}%
                   </span>
                 </div>
@@ -178,7 +178,7 @@ const SimilarFilesTab = ({
         ))}
       </div>
 
-      <div className="bg-xp-surface/30 border-t border-xp-border px-4 py-1.5">
+      <div className="border-t border-xp-border bg-xp-surface/30 px-4 py-1.5">
         <p className="text-[10px] text-xp-text-muted">
           {t('panels.recommendations.similarFileCount', { count: recommendations.length })}
         </p>
@@ -351,7 +351,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
           {isScanning ? (
             <button
               onClick={handleCancelScan}
-              className="bg-xp-red/10 border-xp-red/20 hover:bg-xp-red/20 flex items-center gap-1 rounded border px-2 py-1 text-[10px] font-medium text-xp-red transition-colors"
+              className="flex items-center gap-1 rounded border border-xp-red/20 bg-xp-red/10 px-2 py-1 text-[10px] font-medium text-xp-red transition-colors hover:bg-xp-red/20"
             >
               <X className="h-3 w-3" />
               {t('common.cancel')}
@@ -359,7 +359,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
           ) : (
             <button
               onClick={handleStartScan}
-              className="hover:bg-xp-blue/80 flex items-center gap-1 rounded bg-xp-blue px-2 py-1 text-[10px] font-medium text-white transition-colors"
+              className="flex items-center gap-1 rounded bg-xp-blue px-2 py-1 text-[10px] font-medium text-white transition-colors hover:bg-xp-blue/80"
             >
               <Search className="h-3 w-3" />
               {t('panels.recommendations.scan')}
@@ -370,7 +370,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
 
       {/* Progress */}
       {isScanning && progress && (
-        <div className="bg-xp-surface/50 border-b border-xp-border px-3 py-1.5">
+        <div className="border-b border-xp-border bg-xp-surface/50 px-3 py-1.5">
           <div className="mb-1 flex items-center justify-between text-[10px] text-xp-text-muted">
             <span className="capitalize">{progress.currentPhase}</span>
             <span>
@@ -379,9 +379,9 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
               {t('panels.recommendations.files')}
             </span>
           </div>
-          <div className="h-1 w-full rounded-full bg-xp-surface">
+          <div className="h-1 w-full rounded bg-xp-surface">
             <div
-              className="h-1 rounded-full bg-xp-blue transition-all duration-300"
+              className="h-1 rounded bg-xp-blue transition-all duration-300"
               style={{
                 width:
                   progress.totalFiles > 0
@@ -399,7 +399,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
 
       {/* Summary */}
       {results && results.duplicate_groups.length > 0 && (
-        <div className="bg-xp-surface/30 border-b border-xp-border px-3 py-1.5">
+        <div className="border-b border-xp-border bg-xp-surface/30 px-3 py-1.5">
           <div className="flex flex-wrap items-center gap-2 text-[10px]">
             <span className="text-xp-text-muted">
               <span className="font-medium text-xp-text">{results.duplicate_groups.length}</span>{' '}
@@ -430,7 +430,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
               return (
                 <div key={group.hash} className="border-xp-border/50 border-b">
                   <div
-                    className="hover:bg-xp-surface/50 flex cursor-pointer items-center gap-1.5 px-3 py-1.5 transition-colors"
+                    className="flex cursor-pointer items-center gap-1.5 px-3 py-1.5 transition-colors hover:bg-xp-surface/50"
                     onClick={() => toggleGroupExpansion(group.hash)}
                   >
                     {isExpanded ? (
@@ -465,8 +465,8 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
                       className={cn(
                         'rounded border px-1 py-0.5 text-[10px] transition-colors',
                         allDupsSelected
-                          ? 'bg-xp-blue/20 border-xp-blue/30 text-xp-blue'
-                          : 'hover:border-xp-blue/50 border-xp-border bg-xp-surface text-xp-text-muted',
+                          ? 'border-xp-blue/30 bg-xp-blue/20 text-xp-blue'
+                          : 'border-xp-border bg-xp-surface text-xp-text-muted hover:border-xp-blue/50',
                       )}
                     >
                       {allDupsSelected ? t('panels.recommendations.undo') : t('common.select')}
@@ -483,7 +483,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
                             className={cn(
                               'flex items-center gap-1.5 rounded px-1.5 py-1 text-[11px] transition-colors',
                               selectedFiles.has(file.path)
-                                ? 'bg-xp-blue/10 border-xp-blue/20 border'
+                                ? 'border border-xp-blue/20 bg-xp-blue/10'
                                 : 'hover:bg-xp-surface/50',
                             )}
                           >
@@ -546,13 +546,13 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
 
       {/* Actions */}
       {results && results.duplicate_groups.length > 0 && selectedFiles.size > 0 && (
-        <div className="bg-xp-surface/30 flex items-center gap-2 border-t border-xp-border px-3 py-1.5">
+        <div className="flex items-center gap-2 border-t border-xp-border bg-xp-surface/30 px-3 py-1.5">
           <span className="text-[10px] text-xp-text-muted">
             {t('common.selected', { count: selectedFiles.size })}
           </span>
           <button
             onClick={handleMoveToTrash}
-            className="bg-xp-red/10 border-xp-red/20 hover:bg-xp-red/20 flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-medium text-xp-red transition-colors"
+            className="flex items-center gap-1 rounded border border-xp-red/20 bg-xp-red/10 px-2 py-0.5 text-[10px] font-medium text-xp-red transition-colors hover:bg-xp-red/20"
           >
             <Trash2 className="h-3 w-3" />
             {t('common.delete')}
@@ -600,8 +600,8 @@ const RecommendationsPanel = ({
           className={cn(
             'flex-1 px-3 py-2 text-xs font-medium transition-colors',
             activeTab === 'similar'
-              ? 'bg-xp-surface/50 border-b-2 border-xp-blue text-xp-blue'
-              : 'hover:bg-xp-surface/30 text-xp-text-muted hover:text-xp-text',
+              ? 'border-b-2 border-xp-blue bg-xp-surface/50 text-xp-blue'
+              : 'text-xp-text-muted hover:bg-xp-surface/30 hover:text-xp-text',
           )}
         >
           {t('panels.recommendations.tabSimilar')}
@@ -611,8 +611,8 @@ const RecommendationsPanel = ({
           className={cn(
             'flex-1 px-3 py-2 text-xs font-medium transition-colors',
             activeTab === 'duplicates'
-              ? 'bg-xp-surface/50 border-b-2 border-xp-blue text-xp-blue'
-              : 'hover:bg-xp-surface/30 text-xp-text-muted hover:text-xp-text',
+              ? 'border-b-2 border-xp-blue bg-xp-surface/50 text-xp-blue'
+              : 'text-xp-text-muted hover:bg-xp-surface/30 hover:text-xp-text',
           )}
         >
           {t('panels.recommendations.tabDuplicates')}

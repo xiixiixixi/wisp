@@ -235,7 +235,7 @@ const TourOverlay = () => {
             height={spotlight.height}
             rx="8"
             fill="none"
-            stroke="var(--xp-blue, #7aa2f7)"
+            stroke="#6a6f8a"
             strokeWidth="2"
             className="tour-spotlight-glow"
             style={{ transition: 'all 0.5s ease-in-out' }}
@@ -247,7 +247,7 @@ const TourOverlay = () => {
       <div
         key={stepKey}
         className={cn(
-          'border-xp-border bg-xp-surface fixed rounded-xl border shadow-2xl',
+          'fixed rounded-xl border border-xp-border bg-xp-surface shadow-2xl',
           'tour-tooltip-enter',
           isCentered && 'text-center',
         )}
@@ -260,12 +260,12 @@ const TourOverlay = () => {
       >
         {/* Header */}
         <div className={cn('flex items-center gap-2.5 p-4 pb-2', isCentered && 'justify-center')}>
-          {Icon && <Icon size={20} className="text-xp-blue shrink-0" />}
-          <h3 className="text-xp-text text-base font-semibold">{step.title}</h3>
+          {Icon && <Icon size={20} className="shrink-0 text-xp-blue" />}
+          <h3 className="text-base font-semibold text-xp-text">{step.title}</h3>
           {!isCentered && (
             <button
               onClick={() => endTour(false)}
-              className="text-xp-text-muted hover:text-xp-text hover:bg-xp-surface-light ml-auto rounded-md p-1 transition-colors"
+              className="ml-auto rounded-md p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               aria-label={t('tour.closeTour')}
             >
               <X size={16} />
@@ -275,7 +275,7 @@ const TourOverlay = () => {
 
         {/* Description */}
         <div className="px-4 pb-3">
-          <p className="text-xp-text-secondary text-sm leading-relaxed">{step.description}</p>
+          <p className="text-sm leading-relaxed text-xp-text-secondary">{step.description}</p>
         </div>
 
         {/* Footer */}
@@ -284,8 +284,8 @@ const TourOverlay = () => {
           <div className="flex items-center gap-1.5">
             {steps.map((_, i) => {
               const dotStyle = (() => {
-                if (i === currentStep) return 'bg-xp-blue w-4';
-                if (i < currentStep) return 'bg-xp-blue/40 w-2';
+                if (i === currentStep) return 'bg-xp-lime w-4';
+                if (i < currentStep) return 'bg-xp-lime/40 w-2';
                 return 'bg-xp-border w-2';
               })();
               return (
@@ -293,7 +293,7 @@ const TourOverlay = () => {
                   // eslint-disable-next-line react/no-array-index-key
                   key={i}
                   onClick={() => goToStep(i)}
-                  className={cn('h-2 rounded-full transition-all duration-200', dotStyle)}
+                  className={cn('h-2 rounded transition-all duration-200', dotStyle)}
                   aria-label={t('tour.goToStep', { step: i + 1 })}
                 />
               );
@@ -305,7 +305,7 @@ const TourOverlay = () => {
             {isFirst && (
               <button
                 onClick={() => endTour(false)}
-                className="text-xp-text-secondary hover:text-xp-text hover:bg-xp-surface-light rounded-md px-3 py-1.5 text-sm transition-colors"
+                className="rounded-md px-3 py-1.5 text-sm text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               >
                 {t('tour.skip')}
               </button>
@@ -313,7 +313,7 @@ const TourOverlay = () => {
             {!isFirst && (
               <button
                 onClick={() => prevStep()}
-                className="text-xp-text-secondary hover:text-xp-text hover:bg-xp-surface-light flex items-center gap-1 rounded-md px-3 py-1.5 text-sm transition-colors"
+                className="flex items-center gap-1 rounded-md px-3 py-1.5 text-sm text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               >
                 <ChevronLeft size={14} />
                 {t('tour.back')}
@@ -321,7 +321,7 @@ const TourOverlay = () => {
             )}
             <button
               onClick={isLast ? () => endTour(true) : () => nextStep()}
-              className="bg-xp-blue flex items-center gap-1 rounded-md px-4 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              className="flex items-center gap-1 rounded-md bg-xp-blue px-4 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
             >
               {isLast ? t('tour.getStarted') : t('tour.next')}
               {!isLast && <ChevronRight size={14} />}
@@ -330,7 +330,7 @@ const TourOverlay = () => {
         </div>
 
         {/* Step counter */}
-        <div className="text-xp-text-muted pb-3 text-center text-[10px]">
+        <div className="pb-3 text-center text-[10px] text-xp-text-muted">
           {t('tour.stepOf', { current: currentStep + 1, total: steps.length })}
         </div>
       </div>

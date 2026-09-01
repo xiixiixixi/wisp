@@ -182,21 +182,21 @@ const DiffRowEnhanced = ({
 
   if (row.type === 'removed') {
     if (side === 'left') {
-      bgColor = 'rgba(248, 113, 113, 0.08)';
-      gutterBg = 'rgba(248, 113, 113, 0.15)';
+      bgColor = 'rgb(var(--xp-red-rgb) / 0.12)';
+      gutterBg = 'rgb(var(--xp-red-rgb) / 0.15)';
       gutterMarker = '-';
       gutterColor = 'var(--xp-red)';
     } else {
-      bgColor = 'rgba(255, 255, 255, 0.02)';
+      bgColor = 'rgb(var(--xp-blue-rgb) / 0.04)';
     }
   } else if (row.type === 'added') {
     if (side === 'right') {
-      bgColor = 'rgba(52, 211, 153, 0.08)';
-      gutterBg = 'rgba(52, 211, 153, 0.15)';
+      bgColor = 'rgb(var(--xp-green-rgb) / 0.12)';
+      gutterBg = 'rgb(var(--xp-green-rgb) / 0.15)';
       gutterMarker = '+';
       gutterColor = 'var(--xp-green)';
     } else {
-      bgColor = 'rgba(255, 255, 255, 0.02)';
+      bgColor = 'rgb(var(--xp-blue-rgb) / 0.04)';
     }
   }
 
@@ -245,7 +245,7 @@ const DiffRowEnhanced = ({
           textAlign: 'center',
           userSelect: 'none',
           color: gutterColor,
-          fontWeight: 700,
+          fontWeight: 500,
           backgroundColor: gutterBg,
         }}
       >
@@ -281,14 +281,14 @@ const UnifiedDiffRow = ({
   let content = '';
 
   if (row.type === 'removed') {
-    bgColor = 'rgba(248, 113, 113, 0.08)';
-    gutterBg = 'rgba(248, 113, 113, 0.15)';
+    bgColor = 'rgb(var(--xp-red-rgb) / 0.12)';
+    gutterBg = 'rgb(var(--xp-red-rgb) / 0.15)';
     marker = '-';
     markerColor = 'var(--xp-red)';
     content = row.contentLeft;
   } else if (row.type === 'added') {
-    bgColor = 'rgba(52, 211, 153, 0.08)';
-    gutterBg = 'rgba(52, 211, 153, 0.15)';
+    bgColor = 'rgb(var(--xp-green-rgb) / 0.12)';
+    gutterBg = 'rgb(var(--xp-green-rgb) / 0.15)';
     marker = '+';
     markerColor = 'var(--xp-green)';
     content = row.contentRight;
@@ -349,7 +349,7 @@ const UnifiedDiffRow = ({
           textAlign: 'center',
           userSelect: 'none',
           color: markerColor,
-          fontWeight: 700,
+          fontWeight: 500,
           backgroundColor: gutterBg,
         }}
       >
@@ -379,17 +379,17 @@ const CollapsedSection = ({ count, onExpand }: { count: number; onExpand: () => 
         padding: '2px 0',
         minHeight: 24,
         cursor: 'pointer',
-        backgroundColor: 'rgba(99, 102, 241, 0.06)',
-        borderTop: '1px solid rgba(99, 102, 241, 0.15)',
-        borderBottom: '1px solid rgba(99, 102, 241, 0.15)',
+        backgroundColor: 'rgb(var(--xp-lime-rgb) / 0.06)',
+        borderTop: '1px solid rgb(var(--xp-lime-rgb) / 0.15)',
+        borderBottom: '1px solid rgb(var(--xp-lime-rgb) / 0.15)',
         transition: 'background-color 0.15s',
       }}
       onClick={onExpand}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(99, 102, 241, 0.12)';
+        (e.currentTarget as HTMLElement).style.backgroundColor = 'rgb(var(--xp-lime-rgb) / 0.12)';
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(99, 102, 241, 0.06)';
+        (e.currentTarget as HTMLElement).style.backgroundColor = 'rgb(var(--xp-lime-rgb) / 0.06)';
       }}
       title={`Click to expand ${count} unchanged lines`}
     >

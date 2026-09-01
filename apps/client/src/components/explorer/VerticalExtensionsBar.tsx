@@ -87,7 +87,7 @@ const VerticalExtensionsBar = ({
   const btnClass = (id: string) =>
     `relative w-10 h-10 mx-1 mb-1 rounded-xl flex items-center justify-center text-lg transition-all ${
       isActivePanel(id)
-        ? 'bg-xp-blue text-white shadow-md shadow-black/15'
+        ? 'bg-xp-blue text-[var(--xp-bg)]'
         : 'text-xp-text-secondary hover:text-xp-text hover:bg-xp-surface-light'
     }`;
 

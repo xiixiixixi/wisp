@@ -187,12 +187,12 @@ const BottomPanel = ({
           >
             {getTabLabel(tab)}
             {tab === 'changes' && fileChanges && fileChanges.totalCount > 0 && (
-              <span className="ml-0.5 rounded bg-yellow-500/20 px-1 text-[10px] font-bold text-xp-yellow">
+              <span className="ml-0.5 rounded bg-xp-yellow/20 px-1 text-[10px] font-medium text-xp-yellow">
                 {fileChanges.totalCount}
               </span>
             )}
             {tab === 'notifications' && unreadCount > 0 && (
-              <span className="bg-xp-blue/20 ml-0.5 rounded px-1 text-[10px] font-bold text-xp-blue">
+              <span className="ml-0.5 rounded bg-xp-blue/20 px-1 text-[10px] font-medium text-xp-blue">
                 {unreadCount}
               </span>
             )}
@@ -386,7 +386,7 @@ const ActivityLogContent = ({
   return (
     <div className="flex h-full flex-col">
       {/* Sub-filter toolbar */}
-      <div className="bg-xp-surface-light/30 flex flex-shrink-0 items-center gap-1 border-b border-xp-border px-3 py-1.5">
+      <div className="flex flex-shrink-0 items-center gap-1 border-b border-xp-border bg-xp-surface-light/30 px-3 py-1.5">
         {ACTIVITY_LOG_FILTERS.map((f) => (
           <button
             key={f.value}
@@ -408,7 +408,7 @@ const ActivityLogContent = ({
         {(activityLogFilter === 'all' || activityLogFilter === 'output') && (
           <div>
             {activityLogFilter === 'all' && (
-              <div className="bg-xp-surface-light/20 border-xp-border/50 sticky top-0 z-[1] border-b px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-xp-text-muted">
+              <div className="border-xp-border/50 sticky top-0 z-[1] border-b bg-xp-surface-light/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-xp-text-muted">
                 Output
               </div>
             )}
@@ -440,7 +440,7 @@ const ActivityLogContent = ({
         {(activityLogFilter === 'all' || activityLogFilter === 'activity') && (
           <div>
             {activityLogFilter === 'all' && (
-              <div className="bg-xp-surface-light/20 border-xp-border/50 sticky top-0 z-[1] border-b px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-xp-text-muted">
+              <div className="border-xp-border/50 sticky top-0 z-[1] border-b bg-xp-surface-light/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-xp-text-muted">
                 Activity
               </div>
             )}
@@ -460,7 +460,7 @@ const ActivityLogContent = ({
         {(activityLogFilter === 'all' || activityLogFilter === 'history') && (
           <div>
             {activityLogFilter === 'all' && (
-              <div className="bg-xp-surface-light/20 border-xp-border/50 sticky top-0 z-[1] border-b px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-xp-text-muted">
+              <div className="border-xp-border/50 sticky top-0 z-[1] border-b bg-xp-surface-light/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-xp-text-muted">
                 History
               </div>
             )}

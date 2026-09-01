@@ -1,14 +1,12 @@
 import React from 'react';
 
-// ─── Shared shimmer style ────────────────────────────────────────────────────
-// All skeleton primitives use CSS variables (--xp-*) and the @keyframes
-// xp-shimmer defined in index.css.  No Tailwind classes are used.
+// ─── Shared placeholder style ────────────────────────────────────────────────
+// Paper has no shimmer — placeholders are quiet stone washes that breathe
+// (opacity pulse), using CSS variables (--xp-*). No Tailwind classes.
 
 const shimmerStyle: React.CSSProperties = {
-  background:
-    'linear-gradient(90deg, var(--xp-surface) 25%, var(--xp-surface-light) 50%, var(--xp-surface) 75%)',
-  backgroundSize: '200% 100%',
-  animation: 'xp-shimmer 1.5s ease-in-out infinite',
+  background: 'var(--glass-well)',
+  animation: 'xp-skeleton-breathe 1.8s ease-in-out infinite',
   borderRadius: 4,
 };
 

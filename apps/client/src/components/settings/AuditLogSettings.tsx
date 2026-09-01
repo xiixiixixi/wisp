@@ -216,7 +216,7 @@ const AuditLogSettings = () => {
                 entries.map((entry) => (
                   <tr
                     key={entry.id}
-                    className="border-xp-border/30 hover:bg-xp-surface-light/30 border-t transition-colors"
+                    className="border-xp-border/30 border-t transition-colors hover:bg-xp-surface-light/30"
                   >
                     <td className="whitespace-nowrap px-3 py-2 text-xs text-xp-text-secondary">
                       {formatTimestamp(entry.timestamp)}
@@ -287,7 +287,7 @@ const AuditLogSettings = () => {
       <div className="flex flex-wrap items-center gap-3 px-4 py-2">
         <button
           onClick={handleExport}
-          className="bg-xp-accent/15 hover:bg-xp-accent/25 flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-xp-accent transition-colors"
+          className="flex items-center gap-2 rounded-md bg-xp-accent/15 px-4 py-2 text-sm font-medium text-xp-accent transition-colors hover:bg-xp-accent/25"
         >
           <Download size={16} />
           {t('settings.audit.exportCsv')}
@@ -298,8 +298,8 @@ const AuditLogSettings = () => {
           onBlur={() => setConfirmClear(false)}
           className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
             confirmClear
-              ? 'border border-red-500/40 bg-red-500/20 text-xp-red'
-              : 'text-xp-red/70 bg-red-500/10 hover:bg-red-500/20'
+              ? 'border border-xp-red/40 bg-xp-red/20 text-xp-red'
+              : 'bg-xp-red/10 text-xp-red/70 hover:bg-xp-red/20'
           }`}
         >
           <Trash2 size={16} />
@@ -321,23 +321,23 @@ const AuditLogSettings = () => {
 const operationBadgeClass = (operation: string): string => {
   switch (operation) {
     case 'copy':
-      return 'bg-blue-500/15 text-xp-blue';
+      return 'bg-xp-blue/10 text-xp-blue';
     case 'move':
-      return 'bg-purple-500/15 text-xp-purple';
+      return 'bg-xp-purple/10 text-xp-purple';
     case 'rename':
-      return 'bg-cyan-500/15 text-xp-cyan';
+      return 'bg-xp-cyan/10 text-xp-cyan';
     case 'delete':
-      return 'bg-red-500/15 text-xp-red';
+      return 'bg-xp-red/10 text-xp-red';
     case 'secure_delete':
-      return 'bg-red-600/20 text-xp-red';
+      return 'bg-xp-red/20 text-xp-red';
     case 'compress':
-      return 'bg-amber-500/15 text-xp-yellow';
+      return 'bg-xp-yellow/10 text-xp-yellow';
     case 'extract':
-      return 'bg-amber-500/15 text-xp-yellow';
+      return 'bg-xp-yellow/10 text-xp-yellow';
     case 'encrypt':
-      return 'bg-emerald-500/15 text-xp-green';
+      return 'bg-xp-green/10 text-xp-green';
     case 'decrypt':
-      return 'bg-emerald-500/15 text-xp-green';
+      return 'bg-xp-green/10 text-xp-green';
     default:
       return 'bg-xp-surface text-xp-text-secondary';
   }

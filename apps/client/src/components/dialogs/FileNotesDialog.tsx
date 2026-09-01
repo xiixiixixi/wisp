@@ -303,7 +303,7 @@ const FileNotesDialog = ({ isOpen, onClose, filePath, onSaved }: FileNotesDialog
 
           {/* Error */}
           {error && (
-            <p className="rounded border border-red-400 border-opacity-30 bg-red-400 bg-opacity-10 px-2 py-1 text-xs text-xp-red">
+            <p className="rounded border border-xp-red/30 bg-xp-red/10 px-2 py-1 text-xs text-xp-red">
               {error}
             </p>
           )}

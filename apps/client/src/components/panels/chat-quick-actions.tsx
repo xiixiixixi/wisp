@@ -120,7 +120,7 @@ export const QuickActionsBar = ({ actions, isLoading, onAction }: QuickActionsBa
               alignItems: 'center',
               gap: '4px',
               padding: '4px 10px',
-              borderRadius: '12px',
+              borderRadius: '4px',
               border: '1px solid var(--xp-border)',
               background: 'var(--xp-surface)',
               color: 'var(--xp-text)',

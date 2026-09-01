@@ -106,7 +106,7 @@ const ChatOnboarding = ({ onSendMessage, isLoading }: ChatOnboardingProps) => {
       style={{
         margin: '12px',
         padding: '16px',
-        borderRadius: '10px',
+        borderRadius: '8px',
         border: '1px solid var(--xp-border)',
         background: 'var(--xp-surface)',
         position: 'relative',
@@ -232,7 +232,7 @@ const ChatOnboarding = ({ onSendMessage, isLoading }: ChatOnboardingProps) => {
           padding: '10px 12px',
           borderRadius: '8px',
           border: '1px solid var(--xp-blue)',
-          background: 'rgba(122, 162, 247, 0.08)',
+          background: 'rgb(var(--xp-blue-rgb) / 0.08)',
           color: 'var(--xp-blue)',
           cursor: isLoading ? 'not-allowed' : 'pointer',
           fontSize: '13px',
@@ -242,11 +242,11 @@ const ChatOnboarding = ({ onSendMessage, isLoading }: ChatOnboardingProps) => {
         }}
         onMouseEnter={(e) => {
           if (!isLoading) {
-            e.currentTarget.style.background = 'rgba(122, 162, 247, 0.15)';
+            e.currentTarget.style.background = 'rgb(var(--xp-blue-rgb) / 0.15)';
           }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(122, 162, 247, 0.08)';
+          e.currentTarget.style.background = 'rgb(var(--xp-blue-rgb) / 0.08)';
         }}
       >
         <Sparkles size={14} />

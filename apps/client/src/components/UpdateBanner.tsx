@@ -14,19 +14,19 @@ const UpdateBanner = () => {
   if (!status.available || status.error) return null;
 
   return (
-    <div className="border-xp-border/60 bg-xp-surface/95 fixed bottom-4 right-4 z-[9998] w-80 overflow-hidden rounded-xl border shadow-2xl shadow-black/30 backdrop-blur-xl duration-200 animate-in fade-in slide-in-from-bottom-2">
+    <div className="fixed bottom-4 right-4 z-[9998] w-80 overflow-hidden rounded-xl border border-xp-border bg-xp-popover shadow-2xl duration-200 animate-in fade-in slide-in-from-bottom-2">
       {status.downloading ? (
         <div className="p-4">
           <div className="mb-2 flex items-center gap-2">
-            <RefreshCw className="h-4 w-4 animate-spin text-xp-blue" />
+            <RefreshCw className="h-4 w-4 animate-spin text-xp-text-muted" />
             <span className="text-sm font-medium text-xp-text">{t('updater.downloading')}</span>
             <span className="ml-auto text-xs text-xp-text-muted">
               {Math.round(status.progress)}%
             </span>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-xp-surface-light">
+          <div className="h-1.5 w-full overflow-hidden rounded bg-xp-bg">
             <div
-              className="h-full rounded-full bg-xp-blue transition-all"
+              className="h-full rounded bg-xp-lime transition-all"
               style={{ width: `${status.progress}%` }}
             />
           </div>
@@ -35,16 +35,16 @@ const UpdateBanner = () => {
         <>
           <div className="flex items-start justify-between px-4 pt-3">
             <div className="flex min-w-0 items-center gap-2.5">
-              <div className="bg-xp-blue/10 rounded-md p-1.5">
-                <RefreshCw className="h-4 w-4 text-xp-blue" />
+              <div className="bg-xp-selection rounded-md p-1.5">
+                <RefreshCw className="h-4 w-4 text-xp-lime" />
               </div>
-              <span className="truncate text-sm font-semibold text-xp-text">
+              <span className="truncate text-sm font-medium text-xp-text">
                 {t('updater.available', { version: status.version })}
               </span>
             </div>
             <button
               onClick={dismissUpdate}
-              className="-mr-1 rounded-md p-1 text-xp-text-muted transition-colors hover:bg-white/5 hover:text-xp-text"
+              className="-mr-1 rounded-md p-1 text-xp-text-muted transition-colors hover:bg-xp-bg hover:text-xp-text"
               aria-label={t('common.close')}
             >
               <X className="h-4 w-4" />
@@ -60,13 +60,13 @@ const UpdateBanner = () => {
           <div className="flex items-center gap-2 px-4 pb-3 pt-3">
             <button
               onClick={installUpdate}
-              className="flex-1 rounded-lg bg-xp-blue px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-xp-blue-dark"
+              className="flex-1 rounded-lg bg-xp-text px-3 py-1.5 text-xs font-medium text-xp-bg transition-colors hover:bg-xp-accent-hover"
             >
               {t('updater.install')}
             </button>
             <button
               onClick={dismissUpdate}
-              className="border-xp-border/60 rounded-lg border px-3 py-1.5 text-xs text-xp-text-secondary transition-colors hover:bg-white/5 hover:text-xp-text"
+              className="rounded-lg border border-xp-border px-3 py-1.5 text-xs text-xp-text-secondary transition-colors hover:bg-xp-bg hover:text-xp-text"
             >
               {t('updater.dismiss')}
             </button>

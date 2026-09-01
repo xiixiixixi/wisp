@@ -172,8 +172,7 @@ const TabContextMenu = ({
     border: '1px solid var(--xp-border)',
     borderRadius: 6,
     padding: '4px 0',
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
-    backdropFilter: 'blur(12px)',
+    boxShadow: 'var(--xp-shadow-popover)',
   };
 
   const itemBaseStyle: React.CSSProperties = {
@@ -511,7 +510,7 @@ const PaneTabBar = ({
                 display: 'flex',
                 alignItems: 'center',
                 padding: isPinned ? '4px 8px' : '4px 12px',
-                borderRadius: 7,
+                borderRadius: 4,
                 border: '1px solid transparent',
                 cursor: 'pointer',
                 minWidth: 0,
@@ -589,7 +588,6 @@ const PaneTabBar = ({
                     background: 'var(--xp-blue)',
                     flexShrink: 0,
                     marginLeft: 4,
-                    boxShadow: '0 0 4px var(--xp-blue)',
                   }}
                   title={t('splitView.crossTabBadgeTitle')}
                 />
@@ -829,7 +827,7 @@ const PaneTabBar = ({
               alignItems: 'center',
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'rgba(239, 68, 68, 0.2)';
+              (e.currentTarget as HTMLElement).style.background = 'rgb(var(--xp-red-rgb) / 0.2)';
               (e.currentTarget as HTMLElement).style.color = 'var(--xp-red)';
             }}
             onMouseLeave={(e) => {

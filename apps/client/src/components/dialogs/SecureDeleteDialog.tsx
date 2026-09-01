@@ -171,7 +171,7 @@ const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDelete
         {/* Content */}
         <div className="space-y-5 p-6">
           {/* Warning banner */}
-          <div className="flex items-start space-x-3 rounded-lg border border-red-500 border-opacity-30 bg-red-500 bg-opacity-10 p-4">
+          <div className="flex items-start space-x-3 rounded-lg border border-xp-red/30 bg-xp-red/10 p-4">
             <AlertTriangle size={20} className="mt-0.5 shrink-0 text-xp-red" />
             <div className="text-sm text-xp-red">
               <p className="mb-1 font-semibold">{t('dialogs.secureDelete.warningIrreversible')}</p>
@@ -251,7 +251,7 @@ const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDelete
 
           {/* Error message */}
           {error && (
-            <div className="flex items-start space-x-2 rounded-md border border-red-500 border-opacity-30 bg-red-500 bg-opacity-10 p-3">
+            <div className="flex items-start space-x-2 rounded-md border border-xp-red/30 bg-xp-red/10 p-3">
               <AlertTriangle size={16} className="mt-0.5 shrink-0 text-xp-red" />
               <span className="whitespace-pre-wrap text-sm text-xp-red">{error}</span>
             </div>
@@ -272,9 +272,9 @@ const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDelete
                   })}
                 </span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-xp-bg">
+              <div className="h-2 w-full overflow-hidden rounded bg-xp-bg">
                 <div
-                  className="h-full rounded-full bg-red-500 transition-all duration-300"
+                  className="h-full rounded bg-xp-red transition-all duration-300"
                   style={{ width: `${progressPercentage}%` }}
                 />
               </div>
@@ -283,7 +283,7 @@ const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDelete
 
           {processing && !progress && (
             <div className="flex items-center justify-center py-2">
-              <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-red-400" />
+              <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-xp-red" />
               <span className="ml-3 text-sm text-xp-text-muted">
                 {t('dialogs.secureDelete.preparing')}
               </span>
@@ -303,7 +303,7 @@ const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDelete
           <button
             onClick={handleSubmit}
             disabled={processing || !confirmed}
-            className="flex items-center space-x-2 rounded bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center space-x-2 rounded bg-xp-red px-4 py-2 text-white transition-colors hover:bg-xp-red/80 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={t('dialogs.secureDelete.deleteAriaLabel')}
           >
             {processing ? (

@@ -29,14 +29,14 @@ export const Toggle = ({
     role="switch"
     aria-checked={checked}
     aria-label={label}
-    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-xp-bg ${
-      checked ? 'bg-xp-blue' : 'bg-xp-border'
+    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded border border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-xp-bg ${
+      checked ? 'bg-xp-selection' : 'bg-xp-border'
     }`}
     onClick={() => onChange(!checked)}
   >
     <span
-      className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm ring-0 transition-transform ${
-        checked ? 'translate-x-5' : 'translate-x-0.5'
+      className={`pointer-events-none inline-block h-4 w-4 rounded transition-all ${
+        checked ? 'translate-x-5 bg-xp-text' : 'translate-x-0.5 bg-xp-text-muted'
       }`}
     />
   </button>
@@ -84,7 +84,7 @@ export const SettingsSection = ({
 }) => (
   <section className="glass-card rounded-xl p-1">
     <div className="px-3 pb-1 pt-2.5">
-      <h3 className="text-[13px] font-semibold text-xp-text">{title}</h3>
+      <h3 className="text-[13px] font-medium text-xp-text">{title}</h3>
       {description && <p className="mt-0.5 text-xs text-xp-text-secondary">{description}</p>}
     </div>
     <div className="divide-xp-border/40 divide-y">{children}</div>
@@ -120,9 +120,7 @@ export const SettingRow = ({
 /** Section heading. */
 export const SectionTitle = ({ title, description }: { title: string; description?: string }) => (
   <div className="mb-1 px-4 pb-1 pt-2">
-    <h3 className="text-xs font-semibold uppercase tracking-wider text-xp-text-secondary">
-      {title}
-    </h3>
+    <h3 className="text-xs font-medium uppercase tracking-wider text-xp-text-secondary">{title}</h3>
     {description && <p className="text-xp-text-secondary/70 mt-0.5 text-xs">{description}</p>}
   </div>
 );
@@ -166,10 +164,10 @@ export const PermToggle = ({ enabled, onChange }: { enabled: boolean; onChange: 
   <button
     type="button"
     onClick={onChange}
-    className={`rounded-md px-3 py-1 text-xs font-semibold tracking-wide transition-all ${
+    className={`rounded-md px-3 py-1 text-xs font-medium tracking-wide transition-all ${
       enabled
-        ? 'border border-emerald-500/40 bg-emerald-500/20 text-xp-green hover:bg-emerald-500/30'
-        : 'border border-red-500/20 bg-red-500/10 text-xp-red hover:bg-red-500/20'
+        ? 'border border-xp-green/40 bg-xp-green/10 text-xp-green hover:bg-xp-green/20'
+        : 'border border-xp-red/20 bg-xp-red/10 text-xp-red hover:bg-xp-red/20'
     }`}
   >
     {enabled ? 'ON' : 'OFF'}

@@ -319,16 +319,16 @@ const GDriveFileBrowser = ({
   };
 
   return (
-    <div className="bg-xp-bg flex h-full flex-1 flex-col">
+    <div className="flex h-full flex-1 flex-col bg-xp-bg">
       {/* Operation Bar — matches normal file explorer style */}
-      <div className="bg-xp-surface border-xp-border border-b p-3">
+      <div className="border-b border-xp-border bg-xp-surface p-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {/* Sort Dropdown */}
             <div className="relative" ref={sortDropdownRef}>
               <button
                 onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                className="bg-xp-bg border-xp-border hover:bg-xp-surface-light flex items-center space-x-2 rounded border px-3 py-2"
+                className="flex items-center space-x-2 rounded border border-xp-border bg-xp-bg px-3 py-2 hover:bg-xp-surface-light"
               >
                 <span className="text-sm">
                   {sortLabels[sortBy] || t('settings.gdrive.sortName')}
@@ -343,7 +343,7 @@ const GDriveFileBrowser = ({
                 </svg>
               </button>
               {isSortDropdownOpen && (
-                <div className="bg-xp-popover border-xp-border absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded border shadow-xl backdrop-blur-xl">
+                <div className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded border border-xp-border bg-xp-popover shadow-xl">
                   {(['name', 'size', 'dateModified'] as const).map((key) => (
                     <button
                       key={key}
@@ -351,8 +351,8 @@ const GDriveFileBrowser = ({
                         handleSortChange(key);
                         setIsSortDropdownOpen(false);
                       }}
-                      className={`hover:bg-xp-surface-light flex w-full items-center justify-between px-4 py-2 text-left ${
-                        sortBy === key ? 'bg-xp-blue text-xp-blue bg-opacity-20' : ''
+                      className={`flex w-full items-center justify-between px-4 py-2 text-left hover:bg-xp-surface-light ${
+                        sortBy === key ? 'bg-xp-blue bg-opacity-20 text-xp-blue' : ''
                       }`}
                     >
                       <span className="text-sm">{sortLabels[key]}</span>
@@ -365,16 +365,16 @@ const GDriveFileBrowser = ({
             </div>
 
             {/* Breadcrumb */}
-            <div className="text-xp-text ml-2 flex items-center space-x-1 overflow-x-auto text-sm">
-              <Cloud className="text-xp-blue h-4 w-4 flex-shrink-0" />
+            <div className="ml-2 flex items-center space-x-1 overflow-x-auto text-sm text-xp-text">
+              <Cloud className="h-4 w-4 flex-shrink-0 text-xp-blue" />
               {breadcrumbs.map((crumb, index) => (
                 <React.Fragment key={crumb.id}>
                   {index > 0 && <span className="text-xp-text-muted">/</span>}
                   <button
                     onClick={() => navigateToBreadcrumb(index)}
-                    className={`hover:bg-xp-surface-light whitespace-nowrap rounded px-1.5 py-0.5 ${
+                    className={`whitespace-nowrap rounded px-1.5 py-0.5 hover:bg-xp-surface-light ${
                       index === breadcrumbs.length - 1
-                        ? 'text-xp-blue font-medium'
+                        ? 'font-medium text-xp-blue'
                         : 'text-xp-text-muted hover:text-xp-text'
                     }`}
                   >
@@ -383,7 +383,7 @@ const GDriveFileBrowser = ({
                 </React.Fragment>
               ))}
               {accountEmail && (
-                <span className="text-xp-text-muted ml-2 text-xs">({accountEmail})</span>
+                <span className="ml-2 text-xs text-xp-text-muted">({accountEmail})</span>
               )}
             </div>
           </div>
@@ -393,7 +393,7 @@ const GDriveFileBrowser = ({
             <button
               onClick={handleRefresh}
               disabled={loading}
-              className="hover:bg-xp-surface-light rounded p-2"
+              className="rounded p-2 hover:bg-xp-surface-light"
               title={t('common.refresh')}
             >
               <RefreshCw className={`h-4 w-4 ${loading || refreshing ? 'animate-spin' : ''}`} />
@@ -401,22 +401,22 @@ const GDriveFileBrowser = ({
             <button
               onClick={navigateUp}
               disabled={breadcrumbs.length <= 1}
-              className="hover:bg-xp-surface-light rounded p-2 disabled:opacity-50"
+              className="rounded p-2 hover:bg-xp-surface-light disabled:opacity-50"
               title={t('settings.gdrive.goUp')}
             >
               <ChevronUp className="h-4 w-4" />
             </button>
-            <div className="bg-xp-border mx-0.5 h-5 w-px" />
+            <div className="mx-0.5 h-5 w-px bg-xp-border" />
             <button
               onClick={handleNewFolder}
-              className="hover:bg-xp-surface-light rounded p-2"
+              className="rounded p-2 hover:bg-xp-surface-light"
               title={t('settings.gdrive.newFolder')}
             >
               <FolderPlus className="h-4 w-4" />
             </button>
             <button
               onClick={handleUpload}
-              className="hover:bg-xp-surface-light rounded p-2"
+              className="rounded p-2 hover:bg-xp-surface-light"
               title={t('settings.gdrive.upload')}
             >
               <Upload className="h-4 w-4" />
@@ -424,16 +424,16 @@ const GDriveFileBrowser = ({
             <button
               onClick={handleDownload}
               disabled={!selectedFile || selectedFile.is_dir}
-              className="hover:bg-xp-surface-light rounded p-2 disabled:opacity-50"
+              className="rounded p-2 hover:bg-xp-surface-light disabled:opacity-50"
               title={t('settings.gdrive.download')}
             >
               <Download className="h-4 w-4" />
             </button>
-            <div className="bg-xp-border mx-0.5 h-5 w-px" />
+            <div className="mx-0.5 h-5 w-px bg-xp-border" />
             <button
               onClick={() => handleRename()}
               disabled={!selectedFile}
-              className="hover:bg-xp-surface-light rounded p-2 disabled:opacity-50"
+              className="rounded p-2 hover:bg-xp-surface-light disabled:opacity-50"
               title={t('common.rename')}
             >
               <Pencil className="h-4 w-4" />
@@ -441,7 +441,7 @@ const GDriveFileBrowser = ({
             <button
               onClick={() => handleDelete()}
               disabled={!selectedFile}
-              className="hover:bg-xp-surface-light hover:text-xp-red rounded p-2 disabled:opacity-50"
+              className="rounded p-2 hover:bg-xp-surface-light hover:text-xp-red disabled:opacity-50"
               title={t('common.delete')}
             >
               <Trash2 className="h-4 w-4" />
@@ -454,16 +454,16 @@ const GDriveFileBrowser = ({
       <div className="flex-1 overflow-auto" onClick={() => setContextMenu(null)}>
         {error ? (
           <div className="p-8 text-center">
-            <div className="text-xp-red mb-4 text-6xl">
+            <div className="mb-4 text-6xl text-xp-red">
               <Cloud className="mx-auto h-16 w-16 opacity-50" />
             </div>
-            <h3 className="text-xp-text mb-2 text-lg font-medium">
+            <h3 className="mb-2 text-lg font-medium text-xp-text">
               {t('settings.gdrive.connectionError')}
             </h3>
-            <p className="text-xp-text-muted mb-4">{error}</p>
+            <p className="mb-4 text-xp-text-muted">{error}</p>
             <button
               onClick={handleRefresh}
-              className="bg-xp-blue hover:bg-xp-blue-dark focus:ring-xp-blue rounded px-4 py-2 text-white transition-colors focus:outline-none focus:ring-1"
+              className="rounded bg-xp-blue px-4 py-2 text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark focus:outline-none focus:ring-1 focus:ring-xp-blue"
               aria-label={t('settings.gdrive.ariaRetryLoading')}
             >
               {t('settings.gdrive.tryAgain')}
@@ -472,12 +472,12 @@ const GDriveFileBrowser = ({
         ) : null}
         {!error && loading && (
           <div className="p-8 text-center">
-            <RefreshCw className="text-xp-blue mx-auto mb-4 h-8 w-8 animate-spin" />
+            <RefreshCw className="mx-auto mb-4 h-8 w-8 animate-spin text-xp-blue" />
             <p className="text-xp-text-muted">{t('settings.gdrive.loadingFiles')}</p>
           </div>
         )}
         {!error && !loading && sortedFiles.length === 0 ? (
-          <div className="text-xp-text-muted p-8 text-center">
+          <div className="p-8 text-center text-xp-text-muted">
             <Cloud className="mx-auto mb-4 h-16 w-16 opacity-30" />
             <p className="text-lg">{t('settings.gdrive.emptyFolderTitle')}</p>
             <p className="mt-2 text-sm">{t('settings.gdrive.emptyFolderDesc')}</p>
@@ -488,9 +488,9 @@ const GDriveFileBrowser = ({
               <div
                 key={file.path}
                 tabIndex={0}
-                className={`hover:bg-xp-surface-light focus:ring-xp-blue flex cursor-pointer items-center rounded-md p-3 transition-colors focus:outline-none focus:ring-1 ${
+                className={`flex cursor-pointer items-center rounded-md p-3 transition-colors hover:bg-xp-surface-light focus:outline-none focus:ring-1 focus:ring-xp-blue ${
                   selectedFile?.path === file.path
-                    ? 'bg-xp-blue border-xp-blue border bg-opacity-20'
+                    ? 'border border-xp-blue bg-xp-blue bg-opacity-20'
                     : 'border border-transparent'
                 }`}
                 onClick={() => handleFileClick(file)}
@@ -501,14 +501,14 @@ const GDriveFileBrowser = ({
                   <div className="mr-3 flex-shrink-0 text-2xl">{getFileIcon(file)}</div>
 
                   <div className="min-w-0 flex-1">
-                    <div className="text-xp-text truncate font-medium">{file.name}</div>
+                    <div className="truncate font-medium text-xp-text">{file.name}</div>
                     {file.is_dir && (
-                      <div className="text-xp-text-muted text-xs">{t('common.folder')}</div>
+                      <div className="text-xs text-xp-text-muted">{t('common.folder')}</div>
                     )}
                   </div>
                 </div>
 
-                <div className="text-xp-text-muted flex items-center space-x-6 text-sm">
+                <div className="flex items-center space-x-6 text-sm text-xp-text-muted">
                   <div className="w-20 text-right">
                     {file.is_dir ? '\u2014' : formatFileSize(file.size)}
                   </div>
@@ -525,13 +525,13 @@ const GDriveFileBrowser = ({
       {contextMenu && (
         <div
           ref={contextMenuRef}
-          className="bg-xp-surface border-xp-border fixed z-50 min-w-[160px] rounded-lg border py-1 shadow-lg"
+          className="fixed z-50 min-w-[160px] rounded-lg border border-xp-border bg-xp-surface py-1 shadow-lg"
           style={{ left: contextMenu.x, top: contextMenu.y }}
         >
           {contextMenu.file.is_dir && (
             <button
               onClick={() => handleContextMenuAction('open')}
-              className="text-xp-text hover:bg-xp-surface-light focus:ring-xp-blue flex w-full items-center space-x-2 px-4 py-2 text-left text-sm transition-colors focus:outline-none focus:ring-1"
+              className="flex w-full items-center space-x-2 px-4 py-2 text-left text-sm text-xp-text transition-colors hover:bg-xp-surface-light focus:outline-none focus:ring-1 focus:ring-xp-blue"
               aria-label={t('settings.gdrive.ariaOpenFolder')}
             >
               <FolderOpen className="h-4 w-4" />
@@ -541,7 +541,7 @@ const GDriveFileBrowser = ({
           {!contextMenu.file.is_dir && (
             <button
               onClick={() => handleContextMenuAction('download')}
-              className="text-xp-text hover:bg-xp-surface-light focus:ring-xp-blue flex w-full items-center space-x-2 px-4 py-2 text-left text-sm transition-colors focus:outline-none focus:ring-1"
+              className="flex w-full items-center space-x-2 px-4 py-2 text-left text-sm text-xp-text transition-colors hover:bg-xp-surface-light focus:outline-none focus:ring-1 focus:ring-xp-blue"
               aria-label={t('settings.gdrive.ariaDownloadFile')}
             >
               <Download className="h-4 w-4" />
@@ -550,16 +550,16 @@ const GDriveFileBrowser = ({
           )}
           <button
             onClick={() => handleContextMenuAction('rename')}
-            className="text-xp-text hover:bg-xp-surface-light focus:ring-xp-blue flex w-full items-center space-x-2 px-4 py-2 text-left text-sm transition-colors focus:outline-none focus:ring-1"
+            className="flex w-full items-center space-x-2 px-4 py-2 text-left text-sm text-xp-text transition-colors hover:bg-xp-surface-light focus:outline-none focus:ring-1 focus:ring-xp-blue"
             aria-label={t('settings.gdrive.ariaRenameFile')}
           >
             <Pencil className="h-4 w-4" />
             <span>{t('common.rename')}</span>
           </button>
-          <div className="border-xp-border my-1 border-t" />
+          <div className="my-1 border-t border-xp-border" />
           <button
             onClick={() => handleContextMenuAction('delete')}
-            className="text-xp-red hover:bg-xp-surface-light focus:ring-xp-blue flex w-full items-center space-x-2 px-4 py-2 text-left text-sm transition-colors focus:outline-none focus:ring-1"
+            className="flex w-full items-center space-x-2 px-4 py-2 text-left text-sm text-xp-red transition-colors hover:bg-xp-surface-light focus:outline-none focus:ring-1 focus:ring-xp-blue"
             aria-label={t('settings.gdrive.ariaDeleteFile')}
           >
             <Trash2 className="h-4 w-4" />

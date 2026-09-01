@@ -190,7 +190,7 @@ const ScheduleCard = ({ sched, onRunNow, onEdit, onDelete, onToggle }: ScheduleC
               ? 'agentManager.schedule.pauseSchedule'
               : 'agentManager.schedule.resumeSchedule',
           )}
-          style={iconBtnStyle(sched.enabled ? 'var(--xp-green, #73daca)' : 'var(--xp-text-muted)')}
+          style={iconBtnStyle(sched.enabled ? 'var(--xp-green)' : 'var(--xp-text-muted)')}
         >
           <Power size={11} />
         </button>
@@ -211,7 +211,7 @@ const ScheduleCard = ({ sched, onRunNow, onEdit, onDelete, onToggle }: ScheduleC
         <button
           onClick={onDelete}
           title={t('agentManager.schedule.delete')}
-          style={iconBtnStyle('var(--xp-red, #f7768e)')}
+          style={iconBtnStyle('var(--xp-red)')}
         >
           <Trash2 size={11} />
         </button>

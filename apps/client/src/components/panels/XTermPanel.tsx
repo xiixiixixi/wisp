@@ -41,28 +41,30 @@ const getCssVar = (name: string, fallback: string): string => {
   return val || fallback;
 };
 
+// Ink-on-paper ANSI palette — the same muted inks the app chrome uses,
+// resolved live from the theme tokens (canvas needs concrete colors).
 const getTermTheme = () => ({
-  background: getCssVar('--xp-bg', '#1a1b26'),
-  foreground: getCssVar('--xp-text', '#c0caf5'),
-  cursor: getCssVar('--xp-blue', '#7aa2f7'),
-  cursorAccent: getCssVar('--xp-bg', '#1a1b26'),
-  selectionBackground: 'rgba(122, 162, 247, 0.3)',
-  black: '#15161e',
-  red: getCssVar('--xp-red', '#f7768e'),
-  green: getCssVar('--xp-green', '#9ece6a'),
-  yellow: getCssVar('--xp-orange', '#e0af68'),
-  blue: getCssVar('--xp-blue', '#7aa2f7'),
-  magenta: getCssVar('--xp-pink', '#bb9af7'),
-  cyan: getCssVar('--xp-cyan', '#7dcfff'),
-  white: getCssVar('--xp-text', '#c0caf5'),
-  brightBlack: '#414868',
-  brightRed: '#f7768e',
-  brightGreen: '#9ece6a',
-  brightYellow: '#e0af68',
-  brightBlue: '#7aa2f7',
-  brightMagenta: '#bb9af7',
-  brightCyan: '#7dcfff',
-  brightWhite: '#c0caf5',
+  background: getCssVar('--xp-bg', '#efece3'),
+  foreground: getCssVar('--xp-text', '#38352f'),
+  cursor: getCssVar('--xp-lime', '#c8452e'),
+  cursorAccent: getCssVar('--xp-bg', '#efece3'),
+  selectionBackground: 'rgba(200, 69, 46, 0.25)',
+  black: getCssVar('--xp-text-muted', '#66655d'),
+  red: getCssVar('--xp-red', '#a85646'),
+  green: getCssVar('--xp-green', '#6f7f57'),
+  yellow: getCssVar('--xp-orange', '#b0764a'),
+  blue: getCssVar('--xp-purple', '#7b7286'),
+  magenta: getCssVar('--xp-pink', '#ab7d76'),
+  cyan: getCssVar('--xp-cyan', '#6a7f80'),
+  white: getCssVar('--xp-text-secondary', '#6e6a61'),
+  brightBlack: getCssVar('--xp-text-muted', '#66655d'),
+  brightRed: getCssVar('--xp-red', '#a85646'),
+  brightGreen: getCssVar('--xp-green', '#6f7f57'),
+  brightYellow: getCssVar('--xp-yellow', '#b39a5d'),
+  brightBlue: getCssVar('--xp-purple', '#7b7286'),
+  brightMagenta: getCssVar('--xp-pink', '#ab7d76'),
+  brightCyan: getCssVar('--xp-cyan', '#6a7f80'),
+  brightWhite: getCssVar('--xp-text', '#38352f'),
 });
 
 // ── Single terminal instance ─────────────────────────────────────────────────
@@ -315,7 +317,7 @@ const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        backgroundColor: getCssVar('--xp-bg', '#1a1b26'),
+        backgroundColor: getCssVar('--xp-bg', '#efece3'),
       }}
     >
       {/* Tab bar */}
@@ -345,13 +347,13 @@ const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
                 cursor: 'pointer',
                 color:
                   tab.id === activeTabId
-                    ? getCssVar('--xp-text', '#c0caf5')
-                    : getCssVar('--xp-text-muted', '#565f89'),
+                    ? getCssVar('--xp-text', '#38352f')
+                    : getCssVar('--xp-text-muted', '#66655d'),
                 backgroundColor:
-                  tab.id === activeTabId ? getCssVar('--xp-bg', '#1a1b26') : 'transparent',
+                  tab.id === activeTabId ? getCssVar('--xp-bg', '#efece3') : 'transparent',
                 borderBottom:
                   tab.id === activeTabId
-                    ? `1px solid ${getCssVar('--xp-blue', '#7aa2f7')}`
+                    ? `1px solid ${getCssVar('--xp-lime', '#c8452e')}`
                     : '1px solid transparent',
                 whiteSpace: 'nowrap',
                 transition: 'all 0.1s',
@@ -407,7 +409,7 @@ const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
             border: 'none',
             borderRadius: 4,
             background: 'transparent',
-            color: getCssVar('--xp-text-muted', '#565f89'),
+            color: getCssVar('--xp-text-muted', '#66655d'),
             cursor: 'pointer',
             flexShrink: 0,
           }}
@@ -433,7 +435,7 @@ const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: 12,
-              color: getCssVar('--xp-text-muted', '#565f89'),
+              color: getCssVar('--xp-text-muted', '#66655d'),
             }}
           >
             {i18n.t('xterm.noTerminals')}

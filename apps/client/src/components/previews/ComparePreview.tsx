@@ -120,7 +120,8 @@ const CompareHeader = React.memo(
             height="16"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="var(--xp-blue)"
+            stroke="currentColor"
+            className="text-[var(--xp-blue)]"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -852,7 +853,7 @@ const MetadataCompare = React.memo(
                         padding: '4px 8px',
                         borderBottom: '1px solid var(--xp-border)',
                         color: 'var(--xp-text)',
-                        background: isDifferent ? 'rgba(250, 204, 21, 0.1)' : 'transparent',
+                        background: isDifferent ? 'rgb(var(--xp-yellow-rgb) / 0.1)' : 'transparent',
                         wordBreak: 'break-all',
                       }}
                     >
@@ -863,7 +864,7 @@ const MetadataCompare = React.memo(
                         padding: '4px 8px',
                         borderBottom: '1px solid var(--xp-border)',
                         color: 'var(--xp-text)',
-                        background: isDifferent ? 'rgba(250, 204, 21, 0.1)' : 'transparent',
+                        background: isDifferent ? 'rgb(var(--xp-yellow-rgb) / 0.1)' : 'transparent',
                         wordBreak: 'break-all',
                       }}
                     >

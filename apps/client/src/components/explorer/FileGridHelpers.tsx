@@ -48,7 +48,7 @@ export const TagDots = ({ tags }: { tags: FileTag[] }) => {
         <span
           key={tag.name}
           title={displayTagName(tag.name)}
-          className="inline-flex h-4 max-w-24 flex-shrink-0 items-center gap-1 rounded-full border px-1.5"
+          className="inline-flex h-4 max-w-24 flex-shrink-0 items-center gap-1 rounded border px-1.5"
           style={{
             backgroundColor: hexA(tag.color, 0.13),
             borderColor: hexA(tag.color, 0.3),
@@ -58,7 +58,6 @@ export const TagDots = ({ tags }: { tags: FileTag[] }) => {
             className="h-1 w-1 flex-shrink-0 rounded-full"
             style={{
               backgroundColor: tag.color,
-              boxShadow: `0 0 5px ${hexA(tag.color, 0.75)}`,
             }}
           />
           <span
@@ -70,7 +69,7 @@ export const TagDots = ({ tags }: { tags: FileTag[] }) => {
         </span>
       ))}
       {rest > 0 && (
-        <span className="bg-xp-surface/60 inline-flex h-4 flex-shrink-0 items-center rounded-full border border-xp-border px-1.5 text-[9.5px] font-medium leading-none text-xp-text-muted">
+        <span className="inline-flex h-4 flex-shrink-0 items-center rounded border border-xp-border bg-xp-surface/60 px-1.5 text-[9.5px] font-medium leading-none text-xp-text-muted">
           +{rest}
         </span>
       )}
@@ -84,16 +83,16 @@ export const GitStatusDot = ({ status }: { status: string | null }) => {
   if (!status) return null;
 
   const colorMap: Record<string, string> = {
-    new: '#22c55e', // green
-    untracked: '#22c55e', // green
-    modified: '#f97316', // orange
-    renamed: '#f97316', // orange
-    deleted: '#ef4444', // red
-    conflict: '#ef4444', // red
-    ignored: '#9ca3af', // gray
+    new: 'var(--xp-green)', // green
+    untracked: 'var(--xp-green)', // green
+    modified: 'var(--xp-orange)', // orange
+    renamed: 'var(--xp-orange)', // orange
+    deleted: 'var(--xp-red)', // red
+    conflict: 'var(--xp-red)', // red
+    ignored: 'var(--xp-text-muted)', // gray
   };
 
-  const color = colorMap[status] || '#9ca3af';
+  const color = colorMap[status] || 'var(--xp-text-muted)';
   const label = status.charAt(0).toUpperCase() + status.slice(1);
 
   return (

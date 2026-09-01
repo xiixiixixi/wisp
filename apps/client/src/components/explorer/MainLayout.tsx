@@ -396,7 +396,6 @@ const MainLayout = (props: MainLayoutProps) => {
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            background: 'var(--xp-bg-gradient, var(--xp-bg, #1e1e2e))',
           }}
         >
           {/* Weather ambience — painted behind every glass panel */}

@@ -24,7 +24,6 @@ const overlayStyle: React.CSSProperties = {
   inset: 0,
   zIndex: 9998,
   background: 'rgba(0, 0, 0, 0.5)',
-  backdropFilter: 'blur(4px)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -33,13 +32,12 @@ const overlayStyle: React.CSSProperties = {
 const dialogStyle: React.CSSProperties = {
   background: 'var(--xp-surface)',
   border: '1px solid var(--xp-border)',
-  borderRadius: 12,
+  borderRadius: 8,
   width: 560,
   maxHeight: '80vh',
   display: 'flex',
   flexDirection: 'column',
-  boxShadow: '0 16px 48px rgba(0, 0, 0, 0.4)',
-  backdropFilter: 'blur(20px)',
+  boxShadow: 'var(--xp-shadow-popover)',
   overflow: 'hidden',
 };
 
@@ -157,9 +155,9 @@ const primaryButtonStyle: React.CSSProperties = {
 
 const dangerButtonStyle: React.CSSProperties = {
   ...actionButtonBase,
-  background: 'rgba(239, 68, 68, 0.15)',
+  background: 'rgb(var(--xp-red-rgb) / 0.15)',
   color: 'var(--xp-red, #ef4444)',
-  border: '1px solid rgba(239, 68, 68, 0.3)',
+  border: '1px solid rgb(var(--xp-red-rgb) / 0.3)',
 };
 
 const defaultButtonStyle: React.CSSProperties = {
@@ -569,12 +567,12 @@ const CrossTabOperationsDialog = ({
             disabled={isProcessing}
             onMouseEnter={(e) => {
               if (!isProcessing) {
-                (e.currentTarget as HTMLElement).style.background = 'rgba(239, 68, 68, 0.25)';
+                (e.currentTarget as HTMLElement).style.background = 'rgb(var(--xp-red-rgb) / 0.25)';
               }
             }}
             onMouseLeave={(e) => {
               if (!isProcessing) {
-                (e.currentTarget as HTMLElement).style.background = 'rgba(239, 68, 68, 0.15)';
+                (e.currentTarget as HTMLElement).style.background = 'rgb(var(--xp-red-rgb) / 0.15)';
               }
             }}
           >

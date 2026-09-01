@@ -231,7 +231,7 @@ const PreviewActionBar = ({ file }: PreviewActionBarProps) => {
     justifyContent: 'center',
     gap: '5px',
     padding: '4px 10px',
-    borderRadius: 999,
+    borderRadius: 4,
     border: '1px solid transparent',
     background: 'transparent',
     color: 'var(--xp-text-secondary)',
@@ -249,7 +249,7 @@ const PreviewActionBar = ({ file }: PreviewActionBarProps) => {
     top: '50%',
     transform: 'translateY(-50%)',
     fontSize: '10px',
-    color: 'var(--xp-green, #9ece6a)',
+    color: 'var(--xp-green)',
     pointerEvents: 'none',
     animation: 'fadeIn 0.15s ease-out',
   };
@@ -267,7 +267,7 @@ const PreviewActionBar = ({ file }: PreviewActionBarProps) => {
             const target = e.currentTarget;
             target.style.background = danger
               ? 'color-mix(in srgb, var(--xp-red) 12%, transparent)'
-              : 'var(--xp-surface-light, rgba(255,255,255,0.06))';
+              : 'var(--xp-surface-light)';
             target.style.color = danger ? 'var(--xp-red)' : 'var(--xp-text)';
             target.style.borderColor = danger
               ? 'color-mix(in srgb, var(--xp-red) 30%, transparent)'

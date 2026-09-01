@@ -70,7 +70,7 @@ const SidebarQuickAccess = ({
       data-drop-target=""
       data-drop-action="bookmark-add"
     >
-      <div className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted">
+      <div className="mb-1.5 px-2 text-[10px] font-medium uppercase tracking-widest text-xp-text-muted">
         {t('sidebar.quickAccess')}
       </div>
       <div className="space-y-0.5">

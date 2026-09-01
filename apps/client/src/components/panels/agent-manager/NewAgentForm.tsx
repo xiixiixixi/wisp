@@ -282,7 +282,7 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
   const chipStyle: React.CSSProperties = {
     background: 'var(--xp-surface-light)',
     border: '1px solid var(--xp-border)',
-    borderRadius: '10px',
+    borderRadius: '4px',
     padding: '1px 8px',
     fontSize: '10px',
     color: 'var(--xp-text-muted)',
@@ -461,7 +461,7 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
               borderRadius: '4px',
               padding: '2px 6px',
               fontSize: '10px',
-              color: showScope ? 'var(--xp-blue, #7aa2f7)' : 'var(--xp-text-muted)',
+              color: showScope ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
               cursor: 'pointer',
               flexShrink: 0,
             }}
@@ -518,7 +518,7 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
               borderRadius: '4px',
               padding: '2px 6px',
               fontSize: '10px',
-              color: copiedInstall ? 'var(--xp-green, #73daca)' : 'var(--xp-text-muted)',
+              color: copiedInstall ? 'var(--xp-green)' : 'var(--xp-text-muted)',
               cursor: 'pointer',
               flexShrink: 0,
             }}
@@ -569,9 +569,9 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
           style={{
             padding: '4px 10px',
             fontSize: '11px',
-            border: '1px solid var(--xp-green, #73daca)',
+            border: '1px solid var(--xp-green)',
             borderRadius: '4px',
-            background: canSubmit ? 'var(--xp-green, #73daca)' : 'var(--xp-surface-light)',
+            background: canSubmit ? 'var(--xp-green)' : 'var(--xp-surface-light)',
             color: canSubmit ? '#fff' : 'var(--xp-text-muted)',
             cursor: canSubmit ? 'pointer' : 'not-allowed',
             fontWeight: 600,

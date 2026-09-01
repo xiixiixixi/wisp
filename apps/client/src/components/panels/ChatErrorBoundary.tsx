@@ -61,7 +61,7 @@ class ChatErrorBoundary extends React.Component<ChatErrorBoundaryProps, ChatErro
             margin: '4px 0',
             borderRadius: '6px',
             border: '1px solid var(--xp-border)',
-            background: 'rgba(247, 118, 142, 0.08)',
+            background: 'rgb(var(--xp-red-rgb) / 0.08)',
             color: 'var(--xp-text-muted)',
             fontSize: '12px',
             display: 'flex',

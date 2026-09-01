@@ -42,11 +42,11 @@ export const StatsHeader = ({
 
   let sizeBgColor: string;
   if (sizeDiff === 0) {
-    sizeBgColor = 'rgba(255,255,255,0.05)';
+    sizeBgColor = 'rgb(var(--xp-blue-rgb) / 0.05)';
   } else if (sizeDiff > 0) {
-    sizeBgColor = 'rgba(52,211,153,0.12)';
+    sizeBgColor = 'rgb(var(--xp-green-rgb) / 0.12)';
   } else {
-    sizeBgColor = 'rgba(248,113,113,0.12)';
+    sizeBgColor = 'rgb(var(--xp-red-rgb) / 0.12)';
   }
 
   let sizeTextColor: string;
@@ -83,14 +83,14 @@ export const StatsHeader = ({
     >
       {/* Change counts */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ color: 'var(--xp-green)', fontWeight: 600 }}>
+        <span style={{ color: 'var(--xp-green)', fontWeight: 500 }}>
           +{metadata.linesAdded} {t('comparison.additions', { count: metadata.linesAdded })}
         </span>
-        <span style={{ color: 'var(--xp-red)', fontWeight: 600 }}>
+        <span style={{ color: 'var(--xp-red)', fontWeight: 500 }}>
           -{metadata.linesRemoved} {t('comparison.deletions', { count: metadata.linesRemoved })}
         </span>
         {metadata.linesModified > 0 && (
-          <span style={{ color: 'var(--xp-yellow)', fontWeight: 600 }}>
+          <span style={{ color: 'var(--xp-yellow)', fontWeight: 500 }}>
             ~{metadata.linesModified}{' '}
             {t('comparison.modifications', { count: metadata.linesModified })}
           </span>
@@ -128,7 +128,7 @@ export const StatsHeader = ({
         <span style={{ color: 'var(--xp-text-secondary)' }}>{t('comparison.similarity')}</span>
         <span
           style={{
-            fontWeight: 600,
+            fontWeight: 500,
             color: similarityColor,
           }}
         >
@@ -191,7 +191,7 @@ export const DiffToolbar = ({
   const btnActiveStyle: React.CSSProperties = {
     ...btnStyle,
     backgroundColor: 'var(--xp-blue)',
-    color: '#fff',
+    color: 'var(--xp-bg)',
     borderColor: 'var(--xp-blue)',
   };
   const navBtnStyle: React.CSSProperties = {
@@ -254,7 +254,7 @@ export const DiffToolbar = ({
               padding: '2px 8px',
               fontSize: 10,
               color: 'var(--xp-text-secondary)',
-              backgroundColor: 'rgba(255,255,255,0.04)',
+              backgroundColor: 'rgb(var(--xp-blue-rgb) / 0.05)',
               borderRadius: 3,
               fontVariantNumeric: 'tabular-nums',
               minWidth: 60,

@@ -188,7 +188,7 @@ const parseMarkdown = (
                 {tableRows[0].map((cell, ci) => (
                   <th
                     key={`header-${ci}`} // eslint-disable-line react/no-array-index-key
-                    className="border border-xp-border px-2 py-1.5 text-left font-semibold"
+                    className="border border-xp-border px-2 py-1.5 text-left font-medium"
                     style={{ textAlign: alignments[ci] || 'left' }}
                   >
                     {renderInline(cell)}
@@ -225,8 +225,8 @@ const parseMarkdown = (
       const text = headerMatch[2];
       const Tag = `h${level}` as keyof React.JSX.IntrinsicElements;
       const sizes: Record<number, string> = {
-        1: 'text-base font-bold mt-3 mb-1',
-        2: 'text-sm font-bold mt-2 mb-1',
+        1: 'text-base font-semibold mt-3 mb-1',
+        2: 'text-sm font-semibold mt-2 mb-1',
         3: 'text-sm font-semibold mt-2 mb-1',
       };
       elements.push(

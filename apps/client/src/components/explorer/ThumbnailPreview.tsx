@@ -65,10 +65,9 @@ const ThumbnailPreview = React.memo(
     const cardStyle: React.CSSProperties = {
       background: 'var(--xp-surface)',
       border: '1px solid var(--xp-border)',
-      borderRadius: 8,
+      borderRadius: 4,
       padding: 8,
-      boxShadow: '0 8px 24px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2)',
-      backdropFilter: 'blur(12px)',
+      boxShadow: 'var(--xp-shadow-popover)',
     };
 
     const imgContainerStyle: React.CSSProperties = {

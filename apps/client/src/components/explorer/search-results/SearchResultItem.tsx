@@ -24,8 +24,11 @@ export const highlightMatch = (text: string, query: string): React.ReactNode => 
     const isMatch = parts.some((p) => seg.toLowerCase() === p);
     if (isMatch) {
       return (
-        // eslint-disable-next-line react/no-array-index-key
-        <span key={i} style={{ fontWeight: 700, color: 'var(--xp-blue)' }}>
+         
+        <span
+          key={i}
+          style={{ fontWeight: 600, background: 'var(--xp-selection-bg)', borderRadius: '2px' }}
+        >
           {seg}
         </span>
       );
@@ -120,19 +123,43 @@ export const AIResultRow = React.memo(({ result, query, onSelect }: AIResultRowP
   const relevanceBadge = (() => {
     switch (result.relevance_type) {
       case 'exact':
-        return { label: 'Exact', color: '#22c55e' };
+        return {
+          label: 'Exact',
+          color: 'var(--xp-green)',
+          bg: 'rgb(var(--xp-green-rgb) / 0.12)',
+        };
       case 'semantic':
-        return { label: 'Semantic', color: '#6366f1' };
+        return {
+          label: 'Semantic',
+          color: 'var(--xp-purple)',
+          bg: 'rgb(var(--xp-purple-rgb) / 0.12)',
+        };
       case 'fuzzy':
-        return { label: 'Fuzzy', color: '#eab308' };
+        return {
+          label: 'Fuzzy',
+          color: 'var(--xp-yellow)',
+          bg: 'rgb(var(--xp-yellow-rgb) / 0.12)',
+        };
       case 'metadata':
-        return { label: 'Meta', color: '#14b8a6' };
+        return { label: 'Meta', color: 'var(--xp-cyan)', bg: 'rgb(var(--xp-cyan-rgb) / 0.12)' };
       case 'ai_description':
-        return { label: 'AI', color: '#a855f7' };
+        return {
+          label: 'AI',
+          color: 'var(--xp-purple)',
+          bg: 'rgb(var(--xp-purple-rgb) / 0.12)',
+        };
       case 'ai_reranked':
-        return { label: 'AI Ranked', color: '#a855f7' };
+        return {
+          label: 'AI Ranked',
+          color: 'var(--xp-purple)',
+          bg: 'rgb(var(--xp-purple-rgb) / 0.12)',
+        };
       default:
-        return { label: result.relevance_type, color: '#6366f1' };
+        return {
+          label: result.relevance_type,
+          color: 'var(--xp-purple)',
+          bg: 'rgb(var(--xp-purple-rgb) / 0.12)',
+        };
     }
   })();
 
@@ -176,10 +203,10 @@ export const AIResultRow = React.memo(({ result, query, onSelect }: AIResultRowP
             flexShrink: 0,
             fontSize: '9px',
             padding: '1px 5px',
-            borderRadius: '8px',
-            backgroundColor: `${relevanceBadge.color}20`,
+            borderRadius: '2px',
+            backgroundColor: relevanceBadge.bg,
             color: relevanceBadge.color,
-            fontWeight: 600,
+            fontWeight: 500,
           }}
         >
           {relevanceBadge.label}
@@ -189,10 +216,10 @@ export const AIResultRow = React.memo(({ result, query, onSelect }: AIResultRowP
             flexShrink: 0,
             fontSize: '9px',
             padding: '1px 5px',
-            borderRadius: '8px',
-            backgroundColor: 'rgba(99, 102, 241, 0.15)',
+            borderRadius: '2px',
+            backgroundColor: 'rgb(var(--xp-blue-rgb) / 0.08)',
             color: 'var(--xp-blue)',
-            fontWeight: 600,
+            fontWeight: 500,
           }}
         >
           {(result.score ?? 0).toFixed(1)}
@@ -234,7 +261,7 @@ export const AIResultRow = React.memo(({ result, query, onSelect }: AIResultRowP
                 fontSize: '9px',
                 padding: '0 4px',
                 borderRadius: '3px',
-                backgroundColor: 'rgba(250, 204, 21, 0.15)',
+                backgroundColor: 'rgb(var(--xp-yellow-rgb) / 0.15)',
                 color: 'var(--xp-text-muted)',
               }}
             >
@@ -281,7 +308,7 @@ export const GroupHeader = React.memo(({ parentDir, basePath }: GroupHeaderProps
         alignItems: 'center',
         padding: '4px 8px',
         fontSize: '10px',
-        fontWeight: 600,
+        fontWeight: 500,
         letterSpacing: '0.03em',
         gap: '4px',
         marginTop: '4px',

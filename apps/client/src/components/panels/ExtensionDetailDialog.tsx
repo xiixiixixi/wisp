@@ -45,7 +45,7 @@ const ExtensionDetailDialog = ({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="flex max-h-[80vh] w-[480px] max-w-[90vw] flex-col rounded-lg border border-xp-border bg-xp-surface shadow-xl">
+      <div className="flex max-h-[80vh] w-[480px] max-w-[90vw] flex-col rounded-lg border border-xp-border bg-xp-surface">
         {/* Header */}
         <div className="flex items-start justify-between border-b border-xp-border p-5">
           <div className="flex min-w-0 items-start gap-3">
@@ -61,7 +61,7 @@ const ExtensionDetailDialog = ({
                   <span className="text-xl">{extension.icon}</span>
                 )
               ) : (
-                <span className="text-xl font-bold text-xp-blue">
+                <span className="text-xl font-medium text-xp-blue">
                   {extension.displayName.charAt(0).toUpperCase()}
                 </span>
               )}
@@ -127,7 +127,7 @@ const ExtensionDetailDialog = ({
                 {extension.categories.map((cat) => (
                   <span
                     key={cat.slug}
-                    className="bg-xp-blue/10 border-xp-blue/20 rounded-full border px-2 py-0.5 text-xs text-xp-blue"
+                    className="rounded border border-xp-blue/20 bg-xp-blue/10 px-2 py-0.5 text-xs text-xp-blue"
                   >
                     {cat.name}
                   </span>
@@ -172,14 +172,14 @@ const ExtensionDetailDialog = ({
           </button>
 
           {isInstalled ? (
-            <span className="bg-xp-green/20 border-xp-green/30 rounded-md border px-4 py-1.5 text-sm text-xp-green">
+            <span className="rounded-md border border-xp-green/30 bg-xp-green/20 px-4 py-1.5 text-sm text-xp-green">
               Installed
             </span>
           ) : (
             <button
               onClick={() => onInstall(extension)}
               disabled={isInstalling}
-              className="hover:bg-xp-blue/80 flex items-center gap-1.5 rounded-md bg-xp-blue px-4 py-1.5 text-sm text-white transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-md bg-xp-blue px-4 py-1.5 text-sm text-white transition-colors hover:bg-xp-blue/80 disabled:opacity-50"
             >
               {isInstalling ? (
                 <>

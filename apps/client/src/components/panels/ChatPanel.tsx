@@ -758,7 +758,7 @@ const ChatPanel = ({
               <span>+ Add context files</span>
             </button>
             {state.isContextDropdownOpen && (
-              <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 rounded border border-xp-border bg-xp-popover shadow-xl backdrop-blur-xl">
+              <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 rounded border border-xp-border bg-xp-popover">
                 <div className="border-b border-xp-border p-2">
                   <input
                     type="text"
@@ -834,7 +834,7 @@ const ChatPanel = ({
                     key={session.id}
                     className={`group flex cursor-pointer items-center gap-2 px-3 py-2 text-xs transition-colors hover:bg-xp-surface-light ${
                       currentSessionId === session.id
-                        ? 'bg-xp-blue/10 border-l-2 border-xp-blue'
+                        ? 'border-l-2 border-xp-blue bg-xp-blue/10'
                         : ''
                     }`}
                     onClick={() => {
@@ -921,7 +921,7 @@ const ChatPanel = ({
                 open
                 className="min-w-0 max-w-[85%] overflow-hidden rounded-lg border border-xp-border bg-xp-bg"
               >
-                <summary className="hover:bg-xp-bg-hover flex cursor-pointer select-none items-center gap-1.5 px-3 py-1.5 text-xs text-xp-text-muted">
+                <summary className="flex cursor-pointer select-none items-center gap-1.5 px-3 py-1.5 text-xs text-xp-text-muted hover:bg-xp-surface-light">
                   <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-xp-cyan" />
                   <span>Thinking...</span>
                 </summary>
@@ -946,7 +946,7 @@ const ChatPanel = ({
       {(state.contextFiles.length > 0 || state.includeCurrentFolder) && (
         <div className="flex flex-shrink-0 flex-wrap items-center gap-1 border-t border-xp-border px-3 py-1.5">
           {state.includeCurrentFolder && (
-            <span className="bg-xp-blue/15 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] text-xp-blue">
+            <span className="inline-flex items-center gap-1 rounded bg-xp-blue/15 px-2 py-0.5 text-[11px] text-xp-blue">
               <FolderOpen size={10} />
               <span className="max-w-[100px] truncate">
                 {currentPath.split(/[/\\]/).pop() || currentPath}
@@ -964,7 +964,7 @@ const ChatPanel = ({
           {state.contextFiles.map((file) => (
             <span
               key={file.path}
-              className="inline-flex items-center gap-1 rounded-full bg-xp-surface-light px-2 py-0.5 text-[11px] text-xp-text"
+              className="inline-flex items-center gap-1 rounded bg-xp-surface-light px-2 py-0.5 text-[11px] text-xp-text"
               title={file.path}
             >
               <FileText size={10} className="flex-shrink-0" />

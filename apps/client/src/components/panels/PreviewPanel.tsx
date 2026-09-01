@@ -527,7 +527,7 @@ const PreviewPanel = ({
                   <span className="text-xp-text-muted">Path:</span>
                   <button
                     onClick={handleCopyPath}
-                    className={`rounded-full border px-2.5 py-0.5 text-[11px] transition-colors ${
+                    className={`rounded border px-2.5 py-0.5 text-[11px] transition-colors ${
                       copyFeedback
                         ? 'border-xp-green/40 bg-xp-green/10 text-xp-green'
                         : 'border-xp-border/60 bg-xp-surface-light/60 text-xp-text-secondary hover:text-xp-text'

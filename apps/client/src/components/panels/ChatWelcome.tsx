@@ -258,9 +258,9 @@ const ChatWelcome = ({
                       alignItems: 'center',
                       gap: '4px',
                       padding: '2px 8px',
-                      borderRadius: '10px',
-                      background: 'rgba(255, 183, 77, 0.12)',
-                      color: 'var(--xp-yellow, #e0af68)',
+                      borderRadius: '4px',
+                      background: 'rgb(var(--xp-orange-rgb) / 0.12)',
+                      color: 'var(--xp-yellow)',
                       fontSize: '11px',
                     }}
                   >
@@ -275,8 +275,8 @@ const ChatWelcome = ({
                     alignItems: 'center',
                     gap: '4px',
                     padding: '2px 8px',
-                    borderRadius: '10px',
-                    background: 'rgba(122, 162, 247, 0.1)',
+                    borderRadius: '4px',
+                    background: 'rgb(var(--xp-blue-rgb) / 0.1)',
                     color: 'var(--xp-blue)',
                     fontSize: '11px',
                   }}

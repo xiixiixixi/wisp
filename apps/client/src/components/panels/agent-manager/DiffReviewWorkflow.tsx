@@ -47,8 +47,7 @@ const backdropStyle: React.CSSProperties = {
   zIndex: 9999,
   display: 'flex',
   flexDirection: 'column',
-  background: 'rgba(0, 0, 0, 0.6)',
-  backdropFilter: 'blur(6px)',
+  background: 'rgba(0, 0, 0, 0.4)',
   animation: 'fadeIn 0.15s ease-out',
 };
 
@@ -59,10 +58,10 @@ const modalStyle: React.CSSProperties = {
   maxWidth: '900px',
   maxHeight: 'calc(100vh - 80px)',
   margin: '40px auto',
-  borderRadius: '12px',
+  borderRadius: '8px',
   border: '1px solid var(--xp-border)',
   background: 'var(--xp-surface)',
-  boxShadow: '0 24px 80px rgba(0, 0, 0, 0.5)',
+  boxShadow: '0 0 0 1px var(--xp-border)',
   overflow: 'hidden',
   flex: '1 1 0%',
   minHeight: 0,
@@ -242,7 +241,7 @@ const DiffReviewWorkflow = ({
       >
         {/* Header */}
         <div style={headerStyle}>
-          <GitCommit size={16} style={{ color: 'var(--xp-blue, #7aa2f7)', flexShrink: 0 }} />
+          <GitCommit size={16} style={{ color: 'var(--xp-blue)', flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--xp-text)' }}>
               {t('agentManager.diffWorkflow.title')}
@@ -279,7 +278,7 @@ const DiffReviewWorkflow = ({
                 justifyContent: 'center',
                 gap: '12px',
                 flex: 1,
-                color: 'var(--xp-green, #73daca)',
+                color: 'var(--xp-green)',
               }}
             >
               <CheckCircle2 size={40} />
@@ -338,8 +337,8 @@ const DiffReviewWorkflow = ({
               style={{
                 ...btnBase,
                 background: 'transparent',
-                border: '1px solid var(--xp-red, #f7768e)',
-                color: 'var(--xp-red, #f7768e)',
+                border: '1px solid var(--xp-red)',
+                color: 'var(--xp-red)',
               }}
             >
               <RotateCcw size={12} />
@@ -352,9 +351,8 @@ const DiffReviewWorkflow = ({
               disabled={acceptedFiles.size === 0}
               style={{
                 ...btnBase,
-                background:
-                  acceptedFiles.size > 0 ? 'var(--xp-green, #73daca)' : 'var(--xp-surface-light)',
-                color: acceptedFiles.size > 0 ? '#1a1b26' : 'var(--xp-text-muted)',
+                background: acceptedFiles.size > 0 ? 'var(--xp-green)' : 'var(--xp-surface-light)',
+                color: acceptedFiles.size > 0 ? 'var(--xp-bg)' : 'var(--xp-text-muted)',
                 cursor: acceptedFiles.size > 0 ? 'pointer' : 'not-allowed',
                 opacity: acceptedFiles.size > 0 ? 1 : 0.5,
               }}

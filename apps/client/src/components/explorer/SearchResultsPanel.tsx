@@ -290,7 +290,7 @@ const SearchResultsPanel = React.forwardRef<SearchResultsPanelHandle, SearchResu
                   color: activeFilter === key ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
                   cursor: 'pointer',
                   transition: 'all 0.15s',
-                  fontWeight: activeFilter === key ? 600 : 400,
+                  fontWeight: activeFilter === key ? 500 : 400,
                   lineHeight: '18px',
                 }}
                 aria-pressed={activeFilter === key}
@@ -665,12 +665,12 @@ const SearchModeToggle = ({
         flex: 1,
         padding: '3px 0',
         fontSize: '10px',
-        fontWeight: searchMode === 'local' ? 600 : 400,
+        fontWeight: searchMode === 'local' ? 500 : 400,
         borderRadius: '4px',
         border: 'none',
         cursor: 'pointer',
         transition: 'all 0.15s',
-        background: searchMode === 'local' ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
+        background: searchMode === 'local' ? 'var(--xp-selection-bg)' : 'transparent',
         color: searchMode === 'local' ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
         display: 'flex',
         alignItems: 'center',
@@ -700,13 +700,13 @@ const SearchModeToggle = ({
         flex: 1,
         padding: '3px 0',
         fontSize: '10px',
-        fontWeight: searchMode === 'ai' ? 600 : 400,
+        fontWeight: searchMode === 'ai' ? 500 : 400,
         borderRadius: '4px',
         border: 'none',
         cursor: 'pointer',
         transition: 'all 0.15s',
-        background: searchMode === 'ai' ? 'rgba(168, 85, 247, 0.15)' : 'transparent',
-        color: searchMode === 'ai' ? '#a855f7' : 'var(--xp-text-muted)',
+        background: searchMode === 'ai' ? 'rgb(var(--xp-purple-rgb) / 0.15)' : 'transparent',
+        color: searchMode === 'ai' ? 'var(--xp-purple)' : 'var(--xp-text-muted)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -762,7 +762,7 @@ const SearchInput = ({
         borderRadius: '6px',
         padding: '0 8px',
         gap: '6px',
-        border: `1px solid ${searchMode === 'ai' ? 'rgba(168, 85, 247, 0.3)' : 'var(--xp-border)'}`,
+        border: `1px solid ${searchMode === 'ai' ? 'rgb(var(--xp-purple-rgb) / 0.3)' : 'var(--xp-border)'}`,
       }}
     >
       {searchMode === 'local' ? (
@@ -771,7 +771,8 @@ const SearchInput = ({
           height="14"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="var(--xp-text-muted)"
+          stroke="currentColor"
+          className="text-[var(--xp-text-muted)]"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -786,7 +787,8 @@ const SearchInput = ({
           height="14"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#a855f7"
+          stroke="currentColor"
+          className="text-[var(--xp-purple)]"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -1042,7 +1044,7 @@ const NoResultsState = ({
         style={{
           marginTop: '4px',
           fontSize: '11px',
-          color: '#a855f7',
+          color: 'var(--xp-purple)',
           background: 'none',
           border: 'none',
           cursor: 'pointer',
@@ -1091,7 +1093,7 @@ const ContentSearchResults = ({
           // eslint-disable-next-line react/no-array-index-key
           key={i}
           style={{
-            backgroundColor: 'rgba(250, 204, 21, 0.3)',
+            backgroundColor: 'rgb(var(--xp-yellow-rgb) / 0.3)',
             color: 'inherit',
             borderRadius: '2px',
             padding: '0 1px',
@@ -1112,12 +1114,12 @@ const ContentSearchResults = ({
         style={{
           padding: '6px 8px',
           fontSize: '10px',
-          fontWeight: 600,
+          fontWeight: 500,
           color: 'var(--xp-text-muted)',
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
           borderBottom: '1px solid var(--xp-border)',
-          background: 'rgba(99, 102, 241, 0.05)',
+          background: 'rgb(var(--xp-blue-rgb) / 0.05)',
         }}
       >
         Content matches ({results.length})
@@ -1133,7 +1135,7 @@ const ContentSearchResults = ({
               fontSize: '11px',
               fontWeight: 500,
               color: 'var(--xp-blue)',
-              background: 'rgba(99, 102, 241, 0.08)',
+              background: 'rgb(var(--xp-blue-rgb) / 0.08)',
               border: 'none',
               borderBottom: '1px solid var(--xp-border)',
               cursor: 'pointer',

@@ -332,9 +332,7 @@ const ChatSlashInput = forwardRef<ChatSlashInputHandle, ChatSlashInputProps>(
                 width: '100%',
                 padding: '8px 12px',
                 borderRadius: '6px',
-                border: isListening
-                  ? '1px solid var(--xp-red, #e53e3e)'
-                  : '1px solid var(--xp-border)',
+                border: isListening ? '1px solid var(--xp-red)' : '1px solid var(--xp-border)',
                 background: 'var(--xp-bg)',
                 color: 'var(--xp-text)',
                 fontSize: '13px',
@@ -380,11 +378,9 @@ const ChatSlashInput = forwardRef<ChatSlashInputHandle, ChatSlashInputProps>(
               style={{
                 padding: '8px',
                 borderRadius: '6px',
-                border: isListening
-                  ? '1px solid var(--xp-red, #e53e3e)'
-                  : '1px solid var(--xp-border)',
-                background: isListening ? 'rgba(229, 62, 62, 0.15)' : 'transparent',
-                color: isListening ? 'var(--xp-red, #e53e3e)' : 'var(--xp-text-muted)',
+                border: isListening ? '1px solid var(--xp-red)' : '1px solid var(--xp-border)',
+                background: isListening ? 'rgb(var(--xp-red-rgb) / 0.15)' : 'transparent',
+                color: isListening ? 'var(--xp-red)' : 'var(--xp-text-muted)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -406,7 +402,7 @@ const ChatSlashInput = forwardRef<ChatSlashInputHandle, ChatSlashInputProps>(
                   width: 6,
                   height: 6,
                   borderRadius: '50%',
-                  background: 'var(--xp-green, #38a169)',
+                  background: 'var(--xp-green)',
                 }}
                 title={t('aiChat.input.voiceAutoSend')}
               />

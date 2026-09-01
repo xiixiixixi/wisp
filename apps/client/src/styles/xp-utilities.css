@@ -1,5 +1,5 @@
-/* Wisp theme utilities — CSS-variable-backed color, hover, and scrollbar
-   classes shared by all three built-in themes (Ink, Slate, Paper). */
+/* Wisp paper utilities — CSS-variable-backed color, hover, and scrollbar
+   classes for the one sun-driven theme (kinari day / sumi night). */
 
 .bg-xp-bg {
   background-color: var(--xp-bg);
@@ -112,7 +112,7 @@
 
 /* Close/destructive button hover — 20% opacity background */
 .xp-close-btn:hover {
-  background-color: rgba(248, 113, 113, 0.2);
+  background-color: var(--xp-selection-bg);
   color: var(--xp-red);
 }
 
@@ -173,18 +173,17 @@ select:focus {
 
 /* Selection styling */
 ::selection {
-  background-color: var(--xp-blue);
-  color: var(--xp-bg);
+  background-color: var(--xp-selection-border);
+  color: var(--xp-text);
 }
 
-/* Backdrop blur for dropdowns */
+/* Paper: no backdrop blur, and every "big" shadow is the same quiet lift */
 .backdrop-blur-sm {
-  backdrop-filter: blur(4px);
+  backdrop-filter: none;
 }
 
-/* Custom shadows */
 .shadow-2xl {
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+  box-shadow: var(--xp-shadow-popover);
 }
 
 /* Resize handle */
@@ -279,14 +278,8 @@ select:focus {
 
 /* Drop zone highlighting */
 .drop-zone-active {
-  background-color: var(--xp-blue);
-  background-image: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 10px,
-    rgba(255, 255, 255, 0.1) 10px,
-    rgba(255, 255, 255, 0.1) 20px
-  );
+  background-color: var(--xp-selection-bg);
+  border: 1px dashed var(--xp-selection-border);
   animation: dropZonePulse 1s ease-in-out infinite alternate;
 }
 

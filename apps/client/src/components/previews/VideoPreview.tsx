@@ -91,10 +91,10 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
   return (
     <div className="flex h-full flex-col">
       {loading && (
-        <div className="bg-xp-surface border-xp-border flex flex-1 items-center justify-center rounded border">
-          <div className="text-xp-text-muted text-center">
+        <div className="flex flex-1 items-center justify-center rounded border border-xp-border bg-xp-surface">
+          <div className="text-center text-xp-text-muted">
             <div className="animate-pulse">
-              <div className="bg-xp-bg mx-auto mb-2 h-16 w-16 rounded" />
+              <div className="mx-auto mb-2 h-16 w-16 rounded bg-xp-bg" />
               <p className="text-xs">Loading video...</p>
             </div>
           </div>
@@ -118,9 +118,9 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
           </div>
           {/* Custom Controls */}
           {!loading && (
-            <div className="bg-xp-surface border-xp-border space-y-2 border-t px-3 py-2">
+            <div className="space-y-2 border-t border-xp-border bg-xp-surface px-3 py-2">
               {/* Progress bar */}
-              <div className="text-xp-text flex items-center space-x-2 text-xs">
+              <div className="flex items-center space-x-2 text-xs text-xp-text">
                 <span>{formatTime(currentTime)}</span>
                 <input
                   type="range"
@@ -129,9 +129,9 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
                   step="0.1"
                   value={currentTime}
                   onChange={handleProgressChange}
-                  className="h-1 flex-1 cursor-pointer appearance-none rounded-full"
+                  className="h-1 flex-1 cursor-pointer appearance-none rounded"
                   style={{
-                    background: `linear-gradient(to right, #7aa2f7 0%, #7aa2f7 ${progressPercent}%, #1a1b26 ${progressPercent}%, #1a1b26 100%)`,
+                    background: `linear-gradient(to right, var(--xp-lime) 0%, var(--xp-lime) ${progressPercent}%, var(--xp-border) ${progressPercent}%, var(--xp-border) 100%)`,
                   }}
                 />
                 <span>{formatTime(safeDuration)}</span>
@@ -141,7 +141,7 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
                 <button
                   onClick={togglePlay}
                   title={isPlaying ? 'Pause' : 'Play'}
-                  className="hover:bg-xp-surface-light text-xp-text rounded p-1.5"
+                  className="rounded p-1.5 text-xp-text hover:bg-xp-surface-light"
                 >
                   {isPlaying ? (
                     <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
@@ -162,7 +162,7 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
                   )}
                 </button>
                 <div className="flex items-center space-x-1">
-                  <svg className="text-xp-text h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="h-4 w-4 text-xp-text" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
                       d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217z"
@@ -182,9 +182,9 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
                     step="0.1"
                     value={volume}
                     onChange={handleVolumeChange}
-                    className="h-1 w-20 cursor-pointer appearance-none rounded-full"
+                    className="h-1 w-20 cursor-pointer appearance-none rounded"
                     style={{
-                      background: `linear-gradient(to right, #7aa2f7 0%, #7aa2f7 ${volume * 100}%, #1a1b26 ${volume * 100}%, #1a1b26 100%)`,
+                      background: `linear-gradient(to right, var(--xp-text-muted) 0%, var(--xp-text-muted) ${volume * 100}%, var(--xp-border) ${volume * 100}%, var(--xp-border) 100%)`,
                     }}
                   />
                 </div>
@@ -194,8 +194,8 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
         </>
       )}
       {videoError && (
-        <div className="bg-xp-surface border-xp-border flex flex-1 items-center justify-center rounded border">
-          <div className="text-xp-text-muted text-center">
+        <div className="flex flex-1 items-center justify-center rounded border border-xp-border bg-xp-surface">
+          <div className="text-center text-xp-text-muted">
             <svg className="mx-auto mb-2 h-12 w-12" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"

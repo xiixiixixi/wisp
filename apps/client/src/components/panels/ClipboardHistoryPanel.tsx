@@ -189,7 +189,7 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
           justifyContent: 'space-between',
           padding: '4px 12px',
           borderBottom: '1px solid var(--xp-border)',
-          backgroundColor: 'rgba(var(--xp-surface-light-rgb, 255,255,255), 0.03)',
+          backgroundColor: 'rgb(var(--xp-surface-light-rgb) / 0.03)',
           flexShrink: 0,
         }}
       >
@@ -233,7 +233,7 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
               alignItems: 'flex-start',
               gap: 8,
               padding: '6px 12px',
-              borderBottom: '1px solid var(--xp-border, rgba(255,255,255,0.06))',
+              borderBottom: '1px solid var(--xp-border)',
               cursor: 'default',
               transition: 'background-color 0.1s',
             }}
@@ -249,10 +249,7 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
               style={{
                 flexShrink: 0,
                 marginTop: 2,
-                color:
-                  entry.operation === 'cut'
-                    ? 'var(--xp-yellow, #e0af68)'
-                    : 'var(--xp-blue, #7aa2f7)',
+                color: entry.operation === 'cut' ? 'var(--xp-yellow)' : 'var(--xp-blue)',
               }}
               title={entry.operation === 'cut' ? i18n.t('common.cut') : i18n.t('common.copy')}
             >
@@ -318,9 +315,9 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
                 padding: '3px 10px',
                 fontSize: 11,
                 fontWeight: 500,
-                color: 'var(--xp-blue, #7aa2f7)',
-                backgroundColor: 'rgba(122, 162, 247, 0.1)',
-                border: '1px solid rgba(122, 162, 247, 0.2)',
+                color: 'var(--xp-blue)',
+                backgroundColor: 'rgb(var(--xp-blue-rgb) / 0.1)',
+                border: '1px solid rgb(var(--xp-blue-rgb) / 0.2)',
                 borderRadius: 4,
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
@@ -328,10 +325,10 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
                 transition: 'background-color 0.15s',
               }}
               onMouseEnter={(e) => {
-                (e.target as HTMLElement).style.backgroundColor = 'rgba(122, 162, 247, 0.2)';
+                (e.target as HTMLElement).style.backgroundColor = 'rgb(var(--xp-blue-rgb) / 0.2)';
               }}
               onMouseLeave={(e) => {
-                (e.target as HTMLElement).style.backgroundColor = 'rgba(122, 162, 247, 0.1)';
+                (e.target as HTMLElement).style.backgroundColor = 'rgb(var(--xp-blue-rgb) / 0.1)';
               }}
             >
               Paste Here

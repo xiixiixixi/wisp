@@ -60,14 +60,14 @@ const S = {
   dialog: {
     backgroundColor: 'var(--xp-surface)',
     border: '1px solid var(--xp-border)',
-    borderRadius: '10px',
+    borderRadius: '8px',
     width: '820px',
     maxWidth: '92vw',
     maxHeight: '85vh',
     display: 'flex',
     flexDirection: 'column' as const,
     outline: 'none',
-    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+    boxShadow: 'var(--xp-shadow-popover)',
   },
   header: {
     display: 'flex',
@@ -293,9 +293,9 @@ const getStatusColor = (status: TreeNode['status']): string => {
 const getStatusBg = (status: TreeNode['status']): string => {
   switch (status) {
     case 'incoming':
-      return 'rgba(34, 197, 94, 0.08)';
+      return 'rgb(var(--xp-green-rgb) / 0.08)';
     case 'conflict':
-      return 'rgba(239, 68, 68, 0.08)';
+      return 'rgb(var(--xp-red-rgb) / 0.08)';
     default:
       return 'transparent';
   }
@@ -419,7 +419,7 @@ const DestTreeNode = React.memo(
                 style={{
                   ...S.conflictBadge,
                   color: 'var(--xp-green)',
-                  backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                  backgroundColor: 'rgb(var(--xp-green-rgb) / 0.12)',
                 }}
               >
                 NEW
@@ -431,7 +431,7 @@ const DestTreeNode = React.memo(
                   style={{
                     ...S.conflictBadge,
                     color: 'var(--xp-red)',
-                    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                    backgroundColor: 'rgb(var(--xp-red-rgb) / 0.12)',
                   }}
                 >
                   <AlertTriangle size={10} />

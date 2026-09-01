@@ -15,11 +15,11 @@ interface SystemStatsState {
 
 const POLL_INTERVAL_MS = 2000;
 
-/** Ring colour by load: calm → warm → hot. */
+/** Ink colour by load: calm → warm → hot. */
 const gaugeColor = (pct: number): string => {
-  if (pct < 60) return 'var(--xp-green, #4ec9b0)';
-  if (pct < 85) return 'var(--xp-yellow, #e2b340)';
-  return 'var(--xp-red, #f44747)';
+  if (pct < 60) return 'var(--xp-green)';
+  if (pct < 85) return 'var(--xp-yellow)';
+  return 'var(--xp-red)';
 };
 
 const Gauge = ({
@@ -27,16 +27,13 @@ const Gauge = ({
   label,
   subtitle,
   icon,
-  tint,
   hero = false,
 }: {
   pct: number | null;
   label: string;
   subtitle: string;
   icon: React.ReactNode;
-  /** Ambient wash colours for the liquid-glass card, [top-left, bottom-right]. */
-  tint: [string, string];
-  /** hero renders as the vivid gradient stat card with white dot-matrix numerals */
+  /** hero renders larger, with the 無印紅 position marker on the meter. */
   hero?: boolean;
 }) => {
   const hasData = pct !== null;
@@ -46,33 +43,27 @@ const Gauge = ({
   if (hero) {
     return (
       <div className="relative overflow-hidden rounded-xl border border-xp-border bg-xp-surface p-4 text-xp-text">
-        <div
-          className="dot-grid pointer-events-none absolute inset-x-4 bottom-9 h-7 opacity-60"
-          style={{
-            backgroundImage: 'radial-gradient(var(--xp-border) 1.2px, transparent 1.3px)',
-          }}
-        />
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-1.5 text-xs font-medium text-xp-text-secondary">
             {icon}
             <span>{label}</span>
           </span>
         </div>
-        <p className="mt-1.5 text-4xl font-light leading-none tracking-tight">
+        <p className="mt-1.5 text-4xl font-light tabular-nums leading-none tracking-tight">
           {hasData ? Math.round(value) : '—'}
           {hasData && <span className="ml-1 align-top text-lg">%</span>}
         </p>
         <p className="mt-1.5 truncate text-xs text-xp-text-secondary" title={subtitle}>
           {subtitle}
         </p>
-        <div className="bg-xp-border/60 relative mt-2 h-1 rounded-full">
+        <div className="relative mt-2 h-1 rounded-none bg-xp-bg">
           <div
-            className="h-1 rounded-full bg-xp-text transition-all duration-500"
+            className="h-1 rounded-none bg-xp-text transition-all duration-500"
             style={{ width: `${value}%` }}
           />
           {hasData && (
             <span
-              className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-[var(--xp-lime)] shadow-[0_0_0_2px_rgba(255,255,255,0.85)]"
+              className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-[2px] bg-[var(--xp-lime)] shadow-[0_0_0_2px_var(--xp-surface)]"
               style={{ left: `calc(${Math.min(Math.max(value, 2), 98)}% - 5px)` }}
             />
           )}
@@ -82,17 +73,9 @@ const Gauge = ({
   }
 
   return (
-    <div
-      className="glass-card glass-dotted flex flex-col rounded-2xl p-4"
-      style={
-        {
-          '--tint-a': tint[0],
-          '--tint-b': tint[1],
-        } as React.CSSProperties
-      }
-    >
+    <div className="glass-card flex flex-col p-4">
       <div className="flex items-center gap-2.5">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-card text-xp-text-secondary shadow-[0_1px_4px_rgba(29,28,26,0.08)]">
+        <span className="flex h-8 w-8 items-center justify-center rounded bg-xp-bg text-xp-text-secondary">
           {icon}
         </span>
         <span className="text-xs font-medium text-xp-text-muted">{label}</span>
@@ -104,14 +87,14 @@ const Gauge = ({
       <p className="mt-1 truncate text-xs text-xp-text-muted" title={subtitle}>
         {subtitle}
       </p>
-      <div className="bg-xp-border/60 relative mt-2.5 h-1 rounded-full">
+      <div className="relative mt-2.5 h-1 rounded-none bg-xp-bg">
         <div
-          className="h-1 rounded-full transition-all duration-500"
+          className="h-1 rounded-none transition-all duration-500"
           style={{ width: `${value}%`, backgroundColor: color }}
         />
         {hasData && (
           <span
-            className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-[var(--xp-lime)] shadow-[0_0_0_2px_rgba(255,255,255,0.9)]"
+            className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-[2px] bg-[var(--xp-lime)] shadow-[0_0_0_2px_var(--xp-surface)]"
             style={{ left: `calc(${Math.min(Math.max(value, 2), 98)}% - 5px)` }}
           />
         )}
@@ -152,7 +135,7 @@ const SystemDashboard = () => {
   return (
     <section aria-label={t('home.systemDashboard')}>
       <div className="mb-3">
-        <p className="text-base font-semibold tracking-tight text-xp-text">
+        <p className="text-base font-medium tracking-tight text-xp-text">
           {t('home.systemDashboard')}
         </p>
         <p className="mt-0.5 text-xs text-xp-text-muted">
@@ -165,7 +148,6 @@ const SystemDashboard = () => {
           label={t('home.cpu')}
           subtitle={stats ? t('home.cpuCores', { count: navigator.hardwareConcurrency || 0 }) : '—'}
           icon={<Cpu size={14} aria-hidden="true" />}
-          tint={['rgba(99, 112, 255, 0.55)', 'rgba(64, 200, 220, 0.4)']}
         />
         <Gauge
           pct={memPct}
@@ -174,7 +156,6 @@ const SystemDashboard = () => {
             stats ? `${formatFileSize(stats.mem_used)} / ${formatFileSize(stats.mem_total)}` : '—'
           }
           icon={<MemoryStick size={14} aria-hidden="true" />}
-          tint={['rgba(150, 108, 240, 0.5)', 'rgba(235, 108, 180, 0.42)']}
         />
         <Gauge
           pct={diskPct}
@@ -183,7 +164,6 @@ const SystemDashboard = () => {
             stats ? t('home.diskAvailable', { size: formatFileSize(stats.disk_available) }) : '—'
           }
           icon={<HardDrive size={14} aria-hidden="true" />}
-          tint={['rgba(245, 150, 90, 0.48)', 'rgba(235, 90, 110, 0.4)']}
           hero
         />
       </div>

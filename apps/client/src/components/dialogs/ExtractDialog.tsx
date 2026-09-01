@@ -282,7 +282,7 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
           {/* eslint-disable-next-line no-nested-ternary */}
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-xp-blue" />
+              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-xp-text-muted" />
               <span className="ml-3 text-xp-text-muted">{t('dialogs.extract.analyzing')}</span>
             </div>
           ) : error ? (
@@ -450,7 +450,7 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
                         count: archiveInfo.files.length,
                       })}
                       {selectionCount > 0 && (
-                        <span className="ml-2 rounded-full bg-xp-blue px-2 py-0.5 text-xs text-white">
+                        <span className="ml-2 rounded bg-xp-blue px-2 py-0.5 text-xs text-white">
                           {t('dialogs.extract.selectionCount', { count: selectionCount })}
                         </span>
                       )}

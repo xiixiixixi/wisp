@@ -641,7 +641,7 @@ const MarketplacePanel = () => {
                 <div
                   key={pack.id}
                   className="border-xp-border hover:bg-xp-surface-light/50 rounded-lg border p-3 transition-colors"
-                  style={{ background: 'rgba(var(--xp-surface-rgb, 30,30,46), 0.5)' }}
+                  style={{ background: 'rgb(var(--xp-surface-rgb) / 0.5)' }}
                 >
                   <div className="flex items-start gap-3">
                     <div
@@ -767,7 +767,7 @@ const MarketplacePanel = () => {
       <div className="border-t border-xp-border px-3 py-1.5">
         <button
           onClick={() => TauriAPI.openUrl('https://xplorer.space/publish')}
-          className="hover:text-xp-blue/80 w-full text-center text-xs text-xp-blue transition-colors"
+          className="w-full text-center text-xs text-xp-blue transition-colors hover:text-xp-blue/80"
         >
           Publish Your Extension
         </button>

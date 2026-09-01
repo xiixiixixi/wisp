@@ -572,7 +572,7 @@ const FileGrid = ({
                 <button
                   type="button"
                   onClick={onCreateFolder}
-                  className="inline-flex h-9 items-center gap-2 rounded-lg bg-xp-blue px-3.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-xp-blue-dark"
+                  className="inline-flex h-9 items-center gap-2 rounded-lg bg-xp-blue px-3.5 text-sm font-medium text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark"
                 >
                   <FolderPlus size={16} />
                   {t('operationBar.newFolder')}
@@ -643,11 +643,10 @@ const FileGrid = ({
     position: 'absolute',
     inset: 0,
     borderRadius: 8,
-    border: '2px solid var(--xp-blue)',
+    border: '2px solid var(--xp-selection-border)',
     opacity: 0.6,
     pointerEvents: 'none',
     zIndex: 6,
-    boxShadow: '0 0 6px color-mix(in srgb, var(--xp-blue) 40%, transparent)',
   };
 
   const crossTabBadgeStyle: React.CSSProperties = {
@@ -660,7 +659,6 @@ const FileGrid = ({
     background: 'var(--xp-blue)',
     zIndex: 7,
     pointerEvents: 'none',
-    boxShadow: '0 0 4px var(--xp-blue)',
   };
 
   const renderFileItem = (file: FileEntry) => {
@@ -727,8 +725,8 @@ const FileGrid = ({
         >
           {fileGroups.map((group) => (
             <div key={group.group}>
-              <div className="bg-xp-surface/80 sticky top-0 z-10 border-b border-xp-border px-3 py-2 backdrop-blur-sm">
-                <span className="text-xs font-semibold uppercase tracking-wide text-xp-text-muted">
+              <div className="sticky top-0 z-10 border-b border-xp-border bg-xp-surface px-3 py-2">
+                <span className="text-xs font-medium uppercase tracking-wide text-xp-text-muted">
                   {t(getDateGroupTranslationKey(group.group))}
                 </span>
                 <span className="ml-2 text-xs text-xp-text-muted">({group.files.length})</span>

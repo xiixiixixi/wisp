@@ -213,7 +213,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
   if (isLoading) {
     return (
       <div className={`flex items-center justify-center p-8 ${className || ''}`}>
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-xp-blue" />
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-xp-text-muted" />
       </div>
     );
   }
@@ -237,7 +237,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
             </div>
           )}
           <div
-            className={`h-3 w-3 rounded-full ${settings.enabled ? 'bg-xp-green' : 'bg-xp-text-muted'}`}
+            className={`h-3 w-3 rounded ${settings.enabled ? 'bg-xp-green' : 'bg-xp-text-muted'}`}
           />
         </div>
       </div>
@@ -252,7 +252,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
           onClick={() => setSettings((prev) => ({ ...prev, enabled: !prev.enabled }))}
           className={`rounded-md px-4 py-2 transition-colors ${
             settings.enabled
-              ? 'bg-green-600 text-white hover:bg-green-700'
+              ? 'bg-xp-green text-white hover:bg-xp-green/80'
               : 'bg-xp-surface-light text-xp-text hover:bg-xp-border'
           }`}
         >
@@ -270,7 +270,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
           onClick={() => toggleAutoWhitelist(!autoWhitelist)}
           className={`rounded-md px-4 py-2 transition-colors ${
             autoWhitelist
-              ? 'bg-green-600 text-white hover:bg-green-700'
+              ? 'bg-xp-green text-white hover:bg-xp-green/80'
               : 'bg-xp-surface-light text-xp-text hover:bg-xp-border'
           }`}
         >
@@ -282,7 +282,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
       {(isIndexing || indexingProgress) && (
         <div className="rounded-lg border border-xp-border bg-xp-surface p-4">
           <div className="mb-2 flex items-center space-x-2">
-            <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
+            <div className="h-2 w-2 animate-pulse rounded-full bg-xp-green" />
             <h3 className="font-medium text-xp-text">
               {isIndexing
                 ? t('settings.tokenizer.indexingInProgress')
@@ -304,9 +304,9 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
                 </span>
               </div>
 
-              <div className="h-2 w-full rounded-full bg-xp-bg">
+              <div className="h-2 w-full rounded bg-xp-bg">
                 <div
-                  className="h-2 rounded-full bg-blue-500 transition-all duration-300"
+                  className="h-2 rounded bg-xp-lime transition-all duration-300"
                   style={{ width: `${indexingProgress.progress_percentage}%` }}
                 />
               </div>
@@ -584,7 +584,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
         <button
           onClick={handleRebuildIndex}
           disabled={isIndexing || !settings.enabled || settings.whitelisted_paths.length === 0}
-          className="rounded bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded bg-xp-green px-4 py-2 text-white transition-colors hover:bg-xp-green/80 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isIndexing ? t('settings.tokenizer.indexing') : t('settings.tokenizer.rebuildIndex')}
         </button>

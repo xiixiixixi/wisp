@@ -63,17 +63,16 @@ const backdropStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  background: 'rgba(0, 0, 0, 0.55)',
-  backdropFilter: 'blur(4px)',
+  background: 'rgba(0, 0, 0, 0.4)',
 };
 
 const dialogStyle: React.CSSProperties = {
   width: '100%',
   maxWidth: 480,
-  borderRadius: '12px',
+  borderRadius: '8px',
   border: '1px solid var(--xp-border)',
   background: 'var(--xp-surface)',
-  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+  boxShadow: '0 0 0 1px var(--xp-border)',
   overflow: 'hidden',
   animation: 'fadeSlideIn 0.2s ease-out',
 };
@@ -199,7 +198,7 @@ const AgentResumeDialog = ({ sessions, onResume, onClose }: AgentResumeDialogPro
       >
         {/* Header */}
         <div style={headerStyle}>
-          <AlertTriangle size={18} style={{ color: 'var(--xp-warning, #e0af68)', flexShrink: 0 }} />
+          <AlertTriangle size={18} style={{ color: 'var(--xp-orange)', flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
             <div
               style={{
@@ -242,7 +241,7 @@ const AgentResumeDialog = ({ sessions, onResume, onClose }: AgentResumeDialogPro
           }}
         >
           {allSelected ? (
-            <CheckSquare size={14} style={{ color: 'var(--xp-blue, #7aa2f7)' }} />
+            <CheckSquare size={14} style={{ color: 'var(--xp-blue)' }} />
           ) : (
             <Square size={14} />
           )}
@@ -258,17 +257,17 @@ const AgentResumeDialog = ({ sessions, onResume, onClose }: AgentResumeDialogPro
                 key={session.id}
                 style={{
                   ...sessionItemStyle,
-                  background: isSelected ? 'rgba(122, 162, 247, 0.06)' : 'transparent',
+                  background: isSelected ? 'rgb(var(--xp-blue-rgb) / 0.06)' : 'transparent',
                 }}
                 onClick={() => toggleSession(session.id)}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = isSelected
-                    ? 'rgba(122, 162, 247, 0.1)'
+                    ? 'rgb(var(--xp-blue-rgb) / 0.1)'
                     : 'var(--xp-surface-light)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = isSelected
-                    ? 'rgba(122, 162, 247, 0.06)'
+                    ? 'rgb(var(--xp-blue-rgb) / 0.06)'
                     : 'transparent';
                 }}
                 role="button"
@@ -280,7 +279,7 @@ const AgentResumeDialog = ({ sessions, onResume, onClose }: AgentResumeDialogPro
                 {/* Checkbox */}
                 <div style={{ paddingTop: '2px', flexShrink: 0 }}>
                   {isSelected ? (
-                    <CheckSquare size={14} style={{ color: 'var(--xp-blue, #7aa2f7)' }} />
+                    <CheckSquare size={14} style={{ color: 'var(--xp-blue)' }} />
                   ) : (
                     <Square size={14} style={{ color: 'var(--xp-text-muted)' }} />
                   )}
@@ -402,20 +401,20 @@ const AgentResumeDialog = ({ sessions, onResume, onClose }: AgentResumeDialogPro
             disabled={noneSelected}
             style={{
               ...btnBase,
-              background: noneSelected ? 'var(--xp-text-muted)' : 'var(--xp-blue, #7aa2f7)',
+              background: noneSelected ? 'var(--xp-text-muted)' : 'var(--xp-blue)',
               color: '#fff',
               opacity: noneSelected ? 0.5 : 1,
               cursor: noneSelected ? 'not-allowed' : 'pointer',
             }}
             onMouseEnter={(e) => {
               if (!noneSelected) {
-                e.currentTarget.style.background = 'var(--xp-blue-bright, #89b4fa)';
+                e.currentTarget.style.background = 'var(--xp-cyan)';
               }
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = noneSelected
                 ? 'var(--xp-text-muted)'
-                : 'var(--xp-blue, #7aa2f7)';
+                : 'var(--xp-blue)';
             }}
           >
             <Play size={12} />

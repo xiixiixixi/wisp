@@ -382,7 +382,7 @@ const AdvancedSelectDialog = ({
                   onClick={() => setSelectionMode(opt.value)}
                   className={`flex-1 rounded-md border px-3 py-2 text-sm transition-colors ${
                     selectionMode === opt.value
-                      ? 'border-xp-accent bg-xp-accent text-white'
+                      ? 'border-xp-accent bg-xp-accent text-[var(--xp-bg)]'
                       : 'border-xp-border bg-xp-bg text-xp-text hover:bg-xp-surface-light'
                   }`}
                 >
@@ -414,7 +414,7 @@ const AdvancedSelectDialog = ({
                   <button
                     onClick={addExtensionsFromInput}
                     disabled={!extensionInput.trim()}
-                    className="rounded-md bg-xp-accent px-3 py-2 text-sm text-white disabled:opacity-50"
+                    className="rounded-md bg-xp-accent px-3 py-2 text-sm text-[var(--xp-bg)] disabled:opacity-50"
                     aria-label={t('explorer.advancedSelect.addExtensionsAria')}
                   >
                     {t('common.add')}
@@ -427,7 +427,7 @@ const AdvancedSelectDialog = ({
                     <button
                       key={type.label}
                       onClick={() => selectQuickType(type.extensions)}
-                      className="rounded border border-xp-border bg-xp-bg px-2 py-1 text-xs text-xp-text transition-colors hover:bg-blue-500/20"
+                      className="rounded border border-xp-border bg-xp-bg px-2 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
                     >
                       {type.label}
                     </button>
@@ -440,7 +440,7 @@ const AdvancedSelectDialog = ({
                     {Array.from(selectedExtensions).map((ext) => (
                       <span
                         key={ext}
-                        className="inline-flex items-center gap-1 rounded bg-blue-500/20 px-2 py-0.5 text-xs text-xp-accent"
+                        className="bg-xp-selection inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs text-xp-text"
                       >
                         .{ext}
                         {extensionCounts.get(ext) !== undefined && (
@@ -573,7 +573,7 @@ const AdvancedSelectDialog = ({
                     <button
                       key={preset.label}
                       onClick={() => applyDatePreset(preset)}
-                      className="rounded border border-xp-border bg-xp-bg px-2 py-1 text-xs text-xp-text transition-colors hover:bg-blue-500/20"
+                      className="rounded border border-xp-border bg-xp-bg px-2 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
                     >
                       {preset.label}
                     </button>
@@ -600,7 +600,7 @@ const AdvancedSelectDialog = ({
                       onClick={() => setPatternMode('glob')}
                       className={`px-2 py-1.5 text-xs transition-colors ${
                         patternMode === 'glob'
-                          ? 'bg-xp-accent text-white'
+                          ? 'bg-xp-accent text-[var(--xp-bg)]'
                           : 'bg-xp-bg text-xp-text hover:bg-xp-surface-light'
                       }`}
                     >
@@ -610,7 +610,7 @@ const AdvancedSelectDialog = ({
                       onClick={() => setPatternMode('regex')}
                       className={`px-2 py-1.5 text-xs transition-colors ${
                         patternMode === 'regex'
-                          ? 'bg-xp-accent text-white'
+                          ? 'bg-xp-accent text-[var(--xp-bg)]'
                           : 'bg-xp-bg text-xp-text hover:bg-xp-surface-light'
                       }`}
                     >
@@ -646,7 +646,7 @@ const AdvancedSelectDialog = ({
                       onClick={() => setHiddenFileMode(opt.value)}
                       className={`flex-1 rounded-md border px-2 py-1.5 text-xs transition-colors ${
                         hiddenFileMode === opt.value
-                          ? 'border-xp-accent bg-xp-accent text-white'
+                          ? 'border-xp-accent bg-xp-accent text-[var(--xp-bg)]'
                           : 'border-xp-border bg-xp-bg text-xp-text hover:bg-xp-surface-light'
                       }`}
                     >
@@ -662,13 +662,13 @@ const AdvancedSelectDialog = ({
         {/* Footer with preview + actions */}
         <div className="border-t border-xp-border p-4">
           {/* Match preview */}
-          <div className="mb-3 flex items-center justify-between rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2">
+          <div className="mb-3 flex items-center justify-between rounded-md border border-xp-border bg-xp-bg px-3 py-2">
             <span className="text-sm text-xp-text">
               {selectionMode === 'invert'
                 ? t('explorer.advancedSelect.filesAfterInvert')
                 : t('explorer.advancedSelect.filesMatching')}
             </span>
-            <span className="text-lg font-semibold text-xp-accent">
+            <span className="text-lg font-medium text-xp-text">
               {matchCount}{' '}
               <span className="text-sm font-normal text-xp-text-muted">
                 {t('explorer.advancedSelect.ofTotal', { total: files.length })}
@@ -688,7 +688,7 @@ const AdvancedSelectDialog = ({
             <button
               onClick={handleApply}
               disabled={matchCount === 0 && selectionMode !== 'deselect'}
-              className="rounded-md bg-xp-accent px-4 py-2 text-sm text-white transition-colors hover:bg-xp-accent-hover disabled:opacity-50"
+              className="rounded-md bg-xp-accent px-4 py-2 text-sm text-[var(--xp-bg)] transition-colors hover:bg-xp-accent-hover disabled:opacity-50"
               aria-label={t('explorer.advancedSelect.applyAria')}
             >
               {t('explorer.advancedSelect.applySelection')}
@@ -713,7 +713,9 @@ const FilterSection = ({ title, enabled, onToggle, children }: FilterSectionProp
   return (
     <div
       className={`rounded-lg border transition-colors ${
-        enabled ? 'border-blue-500/40 bg-blue-500/5' : 'bg-xp-bg/30 border-xp-border'
+        enabled
+          ? 'bg-xp-selection border-[var(--xp-selection-border)]'
+          : 'bg-xp-bg/30 border-xp-border'
       }`}
     >
       <label className="flex cursor-pointer select-none items-center gap-2 p-3">

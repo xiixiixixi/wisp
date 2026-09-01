@@ -316,7 +316,7 @@ const TaskPlanCard = ({
           style={{
             fontSize: '11px',
             padding: '2px 8px',
-            borderRadius: '10px',
+            borderRadius: '4px',
             background: statusColor,
             color: 'white',
             fontWeight: 500,

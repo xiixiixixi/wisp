@@ -79,8 +79,8 @@ const TypeIcon: React.FC<{ type: ActivityEntry['type'] }> = React.memo(({ type }
     case 'created':
       return (
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0 }}>
-          <circle cx="10" cy="10" r="8" stroke="#4ade80" strokeWidth="2" />
-          <path d="M10 6v8M6 10h8" stroke="#4ade80" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="10" cy="10" r="8" stroke="#6f7f57" strokeWidth="2" />
+          <path d="M10 6v8M6 10h8" stroke="#6f7f57" strokeWidth="2" strokeLinecap="round" />
         </svg>
       );
     case 'modified':
@@ -88,7 +88,7 @@ const TypeIcon: React.FC<{ type: ActivityEntry['type'] }> = React.memo(({ type }
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0 }}>
           <path
             d="M13.586 3.586a2 2 0 112.828 2.828l-8.914 8.914-3.5.5.5-3.5 8.914-8.914z"
-            stroke="#facc15"
+            stroke="#b39a5d"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -100,7 +100,7 @@ const TypeIcon: React.FC<{ type: ActivityEntry['type'] }> = React.memo(({ type }
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0 }}>
           <path
             d="M6 6h8M7 6V5a1 1 0 011-1h4a1 1 0 011 1v1M8 9v5M12 9v5M5 6h10l-.867 9.736A2 2 0 0112.14 17H7.86a2 2 0 01-1.993-1.264L5 6z"
-            stroke="#f87171"
+            stroke="#a85646"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -112,7 +112,7 @@ const TypeIcon: React.FC<{ type: ActivityEntry['type'] }> = React.memo(({ type }
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0 }}>
           <path
             d="M4 10h12M12 6l4 4-4 4"
-            stroke="#60a5fa"
+            stroke="#6a6f8a"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -249,7 +249,7 @@ const ActivityRow: React.FC<{ entry: ActivityEntry; onNavigate?: (path: string) 
               <span
                 style={{
                   fontSize: '10px',
-                  color: 'var(--xp-text-muted, #6c7086)',
+                  color: '#66655d',
                   fontStyle: 'italic',
                 }}
               >
@@ -260,7 +260,7 @@ const ActivityRow: React.FC<{ entry: ActivityEntry; onNavigate?: (path: string) 
           <span
             style={{
               fontSize: '10px',
-              color: 'var(--xp-text-muted, #6c7086)',
+              color: '#66655d',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -273,7 +273,7 @@ const ActivityRow: React.FC<{ entry: ActivityEntry; onNavigate?: (path: string) 
         <span
           style={{
             fontSize: '10px',
-            color: 'var(--xp-text-muted, #6c7086)',
+            color: '#66655d',
             whiteSpace: 'nowrap',
             flexShrink: 0,
           }}
@@ -361,12 +361,8 @@ const ActivityFeedPanel: React.FC<ActivityFeedPanelProps> = React.memo(
                 fontWeight: 500,
                 border: 'none',
                 cursor: 'pointer',
-                background:
-                  activeFilter === f.value ? 'var(--xp-blue, #89b4fa)' + '33' : 'transparent',
-                color:
-                  activeFilter === f.value
-                    ? 'var(--xp-blue, #89b4fa)'
-                    : 'var(--xp-text-muted, #6c7086)',
+                background: activeFilter === f.value ? '#6a6f8a' + '33' : 'transparent',
+                color: activeFilter === f.value ? '#6a6f8a' : '#66655d',
               }}
             >
               {f.label}
@@ -388,8 +384,8 @@ const ActivityFeedPanel: React.FC<ActivityFeedPanelProps> = React.memo(
               borderRadius: '3px',
               border: 'none',
               cursor: 'pointer',
-              background: isPaused ? 'rgba(250, 204, 21, 0.15)' : 'transparent',
-              color: isPaused ? '#facc15' : 'var(--xp-text-muted, #6c7086)',
+              background: isPaused ? 'rgb(var(--xp-yellow-rgb) / 0.15)' : 'transparent',
+              color: isPaused ? 'var(--xp-yellow)' : '#66655d',
             }}
           >
             {isPaused ? (
@@ -420,7 +416,7 @@ const ActivityFeedPanel: React.FC<ActivityFeedPanelProps> = React.memo(
               border: 'none',
               cursor: 'pointer',
               background: 'transparent',
-              color: 'var(--xp-text-muted, #6c7086)',
+              color: '#66655d',
             }}
           >
             <svg
@@ -445,10 +441,10 @@ const ActivityFeedPanel: React.FC<ActivityFeedPanelProps> = React.memo(
               justifyContent: 'center',
               gap: '6px',
               padding: '4px 12px',
-              background: 'rgba(250, 204, 21, 0.08)',
-              borderBottom: '1px solid rgba(250, 204, 21, 0.15)',
+              background: 'rgb(var(--xp-yellow-rgb) / 0.08)',
+              borderBottom: '1px solid rgb(var(--xp-yellow-rgb) / 0.15)',
               fontSize: '10px',
-              color: '#facc15',
+              color: 'var(--xp-yellow)',
               flexShrink: 0,
             }}
           >
@@ -470,7 +466,7 @@ const ActivityFeedPanel: React.FC<ActivityFeedPanelProps> = React.memo(
                 justifyContent: 'center',
                 height: '100%',
                 fontSize: '11px',
-                color: 'var(--xp-text-muted, #6c7086)',
+                color: '#66655d',
                 gap: '8px',
               }}
             >
@@ -500,7 +496,7 @@ const ActivityFeedPanel: React.FC<ActivityFeedPanelProps> = React.memo(
                       padding: '4px 12px 2px',
                       fontSize: '10px',
                       fontWeight: 600,
-                      color: 'var(--xp-text-muted, #6c7086)',
+                      color: '#66655d',
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px',
                       background: 'var(--xp-surface, rgba(255,255,255,0.02))',

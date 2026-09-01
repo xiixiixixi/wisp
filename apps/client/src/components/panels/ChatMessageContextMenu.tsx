@@ -38,7 +38,7 @@ const menuItemStyle: React.CSSProperties = {
 };
 
 const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-  (e.currentTarget as HTMLElement).style.background = 'var(--xp-bg-hover, rgba(255,255,255,0.05))';
+  (e.currentTarget as HTMLElement).style.background = 'rgb(var(--xp-blue-rgb) / 0.08)';
 };
 
 const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -93,7 +93,7 @@ const ChatMessageContextMenu = ({
         background: 'var(--xp-surface)',
         border: '1px solid var(--xp-border)',
         borderRadius: '8px',
-        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+        boxShadow: '0 0 0 1px var(--xp-border)',
         padding: '4px',
         minWidth: '160px',
       }}

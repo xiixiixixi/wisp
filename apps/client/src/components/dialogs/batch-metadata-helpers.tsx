@@ -11,49 +11,49 @@ export const PRESET_COLORS: { label: string; value: string }[] = [
     get label() {
       return i18n.t('dialogs.colors.blue');
     },
-    value: '#7aa2f7',
+    value: 'var(--xp-blue)',
   },
   {
     get label() {
       return i18n.t('dialogs.colors.green');
     },
-    value: '#9ece6a',
+    value: 'var(--xp-green)',
   },
   {
     get label() {
       return i18n.t('dialogs.colors.red');
     },
-    value: '#f7768e',
+    value: 'var(--xp-red)',
   },
   {
     get label() {
       return i18n.t('dialogs.colors.orange');
     },
-    value: '#ff9e64',
+    value: 'var(--xp-orange)',
   },
   {
     get label() {
       return i18n.t('dialogs.colors.purple');
     },
-    value: '#bb9af7',
+    value: 'var(--xp-purple)',
   },
   {
     get label() {
       return i18n.t('dialogs.colors.yellow');
     },
-    value: '#e0af68',
+    value: 'var(--xp-orange)',
   },
   {
     get label() {
       return i18n.t('dialogs.colors.teal');
     },
-    value: '#73daca',
+    value: 'var(--xp-cyan)',
   },
   {
     get label() {
       return i18n.t('dialogs.colors.pink');
     },
-    value: '#ff7eb6',
+    value: 'var(--xp-pink)',
   },
 ];
 
@@ -106,7 +106,7 @@ export const TagPill = ({
         alignItems: 'center',
         gap: '3px',
         padding: '2px 8px',
-        borderRadius: '999px',
+        borderRadius: '4px',
         fontSize: '11px',
         fontWeight: 500,
         color: '#fff',
@@ -223,10 +223,10 @@ export const TagsPanel = ({
               style={{
                 width: '18px',
                 height: '18px',
-                borderRadius: '50%',
+                borderRadius: '4px',
                 border: selectedColor === c.value ? '2px solid white' : '2px solid transparent',
                 backgroundColor: c.value,
-                boxShadow: selectedColor === c.value ? `0 0 0 1px ${c.value}` : 'none',
+                boxShadow: selectedColor === c.value ? '0 0 0 1px var(--xp-border)' : 'none',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -242,7 +242,6 @@ export const TagsPanel = ({
                     width: '10px',
                     height: '10px',
                     color: 'white',
-                    filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.5))',
                   }}
                 />
               )}
@@ -261,7 +260,7 @@ export const TagsPanel = ({
                 transform: 'translateY(-50%)',
                 width: '8px',
                 height: '8px',
-                borderRadius: '50%',
+                borderRadius: '2px',
                 backgroundColor: selectedColor,
               }}
             />
@@ -329,7 +328,7 @@ export const TagsPanel = ({
                   alignItems: 'center',
                   gap: '4px',
                   padding: '2px 8px',
-                  borderRadius: '999px',
+                  borderRadius: '4px',
                   fontSize: '11px',
                   fontWeight: 500,
                   color: '#fff',
@@ -357,12 +356,12 @@ export const TagsPanel = ({
                     alignItems: 'center',
                     gap: '4px',
                     padding: '2px 8px',
-                    borderRadius: '999px',
+                    borderRadius: '4px',
                     fontSize: '11px',
                     fontWeight: 500,
                     color: 'var(--xp-text-muted)',
-                    backgroundColor: 'rgba(247, 118, 142, 0.15)',
-                    border: '1px solid rgba(247, 118, 142, 0.3)',
+                    backgroundColor: 'rgb(var(--xp-red-rgb) / 0.15)',
+                    border: '1px solid rgb(var(--xp-red-rgb) / 0.3)',
                     textDecoration: 'line-through',
                   }}
                 >
@@ -405,7 +404,7 @@ export const TagsPanel = ({
                   alignItems: 'center',
                   gap: '4px',
                   padding: '2px 8px',
-                  borderRadius: '999px',
+                  borderRadius: '4px',
                   fontSize: '11px',
                   fontWeight: 500,
                   color: '#fff',
@@ -429,9 +428,9 @@ export const TagsPanel = ({
         <p
           style={{
             fontSize: '11px',
-            color: '#f7768e',
-            backgroundColor: 'rgba(247, 118, 142, 0.1)',
-            border: '1px solid rgba(247, 118, 142, 0.3)',
+            color: 'var(--xp-red)',
+            backgroundColor: 'rgb(var(--xp-red-rgb) / 0.1)',
+            border: '1px solid rgb(var(--xp-red-rgb) / 0.3)',
             borderRadius: '4px',
             padding: '4px 8px',
             margin: 0,

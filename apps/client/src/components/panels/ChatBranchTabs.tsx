@@ -108,10 +108,8 @@ const ChatBranchTabs = ({
               padding: '3px 6px 3px 10px',
               borderRadius: '4px 4px 0 0',
               border: '1px solid var(--xp-border)',
-              borderBottom: isActive
-                ? '2px solid var(--xp-purple, #bb9af7)'
-                : '1px solid var(--xp-border)',
-              background: isActive ? 'rgba(187, 154, 247, 0.1)' : 'transparent',
+              borderBottom: isActive ? '2px solid var(--xp-purple)' : '1px solid var(--xp-border)',
+              background: isActive ? 'rgb(var(--xp-purple-rgb) / 0.1)' : 'transparent',
               color: isActive ? 'var(--xp-text)' : 'var(--xp-text-muted)',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
@@ -122,7 +120,7 @@ const ChatBranchTabs = ({
               if (!isEditing) onSwitchBranch(branch.id);
             }}
           >
-            <GitBranch size={10} style={{ flexShrink: 0, color: 'var(--xp-purple, #bb9af7)' }} />
+            <GitBranch size={10} style={{ flexShrink: 0, color: 'var(--xp-purple)' }} />
 
             {isEditing ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
@@ -159,7 +157,7 @@ const ChatBranchTabs = ({
                     border: 'none',
                     cursor: 'pointer',
                     padding: '1px',
-                    color: 'var(--xp-green, #9ece6a)',
+                    color: 'var(--xp-green)',
                     display: 'flex',
                     alignItems: 'center',
                   }}
@@ -229,7 +227,7 @@ const ChatBranchTabs = ({
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.opacity = '1';
-                e.currentTarget.style.color = 'var(--xp-red, #f7768e)';
+                e.currentTarget.style.color = 'var(--xp-red)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.opacity = '0.5';
@@ -298,8 +296,8 @@ export const BranchForkIndicator = ({ branchCount, onBranch }: BranchForkIndicat
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.opacity = '1';
-        e.currentTarget.style.borderColor = 'var(--xp-purple, #bb9af7)';
-        e.currentTarget.style.color = 'var(--xp-purple, #bb9af7)';
+        e.currentTarget.style.borderColor = 'var(--xp-purple)';
+        e.currentTarget.style.color = 'var(--xp-purple)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.opacity = '0.6';
@@ -314,7 +312,7 @@ export const BranchForkIndicator = ({ branchCount, onBranch }: BranchForkIndicat
       <span
         style={{
           fontSize: '10px',
-          color: 'var(--xp-purple, #bb9af7)',
+          color: 'var(--xp-purple)',
           display: 'inline-flex',
           alignItems: 'center',
           gap: '2px',

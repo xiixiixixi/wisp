@@ -42,7 +42,7 @@ const SidebarRecent = ({
       data-sidebar-section="recent"
     >
       <button
-        className="hover:bg-xp-surface-light/50 flex w-full items-center px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted transition-colors"
+        className="flex w-full items-center px-3 py-1.5 text-[10px] font-medium uppercase tracking-widest text-xp-text-muted transition-colors hover:bg-xp-surface-light/50"
         onClick={onToggleCollapsed}
         aria-expanded={!collapsed}
         aria-label={t('sidebar.toggleRecent')}
@@ -94,7 +94,7 @@ const SidebarRecent = ({
       {/* Resize handle */}
       {!collapsed && (
         <div
-          className="hover:bg-xp-blue/30 group flex h-2 cursor-row-resize items-center justify-center transition-colors"
+          className="group flex h-2 cursor-row-resize items-center justify-center transition-colors hover:bg-xp-blue/30"
           onMouseDown={(e) => onResizeStart('recent', e)}
         >
           <GripHorizontal className="text-xp-text-muted/20 group-hover:text-xp-text-muted/60 h-3 w-4 transition-colors" />

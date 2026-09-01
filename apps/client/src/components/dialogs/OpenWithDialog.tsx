@@ -88,7 +88,7 @@ const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogP
       role="dialog"
       aria-modal="true"
       aria-label={t('openWith.title')}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       onKeyDown={handleKeyDown}
     >
       <div className="w-[420px] max-w-[90vw] overflow-hidden rounded-xl border border-xp-border bg-xp-surface shadow-2xl">
@@ -119,7 +119,7 @@ const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogP
                 onClick={() => setSelected(id)}
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left transition-all ${
                   isSelected
-                    ? 'bg-xp-accent/15 ring-xp-accent/40 ring-1'
+                    ? 'bg-xp-accent/15 ring-1 ring-xp-accent/40'
                     : 'hover:bg-xp-surface-light'
                 }`}
               >
@@ -141,11 +141,11 @@ const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogP
                   <div className="text-xs text-xp-text-secondary">{t(descriptionKey)}</div>
                 </div>
                 <div
-                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors ${
                     isSelected ? 'border-xp-accent bg-xp-accent' : 'border-xp-border'
                   }`}
                 >
-                  {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-xp-popover" />}
+                  {isSelected && <div className="h-1.5 w-1.5 rounded-sm bg-xp-popover" />}
                 </div>
               </button>
             );

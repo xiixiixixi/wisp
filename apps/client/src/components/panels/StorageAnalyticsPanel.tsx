@@ -280,21 +280,21 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
             </span>
           </div>
           <div
-            className="h-3 w-full overflow-hidden rounded-full"
+            className="h-3 w-full overflow-hidden rounded border border-xp-border bg-xp-bg"
             style={{ backgroundColor: 'rgba(var(--xp-overlay-rgb, 86, 90, 110), 0.3)' }}
           >
             <div
-              className="h-full rounded-full transition-all duration-500"
+              className="h-full rounded-[2px] transition-all duration-500"
               style={{
                 width: `${usedPercent}%`,
                 background: (() => {
                   if (usedPercent > 90) {
-                    return 'linear-gradient(90deg, var(--xp-orange), var(--xp-red))';
+                    return 'var(--xp-red)';
                   }
                   if (usedPercent > 70) {
-                    return 'linear-gradient(90deg, var(--xp-blue), var(--xp-orange))';
+                    return 'var(--xp-orange)';
                   }
-                  return 'linear-gradient(90deg, var(--xp-blue), var(--xp-green))';
+                  return 'var(--xp-green)';
                 })(),
               }}
             />
@@ -341,11 +341,11 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
                     </span>
                   </div>
                   <div
-                    className="h-1.5 w-full overflow-hidden rounded-full"
+                    className="h-1.5 w-full overflow-hidden rounded bg-xp-bg"
                     style={{ backgroundColor: 'rgba(var(--xp-overlay-rgb, 86, 90, 110), 0.2)' }}
                   >
                     <div
-                      className="h-full rounded-full transition-all duration-300"
+                      className="h-full rounded-[2px] transition-all duration-300"
                       style={{ width: `${barWidth}%`, backgroundColor: color }}
                     />
                   </div>
@@ -382,11 +382,11 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
                     </span>
                   </div>
                   <div
-                    className="h-1.5 w-full overflow-hidden rounded-full"
+                    className="h-1.5 w-full overflow-hidden rounded bg-xp-bg"
                     style={{ backgroundColor: 'rgba(var(--xp-overlay-rgb, 86, 90, 110), 0.2)' }}
                   >
                     <div
-                      className="h-full rounded-full transition-all duration-300"
+                      className="h-full rounded-[2px] transition-all duration-300"
                       style={{ width: `${barWidth}%`, backgroundColor: color }}
                     />
                   </div>

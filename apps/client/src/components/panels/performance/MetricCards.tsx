@@ -58,7 +58,7 @@ const MetricCards = ({
             <button
               onClick={handleEmptyTrash}
               disabled={emptying}
-              className="flex items-center gap-1.5 rounded-full bg-card px-3 py-1.5 text-[11px] font-medium text-xp-text shadow-[0_1px_5px_rgba(29,28,26,0.08)] transition-transform hover:-translate-y-px disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded border border-xp-border bg-xp-surface px-3 py-1.5 text-[11px] font-medium text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
             >
               <Trash2 size={11} aria-hidden="true" />
               {emptying ? t('performanceDashboard.refreshing') : trashSuggestion.actionLabel}
@@ -108,7 +108,7 @@ const MetricCards = ({
                 }}
               >
                 <span
-                  className="h-1.5 w-1.5 shrink-0 rounded-full"
+                  className="h-1.5 w-1.5 shrink-0 rounded-[2px]"
                   style={{ background: opColor(op.operation, op.success) }}
                 />
                 <span className="min-w-0 flex-1 truncate text-xp-text" title={op.details || ''}>

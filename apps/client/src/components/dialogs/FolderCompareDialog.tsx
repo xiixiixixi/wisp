@@ -75,7 +75,7 @@ const overlayStyle: React.CSSProperties = {
 const dialogStyle: React.CSSProperties = {
   backgroundColor: 'var(--xp-surface)',
   borderRadius: 8,
-  boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+  boxShadow: 'var(--xp-shadow-popover)',
   width: 900,
   maxWidth: '95vw',
   maxHeight: '90vh',
@@ -190,23 +190,23 @@ const statusBadge = (status: ResultRow['status'], t: (key: string) => string): R
   const map: Record<string, { label: string; bg: string; fg: string }> = {
     'only-left': {
       label: t('dialogs.folderCompare.statusLeftOnly'),
-      bg: 'rgba(239,68,68,0.15)',
-      fg: '#f87171',
+      bg: 'rgb(var(--xp-red-rgb) / 0.15)',
+      fg: 'var(--xp-red)',
     },
     'only-right': {
       label: t('dialogs.folderCompare.statusRightOnly'),
-      bg: 'rgba(239,68,68,0.15)',
-      fg: '#f87171',
+      bg: 'rgb(var(--xp-red-rgb) / 0.15)',
+      fg: 'var(--xp-red)',
     },
     different: {
       label: t('dialogs.folderCompare.statusDifferent'),
       bg: 'rgba(234,179,8,0.15)',
-      fg: '#facc15',
+      fg: 'var(--xp-yellow)',
     },
     identical: {
       label: t('dialogs.folderCompare.statusIdentical'),
       bg: 'rgba(34,197,94,0.15)',
-      fg: '#4ade80',
+      fg: 'var(--xp-green)',
     },
   };
   const s = map[status];
@@ -231,7 +231,7 @@ const rowBg = (status: ResultRow['status']): string => {
   switch (status) {
     case 'only-left':
     case 'only-right':
-      return 'rgba(239,68,68,0.04)';
+      return 'rgb(var(--xp-red-rgb) / 0.04)';
     case 'different':
       return 'rgba(234,179,8,0.04)';
     case 'identical':
@@ -645,7 +645,7 @@ const FolderCompareDialog = ({
 
           {/* Error state */}
           {error && (
-            <div style={{ padding: 16, textAlign: 'center', color: '#f87171', fontSize: 13 }}>
+            <div style={{ padding: 16, textAlign: 'center', color: 'var(--xp-red)', fontSize: 13 }}>
               {error}
             </div>
           )}
@@ -692,19 +692,19 @@ const FolderCompareDialog = ({
                   <strong style={{ color: 'var(--xp-text)' }}>{result.summary.totalRight}</strong>{' '}
                   {t('dialogs.folderCompare.summaryFiles')}
                 </span>
-                <span style={{ color: '#facc15' }}>
+                <span style={{ color: 'var(--xp-yellow)' }}>
                   {t('dialogs.folderCompare.summaryDifferent')}{' '}
                   <strong>{result.summary.different}</strong>
                 </span>
-                <span style={{ color: '#f87171' }}>
+                <span style={{ color: 'var(--xp-red)' }}>
                   {t('dialogs.folderCompare.summaryOnlyLeft')}{' '}
                   <strong>{result.summary.onlyLeft}</strong>
                 </span>
-                <span style={{ color: '#f87171' }}>
+                <span style={{ color: 'var(--xp-red)' }}>
                   {t('dialogs.folderCompare.summaryOnlyRight')}{' '}
                   <strong>{result.summary.onlyRight}</strong>
                 </span>
-                <span style={{ color: '#4ade80' }}>
+                <span style={{ color: 'var(--xp-green)' }}>
                   {t('dialogs.folderCompare.summaryIdentical')}{' '}
                   <strong>{result.summary.identical}</strong>
                 </span>
@@ -792,7 +792,7 @@ const FolderCompareDialog = ({
                           key={row.name}
                           style={{
                             backgroundColor: selectedRows.has(row.name)
-                              ? 'rgba(59,130,246,0.08)'
+                              ? 'rgb(var(--xp-blue-rgb) / 0.08)'
                               : rowBg(row.status),
                             transition: 'background-color 0.1s',
                           }}

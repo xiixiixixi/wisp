@@ -267,7 +267,7 @@ const SidebarFileTree = ({
       data-sidebar-section="fileTree"
     >
       <button
-        className="hover:bg-xp-surface-light/50 sticky top-0 z-10 flex w-full items-center bg-xp-surface px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted transition-colors"
+        className="sticky top-0 z-10 flex w-full items-center bg-xp-surface px-3 py-1.5 text-[10px] font-medium uppercase tracking-widest text-xp-text-muted transition-colors hover:bg-xp-surface-light/50"
         onClick={onToggleCollapsed}
         aria-expanded={!collapsed}
       >

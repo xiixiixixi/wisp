@@ -25,7 +25,7 @@ const PlacesSection = ({ userDirectories, currentPath, navigateToPath }: PlacesS
       role="region"
       aria-label={t('sidebar.quickAccess')}
     >
-      <h4 className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted">
+      <h4 className="mb-1.5 text-[10px] font-medium uppercase tracking-widest text-xp-text-muted">
         {t('sidebar.quickAccess')}
       </h4>
       <div className="space-y-0.5">

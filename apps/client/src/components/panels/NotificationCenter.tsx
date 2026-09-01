@@ -20,7 +20,7 @@ const TypeIcon = ({ type }: { type: AppNotification['type'] }) => {
           width={size}
           height={size}
           viewBox="0 0 20 20"
-          fill="var(--xp-green, #4ade80)"
+          fill="#6f7f57"
           style={{ flexShrink: 0 }}
         >
           <path
@@ -36,13 +36,13 @@ const TypeIcon = ({ type }: { type: AppNotification['type'] }) => {
           width={size}
           height={size}
           viewBox="0 0 20 20"
-          fill="#f87171"
+          fill="#a85646"
           style={{ flexShrink: 0 }}
         >
           <circle cx="10" cy="10" r="8" />
           <path
             d="M7.5 7.5l5 5M12.5 7.5l-5 5"
-            stroke="var(--xp-bg, #0a0a1a)"
+            stroke="#efece3"
             strokeWidth="1.5"
             strokeLinecap="round"
           />
@@ -54,7 +54,7 @@ const TypeIcon = ({ type }: { type: AppNotification['type'] }) => {
           width={size}
           height={size}
           viewBox="0 0 20 20"
-          fill="#fbbf24"
+          fill="#b39a5d"
           style={{ flexShrink: 0 }}
         >
           <path d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495z" />
@@ -67,7 +67,7 @@ const TypeIcon = ({ type }: { type: AppNotification['type'] }) => {
           width={size}
           height={size}
           viewBox="0 0 20 20"
-          fill="#60a5fa"
+          fill="#6a6f8a"
           style={{ flexShrink: 0 }}
         >
           <path
@@ -158,8 +158,7 @@ const NotificationCenter = () => {
                 cursor: 'pointer',
                 background:
                   filter === tab.key ? 'var(--xp-blue-alpha, rgba(56,139,253,0.2))' : 'transparent',
-                color:
-                  filter === tab.key ? 'var(--xp-blue, #388bfd)' : 'var(--xp-text-muted, #6b7280)',
+                color: filter === tab.key ? 'var(--xp-blue, #388bfd)' : '#66655d',
               }}
             >
               {tab.label} ({count})
@@ -180,7 +179,7 @@ const NotificationCenter = () => {
               border: 'none',
               cursor: 'pointer',
               background: 'transparent',
-              color: 'var(--xp-text-muted, #6b7280)',
+              color: '#66655d',
             }}
             title={t('panels.notifications.clearAllTitle')}
           >
@@ -199,7 +198,7 @@ const NotificationCenter = () => {
               justifyContent: 'center',
               height: '100%',
               fontSize: 12,
-              color: 'var(--xp-text-muted, #6b7280)',
+              color: '#66655d',
             }}
           >
             {t('panels.notifications.noNotifications')}
@@ -245,7 +244,7 @@ const NotificationCenter = () => {
                   <div
                     style={{
                       fontSize: 11,
-                      color: 'var(--xp-text-muted, #6b7280)',
+                      color: '#66655d',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -260,7 +259,7 @@ const NotificationCenter = () => {
               <div
                 style={{
                   fontSize: 10,
-                  color: 'var(--xp-text-muted, #6b7280)',
+                  color: '#66655d',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
                   marginTop: 2,
@@ -276,7 +275,7 @@ const NotificationCenter = () => {
                   border: 'none',
                   cursor: 'pointer',
                   padding: 2,
-                  color: 'var(--xp-text-muted, #6b7280)',
+                  color: '#66655d',
                   opacity: 0.5,
                   flexShrink: 0,
                   marginTop: 1,

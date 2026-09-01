@@ -95,7 +95,7 @@ const VersioningSettings = () => {
         description={t('settings.versioning.fileVersioningSectionDesc')}
       >
         {error && (
-          <div className="mx-4 mb-2 rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-xp-red">
+          <div className="mx-4 mb-2 rounded-md border border-xp-red/20 bg-xp-red/10 px-3 py-2 text-xs text-xp-red">
             {error}
           </div>
         )}
@@ -141,7 +141,7 @@ const VersioningSettings = () => {
             <button
               onClick={saveConfig}
               disabled={saving}
-              className="bg-xp-accent/10 hover:bg-xp-accent/20 flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-xp-accent transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-md bg-xp-accent/10 px-3 py-1.5 text-xs font-medium text-xp-accent transition-colors hover:bg-xp-accent/20 disabled:opacity-50"
             >
               <Save size={14} />
               {saving ? t('settings.versioning.saving') : t('settings.versioning.saveChanges')}
@@ -168,7 +168,7 @@ const VersioningSettings = () => {
             <button
               onClick={addDirectory}
               disabled={!newDir.trim()}
-              className="bg-xp-accent/10 hover:bg-xp-accent/20 flex h-9 items-center gap-1.5 rounded-md px-3 text-xs font-medium text-xp-accent transition-colors disabled:opacity-50"
+              className="flex h-9 items-center gap-1.5 rounded-md bg-xp-accent/10 px-3 text-xs font-medium text-xp-accent transition-colors hover:bg-xp-accent/20 disabled:opacity-50"
             >
               <Plus size={14} />
               {t('settings.versioning.addDir')}
@@ -191,7 +191,7 @@ const VersioningSettings = () => {
             {config.enabled_dirs.map((dir) => (
               <div
                 key={dir}
-                className="bg-xp-surface/50 border-xp-border/30 flex items-center justify-between gap-2 rounded-md border px-3 py-2"
+                className="border-xp-border/30 flex items-center justify-between gap-2 rounded-md border bg-xp-surface/50 px-3 py-2"
               >
                 <div className="flex min-w-0 items-center gap-2">
                   <FolderOpen size={14} className="shrink-0 text-xp-text-secondary" />
@@ -201,7 +201,7 @@ const VersioningSettings = () => {
                 </div>
                 <button
                   onClick={() => removeDirectory(dir)}
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-red-500/10 hover:text-xp-red"
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-xp-red/10 hover:text-xp-red"
                   title={t('settings.versioning.stopTracking')}
                 >
                   <Trash2 size={13} />

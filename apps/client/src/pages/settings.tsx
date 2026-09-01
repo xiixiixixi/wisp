@@ -151,7 +151,7 @@ const MarketplaceSettings = ({
 }) => (
   <div className="space-y-4">
     <div className="mb-1 px-4 pb-1 pt-2">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-xp-text-secondary">
+      <h3 className="text-xs font-medium uppercase tracking-wider text-xp-text-secondary">
         {t('settings.marketplace.updatesSection')}
       </h3>
     </div>
@@ -211,7 +211,7 @@ const AboutUpdateCard = () => {
       return (
         <button
           onClick={installUpdate}
-          className="inline-flex items-center gap-2 rounded-md bg-xp-blue px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-xp-blue-dark"
+          className="inline-flex items-center gap-2 rounded-md bg-xp-blue px-4 py-2 text-sm font-medium text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark"
         >
           <Download size={14} />
           {t('updater.install')}
@@ -232,7 +232,7 @@ const AboutUpdateCard = () => {
 
   return (
     <div className="rounded-lg border border-xp-border p-4">
-      <h3 className="mb-3 text-sm font-semibold text-xp-text">{t('updater.title')}</h3>
+      <h3 className="mb-3 text-sm font-medium text-xp-text">{t('updater.title')}</h3>
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-xp-text-secondary">{statusText()}</p>
         {renderAction()}
@@ -430,7 +430,7 @@ const Settings = () => {
         return (
           <div className="space-y-4 px-4 py-2">
             <div className="rounded-lg border border-xp-border p-6 text-center">
-              <h2 className="mb-1 text-2xl font-bold text-xp-text">Wisp</h2>
+              <h2 className="mb-1 text-2xl font-medium text-xp-text">Wisp</h2>
               <p className="text-sm text-xp-text-muted">v{__APP_VERSION__}</p>
               <p className="mt-3 text-sm text-xp-text-secondary">
                 {t('settings.about.description')}
@@ -440,9 +440,7 @@ const Settings = () => {
             {isTauri() && <AboutUpdateCard />}
 
             <div className="rounded-lg border border-xp-border p-4">
-              <h3 className="mb-3 text-sm font-semibold text-xp-text">
-                {t('settings.about.links')}
-              </h3>
+              <h3 className="mb-3 text-sm font-medium text-xp-text">{t('settings.about.links')}</h3>
               <div className="space-y-4">
                 <button
                   onClick={() => TauriAPI.openUrl('https://github.com/xiixiixixi/wisp')}
@@ -467,7 +465,7 @@ const Settings = () => {
               <div className="flex items-start gap-3">
                 <Heart size={20} className="mt-0.5 flex-shrink-0 text-xp-blue" />
                 <div>
-                  <h3 className="text-sm font-semibold text-xp-text">
+                  <h3 className="text-sm font-medium text-xp-text">
                     {t('settings.about.sponsorTitle')}
                   </h3>
                   <p className="mt-1 text-sm leading-relaxed text-xp-text-secondary">
@@ -475,7 +473,7 @@ const Settings = () => {
                   </p>
                   <button
                     onClick={() => TauriAPI.openUrl('https://github.com/sponsors/xiixiixixi')}
-                    className="mt-3 inline-flex items-center gap-2 rounded-md bg-xp-blue px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-xp-blue/80"
+                    className="mt-3 inline-flex items-center gap-2 rounded-md bg-xp-blue px-4 py-2 text-sm font-medium text-[var(--xp-bg)] transition-colors hover:bg-xp-blue/80"
                   >
                     <Heart size={14} />
                     {t('settings.about.sponsorButton')}
@@ -494,7 +492,7 @@ const Settings = () => {
     <div className="flex h-screen flex-col overflow-hidden bg-xp-bg text-xp-text">
       {/* Header — draggable window region */}
       <div
-        className="border-xp-border/50 bg-xp-bg/80 shrink-0 border-b backdrop-blur-sm"
+        className="border-xp-border/50 bg-xp-bg/80 shrink-0 border-b"
         onMouseDown={handleHeaderMouseDown}
         onDoubleClick={handleHeaderDoubleClick}
       >
@@ -512,7 +510,7 @@ const Settings = () => {
           </Link>
           <img src={wispLogo} alt="" className="h-8 w-8 rounded-[10px]" aria-hidden="true" />
           <div>
-            <h1 className="text-lg font-semibold leading-tight text-xp-text">
+            <h1 className="text-lg font-medium leading-tight text-xp-text">
               {t('settings.title')}
             </h1>
             <p className="text-xs text-xp-text-secondary">{t('settings.subtitle')}</p>
@@ -562,7 +560,7 @@ const Settings = () => {
             <div className="max-w-3xl">
               {/* Tab heading */}
               <div className="mb-4 px-4">
-                <h2 className="text-xl font-semibold text-xp-text">
+                <h2 className="text-xl font-medium text-xp-text">
                   {tabs.find((t) => t.id === activeTab)?.label}
                 </h2>
                 <p className="mt-0.5 text-sm text-xp-text-secondary">

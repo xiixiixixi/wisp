@@ -125,7 +125,7 @@ export const Dialog = ({
   return (
     <DialogContext.Provider value={{ titleId }}>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
         onClick={handleBackdropClick}
       >
         <div
@@ -134,7 +134,7 @@ export const Dialog = ({
           aria-modal="true"
           aria-labelledby={titleId}
           tabIndex={-1}
-          className="bg-xp-popover border-xp-border mx-4 max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-lg border shadow-xl"
+          className="mx-4 max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-lg border border-xp-border bg-xp-popover shadow-xl"
           style={{ outline: 'none' }}
           onClick={(e) => e.stopPropagation()}
           onKeyDown={handleKeyDown}
@@ -160,7 +160,7 @@ interface DialogHeaderProps {
 }
 
 export const DialogHeader = ({ children }: DialogHeaderProps) => {
-  return <div className="border-xp-border mb-4 border-b pb-4">{children}</div>;
+  return <div className="mb-4 border-b border-xp-border pb-4">{children}</div>;
 };
 
 interface DialogTitleProps {
@@ -175,7 +175,7 @@ export const DialogTitle = ({ children, className = '', id: idProp }: DialogTitl
   const resolvedId = idProp ?? ctx?.titleId;
 
   return (
-    <h2 id={resolvedId} className={`text-xp-text text-xl font-semibold ${className}`}>
+    <h2 id={resolvedId} className={`text-xl font-semibold text-xp-text ${className}`}>
       {children}
     </h2>
   );
@@ -186,7 +186,7 @@ interface DialogDescriptionProps {
 }
 
 export const DialogDescription = ({ children }: DialogDescriptionProps) => {
-  return <p className="text-xp-text-secondary mt-2 text-sm">{children}</p>;
+  return <p className="mt-2 text-sm text-xp-text-secondary">{children}</p>;
 };
 
 interface DialogTriggerProps {
@@ -203,5 +203,5 @@ interface DialogFooterProps {
 }
 
 export const DialogFooter = ({ children }: DialogFooterProps) => {
-  return <div className="border-xp-border flex justify-end gap-2 border-t pt-4">{children}</div>;
+  return <div className="flex justify-end gap-2 border-t border-xp-border pt-4">{children}</div>;
 };

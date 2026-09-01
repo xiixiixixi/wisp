@@ -43,13 +43,13 @@ interface AgentBottomPanelProps {
 // ---------------------------------------------------------------------------
 
 const SESSION_STATUS_COLORS: Record<AgentSessionStatus, string> = {
-  idle: 'var(--xp-text-muted, #888)',
-  thinking: 'var(--xp-green, #73daca)',
-  executing: 'var(--xp-green, #73daca)',
-  waiting_approval: 'var(--xp-warning, #e0af68)',
-  done: 'var(--xp-blue, #7aa2f7)',
-  error: 'var(--xp-red, #f7768e)',
-  cancelled: 'var(--xp-text-muted, #888)',
+  idle: 'var(--xp-text-muted)',
+  thinking: 'var(--xp-green)',
+  executing: 'var(--xp-green)',
+  waiting_approval: 'var(--xp-orange)',
+  done: 'var(--xp-blue)',
+  error: 'var(--xp-red)',
+  cancelled: 'var(--xp-text-muted)',
 };
 
 const isSessionActive = (status: AgentSessionStatus): boolean =>
@@ -90,9 +90,9 @@ const CompactAgentCard = ({
         alignItems: 'center',
         gap: '6px',
         padding: '4px 8px',
-        border: isSelected ? '1px solid var(--xp-blue, #7aa2f7)' : '1px solid var(--xp-border)',
+        border: isSelected ? '1px solid var(--xp-blue)' : '1px solid var(--xp-border)',
         borderRadius: '4px',
-        background: isSelected ? 'rgba(122, 162, 247, 0.1)' : 'var(--xp-surface, #24283b)',
+        background: isSelected ? 'rgb(var(--xp-blue-rgb) / 0.1)' : 'var(--xp-surface)',
         cursor: 'pointer',
         color: 'var(--xp-text)',
         whiteSpace: 'nowrap',
@@ -180,7 +180,7 @@ const CompactMessageView = ({
                 style={{
                   fontSize: '9px',
                   fontWeight: 600,
-                  color: isUser ? 'var(--xp-blue, #7aa2f7)' : 'var(--xp-green, #73daca)',
+                  color: isUser ? 'var(--xp-blue)' : 'var(--xp-green)',
                   marginRight: '6px',
                 }}
               >
@@ -234,7 +234,7 @@ const CompactMessageView = ({
             <span
               style={{
                 fontSize: '10px',
-                color: 'var(--xp-warning, #e0af68)',
+                color: 'var(--xp-orange)',
                 fontWeight: 500,
                 flex: 1,
                 overflow: 'hidden',
@@ -250,9 +250,9 @@ const CompactMessageView = ({
                 style={{
                   padding: '2px 6px',
                   borderRadius: '3px',
-                  border: '1px solid var(--xp-green, #73daca)',
-                  background: 'rgba(115, 218, 202, 0.15)',
-                  color: 'var(--xp-green, #73daca)',
+                  border: '1px solid var(--xp-green)',
+                  background: 'rgb(var(--xp-cyan-rgb) / 0.15)',
+                  color: 'var(--xp-green)',
                   cursor: 'pointer',
                   fontSize: '9px',
                   fontWeight: 600,
@@ -267,9 +267,9 @@ const CompactMessageView = ({
                 style={{
                   padding: '2px 6px',
                   borderRadius: '3px',
-                  border: '1px solid var(--xp-red, #f7768e)',
-                  background: 'rgba(247, 118, 142, 0.15)',
-                  color: 'var(--xp-red, #f7768e)',
+                  border: '1px solid var(--xp-red)',
+                  background: 'rgb(var(--xp-red-rgb) / 0.15)',
+                  color: 'var(--xp-red)',
                   cursor: 'pointer',
                   fontSize: '9px',
                   fontWeight: 600,
@@ -471,10 +471,10 @@ const AgentBottomPanel = ({
                   right: 0,
                   maxWidth: '300px',
                   zIndex: 100,
-                  background: 'var(--xp-surface, #24283b)',
+                  background: 'var(--xp-surface)',
                   border: '1px solid var(--xp-border)',
                   borderRadius: '4px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                  boxShadow: '0 0 0 1px var(--xp-border)',
                   maxHeight: '200px',
                   overflowY: 'auto',
                 }}
@@ -497,7 +497,7 @@ const AgentBottomPanel = ({
                         border: 'none',
                         background:
                           session.id === selectedSessionId
-                            ? 'rgba(122, 162, 247, 0.1)'
+                            ? 'rgb(var(--xp-blue-rgb) / 0.1)'
                             : 'transparent',
                         cursor: 'pointer',
                         color: 'var(--xp-text)',
@@ -539,7 +539,7 @@ const AgentBottomPanel = ({
         {activeCount > 0 && (
           <span
             style={{
-              background: 'var(--xp-green, #73daca)',
+              background: 'var(--xp-green)',
               color: '#fff',
               fontSize: '9px',
               fontWeight: 700,
@@ -563,11 +563,11 @@ const AgentBottomPanel = ({
               alignItems: 'center',
               gap: '3px',
               padding: '3px 8px',
-              border: '1px solid var(--xp-red, #f7768e)',
+              border: '1px solid var(--xp-red)',
               borderRadius: '4px',
-              background: 'rgba(247, 118, 142, 0.1)',
+              background: 'rgb(var(--xp-red-rgb) / 0.1)',
               cursor: 'pointer',
-              color: 'var(--xp-red, #f7768e)',
+              color: 'var(--xp-red)',
               fontSize: '10px',
               flexShrink: 0,
             }}
@@ -648,9 +648,7 @@ const AgentBottomPanel = ({
               padding: '4px 8px',
               borderRadius: '4px',
               border: 'none',
-              background: inputValue.trim()
-                ? 'var(--xp-blue, #7aa2f7)'
-                : 'var(--xp-surface-light, #333)',
+              background: inputValue.trim() ? 'var(--xp-blue)' : 'var(--xp-surface-light)',
               color: inputValue.trim() ? '#fff' : 'var(--xp-text-muted)',
               cursor: inputValue.trim() ? 'pointer' : 'default',
               opacity: inputValue.trim() ? 1 : 0.5,

@@ -80,7 +80,7 @@ const MOCK_MARKETPLACE_SKILLS: MarketplaceSkill[] = [
     author: 'dbtools',
     installCount: 2450,
     rating: 4.7,
-    accentColor: 'var(--xp-blue, #7aa2f7)',
+    accentColor: 'var(--xp-blue)',
     systemPrompt:
       'You are a database migration specialist. Analyze the current database schema files and generate safe, reversible migration scripts. Always include rollback instructions.',
     defaultModel: 'claude-sonnet-4-20250514',
@@ -97,7 +97,7 @@ const MOCK_MARKETPLACE_SKILLS: MarketplaceSkill[] = [
     author: 'apiforge',
     installCount: 1830,
     rating: 4.5,
-    accentColor: 'var(--xp-green, #73daca)',
+    accentColor: 'var(--xp-green)',
     systemPrompt:
       'You are an API documentation expert. Scan source files for route handlers, extract request/response types, and generate comprehensive OpenAPI 3.0 specifications with examples.',
     defaultModel: 'claude-sonnet-4-20250514',
@@ -114,7 +114,7 @@ const MOCK_MARKETPLACE_SKILLS: MarketplaceSkill[] = [
     author: 'depbot',
     installCount: 3120,
     rating: 4.8,
-    accentColor: 'var(--xp-warning, #e0af68)',
+    accentColor: 'var(--xp-orange)',
     systemPrompt:
       'You are a dependency management specialist. Analyze package manifests, identify outdated dependencies, check changelogs for breaking changes, and suggest a safe upgrade path with migration steps.',
     defaultModel: 'claude-sonnet-4-20250514',
@@ -131,7 +131,7 @@ const MOCK_MARKETPLACE_SKILLS: MarketplaceSkill[] = [
     author: 'globaldev',
     installCount: 980,
     rating: 4.3,
-    accentColor: 'var(--xp-purple, #bb9af7)',
+    accentColor: 'var(--xp-purple)',
     systemPrompt:
       'You are an internationalization expert. Scan source files for hardcoded user-facing strings, extract them to i18n locale files using the project conventions, and generate translations for target languages. Preserve context and tone.',
     defaultModel: 'claude-sonnet-4-20250514',
@@ -148,7 +148,7 @@ const MOCK_MARKETPLACE_SKILLS: MarketplaceSkill[] = [
     author: 'citools',
     installCount: 1560,
     rating: 4.6,
-    accentColor: 'var(--xp-cyan, #7dcfff)',
+    accentColor: 'var(--xp-cyan)',
     systemPrompt:
       'You are a CI/CD pipeline expert. Analyze the project structure, detect the tech stack, and generate a comprehensive CI/CD configuration with stages for linting, testing, building, and deployment. Follow best practices for caching and parallelism.',
     defaultModel: 'claude-sonnet-4-20250514',
@@ -165,7 +165,7 @@ const MOCK_MARKETPLACE_SKILLS: MarketplaceSkill[] = [
     author: 'a11ydev',
     installCount: 720,
     rating: 4.4,
-    accentColor: 'var(--xp-teal, #2ac3de)',
+    accentColor: 'var(--xp-cyan)',
     systemPrompt:
       'You are an accessibility expert. Audit React and HTML components for WCAG 2.1 AA compliance. Identify missing ARIA attributes, incorrect roles, keyboard navigation issues, color contrast problems, and semantic HTML violations. Provide specific fixes.',
     defaultModel: 'claude-sonnet-4-20250514',
@@ -195,7 +195,7 @@ const StarRating = ({ rating }: { rating: number }) => (
       alignItems: 'center',
       gap: '2px',
       fontSize: '9px',
-      color: 'var(--xp-warning, #e0af68)',
+      color: 'var(--xp-orange)',
     }}
   >
     <Star size={9} style={{ fill: 'currentColor' }} />
@@ -344,7 +344,7 @@ const SkillCard = ({
               fontSize: '8px',
               padding: '1px 4px',
               borderRadius: '3px',
-              background: 'var(--xp-surface-light, rgba(255,255,255,0.05))',
+              background: 'var(--xp-surface-light)',
               color: 'var(--xp-text-muted)',
             }}
           >
@@ -398,11 +398,11 @@ const SkillCard = ({
               gap: '4px',
               padding: '4px 8px',
               borderRadius: '4px',
-              border: '1px solid var(--xp-green, #73daca)',
+              border: '1px solid var(--xp-green)',
               background: isInstalling
-                ? 'var(--xp-surface-light, rgba(255,255,255,0.05))'
-                : 'rgba(115, 218, 202, 0.15)',
-              color: 'var(--xp-green, #73daca)',
+                ? 'var(--xp-surface-light)'
+                : 'rgb(var(--xp-cyan-rgb) / 0.15)',
+              color: 'var(--xp-green)',
               cursor: isInstalling ? 'default' : 'pointer',
               fontSize: '10px',
               fontWeight: 600,
@@ -558,7 +558,7 @@ const AgentSkillsBrowser = ({ onSelectSkill, disabled }: AgentSkillsBrowserProps
               fontWeight: 600,
               padding: '2px 6px',
               borderRadius: '8px',
-              background: 'var(--xp-green, #73daca)',
+              background: 'var(--xp-green)',
               color: '#fff',
               flexShrink: 0,
             }}

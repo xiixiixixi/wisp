@@ -340,7 +340,7 @@ const ChatHeader = ({
             <span>+ Add context files</span>
           </button>
           {state.isContextDropdownOpen && (
-            <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 rounded border border-xp-border bg-xp-popover shadow-xl backdrop-blur-xl">
+            <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 rounded border border-xp-border bg-xp-popover">
               <div className="border-b border-xp-border p-2">
                 <input
                   type="text"

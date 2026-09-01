@@ -106,7 +106,7 @@ const tabStyle: React.CSSProperties = {
 
 const activeTabStyle: React.CSSProperties = {
   ...tabStyle,
-  background: 'var(--xp-surface-light, rgba(255,255,255,0.08))',
+  background: 'var(--xp-surface-light)',
   borderColor: 'var(--xp-border)',
   color: 'var(--xp-text)',
 };
@@ -126,7 +126,7 @@ const extBadgeStyle: React.CSSProperties = {
   width: 20,
   height: 20,
   borderRadius: 3,
-  background: 'var(--xp-bg, rgba(0,0,0,0.2))',
+  background: 'var(--xp-bg)',
   color: 'var(--xp-text-secondary)',
   fontSize: 8,
   fontWeight: 600,
@@ -164,7 +164,7 @@ const dropdownStyle: React.CSSProperties = {
   background: 'var(--xp-surface)',
   border: '1px solid var(--xp-border)',
   borderRadius: 6,
-  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+  boxShadow: '0 0 0 1px var(--xp-border)',
   padding: '4px 0',
   marginTop: 2,
 };
@@ -201,9 +201,9 @@ const compareToggleStyle: React.CSSProperties = {
 
 const compareToggleActiveStyle: React.CSSProperties = {
   ...compareToggleStyle,
-  background: 'rgba(122, 162, 247, 0.15)',
-  borderColor: 'var(--xp-blue, #7aa2f7)',
-  color: 'var(--xp-blue, #7aa2f7)',
+  background: 'rgb(var(--xp-blue-rgb) / 0.15)',
+  borderColor: 'var(--xp-blue)',
+  color: 'var(--xp-blue)',
 };
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -327,7 +327,7 @@ const PreviewNavigationBar = ({
           aria-label="Previous file"
           onMouseEnter={(e) => {
             if (canPrev) {
-              e.currentTarget.style.background = 'var(--xp-surface-light, rgba(255,255,255,0.06))';
+              e.currentTarget.style.background = 'var(--xp-surface-light)';
             }
           }}
           onMouseLeave={(e) => {
@@ -349,7 +349,7 @@ const PreviewNavigationBar = ({
           aria-label="Next file"
           onMouseEnter={(e) => {
             if (canNext) {
-              e.currentTarget.style.background = 'var(--xp-surface-light, rgba(255,255,255,0.06))';
+              e.currentTarget.style.background = 'var(--xp-surface-light)';
             }
           }}
           onMouseLeave={(e) => {
@@ -368,8 +368,7 @@ const PreviewNavigationBar = ({
             aria-label="Compare with previous file"
             onMouseEnter={(e) => {
               if (!compareMode) {
-                e.currentTarget.style.background =
-                  'var(--xp-surface-light, rgba(255,255,255,0.06))';
+                e.currentTarget.style.background = 'var(--xp-surface-light)';
               }
             }}
             onMouseLeave={(e) => {
@@ -396,7 +395,7 @@ const PreviewNavigationBar = ({
             title={i18n.t('previewNav.recentPreviewed')}
             aria-label="Recently previewed files"
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--xp-surface-light, rgba(255,255,255,0.06))';
+              e.currentTarget.style.background = 'var(--xp-surface-light)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
@@ -430,8 +429,7 @@ const PreviewNavigationBar = ({
                       setRecentOpen(false);
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background =
-                        'var(--xp-surface-light, rgba(255,255,255,0.06))';
+                      e.currentTarget.style.background = 'var(--xp-surface-light)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = 'transparent';
@@ -484,8 +482,7 @@ const PreviewNavigationBar = ({
               aria-current={isActive ? 'true' : undefined}
               onMouseEnter={(e) => {
                 if (!isActive) {
-                  e.currentTarget.style.background =
-                    'var(--xp-surface-light, rgba(255,255,255,0.06))';
+                  e.currentTarget.style.background = 'var(--xp-surface-light)';
                 }
               }}
               onMouseLeave={(e) => {

@@ -27,10 +27,10 @@ interface RecentActionsProps {
 // ---------------------------------------------------------------------------
 
 const RESULT_ICON: Record<AuditResult, React.ReactNode> = {
-  success: <CheckCircle size={12} style={{ color: 'var(--xp-green, #73daca)' }} />,
+  success: <CheckCircle size={12} style={{ color: 'var(--xp-green)' }} />,
   rejected: <XCircle size={12} style={{ color: 'var(--xp-text-muted)' }} />,
-  failed: <AlertTriangle size={12} style={{ color: 'var(--xp-error, #f7768e)' }} />,
-  blocked: <ShieldX size={12} style={{ color: 'var(--xp-warning, #e0af68)' }} />,
+  failed: <AlertTriangle size={12} style={{ color: 'var(--xp-red)' }} />,
+  blocked: <ShieldX size={12} style={{ color: 'var(--xp-orange)' }} />,
 };
 
 const RESULT_LABEL_KEY: Record<AuditResult, string> = {
@@ -194,7 +194,7 @@ const RecentActions = ({ maxItems = 30, onUndo }: RecentActionsProps) => {
                   borderRadius: '3px',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = 'var(--xp-blue, #7aa2f7)';
+                  e.currentTarget.style.color = 'var(--xp-blue)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.color = 'var(--xp-text-muted)';

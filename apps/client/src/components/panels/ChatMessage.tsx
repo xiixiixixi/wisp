@@ -129,7 +129,7 @@ export const summarizeToolInput = (name: string, input: Record<string, unknown>)
 const ThinkingBlock = ({ content }: { content: string }) => {
   return (
     <details className="mb-2 overflow-hidden rounded-lg border border-xp-border">
-      <summary className="hover:bg-xp-bg-hover flex cursor-pointer select-none items-center gap-1.5 px-3 py-1.5 text-xs text-xp-text-muted">
+      <summary className="flex cursor-pointer select-none items-center gap-1.5 px-3 py-1.5 text-xs text-xp-text-muted hover:bg-xp-surface-light">
         <svg className="h-3 w-3 flex-shrink-0 text-xp-cyan" fill="currentColor" viewBox="0 0 20 20">
           <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM4 11a1 1 0 100-2H3a1 1 0 000 2h1zM10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 110-12 6 6 0 010 12z" />
         </svg>
@@ -193,7 +193,7 @@ export const ToolCallItem = React.memo(({ toolCall: tc, onToggleExpand }: ToolCa
     <div className="overflow-hidden rounded-lg border border-xp-border bg-xp-bg">
       <button
         onClick={() => onToggleExpand(tc.id)}
-        className="hover:bg-xp-bg-hover flex w-full min-w-0 items-center space-x-2 px-3 py-2 text-xs transition-colors"
+        className="flex w-full min-w-0 items-center space-x-2 px-3 py-2 text-xs transition-colors hover:bg-xp-surface-light"
         aria-label={`${tc.expanded ? 'Collapse' : 'Expand'} tool call: ${tc.name}`}
         aria-expanded={tc.expanded}
       >
@@ -339,7 +339,7 @@ export const PendingApprovalCard = ({
   onApproval,
 }: PendingApprovalCardProps) => {
   return (
-    <div className="bg-xp-yellow/10 rounded-lg border border-xp-yellow p-3">
+    <div className="rounded-lg border border-xp-yellow bg-xp-yellow/10 p-3">
       <div className="mb-2 flex items-center space-x-2">
         <svg className="h-4 w-4 text-xp-yellow" fill="currentColor" viewBox="0 0 20 20">
           <path

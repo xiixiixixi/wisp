@@ -218,9 +218,7 @@ export const backdropStyle: React.CSSProperties = {
   alignItems: 'flex-start',
   justifyContent: 'center',
   paddingTop: '11vh',
-  backgroundColor: 'rgba(4, 5, 14, 0.68)',
-  backdropFilter: 'blur(10px)',
-  WebkitBackdropFilter: 'blur(10px)',
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
 };
 
 export const dialogStyle: React.CSSProperties = {
@@ -228,14 +226,11 @@ export const dialogStyle: React.CSSProperties = {
   maxHeight: '68vh',
   display: 'flex',
   flexDirection: 'column',
-  background:
-    'linear-gradient(165deg, color-mix(in srgb, var(--xp-popover, #1a1b2e) 96%, #7c3aed 4%), var(--xp-popover, #1a1b2e))',
-  border: '1px solid color-mix(in srgb, var(--xp-border, #292e42) 70%, #8b5cf6 30%)',
-  borderRadius: '16px',
+  background: 'var(--xp-popover, #1a1b2e)',
+  border: '1px solid var(--xp-border, #292e42)',
+  borderRadius: '8px',
   boxShadow: 'var(--xp-shadow-popover)',
   overflow: 'hidden',
-  backdropFilter: 'blur(24px)',
-  WebkitBackdropFilter: 'blur(24px)',
 };
 
 export const searchBarStyle: React.CSSProperties = {
@@ -295,7 +290,7 @@ export const loadingSpinnerStyle: React.CSSProperties = {
   width: '12px',
   height: '12px',
   borderRadius: '50%',
-  border: '2px solid var(--xp-blue, #7aa2f7)',
+  border: '2px solid var(--xp-text-muted, #565f89)',
   borderTopColor: 'transparent',
   animation: 'spin 1s linear infinite',
 };
@@ -369,8 +364,8 @@ export const StarIcon = React.memo(({ filled, size = 14 }: { filled: boolean; si
       width={size}
       height={size}
       viewBox="0 0 24 24"
-      fill={filled ? 'var(--xp-yellow, #e0af68)' : 'none'}
-      stroke={filled ? 'var(--xp-yellow, #e0af68)' : 'currentColor'}
+      fill={filled ? '#b39a5d' : 'none'}
+      stroke={filled ? '#b39a5d' : 'currentColor'}
       strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"

@@ -540,9 +540,8 @@ const QuickLookOverlay = ({ file, onClose }: QuickLookOverlayProps) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: visible && !closing ? 'rgba(0, 0, 0, 0.55)' : 'rgba(0, 0, 0, 0)',
-        backdropFilter: visible && !closing ? 'blur(4px)' : 'blur(0px)',
-        transition: 'background-color 0.2s ease, backdrop-filter 0.2s ease',
+        backgroundColor: visible && !closing ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0)',
+        transition: 'background-color 0.2s ease',
       }}
     >
       <div
@@ -553,11 +552,11 @@ const QuickLookOverlay = ({ file, onClose }: QuickLookOverlayProps) => {
           maxHeight: 500,
           display: 'flex',
           flexDirection: 'column',
-          borderRadius: 10,
+          borderRadius: 8,
           overflow: 'hidden',
           border: '1px solid var(--xp-border)',
           backgroundColor: 'var(--xp-bg)',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+          boxShadow: 'var(--xp-shadow-popover)',
           opacity: visible && !closing ? 1 : 0,
           transform: visible && !closing ? 'scale(1)' : 'scale(0.95)',
           transition: 'opacity 0.2s ease, transform 0.2s ease',

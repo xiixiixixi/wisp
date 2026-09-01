@@ -67,8 +67,8 @@ const ChatSessionSidebar = ({
             .map((session) => (
               <div
                 key={session.id}
-                className={`hover:bg-xp-bg-hover group flex cursor-pointer items-center gap-2 px-3 py-2 text-xs transition-colors ${
-                  currentSessionId === session.id ? 'bg-xp-blue/10 border-l-2 border-xp-blue' : ''
+                className={`group flex cursor-pointer items-center gap-2 px-3 py-2 text-xs transition-colors hover:bg-xp-surface-light ${
+                  currentSessionId === session.id ? 'border-l-2 border-xp-blue bg-xp-blue/10' : ''
                 }`}
                 onClick={() => {
                   onLoadSession?.(session.id);

@@ -18,7 +18,6 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    backdropFilter: 'blur(4px)',
     animation: 'fadeIn 150ms ease-out',
   },
   dialog: {
@@ -27,10 +26,10 @@ const styles = {
     maxWidth: '560px',
     maxHeight: '80vh',
     margin: '0 16px',
-    borderRadius: '12px',
+    borderRadius: '8px',
     backgroundColor: 'var(--xp-popover)',
     border: '1px solid var(--xp-border)',
-    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+    boxShadow: 'var(--xp-shadow-popover)',
     display: 'flex',
     flexDirection: 'column' as const,
     overflow: 'hidden',
@@ -85,7 +84,7 @@ const styles = {
     justifyContent: 'center',
     gap: '6px',
     padding: '14px 10px',
-    borderRadius: '10px',
+    borderRadius: '8px',
     border: '1px solid var(--xp-border)',
     backgroundColor: 'var(--xp-surface)',
     cursor: 'pointer',
@@ -165,10 +164,8 @@ const styles = {
     minWidth: '160px',
     borderRadius: '8px',
     backgroundColor: 'var(--xp-surface)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
     border: '1px solid var(--xp-border)',
-    boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+    boxShadow: 'var(--xp-shadow-popover)',
     padding: '4px',
     animation: 'fadeIn 100ms ease-out',
   },
@@ -380,7 +377,8 @@ const PathBookmarksDialog = React.memo(
                 height="18"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="var(--xp-text-secondary)"
+                stroke="currentColor"
+                className="text-[var(--xp-text-secondary)]"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -467,7 +465,8 @@ const PathBookmarksDialog = React.memo(
                               width="20"
                               height="20"
                               viewBox="0 0 24 24"
-                              fill="var(--xp-blue)"
+                              fill="currentColor"
+                              className="text-[var(--xp-blue)]"
                               stroke="none"
                             >
                               <path d="M2 6a2 2 0 0 1 2-2h5l2 2h9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6z" />

@@ -43,7 +43,7 @@ const CostBadge = ({
       gap: '3px',
       fontSize: '9px',
       color: 'var(--xp-text-muted)',
-      background: 'var(--xp-surface-light, rgba(255,255,255,0.05))',
+      background: 'var(--xp-surface-light)',
       borderRadius: '3px',
       padding: '1px 5px',
       whiteSpace: 'nowrap',
@@ -100,7 +100,7 @@ const CostTracker = ({
           border: '1px solid var(--xp-border)',
         }}
       >
-        <DollarSign size={14} style={{ color: 'var(--xp-green, #73daca)', flexShrink: 0 }} />
+        <DollarSign size={14} style={{ color: 'var(--xp-green)', flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{
@@ -140,7 +140,7 @@ const CostTracker = ({
               color: 'var(--xp-text-muted)',
             }}
           >
-            <ArrowDown size={8} style={{ color: 'var(--xp-blue, #7aa2f7)' }} />
+            <ArrowDown size={8} style={{ color: 'var(--xp-blue)' }} />
             {formatTokens(todayTotalTokensIn)} {t('agentManager.costTracker.tokensIn')}
           </div>
           <div
@@ -152,7 +152,7 @@ const CostTracker = ({
               color: 'var(--xp-text-muted)',
             }}
           >
-            <ArrowUp size={8} style={{ color: 'var(--xp-green, #73daca)' }} />
+            <ArrowUp size={8} style={{ color: 'var(--xp-green)' }} />
             {formatTokens(todayTotalTokensOut)} {t('agentManager.costTracker.tokensOut')}
           </div>
         </div>

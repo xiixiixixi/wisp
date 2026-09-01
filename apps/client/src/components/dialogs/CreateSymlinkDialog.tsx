@@ -122,7 +122,7 @@ const CreateSymlinkDialog = ({
         style={{
           backgroundColor: 'var(--xp-surface)',
           borderRadius: '0.5rem',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          boxShadow: 'var(--xp-shadow-popover)',
           width: '480px',
           maxWidth: '90vw',
           overflow: 'hidden',
@@ -294,15 +294,15 @@ const CreateSymlinkDialog = ({
                 gap: '0.5rem',
                 padding: '0.75rem',
                 borderRadius: '0.375rem',
-                backgroundColor: 'rgba(234, 179, 8, 0.1)',
-                border: '1px solid rgba(234, 179, 8, 0.3)',
+                backgroundColor: 'rgb(var(--xp-yellow-rgb) / 0.1)',
+                border: '1px solid rgb(var(--xp-yellow-rgb) / 0.3)',
               }}
             >
               <AlertTriangle
                 size={16}
-                style={{ color: '#eab308', marginTop: '0.125rem', flexShrink: 0 }}
+                style={{ color: 'var(--xp-yellow)', marginTop: '0.125rem', flexShrink: 0 }}
               />
-              <span style={{ fontSize: '0.8rem', color: '#eab308', lineHeight: 1.5 }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--xp-yellow)', lineHeight: 1.5 }}>
                 {t('dialogs.symlink.windowsAdminWarning')}
               </span>
             </div>
@@ -317,15 +317,15 @@ const CreateSymlinkDialog = ({
                 gap: '0.5rem',
                 padding: '0.75rem',
                 borderRadius: '0.375rem',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
+                backgroundColor: 'rgb(var(--xp-red-rgb) / 0.1)',
+                border: '1px solid rgb(var(--xp-red-rgb) / 0.3)',
               }}
             >
               <AlertTriangle
                 size={16}
-                style={{ color: '#ef4444', marginTop: '0.125rem', flexShrink: 0 }}
+                style={{ color: 'var(--xp-red)', marginTop: '0.125rem', flexShrink: 0 }}
               />
-              <span style={{ fontSize: '0.8rem', color: '#ef4444' }}>{error}</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--xp-red)' }}>{error}</span>
             </div>
           )}
 

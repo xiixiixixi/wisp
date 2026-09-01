@@ -88,7 +88,7 @@ const ChatHistoryView = ({
             alignItems: 'center',
             gap: '8px',
             background:
-              conv.id === currentConversationId ? 'rgba(122, 162, 247, 0.1)' : 'transparent',
+              conv.id === currentConversationId ? 'rgb(var(--xp-blue-rgb) / 0.1)' : 'transparent',
           }}
           onClick={() => onLoad(conv)}
           onMouseEnter={(e) => {
@@ -141,7 +141,7 @@ const ChatHistoryView = ({
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.opacity = '1';
-              e.currentTarget.style.color = 'var(--xp-red, #f7768e)';
+              e.currentTarget.style.color = 'var(--xp-red)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.opacity = '0.5';

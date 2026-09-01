@@ -82,9 +82,9 @@ const BatchRename = ({ files, onDone }: { files: FileEntry[]; onDone: () => void
         <button
           type="button"
           onClick={() => setUseRegex((v) => !v)}
-          className={`flex h-6 items-center gap-1 rounded-full px-2 text-[10px] transition-colors ${
+          className={`flex h-6 items-center gap-1 rounded px-2 text-[10px] transition-colors ${
             useRegex
-              ? 'bg-xp-lime text-[#1d1c1a]'
+              ? 'bg-xp-lime text-xp-bg'
               : 'bg-card text-xp-text-secondary shadow-[0_1px_5px_rgba(29,28,26,0.08)]'
           }`}
           title={t('performanceDashboard.regexToggle')}
@@ -117,7 +117,7 @@ const BatchRename = ({ files, onDone }: { files: FileEntry[]; onDone: () => void
           type="button"
           onClick={runPreview}
           disabled={!findText || renamable.length === 0}
-          className="flex h-7 flex-1 items-center justify-center gap-1 rounded-full bg-card px-3 text-[11px] font-medium text-xp-text shadow-[0_1px_5px_rgba(29,28,26,0.08)] transition-transform hover:-translate-y-px disabled:opacity-40"
+          className="flex h-7 flex-1 items-center justify-center gap-1 rounded border border-xp-border bg-xp-surface px-3 text-[11px] font-medium text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-40"
         >
           <Wand2 size={11} aria-hidden="true" />
           {t('performanceDashboard.previewRename')}
@@ -127,7 +127,7 @@ const BatchRename = ({ files, onDone }: { files: FileEntry[]; onDone: () => void
             type="button"
             onClick={execute}
             disabled={running}
-            className="flex h-7 items-center gap-1 rounded-full bg-xp-blue px-3.5 text-[11px] font-medium text-white disabled:opacity-50"
+            className="flex h-7 items-center gap-1 rounded bg-xp-text px-3.5 text-[11px] font-medium text-xp-bg disabled:opacity-50"
           >
             <Check size={11} aria-hidden="true" />
             {running

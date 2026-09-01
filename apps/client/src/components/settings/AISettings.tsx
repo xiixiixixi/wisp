@@ -286,7 +286,7 @@ const AISettings = ({
                 {settings.aiCustomProvider === 'openai-compatible' && (
                   <>
                     {/* One-tap presets for common OpenAI-compatible services */}
-                    <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+                    <div className="rounded-lg px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
                       <div className="mb-2 flex items-center gap-3">
                         <Zap size={18} className="shrink-0 text-xp-text-secondary" />
                         <div className="text-xs text-xp-text-secondary">
@@ -303,14 +303,14 @@ const AISettings = ({
                               updateSetting('aiCustomEndpoint', preset.endpoint);
                               updateSetting('aiCustomModel', preset.model);
                             }}
-                            className="rounded-full border border-xp-border bg-xp-surface px-3 py-1 text-xs text-xp-text transition-colors hover:border-xp-accent"
+                            className="rounded border border-xp-border bg-xp-surface px-3 py-1 text-xs text-xp-text transition-colors hover:border-xp-accent"
                           >
                             {preset.label}
                           </button>
                         ))}
                       </div>
                     </div>
-                    <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+                    <div className="rounded-lg px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
                       <div className="mb-2 flex items-center gap-3">
                         <Workflow size={18} className="shrink-0 text-xp-text-secondary" />
                         <div>
@@ -344,7 +344,7 @@ const AISettings = ({
                         </Select>
                       </div>
                     </div>
-                    <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+                    <div className="rounded-lg px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
                       <div className="mb-2 flex items-center gap-3">
                         <Globe size={18} className="shrink-0 text-xp-text-secondary" />
                         <div>
@@ -374,7 +374,7 @@ const AISettings = ({
                 )}
 
                 {/* Custom model text input */}
-                <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+                <div className="rounded-lg px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
                   <div className="mb-2 flex items-center gap-3">
                     <Brain size={18} className="shrink-0 text-xp-text-secondary" />
                     <div>
@@ -409,7 +409,7 @@ const AISettings = ({
 
                 {/* Custom API key — not shown for Ollama */}
                 {settings.aiCustomProvider !== 'ollama' && (
-                  <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+                  <div className="rounded-lg px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
                     <div className="mb-2 flex items-center gap-3">
                       <Key size={18} className="shrink-0 text-xp-text-secondary" />
                       <div>
@@ -452,7 +452,7 @@ const AISettings = ({
           </SettingsSection>{' '}
           <SettingsSection title={t('settings.ai.agentAdvanced')}>
             {/* Anthropic API Key */}
-            <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+            <div className="rounded-lg px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
               <div className="mb-2 flex items-center gap-3">
                 <Key size={18} className="shrink-0 text-xp-text-secondary" />
                 <div>
@@ -553,7 +553,7 @@ const AISettings = ({
 
             {/* Third-party API Key — shows when a non-Anthropic model is selected */}
             {isNonAnthropicModel && (
-              <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+              <div className="rounded-lg px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
                 <div className="mb-2 flex items-center gap-3">
                   <Key size={18} className="shrink-0 text-xp-text-secondary" />
                   <div>
@@ -610,7 +610,7 @@ const AISettings = ({
             </SettingRow>
 
             {/* AI Search Model */}
-            <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+            <div className="rounded-lg px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
               <div className="mb-2 flex items-center gap-3">
                 <Brain size={18} className="shrink-0 text-xp-text-secondary" />
                 <div>
@@ -635,7 +635,7 @@ const AISettings = ({
 
             {/* AI Search API Key (for Claude/OpenAI) */}
             {settings.aiSearchProvider !== 'auto' && settings.aiSearchProvider !== 'ollama' && (
-              <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+              <div className="rounded-lg px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
                 <div className="mb-2 flex items-center gap-3">
                   <Key size={18} className="shrink-0 text-xp-text-secondary" />
                   <div>
@@ -664,7 +664,7 @@ const AISettings = ({
             )}
 
             {/* Ollama URL */}
-            <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+            <div className="rounded-lg px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
               <div className="mb-2 flex items-center gap-3">
                 <Cpu size={18} className="shrink-0 text-xp-text-secondary" />
                 <div>
@@ -691,7 +691,7 @@ const AISettings = ({
           </SettingsSection>{' '}
           <SettingsSection title={t('settings.ai.agentSection')}>
             {/* Max Turns */}
-            <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+            <div className="rounded-lg px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <SlidersHorizontal size={18} className="shrink-0 text-xp-text-secondary" />
@@ -716,7 +716,7 @@ const AISettings = ({
                   max={50}
                   value={agentSettings.max_turns}
                   onChange={(e) => updateAgentSetting('max_turns', Number(e.target.value))}
-                  className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-xp-border accent-xp-accent [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-xp-accent [&::-webkit-slider-thumb]:shadow-md"
+                  className="h-1.5 w-full cursor-pointer appearance-none rounded bg-xp-border accent-xp-accent"
                 />
                 <div className="text-xp-text-secondary/60 mt-1 flex justify-between text-[10px]">
                   <span>5</span>
@@ -741,7 +741,7 @@ const AISettings = ({
 
             {/* Thinking Budget — conditional */}
             {agentSettings.thinking_enabled && (
-              <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+              <div className="rounded-lg px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <SlidersHorizontal size={18} className="shrink-0 text-xp-text-secondary" />
@@ -766,7 +766,7 @@ const AISettings = ({
                     step={5000}
                     value={agentSettings.thinking_budget}
                     onChange={(e) => updateAgentSetting('thinking_budget', Number(e.target.value))}
-                    className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-xp-border accent-xp-accent [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-xp-accent [&::-webkit-slider-thumb]:shadow-md"
+                    className="h-1.5 w-full cursor-pointer appearance-none rounded bg-xp-border accent-xp-accent"
                   />
                   <div className="text-xp-text-secondary/60 mt-1 flex justify-between text-[10px]">
                     <span>5K</span>

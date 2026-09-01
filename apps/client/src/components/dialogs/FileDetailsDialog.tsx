@@ -57,16 +57,16 @@ const FileDetailsDialog = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-xp-surface/95 border-xp-border/60 mx-4 flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border shadow-2xl shadow-black/30 backdrop-blur-xl duration-150 animate-in fade-in zoom-in-95">
+      <div className="border-xp-border/60 mx-4 flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border bg-xp-surface/95 shadow-2xl shadow-black/30 duration-150 animate-in fade-in zoom-in-95">
         {/* Header */}
         <div className="border-xp-border/40 flex flex-shrink-0 items-center justify-between border-b px-5 py-3.5">
           <div className="flex min-w-0 items-center space-x-2.5">
-            <div className="bg-xp-blue/10 rounded-md p-1.5">
+            <div className="rounded-md bg-xp-blue/10 p-1.5">
               <FileText className="h-4 w-4 text-xp-blue" />
             </div>
             <div className="min-w-0">
@@ -78,7 +78,7 @@ const FileDetailsDialog = ({
           </div>
           <button
             onClick={onClose}
-            className="rounded-md p-1.5 text-xp-text-muted transition-colors hover:bg-white/5 hover:text-xp-text"
+            className="rounded-md p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
           >
             <X className="h-4 w-4" />
           </button>
@@ -147,7 +147,7 @@ const TabBar = ({
   ];
 
   return (
-    <div className="border-xp-border/40 flex flex-shrink-0 border-b bg-white/[0.02] px-2 pt-1">
+    <div className="border-xp-border/40 flex flex-shrink-0 border-b bg-xp-bg px-2 pt-1">
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -155,24 +155,24 @@ const TabBar = ({
           className={`relative flex items-center gap-1.5 rounded-t-md px-3 py-2 text-xs font-medium transition-all ${
             activeTab === tab.id
               ? 'bg-xp-blue/[0.08] text-xp-blue'
-              : 'text-xp-text-muted hover:bg-white/[0.03] hover:text-xp-text'
+              : 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
           }`}
         >
           {tab.icon}
           <span>{tab.label}</span>
           {tab.count > 0 && (
             <span
-              className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none ${
+              className={`rounded px-1.5 py-0.5 text-[10px] font-medium leading-none ${
                 activeTab === tab.id
                   ? 'bg-xp-blue/20 text-xp-blue'
-                  : 'bg-white/5 text-xp-text-muted'
+                  : 'bg-xp-surface-light text-xp-text-muted'
               }`}
             >
               {tab.count}
             </span>
           )}
           {activeTab === tab.id && (
-            <div className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full bg-xp-blue" />
+            <div className="absolute bottom-0 left-2 right-2 h-[2px] rounded bg-xp-lime" />
           )}
         </button>
       ))}
@@ -419,7 +419,7 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
         )}
 
         {error && (
-          <p className="rounded border border-red-400 border-opacity-30 bg-red-400 bg-opacity-10 px-2 py-1 text-xs text-xp-red">
+          <p className="rounded border border-xp-red/30 bg-xp-red/10 px-2 py-1 text-xs text-xp-red">
             {error}
           </p>
         )}
@@ -597,7 +597,7 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
         })()}
 
         {error && (
-          <p className="rounded border border-red-400 border-opacity-30 bg-red-400 bg-opacity-10 px-2 py-1 text-xs text-xp-red">
+          <p className="rounded border border-xp-red/30 bg-xp-red/10 px-2 py-1 text-xs text-xp-red">
             {error}
           </p>
         )}
@@ -785,7 +785,7 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
                         const suggestions = getFilteredSuggestions(field.key);
                         if (suggestions.length === 0) return null;
                         return (
-                          <div className="absolute left-0 right-0 top-full z-10 mt-0.5 max-h-32 overflow-y-auto rounded border border-xp-border bg-xp-popover shadow-xl backdrop-blur-xl">
+                          <div className="absolute left-0 right-0 top-full z-10 mt-0.5 max-h-32 overflow-y-auto rounded border border-xp-border bg-xp-popover shadow-xl">
                             {suggestions.map((key) => (
                               <button
                                 key={key}
@@ -872,7 +872,7 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
         </button>
 
         {error && (
-          <p className="rounded border border-red-400 border-opacity-30 bg-red-400 bg-opacity-10 px-2 py-1 text-xs text-xp-red">
+          <p className="rounded border border-xp-red/30 bg-xp-red/10 px-2 py-1 text-xs text-xp-red">
             {error}
           </p>
         )}

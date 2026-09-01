@@ -609,13 +609,11 @@ const NavigationBar = ({
                       marginTop: 4,
                       maxHeight: MAX_VISIBLE_SUGGESTIONS * 30,
                       overflowY: 'auto',
-                      background: 'var(--xp-surface, rgba(30, 30, 46, 0.95))',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      border: '1px solid var(--xp-border, rgba(255,255,255,0.1))',
+                      background: 'var(--xp-surface)',
+                      border: '1px solid var(--xp-border)',
                       borderRadius: 6,
                       zIndex: 9999,
-                      boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                      boxShadow: 'var(--xp-shadow-popover)',
                       padding: '4px 0',
                     }}
                   >

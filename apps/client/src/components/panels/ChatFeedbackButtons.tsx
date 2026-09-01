@@ -115,7 +115,8 @@ const ChatFeedbackButtons = React.memo(
               padding: 0,
               border: 'none',
               borderRadius: '4px',
-              background: feedback === 'positive' ? 'rgba(115, 218, 142, 0.2)' : 'transparent',
+              background:
+                feedback === 'positive' ? 'rgb(var(--xp-green-rgb) / 0.2)' : 'transparent',
               color: feedback === 'positive' ? 'var(--xp-green)' : 'var(--xp-text-muted)',
               cursor: feedback === 'positive' ? 'default' : 'pointer',
               transition: 'background 0.15s, color 0.15s',
@@ -136,7 +137,7 @@ const ChatFeedbackButtons = React.memo(
               padding: 0,
               border: 'none',
               borderRadius: '4px',
-              background: feedback === 'negative' ? 'rgba(247, 118, 142, 0.2)' : 'transparent',
+              background: feedback === 'negative' ? 'rgb(var(--xp-red-rgb) / 0.2)' : 'transparent',
               color: feedback === 'negative' ? 'var(--xp-red)' : 'var(--xp-text-muted)',
               cursor: feedback === 'negative' ? 'default' : 'pointer',
               transition: 'background 0.15s, color 0.15s',

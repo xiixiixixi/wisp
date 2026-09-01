@@ -34,11 +34,11 @@ const getStatusColor = (status: string): string => {
     case 'Completed':
       return 'bg-xp-green';
     case 'Failed':
-      return 'bg-red-500';
+      return 'bg-xp-red';
     case 'Cancelled':
-      return 'bg-yellow-500';
+      return 'bg-xp-yellow';
     default:
-      return 'bg-xp-blue';
+      return 'bg-xp-lime';
   }
 };
 
@@ -124,7 +124,7 @@ const FileOperationProgressDialog = () => {
         return (
           <div
             key={op.operation_id}
-            className="rounded-lg border border-xp-border bg-xp-surface p-3 shadow-xl backdrop-blur-sm"
+            className="rounded-lg border border-xp-border bg-xp-surface p-3 shadow-xl"
           >
             {/* Header */}
             <div className="mb-1.5 flex items-center justify-between">
@@ -161,9 +161,9 @@ const FileOperationProgressDialog = () => {
             </div>
 
             {/* Progress bar */}
-            <div className="mb-1.5 h-1.5 w-full overflow-hidden rounded-full bg-xp-bg">
+            <div className="mb-1.5 h-1.5 w-full overflow-hidden rounded bg-xp-bg">
               <div
-                className={`h-full rounded-full transition-all duration-300 ${getStatusColor(op.status)}`}
+                className={`h-full rounded transition-all duration-300 ${getStatusColor(op.status)}`}
                 style={{ width: `${Math.min(100, op.progress_percentage || 0)}%` }}
               />
             </div>

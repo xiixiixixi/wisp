@@ -139,10 +139,10 @@ export const TransferProgressToast = ({
         zIndex: 99998,
         width: 320,
         padding: '12px 14px',
-        borderRadius: '10px',
+        borderRadius: '4px',
         backgroundColor: 'var(--xp-surface)',
         border: '1px solid var(--xp-border)',
-        boxShadow: '0 12px 32px rgba(0,0,0,0.35)',
+        boxShadow: 'var(--xp-shadow-popover)',
         display: 'flex',
         flexDirection: 'column',
         gap: '8px',
@@ -153,7 +153,7 @@ export const TransferProgressToast = ({
       {phase === 'running' ? (
         <>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontWeight: 600 }}>{t('transfer.progressTitle')}</span>
+            <span style={{ fontWeight: 500 }}>{t('transfer.progressTitle')}</span>
             <span style={{ color: 'var(--xp-text-muted)' }}>{percent}%</span>
           </div>
           <div
@@ -190,7 +190,7 @@ export const TransferProgressToast = ({
               style={{
                 padding: '4px 12px',
                 fontSize: '11px',
-                borderRadius: '5px',
+                borderRadius: '4px',
                 border: '1px solid var(--xp-border)',
                 background: 'transparent',
                 color: 'var(--xp-text)',
@@ -212,7 +212,7 @@ export const TransferProgressToast = ({
             >
               {failedCount > 0 ? '⚠' : '✓'}
             </span>
-            <span style={{ fontWeight: 600 }}>{doneLabel}</span>
+            <span style={{ fontWeight: 500 }}>{doneLabel}</span>
             {failedCount > 0 && (
               <span style={{ color: 'var(--xp-red)' }}>
                 {t('transfer.failed', { count: failedCount })}
@@ -227,7 +227,7 @@ export const TransferProgressToast = ({
               style={{
                 padding: '4px 12px',
                 fontSize: '11px',
-                borderRadius: '5px',
+                borderRadius: '4px',
                 border: '1px solid var(--xp-blue)',
                 background: 'transparent',
                 color: 'var(--xp-blue)',

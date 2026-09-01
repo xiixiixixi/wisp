@@ -58,11 +58,11 @@ const CommandOutputBlock = ({
           margin: 0,
           padding: '10px',
           borderRadius: '4px',
-          background: '#1a1b26',
-          border: `1px solid ${isSuccess ? 'rgba(158, 206, 106, 0.3)' : 'rgba(247, 118, 142, 0.3)'}`,
+          background: 'var(--xp-bg)',
+          border: `1px solid ${isSuccess ? 'rgb(var(--xp-green-rgb) / 0.3)' : 'rgb(var(--xp-red-rgb) / 0.3)'}`,
           fontSize: '11px',
           fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
-          color: isSuccess ? '#9ece6a' : '#f7768e',
+          color: isSuccess ? 'var(--xp-green)' : 'var(--xp-red)',
           maxHeight: expanded ? '400px' : '200px',
           overflowY: 'auto',
           overflowX: 'auto',
@@ -173,7 +173,7 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
         onClick={() => setIsExpanded(true)}
         style={{
           margin: '4px 0',
-          border: `1px solid ${warningLevel === 'danger' ? 'rgba(247, 118, 142, 0.5)' : warningLevel === 'unknown' ? 'rgba(224, 175, 104, 0.5)' : 'var(--xp-border)'}`,
+          border: `1px solid ${warningLevel === 'danger' ? 'rgb(var(--xp-red-rgb) / 0.5)' : warningLevel === 'unknown' ? 'rgb(var(--xp-orange-rgb) / 0.5)' : 'var(--xp-border)'}`,
           borderRadius: '6px',
           background: 'var(--xp-surface)',
           padding: '6px 10px',
@@ -189,9 +189,9 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
           style={{
             color:
               warningLevel === 'danger'
-                ? '#f7768e'
+                ? 'var(--xp-red)'
                 : warningLevel === 'unknown'
-                  ? '#e0af68'
+                  ? 'var(--xp-orange)'
                   : 'var(--xp-blue)',
             flexShrink: 0,
           }}
@@ -215,8 +215,8 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
               fontSize: '9px',
               padding: '1px 5px',
               borderRadius: '3px',
-              background: 'rgba(247, 118, 142, 0.2)',
-              color: '#f7768e',
+              background: 'rgb(var(--xp-red-rgb) / 0.2)',
+              color: 'var(--xp-red)',
               fontWeight: 700,
               flexShrink: 0,
             }}
@@ -230,8 +230,8 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
               fontSize: '9px',
               padding: '1px 5px',
               borderRadius: '3px',
-              background: 'rgba(224, 175, 104, 0.2)',
-              color: '#e0af68',
+              background: 'rgb(var(--xp-orange-rgb) / 0.2)',
+              color: 'var(--xp-orange)',
               fontWeight: 700,
               flexShrink: 0,
             }}
@@ -268,11 +268,11 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
             border: 'none',
             background:
               warningLevel === 'danger'
-                ? '#f7768e'
+                ? 'var(--xp-red)'
                 : warningLevel === 'unknown'
-                  ? '#e0af68'
+                  ? 'var(--xp-orange)'
                   : 'var(--xp-blue)',
-            color: warningLevel === 'unknown' ? '#1a1b26' : 'white',
+            color: warningLevel === 'unknown' ? 'var(--xp-bg)' : 'white',
             cursor: 'pointer',
             fontSize: '11px',
             fontWeight: 600,
@@ -312,11 +312,11 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
         title={i18n.t('chat.clickToExpand')}
       >
         {isSuccess ? (
-          <CheckCircle2 size={13} style={{ flexShrink: 0, color: 'var(--xp-green, #9ece6a)' }} />
+          <CheckCircle2 size={13} style={{ flexShrink: 0, color: 'var(--xp-green)' }} />
         ) : isRejected ? (
           <XCircle size={13} style={{ flexShrink: 0, color: 'var(--xp-text-muted)' }} />
         ) : (
-          <XCircle size={13} style={{ flexShrink: 0, color: 'var(--xp-red, #f7768e)' }} />
+          <XCircle size={13} style={{ flexShrink: 0, color: 'var(--xp-red)' }} />
         )}
         <Terminal size={12} style={{ flexShrink: 0, color: 'var(--xp-text-muted)' }} />
         <span
@@ -345,7 +345,7 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
       aria-label={`Terminal command: ${command}`}
       style={{
         margin: '8px 0',
-        border: `1px solid ${warningLevel === 'danger' ? 'rgba(247, 118, 142, 0.5)' : warningLevel === 'unknown' ? 'rgba(224, 175, 104, 0.5)' : 'var(--xp-border)'}`,
+        border: `1px solid ${warningLevel === 'danger' ? 'rgb(var(--xp-red-rgb) / 0.5)' : warningLevel === 'unknown' ? 'rgb(var(--xp-orange-rgb) / 0.5)' : 'var(--xp-border)'}`,
         borderRadius: '8px',
         background: 'var(--xp-surface)',
         overflow: 'hidden',
@@ -362,9 +362,9 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
           borderBottom: '1px solid var(--xp-border)',
           background:
             warningLevel === 'danger'
-              ? 'rgba(247, 118, 142, 0.08)'
+              ? 'rgb(var(--xp-red-rgb) / 0.08)'
               : warningLevel === 'unknown'
-                ? 'rgba(224, 175, 104, 0.08)'
+                ? 'rgb(var(--xp-orange-rgb) / 0.08)'
                 : 'var(--xp-surface-light)',
           cursor: isCompleted ? 'pointer' : undefined,
         }}
@@ -375,9 +375,9 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
           style={{
             color:
               warningLevel === 'danger'
-                ? '#f7768e'
+                ? 'var(--xp-red)'
                 : warningLevel === 'unknown'
-                  ? '#e0af68'
+                  ? 'var(--xp-orange)'
                   : 'var(--xp-blue)',
           }}
         />
@@ -390,8 +390,8 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
               fontSize: '10px',
               padding: '1px 6px',
               borderRadius: '4px',
-              background: 'rgba(224, 175, 104, 0.2)',
-              color: '#e0af68',
+              background: 'rgb(var(--xp-orange-rgb) / 0.2)',
+              color: 'var(--xp-orange)',
               fontWeight: 700,
             }}
           >
@@ -404,8 +404,8 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
               fontSize: '10px',
               padding: '1px 6px',
               borderRadius: '4px',
-              background: 'rgba(247, 118, 142, 0.15)',
-              color: '#f7768e',
+              background: 'rgb(var(--xp-red-rgb) / 0.15)',
+              color: 'var(--xp-red)',
               marginLeft: 'auto',
               display: 'flex',
               alignItems: 'center',
@@ -431,16 +431,16 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
           style={{
             padding: '8px 10px',
             borderRadius: '4px',
-            background: '#1a1b26',
+            background: 'var(--xp-bg)',
             fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
             fontSize: '12px',
-            color: '#a9b1d6',
+            color: 'var(--xp-text-secondary)',
             overflowX: 'auto',
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
           }}
         >
-          <span style={{ color: '#9ece6a', userSelect: 'none' }}>$ </span>
+          <span style={{ color: 'var(--xp-green)', userSelect: 'none' }}>$ </span>
           {command}
         </div>
 
@@ -476,9 +476,9 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
             style={{
               padding: '8px 10px',
               borderRadius: '4px',
-              background: 'rgba(224, 175, 104, 0.1)',
-              border: '1px solid rgba(224, 175, 104, 0.2)',
-              color: '#e0af68',
+              background: 'rgb(var(--xp-orange-rgb) / 0.1)',
+              border: '1px solid rgb(var(--xp-orange-rgb) / 0.2)',
+              color: 'var(--xp-orange)',
               fontSize: '11px',
               display: 'flex',
               alignItems: 'center',
@@ -499,9 +499,9 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
             style={{
               padding: '8px 10px',
               borderRadius: '4px',
-              background: 'rgba(247, 118, 142, 0.1)',
-              border: '1px solid rgba(247, 118, 142, 0.2)',
-              color: '#f7768e',
+              background: 'rgb(var(--xp-red-rgb) / 0.1)',
+              border: '1px solid rgb(var(--xp-red-rgb) / 0.2)',
+              color: 'var(--xp-red)',
               fontSize: '11px',
               display: 'flex',
               alignItems: 'center',
@@ -559,11 +559,11 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
                 border: 'none',
                 background:
                   warningLevel === 'danger'
-                    ? '#f7768e'
+                    ? 'var(--xp-red)'
                     : warningLevel === 'unknown'
-                      ? '#e0af68'
+                      ? 'var(--xp-orange)'
                       : 'var(--xp-blue)',
-                color: warningLevel === 'unknown' ? '#1a1b26' : 'white',
+                color: warningLevel === 'unknown' ? 'var(--xp-bg)' : 'white',
                 cursor: 'pointer',
                 fontSize: '12px',
                 fontWeight: 600,
@@ -609,8 +609,8 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
               style={{
                 color:
                   pendingAction.commandOutput?.exit_code === 0
-                    ? 'var(--xp-green, #9ece6a)'
-                    : 'var(--xp-red, #f7768e)',
+                    ? 'var(--xp-green)'
+                    : 'var(--xp-red)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
@@ -653,7 +653,7 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              color: 'var(--xp-red, #f7768e)',
+              color: 'var(--xp-red)',
               fontSize: '12px',
             }}
             role="alert"

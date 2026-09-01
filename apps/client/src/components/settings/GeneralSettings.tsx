@@ -228,7 +228,7 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
               setLocation('/');
               setTimeout(() => startTour(), 300);
             }}
-            className="flex items-center gap-2 rounded-md bg-xp-blue px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            className="flex items-center gap-2 rounded-md bg-xp-blue px-3 py-2 text-sm font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
           >
             {t('settings.general.replayTour')}
           </button>

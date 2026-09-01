@@ -33,8 +33,8 @@ const BulkRenameDialog = ({ isOpen, onClose, files, onComplete }: BulkRenameDial
       <div
         style={{
           backgroundColor: 'var(--xp-surface)',
-          borderRadius: 12,
-          boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
+          borderRadius: 8,
+          boxShadow: 'var(--xp-shadow-popover)',
           width: 820,
           maxWidth: '92vw',
           maxHeight: '92vh',
@@ -59,13 +59,15 @@ const BulkRenameDialog = ({ isOpen, onClose, files, onComplete }: BulkRenameDial
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path
                 d="M3 5h14M3 10h10M3 15h6"
-                stroke="var(--xp-blue)"
+                stroke="currentColor"
+                className="text-[var(--xp-blue)]"
                 strokeWidth="2"
                 strokeLinecap="round"
               />
               <path
                 d="M15 13l2 2-2 2"
-                stroke="var(--xp-blue)"
+                stroke="currentColor"
+                className="text-[var(--xp-blue)]"
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -80,7 +82,7 @@ const BulkRenameDialog = ({ isOpen, onClose, files, onComplete }: BulkRenameDial
                 color: 'var(--xp-text-muted)',
                 backgroundColor: 'var(--xp-bg)',
                 padding: '2px 8px',
-                borderRadius: 10,
+                borderRadius: 8,
               }}
             >
               {t('dialogs.bulkRename.fileCount', { count: files.length })}

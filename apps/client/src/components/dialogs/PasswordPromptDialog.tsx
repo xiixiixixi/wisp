@@ -214,10 +214,7 @@ export const PasswordPromptDialog = ({
             </div>
           )}
 
-          <div
-            className="rounded border border-yellow-500 border-opacity-20 bg-yellow-500 bg-opacity-10 p-3"
-            role="note"
-          >
+          <div className="rounded border border-xp-yellow/20 bg-xp-yellow/10 p-3" role="note">
             <div className="flex items-start space-x-2">
               <svg
                 className="mt-0.5 h-5 w-5 flex-shrink-0 text-xp-yellow"

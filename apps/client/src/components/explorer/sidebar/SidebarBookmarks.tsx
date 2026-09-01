@@ -156,7 +156,7 @@ const SidebarBookmarks = ({
       data-drop-action="bookmark-add"
     >
       <button
-        className="hover:bg-xp-surface-light/50 flex w-full items-center px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted transition-colors"
+        className="flex w-full items-center px-3 py-1.5 text-[10px] font-medium uppercase tracking-widest text-xp-text-muted transition-colors hover:bg-xp-surface-light/50"
         onClick={onToggleCollapsed}
         aria-expanded={!collapsed}
       >

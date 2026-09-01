@@ -73,13 +73,13 @@ const isSessionTerminal = (status: AgentSessionStatus): boolean =>
   status === 'done' || status === 'error' || status === 'cancelled';
 
 const SESSION_STATUS_COLORS: Record<AgentSessionStatus, string> = {
-  idle: 'var(--xp-text-muted, #888)',
-  thinking: 'var(--xp-green, #73daca)',
-  executing: 'var(--xp-green, #73daca)',
-  waiting_approval: 'var(--xp-warning, #e0af68)',
-  done: 'var(--xp-blue, #7aa2f7)',
-  error: 'var(--xp-red, #f7768e)',
-  cancelled: 'var(--xp-text-muted, #888)',
+  idle: 'var(--xp-text-muted)',
+  thinking: 'var(--xp-green)',
+  executing: 'var(--xp-green)',
+  waiting_approval: 'var(--xp-orange)',
+  done: 'var(--xp-blue)',
+  error: 'var(--xp-red)',
+  cancelled: 'var(--xp-text-muted)',
 };
 
 const SESSION_STATUS_LABELS: Record<AgentSessionStatus, string> = {
@@ -118,7 +118,7 @@ const StatBadge = ({ label, value, color }: { label: string; value: string; colo
       gap: '3px',
       fontSize: '9px',
       color: color ?? 'var(--xp-text-muted)',
-      background: 'var(--xp-surface-light, rgba(255,255,255,0.05))',
+      background: 'var(--xp-surface-light)',
       borderRadius: '3px',
       padding: '1px 5px',
       whiteSpace: 'nowrap',
@@ -399,7 +399,7 @@ const CrossDirectoryView = ({
                 gap: '6px',
                 padding: '6px 8px',
                 cursor: 'pointer',
-                background: hasActive ? 'rgba(115, 218, 202, 0.05)' : 'transparent',
+                background: hasActive ? 'rgb(var(--xp-cyan-rgb) / 0.05)' : 'transparent',
               }}
               onClick={() => toggleDir(group.directory)}
             >
@@ -413,7 +413,7 @@ const CrossDirectoryView = ({
                 size={12}
                 style={{
                   flexShrink: 0,
-                  color: hasActive ? 'var(--xp-green, #73daca)' : 'var(--xp-text-muted)',
+                  color: hasActive ? 'var(--xp-green)' : 'var(--xp-text-muted)',
                 }}
               />
 
@@ -437,7 +437,7 @@ const CrossDirectoryView = ({
               <StatBadge
                 label={t('agentManager.crossDirectory.agents')}
                 value={String(group.sessions.length)}
-                color={hasActive ? 'var(--xp-green, #73daca)' : undefined}
+                color={hasActive ? 'var(--xp-green)' : undefined}
               />
 
               {group.totalFileChanges > 0 && (
@@ -460,11 +460,11 @@ const CrossDirectoryView = ({
                   aria-label={t('agentManager.crossDirectory.launchHere')}
                   style={{
                     background: 'none',
-                    border: '1px solid var(--xp-green, #73daca)',
+                    border: '1px solid var(--xp-green)',
                     borderRadius: '4px',
                     padding: '2px 5px',
                     cursor: 'pointer',
-                    color: 'var(--xp-green, #73daca)',
+                    color: 'var(--xp-green)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '2px',

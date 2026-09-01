@@ -26,14 +26,14 @@ const RuleToggle = ({
     type="button"
     role="switch"
     aria-checked={checked}
-    className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xp-accent ${
-      checked ? 'bg-xp-accent' : 'bg-xp-border'
+    className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded border border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xp-accent ${
+      checked ? 'bg-xp-selection' : 'bg-xp-border'
     }`}
     onClick={() => onChange(!checked)}
   >
     <span
-      className={`pointer-events-none inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${
-        checked ? 'translate-x-4' : 'translate-x-0.5'
+      className={`pointer-events-none inline-block h-3.5 w-3.5 rounded transition-all ${
+        checked ? 'translate-x-4 bg-xp-text' : 'translate-x-0.5 bg-xp-text-muted'
       }`}
     />
   </button>
@@ -107,7 +107,7 @@ const RuleForm = React.memo(
     };
 
     return (
-      <div className="bg-xp-surface/50 space-y-3 rounded-lg border border-xp-border p-3">
+      <div className="space-y-3 rounded-lg border border-xp-border bg-xp-surface/50 p-3">
         {/* Menu item selector */}
         <div>
           <label className="mb-1 block text-xs font-medium text-xp-text-secondary">
@@ -215,7 +215,7 @@ const RuleForm = React.memo(
           <button
             onClick={handleSave}
             disabled={!form.matcherValue.trim() && form.matcherType !== 'is_directory'}
-            className="flex items-center gap-1 rounded bg-xp-accent px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex items-center gap-1 rounded bg-xp-accent px-3 py-1.5 text-xs font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Check size={12} />
             {t('common.save')}
@@ -243,7 +243,7 @@ const RuleRow = React.memo(
   }) => {
     const { t } = useTranslation();
     return (
-      <div className="hover:bg-xp-surface-light/50 group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors">
+      <div className="group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-xp-surface-light/50">
         <RuleToggle checked={rule.enabled} onChange={onToggle} />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm text-xp-text">
@@ -264,7 +264,7 @@ const RuleRow = React.memo(
           </button>
           <button
             onClick={onDelete}
-            className="hover:bg-xp-red/10 rounded p-1.5 text-xp-text-secondary transition-colors hover:text-xp-red"
+            className="rounded p-1.5 text-xp-text-secondary transition-colors hover:bg-xp-red/10 hover:text-xp-red"
             title={t('settings.contextMenuRules.deleteRule')}
           >
             <Trash2 size={13} />
@@ -419,7 +419,7 @@ const ContextMenuRulesCard = () => {
               setShowForm(true);
               setEditingId(null);
             }}
-            className="flex items-center gap-1.5 rounded-md bg-xp-accent px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            className="flex items-center gap-1.5 rounded-md bg-xp-accent px-3 py-2 text-sm font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
           >
             <Plus size={14} />
             {t('settings.contextMenuRules.addRule')}

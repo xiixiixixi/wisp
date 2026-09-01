@@ -341,7 +341,7 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
 
       {error && (
         <div
-          className="border-xp-error/40 bg-xp-error/5 text-xp-error rounded-md border px-2.5 py-2 text-[11px]"
+          className="rounded-md border border-xp-red/40 bg-xp-red/5 px-2.5 py-2 text-[11px] text-xp-red"
           role="alert"
         >
           {error}

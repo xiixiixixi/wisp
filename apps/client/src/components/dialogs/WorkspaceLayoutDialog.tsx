@@ -42,7 +42,6 @@ const s = {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    backdropFilter: 'blur(4px)',
     animation: 'fadeIn 150ms ease-out',
   },
   dialog: {
@@ -51,10 +50,10 @@ const s = {
     maxWidth: '560px',
     maxHeight: '75vh',
     margin: '0 16px',
-    borderRadius: '12px',
+    borderRadius: '8px',
     backgroundColor: 'var(--xp-popover)',
     border: '1px solid var(--xp-border)',
-    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+    boxShadow: 'var(--xp-shadow-popover)',
     display: 'flex',
     flexDirection: 'column' as const,
     overflow: 'hidden',
@@ -85,7 +84,7 @@ const s = {
     color: 'var(--xp-text-secondary)',
     backgroundColor: 'var(--xp-surface-light)',
     padding: '2px 8px',
-    borderRadius: '10px',
+    borderRadius: '8px',
   },
   closeBtn: {
     padding: '4px',
@@ -697,7 +696,7 @@ const WorkspaceLayoutDialog = ({
                         onClick={() => handleDelete(wl.id)}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = 'var(--xp-surface-light)';
-                          e.currentTarget.style.color = '#ef4444';
+                          e.currentTarget.style.color = 'var(--xp-red)';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = 'transparent';

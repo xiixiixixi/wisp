@@ -243,7 +243,7 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
         {/* Main menu */}
         <div
           ref={menuRef}
-          className="border-xp-border/60 context-menu-scroll fixed z-50 min-w-48 rounded-lg border bg-xp-popover py-1 shadow-xl shadow-black/20 backdrop-blur-xl"
+          className="border-xp-border/60 context-menu-scroll fixed z-50 min-w-48 rounded-lg border bg-xp-popover py-1 shadow-xl shadow-black/20"
           style={{ left: x, top: y, maxHeight: '70vh', overflowY: 'auto', pointerEvents: 'auto' }}
         >
           {renderMenuItems(items, 0, true)}
@@ -253,7 +253,7 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
         {submenuStack.map((sub, idx) => (
           <div
             key={sub.id}
-            className="border-xp-border/60 context-menu-scroll fixed min-w-48 rounded-lg border bg-xp-popover py-1 shadow-xl shadow-black/20 backdrop-blur-xl"
+            className="border-xp-border/60 context-menu-scroll fixed min-w-48 rounded-lg border bg-xp-popover py-1 shadow-xl shadow-black/20"
             style={{
               left: sub.left,
               top: sub.top,

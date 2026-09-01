@@ -41,17 +41,17 @@ const CHANGE_TYPE_CONFIG: Record<
   { color: string; label: string; Icon: typeof FilePlus2 }
 > = {
   created: {
-    color: 'var(--xp-green, #73daca)',
+    color: 'var(--xp-green)',
     label: 'agentManager.fileChanges.created',
     Icon: FilePlus2,
   },
   modified: {
-    color: 'var(--xp-warning, #e0af68)',
+    color: 'var(--xp-orange)',
     label: 'agentManager.fileChanges.modified',
     Icon: FileEdit,
   },
   deleted: {
-    color: 'var(--xp-red, #f7768e)',
+    color: 'var(--xp-red)',
     label: 'agentManager.fileChanges.deleted',
     Icon: Trash2,
   },
@@ -237,7 +237,7 @@ const AgentChangeSection = ({
             style={{
               fontSize: '9px',
               fontWeight: 600,
-              color: 'var(--xp-green, #73daca)',
+              color: 'var(--xp-green)',
               padding: '0 4px',
             }}
           >
@@ -249,7 +249,7 @@ const AgentChangeSection = ({
             style={{
               fontSize: '9px',
               fontWeight: 600,
-              color: 'var(--xp-warning, #e0af68)',
+              color: 'var(--xp-orange)',
               padding: '0 4px',
             }}
           >
@@ -261,7 +261,7 @@ const AgentChangeSection = ({
             style={{
               fontSize: '9px',
               fontWeight: 600,
-              color: 'var(--xp-red, #f7768e)',
+              color: 'var(--xp-red)',
               padding: '0 4px',
             }}
           >

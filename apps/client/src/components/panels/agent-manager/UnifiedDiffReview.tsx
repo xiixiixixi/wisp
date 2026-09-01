@@ -107,20 +107,20 @@ const countChanges = (diff: DiffLine[]): { additions: number; removals: number }
 // ---------------------------------------------------------------------------
 
 const diffLineBg = (type: DiffLine['type']): string => {
-  if (type === 'add') return 'rgba(158, 206, 106, 0.1)';
-  if (type === 'remove') return 'rgba(247, 118, 142, 0.1)';
+  if (type === 'add') return 'rgb(var(--xp-green-rgb) / 0.12)';
+  if (type === 'remove') return 'rgb(var(--xp-red-rgb) / 0.12)';
   return 'transparent';
 };
 
 const diffLineBorder = (type: DiffLine['type']): string => {
-  if (type === 'add') return '2px solid var(--xp-green, #9ece6a)';
-  if (type === 'remove') return '2px solid var(--xp-red, #f7768e)';
+  if (type === 'add') return '2px solid var(--xp-green)';
+  if (type === 'remove') return '2px solid var(--xp-red)';
   return '2px solid transparent';
 };
 
 const diffLineColor = (type: DiffLine['type']): string => {
-  if (type === 'add') return 'var(--xp-green, #9ece6a)';
-  if (type === 'remove') return 'var(--xp-red, #f7768e)';
+  if (type === 'add') return 'var(--xp-green)';
+  if (type === 'remove') return 'var(--xp-red)';
   return 'var(--xp-text)';
 };
 
@@ -132,8 +132,8 @@ const diffLinePrefix = (type: DiffLine['type']): string => {
 
 const DECISION_COLORS: Record<FileDecision, string> = {
   pending: 'var(--xp-text-muted)',
-  accepted: 'var(--xp-green, #9ece6a)',
-  rejected: 'var(--xp-red, #f7768e)',
+  accepted: 'var(--xp-green)',
+  rejected: 'var(--xp-red)',
 };
 
 // ---------------------------------------------------------------------------
@@ -221,7 +221,7 @@ const FileDiffSection = ({
           <ChevronRight size={12} style={{ flexShrink: 0, color: 'var(--xp-text-muted)' }} />
         )}
 
-        <FileCode2 size={13} style={{ flexShrink: 0, color: 'var(--xp-blue, #7aa2f7)' }} />
+        <FileCode2 size={13} style={{ flexShrink: 0, color: 'var(--xp-blue)' }} />
 
         <span
           style={{
@@ -240,12 +240,12 @@ const FileDiffSection = ({
 
         {/* Change stats */}
         {additions > 0 && (
-          <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--xp-green, #9ece6a)' }}>
+          <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--xp-green)' }}>
             +{additions}
           </span>
         )}
         {removals > 0 && (
-          <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--xp-red, #f7768e)' }}>
+          <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--xp-red)' }}>
             -{removals}
           </span>
         )}
@@ -257,7 +257,7 @@ const FileDiffSection = ({
               fontSize: '9px',
               fontWeight: 600,
               color: DECISION_COLORS[decision],
-              background: 'var(--xp-surface-light, rgba(255,255,255,0.05))',
+              background: 'var(--xp-surface-light)',
               borderRadius: '3px',
               padding: '1px 5px',
             }}
@@ -286,7 +286,7 @@ const FileDiffSection = ({
               borderRadius: '4px',
               padding: '2px 6px',
               cursor: decision === 'accepted' ? 'default' : 'pointer',
-              color: decision === 'accepted' ? 'var(--xp-green, #9ece6a)' : 'var(--xp-text-muted)',
+              color: decision === 'accepted' ? 'var(--xp-green)' : 'var(--xp-text-muted)',
               display: 'flex',
               alignItems: 'center',
               gap: '2px',
@@ -308,7 +308,7 @@ const FileDiffSection = ({
               borderRadius: '4px',
               padding: '2px 6px',
               cursor: decision === 'rejected' ? 'default' : 'pointer',
-              color: decision === 'rejected' ? 'var(--xp-red, #f7768e)' : 'var(--xp-text-muted)',
+              color: decision === 'rejected' ? 'var(--xp-red)' : 'var(--xp-text-muted)',
               display: 'flex',
               alignItems: 'center',
               gap: '2px',
@@ -580,12 +580,12 @@ const UnifiedDiffReview = ({
             </span>
           )}
           {acceptedCount > 0 && (
-            <span style={{ fontSize: '9px', color: 'var(--xp-green, #9ece6a)' }}>
+            <span style={{ fontSize: '9px', color: 'var(--xp-green)' }}>
               {acceptedCount} {t('agentManager.diffReview.accepted').toLowerCase()}
             </span>
           )}
           {rejectedCount > 0 && (
-            <span style={{ fontSize: '9px', color: 'var(--xp-red, #f7768e)' }}>
+            <span style={{ fontSize: '9px', color: 'var(--xp-red)' }}>
               {rejectedCount} {t('agentManager.diffReview.rejected').toLowerCase()}
             </span>
           )}
@@ -595,12 +595,12 @@ const UnifiedDiffReview = ({
         <button
           onClick={handleAcceptAll}
           style={{
-            background: 'var(--xp-green, #9ece6a)',
+            background: 'var(--xp-green)',
             border: 'none',
             borderRadius: '4px',
             padding: '4px 10px',
             cursor: 'pointer',
-            color: '#1a1b26',
+            color: 'var(--xp-bg)',
             fontSize: '11px',
             fontWeight: 600,
             display: 'flex',
@@ -616,11 +616,11 @@ const UnifiedDiffReview = ({
           onClick={handleRejectAll}
           style={{
             background: 'none',
-            border: '1px solid var(--xp-red, #f7768e)',
+            border: '1px solid var(--xp-red)',
             borderRadius: '4px',
             padding: '4px 10px',
             cursor: 'pointer',
-            color: 'var(--xp-red, #f7768e)',
+            color: 'var(--xp-red)',
             fontSize: '11px',
             fontWeight: 600,
             display: 'flex',

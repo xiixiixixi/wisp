@@ -172,13 +172,13 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
                       onClick={() => toggleTag(tag)}
                       className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-left text-sm transition-colors ${
                         active
-                          ? 'bg-xp-accent/10 border-xp-accent text-xp-text'
+                          ? 'border-xp-accent bg-xp-accent/10 text-xp-text'
                           : 'border-xp-border text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text'
                       }`}
                       aria-pressed={active}
                     >
                       <span
-                        className="h-3 w-3 flex-shrink-0 rounded-full border border-black border-opacity-20"
+                        className="h-3 w-3 flex-shrink-0 rounded border border-xp-border"
                         style={{ backgroundColor: tag.color }}
                         aria-hidden="true"
                       />
@@ -212,10 +212,10 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
                   <button
                     key={c.hex}
                     onClick={() => setSelectedColor(c.hex)}
-                    className={`h-5 w-5 rounded-full border transition-transform ${
+                    className={`h-5 w-5 rounded border transition-transform ${
                       selectedColor === c.hex
                         ? 'scale-110 border-white ring-1 ring-xp-accent'
-                        : 'border-black border-opacity-20 hover:scale-105'
+                        : 'border-xp-border hover:scale-105'
                     }`}
                     style={{ backgroundColor: c.hex }}
                     aria-label={t('dialogs.tags.selectColor', {

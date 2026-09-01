@@ -60,9 +60,9 @@ export const SYN_RULES: { lang: RegExp; rules: [RegExp, string][] }[] = [
     // JS / TS / JSX / TSX
     lang: /^(javascript|jsx|typescript|tsx)$/,
     rules: [
-      [/\/\/.*$/gm, 'var(--xp-green)'], // single-line comment
-      [/\/\*[\s\S]*?\*\//g, 'var(--xp-green)'], // block comment
-      [/(["'`])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-yellow)'], // strings
+      [/\/\/.*$/gm, 'var(--xp-text-muted)'], // single-line comment
+      [/\/\*[\s\S]*?\*\//g, 'var(--xp-text-muted)'], // block comment
+      [/(["'`])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-green)'], // strings
       [
         /\b(const|let|var|function|return|if|else|for|while|class|import|export|from|default|async|await|new|this|typeof|instanceof|switch|case|break|continue|throw|try|catch|finally|interface|type|enum|extends|implements|abstract|public|private|protected|static|readonly|declare|module|namespace|as|is|in|of|null|undefined|true|false|void|never|any|number|string|boolean|symbol|bigint)\b/g,
         'var(--xp-purple)',
@@ -75,9 +75,9 @@ export const SYN_RULES: { lang: RegExp; rules: [RegExp, string][] }[] = [
     // Python
     lang: /^python$/,
     rules: [
-      [/#.*$/gm, 'var(--xp-green)'],
-      [/("""[\s\S]*?"""|'''[\s\S]*?''')/g, 'var(--xp-yellow)'],
-      [/(["'])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-yellow)'],
+      [/#.*$/gm, 'var(--xp-text-muted)'],
+      [/("""[\s\S]*?"""|'''[\s\S]*?''')/g, 'var(--xp-green)'],
+      [/(["'])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-green)'],
       [
         /\b(def|class|return|if|elif|else|for|while|import|from|as|with|try|except|finally|raise|pass|break|continue|lambda|yield|global|nonlocal|and|or|not|is|in|True|False|None|self|async|await)\b/g,
         'var(--xp-purple)',
@@ -90,9 +90,9 @@ export const SYN_RULES: { lang: RegExp; rules: [RegExp, string][] }[] = [
     // Rust
     lang: /^rust$/,
     rules: [
-      [/\/\/.*$/gm, 'var(--xp-green)'],
-      [/\/\*[\s\S]*?\*\//g, 'var(--xp-green)'],
-      [/(["'])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-yellow)'],
+      [/\/\/.*$/gm, 'var(--xp-text-muted)'],
+      [/\/\*[\s\S]*?\*\//g, 'var(--xp-text-muted)'],
+      [/(["'])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-green)'],
       [
         /\b(fn|let|mut|const|struct|enum|impl|trait|pub|use|mod|crate|self|super|return|if|else|for|while|loop|match|break|continue|async|await|move|where|type|as|in|ref|unsafe|static|extern|dyn|macro_rules|true|false)\b/g,
         'var(--xp-purple)',
@@ -105,9 +105,9 @@ export const SYN_RULES: { lang: RegExp; rules: [RegExp, string][] }[] = [
     // Go
     lang: /^go$/,
     rules: [
-      [/\/\/.*$/gm, 'var(--xp-green)'],
-      [/\/\*[\s\S]*?\*\//g, 'var(--xp-green)'],
-      [/(["'`])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-yellow)'],
+      [/\/\/.*$/gm, 'var(--xp-text-muted)'],
+      [/\/\*[\s\S]*?\*\//g, 'var(--xp-text-muted)'],
+      [/(["'`])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-green)'],
       [
         /\b(package|import|func|return|if|else|for|range|switch|case|default|break|continue|go|defer|select|chan|map|struct|interface|type|var|const|true|false|nil|iota)\b/g,
         'var(--xp-purple)',
@@ -119,9 +119,9 @@ export const SYN_RULES: { lang: RegExp; rules: [RegExp, string][] }[] = [
     // HTML / XML / markup
     lang: /^(html|xml|markup|svg)$/,
     rules: [
-      [/<!--[\s\S]*?-->/g, 'var(--xp-green)'],
+      [/<!--[\s\S]*?-->/g, 'var(--xp-text-muted)'],
       [/<\/?[\w-]+/g, 'var(--xp-red)'],
-      [/\b[\w-]+=/g, 'var(--xp-yellow)'],
+      [/\b[\w-]+=/g, 'var(--xp-green)'],
       [/(["'])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-cyan)'],
       [/\/?>/g, 'var(--xp-red)'],
     ],
@@ -130,9 +130,9 @@ export const SYN_RULES: { lang: RegExp; rules: [RegExp, string][] }[] = [
     // CSS / SCSS / LESS
     lang: /^(css|scss|less)$/,
     rules: [
-      [/\/\*[\s\S]*?\*\//g, 'var(--xp-green)'],
-      [/\/\/.*$/gm, 'var(--xp-green)'],
-      [/(["'])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-yellow)'],
+      [/\/\*[\s\S]*?\*\//g, 'var(--xp-text-muted)'],
+      [/\/\/.*$/gm, 'var(--xp-text-muted)'],
+      [/(["'])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-green)'],
       [/#[0-9a-fA-F]{3,8}\b/g, 'var(--xp-orange)'],
       [/\b(\d+(\.\d+)?(px|em|rem|%|vh|vw|s|ms|deg|fr)?)\b/g, 'var(--xp-orange)'],
       [/[.#][\w-]+/g, 'var(--xp-cyan)'],
@@ -145,7 +145,7 @@ export const SYN_RULES: { lang: RegExp; rules: [RegExp, string][] }[] = [
     lang: /^json$/,
     rules: [
       [/"(?:[^"\\]|\\.)*"\s*:/g, 'var(--xp-cyan)'],
-      [/"(?:[^"\\]|\\.)*"/g, 'var(--xp-yellow)'],
+      [/"(?:[^"\\]|\\.)*"/g, 'var(--xp-green)'],
       [/\b(true|false|null)\b/g, 'var(--xp-purple)'],
       [/\b-?\d+(\.\d+)?([eE][+-]?\d+)?\b/g, 'var(--xp-orange)'],
     ],
@@ -154,9 +154,9 @@ export const SYN_RULES: { lang: RegExp; rules: [RegExp, string][] }[] = [
     // YAML
     lang: /^yaml$/,
     rules: [
-      [/#.*$/gm, 'var(--xp-green)'],
+      [/#.*$/gm, 'var(--xp-text-muted)'],
       [/^[\w.-]+:/gm, 'var(--xp-cyan)'],
-      [/(["'])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-yellow)'],
+      [/(["'])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-green)'],
       [/\b(true|false|null|yes|no)\b/gi, 'var(--xp-purple)'],
       [/\b-?\d+(\.\d+)?\b/g, 'var(--xp-orange)'],
     ],
@@ -165,9 +165,9 @@ export const SYN_RULES: { lang: RegExp; rules: [RegExp, string][] }[] = [
     // SQL
     lang: /^sql$/,
     rules: [
-      [/--.*$/gm, 'var(--xp-green)'],
-      [/\/\*[\s\S]*?\*\//g, 'var(--xp-green)'],
-      [/(["'])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-yellow)'],
+      [/--.*$/gm, 'var(--xp-text-muted)'],
+      [/\/\*[\s\S]*?\*\//g, 'var(--xp-text-muted)'],
+      [/(["'])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-green)'],
       [
         /\b(SELECT|FROM|WHERE|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|TABLE|INDEX|VIEW|JOIN|LEFT|RIGHT|INNER|OUTER|ON|AND|OR|NOT|IN|IS|NULL|AS|ORDER|BY|GROUP|HAVING|LIMIT|OFFSET|UNION|ALL|DISTINCT|SET|INTO|VALUES|EXISTS|BETWEEN|LIKE|CASE|WHEN|THEN|ELSE|END|BEGIN|COMMIT|ROLLBACK|PRIMARY|KEY|FOREIGN|REFERENCES|CASCADE|DEFAULT|CHECK|CONSTRAINT|UNIQUE|TRIGGER|FUNCTION|PROCEDURE|RETURN|RETURNS|DECLARE|IF|WHILE|LOOP|CURSOR|FETCH)\b/gi,
         'var(--xp-purple)',
@@ -179,8 +179,8 @@ export const SYN_RULES: { lang: RegExp; rules: [RegExp, string][] }[] = [
     // Bash / Shell
     lang: /^(bash|sh|shell)$/,
     rules: [
-      [/#.*$/gm, 'var(--xp-green)'],
-      [/(["'])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-yellow)'],
+      [/#.*$/gm, 'var(--xp-text-muted)'],
+      [/(["'])(?:(?!\1|\\).|\\.)*?\1/g, 'var(--xp-green)'],
       [/\$[\w{]+}?/g, 'var(--xp-cyan)'],
       [
         /\b(if|then|else|elif|fi|for|while|do|done|case|esac|function|return|exit|local|export|source|alias|unalias|cd|echo|printf|read|set|unset|shift|trap|eval|exec|test)\b/g,
@@ -194,7 +194,7 @@ export const SYN_RULES: { lang: RegExp; rules: [RegExp, string][] }[] = [
     lang: /^markdown$/,
     rules: [
       [/^#{1,6}\s+.*/gm, 'var(--xp-purple)'],
-      [/\*\*.*?\*\*/g, 'var(--xp-yellow)'],
+      [/\*\*.*?\*\*/g, 'var(--xp-green)'],
       [/\*.*?\*/g, 'var(--xp-cyan)'],
       [/`[^`]+`/g, 'var(--xp-orange)'],
       [/\[.*?\]\(.*?\)/g, 'var(--xp-cyan)'],

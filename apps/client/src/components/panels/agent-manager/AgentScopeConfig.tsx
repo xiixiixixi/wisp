@@ -64,9 +64,9 @@ const pillGroupStyle: React.CSSProperties = {
 const makePillStyle = (active: boolean): React.CSSProperties => ({
   padding: '3px 8px',
   borderRadius: '4px',
-  border: `1px solid ${active ? 'var(--xp-blue, #7aa2f7)' : 'var(--xp-border)'}`,
-  background: active ? 'rgba(122, 162, 247, 0.15)' : 'var(--xp-bg)',
-  color: active ? 'var(--xp-blue, #7aa2f7)' : 'var(--xp-text-muted)',
+  border: `1px solid ${active ? 'var(--xp-blue)' : 'var(--xp-border)'}`,
+  background: active ? 'rgb(var(--xp-blue-rgb) / 0.15)' : 'var(--xp-bg)',
+  color: active ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
   fontSize: '10px',
   cursor: 'pointer',
   transition: 'all 0.15s ease',

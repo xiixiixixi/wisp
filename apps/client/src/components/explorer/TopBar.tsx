@@ -87,7 +87,7 @@ const TopBar = React.memo(
       return (
         <div
           data-tour={dataTour}
-          className="wisp-titlebar wisp-no-select flex-none border-b border-xp-border bg-xp-surface backdrop-blur-xl"
+          className="wisp-titlebar wisp-no-select flex-none border-b border-xp-border bg-xp-surface"
         >
           {/* Single title row (draggable): toggle, brand, search, split
               actions, window controls. */}
@@ -229,11 +229,11 @@ const TopBar = React.memo(
                   alignItems: 'center',
                   gap: 4,
                   padding: '2px 8px',
-                  borderRadius: 10,
+                  borderRadius: 2,
                   background: 'var(--xp-blue)',
-                  color: '#fff',
+                  color: 'var(--xp-bg)',
                   fontSize: 11,
-                  fontWeight: 600,
+                  fontWeight: 500,
                 }}
               >
                 <svg
@@ -275,10 +275,10 @@ const TopBar = React.memo(
                     padding: '3px 10px',
                     fontSize: 11,
                     fontWeight: 500,
-                    borderRadius: 5,
+                    borderRadius: 4,
                     border: '1px solid var(--xp-blue)',
                     background: 'var(--xp-blue)',
-                    color: '#fff',
+                    color: 'var(--xp-bg)',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',

@@ -44,17 +44,17 @@ const STATUS_CONFIG: Record<
   { color: string; label: string; Icon: typeof CheckCircle2 }
 > = {
   done: {
-    color: 'var(--xp-green, #73daca)',
+    color: 'var(--xp-green)',
     label: 'agentManager.sessionHistory.statusDone',
     Icon: CheckCircle2,
   },
   error: {
-    color: 'var(--xp-red, #f7768e)',
+    color: 'var(--xp-red)',
     label: 'agentManager.sessionHistory.statusError',
     Icon: XCircle,
   },
   cancelled: {
-    color: 'var(--xp-text-muted, #888)',
+    color: 'var(--xp-text-muted)',
     label: 'agentManager.sessionHistory.statusCancelled',
     Icon: Ban,
   },
@@ -113,7 +113,7 @@ const StatusBadge = ({ status }: { status: SessionHistoryEntry['resultStatus'] }
         fontSize: '9px',
         fontWeight: 600,
         color: config.color,
-        background: 'var(--xp-surface-light, rgba(255,255,255,0.05))',
+        background: 'var(--xp-surface-light)',
         borderRadius: '3px',
         padding: '1px 5px',
         whiteSpace: 'nowrap',
@@ -261,7 +261,7 @@ const HistoryEntry = ({
           </div>
 
           {entry.errorMessage && (
-            <div style={{ color: 'var(--xp-red, #f7768e)' }}>
+            <div style={{ color: 'var(--xp-red)' }}>
               <span style={{ fontWeight: 500 }}>{t('agentManager.sessionHistory.error')}: </span>
               {entry.errorMessage}
             </div>
@@ -287,7 +287,7 @@ const HistoryEntry = ({
                   borderRadius: '4px',
                   padding: '2px 8px',
                   cursor: 'pointer',
-                  color: 'var(--xp-blue, #7aa2f7)',
+                  color: 'var(--xp-blue)',
                   fontSize: '10px',
                   display: 'flex',
                   alignItems: 'center',

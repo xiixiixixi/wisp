@@ -157,7 +157,7 @@ const PermissionsSettings = ({
     <div className="space-y-4">
       {/* Internet Sandbox */}
       <SectionTitle title={t('settings.permissions.network')} />
-      <div className="hover:bg-xp-surface-light/50 flex items-center justify-between gap-4 rounded-lg px-4 py-3 transition-colors">
+      <div className="flex items-center justify-between gap-4 rounded-lg px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
         <div className="flex min-w-0 items-center gap-3">
           <Globe size={18} className="shrink-0 text-xp-text-secondary" />
           <div className="min-w-0">
@@ -191,7 +191,7 @@ const PermissionsSettings = ({
           return (
             <div
               key={toolName}
-              className={`hover:bg-xp-surface-light/50 flex items-center justify-between gap-4 rounded-lg px-4 py-2.5 transition-colors ${!enabled ? 'opacity-50' : ''}`}
+              className={`flex items-center justify-between gap-4 rounded-lg px-4 py-2.5 transition-colors hover:bg-xp-surface-light/50 ${!enabled ? 'opacity-50' : ''}`}
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2 text-sm font-medium text-xp-text">
@@ -220,7 +220,7 @@ const PermissionsSettings = ({
           return (
             <div
               key={toolName}
-              className={`hover:bg-xp-surface-light/50 flex items-center justify-between gap-4 rounded-lg px-4 py-2.5 transition-colors ${!enabled ? 'opacity-50' : ''}`}
+              className={`flex items-center justify-between gap-4 rounded-lg px-4 py-2.5 transition-colors hover:bg-xp-surface-light/50 ${!enabled ? 'opacity-50' : ''}`}
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2 text-sm font-medium text-xp-text">
@@ -261,7 +261,7 @@ const PermissionsSettings = ({
             return (
               <div
                 key={toolName}
-                className="hover:bg-xp-surface-light/50 flex items-center justify-between gap-4 rounded-lg px-4 py-2 transition-colors"
+                className="flex items-center justify-between gap-4 rounded-lg px-4 py-2 transition-colors hover:bg-xp-surface-light/50"
               >
                 <div className="text-sm text-xp-text">{t(keys.labelKey)}</div>
                 <PermToggle enabled={autoApproved} onChange={() => toggleAutoApprove(toolName)} />
@@ -296,7 +296,7 @@ const PermissionsSettings = ({
               addToList('allowed_paths', input.value);
               input.value = '';
             }}
-            className="h-8 rounded-md bg-xp-accent px-3 text-xs font-medium text-white transition-opacity hover:opacity-90"
+            className="h-8 rounded-md bg-xp-accent px-3 text-xs font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
           >
             {t('common.add')}
           </button>
@@ -346,7 +346,7 @@ const PermissionsSettings = ({
               addToList('blocked_paths', input.value);
               input.value = '';
             }}
-            className="h-8 rounded-md bg-xp-accent px-3 text-xs font-medium text-white transition-opacity hover:opacity-90"
+            className="h-8 rounded-md bg-xp-accent px-3 text-xs font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
           >
             {t('common.add')}
           </button>
@@ -396,7 +396,7 @@ const PermissionsSettings = ({
               addToList('custom_blocked_commands', input.value);
               input.value = '';
             }}
-            className="h-8 rounded-md bg-xp-accent px-3 text-xs font-medium text-white transition-opacity hover:opacity-90"
+            className="h-8 rounded-md bg-xp-accent px-3 text-xs font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
           >
             {t('common.add')}
           </button>

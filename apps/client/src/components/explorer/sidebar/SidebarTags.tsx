@@ -54,7 +54,7 @@ const SidebarTags = ({ currentPath, navigateToPath }: SidebarTagsProps) => {
       role="region"
       aria-label={t('sidebar.tags')}
     >
-      <h4 className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted">
+      <h4 className="mb-1.5 text-[10px] font-medium uppercase tracking-widest text-xp-text-muted">
         {t('sidebar.tags')}
       </h4>
       <div className="space-y-0.5">
@@ -76,7 +76,6 @@ const SidebarTags = ({ currentPath, navigateToPath }: SidebarTagsProps) => {
                 className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
                 style={{
                   backgroundColor: tag.color,
-                  boxShadow: `0 0 7px ${hexA(tag.color, 0.55)}`,
                 }}
                 aria-hidden="true"
               />

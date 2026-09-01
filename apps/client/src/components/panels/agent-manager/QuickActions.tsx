@@ -107,7 +107,7 @@ const QuickActions = ({ onAction, disabled }: QuickActionsProps) => {
             onMouseEnter={(e) => {
               if (!disabled) {
                 e.currentTarget.style.background = 'var(--xp-surface-light)';
-                e.currentTarget.style.borderColor = 'var(--xp-blue, #7aa2f7)';
+                e.currentTarget.style.borderColor = 'var(--xp-blue)';
               }
             }}
             onMouseLeave={(e) => {
@@ -117,7 +117,7 @@ const QuickActions = ({ onAction, disabled }: QuickActionsProps) => {
           >
             <span
               style={{
-                color: 'var(--xp-blue, #7aa2f7)',
+                color: 'var(--xp-blue)',
                 flexShrink: 0,
                 display: 'flex',
               }}

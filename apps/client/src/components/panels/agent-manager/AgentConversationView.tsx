@@ -116,9 +116,9 @@ const STATUS_ICON_MAP: Record<ToolCallStatus, typeof Loader2> = {
 
 const STATUS_COLOR_MAP: Record<ToolCallStatus, string> = {
   pending: 'var(--xp-text-muted)',
-  running: 'var(--xp-blue, #7aa2f7)',
-  success: 'var(--xp-green, #73daca)',
-  error: 'var(--xp-red, #f7768e)',
+  running: 'var(--xp-blue)',
+  success: 'var(--xp-green)',
+  error: 'var(--xp-red)',
 };
 
 // ---------------------------------------------------------------------------
@@ -195,11 +195,11 @@ const ApprovalCard = ({
   return (
     <div
       style={{
-        border: '1px solid var(--xp-warning, #e0af68)',
+        border: '1px solid var(--xp-orange)',
         borderRadius: '6px',
         padding: '8px 10px',
         margin: '6px 0',
-        background: 'rgba(224, 175, 104, 0.08)',
+        background: 'rgb(var(--xp-orange-rgb) / 0.08)',
       }}
     >
       <div
@@ -212,9 +212,9 @@ const ApprovalCard = ({
         }}
       >
         {approval.kind === 'command' ? (
-          <Terminal size={12} style={{ color: 'var(--xp-warning, #e0af68)', flexShrink: 0 }} />
+          <Terminal size={12} style={{ color: 'var(--xp-orange)', flexShrink: 0 }} />
         ) : (
-          <FileText size={12} style={{ color: 'var(--xp-warning, #e0af68)', flexShrink: 0 }} />
+          <FileText size={12} style={{ color: 'var(--xp-orange)', flexShrink: 0 }} />
         )}
         <span style={{ fontWeight: 500 }}>{approval.description}</span>
       </div>
@@ -241,9 +241,9 @@ const ApprovalCard = ({
                 flex: 1,
                 padding: '4px 8px',
                 borderRadius: '4px',
-                border: '1px solid var(--xp-green, #73daca)',
-                background: 'rgba(115, 218, 202, 0.15)',
-                color: 'var(--xp-green, #73daca)',
+                border: '1px solid var(--xp-green)',
+                background: 'rgb(var(--xp-cyan-rgb) / 0.15)',
+                color: 'var(--xp-green)',
                 cursor: 'pointer',
                 fontSize: '10px',
                 fontWeight: 600,
@@ -259,9 +259,9 @@ const ApprovalCard = ({
                 flex: 1,
                 padding: '4px 8px',
                 borderRadius: '4px',
-                border: '1px solid var(--xp-red, #f7768e)',
-                background: 'rgba(247, 118, 142, 0.15)',
-                color: 'var(--xp-red, #f7768e)',
+                border: '1px solid var(--xp-red)',
+                background: 'rgb(var(--xp-red-rgb) / 0.15)',
+                color: 'var(--xp-red)',
                 cursor: 'pointer',
                 fontSize: '10px',
                 fontWeight: 600,
@@ -273,13 +273,13 @@ const ApprovalCard = ({
         </div>
       )}
       {approval.status === 'approved' && (
-        <div style={{ fontSize: '10px', color: 'var(--xp-green, #73daca)', marginTop: '4px' }}>
+        <div style={{ fontSize: '10px', color: 'var(--xp-green)', marginTop: '4px' }}>
           <CheckCircle2 size={10} style={{ display: 'inline', verticalAlign: 'middle' }} />{' '}
           {t('agentManager.conversation.approved')}
         </div>
       )}
       {approval.status === 'rejected' && (
-        <div style={{ fontSize: '10px', color: 'var(--xp-red, #f7768e)', marginTop: '4px' }}>
+        <div style={{ fontSize: '10px', color: 'var(--xp-red)', marginTop: '4px' }}>
           <XCircle size={10} style={{ display: 'inline', verticalAlign: 'middle' }} />{' '}
           {t('agentManager.conversation.rejected')}
         </div>
@@ -303,7 +303,7 @@ const MessageBubble = ({
   const isUser = message.role === 'user';
   const isSystem = message.role === 'system';
   const RoleIcon = isUser ? User : Bot;
-  const roleColor = isUser ? 'var(--xp-blue, #7aa2f7)' : 'var(--xp-green, #73daca)';
+  const roleColor = isUser ? 'var(--xp-blue)' : 'var(--xp-green)';
 
   if (isSystem) return null;
 
@@ -549,7 +549,7 @@ const AgentConversationView = ({
           <Loader2
             size={12}
             style={{
-              color: 'var(--xp-green, #73daca)',
+              color: 'var(--xp-green)',
               animation: 'spin 1s linear infinite',
               flexShrink: 0,
             }}
@@ -614,7 +614,7 @@ const AgentConversationView = ({
                 alignItems: 'center',
                 gap: '6px',
                 fontSize: '10px',
-                color: 'var(--xp-green, #73daca)',
+                color: 'var(--xp-green)',
                 fontWeight: 600,
               }}
             >
@@ -690,9 +690,7 @@ const AgentConversationView = ({
             title={t('agentManager.conversation.sendMessage')}
             aria-label={t('agentManager.conversation.sendMessage')}
             style={{
-              background: inputValue.trim()
-                ? 'var(--xp-blue, #7aa2f7)'
-                : 'var(--xp-surface-light, #333)',
+              background: inputValue.trim() ? 'var(--xp-blue)' : 'var(--xp-surface-light)',
               border: 'none',
               borderRadius: '4px',
               padding: '4px 8px',

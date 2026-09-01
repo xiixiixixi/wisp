@@ -299,7 +299,6 @@ const BatchMetadataDialog = React.memo(
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          backdropFilter: 'blur(4px)',
         }}
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose();
@@ -316,8 +315,8 @@ const BatchMetadataDialog = React.memo(
             overflow: 'hidden',
             backgroundColor: 'var(--xp-surface)',
             border: '1px solid var(--xp-border)',
-            borderRadius: '12px',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+            borderRadius: '8px',
+            boxShadow: 'var(--xp-shadow-popover)',
           }}
         >
           {/* Header */}
@@ -631,9 +630,9 @@ const BatchMetadataDialog = React.memo(
               <p
                 style={{
                   fontSize: '11px',
-                  color: '#f7768e',
-                  backgroundColor: 'rgba(247, 118, 142, 0.1)',
-                  border: '1px solid rgba(247, 118, 142, 0.3)',
+                  color: 'var(--xp-red)',
+                  backgroundColor: 'rgb(var(--xp-red-rgb) / 0.1)',
+                  border: '1px solid rgb(var(--xp-red-rgb) / 0.3)',
                   borderRadius: '4px',
                   padding: '4px 8px',
                   margin: 0,

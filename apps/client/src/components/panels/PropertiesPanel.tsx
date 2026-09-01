@@ -147,7 +147,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
   return (
     <div className="flex h-full flex-col">
       {/* Sub-tab bar */}
-      <div className="bg-xp-surface-light/30 flex items-center gap-0.5 border-b border-xp-border px-3 py-1">
+      <div className="flex items-center gap-0.5 border-b border-xp-border bg-xp-surface-light/30 px-3 py-1">
         {(['general', 'permissions', 'details'] as const).map((tab) => (
           <button
             key={tab}
@@ -211,22 +211,22 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
                 {/* Attribute badges */}
                 <div className="mt-1 flex flex-wrap gap-1">
                   {properties.is_hidden && (
-                    <span className="bg-xp-yellow/20 rounded px-1 py-0.5 text-[9px] text-xp-yellow">
+                    <span className="rounded bg-xp-yellow/20 px-1 py-0.5 text-[9px] text-xp-yellow">
                       {t('panels.properties.hiddenBadge')}
                     </span>
                   )}
                   {properties.is_readonly && (
-                    <span className="bg-xp-red/20 rounded px-1 py-0.5 text-[9px] text-xp-red">
+                    <span className="rounded bg-xp-red/20 px-1 py-0.5 text-[9px] text-xp-red">
                       {t('panels.properties.readonlyBadge')}
                     </span>
                   )}
                   {properties.is_directory && (
-                    <span className="bg-xp-blue/20 rounded px-1 py-0.5 text-[9px] text-xp-blue">
+                    <span className="rounded bg-xp-blue/20 px-1 py-0.5 text-[9px] text-xp-blue">
                       {t('panels.properties.directoryBadge')}
                     </span>
                   )}
                   {properties.attributes.symlink_target && (
-                    <span className="bg-xp-purple/20 rounded px-1 py-0.5 text-[9px] text-xp-purple">
+                    <span className="rounded bg-xp-purple/20 px-1 py-0.5 text-[9px] text-xp-purple">
                       {t('panels.properties.symlinkBadge')}
                     </span>
                   )}
@@ -424,7 +424,7 @@ const PermBadge = ({ label, value }: { label: string; value: boolean }) => {
   return (
     <div
       className={`flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium ${
-        value ? 'bg-green-500/10 text-xp-green' : 'bg-red-500/10 text-xp-red'
+        value ? 'bg-xp-green/10 text-xp-green' : 'bg-xp-red/10 text-xp-red'
       }`}
     >
       <span>{value ? '\u2713' : '\u2717'}</span>

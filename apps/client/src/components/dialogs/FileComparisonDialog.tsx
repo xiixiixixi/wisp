@@ -84,7 +84,7 @@ const FileComparisonDialog = ({
       <div className="space-y-6">
         {/* Status Banner */}
         <div
-          className={`rounded-lg border p-4 ${identical ? 'border-green-200 bg-green-50' : 'border-orange-200 bg-orange-50'}`}
+          className={`rounded-lg border p-4 ${identical ? 'border-xp-green/30 bg-xp-green/10' : 'border-xp-orange/30 bg-xp-orange/10'}`}
         >
           <div className="flex items-center gap-2">
             {identical ? (
@@ -153,19 +153,19 @@ const FileComparisonDialog = ({
         {/* Statistics */}
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="rounded-lg bg-xp-surface-light p-3 text-center">
-            <div className="text-lg font-semibold text-green-600">{metadata.linesAdded}</div>
+            <div className="text-lg font-medium text-xp-green">{metadata.linesAdded}</div>
             <div className="text-xs text-xp-text-secondary">Lines Added</div>
           </div>
           <div className="rounded-lg bg-xp-surface-light p-3 text-center">
-            <div className="text-lg font-semibold text-red-600">{metadata.linesRemoved}</div>
+            <div className="text-lg font-medium text-xp-red">{metadata.linesRemoved}</div>
             <div className="text-xs text-xp-text-secondary">Lines Removed</div>
           </div>
           <div className="rounded-lg bg-xp-surface-light p-3 text-center">
-            <div className="text-lg font-semibold text-orange-600">{metadata.linesModified}</div>
+            <div className="text-lg font-medium text-xp-orange">{metadata.linesModified}</div>
             <div className="text-xs text-xp-text-secondary">Lines Modified</div>
           </div>
           <div className="rounded-lg bg-xp-surface-light p-3 text-center">
-            <div className="text-lg font-semibold text-blue-600">
+            <div className="text-lg font-medium text-xp-blue">
               {formatFileSize(metadata.bytesDifferent)}
             </div>
             <div className="text-xs text-xp-text-secondary">Bytes Different</div>
@@ -207,10 +207,10 @@ const FileComparisonDialog = ({
               key={index}
               className={(() => {
                 const base = 'rounded-lg border-l-4 p-4';
-                if (diff.diffType === 'added') return `${base} border-green-500 bg-green-50`;
-                if (diff.diffType === 'removed') return `${base} border-red-500 bg-red-50`;
-                if (diff.diffType === 'modified') return `${base} border-orange-500 bg-orange-50`;
-                return `${base} border-blue-500 bg-blue-50`;
+                if (diff.diffType === 'added') return `${base} border-xp-green bg-xp-green/10`;
+                if (diff.diffType === 'removed') return `${base} border-xp-red bg-xp-red/10`;
+                if (diff.diffType === 'modified') return `${base} border-xp-orange bg-xp-orange/10`;
+                return `${base} border-xp-blue bg-xp-blue/10`;
               })()}
             >
               <div className="mb-2 flex items-center gap-2">
@@ -240,13 +240,13 @@ const FileComparisonDialog = ({
 
               <div className="space-y-2 font-mono text-sm">
                 {diff.content1 && (
-                  <div className="rounded border-l-2 border-red-400 bg-red-100 p-2">
-                    <span className="text-red-700">- {diff.content1}</span>
+                  <div className="rounded border-l-2 border-xp-red/60 bg-xp-red/10 p-2">
+                    <span className="text-xp-red">- {diff.content1}</span>
                   </div>
                 )}
                 {diff.content2 && (
-                  <div className="rounded border-l-2 border-green-400 bg-green-100 p-2">
-                    <span className="text-green-700">+ {diff.content2}</span>
+                  <div className="rounded border-l-2 border-xp-green/60 bg-xp-green/10 p-2">
+                    <span className="text-xp-green">+ {diff.content2}</span>
                   </div>
                 )}
               </div>
@@ -416,7 +416,7 @@ const FileComparisonDialog = ({
           {loading ? (
             <div className="flex h-64 items-center justify-center">
               <div className="flex flex-col items-center gap-4">
-                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-500" />
+                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-xp-text-muted" />
                 <div className="text-sm text-xp-text-secondary">Comparing files...</div>
               </div>
             </div>
