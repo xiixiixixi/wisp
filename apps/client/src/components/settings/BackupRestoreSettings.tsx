@@ -249,7 +249,7 @@ const BackupRestoreSettings = () => {
         >
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 rounded-md bg-xp-accent px-3 py-2 text-sm font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
+            className="flex items-center gap-2 rounded-[2px] bg-xp-accent px-3 py-2 text-sm font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
           >
             <Download size={14} />
             {t('settings.backup.exportButton')}
@@ -274,7 +274,7 @@ const BackupRestoreSettings = () => {
         >
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2 rounded-md border border-xp-border bg-xp-surface px-3 py-2 text-sm font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
+            className="flex items-center gap-2 rounded-[2px] border border-xp-border bg-xp-surface px-3 py-2 text-sm font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
           >
             <Upload size={14} />
             {t('settings.backup.chooseFile')}
@@ -290,7 +290,7 @@ const BackupRestoreSettings = () => {
         />
 
         {importStatus.type === 'error' && (
-          <div className="mx-4 mt-2 flex items-start gap-2 rounded-lg border border-xp-red/30 bg-xp-red/10 p-3">
+          <div className="mx-4 mt-2 flex items-start gap-2 rounded-[2px] border border-xp-red/30 bg-xp-red/10 p-3">
             <AlertTriangle size={16} className="mt-0.5 shrink-0 text-xp-red" />
             <div>
               <div className="text-sm font-medium text-xp-red">
@@ -308,7 +308,7 @@ const BackupRestoreSettings = () => {
         )}
 
         {importStatus.type === 'preview' && (
-          <div className="mx-4 mt-2 rounded-lg border border-xp-border bg-xp-surface p-4">
+          <div className="mx-4 mt-2 rounded-[2px] border border-xp-border bg-xp-surface p-4">
             <div className="mb-3 flex items-center gap-2">
               <FileJson size={16} className="text-xp-accent" />
               <span className="text-sm font-medium text-xp-text">
@@ -335,7 +335,7 @@ const BackupRestoreSettings = () => {
 
             <div className="mb-4 space-y-2">
               {importStatus.categories.map((cat) => (
-                <div key={cat.label} className="bg-xp-bg/50 rounded-md px-3 py-2">
+                <div key={cat.label} className="bg-xp-bg/50 rounded-[2px] px-3 py-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-xp-text">{t(cat.label)}</span>
                     <span className="font-mono text-[10px] text-xp-text-secondary">
@@ -349,7 +349,7 @@ const BackupRestoreSettings = () => {
               ))}
             </div>
 
-            <div className="mb-4 flex items-center gap-2 rounded-md border border-xp-yellow/20 bg-xp-yellow/10 p-2">
+            <div className="mb-4 flex items-center gap-2 rounded-[2px] border border-xp-yellow/20 bg-xp-yellow/10 p-2">
               <AlertTriangle size={14} className="shrink-0 text-xp-yellow" />
               <span className="text-xs text-xp-yellow">
                 {t('settings.backup.overwriteWarning')}
@@ -359,13 +359,13 @@ const BackupRestoreSettings = () => {
             <div className="flex justify-end gap-2">
               <button
                 onClick={handleCancelImport}
-                className="rounded-md border border-xp-border bg-xp-surface px-3 py-1.5 text-sm text-xp-text transition-colors hover:bg-xp-surface-light"
+                className="rounded-[2px] border border-xp-border bg-xp-surface px-3 py-1.5 text-sm text-xp-text transition-colors hover:bg-xp-surface-light"
               >
                 {t('common.cancel')}
               </button>
               <button
                 onClick={handleApplyImport}
-                className="flex items-center gap-1.5 rounded-md bg-xp-accent px-3 py-1.5 text-sm font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
+                className="flex items-center gap-1.5 rounded-[2px] bg-xp-accent px-3 py-1.5 text-sm font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
               >
                 <CheckCircle size={14} />
                 {t('settings.backup.applyImport')}
@@ -375,7 +375,7 @@ const BackupRestoreSettings = () => {
         )}
 
         {importStatus.type === 'success' && (
-          <div className="mx-4 mt-2 flex items-center gap-2 rounded-lg border border-xp-green/30 bg-xp-green/10 p-3">
+          <div className="mx-4 mt-2 flex items-center gap-2 rounded-[2px] border border-xp-green/30 bg-xp-green/10 p-3">
             <CheckCircle size={16} className="shrink-0 text-xp-green" />
             <div>
               <div className="text-sm font-medium text-xp-green">

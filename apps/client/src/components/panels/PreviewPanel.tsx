@@ -176,7 +176,7 @@ const EnhancedFilePreview: React.FC<{
       <div className="mt-4">
         <h4 className="mb-2 text-xs font-semibold text-xp-text">Preview Error</h4>
         <div
-          className="rounded border border-xp-border bg-xp-surface p-4 text-center text-xp-text-secondary"
+          className="rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-xp-text-secondary"
           role="alert"
         >
           <svg
@@ -236,7 +236,7 @@ const FolderDetails: React.FC<{
 
   return (
     <div className="flex h-full flex-col items-center justify-center">
-      <div className="max-w-sm rounded border border-xp-border bg-xp-surface p-6 text-center">
+      <div className="max-w-sm rounded-[2px] border border-xp-border bg-xp-surface p-6 text-center">
         <div className="mb-4 text-4xl">{getFileIcon(file)}</div>
         <h4 className="mb-4 text-sm font-medium text-xp-text">Folder Contents</h4>
         <div className="space-y-3 text-sm">
@@ -527,7 +527,7 @@ const PreviewPanel = ({
                   <span className="text-xp-text-muted">Path:</span>
                   <button
                     onClick={handleCopyPath}
-                    className={`rounded border px-2.5 py-0.5 text-[11px] transition-colors ${
+                    className={`rounded-[2px] border px-2.5 py-0.5 text-[11px] transition-colors ${
                       copyFeedback
                         ? 'border-xp-green/40 bg-xp-green/10 text-xp-green'
                         : 'border-xp-border/60 bg-xp-surface-light/60 text-xp-text-secondary hover:text-xp-text'
@@ -542,7 +542,7 @@ const PreviewPanel = ({
                     {copyFeedback ? i18n.t('previewPanel.copied') : i18n.t('common.copy')}
                   </button>
                 </div>
-                <div className="border-xp-border/40 bg-xp-bg/60 break-all rounded-lg border p-2 font-mono text-[11px] leading-relaxed text-xp-text-secondary">
+                <div className="border-xp-border/40 bg-xp-bg/60 break-all rounded-[2px] border p-2 font-mono text-[11px] leading-relaxed text-xp-text-secondary">
                   {selectedFile.path}
                 </div>
               </div>

@@ -87,7 +87,7 @@ export const PasswordPromptDialog = ({
         aria-describedby="password-dialog-description"
         aria-modal="true"
         tabIndex={-1}
-        className="w-96 max-w-full rounded-lg border border-xp-border bg-xp-surface p-6"
+        className="w-96 max-w-full rounded-[2px] border border-xp-border bg-xp-surface p-6"
         onKeyDown={(e) => {
           if (e.key === 'Escape' && !isLoading) {
             handleClose();
@@ -162,7 +162,7 @@ export const PasswordPromptDialog = ({
                     onSubmit(password, remember);
                   }
                 }}
-                className="w-full rounded border border-xp-border bg-xp-bg px-3 py-2 pr-10 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-xp-blue"
+                className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 pr-10 text-sm focus:outline-none"
                 placeholder={t('dialogs.passwordPrompt.passwordPlaceholder')}
                 autoFocus
                 required
@@ -205,7 +205,7 @@ export const PasswordPromptDialog = ({
                 id="remember"
                 checked={remember}
                 onChange={(e) => setRemember(e.target.checked)}
-                className="rounded"
+                className="rounded-[2px]"
                 disabled={isLoading}
               />
               <label htmlFor="remember" className="text-sm text-xp-text-muted">
@@ -214,7 +214,7 @@ export const PasswordPromptDialog = ({
             </div>
           )}
 
-          <div className="rounded border border-xp-yellow/20 bg-xp-yellow/10 p-3" role="note">
+          <div className="rounded-[2px] border border-xp-yellow/20 bg-xp-yellow/10 p-3" role="note">
             <div className="flex items-start space-x-2">
               <svg
                 className="mt-0.5 h-5 w-5 flex-shrink-0 text-xp-yellow"
@@ -243,7 +243,7 @@ export const PasswordPromptDialog = ({
               type="button"
               onClick={handleClose}
               disabled={isLoading}
-              className="rounded border border-xp-border px-4 py-2 text-sm transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+              className="rounded-[2px] border border-xp-border px-4 py-2 text-sm transition-colors hover:bg-xp-surface-light disabled:opacity-50"
               aria-label="Cancel authentication"
             >
               Cancel
@@ -251,7 +251,7 @@ export const PasswordPromptDialog = ({
             <button
               type="submit"
               disabled={isLoading || !password.trim()}
-              className="flex items-center space-x-2 rounded bg-xp-blue px-4 py-2 text-sm text-white transition-colors hover:bg-xp-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center space-x-2 rounded-[2px] bg-xp-blue px-4 py-2 text-sm text-xp-on-accent transition-colors hover:bg-xp-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
               aria-label={
                 isLoading
                   ? t('dialogs.passwordPrompt.authenticating')

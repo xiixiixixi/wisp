@@ -383,7 +383,7 @@ const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.opacity = '1';
-                  e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                  e.currentTarget.style.backgroundColor = 'var(--xp-border)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.opacity = '0.5';
@@ -414,7 +414,7 @@ const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
             flexShrink: 0,
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)';
+            e.currentTarget.style.backgroundColor = 'var(--glass-well)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'transparent';

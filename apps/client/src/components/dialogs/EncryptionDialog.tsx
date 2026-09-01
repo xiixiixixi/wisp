@@ -128,7 +128,7 @@ const EncryptionDialog = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div
-        className="w-[480px] max-w-[90vw] overflow-hidden rounded-lg bg-xp-surface shadow-2xl"
+        className="w-[480px] max-w-[90vw] overflow-hidden rounded-[2px] bg-xp-surface shadow-2xl"
         onKeyDown={handleKeyDown}
       >
         {/* Header */}
@@ -148,7 +148,7 @@ const EncryptionDialog = ({
           <button
             onClick={handleClose}
             disabled={processing}
-            className="rounded-md p-2 transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+            className="rounded-[2px] p-2 transition-colors hover:bg-xp-surface-light disabled:opacity-50"
             aria-label={t('dialogs.encryption.closeAriaLabel')}
           >
             <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
@@ -164,7 +164,7 @@ const EncryptionDialog = ({
         {/* Content */}
         <div className="space-y-5 p-6">
           {/* File info */}
-          <div className="rounded-lg bg-xp-bg p-4">
+          <div className="rounded-[2px] bg-xp-bg p-4">
             <div className="mb-1 text-sm text-xp-text-muted">
               {t('dialogs.encryption.fileLabel')}
             </div>
@@ -191,7 +191,7 @@ const EncryptionDialog = ({
                   setPassword(e.target.value);
                   setError(null);
                 }}
-                className="w-full rounded-md border border-xp-border bg-xp-bg px-3 py-2 pr-10 text-xp-text focus:border-xp-blue focus:ring-2 focus:ring-xp-blue"
+                className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 pr-10 text-xp-text focus:border-xp-blue"
                 placeholder={t('dialogs.encryption.passwordPlaceholder')}
                 autoFocus
                 disabled={processing}
@@ -226,7 +226,7 @@ const EncryptionDialog = ({
                     setConfirmPassword(e.target.value);
                     setError(null);
                   }}
-                  className="w-full rounded-md border border-xp-border bg-xp-bg px-3 py-2 pr-10 text-xp-text focus:border-xp-blue focus:ring-2 focus:ring-xp-blue"
+                  className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 pr-10 text-xp-text focus:border-xp-blue"
                   placeholder={t('dialogs.encryption.confirmPasswordPlaceholder')}
                   disabled={processing}
                 />
@@ -249,7 +249,7 @@ const EncryptionDialog = ({
 
           {/* Error message */}
           {error && (
-            <div className="flex items-start space-x-2 rounded-md border border-xp-red/30 bg-xp-red/10 p-3">
+            <div className="flex items-start space-x-2 rounded-[2px] border border-xp-red/30 bg-xp-red/10 p-3">
               <AlertTriangle size={16} className="mt-0.5 shrink-0 text-xp-red" />
               <span className="text-sm text-xp-red">{error}</span>
             </div>
@@ -273,7 +273,7 @@ const EncryptionDialog = ({
           <button
             onClick={handleClose}
             disabled={processing}
-            className="rounded px-4 py-2 text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+            className="rounded-[2px] px-4 py-2 text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
             aria-label={t('common.cancel')}
           >
             {t('common.cancel')}
@@ -281,7 +281,7 @@ const EncryptionDialog = ({
           <button
             onClick={handleSubmit}
             disabled={processing || !password}
-            className="flex items-center space-x-2 rounded bg-xp-blue px-4 py-2 text-white transition-colors hover:bg-xp-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center space-x-2 rounded-[2px] bg-xp-blue px-4 py-2 text-xp-on-accent transition-colors hover:bg-xp-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={
               isEncrypt
                 ? t('dialogs.encryption.encryptFileAriaLabel')

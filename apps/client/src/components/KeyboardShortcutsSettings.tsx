@@ -218,12 +218,12 @@ const KeyboardShortcutsSettings = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={t('settings.shortcuts.searchPlaceholder')}
-          className="placeholder:text-xp-text-secondary/50 h-9 w-full rounded-md border border-xp-border bg-xp-bg pl-9 pr-3 text-sm text-xp-text transition-colors focus:border-xp-accent focus:outline-none focus:ring-1 focus:ring-xp-accent"
+          className="placeholder:text-xp-text-secondary/50 h-9 w-full rounded-[2px] border border-xp-border bg-xp-bg pl-9 pr-3 text-sm text-xp-text transition-colors focus:border-xp-text-secondary focus:outline-none"
         />
         {searchQuery && (
           <button
             onClick={() => setSearchQuery('')}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-xp-text-secondary hover:text-xp-text"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-[2px] p-1 text-xp-text-secondary hover:text-xp-text"
           >
             <X size={14} />
           </button>
@@ -246,11 +246,11 @@ const KeyboardShortcutsSettings = () => {
           const isCollapsed = collapsedCategories.has(cat);
 
           return (
-            <div key={cat} className="border-xp-border/50 overflow-hidden rounded-lg border">
+            <div key={cat} className="border-xp-border/50 overflow-hidden rounded-[2px] border">
               {/* Category header */}
               <button
                 onClick={() => toggleCategory(cat)}
-                className="bg-xp-surface/50 flex w-full items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-xp-surface"
+                className="flex w-full items-center gap-2 bg-xp-surface/50 px-4 py-2.5 text-left transition-colors hover:bg-xp-surface"
               >
                 {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
                 <Icon size={15} className="text-xp-text-secondary" />
@@ -287,7 +287,7 @@ const KeyboardShortcutsSettings = () => {
                               })()}
                             </span>
                             {isExtension && (
-                              <span className="bg-xp-purple/15 inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium text-xp-purple">
+                              <span className="inline-flex shrink-0 items-center gap-1 rounded-[2px] bg-xp-purple/15 px-1.5 py-0.5 text-[10px] font-medium text-xp-purple">
                                 <Puzzle size={10} />
                                 {extensionName}
                               </span>
@@ -313,9 +313,9 @@ const KeyboardShortcutsSettings = () => {
                               ? t('settings.shortcuts.cancelEditing')
                               : t('settings.shortcuts.clickToEdit')
                           }
-                          className={`inline-flex shrink-0 items-center gap-1 rounded-md border px-2.5 py-1 font-mono text-xs transition-all ${
+                          className={`inline-flex shrink-0 items-center gap-1 rounded-[2px] border px-2.5 py-1 font-mono text-xs transition-all ${
                             isEditing
-                              ? 'bg-xp-accent/10 animate-pulse border-xp-accent text-xp-accent'
+                              ? 'animate-pulse border-xp-accent bg-xp-accent/10 text-xp-accent'
                               : 'border-xp-border bg-xp-bg text-xp-text-secondary hover:border-xp-text-secondary hover:text-xp-text'
                           }`}
                         >
@@ -336,7 +336,7 @@ const KeyboardShortcutsSettings = () => {
                           <div className="flex items-center gap-1">
                             <button
                               onClick={handleConfirmEdit}
-                              className="shrink-0 rounded bg-xp-accent px-2 py-1 text-xs font-medium text-white transition-colors hover:bg-xp-accent-hover"
+                              className="shrink-0 rounded-[2px] bg-xp-accent px-2 py-1 text-xs font-medium text-xp-on-accent transition-colors hover:bg-xp-accent-hover"
                             >
                               {t('settings.shortcuts.save')}
                             </button>
@@ -346,7 +346,7 @@ const KeyboardShortcutsSettings = () => {
                                 setCapturedCombo(null);
                                 setConflict(null);
                               }}
-                              className="shrink-0 rounded px-2 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                              className="shrink-0 rounded-[2px] px-2 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                             >
                               {t('settings.shortcuts.cancel')}
                             </button>
@@ -357,7 +357,7 @@ const KeyboardShortcutsSettings = () => {
                             <button
                               onClick={() => handleResetSingle(shortcut.id)}
                               title={t('settings.shortcuts.resetToDefault')}
-                              className="text-xp-text-secondary/40 shrink-0 rounded p-1 transition-colors hover:text-xp-text-secondary"
+                              className="text-xp-text-secondary/40 shrink-0 rounded-[2px] p-1 transition-colors hover:text-xp-text-secondary"
                             >
                               <RotateCcw size={13} />
                             </button>
@@ -375,7 +375,7 @@ const KeyboardShortcutsSettings = () => {
 
       {/* Conflict warning (shown when editing) */}
       {editingId && conflict && (
-        <div className="border-xp-yellow/30 bg-xp-yellow/5 flex items-center gap-2 rounded-md border px-4 py-2.5 text-sm">
+        <div className="flex items-center gap-2 rounded-[2px] border border-xp-yellow/30 bg-xp-yellow/5 px-4 py-2.5 text-sm">
           <AlertTriangle size={16} className="shrink-0 text-xp-yellow" />
           <span className="text-xp-text">
             {t('settings.shortcuts.conflictsWith', {
@@ -398,7 +398,7 @@ const KeyboardShortcutsSettings = () => {
       <div className="pt-2">
         <button
           onClick={handleResetAll}
-          className="hover:bg-xp-red/5 flex items-center gap-2 rounded-md px-3 py-2 text-sm text-xp-text-secondary transition-colors hover:text-xp-red"
+          className="flex items-center gap-2 rounded-[2px] px-3 py-2 text-sm text-xp-text-secondary transition-colors hover:bg-xp-red/5 hover:text-xp-red"
         >
           <RotateCcw size={14} />
           {t('settings.shortcuts.resetAll')}

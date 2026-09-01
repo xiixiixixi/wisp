@@ -20,7 +20,7 @@ const PdfPreview = ({ file, onError, onLoad }: PreviewProps) => {
 
   return (
     <div className="flex h-full flex-col gap-1.5">
-      <div className="relative min-h-0 flex-1 overflow-hidden rounded-lg border border-xp-border bg-xp-surface">
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface">
         {!ready && (
           <div className="absolute inset-0 flex items-center justify-center">
             <PreviewSkeleton />

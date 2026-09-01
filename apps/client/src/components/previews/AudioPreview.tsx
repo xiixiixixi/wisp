@@ -210,7 +210,7 @@ const AudioPreview = ({ file, onError, onLoad }: PreviewProps) => {
   if (audioError) {
     return (
       <div className="flex h-full flex-col">
-        <div className="flex flex-1 items-center justify-center rounded border border-xp-border bg-xp-surface">
+        <div className="flex flex-1 items-center justify-center rounded-[2px] border border-xp-border bg-xp-surface">
           <div className="text-center text-xp-text-muted">
             <svg className="mx-auto mb-2 h-12 w-12" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -243,10 +243,10 @@ const AudioPreview = ({ file, onError, onLoad }: PreviewProps) => {
       />
 
       {loading && (
-        <div className="flex flex-1 items-center justify-center rounded border border-xp-border bg-xp-surface">
+        <div className="flex flex-1 items-center justify-center rounded-[2px] border border-xp-border bg-xp-surface">
           <div className="text-center text-xp-text-muted">
             <div className="animate-pulse">
-              <div className="mx-auto mb-2 h-16 w-16 rounded bg-xp-bg" />
+              <div className="mx-auto mb-2 h-16 w-16 rounded-[2px] bg-xp-bg" />
               <p className="text-xs">{t('previews.audio.loading')}</p>
             </div>
           </div>
@@ -267,7 +267,12 @@ const AudioPreview = ({ file, onError, onLoad }: PreviewProps) => {
 
           {/* Waveform Visualization */}
           <div className="bg-xp-surface px-4 py-3">
-            <canvas ref={canvasRef} width={280} height={60} className="w-full rounded bg-xp-bg" />
+            <canvas
+              ref={canvasRef}
+              width={280}
+              height={60}
+              className="w-full rounded-[2px] bg-xp-bg"
+            />
           </div>
 
           {/* Progress bar */}
@@ -281,7 +286,7 @@ const AudioPreview = ({ file, onError, onLoad }: PreviewProps) => {
                 step="0.1"
                 value={currentTime}
                 onChange={handleProgressChange}
-                className="h-1 flex-1 cursor-pointer appearance-none rounded"
+                className="h-1 flex-1 cursor-pointer appearance-none rounded-[2px]"
                 style={{
                   background: `linear-gradient(to right, var(--xp-lime) 0%, var(--xp-lime) ${progressPercent}%, var(--xp-border) ${progressPercent}%, var(--xp-border) 100%)`,
                 }}
@@ -297,7 +302,7 @@ const AudioPreview = ({ file, onError, onLoad }: PreviewProps) => {
               <button
                 title={t('previews.audio.previousTrack')}
                 disabled
-                className="cursor-not-allowed rounded p-1.5 text-xp-text opacity-50"
+                className="cursor-not-allowed rounded-[2px] p-1.5 text-xp-text opacity-50"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z" />
@@ -308,7 +313,7 @@ const AudioPreview = ({ file, onError, onLoad }: PreviewProps) => {
               <button
                 onClick={togglePlay}
                 title={isPlaying ? t('previews.audio.pause') : t('previews.audio.play')}
-                className="rounded border border-xp-border bg-xp-surface p-2 text-xp-text hover:bg-xp-surface-light"
+                className="rounded-[2px] border border-xp-border bg-xp-surface p-2 text-xp-text hover:bg-xp-surface-light"
               >
                 {isPlaying ? (
                   <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
@@ -333,7 +338,7 @@ const AudioPreview = ({ file, onError, onLoad }: PreviewProps) => {
               <button
                 title={t('previews.audio.nextTrack')}
                 disabled
-                className="cursor-not-allowed rounded p-1.5 text-xp-text opacity-50"
+                className="cursor-not-allowed rounded-[2px] p-1.5 text-xp-text opacity-50"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M11.555 5.168A1 1 0 0010 6v2.798L4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4z" />
@@ -357,7 +362,7 @@ const AudioPreview = ({ file, onError, onLoad }: PreviewProps) => {
                 step="0.1"
                 value={volume}
                 onChange={handleVolumeChange}
-                className="h-1 w-24 cursor-pointer appearance-none rounded"
+                className="h-1 w-24 cursor-pointer appearance-none rounded-[2px]"
                 style={{
                   background: `linear-gradient(to right, var(--xp-text-muted) 0%, var(--xp-text-muted) ${volume * 100}%, var(--xp-border) ${volume * 100}%, var(--xp-border) 100%)`,
                 }}

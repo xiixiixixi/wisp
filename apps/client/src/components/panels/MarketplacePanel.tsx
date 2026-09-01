@@ -136,7 +136,7 @@ const ExtensionsContent = ({
         <span className="break-all text-center text-xs text-xp-red">{error}</span>
         <button
           onClick={() => loadExtensions(1)}
-          className="mt-1 rounded border border-xp-border bg-xp-surface px-3 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
+          className="mt-1 rounded-[2px] border border-xp-border bg-xp-surface px-3 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
         >
           Retry
         </button>
@@ -557,7 +557,7 @@ const MarketplacePanel = () => {
           <button
             onClick={handleInstallFromFile}
             disabled={!!installingId}
-            className="rounded p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             title="Install from .xtension file"
           >
             <FolderOpen className="h-3.5 w-3.5" />
@@ -565,14 +565,14 @@ const MarketplacePanel = () => {
           <button
             onClick={() => loadExtensions(pagination.page)}
             disabled={isLoading}
-            className="rounded p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             title="Refresh"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={() => TauriAPI.openUrl('https://xplorer.space')}
-            className="rounded p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             title={i18n.t('marketplace.openWebsite')}
           >
             <ExternalLink className="h-3.5 w-3.5" />
@@ -589,7 +589,7 @@ const MarketplacePanel = () => {
             placeholder={i18n.t('marketplace.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-md border border-xp-border bg-xp-surface py-1.5 pl-9 pr-3 text-sm text-xp-text transition-colors placeholder:text-xp-text-muted focus:border-xp-blue focus:outline-none"
+            className="w-full rounded-[2px] border border-xp-border bg-xp-surface py-1.5 pl-9 pr-3 text-sm text-xp-text transition-colors placeholder:text-xp-text-muted focus:border-xp-blue focus:outline-none"
           />
         </div>
       </div>
@@ -640,12 +640,12 @@ const MarketplacePanel = () => {
               return (
                 <div
                   key={pack.id}
-                  className="border-xp-border hover:bg-xp-surface-light/50 rounded-lg border p-3 transition-colors"
+                  className="border-xp-border hover:bg-xp-surface-light/50 rounded-[2px] border p-3 transition-colors"
                   style={{ background: 'rgb(var(--xp-surface-rgb) / 0.5)' }}
                 >
                   <div className="flex items-start gap-3">
                     <div
-                      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg"
+                      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[2px]"
                       style={{ background: 'var(--xp-selection-bg)' }}
                     >
                       <svg
@@ -664,7 +664,7 @@ const MarketplacePanel = () => {
                       <div className="flex items-center gap-2">
                         <h4 className="truncate text-sm font-medium">{pack.name}</h4>
                         {pack.recommended && (
-                          <span className="bg-xp-blue/20 text-xp-blue rounded px-1.5 py-0.5 text-[10px] font-medium">
+                          <span className="bg-xp-blue/20 text-xp-blue rounded-[2px] px-1.5 py-0.5 text-[10px] font-medium">
                             Recommended
                           </span>
                         )}
@@ -679,7 +679,7 @@ const MarketplacePanel = () => {
                         <button
                           onClick={() => handleUninstallPack(pack)}
                           disabled={isInstalling || !!installingPackId}
-                          className="bg-xp-red/20 text-xp-red hover:bg-xp-red/30 flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition-colors"
+                          className="bg-xp-red/20 text-xp-red hover:bg-xp-red/30 flex items-center gap-1.5 rounded-[2px] px-3 py-1.5 text-xs font-medium transition-colors"
                         >
                           {isInstalling ? (
                             <>
@@ -698,10 +698,10 @@ const MarketplacePanel = () => {
                           <button
                             onClick={() => handleInstallPack(pack)}
                             disabled={isInstalling || !!installingPackId}
-                            className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition-colors ${
+                            className={`flex items-center gap-1.5 rounded-[2px] px-3 py-1.5 text-xs font-medium transition-colors ${
                               isInstalling
                                 ? 'bg-xp-blue/20 text-xp-blue cursor-wait'
-                                : 'bg-xp-blue hover:bg-xp-blue/80 text-white'
+                                : 'bg-xp-blue hover:bg-xp-blue/80 text-xp-on-accent'
                             }`}
                           >
                             {isInstalling ? (
@@ -720,7 +720,7 @@ const MarketplacePanel = () => {
                             <button
                               onClick={() => handleUninstallPack(pack)}
                               disabled={isInstalling || !!installingPackId}
-                              className="text-xp-text-muted hover:text-xp-red hover:bg-xp-red/10 flex items-center rounded p-1.5 text-xs transition-colors"
+                              className="text-xp-text-muted hover:text-xp-red hover:bg-xp-red/10 flex items-center rounded-[2px] p-1.5 text-xs transition-colors"
                               title={i18n.t('marketplace.uninstallPack')}
                             >
                               <Trash2 className="h-3.5 w-3.5" />

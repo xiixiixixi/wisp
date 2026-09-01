@@ -82,7 +82,7 @@ const ChatMessageList = ({
         <div className="flex justify-start">
           <details
             open
-            className="min-w-0 max-w-[85%] overflow-hidden rounded-lg border border-xp-border bg-xp-bg"
+            className="min-w-0 max-w-[85%] overflow-hidden rounded-[2px] border border-xp-border bg-xp-bg"
           >
             <summary className="flex cursor-pointer select-none items-center gap-1.5 px-3 py-1.5 text-xs text-xp-text-muted hover:bg-xp-surface-light">
               <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-xp-cyan" />

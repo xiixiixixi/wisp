@@ -157,7 +157,7 @@ const PermissionsSettings = ({
     <div className="space-y-4">
       {/* Internet Sandbox */}
       <SectionTitle title={t('settings.permissions.network')} />
-      <div className="flex items-center justify-between gap-4 rounded-lg px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
+      <div className="flex items-center justify-between gap-4 rounded-[2px] px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
         <div className="flex min-w-0 items-center gap-3">
           <Globe size={18} className="shrink-0 text-xp-text-secondary" />
           <div className="min-w-0">
@@ -191,11 +191,11 @@ const PermissionsSettings = ({
           return (
             <div
               key={toolName}
-              className={`flex items-center justify-between gap-4 rounded-lg px-4 py-2.5 transition-colors hover:bg-xp-surface-light/50 ${!enabled ? 'opacity-50' : ''}`}
+              className={`flex items-center justify-between gap-4 rounded-[2px] px-4 py-2.5 transition-colors hover:bg-xp-surface-light/50 ${!enabled ? 'opacity-50' : ''}`}
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2 text-sm font-medium text-xp-text">
-                  <code className="rounded bg-xp-surface px-1.5 py-0.5 font-mono text-[11px] text-xp-accent">
+                  <code className="rounded-[2px] bg-xp-surface px-1.5 py-0.5 font-mono text-[11px] text-xp-accent">
                     {toolName}
                   </code>
                   {t(keys.labelKey)}
@@ -220,11 +220,11 @@ const PermissionsSettings = ({
           return (
             <div
               key={toolName}
-              className={`flex items-center justify-between gap-4 rounded-lg px-4 py-2.5 transition-colors hover:bg-xp-surface-light/50 ${!enabled ? 'opacity-50' : ''}`}
+              className={`flex items-center justify-between gap-4 rounded-[2px] px-4 py-2.5 transition-colors hover:bg-xp-surface-light/50 ${!enabled ? 'opacity-50' : ''}`}
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2 text-sm font-medium text-xp-text">
-                  <code className="rounded bg-xp-surface px-1.5 py-0.5 font-mono text-[11px] text-xp-accent">
+                  <code className="rounded-[2px] bg-xp-surface px-1.5 py-0.5 font-mono text-[11px] text-xp-accent">
                     {toolName}
                   </code>
                   {t(keys.labelKey)}
@@ -261,7 +261,7 @@ const PermissionsSettings = ({
             return (
               <div
                 key={toolName}
-                className="flex items-center justify-between gap-4 rounded-lg px-4 py-2 transition-colors hover:bg-xp-surface-light/50"
+                className="flex items-center justify-between gap-4 rounded-[2px] px-4 py-2 transition-colors hover:bg-xp-surface-light/50"
               >
                 <div className="text-sm text-xp-text">{t(keys.labelKey)}</div>
                 <PermToggle enabled={autoApproved} onChange={() => toggleAutoApprove(toolName)} />
@@ -282,7 +282,7 @@ const PermissionsSettings = ({
           <input
             type="text"
             placeholder={t('settings.permissions.allowedPathPlaceholder')}
-            className="h-8 flex-1 rounded-md border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text focus:border-xp-accent focus:outline-none focus:ring-1 focus:ring-xp-accent"
+            className="h-8 flex-1 rounded-[2px] border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text focus:border-xp-text-secondary focus:outline-none"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 addToList('allowed_paths', e.currentTarget.value);
@@ -296,7 +296,7 @@ const PermissionsSettings = ({
               addToList('allowed_paths', input.value);
               input.value = '';
             }}
-            className="h-8 rounded-md bg-xp-accent px-3 text-xs font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
+            className="h-8 rounded-[2px] bg-xp-accent px-3 text-xs font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
           >
             {t('common.add')}
           </button>
@@ -306,7 +306,7 @@ const PermissionsSettings = ({
             {permissions.allowed_paths.map((p, i) => (
               <div
                 key={p}
-                className="flex items-center justify-between gap-2 rounded-md bg-xp-surface px-3 py-1.5 font-mono text-sm text-xp-text"
+                className="flex items-center justify-between gap-2 rounded-[2px] bg-xp-surface px-3 py-1.5 font-mono text-sm text-xp-text"
               >
                 <span className="truncate">{p}</span>
                 <button
@@ -332,7 +332,7 @@ const PermissionsSettings = ({
           <input
             type="text"
             placeholder={t('settings.permissions.blockedPathPlaceholder')}
-            className="h-8 flex-1 rounded-md border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text focus:border-xp-accent focus:outline-none focus:ring-1 focus:ring-xp-accent"
+            className="h-8 flex-1 rounded-[2px] border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text focus:border-xp-text-secondary focus:outline-none"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 addToList('blocked_paths', e.currentTarget.value);
@@ -346,7 +346,7 @@ const PermissionsSettings = ({
               addToList('blocked_paths', input.value);
               input.value = '';
             }}
-            className="h-8 rounded-md bg-xp-accent px-3 text-xs font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
+            className="h-8 rounded-[2px] bg-xp-accent px-3 text-xs font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
           >
             {t('common.add')}
           </button>
@@ -356,7 +356,7 @@ const PermissionsSettings = ({
             {permissions.blocked_paths.map((p, i) => (
               <div
                 key={p}
-                className="flex items-center justify-between gap-2 rounded-md bg-xp-surface px-3 py-1.5 font-mono text-sm text-xp-text"
+                className="flex items-center justify-between gap-2 rounded-[2px] bg-xp-surface px-3 py-1.5 font-mono text-sm text-xp-text"
               >
                 <span className="truncate">{p}</span>
                 <button
@@ -382,7 +382,7 @@ const PermissionsSettings = ({
           <input
             type="text"
             placeholder={t('settings.permissions.commandPlaceholder')}
-            className="h-8 flex-1 rounded-md border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text focus:border-xp-accent focus:outline-none focus:ring-1 focus:ring-xp-accent"
+            className="h-8 flex-1 rounded-[2px] border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text focus:border-xp-text-secondary focus:outline-none"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 addToList('custom_blocked_commands', e.currentTarget.value);
@@ -396,7 +396,7 @@ const PermissionsSettings = ({
               addToList('custom_blocked_commands', input.value);
               input.value = '';
             }}
-            className="h-8 rounded-md bg-xp-accent px-3 text-xs font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
+            className="h-8 rounded-[2px] bg-xp-accent px-3 text-xs font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
           >
             {t('common.add')}
           </button>
@@ -406,7 +406,7 @@ const PermissionsSettings = ({
             {permissions.custom_blocked_commands.map((c, i) => (
               <div
                 key={c}
-                className="flex items-center justify-between gap-2 rounded-md bg-xp-surface px-3 py-1.5 font-mono text-sm text-xp-text"
+                className="flex items-center justify-between gap-2 rounded-[2px] bg-xp-surface px-3 py-1.5 font-mono text-sm text-xp-text"
               >
                 <span className="truncate">{c}</span>
                 <button
@@ -426,7 +426,7 @@ const PermissionsSettings = ({
       <div className="px-4 pt-2">
         <button
           onClick={() => setPermissions(DEFAULT_PERMISSIONS)}
-          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+          className="flex items-center gap-2 rounded-[2px] px-3 py-2 text-sm text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
         >
           <RotateCcw size={14} />
           {t('settings.permissions.resetDefaults')}

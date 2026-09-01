@@ -65,7 +65,7 @@ const CodeMirrorPreview = ({
     <div className="flex h-full flex-col">
       {/* Toolbar */}
       <div className="mb-1.5 flex flex-shrink-0 items-center gap-1.5">
-        <span className="rounded bg-xp-bg px-2 py-1 text-[10px] uppercase tracking-wide text-xp-text-muted">
+        <span className="rounded-[2px] bg-xp-bg px-2 py-1 text-[10px] uppercase tracking-wide text-xp-text-muted">
           {langName || file.name.split('.').pop() || 'text'}
         </span>
         <span className="text-[10px] text-xp-text-muted">{formatFileSize(file.size)}</span>
@@ -79,9 +79,9 @@ const CodeMirrorPreview = ({
               type="button"
               onClick={() => void save()}
               disabled={!dirty || saving}
-              className={`rounded-md border px-2 py-1 text-xs transition-colors ${
+              className={`rounded-[2px] border px-2 py-1 text-xs transition-colors ${
                 dirty
-                  ? 'border-xp-blue/40 hover:bg-xp-selection-bg text-xp-blue'
+                  ? 'border-xp-blue/40 text-xp-blue hover:bg-xp-selection-bg'
                   : 'border-xp-border text-xp-text-muted opacity-50'
               }`}
             >
@@ -90,7 +90,7 @@ const CodeMirrorPreview = ({
             <button
               type="button"
               onClick={() => setEditable(false)}
-              className="rounded-md border border-xp-border px-2 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
+              className="rounded-[2px] border border-xp-border px-2 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
             >
               {t('preview.doneEditing')}
             </button>
@@ -99,7 +99,7 @@ const CodeMirrorPreview = ({
           <button
             type="button"
             onClick={() => setEditable(true)}
-            className="rounded-md border border-xp-border px-2 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
+            className="rounded-[2px] border border-xp-border px-2 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
           >
             {t('preview.edit')}
           </button>
@@ -109,7 +109,7 @@ const CodeMirrorPreview = ({
       {loading && <PreviewSkeleton />}
 
       {!loading && error && (
-        <div className="flex flex-1 items-center justify-center rounded border border-xp-border bg-xp-surface">
+        <div className="flex flex-1 items-center justify-center rounded-[2px] border border-xp-border bg-xp-surface">
           <div className="text-center text-xp-text-muted">
             <p className="text-sm">{t('preview.cannotPreview')}</p>
             <p className="mt-1 text-xs opacity-70">{error}</p>
@@ -118,7 +118,7 @@ const CodeMirrorPreview = ({
       )}
 
       {!loading && !error && (
-        <div className="min-h-0 flex-1 overflow-hidden rounded-lg border border-xp-border bg-xp-surface">
+        <div className="min-h-0 flex-1 overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface">
           <WispCodeMirror
             doc={content}
             readOnly={!editable}

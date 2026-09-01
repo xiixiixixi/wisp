@@ -27,7 +27,7 @@ const HtmlPreview = ({ file, onError, onLoad }: PreviewProps) => {
     <div className="flex h-full flex-col">
       {/* Toolbar */}
       <div className="mb-1.5 flex flex-shrink-0 items-center gap-1.5">
-        <div className="flex overflow-hidden rounded-md border border-xp-border bg-xp-bg text-xs">
+        <div className="flex overflow-hidden rounded-[2px] border border-xp-border bg-xp-bg text-xs">
           <button
             type="button"
             onClick={() => setTab('rendered')}
@@ -59,7 +59,7 @@ const HtmlPreview = ({ file, onError, onLoad }: PreviewProps) => {
               type="button"
               onClick={() => void save()}
               disabled={saving}
-              className="border-xp-blue/40 hover:bg-xp-selection-bg rounded-md border px-2 py-1 text-xs text-xp-blue transition-colors"
+              className="rounded-[2px] border border-xp-blue/40 px-2 py-1 text-xs text-xp-blue transition-colors hover:bg-xp-selection-bg"
             >
               {saving ? t('common.saving') : t('common.save')}
             </button>
@@ -70,7 +70,7 @@ const HtmlPreview = ({ file, onError, onLoad }: PreviewProps) => {
       {loading && <PreviewSkeleton />}
 
       {!loading && error && (
-        <div className="flex flex-1 items-center justify-center rounded border border-xp-border bg-xp-surface">
+        <div className="flex flex-1 items-center justify-center rounded-[2px] border border-xp-border bg-xp-surface">
           <div className="text-center text-xp-text-muted">
             <p className="text-sm">{t('preview.cannotPreview')}</p>
             <p className="mt-1 text-xs opacity-70">{error}</p>
@@ -79,7 +79,7 @@ const HtmlPreview = ({ file, onError, onLoad }: PreviewProps) => {
       )}
 
       {!loading && !error && tab === 'rendered' && (
-        <div className="min-h-0 flex-1 overflow-hidden rounded-lg border border-xp-border bg-white">
+        <div className="min-h-0 flex-1 overflow-hidden rounded-[2px] border border-xp-border bg-white">
           <iframe
             title={t('preview.htmlPreview')}
             sandbox="allow-scripts"
@@ -90,7 +90,7 @@ const HtmlPreview = ({ file, onError, onLoad }: PreviewProps) => {
       )}
 
       {!loading && !error && tab === 'edit' && (
-        <div className="min-h-0 flex-1 overflow-hidden rounded-lg border border-xp-border bg-xp-surface">
+        <div className="min-h-0 flex-1 overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface">
           <WispCodeMirror
             doc={content}
             readOnly={false}

@@ -211,7 +211,7 @@ const AboutUpdateCard = () => {
       return (
         <button
           onClick={installUpdate}
-          className="inline-flex items-center gap-2 rounded-md bg-xp-blue px-4 py-2 text-sm font-medium text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark"
+          className="inline-flex items-center gap-2 rounded-[2px] bg-xp-blue px-4 py-2 text-sm font-medium text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark"
         >
           <Download size={14} />
           {t('updater.install')}
@@ -222,7 +222,7 @@ const AboutUpdateCard = () => {
       <button
         onClick={handleCheck}
         disabled={phase === 'checking'}
-        className="inline-flex items-center gap-2 rounded-md border border-xp-border bg-xp-surface px-4 py-2 text-sm font-medium text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-[2px] border border-xp-border bg-xp-surface px-4 py-2 text-sm font-medium text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
       >
         <RefreshCw size={14} className={phase === 'checking' ? 'animate-spin' : ''} />
         {t('updater.checkNow')}
@@ -231,7 +231,7 @@ const AboutUpdateCard = () => {
   };
 
   return (
-    <div className="rounded-lg border border-xp-border p-4">
+    <div className="rounded-[2px] border border-xp-border p-4">
       <h3 className="mb-3 text-sm font-medium text-xp-text">{t('updater.title')}</h3>
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-xp-text-secondary">{statusText()}</p>
@@ -429,7 +429,7 @@ const Settings = () => {
       case 'about':
         return (
           <div className="space-y-4 px-4 py-2">
-            <div className="rounded-lg border border-xp-border p-6 text-center">
+            <div className="rounded-[2px] border border-xp-border p-6 text-center">
               <h2 className="mb-1 text-2xl font-medium text-xp-text">Wisp</h2>
               <p className="text-sm text-xp-text-muted">v{__APP_VERSION__}</p>
               <p className="mt-3 text-sm text-xp-text-secondary">
@@ -439,12 +439,12 @@ const Settings = () => {
 
             {isTauri() && <AboutUpdateCard />}
 
-            <div className="rounded-lg border border-xp-border p-4">
+            <div className="rounded-[2px] border border-xp-border p-4">
               <h3 className="mb-3 text-sm font-medium text-xp-text">{t('settings.about.links')}</h3>
               <div className="space-y-4">
                 <button
                   onClick={() => TauriAPI.openUrl('https://github.com/xiixiixixi/wisp')}
-                  className="flex w-full items-center gap-3 rounded-md p-2 text-left text-xp-text transition-colors hover:bg-xp-surface-light"
+                  className="flex w-full items-center gap-3 rounded-[2px] p-2 text-left text-xp-text transition-colors hover:bg-xp-surface-light"
                 >
                   <Github size={18} className="text-xp-text-muted" />
                   <span className="text-sm">GitHub Repository</span>
@@ -452,7 +452,7 @@ const Settings = () => {
                 </button>
                 <button
                   onClick={() => TauriAPI.openUrl('https://github.com/xiixiixixi/wisp/releases')}
-                  className="flex w-full items-center gap-3 rounded-md p-2 text-left text-xp-text transition-colors hover:bg-xp-surface-light"
+                  className="flex w-full items-center gap-3 rounded-[2px] p-2 text-left text-xp-text transition-colors hover:bg-xp-surface-light"
                 >
                   <Github size={18} className="text-xp-text-muted" />
                   <span className="text-sm">Releases</span>
@@ -461,7 +461,7 @@ const Settings = () => {
               </div>
             </div>
 
-            <div className="rounded-lg border border-xp-blue/30 bg-xp-blue/5 p-5">
+            <div className="rounded-[2px] border border-xp-blue/30 bg-xp-blue/5 p-5">
               <div className="flex items-start gap-3">
                 <Heart size={20} className="mt-0.5 flex-shrink-0 text-xp-blue" />
                 <div>
@@ -473,7 +473,7 @@ const Settings = () => {
                   </p>
                   <button
                     onClick={() => TauriAPI.openUrl('https://github.com/sponsors/xiixiixixi')}
-                    className="mt-3 inline-flex items-center gap-2 rounded-md bg-xp-blue px-4 py-2 text-sm font-medium text-[var(--xp-bg)] transition-colors hover:bg-xp-blue/80"
+                    className="mt-3 inline-flex items-center gap-2 rounded-[2px] bg-xp-blue px-4 py-2 text-sm font-medium text-[var(--xp-bg)] transition-colors hover:bg-xp-blue/80"
                   >
                     <Heart size={14} />
                     {t('settings.about.sponsorButton')}
@@ -502,13 +502,13 @@ const Settings = () => {
         >
           <Link
             href={`/${window.location.search}`}
-            className="flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-xp-surface hover:text-xp-text"
+            className="flex h-8 w-8 items-center justify-center rounded-[2px] text-xp-text-secondary transition-colors hover:bg-xp-surface hover:text-xp-text"
             title={t('settings.backToApp')}
             aria-label={t('settings.backToApp')}
           >
             <ArrowLeft size={18} />
           </Link>
-          <img src={wispLogo} alt="" className="h-8 w-8 rounded-[10px]" aria-hidden="true" />
+          <img src={wispLogo} alt="" className="h-8 w-8 rounded-[2px]" aria-hidden="true" />
           <div>
             <h1 className="text-lg font-medium leading-tight text-xp-text">
               {t('settings.title')}
@@ -531,7 +531,7 @@ const Settings = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex min-h-12 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all ${
+                    className={`flex min-h-12 w-full items-center gap-3 rounded-[2px] px-3 py-2.5 text-left transition-all ${
                       isActive
                         ? 'bg-muted text-xp-blue'
                         : 'text-xp-text-secondary hover:bg-xp-surface hover:text-xp-text'

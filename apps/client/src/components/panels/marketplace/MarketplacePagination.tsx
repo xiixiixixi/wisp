@@ -23,7 +23,7 @@ const MarketplacePagination = React.memo(
         <button
           onClick={() => onPageChange(pagination.page - 1)}
           disabled={pagination.page <= 1 || isLoading}
-          className="flex items-center gap-1 rounded border border-xp-border bg-xp-surface px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex items-center gap-1 rounded-[2px] border border-xp-border bg-xp-surface px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:cursor-not-allowed disabled:opacity-40"
         >
           <ChevronLeft className="h-3 w-3" />
           Previous
@@ -34,7 +34,7 @@ const MarketplacePagination = React.memo(
         <button
           onClick={() => onPageChange(pagination.page + 1)}
           disabled={pagination.page >= pagination.totalPages || isLoading}
-          className="flex items-center gap-1 rounded border border-xp-border bg-xp-surface px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex items-center gap-1 rounded-[2px] border border-xp-border bg-xp-surface px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:cursor-not-allowed disabled:opacity-40"
         >
           Next
           <ChevronRight className="h-3 w-3" />

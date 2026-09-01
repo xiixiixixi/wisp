@@ -58,7 +58,7 @@ const SearchProviderSettings = ({ settings, updateSetting }: SearchProviderSetti
           </Select>
         </SettingRow>
 
-        <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+        <div className="rounded-[2px] px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
           <div className="mb-2 flex items-center gap-3">
             <Brain size={18} className="shrink-0 text-xp-text-secondary" aria-hidden="true" />
             <div>
@@ -73,12 +73,12 @@ const SearchProviderSettings = ({ settings, updateSetting }: SearchProviderSetti
             value={settings.aiSearchModel || ''}
             onChange={(event) => updateSetting('aiSearchModel', event.target.value)}
             placeholder={MODEL_PLACEHOLDERS[provider] || t('settings.ai.searchModelPlaceholder')}
-            className="ml-[30px] h-9 w-[calc(100%_-_30px)] rounded-md border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-accent focus:outline-none focus:ring-1 focus:ring-xp-accent"
+            className="ml-[30px] h-9 w-[calc(100%_-_30px)] rounded-[2px] border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
           />
         </div>
 
         {usesRemoteKey && (
-          <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+          <div className="rounded-[2px] px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
             <div className="mb-2 flex items-center gap-3">
               <Key size={18} className="shrink-0 text-xp-text-secondary" aria-hidden="true" />
               <div>
@@ -95,12 +95,12 @@ const SearchProviderSettings = ({ settings, updateSetting }: SearchProviderSetti
               value={settings.aiSearchApiKey || ''}
               onChange={(event) => updateSetting('aiSearchApiKey', event.target.value)}
               placeholder={apiKeyPlaceholder}
-              className="ml-[30px] h-9 w-[calc(100%_-_30px)] rounded-md border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-accent focus:outline-none focus:ring-1 focus:ring-xp-accent"
+              className="ml-[30px] h-9 w-[calc(100%_-_30px)] rounded-[2px] border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
             />
           </div>
         )}
       </SettingsSection>{' '}
-      <div className="hover:bg-xp-surface-light/50 rounded-lg px-4 py-3 transition-colors">
+      <div className="rounded-[2px] px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
         <div className="mb-2 flex items-center gap-3">
           <Cpu size={18} className="shrink-0 text-xp-text-secondary" aria-hidden="true" />
           <div>
@@ -117,7 +117,7 @@ const SearchProviderSettings = ({ settings, updateSetting }: SearchProviderSetti
           defaultValue={localStorage.getItem(STORAGE_KEYS.OLLAMA_URL) || 'http://localhost:11434'}
           onChange={(event) => localStorage.setItem(STORAGE_KEYS.OLLAMA_URL, event.target.value)}
           placeholder="http://localhost:11434"
-          className="ml-[30px] h-9 w-[calc(100%_-_30px)] rounded-md border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-accent focus:outline-none focus:ring-1 focus:ring-xp-accent"
+          className="ml-[30px] h-9 w-[calc(100%_-_30px)] rounded-[2px] border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
         />
       </div>
     </section>

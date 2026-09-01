@@ -182,7 +182,7 @@ const OperationBar = ({
         <div className="flex min-h-8 items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2.5">
             <span
-              className="flex h-5 min-w-5 items-center justify-center rounded bg-xp-lime px-1.5 text-[11px] font-medium text-white"
+              className="flex h-5 min-w-5 items-center justify-center rounded-[2px] bg-xp-lime px-1.5 text-[11px] font-medium text-xp-on-accent"
               aria-hidden="true"
             >
               {selectedFiles.size}
@@ -194,7 +194,7 @@ const OperationBar = ({
               <button
                 type="button"
                 onClick={onSelectNone}
-                className="flex h-7 items-center gap-1 rounded-md px-2 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                className="flex h-7 items-center gap-1 rounded-[2px] px-2 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                 title={t('topBar.clearSelection')}
                 aria-label={t('topBar.clearSelection')}
               >
@@ -209,7 +209,7 @@ const OperationBar = ({
               <button
                 type="button"
                 onClick={onPreview}
-                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
+                className="flex h-8 items-center gap-1.5 rounded-[2px] px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
                 title={t('operationBar.preview')}
                 aria-label={t('operationBar.preview')}
               >
@@ -221,7 +221,7 @@ const OperationBar = ({
               <button
                 type="button"
                 onClick={onCopy}
-                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
+                className="flex h-8 items-center gap-1.5 rounded-[2px] px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
                 title={t('contextMenu.copy')}
                 aria-label={t('contextMenu.copy')}
               >
@@ -233,7 +233,7 @@ const OperationBar = ({
               <button
                 type="button"
                 onClick={onCut}
-                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
+                className="flex h-8 items-center gap-1.5 rounded-[2px] px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
                 title={t('contextMenu.cut')}
                 aria-label={t('contextMenu.cut')}
               >
@@ -245,7 +245,7 @@ const OperationBar = ({
               <button
                 type="button"
                 onClick={onCompress}
-                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
+                className="flex h-8 items-center gap-1.5 rounded-[2px] px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
                 title={t('operationBar.compress')}
                 aria-label={t('operationBar.compress')}
               >
@@ -257,7 +257,7 @@ const OperationBar = ({
               <button
                 type="button"
                 onClick={onExtract}
-                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
+                className="flex h-8 items-center gap-1.5 rounded-[2px] px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
                 title={t('operationBar.extract')}
                 aria-label={t('operationBar.extract')}
               >
@@ -269,7 +269,7 @@ const OperationBar = ({
               <button
                 type="button"
                 onClick={onProperties}
-                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
+                className="flex h-8 items-center gap-1.5 rounded-[2px] px-2.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
                 title={t('operationBar.properties')}
                 aria-label={t('operationBar.properties')}
               >
@@ -281,7 +281,7 @@ const OperationBar = ({
             <button
               type="button"
               onClick={handleDelete}
-              className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-xp-red transition-colors hover:bg-xp-red/10"
+              className="flex h-8 items-center gap-1.5 rounded-[2px] px-2.5 text-xs font-medium text-xp-red transition-colors hover:bg-xp-red/10"
               title={t('operationBar.deleteItems', { count: selectedFiles.size })}
               aria-label={t('operationBar.deleteItemsAria', { count: selectedFiles.size })}
             >
@@ -305,7 +305,7 @@ const OperationBar = ({
           <div className="relative">
             <button
               onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-              className="flex items-center gap-1 rounded px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+              className="flex items-center gap-1 rounded-[2px] px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               aria-label={t('operationBar.sortBy', {
                 name: currentSortLabel,
                 order: currentSortOrder,
@@ -316,7 +316,7 @@ const OperationBar = ({
             </button>
 
             {isSortDropdownOpen && sortOptions && (
-              <div className="border-xp-border/60 absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-xl border bg-xp-popover py-1 shadow-xl">
+              <div className="border-xp-border/60 absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-[2px] border bg-xp-popover py-1 shadow-xl">
                 {Object.values(sortOptions).map((option) => (
                   <button
                     key={option.id}
@@ -377,7 +377,7 @@ const OperationBar = ({
           <div className="relative flex items-center gap-1">
             <button
               onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
-              className="flex items-center gap-1 rounded px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+              className="flex items-center gap-1 rounded-[2px] px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               aria-label={t('operationBar.viewMode', {
                 name: currentViewLabel,
               })}
@@ -388,7 +388,7 @@ const OperationBar = ({
             </button>
 
             {isViewDropdownOpen && (
-              <div className="border-xp-border/60 absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-xl border bg-xp-popover py-1 shadow-xl">
+              <div className="border-xp-border/60 absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-[2px] border bg-xp-popover py-1 shadow-xl">
                 {Object.values(viewModes).map((mode) => (
                   <button
                     key={mode.id}
@@ -409,14 +409,14 @@ const OperationBar = ({
           </div>
           {/* Selection actions appear contextually instead of filling every empty state. */}
           {selectedFiles.size > 0 && (
-            <div className="ml-1 flex items-center gap-0.5 rounded-md border border-xp-border bg-muted px-1">
+            <div className="ml-1 flex items-center gap-0.5 rounded-[2px] border border-xp-border bg-muted px-1">
               <span className="px-1.5 text-[11px] font-medium tabular-nums text-xp-blue">
                 {selectedFiles.size}
               </span>
               {selectedFiles.size === 1 && onPreview && (
                 <button
                   onClick={onPreview}
-                  className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  className="rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                   title={t('operationBar.preview')}
                   aria-label={t('operationBar.preview')}
                 >
@@ -426,7 +426,7 @@ const OperationBar = ({
               {onCopy && (
                 <button
                   onClick={onCopy}
-                  className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  className="rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                   title={t('contextMenu.copy')}
                   aria-label={t('contextMenu.copy')}
                 >
@@ -436,7 +436,7 @@ const OperationBar = ({
               {onCut && (
                 <button
                   onClick={onCut}
-                  className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  className="rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                   title={t('contextMenu.cut')}
                   aria-label={t('contextMenu.cut')}
                 >
@@ -445,7 +445,7 @@ const OperationBar = ({
               )}
               <button
                 onClick={handleDelete}
-                className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-red/10 hover:text-xp-red"
+                className="rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-red/10 hover:text-xp-red"
                 title={t('contextMenu.delete')}
                 aria-label={t('contextMenu.delete')}
               >
@@ -456,7 +456,7 @@ const OperationBar = ({
           {onPaste && hasClipboard && (
             <button
               onClick={onPaste}
-              className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+              className="rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               title={t('contextMenu.paste')}
               aria-label={t('contextMenu.paste')}
             >
@@ -471,7 +471,7 @@ const OperationBar = ({
           {onToggleSizeBadges && (
             <button
               onClick={onToggleSizeBadges}
-              className={`flex items-center gap-1 rounded px-2 py-1 text-xs transition-colors ${
+              className={`flex items-center gap-1 rounded-[2px] px-2 py-1 text-xs transition-colors ${
                 showSizeBadges
                   ? 'bg-xp-blue/10 text-xp-blue'
                   : 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
@@ -503,7 +503,7 @@ const OperationBar = ({
           {/* Action Buttons */}
           <button
             onClick={handleCreateFolder}
-            className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light hover:text-xp-blue"
+            className="flex items-center gap-1.5 rounded-[2px] px-2 py-1.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light hover:text-xp-blue"
             title={t('operationBar.createFolder')}
             aria-label={t('operationBar.createFolder')}
           >
@@ -516,7 +516,7 @@ const OperationBar = ({
               setBottomPanelCollapsed(false);
               setBottomPanelTab('terminal');
             }}
-            className="flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="flex h-8 w-8 items-center justify-center rounded-[2px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             title={t('operationBar.openTerminal')}
             aria-label={t('operationBar.openTerminal')}
           >
@@ -527,7 +527,7 @@ const OperationBar = ({
           <div className="relative">
             <button
               onClick={() => setIsActionsDropdownOpen(!isActionsDropdownOpen)}
-              className="rounded p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+              className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               title={t('operationBar.actionsMenu')}
               aria-label={t('operationBar.actionsMenu')}
               aria-haspopup="menu"
@@ -537,7 +537,7 @@ const OperationBar = ({
             </button>
 
             {isActionsDropdownOpen && (
-              <div className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-xp-border bg-xp-popover py-1 shadow-xl">
+              <div className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-[2px] border border-xp-border bg-xp-popover py-1 shadow-xl">
                 {/* New Folder */}
                 <button
                   onClick={() => {

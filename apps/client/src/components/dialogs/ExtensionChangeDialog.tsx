@@ -43,7 +43,7 @@ export const ExtensionChangeDialog = ({
         aria-labelledby="extension-change-title"
         aria-modal="true"
         tabIndex={-1}
-        className="w-[420px] max-w-[90vw] rounded-lg border border-xp-border bg-xp-surface p-6 outline-none"
+        className="w-[420px] max-w-[90vw] rounded-[2px] border border-xp-border bg-xp-surface p-6 outline-none"
         onKeyDown={(e) => {
           if (e.key === 'Escape') onChoose('keep-old');
         }}
@@ -63,7 +63,7 @@ export const ExtensionChangeDialog = ({
           </div>
         </div>
 
-        <div className="mb-3 flex items-center gap-2 rounded-md border border-xp-border bg-xp-surface-light px-3 py-2.5">
+        <div className="mb-3 flex items-center gap-2 rounded-[2px] border border-xp-border bg-xp-surface-light px-3 py-2.5">
           <span className="truncate text-sm font-medium text-xp-text">{oldName}</span>
         </div>
 
@@ -72,14 +72,14 @@ export const ExtensionChangeDialog = ({
         <div className="flex justify-end gap-2">
           <button
             type="button"
-            className="rounded-md border border-xp-border px-4 py-2 text-sm text-xp-text hover:bg-xp-surface-light"
+            className="rounded-[2px] border border-xp-border px-4 py-2 text-sm text-xp-text hover:bg-xp-surface-light"
             onClick={() => onChoose('keep-old')}
           >
             {t('dialogs.extensionChange.keepOld', { new: newLabel })}
           </button>
           <button
             type="button"
-            className="hover:bg-xp-blue/80 rounded-md border border-xp-blue bg-xp-blue px-4 py-2 text-sm font-medium text-white"
+            className="rounded-[2px] border border-xp-blue bg-xp-blue px-4 py-2 text-sm font-medium text-xp-on-accent hover:bg-xp-blue/80"
             autoFocus
             onClick={() => onChoose('use-new')}
           >

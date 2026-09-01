@@ -557,7 +557,7 @@ const FileGrid = ({
         aria-label={t('fileGrid.emptyFolder')}
       >
         <div className="max-w-sm text-center">
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-xp-border bg-xp-surface text-xp-blue shadow-lg">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-[2px] border border-xp-border bg-xp-surface text-xp-blue shadow-lg">
             <FolderOpen size={26} strokeWidth={1.7} aria-hidden="true" />
           </div>
           <p className="text-base font-semibold text-xp-text" aria-live="polite">
@@ -572,7 +572,7 @@ const FileGrid = ({
                 <button
                   type="button"
                   onClick={onCreateFolder}
-                  className="inline-flex h-9 items-center gap-2 rounded-lg bg-xp-blue px-3.5 text-sm font-medium text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark"
+                  className="inline-flex h-9 items-center gap-2 rounded-[2px] bg-xp-blue px-3.5 text-sm font-medium text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark"
                 >
                   <FolderPlus size={16} />
                   {t('operationBar.newFolder')}
@@ -582,7 +582,7 @@ const FileGrid = ({
                 <button
                   type="button"
                   onClick={onCreateFile}
-                  className="inline-flex h-9 items-center gap-2 rounded-lg border border-xp-border bg-xp-surface px-3.5 text-sm font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
+                  className="inline-flex h-9 items-center gap-2 rounded-[2px] border border-xp-border bg-xp-surface px-3.5 text-sm font-medium text-xp-text transition-colors hover:bg-xp-surface-light"
                 >
                   <FilePlus2 size={16} />
                   {t('operationBar.newFile')}

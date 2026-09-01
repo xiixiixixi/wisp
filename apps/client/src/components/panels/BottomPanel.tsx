@@ -187,12 +187,12 @@ const BottomPanel = ({
           >
             {getTabLabel(tab)}
             {tab === 'changes' && fileChanges && fileChanges.totalCount > 0 && (
-              <span className="ml-0.5 rounded bg-xp-yellow/20 px-1 text-[10px] font-medium text-xp-yellow">
+              <span className="ml-0.5 rounded-[2px] bg-xp-yellow/20 px-1 text-[10px] font-medium text-xp-yellow">
                 {fileChanges.totalCount}
               </span>
             )}
             {tab === 'notifications' && unreadCount > 0 && (
-              <span className="ml-0.5 rounded bg-xp-blue/20 px-1 text-[10px] font-medium text-xp-blue">
+              <span className="ml-0.5 rounded-[2px] bg-xp-blue/20 px-1 text-[10px] font-medium text-xp-blue">
                 {unreadCount}
               </span>
             )}
@@ -391,7 +391,7 @@ const ActivityLogContent = ({
           <button
             key={f.value}
             onClick={() => setActivityLogFilter(f.value)}
-            className={`rounded px-2 py-0.5 text-[10px] font-medium ${
+            className={`rounded-[2px] px-2 py-0.5 text-[10px] font-medium ${
               activityLogFilter === f.value
                 ? 'bg-xp-blue/20 text-xp-blue'
                 : 'text-xp-text-muted hover:bg-xp-surface-light'

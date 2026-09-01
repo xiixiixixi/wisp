@@ -68,7 +68,7 @@ const SpreadsheetPreview = ({ file, onError, onLoad }: PreviewProps) => {
       {loading && <PreviewSkeleton />}
 
       {!loading && error && (
-        <div className="flex flex-1 items-center justify-center rounded border border-xp-border bg-xp-surface">
+        <div className="flex flex-1 items-center justify-center rounded-[2px] border border-xp-border bg-xp-surface">
           <div className="text-center text-xp-text-muted">
             <p className="text-sm">Cannot preview spreadsheet</p>
             <p className="mt-1 text-xs opacity-70">{error}</p>
@@ -85,7 +85,7 @@ const SpreadsheetPreview = ({ file, onError, onLoad }: PreviewProps) => {
                   key={sheet.name}
                   type="button"
                   onClick={() => setActiveSheet(i)}
-                  className={`whitespace-nowrap rounded-md px-2 py-1 text-xs transition-colors ${
+                  className={`whitespace-nowrap rounded-[2px] px-2 py-1 text-xs transition-colors ${
                     i === activeSheet
                       ? 'bg-xp-selection-bg text-xp-blue'
                       : 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
@@ -97,7 +97,7 @@ const SpreadsheetPreview = ({ file, onError, onLoad }: PreviewProps) => {
             </div>
           )}
 
-          <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-xp-border bg-xp-surface">
+          <div className="min-h-0 flex-1 overflow-auto rounded-[2px] border border-xp-border bg-xp-surface">
             <table className="w-full text-xs">
               <tbody>
                 {currentSheet?.rows.map((row, rowIndex) => (

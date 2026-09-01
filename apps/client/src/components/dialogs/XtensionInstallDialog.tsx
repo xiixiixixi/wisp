@@ -54,11 +54,11 @@ const XtensionInstallDialog = ({
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
       {/* Dialog */}
-      <div className="relative w-[420px] max-w-[90vw] overflow-hidden rounded-lg border border-xp-border bg-xp-bg shadow-2xl">
+      <div className="relative w-[420px] max-w-[90vw] overflow-hidden rounded-[2px] border border-xp-border bg-xp-bg shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-xp-border px-5 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-xp-blue/30 bg-xp-blue/20">
+            <div className="flex h-10 w-10 items-center justify-center rounded-[2px] border border-xp-blue/30 bg-xp-blue/20">
               <Package className="h-5 w-5 text-xp-blue" />
             </div>
             <div>
@@ -68,7 +68,7 @@ const XtensionInstallDialog = ({
           </div>
           <button
             onClick={onClose}
-            className="rounded p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
           >
             <X className="h-4 w-4" />
           </button>
@@ -94,7 +94,7 @@ const XtensionInstallDialog = ({
                 <Shield className="h-3.5 w-3.5" />
                 Requested Permissions
               </div>
-              <div className="space-y-1.5 rounded-md border border-xp-border bg-xp-surface p-3">
+              <div className="space-y-1.5 rounded-[2px] border border-xp-border bg-xp-surface p-3">
                 {permissions.map((perm) => (
                   <div key={perm} className="flex items-center gap-2 text-xs">
                     <div className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-xp-yellow" />
@@ -111,14 +111,14 @@ const XtensionInstallDialog = ({
           <button
             onClick={onClose}
             disabled={installing}
-            className="rounded-md border border-xp-border bg-xp-surface px-4 py-2 text-sm text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+            className="rounded-[2px] border border-xp-border bg-xp-surface px-4 py-2 text-sm text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleInstall}
             disabled={installing}
-            className="flex items-center gap-2 rounded-md bg-xp-blue px-4 py-2 text-sm text-white transition-colors hover:bg-xp-blue/80 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-[2px] bg-xp-blue px-4 py-2 text-sm text-xp-on-accent transition-colors hover:bg-xp-blue/80 disabled:opacity-50"
           >
             {installing ? (
               <>

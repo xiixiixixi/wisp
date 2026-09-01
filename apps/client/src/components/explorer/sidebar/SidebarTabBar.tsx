@@ -21,7 +21,7 @@ const SidebarTabBar = ({ activeTabId, onTabClick, extensionTabs }: SidebarTabBar
   const { t } = useTranslation();
   const searchShortcut = navigator.platform.toUpperCase().includes('MAC') ? '⌘⇧F' : 'Ctrl+Shift+F';
   const tabClass = (tabId: string) =>
-    `flex items-center justify-center rounded transition-colors ${
+    `flex items-center justify-center rounded-[2px] transition-colors ${
       activeTabId === tabId ? TAB_CLASS_ACTIVE : TAB_CLASS_INACTIVE
     }`;
 

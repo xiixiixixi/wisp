@@ -49,83 +49,83 @@ const ShortcutsSettingsPanel = () => {
                 onChange={handleVimLearningModeToggle}
               />
             </SettingRow>
-            <div className="bg-xp-surface-light/50 mx-4 mb-2 space-y-1 rounded-md p-3 text-xs leading-relaxed text-xp-text-secondary">
+            <div className="mx-4 mb-2 space-y-1 rounded-[2px] bg-xp-surface-light/50 p-3 text-xs leading-relaxed text-xp-text-secondary">
               <div className="mb-1.5 text-sm font-medium text-xp-text">
                 {t('settings.shortcuts.vimKeyBindings')}
               </div>
               <div className="grid grid-cols-2 gap-x-6 gap-y-0.5">
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">j</kbd> /{' '}
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">k</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">j</kbd> /{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">k</kbd>{' '}
                   {t('settings.shortcuts.vimMoveUpDown')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">h</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">h</kbd>{' '}
                   {t('settings.shortcuts.vimGoParent')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">l</kbd> /{' '}
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">Enter</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">l</kbd> /{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">Enter</kbd>{' '}
                   {t('settings.shortcuts.vimOpenEnter')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">gg</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">gg</kbd>{' '}
                   {t('settings.shortcuts.vimFirstFile')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">G</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">G</kbd>{' '}
                   {t('settings.shortcuts.vimLastFile')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">/</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">/</kbd>{' '}
                   {t('settings.shortcuts.vimFocusSearch')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">:</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">:</kbd>{' '}
                   {t('settings.shortcuts.vimCommandPalette')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">i</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">i</kbd>{' '}
                   {t('settings.shortcuts.vimInsertMode')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">dd</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">dd</kbd>{' '}
                   {t('settings.shortcuts.vimDelete')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">yy</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">yy</kbd>{' '}
                   {t('settings.shortcuts.vimCopy')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">p</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">p</kbd>{' '}
                   {t('settings.shortcuts.vimPaste')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">v</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">v</kbd>{' '}
                   {t('settings.shortcuts.vimVisualMode')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">V</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">V</kbd>{' '}
                   {t('settings.shortcuts.vimSelectRange')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">o</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">o</kbd>{' '}
                   {t('settings.shortcuts.vimOpenDefault')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">r</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">r</kbd>{' '}
                   {t('settings.shortcuts.vimRename')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">m</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">m</kbd>{' '}
                   {t('settings.shortcuts.vimBookmark')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">.</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">.</kbd>{' '}
                   {t('settings.shortcuts.vimRepeatLast')}
                 </span>
                 <span>
-                  <kbd className="rounded bg-xp-bg px-1 font-mono">Esc</kbd>{' '}
+                  <kbd className="rounded-[2px] bg-xp-bg px-1 font-mono">Esc</kbd>{' '}
                   {t('settings.shortcuts.vimClearExit')}
                 </span>
               </div>

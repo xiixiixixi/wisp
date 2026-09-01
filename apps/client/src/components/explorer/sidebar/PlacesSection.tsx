@@ -65,7 +65,7 @@ const PlacesSection = ({ userDirectories, currentPath, navigateToPath }: PlacesS
               <button
                 key={labelKey}
                 onClick={() => navigateToPath(path)}
-                className={`flex w-full items-center rounded px-2 py-1.5 text-xs transition-colors ${
+                className={`flex w-full items-center rounded-[2px] px-2 py-1.5 text-xs transition-colors ${
                   isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
                 }`}
                 aria-label={t('sidebar.navigateTo', { label })}

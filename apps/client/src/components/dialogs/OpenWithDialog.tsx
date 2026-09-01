@@ -91,7 +91,7 @@ const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogP
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       onKeyDown={handleKeyDown}
     >
-      <div className="w-[420px] max-w-[90vw] overflow-hidden rounded-xl border border-xp-border bg-xp-surface shadow-2xl">
+      <div className="w-[420px] max-w-[90vw] overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-xp-border px-5 py-4">
           <div>
@@ -102,7 +102,7 @@ const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogP
           </div>
           <button
             onClick={handleClose}
-            className="rounded-md p-1.5 text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-[2px] p-1.5 text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             aria-label={t('openWith.cancel')}
           >
             <X size={16} />
@@ -117,14 +117,14 @@ const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogP
               <button
                 key={id}
                 onClick={() => setSelected(id)}
-                className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left transition-all ${
+                className={`flex w-full items-center gap-3 rounded-[2px] px-3 py-3 text-left transition-all ${
                   isSelected
                     ? 'bg-xp-accent/15 ring-1 ring-xp-accent/40'
                     : 'hover:bg-xp-surface-light'
                 }`}
               >
                 <div
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[2px] ${
                     isSelected
                       ? 'bg-xp-accent/20 text-xp-accent'
                       : 'bg-xp-bg text-xp-text-secondary'
@@ -141,11 +141,11 @@ const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogP
                   <div className="text-xs text-xp-text-secondary">{t(descriptionKey)}</div>
                 </div>
                 <div
-                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors ${
+                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[2px] border-2 transition-colors ${
                     isSelected ? 'border-xp-accent bg-xp-accent' : 'border-xp-border'
                   }`}
                 >
-                  {isSelected && <div className="h-1.5 w-1.5 rounded-sm bg-xp-popover" />}
+                  {isSelected && <div className="h-1.5 w-1.5 rounded-[1px] bg-xp-popover" />}
                 </div>
               </button>
             );
@@ -160,7 +160,7 @@ const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogP
                 type="checkbox"
                 checked={rememberChoice}
                 onChange={(e) => setRememberChoice(e.target.checked)}
-                className="h-4 w-4 rounded border-xp-border bg-xp-bg text-xp-accent focus:ring-2 focus:ring-xp-accent"
+                className="h-4 w-4 rounded-[2px] border-xp-border bg-xp-bg text-xp-accent"
               />
               <span className="text-sm text-xp-text">{t('openWith.alwaysUse', { ext })}</span>
             </label>
@@ -171,13 +171,13 @@ const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogP
         <div className="flex justify-end gap-2 border-t border-xp-border px-5 py-3">
           <button
             onClick={handleClose}
-            className="rounded-md px-4 py-2 text-sm text-xp-text transition-colors hover:bg-xp-surface-light"
+            className="rounded-[2px] px-4 py-2 text-sm text-xp-text transition-colors hover:bg-xp-surface-light"
           >
             {t('openWith.cancel')}
           </button>
           <button
             onClick={handleOpen}
-            className="rounded-md bg-xp-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-xp-accent-hover"
+            className="rounded-[2px] bg-xp-accent px-4 py-2 text-sm font-medium text-xp-on-accent transition-colors hover:bg-xp-accent-hover"
           >
             {t('openWith.open')}
           </button>

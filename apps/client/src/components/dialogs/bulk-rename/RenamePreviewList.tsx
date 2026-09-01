@@ -170,8 +170,8 @@ const RenamePreviewList = ({
             marginTop: 8,
             padding: '8px 12px',
             borderRadius: 6,
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
-            border: '1px solid rgba(245, 158, 11, 0.3)',
+            backgroundColor: 'var(--xp-wash-yellow)',
+            border: '1px solid var(--xp-wash-yellow-strong)',
             display: 'flex',
             alignItems: 'center',
             gap: 8,
@@ -198,7 +198,7 @@ const RenamePreviewList = ({
                 style={{
                   fontSize: 11,
                   color: 'var(--xp-red)',
-                  backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                  backgroundColor: 'var(--xp-wash-red)',
                   padding: '4px 10px',
                   borderRadius: 4,
                 }}
@@ -228,9 +228,9 @@ const PreviewRow = ({ item, index, totalCount, isConflict, isResult }: PreviewRo
 
   const rowBg =
     isResult && item.success === false
-      ? 'rgba(239, 68, 68, 0.08)'
+      ? 'var(--xp-wash-red)'
       : isConflict
-        ? 'rgba(245, 158, 11, 0.06)'
+        ? 'var(--xp-wash-yellow)'
         : 'transparent';
 
   let statusCell: React.ReactNode;
@@ -288,9 +288,9 @@ const PreviewRow = ({ item, index, totalCount, isConflict, isResult }: PreviewRo
       }}
       onMouseLeave={(e) => {
         if (isResult && item.success === false) {
-          (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(239, 68, 68, 0.08)';
+          (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--xp-wash-red)';
         } else if (isConflict) {
-          (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(245, 158, 11, 0.06)';
+          (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--xp-wash-yellow)';
         } else {
           (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
         }

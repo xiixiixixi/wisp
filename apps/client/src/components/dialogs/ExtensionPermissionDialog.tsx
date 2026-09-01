@@ -319,7 +319,7 @@ const ExtensionPermissionDialog = () => {
           maxHeight: '80vh',
           borderRadius: '6px',
           backgroundColor: 'var(--xp-surface, #1a1b26)',
-          border: '1px solid var(--xp-border, #292e42)',
+          border: '1px solid var(--xp-border, rgba(56,53,47,0.14))',
           boxShadow: 'var(--xp-shadow-popover)',
           overflow: 'hidden',
           display: 'flex',
@@ -335,7 +335,7 @@ const ExtensionPermissionDialog = () => {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '18px 20px 14px',
-            borderBottom: '1px solid var(--xp-border, #292e42)',
+            borderBottom: '1px solid var(--xp-border, rgba(56,53,47,0.14))',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -367,7 +367,7 @@ const ExtensionPermissionDialog = () => {
               </svg>
             </div>
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--xp-text, #c0caf5)' }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--xp-text, #38352f)' }}>
                 {t('permissions.title')}
               </div>
               <div style={{ fontSize: '11px', color: 'var(--xp-text-muted)' }}>
@@ -390,7 +390,7 @@ const ExtensionPermissionDialog = () => {
             onClick={handleDeny}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'var(--xp-surface-light)';
-              e.currentTarget.style.color = 'var(--xp-text, #c0caf5)';
+              e.currentTarget.style.color = 'var(--xp-text, #38352f)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent';
@@ -418,7 +418,7 @@ const ExtensionPermissionDialog = () => {
         <div style={{ padding: '14px 20px', overflowY: 'auto' as const, flex: 1 }}>
           {/* Extension info */}
           <div style={{ marginBottom: '14px' }}>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--xp-text, #c0caf5)' }}>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--xp-text, #38352f)' }}>
               {displayName}
             </div>
             <div
@@ -470,7 +470,7 @@ const ExtensionPermissionDialog = () => {
               <span
                 style={{
                   fontSize: '12px',
-                  color: 'var(--xp-text-muted, #a9b1d6)',
+                  color: 'var(--xp-text-muted, #6e6a61)',
                   lineHeight: 1.4,
                 }}
               >
@@ -549,7 +549,7 @@ const ExtensionPermissionDialog = () => {
                       style={{
                         fontSize: '12px',
                         fontWeight: 500,
-                        color: isDangerous ? 'var(--xp-orange)' : 'var(--xp-text, #c0caf5)',
+                        color: isDangerous ? 'var(--xp-orange)' : 'var(--xp-text, #38352f)',
                       }}
                     >
                       {perm}
@@ -598,7 +598,7 @@ const ExtensionPermissionDialog = () => {
             justifyContent: 'flex-end',
             gap: '8px',
             padding: '12px 20px',
-            borderTop: '1px solid var(--xp-border, #292e42)',
+            borderTop: '1px solid var(--xp-border, rgba(56,53,47,0.14))',
           }}
         >
           <button
@@ -610,7 +610,7 @@ const ExtensionPermissionDialog = () => {
               cursor: 'pointer',
               border: '1px solid var(--xp-border)',
               backgroundColor: 'transparent',
-              color: 'var(--xp-text, #c0caf5)',
+              color: 'var(--xp-text, #38352f)',
               transition: 'background-color 0.15s',
             }}
             onClick={handleDeny}

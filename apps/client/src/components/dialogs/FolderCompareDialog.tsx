@@ -200,12 +200,12 @@ const statusBadge = (status: ResultRow['status'], t: (key: string) => string): R
     },
     different: {
       label: t('dialogs.folderCompare.statusDifferent'),
-      bg: 'rgba(234,179,8,0.15)',
+      bg: 'var(--xp-wash-yellow)',
       fg: 'var(--xp-yellow)',
     },
     identical: {
       label: t('dialogs.folderCompare.statusIdentical'),
-      bg: 'rgba(34,197,94,0.15)',
+      bg: 'var(--xp-wash-green)',
       fg: 'var(--xp-green)',
     },
   };
@@ -233,9 +233,9 @@ const rowBg = (status: ResultRow['status']): string => {
     case 'only-right':
       return 'rgb(var(--xp-red-rgb) / 0.04)';
     case 'different':
-      return 'rgba(234,179,8,0.04)';
+      return 'var(--xp-wash-yellow)';
     case 'identical':
-      return 'rgba(34,197,94,0.04)';
+      return 'var(--xp-wash-green)';
   }
 };
 
@@ -628,7 +628,7 @@ const FolderCompareDialog = ({
                     display: 'inline-block',
                     width: 14,
                     height: 14,
-                    border: '2px solid rgba(255,255,255,0.3)',
+                    border: '2px solid var(--xp-border-light)',
                     borderTopColor: '#fff',
                     borderRadius: '50%',
                     animation: 'spin 0.6s linear infinite',

@@ -329,17 +329,17 @@ const CodeAIActions: React.FC<CodeAIActionsProps> = ({ filePath, language, conte
   // ── Render ──────────────────────────────────────────────────────────────
 
   return (
-    <div className="border-xp-border bg-xp-surface border-b">
+    <div className="border-b border-xp-border bg-xp-surface">
       {/* Action buttons row */}
       <div className="flex flex-wrap items-center gap-1.5 px-2 py-1.5">
-        <span className="text-xp-text-muted mr-1 text-[10px] font-medium uppercase tracking-wider">
+        <span className="mr-1 text-[10px] font-medium uppercase tracking-wider text-xp-text-muted">
           AI
         </span>
 
         <button
           onClick={handleExplain}
           disabled={loading !== null}
-          className="text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text border-xp-border inline-flex items-center gap-1 rounded border border-transparent px-2 py-1 text-[11px] transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-[2px] border border-transparent border-xp-border px-2 py-1 text-[11px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-50"
           title="Send this code to AI Chat for explanation"
         >
           <ExplainIcon />
@@ -349,7 +349,7 @@ const CodeAIActions: React.FC<CodeAIActionsProps> = ({ filePath, language, conte
         <button
           onClick={handleFindReferences}
           disabled={loading !== null}
-          className="text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text border-xp-border inline-flex items-center gap-1 rounded border border-transparent px-2 py-1 text-[11px] transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-[2px] border border-transparent border-xp-border px-2 py-1 text-[11px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-50"
           title="Search the workspace for references to functions/classes in this file"
         >
           {loading === 'references' ? <SpinnerIcon /> : <SearchIcon />}
@@ -359,7 +359,7 @@ const CodeAIActions: React.FC<CodeAIActionsProps> = ({ filePath, language, conte
         <button
           onClick={handleSuggestImprovements}
           disabled={loading !== null}
-          className="text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text border-xp-border inline-flex items-center gap-1 rounded border border-transparent px-2 py-1 text-[11px] transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-[2px] border border-transparent border-xp-border px-2 py-1 text-[11px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-50"
           title="Ask AI to review this code and suggest improvements"
         >
           <ImprovementIcon />
@@ -367,28 +367,28 @@ const CodeAIActions: React.FC<CodeAIActionsProps> = ({ filePath, language, conte
         </button>
 
         {feedbackText && (
-          <span className="text-xp-green text-[10px] opacity-80">{feedbackText}</span>
+          <span className="text-[10px] text-xp-green opacity-80">{feedbackText}</span>
         )}
       </div>
 
       {/* Reference results panel */}
       {showReferences && references && references.length > 0 && (
-        <div className="border-xp-border border-t px-2 py-1.5">
+        <div className="border-t border-xp-border px-2 py-1.5">
           <div className="mb-1 flex items-center justify-between">
-            <span className="text-xp-text-muted text-[10px] font-medium">
+            <span className="text-[10px] font-medium text-xp-text-muted">
               {references.length} reference{references.length !== 1 ? 's' : ''} found
             </span>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSendReferencesToChat}
-                className="text-xp-blue text-[10px] hover:underline"
+                className="text-[10px] text-xp-blue hover:underline"
                 title="Send references to AI Chat for analysis"
               >
                 Analyze in Chat
               </button>
               <button
                 onClick={() => setShowReferences(false)}
-                className="text-xp-text-muted text-[10px] hover:underline"
+                className="text-[10px] text-xp-text-muted hover:underline"
               >
                 Close
               </button>
@@ -398,12 +398,12 @@ const CodeAIActions: React.FC<CodeAIActionsProps> = ({ filePath, language, conte
             {references.slice(0, 20).map((ref) => (
               <div
                 key={`${ref.file}-${ref.line}-${ref.text.slice(0, 40)}`}
-                className="hover:bg-xp-surface-light flex items-baseline gap-2 rounded px-1 py-0.5 text-[10px]"
+                className="flex items-baseline gap-2 rounded-[2px] px-1 py-0.5 text-[10px] hover:bg-xp-surface-light"
               >
-                <span className="text-xp-blue shrink-0 font-mono">
+                <span className="shrink-0 font-mono text-xp-blue">
                   {ref.file}:{ref.line}
                 </span>
-                <span className="text-xp-text-muted truncate">{ref.text}</span>
+                <span className="truncate text-xp-text-muted">{ref.text}</span>
               </div>
             ))}
           </div>

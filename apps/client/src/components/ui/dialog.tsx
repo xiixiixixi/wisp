@@ -125,7 +125,7 @@ export const Dialog = ({
   return (
     <DialogContext.Provider value={{ titleId }}>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/35"
         onClick={handleBackdropClick}
       >
         <div
@@ -134,7 +134,7 @@ export const Dialog = ({
           aria-modal="true"
           aria-labelledby={titleId}
           tabIndex={-1}
-          className="mx-4 max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-lg border border-xp-border bg-xp-popover shadow-xl"
+          className="mx-4 max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-[2px] border border-xp-border bg-xp-popover shadow-[var(--xp-shadow-popover)]"
           style={{ outline: 'none' }}
           onClick={(e) => e.stopPropagation()}
           onKeyDown={handleKeyDown}
@@ -152,7 +152,7 @@ interface DialogContentProps {
 }
 
 export const DialogContent = ({ children, className = '' }: DialogContentProps) => {
-  return <div className={`p-6 ${className}`}>{children}</div>;
+  return <div className={`p-5 ${className}`}>{children}</div>;
 };
 
 interface DialogHeaderProps {

@@ -34,7 +34,7 @@ const ImagePreview = ({ file, onError, onLoad }: PreviewProps) => {
       {loading && <PreviewSkeleton />}
       {!imageError && (
         <div
-          className={`bg-xp-surface border-xp-border flex flex-1 items-center justify-center overflow-hidden rounded border ${loading ? 'hidden' : ''}`}
+          className={`flex flex-1 items-center justify-center overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface ${loading ? 'hidden' : ''}`}
         >
           <img
             src={imageSrc}
@@ -46,8 +46,8 @@ const ImagePreview = ({ file, onError, onLoad }: PreviewProps) => {
         </div>
       )}
       {imageError && (
-        <div className="bg-xp-surface border-xp-border flex flex-1 items-center justify-center rounded border">
-          <div className="text-xp-text-muted text-center">
+        <div className="flex flex-1 items-center justify-center rounded-[2px] border border-xp-border bg-xp-surface">
+          <div className="text-center text-xp-text-muted">
             <svg className="mx-auto mb-2 h-12 w-12" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"

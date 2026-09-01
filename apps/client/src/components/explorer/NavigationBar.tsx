@@ -483,7 +483,7 @@ const NavigationBar = ({
             <button
               onClick={onNavigateBack}
               disabled={!canNavigateBack}
-              className="rounded p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
+              className="rounded-[2px] p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
               title={t('topBar.goBack')}
               aria-label={t('topBar.goBack')}
             >
@@ -500,7 +500,7 @@ const NavigationBar = ({
             <button
               onClick={onNavigateForward}
               disabled={!canNavigateForward}
-              className="rounded p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
+              className="rounded-[2px] p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
               title={t('topBar.goForward')}
               aria-label={t('topBar.goForward')}
             >
@@ -517,7 +517,7 @@ const NavigationBar = ({
             <button
               onClick={onNavigateUp}
               disabled={!canNavigateUp}
-              className="rounded p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
+              className="rounded-[2px] p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
               title={t('topBar.goUp')}
               aria-label={t('topBar.goUp')}
             >
@@ -527,7 +527,7 @@ const NavigationBar = ({
           {refetch && (
             <button
               onClick={refetch}
-              className="rounded p-1 transition-colors hover:bg-xp-surface-light"
+              className="rounded-[2px] p-1 transition-colors hover:bg-xp-surface-light"
               title={t('topBar.refresh')}
               aria-label={t('topBar.refresh')}
             >
@@ -538,7 +538,7 @@ const NavigationBar = ({
         </div>
       )}
       <div
-        className="relative flex h-7 min-w-0 flex-1 items-center self-center rounded border border-xp-border bg-xp-bg px-2"
+        className="relative flex h-7 min-w-0 flex-1 items-center self-center rounded-[2px] border border-xp-border bg-xp-bg px-2"
         style={
           isEditingPath && validationBorderColor
             ? {
@@ -744,7 +744,7 @@ const NavigationBar = ({
                       }}
                       data-drop-target={i === segments.length - 1 ? undefined : seg.fullPath}
                       data-is-folder={i === segments.length - 1 ? undefined : 'true'}
-                      className={`max-w-[160px] flex-shrink-0 truncate rounded px-1.5 py-0.5 text-sm transition-colors hover:bg-xp-surface-light ${
+                      className={`max-w-[160px] flex-shrink-0 truncate rounded-[2px] px-1.5 py-0.5 text-sm transition-colors hover:bg-xp-surface-light ${
                         i === segments.length - 1
                           ? 'font-semibold text-xp-text'
                           : 'text-xp-text-muted hover:text-xp-text'
@@ -763,7 +763,7 @@ const NavigationBar = ({
                   e.stopPropagation();
                   setIsEditingPath(true);
                 }}
-                className="ml-1 flex-shrink-0 rounded p-0.5 text-xp-text-muted opacity-60 transition-all hover:bg-xp-surface-light hover:text-xp-text hover:opacity-100"
+                className="ml-1 flex-shrink-0 rounded-[2px] p-0.5 text-xp-text-muted opacity-60 transition-all hover:bg-xp-surface-light hover:text-xp-text hover:opacity-100"
                 title={t('navigation.editPath')}
                 aria-label={t('navigation.editPath')}
               >

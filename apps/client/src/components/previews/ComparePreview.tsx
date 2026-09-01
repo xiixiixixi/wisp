@@ -448,8 +448,8 @@ const DiffLineRow = React.memo(({ line, side }: { line: DiffLine; side: 'left' |
 
   let bgColor = 'transparent';
   if (!isBlank) {
-    if (line.type === 'added') bgColor = 'rgba(52, 211, 153, 0.12)';
-    else if (line.type === 'removed') bgColor = 'rgba(248, 113, 113, 0.12)';
+    if (line.type === 'added') bgColor = 'var(--xp-wash-green)';
+    else if (line.type === 'removed') bgColor = 'var(--xp-wash-red)';
   } else {
     bgColor = 'var(--xp-bg)';
   }
@@ -460,7 +460,7 @@ const DiffLineRow = React.memo(({ line, side }: { line: DiffLine; side: 'left' |
         display: 'flex',
         background: bgColor,
         minHeight: 18,
-        borderBottom: '1px solid rgba(255,255,255,0.03)',
+        borderBottom: '1px solid var(--glass-well)',
       }}
     >
       {/* Line number */}

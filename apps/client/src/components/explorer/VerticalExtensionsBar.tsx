@@ -85,7 +85,7 @@ const VerticalExtensionsBar = ({
   };
 
   const btnClass = (id: string) =>
-    `relative w-10 h-10 mx-1 mb-1 rounded-xl flex items-center justify-center text-lg transition-all ${
+    `relative w-10 h-10 mx-1 mb-1 rounded-[2px] flex items-center justify-center text-lg transition-all ${
       isActivePanel(id)
         ? 'bg-xp-blue text-[var(--xp-bg)]'
         : 'text-xp-text-secondary hover:text-xp-text hover:bg-xp-surface-light'
@@ -130,7 +130,7 @@ const VerticalExtensionsBar = ({
       <div className="border-t border-xp-border py-2">
         <Link
           href={`/settings${window.location.search}`}
-          className="mx-1 mb-1 flex h-10 w-10 items-center justify-center rounded-xl text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+          className="mx-1 mb-1 flex h-10 w-10 items-center justify-center rounded-[2px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
           title={t('extensionsBar.settings')}
           aria-label={t('extensionsBar.settings')}
         >

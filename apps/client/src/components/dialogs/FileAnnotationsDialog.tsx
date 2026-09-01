@@ -89,7 +89,7 @@ const FileAnnotationsDialog = ({ isOpen, onClose, filePath }: FileAnnotationsDia
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="mx-4 flex max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-lg border border-xp-border bg-xp-surface shadow-2xl">
+      <div className="mx-4 flex max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface shadow-2xl">
         {/* Header */}
         <div className="flex flex-shrink-0 items-center justify-between border-b border-xp-border px-4 py-3">
           <div className="flex items-center space-x-2">
@@ -105,7 +105,7 @@ const FileAnnotationsDialog = ({ isOpen, onClose, filePath }: FileAnnotationsDia
           </div>
           <button
             onClick={onClose}
-            className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
           >
             <X className="h-4 w-4" />
           </button>
@@ -126,7 +126,7 @@ const FileAnnotationsDialog = ({ isOpen, onClose, filePath }: FileAnnotationsDia
                   {activeAnnotations.map((a) => (
                     <div
                       key={a.id}
-                      className="group flex items-start space-x-2 rounded px-2 py-2 transition-colors hover:bg-xp-surface-light"
+                      className="group flex items-start space-x-2 rounded-[2px] px-2 py-2 transition-colors hover:bg-xp-surface-light"
                     >
                       <button
                         onClick={() => handleToggleResolved(a.id)}
@@ -143,7 +143,7 @@ const FileAnnotationsDialog = ({ isOpen, onClose, filePath }: FileAnnotationsDia
                       </div>
                       <button
                         onClick={() => handleDelete(a.id)}
-                        className="flex-shrink-0 rounded p-1 text-xp-text-muted opacity-0 transition-all hover:bg-xp-surface-light hover:text-xp-red group-hover:opacity-100"
+                        className="flex-shrink-0 rounded-[2px] p-1 text-xp-text-muted opacity-0 transition-all hover:bg-xp-surface-light hover:text-xp-red group-hover:opacity-100"
                         title={t('common.delete')}
                       >
                         <Trash2 className="h-3 w-3" />
@@ -162,7 +162,7 @@ const FileAnnotationsDialog = ({ isOpen, onClose, filePath }: FileAnnotationsDia
                   {resolvedAnnotations.map((a) => (
                     <div
                       key={a.id}
-                      className="group flex items-start space-x-2 rounded px-2 py-2 opacity-60 transition-colors hover:bg-xp-surface-light"
+                      className="group flex items-start space-x-2 rounded-[2px] px-2 py-2 opacity-60 transition-colors hover:bg-xp-surface-light"
                     >
                       <button
                         onClick={() => handleToggleResolved(a.id)}
@@ -179,7 +179,7 @@ const FileAnnotationsDialog = ({ isOpen, onClose, filePath }: FileAnnotationsDia
                       </div>
                       <button
                         onClick={() => handleDelete(a.id)}
-                        className="flex-shrink-0 rounded p-1 text-xp-text-muted opacity-0 transition-all hover:bg-xp-surface-light hover:text-xp-red group-hover:opacity-100"
+                        className="flex-shrink-0 rounded-[2px] p-1 text-xp-text-muted opacity-0 transition-all hover:bg-xp-surface-light hover:text-xp-red group-hover:opacity-100"
                         title={t('common.delete')}
                       >
                         <Trash2 className="h-3 w-3" />
@@ -193,7 +193,7 @@ const FileAnnotationsDialog = ({ isOpen, onClose, filePath }: FileAnnotationsDia
 
           {/* Error */}
           {error && (
-            <p className="rounded border border-xp-red/30 bg-xp-red/10 px-2 py-1 text-xs text-xp-red">
+            <p className="rounded-[2px] border border-xp-red/30 bg-xp-red/10 px-2 py-1 text-xs text-xp-red">
               {error}
             </p>
           )}
@@ -218,12 +218,12 @@ const FileAnnotationsDialog = ({ isOpen, onClose, filePath }: FileAnnotationsDia
               }}
               placeholder={t('dialogs.annotations.inputPlaceholder')}
               maxLength={500}
-              className="flex-1 rounded border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text placeholder-xp-text-muted transition-colors focus:border-xp-blue focus:outline-none"
+              className="flex-1 rounded-[2px] border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text placeholder-xp-text-muted transition-colors focus:border-xp-blue focus:outline-none"
             />
             <button
               onClick={handleAdd}
               disabled={saving || !newText.trim()}
-              className="flex items-center space-x-1 rounded bg-xp-blue px-2.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex items-center space-x-1 rounded-[2px] bg-xp-blue px-2.5 py-1.5 text-sm font-medium text-xp-on-accent transition-colors hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {saving ? (
                 <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />

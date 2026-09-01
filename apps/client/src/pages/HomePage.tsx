@@ -103,7 +103,7 @@ const HeroStat = ({ value, label }: { value: string | number; label: string }) =
     <span className="text-3xl font-light tabular-nums leading-none tracking-tight text-xp-text">
       {value}
     </span>
-    <span className="rounded bg-xp-bg px-2 py-0.5 text-[10px] font-medium text-xp-text-secondary">
+    <span className="rounded-[2px] bg-xp-bg px-2 py-0.5 text-[10px] font-medium text-xp-text-secondary">
       {label}
     </span>
   </div>
@@ -176,7 +176,7 @@ const Clock = () => {
           {currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
         </p>
         {report && descriptor && (
-          <div className="flex items-center gap-2 rounded border border-xp-border bg-xp-surface px-3 py-1">
+          <div className="flex items-center gap-2 rounded-[2px] border border-xp-border bg-xp-surface px-3 py-1">
             <WeatherGlyph
               code={report.weather_code}
               isDay={report.is_day}
@@ -600,7 +600,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                   title={path}
                   className="glass-card group flex flex-col items-center gap-3 p-4 text-center transition-colors hover:border-xp-border-light"
                 >
-                  <span className="flex h-10 w-10 items-center justify-center rounded bg-xp-bg text-xp-text-secondary group-hover:text-xp-text">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-[2px] bg-xp-bg text-xp-text-secondary group-hover:text-xp-text">
                     <Icon size={16} aria-hidden="true" />
                   </span>
                   <span className="w-full truncate text-xs font-medium text-xp-text">{label}</span>
@@ -623,7 +623,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                   <button
                     key={path}
                     onClick={() => handleNavigate(path)}
-                    className="group flex items-center gap-2 rounded border border-xp-border bg-xp-surface px-3 py-1.5 text-xs transition-colors hover:bg-xp-surface-light"
+                    className="group flex items-center gap-2 rounded-[2px] border border-xp-border bg-xp-surface px-3 py-1.5 text-xs transition-colors hover:bg-xp-surface-light"
                     title={path}
                   >
                     <Folder className="h-3 w-3 flex-shrink-0 text-xp-text-secondary" />
@@ -646,7 +646,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
               action={
                 <button
                   onClick={handleClearRecentFiles}
-                  className="flex h-8 items-center rounded border border-xp-border bg-xp-surface px-3.5 text-xs font-medium text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  className="flex h-8 items-center rounded-[2px] border border-xp-border bg-xp-surface px-3.5 text-xs font-medium text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                 >
                   {t('home.clearAll')}
                 </button>
@@ -669,7 +669,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                     className="glass-card group relative flex cursor-pointer flex-col items-center gap-2.5 px-3 py-4 text-center transition-colors hover:border-xp-border-light"
                     title={file.path}
                   >
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded bg-xp-bg">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[2px] bg-xp-bg">
                       <RecentFileTypeIcon
                         fileType={file.file_type}
                         className="h-4 w-4 text-xp-text-secondary group-hover:text-xp-text"
@@ -684,7 +684,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                     {/* Remove button on hover */}
                     <button
                       onClick={(e) => handleRemoveRecentFile(e, file.path)}
-                      className="hover:bg-xp-selection absolute right-1.5 top-1.5 rounded bg-xp-surface p-1 text-xp-text-muted opacity-0 transition-opacity hover:text-xp-red group-hover:opacity-100"
+                      className="hover:bg-xp-selection absolute right-1.5 top-1.5 rounded-[2px] bg-xp-surface p-1 text-xp-text-muted opacity-0 transition-opacity hover:text-xp-red group-hover:opacity-100"
                       title={t('home.removeFromRecent')}
                       aria-label={t('home.removeFromRecent')}
                     >
@@ -699,9 +699,9 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
 
         {!recentFilesLoading && recentFiles.length === 0 && (
           <div className="order-4 lg:col-span-12">
-            <div className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-xp-border bg-muted px-5 py-4 sm:flex-row sm:items-center">
+            <div className="flex flex-col items-start justify-between gap-4 rounded-[2px] border border-xp-border bg-muted px-5 py-4 sm:flex-row sm:items-center">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-xp-blue">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] bg-muted text-xp-blue">
                   <Folder className="h-5 w-5" />
                 </div>
                 <div>
@@ -714,7 +714,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
               <button
                 type="button"
                 onClick={() => handleNavigate(userDirectories?.home || ROOT_PATH)}
-                className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-xp-border bg-xp-surface px-3.5 text-xs font-medium text-xp-text transition-colors hover:border-primary hover:bg-xp-surface-light"
+                className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[2px] border border-xp-border bg-xp-surface px-3.5 text-xs font-medium text-xp-text transition-colors hover:border-primary hover:bg-xp-surface-light"
               >
                 {t('home.openHome')}
                 <ArrowRight size={14} />
@@ -725,18 +725,18 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
 
         {/* Legacy built-in Agent: intentionally disconnected from the product UI. */}
         <div className="hidden" aria-hidden="true">
-          <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-xp-border bg-muted shadow-xl shadow-black/10">
+          <div className="flex h-full flex-col overflow-hidden rounded-[2px] border border-xp-border bg-muted shadow-xl shadow-black/10">
             {/* Chat messages area */}
             <div ref={aiScrollRef} className="max-h-72 overflow-y-auto px-5 pb-2 pt-4 sm:px-6">
               {aiMessages.length === 0 && !aiStreaming && (
                 <div className="flex items-center gap-3 py-2">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-xp-border bg-muted">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[2px] border border-xp-border bg-muted">
                     <Sparkles className="h-5 w-5 text-xp-blue" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-base font-semibold text-xp-text">{t('home.agentTitle')}</p>
-                      <span className="bg-xp-selection rounded px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-xp-lime">
+                      <span className="bg-xp-selection rounded-[2px] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-xp-lime">
                         {t('home.ready')}
                       </span>
                     </div>
@@ -755,7 +755,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                     className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[85%] rounded-lg px-3.5 py-2.5 text-sm ${
+                      className={`max-w-[85%] rounded-[2px] px-3.5 py-2.5 text-sm ${
                         msg.role === 'user'
                           ? 'bg-xp-blue/20 text-xp-text'
                           : 'bg-xp-bg/60 text-xp-text'
@@ -773,7 +773,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                 {/* Streaming response */}
                 {aiStreaming && (
                   <div className="flex justify-start">
-                    <div className="bg-xp-bg/60 max-w-[85%] rounded-lg px-3.5 py-2.5 text-sm text-xp-text">
+                    <div className="bg-xp-bg/60 max-w-[85%] rounded-[2px] px-3.5 py-2.5 text-sm text-xp-text">
                       <MarkdownRenderer content={aiStreaming} />
                     </div>
                   </div>
@@ -783,16 +783,16 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                 {aiToolCalls.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
                     {aiToolCalls.map((tc) => {
-                      let dotClass = 'animate-pulse bg-blue-400';
+                      let dotClass = 'animate-pulse bg-xp-accent';
                       if (tc.status === 'completed') {
-                        dotClass = 'bg-green-400';
+                        dotClass = 'bg-xp-green';
                       } else if (tc.status === 'error' || tc.status === 'denied') {
-                        dotClass = 'bg-red-400';
+                        dotClass = 'bg-xp-red';
                       }
                       return (
                         <span
                           key={tc.id}
-                          className="bg-xp-bg/60 inline-flex items-center gap-1.5 rounded-md border border-xp-border px-2.5 py-1 text-xs text-xp-text-muted"
+                          className="bg-xp-bg/60 inline-flex items-center gap-1.5 rounded-[2px] border border-xp-border px-2.5 py-1 text-xs text-xp-text-muted"
                         >
                           <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${dotClass}`} />
                           {tc.name}
@@ -815,7 +815,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                   return (
                     <div
                       key={tc.id}
-                      className="rounded-lg border border-yellow-500/40 bg-yellow-500/5 p-3"
+                      className="rounded-[2px] border border-xp-selection-border bg-xp-selection-bg p-3"
                     >
                       <p className="mb-1.5 text-xs font-medium text-xp-yellow">
                         {t('home.approve')}: {tc.name}
@@ -826,19 +826,19 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleApproval(tc.id, 'allow_once')}
-                          className="rounded bg-green-600 px-3 py-1 text-xs text-white transition-colors hover:bg-xp-green"
+                          className="rounded-[2px] bg-xp-green px-3 py-1 text-xs text-xp-on-accent transition-colors hover:bg-xp-green"
                         >
                           {t('home.thisTime')}
                         </button>
                         <button
                           onClick={() => handleApproval(tc.id, 'allow_always')}
-                          className="rounded bg-xp-blue px-3 py-1 text-xs text-white transition-colors hover:opacity-80"
+                          className="rounded-[2px] bg-xp-blue px-3 py-1 text-xs text-xp-on-accent transition-colors hover:opacity-80"
                         >
                           {t('home.always')}
                         </button>
                         <button
                           onClick={() => handleApproval(tc.id, 'deny_always')}
-                          className="rounded border border-xp-border bg-xp-surface px-3 py-1 text-xs text-xp-text transition-colors hover:bg-xp-bg"
+                          className="rounded-[2px] border border-xp-border bg-xp-surface px-3 py-1 text-xs text-xp-text transition-colors hover:bg-xp-bg"
                         >
                           {t('home.never')}
                         </button>
@@ -870,13 +870,13 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                     }}
                     placeholder={t('home.askAnything')}
                     disabled={aiRunning}
-                    className="h-12 w-full rounded-xl border border-xp-border bg-xp-surface pl-11 pr-24 text-sm text-xp-text placeholder-xp-text-muted shadow-inner transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                    className="h-12 w-full rounded-[2px] border border-xp-border bg-xp-surface pl-11 pr-24 text-sm text-xp-text placeholder-xp-text-muted shadow-inner transition-colors focus:border-primary focus:outline-none disabled:opacity-50"
                   />
                   <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
                     {aiRunning ? (
                       <button
                         onClick={() => AgentService.cancelSession()}
-                        className="bg-xp-error/20 text-xp-error hover:bg-xp-error/30 rounded-md px-2.5 py-1 text-xs transition-colors"
+                        className="bg-xp-error/20 text-xp-error hover:bg-xp-error/30 rounded-[2px] px-2.5 py-1 text-xs transition-colors"
                       >
                         {t('home.stop')}
                       </button>
@@ -884,7 +884,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                       <button
                         onClick={handleAiSend}
                         disabled={!aiInput.trim()}
-                        className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-xp-blue px-3 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-xp-blue-dark disabled:opacity-30"
+                        className="inline-flex h-8 items-center gap-1.5 rounded-[2px] bg-xp-blue px-3 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-xp-blue-dark disabled:opacity-30"
                       >
                         {t('home.send')}
                         <ArrowRight size={13} />
@@ -905,7 +905,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                       onClick={() => {
                         setAiInput(suggestion);
                       }}
-                      className="rounded-lg border border-xp-border bg-muted px-3 py-1.5 text-xs text-xp-text-muted transition-colors hover:border-primary hover:bg-xp-surface-light hover:text-xp-text"
+                      className="rounded-[2px] border border-xp-border bg-muted px-3 py-1.5 text-xs text-xp-text-muted transition-colors hover:border-primary hover:bg-xp-surface-light hover:text-xp-text"
                     >
                       {suggestion}
                     </button>

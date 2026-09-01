@@ -124,7 +124,7 @@ const FileOperationProgressDialog = () => {
         return (
           <div
             key={op.operation_id}
-            className="rounded-lg border border-xp-border bg-xp-surface p-3 shadow-xl"
+            className="rounded-[2px] border border-xp-border bg-xp-surface p-3 shadow-xl"
           >
             {/* Header */}
             <div className="mb-1.5 flex items-center justify-between">
@@ -161,9 +161,9 @@ const FileOperationProgressDialog = () => {
             </div>
 
             {/* Progress bar */}
-            <div className="mb-1.5 h-1.5 w-full overflow-hidden rounded bg-xp-bg">
+            <div className="mb-1.5 h-1.5 w-full overflow-hidden rounded-[2px] bg-xp-bg">
               <div
-                className={`h-full rounded transition-all duration-300 ${getStatusColor(op.status)}`}
+                className={`h-full rounded-[2px] transition-all duration-300 ${getStatusColor(op.status)}`}
                 style={{ width: `${Math.min(100, op.progress_percentage || 0)}%` }}
               />
             </div>

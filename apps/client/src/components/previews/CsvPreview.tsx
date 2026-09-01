@@ -68,25 +68,25 @@ const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
   return (
     <div className="mt-4">
       <div className="mb-2 flex items-center justify-between">
-        <h4 className="text-xp-text-muted text-xs font-medium">CSV Preview</h4>
+        <h4 className="text-xs font-medium text-xp-text-muted">CSV Preview</h4>
         {meta && (
-          <span className="text-xp-text-muted text-xs">
+          <span className="text-xs text-xp-text-muted">
             {meta.rowCount} rows • delimiter: "{meta.delimiter}"
           </span>
         )}
       </div>
 
       {loading && (
-        <div className="bg-xp-surface border-xp-border text-xp-text-muted rounded border p-4 text-center">
+        <div className="rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
           <div className="animate-pulse">
-            <div className="bg-xp-bg mb-2 h-48 w-full rounded" />
+            <div className="mb-2 h-48 w-full rounded-[2px] bg-xp-bg" />
             <p className="text-xs">Loading CSV...</p>
           </div>
         </div>
       )}
 
       {error ? (
-        <div className="bg-xp-surface border-xp-border text-xp-text-muted rounded border p-4 text-center">
+        <div className="rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
           <svg className="mx-auto mb-2 h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
@@ -100,16 +100,16 @@ const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
       ) : null}
       {!error && data.length > 0 && (
         <>
-          <div className="bg-xp-surface border-xp-border overflow-hidden rounded border">
+          <div className="overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface">
             <div className="max-h-64 overflow-auto">
               <table className="w-full text-xs">
-                <thead className="bg-xp-bg sticky top-0">
+                <thead className="sticky top-0 bg-xp-bg">
                   <tr>
                     {headers.map((header, index) => (
                       <th
                         // eslint-disable-next-line react/no-array-index-key
                         key={index}
-                        className="border-xp-border text-xp-text truncate border-b border-r px-2 py-1 text-left font-medium"
+                        className="truncate border-b border-r border-xp-border px-2 py-1 text-left font-medium text-xp-text"
                         title={header}
                       >
                         {header}
@@ -125,7 +125,7 @@ const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
                         <td
                           // eslint-disable-next-line react/no-array-index-key
                           key={cellIndex}
-                          className="border-xp-border text-xp-text max-w-32 truncate border-b border-r px-2 py-1"
+                          className="max-w-32 truncate border-b border-r border-xp-border px-2 py-1 text-xp-text"
                           title={cell}
                         >
                           {cell}
@@ -139,14 +139,14 @@ const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
           </div>
 
           {data.length >= 99 && (
-            <p className="text-xp-text-muted mt-2 text-center text-xs">
+            <p className="mt-2 text-center text-xs text-xp-text-muted">
               Showing first 100 rows. Double-click to open full file.
             </p>
           )}
         </>
       )}
       {!error && data.length === 0 && (
-        <div className="bg-xp-surface border-xp-border text-xp-text-muted rounded border p-4 text-center">
+        <div className="rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
           <p className="text-xs">No data found in CSV file</p>
         </div>
       )}

@@ -93,7 +93,7 @@ const SidebarDrives = ({ navigateToPath }: SidebarDrivesProps) => {
                 onClick={() => navigateToPath(drive.path)}
                 data-drop-target={drive.path}
                 data-is-folder="true"
-                className="w-full rounded px-2 py-1.5 text-left text-xs transition-colors hover:bg-xp-surface-light"
+                className="w-full rounded-[2px] px-2 py-1.5 text-left text-xs transition-colors hover:bg-xp-surface-light"
                 aria-label={t('navigation.navigateTo', {
                   name: drive.letter ? `${drive.letter}:` : drive.label,
                 })}
@@ -114,9 +114,9 @@ const SidebarDrives = ({ navigateToPath }: SidebarDrivesProps) => {
                   )}
                 </div>
                 {totalGB > 0 && (
-                  <div className="ml-[25px] mt-1 h-1 overflow-hidden rounded bg-xp-border">
+                  <div className="ml-[25px] mt-1 h-1 overflow-hidden rounded-[2px] bg-xp-border">
                     <div
-                      className={`h-full rounded transition-all ${usedPct > 90 ? 'bg-xp-red' : 'bg-xp-blue'}`}
+                      className={`h-full rounded-[2px] transition-all ${usedPct > 90 ? 'bg-xp-red' : 'bg-xp-blue'}`}
                       style={{ width: `${usedPct}%` }}
                     />
                   </div>
@@ -125,7 +125,7 @@ const SidebarDrives = ({ navigateToPath }: SidebarDrivesProps) => {
               {/* Eject button — only shown for non-root/removable volumes */}
               {drive.path !== '/' && drive.path !== 'C:\\' && (
                 <button
-                  className="absolute right-1 top-1/2 -translate-y-1/2 rounded p-0.5 text-xp-text-muted opacity-0 transition-opacity hover:bg-xp-surface-light hover:text-xp-text group-hover:opacity-100"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 rounded-[2px] p-0.5 text-xp-text-muted opacity-0 transition-opacity hover:bg-xp-surface-light hover:text-xp-text group-hover:opacity-100"
                   onClick={(e) => handleEjectVolume(drive.path, e)}
                   title={t('drives.eject')}
                   aria-label={t('drives.eject')}

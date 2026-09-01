@@ -400,7 +400,7 @@ export const DiffText = ({ spans }: { spans: DiffSpan[] }) => {
               // eslint-disable-next-line react/no-array-index-key
               key={i}
               style={{
-                backgroundColor: 'rgba(239, 68, 68, 0.25)',
+                backgroundColor: 'var(--xp-wash-red)',
                 color: 'var(--xp-red)',
                 textDecoration: 'line-through',
                 borderRadius: 2,
@@ -417,7 +417,7 @@ export const DiffText = ({ spans }: { spans: DiffSpan[] }) => {
             // eslint-disable-next-line react/no-array-index-key
             key={i}
             style={{
-              backgroundColor: 'rgba(34, 197, 94, 0.25)',
+              backgroundColor: 'var(--xp-wash-green)',
               color: 'var(--xp-green)',
               borderRadius: 2,
               padding: '0 1px',

@@ -634,7 +634,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
             );
             return isHighlighted ? (
               // eslint-disable-next-line react/no-array-index-key
-              <mark key={index} className="rounded bg-xp-yellow/30 px-1">
+              <mark key={index} className="rounded-[2px] bg-xp-yellow/30 px-1">
                 {part}
               </mark>
             ) : (
@@ -695,7 +695,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
             onFocus={handleFocus}
             onBlur={handleBlur}
             placeholder={placeholder}
-            className="w-full rounded-lg border border-xp-border bg-xp-bg px-4 py-2 pl-10 pr-28 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-xp-blue"
+            className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-4 py-2 pl-10 pr-28 text-sm focus:outline-none"
           />
 
           {/* Search Icon */}
@@ -722,7 +722,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
             <div className="relative" ref={providerMenuRef}>
               <button
                 onClick={() => setShowProviderMenu(!showProviderMenu)}
-                className={`flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs transition-colors ${
+                className={`flex items-center gap-0.5 rounded-[2px] px-1.5 py-0.5 text-xs transition-colors ${
                   searchProvider !== 'local'
                     ? 'border border-xp-purple/30 bg-xp-purple/20 text-xp-purple'
                     : 'text-xp-text-muted hover:text-xp-text'
@@ -736,7 +736,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
               {showProviderMenu && (
                 <>
                   <div
-                    className="absolute right-0 top-full z-50 mt-1 min-w-[120px] rounded border border-xp-border bg-xp-popover shadow-xl"
+                    className="absolute right-0 top-full z-50 mt-1 min-w-[120px] rounded-[2px] border border-xp-border bg-xp-popover shadow-xl"
                     onMouseDown={(e) => e.preventDefault()}
                   >
                     {(Object.keys(PROVIDER_LABELS) as SearchProvider[]).map((p) => (
@@ -768,7 +768,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                   saveSearchScope(next);
                   if (query.trim()) debouncedSearch(query);
                 }}
-                className={`rounded px-1.5 py-0.5 text-xs transition-colors ${
+                className={`rounded-[2px] px-1.5 py-0.5 text-xs transition-colors ${
                   searchScope === 'everywhere'
                     ? 'border border-xp-cyan/30 bg-xp-cyan/20 text-xp-cyan'
                     : 'text-xp-text-muted hover:text-xp-text'
@@ -791,7 +791,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                 setSearchContent((v) => !v);
                 if (query.trim()) debouncedSearch(query);
               }}
-              className={`rounded px-1.5 py-0.5 text-xs transition-colors ${
+              className={`rounded-[2px] px-1.5 py-0.5 text-xs transition-colors ${
                 searchContent
                   ? 'border border-xp-blue/30 bg-xp-blue/20 text-xp-blue'
                   : 'text-xp-text-muted hover:text-xp-text'
@@ -875,7 +875,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
               {tokenChips.map((chip) => (
                 <span
                   key={`token-${chip.key}-${chip.rawValue}`}
-                  className={`rounded px-2 py-0.5 text-xs font-medium ${(() => {
+                  className={`rounded-[2px] px-2 py-0.5 text-xs font-medium ${(() => {
                     if (chip.variant === 'kind') return 'bg-xp-blue/20 text-xp-blue';
                     if (chip.variant === 'size') return 'bg-xp-green/20 text-xp-green';
                     if (chip.variant === 'date') {
@@ -892,7 +892,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                 getFilterChips(parsedQuery).map((chip) => (
                   <span
                     key={`nl-${chip.type}-${chip.label}`}
-                    className={`rounded px-2 py-0.5 text-xs font-medium ${(() => {
+                    className={`rounded-[2px] px-2 py-0.5 text-xs font-medium ${(() => {
                       if (chip.type === 'type') return 'bg-xp-blue/20 text-xp-blue';
                       if (chip.type === 'size') return 'bg-xp-green/20 text-xp-green';
                       if (chip.type === 'date') {
@@ -916,7 +916,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
         {showResults && results.length > 0 && (
           <div
             ref={resultsRef}
-            className="absolute left-0 right-0 top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-lg border border-xp-border bg-xp-popover shadow-xl"
+            className="absolute left-0 right-0 top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-[2px] border border-xp-border bg-xp-popover shadow-xl"
             style={{
               marginTop:
                 tokenChips.length > 0 || (parsedQuery && getFilterChips(parsedQuery).length > 0)
@@ -944,13 +944,13 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                           const badge = getRelevanceBadge(result.relevance_type);
                           return (
                             <span
-                              className={`text-xs ${badge.color} rounded px-1.5 py-0.5 text-xp-text`}
+                              className={`text-xs ${badge.color} rounded-[2px] px-1.5 py-0.5 text-xp-text`}
                             >
                               {badge.label}
                             </span>
                           );
                         })()}
-                        <span className="rounded bg-xp-blue/20 px-1.5 py-0.5 text-xs text-xp-blue">
+                        <span className="rounded-[2px] bg-xp-blue/20 px-1.5 py-0.5 text-xs text-xp-blue">
                           {result.score.toFixed(1)}
                         </span>
                       </div>
@@ -966,7 +966,9 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                         {result.matches.slice(0, 2).map((match) => (
                           <div key={match.token} className="text-xs">
                             <span className="text-xp-text-muted">Match: </span>
-                            <span className="rounded bg-xp-yellow/20 px-1">{match.token}</span>
+                            <span className="rounded-[2px] bg-xp-yellow/20 px-1">
+                              {match.token}
+                            </span>
                             {match.context && (
                               <span className="ml-1 text-xp-text-muted">- {match.context}</span>
                             )}
@@ -1007,7 +1009,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
 
         {/* No Results / Grep Results */}
         {showResults && !isSearching && query.trim() && results.length === 0 && (
-          <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-lg border border-xp-border bg-xp-popover shadow-xl">
+          <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-[2px] border border-xp-border bg-xp-popover shadow-xl">
             {/* Grep results */}
             {grepResults.length > 0 && (
               <div>
@@ -1046,7 +1048,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                         return parts.map((part, i) =>
                           part.toLowerCase() === queryLower ? (
                             // eslint-disable-next-line react/no-array-index-key
-                            <mark key={i} className="rounded bg-xp-yellow/30 px-0.5">
+                            <mark key={i} className="rounded-[2px] bg-xp-yellow/30 px-0.5">
                               {part}
                             </mark>
                           ) : (
@@ -1086,7 +1088,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                       <button
                         onClick={handleGrepSearch}
                         disabled={isGrepSearching}
-                        className="mt-3 flex items-center gap-1.5 rounded border border-xp-border px-3 py-1.5 text-xs text-xp-blue transition-colors hover:bg-xp-blue/10 disabled:cursor-wait disabled:opacity-50"
+                        className="mt-3 flex items-center gap-1.5 rounded-[2px] border border-xp-border px-3 py-1.5 text-xs text-xp-blue transition-colors hover:bg-xp-blue/10 disabled:cursor-wait disabled:opacity-50"
                         style={{ margin: '12px auto 0' }}
                       >
                         {isGrepSearching ? (

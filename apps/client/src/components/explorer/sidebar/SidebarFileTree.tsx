@@ -175,7 +175,7 @@ const SidebarFileTree = ({
           aria-selected={currentPath === file.path}
           aria-expanded={file.is_dir ? isExpanded : undefined}
           aria-label={`${file.name}${file.is_dir ? ', folder' : ', file'}`}
-          className={`flex cursor-pointer items-center rounded px-1 py-1 text-xs transition-colors hover:bg-xp-surface-light ${currentPath === file.path ? 'wisp-sidebar-item-active' : 'text-xp-text'} `}
+          className={`flex cursor-pointer items-center rounded-[2px] px-1 py-1 text-xs transition-colors hover:bg-xp-surface-light ${currentPath === file.path ? 'wisp-sidebar-item-active' : 'text-xp-text'} `}
           style={{ paddingLeft: `${depth * 16 + 8}px` }}
           onClick={() => handleItemClick(file)}
           onContextMenu={(e) => handleItemRightClick(file, e)}
@@ -183,7 +183,7 @@ const SidebarFileTree = ({
           <div className="flex min-w-0 flex-1 items-center space-x-1">
             {file.is_dir ? (
               <button
-                className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded p-0.5 transition-colors hover:bg-xp-surface-light"
+                className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-[2px] p-0.5 transition-colors hover:bg-xp-surface-light"
                 onClick={(e) => toggleFolder(file.path, e)}
                 aria-expanded={isExpanded}
                 aria-label={isExpanded ? `Collapse ${file.name}` : `Expand ${file.name}`}
@@ -288,11 +288,11 @@ const SidebarFileTree = ({
                 aria-selected={currentPath === rootPath}
                 aria-expanded={expandedFolders.has(rootPath)}
                 aria-label={`Root drive ${rootPath}`}
-                className={`flex cursor-pointer items-center rounded px-1 py-1 text-xs font-medium transition-colors hover:bg-xp-surface-light ${currentPath === rootPath ? 'wisp-sidebar-item-active' : 'text-xp-text'} `}
+                className={`flex cursor-pointer items-center rounded-[2px] px-1 py-1 text-xs font-medium transition-colors hover:bg-xp-surface-light ${currentPath === rootPath ? 'wisp-sidebar-item-active' : 'text-xp-text'} `}
                 onClick={() => navigateToPath(rootPath)}
               >
                 <button
-                  className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded p-0.5 transition-colors hover:bg-xp-surface-light"
+                  className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-[2px] p-0.5 transition-colors hover:bg-xp-surface-light"
                   onClick={(e) => toggleFolder(rootPath, e)}
                   aria-expanded={expandedFolders.has(rootPath)}
                   aria-label={

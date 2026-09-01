@@ -159,7 +159,7 @@ const SimilarFilesTab = ({
               <div className="min-w-0 flex-1">
                 <div className="mb-0.5 flex items-center gap-2">
                   <span className="truncate text-xs text-xp-text">{rec.name}</span>
-                  <span className="flex-shrink-0 rounded border border-xp-blue/30 bg-xp-blue/20 px-1.5 py-0.5 text-[10px] text-xp-blue">
+                  <span className="flex-shrink-0 rounded-[2px] border border-xp-blue/30 bg-xp-blue/20 px-1.5 py-0.5 text-[10px] text-xp-blue">
                     {Math.round(rec.score * 100)}%
                   </span>
                 </div>
@@ -167,7 +167,7 @@ const SimilarFilesTab = ({
                   {rec.path}
                 </p>
                 {rec.snippet && (
-                  <p className="mt-1 line-clamp-2 rounded bg-xp-surface px-2 py-1 text-[10px] text-xp-text-muted">
+                  <p className="mt-1 line-clamp-2 rounded-[2px] bg-xp-surface px-2 py-1 text-[10px] text-xp-text-muted">
                     {rec.snippet}
                   </p>
                 )}
@@ -332,7 +332,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
           value={scanPath}
           onChange={(e) => setScanPath(e.target.value)}
           placeholder={t('panels.recommendations.pathPlaceholder')}
-          className="w-full rounded border border-xp-border bg-xp-surface px-2 py-1 text-xs transition-colors focus:border-xp-blue focus:outline-none"
+          className="w-full rounded-[2px] border border-xp-border bg-xp-surface px-2 py-1 text-xs transition-colors focus:border-xp-blue focus:outline-none"
           disabled={isScanning}
         />
         <div className="flex items-center gap-2">
@@ -342,7 +342,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
               type="number"
               value={minFileSize}
               onChange={(e) => setMinFileSize(parseInt(e.target.value) || 0)}
-              className="w-16 rounded border border-xp-border bg-xp-surface px-1 py-0.5 text-[10px] focus:border-xp-blue focus:outline-none"
+              className="w-16 rounded-[2px] border border-xp-border bg-xp-surface px-1 py-0.5 text-[10px] focus:border-xp-blue focus:outline-none"
               disabled={isScanning}
             />
             <span>B</span>
@@ -351,7 +351,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
           {isScanning ? (
             <button
               onClick={handleCancelScan}
-              className="flex items-center gap-1 rounded border border-xp-red/20 bg-xp-red/10 px-2 py-1 text-[10px] font-medium text-xp-red transition-colors hover:bg-xp-red/20"
+              className="flex items-center gap-1 rounded-[2px] border border-xp-red/20 bg-xp-red/10 px-2 py-1 text-[10px] font-medium text-xp-red transition-colors hover:bg-xp-red/20"
             >
               <X className="h-3 w-3" />
               {t('common.cancel')}
@@ -359,7 +359,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
           ) : (
             <button
               onClick={handleStartScan}
-              className="flex items-center gap-1 rounded bg-xp-blue px-2 py-1 text-[10px] font-medium text-white transition-colors hover:bg-xp-blue/80"
+              className="flex items-center gap-1 rounded-[2px] bg-xp-blue px-2 py-1 text-[10px] font-medium text-xp-on-accent transition-colors hover:bg-xp-blue/80"
             >
               <Search className="h-3 w-3" />
               {t('panels.recommendations.scan')}
@@ -379,9 +379,9 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
               {t('panels.recommendations.files')}
             </span>
           </div>
-          <div className="h-1 w-full rounded bg-xp-surface">
+          <div className="h-1 w-full rounded-[2px] bg-xp-surface">
             <div
-              className="h-1 rounded bg-xp-blue transition-all duration-300"
+              className="h-1 rounded-[2px] bg-xp-blue transition-all duration-300"
               style={{
                 width:
                   progress.totalFiles > 0
@@ -440,7 +440,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
                     )}
                     <span
                       className={cn(
-                        'rounded border px-1 py-0.5 font-mono text-[10px]',
+                        'rounded-[2px] border px-1 py-0.5 font-mono text-[10px]',
                         sizeBadgeColor(group.size),
                       )}
                     >
@@ -463,7 +463,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
                         selectAllDuplicatesInGroup(group);
                       }}
                       className={cn(
-                        'rounded border px-1 py-0.5 text-[10px] transition-colors',
+                        'rounded-[2px] border px-1 py-0.5 text-[10px] transition-colors',
                         allDupsSelected
                           ? 'border-xp-blue/30 bg-xp-blue/20 text-xp-blue'
                           : 'border-xp-border bg-xp-surface text-xp-text-muted hover:border-xp-blue/50',
@@ -481,7 +481,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
                           <div
                             key={file.path}
                             className={cn(
-                              'flex items-center gap-1.5 rounded px-1.5 py-1 text-[11px] transition-colors',
+                              'flex items-center gap-1.5 rounded-[2px] px-1.5 py-1 text-[11px] transition-colors',
                               selectedFiles.has(file.path)
                                 ? 'border border-xp-blue/20 bg-xp-blue/10'
                                 : 'hover:bg-xp-surface/50',
@@ -513,7 +513,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
                             </div>
                             <button
                               onClick={() => handleOpenFolder(file.path)}
-                              className="flex-shrink-0 rounded p-0.5 transition-colors hover:bg-xp-surface"
+                              className="flex-shrink-0 rounded-[2px] p-0.5 transition-colors hover:bg-xp-surface"
                               title={t('panels.recommendations.openFolder')}
                             >
                               <FolderOpen className="h-3 w-3 text-xp-text-muted" />
@@ -552,7 +552,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
           </span>
           <button
             onClick={handleMoveToTrash}
-            className="flex items-center gap-1 rounded border border-xp-red/20 bg-xp-red/10 px-2 py-0.5 text-[10px] font-medium text-xp-red transition-colors hover:bg-xp-red/20"
+            className="flex items-center gap-1 rounded-[2px] border border-xp-red/20 bg-xp-red/10 px-2 py-0.5 text-[10px] font-medium text-xp-red transition-colors hover:bg-xp-red/20"
           >
             <Trash2 className="h-3 w-3" />
             {t('common.delete')}
@@ -568,7 +568,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
               ]);
               navigator.clipboard.writeText(lines.join('\n'));
             }}
-            className="rounded p-1 transition-colors hover:bg-xp-surface"
+            className="rounded-[2px] p-1 transition-colors hover:bg-xp-surface"
             title={t('panels.recommendations.copyReport')}
           >
             <ClipboardCopy className="h-3 w-3 text-xp-text-muted" />

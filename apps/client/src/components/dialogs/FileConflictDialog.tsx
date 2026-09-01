@@ -51,13 +51,13 @@ const MetadataRow = ({
     <div className="grid grid-cols-[80px_1fr_20px_1fr] items-center gap-1 text-xs">
       <span className="text-xp-text-muted">{label}</span>
       <span
-        className={`truncate ${highlight === 'source' ? 'text-xp-green font-medium' : 'text-xp-text'}`}
+        className={`truncate ${highlight === 'source' ? 'font-medium text-xp-green' : 'text-xp-text'}`}
       >
         {sourceVal}
       </span>
-      <ArrowRight className="text-xp-text-muted mx-auto h-3 w-3" />
+      <ArrowRight className="mx-auto h-3 w-3 text-xp-text-muted" />
       <span
-        className={`truncate ${highlight === 'dest' ? 'text-xp-green font-medium' : 'text-xp-text'}`}
+        className={`truncate ${highlight === 'dest' ? 'font-medium text-xp-green' : 'text-xp-text'}`}
       >
         {destVal}
       </span>
@@ -108,38 +108,38 @@ export const FileConflictDialog = ({
         aria-labelledby="conflict-title"
         aria-modal="true"
         tabIndex={-1}
-        className="bg-xp-surface border-xp-border w-[480px] max-w-[90vw] rounded-lg border p-6 outline-none"
+        className="w-[480px] max-w-[90vw] rounded-[2px] border border-xp-border bg-xp-surface p-6 outline-none"
         onKeyDown={(e) => {
           if (e.key === 'Escape') onResolve('skip', false);
         }}
       >
         {/* Header */}
         <div className="mb-4 flex items-start gap-3">
-          <AlertTriangle className="text-xp-yellow mt-0.5 h-6 w-6 flex-shrink-0" />
+          <AlertTriangle className="mt-0.5 h-6 w-6 flex-shrink-0 text-xp-yellow" />
           <div>
-            <h3 id="conflict-title" className="text-xp-text text-base font-semibold">
+            <h3 id="conflict-title" className="text-base font-semibold text-xp-text">
               File Conflict
             </h3>
-            <p className="text-xp-text-muted mt-1 text-sm">
+            <p className="mt-1 text-sm text-xp-text-muted">
               The destination already has a {isDir ? 'folder' : 'file'} named:
             </p>
           </div>
         </div>
 
         {/* File name */}
-        <div className="bg-xp-surface-light border-xp-border mb-3 flex items-center gap-2 rounded-md border px-3 py-2.5">
+        <div className="mb-3 flex items-center gap-2 rounded-[2px] border border-xp-border bg-xp-surface-light px-3 py-2.5">
           {isDir ? (
-            <FolderClosed className="text-xp-blue h-5 w-5 flex-shrink-0" />
+            <FolderClosed className="h-5 w-5 flex-shrink-0 text-xp-blue" />
           ) : (
-            <FileIcon className="text-xp-text-muted h-5 w-5 flex-shrink-0" />
+            <FileIcon className="h-5 w-5 flex-shrink-0 text-xp-text-muted" />
           )}
-          <span className="text-xp-text truncate text-sm font-medium">{fileName}</span>
+          <span className="truncate text-sm font-medium text-xp-text">{fileName}</span>
         </div>
 
         {/* Metadata comparison */}
         {hasMetadata && (
-          <div className="bg-xp-surface-light border-xp-border mb-4 space-y-1.5 rounded-md border px-3 py-2.5">
-            <div className="text-xp-text-muted mb-1 grid grid-cols-[80px_1fr_20px_1fr] items-center gap-1 text-xs font-medium">
+          <div className="mb-4 space-y-1.5 rounded-[2px] border border-xp-border bg-xp-surface-light px-3 py-2.5">
+            <div className="mb-1 grid grid-cols-[80px_1fr_20px_1fr] items-center gap-1 text-xs font-medium text-xp-text-muted">
               <span />
               <span>Source</span>
               <span />
@@ -164,13 +164,13 @@ export const FileConflictDialog = ({
         <div className="flex flex-col gap-2">
           <button
             onClick={() => onResolve('replace', false)}
-            className="bg-xp-surface-light hover:bg-xp-red/15 border-xp-border hover:border-xp-red/40 flex w-full items-center gap-3 rounded-md border px-4 py-2.5 text-left text-sm transition-colors"
+            className="flex w-full items-center gap-3 rounded-[2px] border border-xp-border bg-xp-surface-light px-4 py-2.5 text-left text-sm transition-colors hover:border-xp-red/40 hover:bg-xp-red/15"
             aria-label="Replace existing file"
           >
-            <Replace className="text-xp-red h-4 w-4 flex-shrink-0" />
+            <Replace className="h-4 w-4 flex-shrink-0 text-xp-red" />
             <div>
-              <div className="text-xp-text font-medium">Replace</div>
-              <div className="text-xp-text-muted text-xs">
+              <div className="font-medium text-xp-text">Replace</div>
+              <div className="text-xs text-xp-text-muted">
                 Overwrite the existing {isDir ? 'folder' : 'file'}
               </div>
             </div>
@@ -178,13 +178,13 @@ export const FileConflictDialog = ({
 
           <button
             onClick={() => onResolve('keep-both', false)}
-            className="bg-xp-surface-light hover:bg-xp-blue/15 border-xp-border hover:border-xp-blue/40 flex w-full items-center gap-3 rounded-md border px-4 py-2.5 text-left text-sm transition-colors"
+            className="flex w-full items-center gap-3 rounded-[2px] border border-xp-border bg-xp-surface-light px-4 py-2.5 text-left text-sm transition-colors hover:border-xp-blue/40 hover:bg-xp-blue/15"
             aria-label="Keep both files"
           >
-            <Copy className="text-xp-blue h-4 w-4 flex-shrink-0" />
+            <Copy className="h-4 w-4 flex-shrink-0 text-xp-blue" />
             <div>
-              <div className="text-xp-text font-medium">Keep Both</div>
-              <div className="text-xp-text-muted text-xs">
+              <div className="font-medium text-xp-text">Keep Both</div>
+              <div className="text-xs text-xp-text-muted">
                 Save with a renamed copy (e.g. &quot;{getKeepBothName(fileName)}&quot;)
               </div>
             </div>
@@ -192,13 +192,13 @@ export const FileConflictDialog = ({
 
           <button
             onClick={() => onResolve('skip', false)}
-            className="bg-xp-surface-light hover:bg-xp-surface border-xp-border flex w-full items-center gap-3 rounded-md border px-4 py-2.5 text-left text-sm transition-colors"
+            className="flex w-full items-center gap-3 rounded-[2px] border border-xp-border bg-xp-surface-light px-4 py-2.5 text-left text-sm transition-colors hover:bg-xp-surface"
             aria-label="Skip this file"
           >
-            <X className="text-xp-text-muted h-4 w-4 flex-shrink-0" />
+            <X className="h-4 w-4 flex-shrink-0 text-xp-text-muted" />
             <div>
-              <div className="text-xp-text font-medium">Skip</div>
-              <div className="text-xp-text-muted text-xs">
+              <div className="font-medium text-xp-text">Skip</div>
+              <div className="text-xs text-xp-text-muted">
                 Don&apos;t paste this {isDir ? 'folder' : 'file'}
               </div>
             </div>
@@ -207,26 +207,26 @@ export const FileConflictDialog = ({
 
         {/* Apply to all -- only show when there are more conflicts */}
         {remaining > 0 && (
-          <div className="border-xp-border mt-4 border-t pt-3">
-            <p className="text-xp-text-muted mb-2 text-xs">
+          <div className="mt-4 border-t border-xp-border pt-3">
+            <p className="mb-2 text-xs text-xp-text-muted">
               {remaining} more conflict{remaining > 1 ? 's' : ''} remaining
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => onResolve('replace', true)}
-                className="border-xp-border hover:bg-xp-red/15 hover:border-xp-red/40 text-xp-text flex-1 rounded border px-3 py-1.5 text-xs transition-colors"
+                className="flex-1 rounded-[2px] border border-xp-border px-3 py-1.5 text-xs text-xp-text transition-colors hover:border-xp-red/40 hover:bg-xp-red/15"
               >
                 Replace All
               </button>
               <button
                 onClick={() => onResolve('keep-both', true)}
-                className="border-xp-border hover:bg-xp-blue/15 hover:border-xp-blue/40 text-xp-text flex-1 rounded border px-3 py-1.5 text-xs transition-colors"
+                className="flex-1 rounded-[2px] border border-xp-border px-3 py-1.5 text-xs text-xp-text transition-colors hover:border-xp-blue/40 hover:bg-xp-blue/15"
               >
                 Rename All
               </button>
               <button
                 onClick={() => onResolve('skip', true)}
-                className="border-xp-border hover:bg-xp-surface text-xp-text flex-1 rounded border px-3 py-1.5 text-xs transition-colors"
+                className="flex-1 rounded-[2px] border border-xp-border px-3 py-1.5 text-xs text-xp-text transition-colors hover:bg-xp-surface"
               >
                 Skip All
               </button>

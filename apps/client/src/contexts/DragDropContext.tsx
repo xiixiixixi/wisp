@@ -781,7 +781,7 @@ const getOverlayAppearance = (
       symbol: '\u2197',
       label: t('dragOverlay.link'),
       accent: 'var(--xp-yellow, #e2b340)',
-      accentBg: 'rgba(226, 179, 64, 0.15)',
+      accentBg: 'var(--xp-selection-bg)',
     };
   }
   if (op === 'copy') {
@@ -789,14 +789,14 @@ const getOverlayAppearance = (
       symbol: '+',
       label: t('dragOverlay.copy'),
       accent: 'var(--xp-green)',
-      accentBg: 'rgba(52, 211, 153, 0.15)',
+      accentBg: 'var(--xp-selection-bg)',
     };
   }
   return {
     symbol: '\u2192',
     label: t('dragOverlay.move'),
     accent: 'var(--xp-blue)',
-    accentBg: 'rgba(99, 102, 241, 0.15)',
+    accentBg: 'var(--xp-selection-bg)',
   };
 };
 

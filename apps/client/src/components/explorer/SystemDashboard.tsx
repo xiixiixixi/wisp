@@ -42,7 +42,7 @@ const Gauge = ({
 
   if (hero) {
     return (
-      <div className="relative overflow-hidden rounded-xl border border-xp-border bg-xp-surface p-4 text-xp-text">
+      <div className="relative overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface p-4 text-xp-text">
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-1.5 text-xs font-medium text-xp-text-secondary">
             {icon}
@@ -75,7 +75,7 @@ const Gauge = ({
   return (
     <div className="glass-card flex flex-col p-4">
       <div className="flex items-center gap-2.5">
-        <span className="flex h-8 w-8 items-center justify-center rounded bg-xp-bg text-xp-text-secondary">
+        <span className="flex h-8 w-8 items-center justify-center rounded-[2px] bg-xp-bg text-xp-text-secondary">
           {icon}
         </span>
         <span className="text-xs font-medium text-xp-text-muted">{label}</span>

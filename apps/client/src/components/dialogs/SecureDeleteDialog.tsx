@@ -141,7 +141,7 @@ const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDelete
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div
-        className="w-[520px] max-w-[90vw] overflow-hidden rounded-lg bg-xp-surface shadow-2xl"
+        className="w-[520px] max-w-[90vw] overflow-hidden rounded-[2px] bg-xp-surface shadow-2xl"
         onKeyDown={handleKeyDown}
       >
         {/* Header */}
@@ -155,7 +155,7 @@ const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDelete
           <button
             onClick={handleClose}
             disabled={processing}
-            className="rounded-md p-2 transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+            className="rounded-[2px] p-2 transition-colors hover:bg-xp-surface-light disabled:opacity-50"
             aria-label={t('dialogs.secureDelete.closeAriaLabel')}
           >
             <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
@@ -171,7 +171,7 @@ const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDelete
         {/* Content */}
         <div className="space-y-5 p-6">
           {/* Warning banner */}
-          <div className="flex items-start space-x-3 rounded-lg border border-xp-red/30 bg-xp-red/10 p-4">
+          <div className="flex items-start space-x-3 rounded-[2px] border border-xp-red/30 bg-xp-red/10 p-4">
             <AlertTriangle size={20} className="mt-0.5 shrink-0 text-xp-red" />
             <div className="text-sm text-xp-red">
               <p className="mb-1 font-semibold">{t('dialogs.secureDelete.warningIrreversible')}</p>
@@ -180,7 +180,7 @@ const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDelete
           </div>
 
           {/* File info */}
-          <div className="rounded-lg bg-xp-bg p-4">
+          <div className="rounded-[2px] bg-xp-bg p-4">
             <div className="mb-1 text-sm text-xp-text-muted">
               {fileCount === 1
                 ? t('dialogs.secureDelete.fileLabel')
@@ -204,7 +204,7 @@ const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDelete
                 value={passes}
                 onChange={(e) => setPasses(Number(e.target.value))}
                 disabled={processing}
-                className="rounded-md border border-xp-border bg-xp-bg px-3 py-2 text-xp-text focus:border-xp-blue focus:ring-2 focus:ring-xp-blue"
+                className="rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 text-xp-text focus:border-xp-blue"
               >
                 <option value={1}>{t('dialogs.secureDelete.passes1')}</option>
                 <option value={3}>{t('dialogs.secureDelete.passes3')}</option>
@@ -219,7 +219,7 @@ const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDelete
           </div>
 
           {/* Overwrite method description */}
-          <div className="space-y-1 rounded-lg bg-xp-bg p-3 text-xs text-xp-text-muted">
+          <div className="space-y-1 rounded-[2px] bg-xp-bg p-3 text-xs text-xp-text-muted">
             <div className="mb-1 font-medium text-xp-text">
               {t('dialogs.secureDelete.overwritePatternTitle')}
             </div>
@@ -237,7 +237,7 @@ const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDelete
               checked={confirmed}
               onChange={(e) => setConfirmed(e.target.checked)}
               disabled={processing}
-              className="mt-1 rounded border-xp-border text-xp-red focus:ring-xp-red"
+              className="mt-1 rounded-[2px] border-xp-border text-xp-red"
             />
             <span className="text-sm text-xp-text">
               {t('dialogs.secureDelete.confirmText', {
@@ -251,7 +251,7 @@ const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDelete
 
           {/* Error message */}
           {error && (
-            <div className="flex items-start space-x-2 rounded-md border border-xp-red/30 bg-xp-red/10 p-3">
+            <div className="flex items-start space-x-2 rounded-[2px] border border-xp-red/30 bg-xp-red/10 p-3">
               <AlertTriangle size={16} className="mt-0.5 shrink-0 text-xp-red" />
               <span className="whitespace-pre-wrap text-sm text-xp-red">{error}</span>
             </div>
@@ -272,9 +272,9 @@ const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDelete
                   })}
                 </span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded bg-xp-bg">
+              <div className="h-2 w-full overflow-hidden rounded-[2px] bg-xp-bg">
                 <div
-                  className="h-full rounded bg-xp-red transition-all duration-300"
+                  className="h-full rounded-[2px] bg-xp-red transition-all duration-300"
                   style={{ width: `${progressPercentage}%` }}
                 />
               </div>
@@ -296,14 +296,14 @@ const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDelete
           <button
             onClick={handleClose}
             disabled={processing}
-            className="rounded px-4 py-2 text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+            className="rounded-[2px] px-4 py-2 text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
           >
             {t('common.cancel')}
           </button>
           <button
             onClick={handleSubmit}
             disabled={processing || !confirmed}
-            className="flex items-center space-x-2 rounded bg-xp-red px-4 py-2 text-white transition-colors hover:bg-xp-red/80 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center space-x-2 rounded-[2px] bg-xp-red px-4 py-2 text-xp-on-accent transition-colors hover:bg-xp-red/80 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={t('dialogs.secureDelete.deleteAriaLabel')}
           >
             {processing ? (

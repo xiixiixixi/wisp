@@ -131,7 +131,7 @@ const FileNotesDialog = ({ isOpen, onClose, filePath, onSaved }: FileNotesDialog
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="mx-4 flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-xp-border bg-xp-surface shadow-2xl">
+      <div className="mx-4 flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface shadow-2xl">
         {/* Header */}
         <div className="flex flex-shrink-0 items-center justify-between border-b border-xp-border px-4 py-3">
           <div className="flex items-center space-x-2">
@@ -145,7 +145,7 @@ const FileNotesDialog = ({ isOpen, onClose, filePath, onSaved }: FileNotesDialog
           </div>
           <button
             onClick={onClose}
-            className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
           >
             <X className="h-4 w-4" />
           </button>
@@ -160,7 +160,7 @@ const FileNotesDialog = ({ isOpen, onClose, filePath, onSaved }: FileNotesDialog
             <p className="text-sm italic text-xp-text-muted">{t('dialogs.notes.empty')}</p>
           ) : (
             notes.map((note) => (
-              <div key={note.id} className="overflow-hidden rounded-md border border-xp-border">
+              <div key={note.id} className="overflow-hidden rounded-[2px] border border-xp-border">
                 {/* Note header */}
                 <button
                   className="flex w-full items-center justify-between px-3 py-2 text-left transition-colors hover:bg-xp-surface-light"
@@ -180,7 +180,7 @@ const FileNotesDialog = ({ isOpen, onClose, filePath, onSaved }: FileNotesDialog
                         e.stopPropagation();
                         startEditing(note);
                       }}
-                      className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-blue"
+                      className="rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-blue"
                       title={t('common.edit')}
                     >
                       <Pencil className="h-3 w-3" />
@@ -190,7 +190,7 @@ const FileNotesDialog = ({ isOpen, onClose, filePath, onSaved }: FileNotesDialog
                         e.stopPropagation();
                         handleDeleteNote(note.id);
                       }}
-                      className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-red"
+                      className="rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-red"
                       title={t('common.delete')}
                     >
                       <Trash2 className="h-3 w-3" />
@@ -207,27 +207,27 @@ const FileNotesDialog = ({ isOpen, onClose, filePath, onSaved }: FileNotesDialog
                           type="text"
                           value={editTitle}
                           onChange={(e) => setEditTitle(e.target.value)}
-                          className="w-full rounded border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text transition-colors focus:border-xp-blue focus:outline-none"
+                          className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text transition-colors focus:border-xp-blue focus:outline-none"
                           placeholder={t('dialogs.notes.titlePlaceholder')}
                         />
                         <textarea
                           value={editContent}
                           onChange={(e) => setEditContent(e.target.value)}
                           rows={5}
-                          className="w-full resize-y rounded border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text transition-colors focus:border-xp-blue focus:outline-none"
+                          className="w-full resize-y rounded-[2px] border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text transition-colors focus:border-xp-blue focus:outline-none"
                           placeholder={t('dialogs.notes.contentPlaceholder')}
                         />
                         <div className="flex items-center justify-end space-x-2">
                           <button
                             onClick={() => setEditingNoteId(null)}
-                            className="rounded px-2.5 py-1 text-xs text-xp-text-muted transition-colors hover:text-xp-text"
+                            className="rounded-[2px] px-2.5 py-1 text-xs text-xp-text-muted transition-colors hover:text-xp-text"
                           >
                             {t('common.cancel')}
                           </button>
                           <button
                             onClick={() => handleUpdateNote(note.id)}
                             disabled={saving || !editTitle.trim()}
-                            className="flex items-center space-x-1 rounded bg-xp-blue px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-opacity-90 disabled:opacity-40"
+                            className="flex items-center space-x-1 rounded-[2px] bg-xp-blue px-2.5 py-1 text-xs font-medium text-xp-on-accent transition-colors hover:bg-opacity-90 disabled:opacity-40"
                           >
                             <Check className="h-3 w-3" />
                             <span>{t('common.save')}</span>
@@ -258,7 +258,7 @@ const FileNotesDialog = ({ isOpen, onClose, filePath, onSaved }: FileNotesDialog
 
           {/* Add note form */}
           {showAddForm && (
-            <div className="space-y-2 rounded-md border border-xp-blue border-opacity-50 p-3">
+            <div className="space-y-2 rounded-[2px] border border-xp-blue border-opacity-50 p-3">
               <input
                 ref={titleInputRef}
                 type="text"
@@ -267,7 +267,7 @@ const FileNotesDialog = ({ isOpen, onClose, filePath, onSaved }: FileNotesDialog
                 onKeyDown={(e) => {
                   if (e.key === 'Escape') setShowAddForm(false);
                 }}
-                className="w-full rounded border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text placeholder-xp-text-muted transition-colors focus:border-xp-blue focus:outline-none"
+                className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text placeholder-xp-text-muted transition-colors focus:border-xp-blue focus:outline-none"
                 placeholder={t('dialogs.notes.titlePlaceholder')}
                 maxLength={100}
               />
@@ -275,20 +275,20 @@ const FileNotesDialog = ({ isOpen, onClose, filePath, onSaved }: FileNotesDialog
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
                 rows={4}
-                className="w-full resize-y rounded border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text placeholder-xp-text-muted transition-colors focus:border-xp-blue focus:outline-none"
+                className="w-full resize-y rounded-[2px] border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text placeholder-xp-text-muted transition-colors focus:border-xp-blue focus:outline-none"
                 placeholder={t('dialogs.notes.contentPlaceholder')}
               />
               <div className="flex items-center justify-end space-x-2">
                 <button
                   onClick={() => setShowAddForm(false)}
-                  className="rounded px-2.5 py-1 text-xs text-xp-text-muted transition-colors hover:text-xp-text"
+                  className="rounded-[2px] px-2.5 py-1 text-xs text-xp-text-muted transition-colors hover:text-xp-text"
                 >
                   {t('common.cancel')}
                 </button>
                 <button
                   onClick={handleAddNote}
                   disabled={saving || !newTitle.trim()}
-                  className="flex items-center space-x-1 rounded bg-xp-blue px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-opacity-90 disabled:opacity-40"
+                  className="flex items-center space-x-1 rounded-[2px] bg-xp-blue px-2.5 py-1 text-xs font-medium text-xp-on-accent transition-colors hover:bg-opacity-90 disabled:opacity-40"
                 >
                   {saving ? (
                     <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -303,7 +303,7 @@ const FileNotesDialog = ({ isOpen, onClose, filePath, onSaved }: FileNotesDialog
 
           {/* Error */}
           {error && (
-            <p className="rounded border border-xp-red/30 bg-xp-red/10 px-2 py-1 text-xs text-xp-red">
+            <p className="rounded-[2px] border border-xp-red/30 bg-xp-red/10 px-2 py-1 text-xs text-xp-red">
               {error}
             </p>
           )}
@@ -318,7 +318,7 @@ const FileNotesDialog = ({ isOpen, onClose, filePath, onSaved }: FileNotesDialog
             {!showAddForm && (
               <button
                 onClick={() => setShowAddForm(true)}
-                className="flex items-center space-x-1.5 rounded bg-xp-blue px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-opacity-90"
+                className="flex items-center space-x-1.5 rounded-[2px] bg-xp-blue px-3 py-1.5 text-sm font-medium text-xp-on-accent transition-colors hover:bg-opacity-90"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>{t('dialogs.notes.addNote')}</span>
@@ -326,7 +326,7 @@ const FileNotesDialog = ({ isOpen, onClose, filePath, onSaved }: FileNotesDialog
             )}
             <button
               onClick={onClose}
-              className="rounded px-3 py-1.5 text-sm text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+              className="rounded-[2px] px-3 py-1.5 text-sm text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             >
               {t('common.close')}
             </button>

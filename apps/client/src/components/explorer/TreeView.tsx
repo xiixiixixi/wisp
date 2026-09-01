@@ -54,9 +54,9 @@ const TreeRow = ({
         tabIndex={0}
         data-drop-target={file.is_dir ? file.path : undefined}
         data-is-folder={file.is_dir ? 'true' : undefined}
-        className={`flex min-w-0 cursor-pointer items-center overflow-hidden rounded px-2 py-1 transition-colors hover:bg-xp-surface-light ${
+        className={`flex min-w-0 cursor-pointer items-center overflow-hidden rounded-[2px] px-2 py-1 transition-colors hover:bg-xp-surface-light ${
           selectedFiles.has(file.path)
-            ? 'bg-xp-purple/20 border-xp-purple/40 border'
+            ? 'border border-xp-purple/40 bg-xp-purple/20'
             : 'border border-transparent text-xp-text'
         } `}
         style={{ paddingLeft: `${depth * 20 + 8}px` }}
@@ -90,7 +90,7 @@ const TreeRow = ({
         <div className="flex min-w-0 flex-1 items-center space-x-1">
           {file.is_dir && (
             <button
-              className="flex-shrink-0 rounded p-0.5 hover:bg-xp-surface-light"
+              className="flex-shrink-0 rounded-[2px] p-0.5 hover:bg-xp-surface-light"
               onClick={(e) => {
                 e.stopPropagation();
                 toggleFolder(file.path);

@@ -57,9 +57,9 @@ const MarketplaceFilters = React.memo(
           <div className="flex flex-wrap gap-1.5">
             <button
               onClick={() => setSelectedCategory('')}
-              className={`rounded border px-2.5 py-1 text-xs transition-colors ${
+              className={`rounded-[2px] border px-2.5 py-1 text-xs transition-colors ${
                 selectedCategory === ''
-                  ? 'border-xp-blue bg-xp-blue text-white'
+                  ? 'border-xp-blue bg-xp-blue text-xp-on-accent'
                   : 'border-xp-border bg-xp-surface text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
               }`}
             >
@@ -69,9 +69,9 @@ const MarketplaceFilters = React.memo(
               <button
                 key={cat.slug}
                 onClick={() => setSelectedCategory(cat.slug)}
-                className={`rounded border px-2.5 py-1 text-xs transition-colors ${
+                className={`rounded-[2px] border px-2.5 py-1 text-xs transition-colors ${
                   selectedCategory === cat.slug
-                    ? 'border-xp-blue bg-xp-blue text-white'
+                    ? 'border-xp-blue bg-xp-blue text-xp-on-accent'
                     : 'border-xp-border bg-xp-surface text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
                 }`}
               >
@@ -88,14 +88,14 @@ const MarketplaceFilters = React.memo(
           <div className="relative" ref={sortRef}>
             <button
               onClick={() => setShowSortDropdown(!showSortDropdown)}
-              className="flex items-center gap-1 rounded border border-xp-border bg-xp-surface px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+              className="flex items-center gap-1 rounded-[2px] border border-xp-border bg-xp-surface px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             >
               Sort: {SORT_LABELS[sortBy]}
               <ChevronDown className="h-3 w-3" />
             </button>
             {showSortDropdown && (
               <>
-                <div className="absolute right-0 top-full z-20 mt-1 min-w-[140px] rounded-md border border-xp-border bg-xp-popover py-1">
+                <div className="absolute right-0 top-full z-20 mt-1 min-w-[140px] rounded-[2px] border border-xp-border bg-xp-popover py-1">
                   {(Object.keys(SORT_LABELS) as SortOption[]).map((option) => (
                     <button
                       key={option}

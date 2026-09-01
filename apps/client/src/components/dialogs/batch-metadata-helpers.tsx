@@ -111,7 +111,7 @@ export const TagPill = ({
         fontWeight: 500,
         color: '#fff',
         backgroundColor: tag.color,
-        border: highlight ? '1px solid rgba(255,255,255,0.3)' : 'none',
+        border: highlight ? '1px solid var(--xp-border-light)' : 'none',
       }}
     >
       {prefix && <span style={{ opacity: 0.7 }}>{prefix}</span>}

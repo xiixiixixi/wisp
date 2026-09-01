@@ -6,17 +6,21 @@ interface BadgeProps {
   children: React.ReactNode;
 }
 
+/**
+ * MUJI paper badge — a squared paper tag, never a pill.
+ * The default is the one 無印紅 moment; the rest are quiet ink washes.
+ */
 export const Badge = ({ variant = 'default', className = '', children }: BadgeProps) => {
   const baseClasses =
-    'inline-flex items-center rounded px-2 py-0.5 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
+    'inline-flex items-center rounded-[2px] px-1.5 py-px text-[10px] font-medium tracking-wide uppercase';
 
   const variantClasses = {
-    default: 'bg-xp-selection text-xp-lime',
-    secondary: 'bg-xp-surface-light text-xp-text hover:bg-xp-border',
-    destructive: 'bg-xp-bg text-xp-red hover:bg-xp-border',
-    outline: 'border border-xp-border text-xp-text hover:bg-xp-surface-light',
-    success: 'bg-xp-bg text-xp-green hover:bg-xp-border',
-    warning: 'bg-xp-bg text-xp-yellow hover:bg-xp-border',
+    default: 'bg-xp-selection-bg text-xp-lime',
+    secondary: 'bg-xp-surface-light text-xp-text-secondary',
+    destructive: 'bg-xp-selection-bg text-xp-red',
+    outline: 'border border-xp-border text-xp-text-secondary',
+    success: 'bg-xp-surface-light text-xp-green',
+    warning: 'bg-xp-surface-light text-xp-yellow',
   };
 
   return (

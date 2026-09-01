@@ -124,14 +124,14 @@ const ChatFileView = ({ filePath }: ChatFileViewProps) => {
             <h2 className="mr-auto truncate text-base font-medium text-xp-text">{title}</h2>
 
             {/* Model display (configured in Settings > AI) */}
-            <span className="rounded border border-xp-border bg-xp-bg px-3 py-1.5 text-xs text-xp-text-muted">
+            <span className="rounded-[2px] border border-xp-border bg-xp-bg px-3 py-1.5 text-xs text-xp-text-muted">
               {model}
             </span>
 
             {/* Thinking toggle */}
             <button
               onClick={() => setThinkingEnabled(!thinkingEnabled)}
-              className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`rounded-[2px] px-3 py-1.5 text-xs font-medium transition-colors ${
                 thinkingEnabled
                   ? 'bg-xp-cyan text-[var(--xp-bg)] hover:opacity-80'
                   : 'bg-xp-border text-xp-text hover:bg-xp-surface-light'
@@ -150,7 +150,7 @@ const ChatFileView = ({ filePath }: ChatFileViewProps) => {
               {contextFiles.map((file) => (
                 <span
                   key={file.path}
-                  className="inline-flex items-center gap-1 rounded border border-xp-blue/20 bg-xp-blue/10 px-2 py-0.5 text-xs text-xp-text"
+                  className="inline-flex items-center gap-1 rounded-[2px] border border-xp-blue/20 bg-xp-blue/10 px-2 py-0.5 text-xs text-xp-text"
                 >
                   <span className="max-w-[150px] truncate">{file.name}</span>
                   <button
@@ -209,7 +209,7 @@ const ChatFileView = ({ filePath }: ChatFileViewProps) => {
             <div className="flex justify-start">
               <details
                 open
-                className="min-w-0 max-w-[85%] overflow-hidden rounded-lg border border-xp-border bg-xp-bg"
+                className="min-w-0 max-w-[85%] overflow-hidden rounded-[2px] border border-xp-border bg-xp-bg"
               >
                 <summary className="hover:bg-xp-bg-hover flex cursor-pointer select-none items-center gap-1.5 px-3 py-1.5 text-xs text-xp-text-muted">
                   <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-xp-cyan" />

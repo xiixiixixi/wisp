@@ -48,7 +48,7 @@ export const TagDots = ({ tags }: { tags: FileTag[] }) => {
         <span
           key={tag.name}
           title={displayTagName(tag.name)}
-          className="inline-flex h-4 max-w-24 flex-shrink-0 items-center gap-1 rounded border px-1.5"
+          className="inline-flex h-4 max-w-24 flex-shrink-0 items-center gap-1 rounded-[2px] border px-1.5"
           style={{
             backgroundColor: hexA(tag.color, 0.13),
             borderColor: hexA(tag.color, 0.3),
@@ -69,7 +69,7 @@ export const TagDots = ({ tags }: { tags: FileTag[] }) => {
         </span>
       ))}
       {rest > 0 && (
-        <span className="inline-flex h-4 flex-shrink-0 items-center rounded border border-xp-border bg-xp-surface/60 px-1.5 text-[9.5px] font-medium leading-none text-xp-text-muted">
+        <span className="inline-flex h-4 flex-shrink-0 items-center rounded-[2px] border border-xp-border bg-xp-surface/60 px-1.5 text-[9.5px] font-medium leading-none text-xp-text-muted">
           +{rest}
         </span>
       )}

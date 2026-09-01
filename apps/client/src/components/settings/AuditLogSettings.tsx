@@ -158,7 +158,7 @@ const AuditLogSettings = () => {
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            className="h-9 rounded-md border border-xp-border bg-xp-bg px-2 text-sm text-xp-text"
+            className="h-9 rounded-[2px] border border-xp-border bg-xp-bg px-2 text-sm text-xp-text"
           />
         </div>
 
@@ -171,7 +171,7 @@ const AuditLogSettings = () => {
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
-            className="h-9 rounded-md border border-xp-border bg-xp-bg px-2 text-sm text-xp-text"
+            className="h-9 rounded-[2px] border border-xp-border bg-xp-bg px-2 text-sm text-xp-text"
           />
         </div>
       </div>
@@ -189,7 +189,7 @@ const AuditLogSettings = () => {
 
       {/* Table */}
       <div className="px-4">
-        <div className="overflow-hidden rounded-lg border border-xp-border">
+        <div className="overflow-hidden rounded-[2px] border border-xp-border">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-xp-surface-light/50 text-xs uppercase tracking-wider text-xp-text-secondary">
@@ -223,7 +223,7 @@ const AuditLogSettings = () => {
                     </td>
                     <td className="px-3 py-2">
                       <span
-                        className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${operationBadgeClass(entry.operation)}`}
+                        className={`inline-block rounded-[2px] px-2 py-0.5 text-xs font-medium ${operationBadgeClass(entry.operation)}`}
                       >
                         {entry.operation}
                       </span>
@@ -265,14 +265,14 @@ const AuditLogSettings = () => {
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="rounded-md p-1.5 text-xp-text-secondary transition-colors hover:bg-xp-surface hover:text-xp-text disabled:cursor-not-allowed disabled:opacity-30"
+              className="rounded-[2px] p-1.5 text-xp-text-secondary transition-colors hover:bg-xp-surface hover:text-xp-text disabled:cursor-not-allowed disabled:opacity-30"
             >
               <ChevronLeft size={16} />
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className="rounded-md p-1.5 text-xp-text-secondary transition-colors hover:bg-xp-surface hover:text-xp-text disabled:cursor-not-allowed disabled:opacity-30"
+              className="rounded-[2px] p-1.5 text-xp-text-secondary transition-colors hover:bg-xp-surface hover:text-xp-text disabled:cursor-not-allowed disabled:opacity-30"
             >
               <ChevronRight size={16} />
             </button>
@@ -287,7 +287,7 @@ const AuditLogSettings = () => {
       <div className="flex flex-wrap items-center gap-3 px-4 py-2">
         <button
           onClick={handleExport}
-          className="flex items-center gap-2 rounded-md bg-xp-accent/15 px-4 py-2 text-sm font-medium text-xp-accent transition-colors hover:bg-xp-accent/25"
+          className="flex items-center gap-2 rounded-[2px] bg-xp-accent/15 px-4 py-2 text-sm font-medium text-xp-accent transition-colors hover:bg-xp-accent/25"
         >
           <Download size={16} />
           {t('settings.audit.exportCsv')}
@@ -296,7 +296,7 @@ const AuditLogSettings = () => {
         <button
           onClick={handleClear}
           onBlur={() => setConfirmClear(false)}
-          className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+          className={`flex items-center gap-2 rounded-[2px] px-4 py-2 text-sm font-medium transition-colors ${
             confirmClear
               ? 'border border-xp-red/40 bg-xp-red/20 text-xp-red'
               : 'bg-xp-red/10 text-xp-red/70 hover:bg-xp-red/20'
@@ -309,7 +309,7 @@ const AuditLogSettings = () => {
 
       {exportStatus && (
         <div className="px-4 py-2">
-          <div className="rounded-md bg-xp-surface px-3 py-2 text-xs text-xp-text-secondary">
+          <div className="rounded-[2px] bg-xp-surface px-3 py-2 text-xs text-xp-text-secondary">
             {exportStatus}
           </div>
         </div>

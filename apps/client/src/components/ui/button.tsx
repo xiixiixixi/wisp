@@ -6,6 +6,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
 }
 
+/**
+ * MUJI paper button — squared corners, hairline or ink fill, no shadows.
+ * The primary press is an ink stamp; hover is a faint paper lift, never a glow.
+ */
 export const Button = ({
   variant = 'default',
   size = 'default',
@@ -14,21 +18,25 @@ export const Button = ({
   ...props
 }: ButtonProps) => {
   const baseClasses =
-    'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
+    'inline-flex items-center justify-center rounded-[2px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-xp-text focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--xp-bg)] disabled:pointer-events-none disabled:opacity-40';
 
   const variantClasses = {
-    default: 'bg-xp-blue text-[var(--xp-bg)] hover:bg-xp-accent-hover focus-visible:ring-xp-blue',
-    outline:
-      'border border-xp-border bg-xp-popover text-xp-text hover:bg-xp-surface-light focus-visible:ring-xp-blue',
-    ghost: 'text-xp-text hover:bg-xp-surface-light focus-visible:ring-xp-blue',
-    destructive: 'bg-xp-red text-white hover:bg-xp-red focus-visible:ring-xp-red',
-    secondary: 'bg-xp-surface-light text-xp-text hover:bg-xp-border focus-visible:ring-xp-blue',
+    // Ink stamp on paper — flips polarity with the sun
+    default: 'bg-xp-accent text-xp-on-accent hover:bg-xp-accent-hover',
+    // Hairline paper cut
+    outline: 'border border-xp-border bg-transparent text-xp-text hover:bg-xp-surface-light',
+    // Bare ink — sits directly on the ground
+    ghost: 'text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text',
+    // 無印紅 — the only red moment, reserved for destructive acts
+    destructive: 'bg-xp-lime text-xp-on-accent hover:opacity-85',
+    // A folded paper square — slightly raised from the ground
+    secondary: 'bg-xp-surface-light text-xp-text hover:bg-xp-border',
   };
 
   const sizeClasses = {
-    default: 'h-10 px-4 py-2',
-    sm: 'h-8 px-3 py-1 text-sm',
-    lg: 'h-12 px-6 py-3 text-lg',
+    default: 'h-9 px-4 text-sm',
+    sm: 'h-7 px-2.5 text-xs',
+    lg: 'h-11 px-6 text-base',
   };
 
   return (

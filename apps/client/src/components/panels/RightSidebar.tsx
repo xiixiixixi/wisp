@@ -303,7 +303,7 @@ const RightSidebar = ({
           <h3 className="truncate text-sm font-medium">{getTabTitle()}</h3>
           <button
             onClick={() => setRightSidebarCollapsed(true)}
-            className="ml-2 flex-shrink-0 rounded p-1 hover:bg-xp-surface-light"
+            className="ml-2 flex-shrink-0 rounded-[2px] p-1 hover:bg-xp-surface-light"
             aria-label="Close panel"
           >
             <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">

@@ -128,7 +128,7 @@ export const summarizeToolInput = (name: string, input: Record<string, unknown>)
 
 const ThinkingBlock = ({ content }: { content: string }) => {
   return (
-    <details className="mb-2 overflow-hidden rounded-lg border border-xp-border">
+    <details className="mb-2 overflow-hidden rounded-[2px] border border-xp-border">
       <summary className="flex cursor-pointer select-none items-center gap-1.5 px-3 py-1.5 text-xs text-xp-text-muted hover:bg-xp-surface-light">
         <svg className="h-3 w-3 flex-shrink-0 text-xp-cyan" fill="currentColor" viewBox="0 0 20 20">
           <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM4 11a1 1 0 100-2H3a1 1 0 000 2h1zM10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 110-12 6 6 0 010 12z" />
@@ -159,8 +159,10 @@ export const MessageBubble = React.memo(({ message, onApplyCode }: MessageBubble
   return (
     <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`min-w-0 max-w-[85%] overflow-hidden rounded-lg p-3 text-sm ${
-          message.role === 'user' ? 'bg-xp-blue text-white' : 'border border-xp-border bg-xp-bg'
+        className={`min-w-0 max-w-[85%] overflow-hidden rounded-[2px] p-3 text-sm ${
+          message.role === 'user'
+            ? 'bg-xp-blue text-xp-on-accent'
+            : 'border border-xp-border bg-xp-bg'
         }`}
       >
         {message.role === 'assistant' ? (
@@ -190,7 +192,7 @@ interface ToolCallItemProps {
 
 export const ToolCallItem = React.memo(({ toolCall: tc, onToggleExpand }: ToolCallItemProps) => {
   return (
-    <div className="overflow-hidden rounded-lg border border-xp-border bg-xp-bg">
+    <div className="overflow-hidden rounded-[2px] border border-xp-border bg-xp-bg">
       <button
         onClick={() => onToggleExpand(tc.id)}
         className="flex w-full min-w-0 items-center space-x-2 px-3 py-2 text-xs transition-colors hover:bg-xp-surface-light"
@@ -219,14 +221,14 @@ export const ToolCallItem = React.memo(({ toolCall: tc, onToggleExpand }: ToolCa
         <div className="min-w-0 overflow-hidden border-t border-xp-border px-3 pb-2">
           <div className="mt-2 text-xs">
             <div className="mb-1 text-xp-text-muted">Input:</div>
-            <pre className="max-h-24 overflow-x-auto overflow-y-auto rounded bg-xp-surface p-2 text-xs">
+            <pre className="max-h-24 overflow-x-auto overflow-y-auto rounded-[2px] bg-xp-surface p-2 text-xs">
               {JSON.stringify(tc.input, null, 2)}
             </pre>
           </div>
           {tc.result && (
             <div className="mt-2 text-xs">
               <div className="mb-1 text-xp-text-muted">Result:</div>
-              <pre className="max-h-32 overflow-x-auto overflow-y-auto rounded bg-xp-surface p-2 text-xs">
+              <pre className="max-h-32 overflow-x-auto overflow-y-auto rounded-[2px] bg-xp-surface p-2 text-xs">
                 {tc.result.length > 2000 ? `${tc.result.substring(0, 2000)}...` : tc.result}
               </pre>
             </div>
@@ -269,9 +271,9 @@ interface ActivePlanDisplayProps {
 
 export const ActivePlanDisplay = ({ plan }: ActivePlanDisplayProps) => {
   const planStatusClass = (() => {
-    if (plan.status === 'completed') return 'bg-xp-green text-white';
-    if (plan.status === 'failed') return 'bg-xp-red text-white';
-    if (plan.status === 'executing') return 'bg-xp-blue animate-pulse text-white';
+    if (plan.status === 'completed') return 'bg-xp-green text-xp-on-accent';
+    if (plan.status === 'failed') return 'bg-xp-red text-xp-on-accent';
+    if (plan.status === 'executing') return 'bg-xp-blue animate-pulse text-xp-on-accent';
     return 'bg-xp-yellow text-black';
   })();
 
@@ -284,13 +286,13 @@ export const ActivePlanDisplay = ({ plan }: ActivePlanDisplayProps) => {
   };
 
   return (
-    <div className="overflow-hidden rounded-lg border border-xp-border bg-xp-surface">
+    <div className="overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface">
       <div className="flex items-center gap-2 border-b border-xp-border px-3 py-2">
         <span>
           <ClipboardList size={14} className="inline-block" />
         </span>
         <span className="flex-1 text-xs font-medium">{plan.title}</span>
-        <span className={`rounded px-1.5 py-0.5 text-[10px] ${planStatusClass}`}>
+        <span className={`rounded-[2px] px-1.5 py-0.5 text-[10px] ${planStatusClass}`}>
           {plan.status.replace('_', ' ')}
         </span>
       </div>
@@ -339,7 +341,7 @@ export const PendingApprovalCard = ({
   onApproval,
 }: PendingApprovalCardProps) => {
   return (
-    <div className="rounded-lg border border-xp-yellow bg-xp-yellow/10 p-3">
+    <div className="rounded-[2px] border border-xp-yellow bg-xp-yellow/10 p-3">
       <div className="mb-2 flex items-center space-x-2">
         <svg className="h-4 w-4 text-xp-yellow" fill="currentColor" viewBox="0 0 20 20">
           <path
@@ -366,7 +368,7 @@ export const PendingApprovalCard = ({
             </div>
             <div className="mt-1">
               <span className="text-xp-text-muted">Content preview:</span>
-              <pre className="mt-1 max-h-20 overflow-y-auto rounded bg-xp-surface p-2 text-xs">
+              <pre className="mt-1 max-h-20 overflow-y-auto rounded-[2px] bg-xp-surface p-2 text-xs">
                 {String((tc.input as ToolCallInput).content || '').substring(0, 500)}
               </pre>
             </div>
@@ -375,7 +377,7 @@ export const PendingApprovalCard = ({
         {tc.name === 'execute_command' && (
           <div>
             <span className="text-xp-text-muted">Command: </span>
-            <code className="rounded bg-xp-surface px-1">
+            <code className="rounded-[2px] bg-xp-surface px-1">
               {String((tc.input as ToolCallInput).command || '')}
             </code>
           </div>
@@ -419,7 +421,7 @@ export const PendingApprovalCard = ({
       <div className="flex space-x-2">
         <button
           onClick={() => onApproval(tc.id, 'allow_once')}
-          className="flex items-center gap-1 rounded bg-xp-green px-3 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-80"
+          className="flex items-center gap-1 rounded-[2px] bg-xp-green px-3 py-1.5 text-xs font-medium text-xp-on-accent transition-colors hover:opacity-80"
           aria-label={`Allow ${tc.name} this time`}
         >
           <svg
@@ -435,7 +437,7 @@ export const PendingApprovalCard = ({
         </button>
         <button
           onClick={() => onApproval(tc.id, 'allow_always')}
-          className="flex items-center gap-1 rounded bg-xp-blue px-3 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-80"
+          className="flex items-center gap-1 rounded-[2px] bg-xp-blue px-3 py-1.5 text-xs font-medium text-xp-on-accent transition-colors hover:opacity-80"
           aria-label={`Always allow ${tc.name}`}
         >
           <svg
@@ -455,7 +457,7 @@ export const PendingApprovalCard = ({
         </button>
         <button
           onClick={() => onApproval(tc.id, 'deny_always')}
-          className="flex items-center gap-1 rounded bg-xp-red px-3 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-80"
+          className="flex items-center gap-1 rounded-[2px] bg-xp-red px-3 py-1.5 text-xs font-medium text-xp-on-accent transition-colors hover:opacity-80"
           aria-label={`Never allow ${tc.name}`}
         >
           <svg
@@ -485,7 +487,7 @@ export const StreamingMessage = ({ text }: StreamingMessageProps) => {
 
   return (
     <div className="flex justify-start">
-      <div className="min-w-0 max-w-[85%] overflow-hidden rounded-lg border border-xp-border bg-xp-bg p-3 text-sm">
+      <div className="min-w-0 max-w-[85%] overflow-hidden rounded-[2px] border border-xp-border bg-xp-bg p-3 text-sm">
         <MarkdownRenderer content={text} />
         <div className="mt-1 flex items-center space-x-1">
           <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-xp-purple" />
@@ -518,7 +520,7 @@ export const AgentStreamView = ({
           return (
             // eslint-disable-next-line react/no-array-index-key
             <div key={`stream-text-${index}`} className="flex justify-start">
-              <div className="min-w-0 max-w-[85%] overflow-hidden rounded-lg border border-xp-border bg-xp-bg p-3 text-sm">
+              <div className="min-w-0 max-w-[85%] overflow-hidden rounded-[2px] border border-xp-border bg-xp-bg p-3 text-sm">
                 <MarkdownRenderer content={item.content} />
               </div>
             </div>
@@ -546,7 +548,7 @@ export const AgentStreamView = ({
 export const LoadingIndicator = () => {
   return (
     <div className="flex justify-start">
-      <div className="rounded-lg border border-xp-border bg-xp-bg p-3">
+      <div className="rounded-[2px] border border-xp-border bg-xp-bg p-3">
         <div className="flex items-center space-x-2">
           <div className="h-2 w-2 animate-pulse rounded-full bg-xp-blue" />
           <div

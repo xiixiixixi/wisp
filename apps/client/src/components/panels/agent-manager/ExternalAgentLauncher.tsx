@@ -182,7 +182,7 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
 
   return (
     <div className="flex flex-col gap-3" data-testid="external-agent-launcher">
-      <div className="flex items-center gap-2 rounded-md border border-xp-border bg-xp-bg px-2.5 py-2">
+      <div className="flex items-center gap-2 rounded-[2px] border border-xp-border bg-xp-bg px-2.5 py-2">
         <Folder size={13} className="shrink-0 text-xp-text-muted" aria-hidden="true" />
         <span
           className="min-w-0 flex-1 truncate font-mono text-[11px] text-xp-text-secondary"
@@ -210,7 +210,7 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
               disabled={!isTauri() || detecting}
               aria-label={t('agentManager.cockpit.refreshDetection')}
               title={t('agentManager.cockpit.refreshDetection')}
-              className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-40"
+              className="rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-40"
             >
               <RefreshCw size={11} className={detecting ? 'animate-spin' : ''} aria-hidden="true" />
             </button>
@@ -218,7 +218,7 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
         </div>
 
         <div
-          className="overflow-hidden rounded-md border border-xp-border bg-xp-bg"
+          className="overflow-hidden rounded-[2px] border border-xp-border bg-xp-bg"
           role="radiogroup"
           aria-label={t('agentManager.cockpit.agentLabel')}
         >
@@ -239,7 +239,7 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
                   setAgentType(agent.type);
                   setError(null);
                 }}
-                className={`flex w-full items-center gap-2.5 px-2.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-primary ${
+                className={`flex w-full items-center gap-2.5 px-2.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-xp-text ${
                   index > 0 ? 'border-t border-xp-border' : ''
                 } ${selected ? 'bg-xp-surface-light' : 'hover:bg-xp-surface/70'}`}
               >
@@ -266,7 +266,7 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
               setAgentType('custom-cli');
               setError(null);
             }}
-            className={`flex w-full items-center gap-2.5 border-t border-xp-border px-2.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-primary ${
+            className={`flex w-full items-center gap-2.5 border-t border-xp-border px-2.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-xp-text ${
               agentType === 'custom-cli' ? 'bg-xp-surface-light' : 'hover:bg-xp-surface/70'
             }`}
           >
@@ -300,7 +300,7 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
               localStorage.setItem(STORAGE_KEYS.AGENT_LAUNCHER_CUSTOM_COMMAND, event.target.value);
             }}
             placeholder={t('agentManager.newAgent.commandPlaceholder')}
-            className="h-9 rounded-md border border-xp-border bg-xp-bg px-2.5 font-mono text-xs text-xp-text outline-none transition-colors placeholder:text-xp-text-muted focus:border-primary focus:ring-1 focus:ring-primary"
+            className="h-9 rounded-[2px] border border-xp-border bg-xp-bg px-2.5 font-mono text-xs text-xp-text outline-none transition-colors placeholder:text-xp-text-muted focus:border-primary"
           />
         </label>
       )}
@@ -319,19 +319,19 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
           }}
           rows={4}
           placeholder={t('agentManager.cockpit.promptPlaceholder')}
-          className="min-h-24 resize-y rounded-md border border-xp-border bg-xp-bg px-2.5 py-2 text-xs leading-5 text-xp-text outline-none transition-colors placeholder:text-xp-text-muted focus:border-primary focus:ring-1 focus:ring-primary"
+          className="min-h-24 resize-y rounded-[2px] border border-xp-border bg-xp-bg px-2.5 py-2 text-xs leading-5 text-xp-text outline-none transition-colors placeholder:text-xp-text-muted focus:border-primary"
         />
       </label>
 
       {selectedMissing && selectedDefinition && (
-        <div className="flex items-center gap-2 rounded-md border border-xp-border bg-xp-bg px-2.5 py-2 text-[11px] text-xp-text-muted">
+        <div className="flex items-center gap-2 rounded-[2px] border border-xp-border bg-xp-bg px-2.5 py-2 text-[11px] text-xp-text-muted">
           <span className="min-w-0 flex-1">
             {t('agentManager.newAgent.cliMissingHint', { command: selectedDefinition.command })}
           </span>
           <button
             type="button"
             onClick={copyInstallCommand}
-            className="inline-flex shrink-0 items-center gap-1 rounded border border-xp-border px-2 py-1 text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="inline-flex shrink-0 items-center gap-1 rounded-[2px] border border-xp-border px-2 py-1 text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
           >
             {copied ? <Check size={11} /> : <Copy size={11} />}
             {copied ? t('agentManager.newAgent.copied') : t('agentManager.newAgent.copyInstall')}
@@ -341,7 +341,7 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
 
       {error && (
         <div
-          className="rounded-md border border-xp-red/40 bg-xp-red/5 px-2.5 py-2 text-[11px] text-xp-red"
+          className="rounded-[2px] border border-xp-red/40 bg-xp-red/5 px-2.5 py-2 text-[11px] text-xp-red"
           role="alert"
         >
           {error}
@@ -352,7 +352,7 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
         type="button"
         onClick={() => void handleLaunch()}
         disabled={!canLaunch}
-        className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-xp-blue px-3 text-xs font-semibold text-white transition-colors hover:bg-xp-blue-dark focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-40"
+        className="inline-flex h-9 items-center justify-center gap-2 rounded-[2px] bg-xp-blue px-3 text-xs font-semibold text-xp-on-accent transition-colors hover:bg-xp-blue-dark focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
       >
         <Play size={13} fill="currentColor" aria-hidden="true" />
         {launching ? t('agentManager.newAgent.launching') : t('agentManager.newAgent.launch')}

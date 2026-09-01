@@ -74,13 +74,13 @@ export const SelectByExtensionDialog = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="flex max-h-[80vh] w-[500px] flex-col rounded-lg border border-xp-border bg-xp-surface shadow-xl">
+      <div className="flex max-h-[80vh] w-[500px] flex-col rounded-[2px] border border-xp-border bg-xp-surface shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-xp-border p-4">
           <h2 className="text-lg font-semibold text-xp-text">
             {t('advancedSelection.dialog.titleByFileType')}
           </h2>
-          <button onClick={onClose} className="rounded p-1 hover:bg-xp-surface-light">
+          <button onClick={onClose} className="rounded-[2px] p-1 hover:bg-xp-surface-light">
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -105,7 +105,7 @@ export const SelectByExtensionDialog = ({
                   <button
                     key={type.label}
                     onClick={() => selectCategory(type.extensions)}
-                    className="hover:bg-xp-accent/20 rounded-md border border-xp-border bg-xp-bg px-3 py-1.5 text-sm transition-colors"
+                    className="rounded-[2px] border border-xp-border bg-xp-bg px-3 py-1.5 text-sm transition-colors hover:bg-xp-accent/20"
                   >
                     {type.label}
                   </button>
@@ -125,9 +125,9 @@ export const SelectByExtensionDialog = ({
               {availableExtensions.map((ext) => (
                 <label
                   key={ext}
-                  className={`flex cursor-pointer items-center gap-2 rounded p-2 transition-colors ${
+                  className={`flex cursor-pointer items-center gap-2 rounded-[2px] p-2 transition-colors ${
                     selectedExtensions.has(ext)
-                      ? 'border border-xp-accent bg-blue-500/20'
+                      ? 'border border-xp-accent bg-xp-selection-bg'
                       : 'border border-transparent bg-xp-bg hover:bg-xp-surface-light'
                   }`}
                 >
@@ -135,7 +135,7 @@ export const SelectByExtensionDialog = ({
                     type="checkbox"
                     checked={selectedExtensions.has(ext)}
                     onChange={() => toggleExtension(ext)}
-                    className="rounded border-xp-border"
+                    className="rounded-[2px] border-xp-border"
                   />
                   <span className="text-sm">.{ext}</span>
                   <span className="ml-auto text-xs text-xp-text-muted">
@@ -158,12 +158,12 @@ export const SelectByExtensionDialog = ({
                 onChange={(e) => setCustomExtension(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addCustomExtension()}
                 placeholder={t('advancedSelection.dialog.customExtPlaceholder')}
-                className="flex-1 rounded-md border border-xp-border bg-xp-bg px-3 py-2 text-sm"
+                className="flex-1 rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 text-sm"
               />
               <button
                 onClick={addCustomExtension}
                 disabled={!customExtension.trim()}
-                className="rounded-md bg-xp-accent px-4 py-2 text-sm text-white disabled:opacity-50"
+                className="rounded-[2px] bg-xp-accent px-4 py-2 text-sm text-xp-on-accent disabled:opacity-50"
               >
                 {t('advancedSelection.dialog.add')}
               </button>
@@ -188,7 +188,7 @@ export const SelectByExtensionDialog = ({
                 {Array.from(selectedExtensions).map((ext) => (
                   <span
                     key={ext}
-                    className="inline-flex items-center gap-1 rounded bg-blue-500/20 px-2 py-1 text-sm text-xp-accent"
+                    className="inline-flex items-center gap-1 rounded-[2px] bg-xp-selection-bg px-2 py-1 text-sm text-xp-accent"
                   >
                     .{ext}
                     <button onClick={() => toggleExtension(ext)} className="hover:text-xp-text">
@@ -224,7 +224,7 @@ export const SelectByExtensionDialog = ({
           <button
             onClick={handleSelect}
             disabled={selectedExtensions.size === 0}
-            className="rounded-md bg-xp-accent px-4 py-2 text-sm text-white disabled:opacity-50"
+            className="rounded-[2px] bg-xp-accent px-4 py-2 text-sm text-xp-on-accent disabled:opacity-50"
           >
             {t('advancedSelection.dialog.selectFiles')}
           </button>

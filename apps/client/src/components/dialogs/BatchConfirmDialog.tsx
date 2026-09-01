@@ -76,21 +76,21 @@ const BatchConfirmDialog = ({
       destructive: true,
       warning: t('dialogs.batchConfirm.warningDelete'),
       confirmLabel: t('dialogs.batchConfirm.confirmDelete'),
-      confirmClass: 'bg-xp-red hover:bg-xp-red/80 text-white',
+      confirmClass: 'bg-xp-red hover:bg-xp-red/80 text-xp-on-accent',
     },
     move: {
       label: t('dialogs.batchConfirm.operationMove'),
       icon: <FolderInput size={20} className="text-xp-blue" />,
       destructive: false,
       confirmLabel: t('dialogs.batchConfirm.confirmMove'),
-      confirmClass: 'bg-xp-blue hover:opacity-90 text-white',
+      confirmClass: 'bg-xp-blue hover:opacity-90 text-xp-on-accent',
     },
     rename: {
       label: t('dialogs.batchConfirm.operationRename'),
       icon: <FileEdit size={20} className="text-xp-yellow" />,
       destructive: false,
       confirmLabel: t('dialogs.batchConfirm.confirmRename'),
-      confirmClass: 'bg-xp-blue hover:opacity-90 text-white',
+      confirmClass: 'bg-xp-blue hover:opacity-90 text-xp-on-accent',
     },
     'secure-delete': {
       label: t('dialogs.batchConfirm.operationSecureDelete'),
@@ -98,7 +98,7 @@ const BatchConfirmDialog = ({
       destructive: true,
       warning: t('dialogs.batchConfirm.warningSecureDelete'),
       confirmLabel: t('dialogs.batchConfirm.confirmSecureDelete'),
-      confirmClass: 'bg-xp-red hover:bg-xp-red/80 text-white',
+      confirmClass: 'bg-xp-red hover:bg-xp-red/80 text-xp-on-accent',
     },
   };
 
@@ -107,7 +107,7 @@ const BatchConfirmDialog = ({
     icon: <AlertTriangle size={20} className="text-xp-yellow" />,
     destructive: false,
     confirmLabel: t('dialogs.batchConfirm.confirmGeneric', { operation }),
-    confirmClass: 'bg-xp-blue hover:opacity-90 text-white',
+    confirmClass: 'bg-xp-blue hover:opacity-90 text-xp-on-accent',
   };
 
   const totalSize = files.reduce((sum, f) => sum + (f.is_dir ? 0 : f.size), 0);
@@ -157,7 +157,7 @@ const BatchConfirmDialog = ({
         aria-describedby={meta.warning ? 'batch-confirm-warning' : undefined}
         aria-modal="true"
         tabIndex={-1}
-        className="flex max-h-[80vh] w-[540px] max-w-[90vw] flex-col rounded-lg border border-xp-border bg-xp-surface shadow-2xl outline-none"
+        className="flex max-h-[80vh] w-[540px] max-w-[90vw] flex-col rounded-[2px] border border-xp-border bg-xp-surface shadow-2xl outline-none"
         onKeyDown={handleKeyDown}
       >
         {/* Header */}
@@ -170,7 +170,7 @@ const BatchConfirmDialog = ({
           </div>
           <button
             onClick={onCancel}
-            className="rounded-md p-2 transition-colors hover:bg-xp-surface-light"
+            className="rounded-[2px] p-2 transition-colors hover:bg-xp-surface-light"
             aria-label={t('common.close')}
           >
             <X size={16} className="text-xp-text-muted" aria-hidden="true" />
@@ -179,7 +179,7 @@ const BatchConfirmDialog = ({
 
         {/* Warning Banner (destructive ops only) */}
         {meta.destructive && meta.warning && (
-          <div className="mx-5 mt-4 flex shrink-0 items-start gap-3 rounded-lg border border-xp-red/30 bg-xp-red/10 p-3">
+          <div className="mx-5 mt-4 flex shrink-0 items-start gap-3 rounded-[2px] border border-xp-red/30 bg-xp-red/10 p-3">
             <AlertTriangle size={18} className="mt-0.5 shrink-0 text-xp-red" />
             <p id="batch-confirm-warning" className="text-sm text-xp-red">
               {meta.warning}
@@ -189,7 +189,7 @@ const BatchConfirmDialog = ({
 
         {/* Destination (move operations) */}
         {operation === 'move' && destination && (
-          <div className="mx-5 mt-4 flex shrink-0 items-center gap-2 rounded-lg border border-xp-border bg-xp-surface-light p-3">
+          <div className="mx-5 mt-4 flex shrink-0 items-center gap-2 rounded-[2px] border border-xp-border bg-xp-surface-light p-3">
             <ArrowRight size={16} className="shrink-0 text-xp-blue" />
             <div className="min-w-0">
               <div className="text-xs text-xp-text-muted">
@@ -207,7 +207,7 @@ const BatchConfirmDialog = ({
           <div className="mb-2 text-xs font-medium uppercase tracking-wide text-xp-text-muted">
             {t('dialogs.batchConfirm.affectedItems')}
           </div>
-          <div className="max-h-[280px] overflow-y-auto rounded-lg border border-xp-border bg-xp-bg">
+          <div className="max-h-[280px] overflow-y-auto rounded-[2px] border border-xp-border bg-xp-bg">
             {files.map((file, index) => (
               <div
                 key={file.path}
@@ -257,14 +257,14 @@ const BatchConfirmDialog = ({
           <button
             ref={cancelButtonRef}
             onClick={onCancel}
-            className="rounded-md border border-xp-border px-4 py-2 text-sm text-xp-text transition-colors hover:bg-xp-surface-light"
+            className="rounded-[2px] border border-xp-border px-4 py-2 text-sm text-xp-text transition-colors hover:bg-xp-surface-light"
             aria-label={t('common.cancel')}
           >
             {t('common.cancel')}
           </button>
           <button
             onClick={onConfirm}
-            className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm transition-colors ${meta.confirmClass}`}
+            className={`flex items-center gap-2 rounded-[2px] px-4 py-2 text-sm transition-colors ${meta.confirmClass}`}
             aria-label={meta.confirmLabel}
           >
             {meta.icon}

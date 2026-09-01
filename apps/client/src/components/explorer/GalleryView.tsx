@@ -61,7 +61,7 @@ const GalleryStripThumb = React.memo(
         aria-selected={isSelected}
         aria-label={`${file.name}${file.is_dir ? ', folder' : ', file'}`}
         data-gallery-path={file.path}
-        className={`h-16 w-16 flex-shrink-0 cursor-pointer overflow-hidden rounded-md border-2 transition-all ${(() => {
+        className={`h-16 w-16 flex-shrink-0 cursor-pointer overflow-hidden rounded-[2px] border-2 transition-all ${(() => {
           if (isFocused) return 'scale-105 border-xp-blue ring-1 ring-xp-blue';
           if (isSelected) return 'border-xp-blue';
           return 'border-transparent hover:border-xp-text-muted';
@@ -361,22 +361,22 @@ const GalleryView = ({
         {/* File info overlay */}
         {displayFile && (
           <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-4 py-2">
-            <div className="truncate text-sm font-medium text-white">{displayFile.name}</div>
-            <div className="text-xs text-white/70">
+            <div className="truncate text-sm font-medium text-xp-on-accent">{displayFile.name}</div>
+            <div className="text-xp-on-accent/70 text-xs">
               {displayFile.is_dir ? 'Folder' : formatFileSize(displayFile.size)}
               {displayFile.modified > 0 && <> &middot; {formatDate(displayFile.modified)}</>}
             </div>
             {(() => {
               if (aiDescription) {
                 return (
-                  <div className="mt-1 line-clamp-2 text-xs italic text-white/60">
+                  <div className="text-xp-on-accent/60 mt-1 line-clamp-2 text-xs italic">
                     {aiDescription}
                   </div>
                 );
               }
               if (indexingStatus === 'indexing' && isDisplayImage) {
                 return (
-                  <div className="mt-1 flex items-center gap-1.5 text-xs italic text-white/50">
+                  <div className="text-xp-on-accent/50 mt-1 flex items-center gap-1.5 text-xs italic">
                     <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white/70" />
                     Generating description...
                   </div>

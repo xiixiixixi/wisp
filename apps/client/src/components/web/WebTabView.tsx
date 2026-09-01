@@ -58,7 +58,7 @@ const WebTabView = ({ tabId, url }: { tabId: string; url: string }) => {
     <div className="flex h-full flex-col overflow-hidden bg-xp-bg">
       <div className="border-xp-border/40 flex h-9 shrink-0 items-center gap-2 border-b bg-xp-surface/60 px-3">
         <Globe size={13} className="text-xp-text-muted" aria-hidden="true" />
-        <span className="bg-xp-bg/60 truncate rounded px-2.5 py-0.5 text-[11px] text-xp-text-secondary">
+        <span className="bg-xp-bg/60 truncate rounded-[2px] px-2.5 py-0.5 text-[11px] text-xp-text-secondary">
           {hostname}
         </span>
       </div>

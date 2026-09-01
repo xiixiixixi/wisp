@@ -216,7 +216,7 @@ const GoogleDriveAccountsPage = (props: GoogleDriveAccountsPageProps) => {
     accountsSection = (
       <div className="flex min-h-[300px] flex-1 items-center justify-center">
         <div className="max-w-md py-8 text-center text-xp-text-muted">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-lg bg-xp-surface-light">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[2px] bg-xp-surface-light">
             <Cloud className="h-8 w-8" />
           </div>
           <h3 className="mb-2 text-lg font-medium text-xp-text">
@@ -230,7 +230,7 @@ const GoogleDriveAccountsPage = (props: GoogleDriveAccountsPageProps) => {
     accountsSection = (
       <div className="flex min-h-[300px] flex-1 items-center justify-center">
         <div className="max-w-md py-8 text-center text-xp-text-muted">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-lg bg-xp-surface-light">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[2px] bg-xp-surface-light">
             <Cloud className="h-8 w-8" />
           </div>
           <h3 className="mb-2 text-lg font-medium text-xp-text">
@@ -241,7 +241,7 @@ const GoogleDriveAccountsPage = (props: GoogleDriveAccountsPageProps) => {
           <button
             onClick={handleAddAccount}
             disabled={isAuthenticating}
-            className="rounded-md bg-xp-blue px-6 py-2 text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark focus:outline-none focus:ring-1 focus:ring-xp-blue disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-[2px] bg-xp-blue px-6 py-2 text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={t('pages.gdrive.ariaSignIn')}
           >
             {isAuthenticating ? (
@@ -263,7 +263,7 @@ const GoogleDriveAccountsPage = (props: GoogleDriveAccountsPageProps) => {
           {accounts.map((account) => (
             <div
               key={account.id}
-              className="rounded-lg border border-xp-border bg-xp-surface p-4 transition-all hover:shadow-md"
+              className="rounded-[2px] border border-xp-border bg-xp-surface p-4 transition-all hover:shadow-md"
             >
               {/* Account Header */}
               <div className="mb-3 flex items-center justify-between">
@@ -275,7 +275,7 @@ const GoogleDriveAccountsPage = (props: GoogleDriveAccountsPageProps) => {
                 <div className="flex flex-shrink-0 items-center space-x-1">
                   <button
                     onClick={() => handleRemoveAccount(account)}
-                    className="p-1 text-xp-text-muted transition-colors hover:text-xp-red focus:outline-none focus:ring-1 focus:ring-xp-blue"
+                    className="p-1 text-xp-text-muted transition-colors hover:text-xp-red focus:outline-none"
                     title={t('pages.gdrive.ariaRemoveAccount', { email: account.email })}
                     aria-label={t('pages.gdrive.ariaRemoveAccount', { email: account.email })}
                   >
@@ -329,7 +329,7 @@ const GoogleDriveAccountsPage = (props: GoogleDriveAccountsPageProps) => {
               <div className="flex space-x-2">
                 <button
                   onClick={() => openAccountInExplorer(account)}
-                  className="flex flex-1 items-center justify-center space-x-2 rounded bg-xp-blue px-3 py-2 text-sm font-medium text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark focus:outline-none focus:ring-1 focus:ring-xp-blue"
+                  className="flex flex-1 items-center justify-center space-x-2 rounded-[2px] bg-xp-blue px-3 py-2 text-sm font-medium text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark focus:outline-none"
                   aria-label={t('pages.gdrive.ariaOpenAccount', { email: account.email })}
                 >
                   <ExternalLink className="h-4 w-4" />
@@ -338,7 +338,7 @@ const GoogleDriveAccountsPage = (props: GoogleDriveAccountsPageProps) => {
 
                 <button
                   onClick={() => handleDisconnect(account)}
-                  className="rounded bg-xp-red px-3 py-2 text-sm font-medium text-[var(--xp-bg)] transition-colors hover:bg-xp-red/80 focus:outline-none focus:ring-1 focus:ring-xp-blue"
+                  className="rounded-[2px] bg-xp-red px-3 py-2 text-sm font-medium text-[var(--xp-bg)] transition-colors hover:bg-xp-red/80 focus:outline-none"
                   aria-label={t('pages.gdrive.ariaDisconnect', { email: account.email })}
                 >
                   {t('pages.gdrive.disconnect')}
@@ -359,7 +359,7 @@ const GoogleDriveAccountsPage = (props: GoogleDriveAccountsPageProps) => {
           {!isEmbed && (
             <button
               onClick={() => setLocation('/explorer')}
-              className="rounded-md p-2 transition-colors hover:bg-xp-surface-light focus:outline-none focus:ring-1 focus:ring-xp-blue"
+              className="rounded-[2px] p-2 transition-colors hover:bg-xp-surface-light focus:outline-none"
               title={t('pages.gdrive.backToExplorer')}
               aria-label={t('pages.gdrive.ariaBackToExplorer')}
             >
@@ -382,7 +382,7 @@ const GoogleDriveAccountsPage = (props: GoogleDriveAccountsPageProps) => {
           <button
             onClick={handleAddAccount}
             disabled={isAuthenticating || !credentialsConfigured}
-            className="flex items-center space-x-2 rounded-md bg-xp-blue px-4 py-2 text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark focus:outline-none focus:ring-1 focus:ring-xp-blue disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center space-x-2 rounded-[2px] bg-xp-blue px-4 py-2 text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={t('pages.gdrive.ariaAddAccount')}
           >
             {isAuthenticating ? (
@@ -406,7 +406,7 @@ const GoogleDriveAccountsPage = (props: GoogleDriveAccountsPageProps) => {
         <div className="border-b border-xp-border p-6">
           <button
             onClick={() => setShowSetup(!showSetup)}
-            className="mb-2 flex w-full items-center space-x-2 text-left focus:outline-none focus:ring-1 focus:ring-xp-blue"
+            className="mb-2 flex w-full items-center space-x-2 text-left focus:outline-none"
             aria-label={t('pages.gdrive.ariaToggleCredentials')}
           >
             {showSetup ? (
@@ -433,7 +433,7 @@ const GoogleDriveAccountsPage = (props: GoogleDriveAccountsPageProps) => {
           {showSetup && (
             <div className="mt-4 space-y-4">
               {/* Setup Guide */}
-              <div className="rounded-lg border border-xp-border bg-xp-surface p-4">
+              <div className="rounded-[2px] border border-xp-border bg-xp-surface p-4">
                 <h3 className="mb-3 text-sm font-medium text-xp-text">
                   {t('pages.gdrive.setupGuide')}
                 </h3>
@@ -484,7 +484,7 @@ const GoogleDriveAccountsPage = (props: GoogleDriveAccountsPageProps) => {
                     value={clientId}
                     onChange={(e) => setClientId(e.target.value)}
                     placeholder="xxxxxxxxxxxx.apps.googleusercontent.com"
-                    className="w-full rounded-md border border-xp-border bg-xp-bg px-3 py-2 text-sm text-xp-text placeholder-xp-text-muted focus:border-xp-blue focus:outline-none focus:ring-1 focus:ring-xp-blue"
+                    className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 text-sm text-xp-text placeholder-xp-text-muted focus:border-xp-blue focus:outline-none"
                   />
                 </div>
 
@@ -502,12 +502,12 @@ const GoogleDriveAccountsPage = (props: GoogleDriveAccountsPageProps) => {
                       value={clientSecret}
                       onChange={(e) => setClientSecret(e.target.value)}
                       placeholder="GOCSPX-..."
-                      className="w-full rounded-md border border-xp-border bg-xp-bg px-3 py-2 pr-20 text-sm text-xp-text placeholder-xp-text-muted focus:border-xp-blue focus:outline-none focus:ring-1 focus:ring-xp-blue"
+                      className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 pr-20 text-sm text-xp-text placeholder-xp-text-muted focus:border-xp-blue focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => setShowSecret(!showSecret)}
-                      className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text focus:outline-none focus:ring-1 focus:ring-xp-blue"
+                      className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-[2px] px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text focus:outline-none"
                       aria-label={
                         showSecret
                           ? t('pages.gdrive.ariaHideSecret')
@@ -523,7 +523,7 @@ const GoogleDriveAccountsPage = (props: GoogleDriveAccountsPageProps) => {
                 <button
                   onClick={handleSaveCredentials}
                   disabled={credentialsSaving || !clientId.trim() || !clientSecret.trim()}
-                  className="rounded-md bg-xp-blue px-4 py-2 text-sm text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark focus:outline-none focus:ring-1 focus:ring-xp-blue disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-[2px] bg-xp-blue px-4 py-2 text-sm text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label={t('pages.gdrive.saveCredentials')}
                 >
                   {credentialsSaving ? t('pages.gdrive.saving') : t('pages.gdrive.saveCredentials')}

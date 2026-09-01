@@ -137,7 +137,7 @@ const NotificationCenter = () => {
           gap: 4,
           padding: '4px 12px',
           borderBottom: '1px solid var(--xp-border)',
-          background: 'var(--xp-surface-light, rgba(255,255,255,0.03))',
+          background: 'var(--xp-surface-light, var(--glass-well))',
         }}
       >
         {filterTabs.map((tab) => {
@@ -212,12 +212,12 @@ const NotificationCenter = () => {
                 alignItems: 'flex-start',
                 gap: 8,
                 padding: '6px 12px',
-                borderBottom: '1px solid var(--xp-border-alpha, rgba(255,255,255,0.06))',
+                borderBottom: '1px solid var(--xp-border-alpha, var(--glass-well))',
                 cursor: 'default',
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLDivElement).style.background =
-                  'var(--xp-surface-light, rgba(255,255,255,0.04))';
+                  'var(--xp-surface-light, var(--glass-well))';
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLDivElement).style.background = 'transparent';

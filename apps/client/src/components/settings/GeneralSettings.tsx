@@ -149,7 +149,7 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
               onKeyDown={(e) => {
                 if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
               }}
-              className="h-8 w-44 rounded-lg border border-xp-border bg-xp-popover px-2.5 text-sm text-xp-text outline-none transition-colors focus:border-primary"
+              className="h-8 w-44 rounded-[2px] border border-xp-border bg-xp-popover px-2.5 text-sm text-xp-text outline-none transition-colors focus:border-primary"
               aria-label={t('settings.general.weatherCity')}
             />
             {weatherStatus === 'saving' && (
@@ -228,7 +228,7 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
               setLocation('/');
               setTimeout(() => startTour(), 300);
             }}
-            className="flex items-center gap-2 rounded-md bg-xp-blue px-3 py-2 text-sm font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
+            className="flex items-center gap-2 rounded-[2px] bg-xp-blue px-3 py-2 text-sm font-medium text-[var(--xp-bg)] transition-opacity hover:opacity-90"
           >
             {t('settings.general.replayTour')}
           </button>
@@ -237,7 +237,7 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
       <div className="px-4 pt-4">
         <button
           onClick={() => setSettings(DEFAULT_SETTINGS)}
-          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-xp-red transition-colors hover:bg-xp-red/10"
+          className="flex items-center gap-2 rounded-[2px] px-3 py-2 text-sm text-xp-red transition-colors hover:bg-xp-red/10"
         >
           <RotateCcw size={14} />
           {t('settings.resetAll')}

@@ -75,13 +75,13 @@ const isTextFile = (file: FileEntry): boolean => {
 const badgeStyle: React.CSSProperties = {
   padding: '1px 6px',
   borderRadius: '3px',
-  background: 'var(--xp-surface-light, rgba(255,255,255,0.06))',
+  background: 'var(--xp-surface-light, var(--glass-well))',
   color: 'var(--xp-text-muted, #888)',
   fontSize: '11px',
   lineHeight: '16px',
   cursor: 'default',
   whiteSpace: 'nowrap',
-  border: '1px solid var(--xp-border, rgba(255,255,255,0.08))',
+  border: '1px solid var(--xp-border, var(--glass-well))',
 };
 
 const Badge = ({
@@ -105,7 +105,7 @@ const Badge = ({
 const separatorStyle: React.CSSProperties = {
   width: '1px',
   height: '12px',
-  background: 'var(--xp-border, rgba(255,255,255,0.1))',
+  background: 'var(--xp-border, var(--xp-border))',
   flexShrink: 0,
 };
 
@@ -478,7 +478,7 @@ const StatusBar = ({
         {(undoRedoStatus.canUndo || undoRedoStatus.canRedo) && (
           <>
             <div
-              className="flex items-center rounded-md border border-xp-border bg-muted p-0.5"
+              className="flex items-center rounded-[2px] border border-xp-border bg-muted p-0.5"
               role="group"
               aria-label={t('statusBar.historyActions')}
             >
@@ -486,7 +486,7 @@ const StatusBar = ({
                 type="button"
                 onClick={() => handleHistoryAction('undo')}
                 disabled={!undoRedoStatus.canUndo || historyAction !== null}
-                className="flex h-5 w-6 items-center justify-center rounded text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:pointer-events-none disabled:opacity-30"
+                className="flex h-5 w-6 items-center justify-center rounded-[2px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:pointer-events-none disabled:opacity-30"
                 title={
                   undoRedoStatus.undoDescription
                     ? t('statusBar.undoDescription', {
@@ -502,7 +502,7 @@ const StatusBar = ({
                 type="button"
                 onClick={() => handleHistoryAction('redo')}
                 disabled={!undoRedoStatus.canRedo || historyAction !== null}
-                className="flex h-5 w-6 items-center justify-center rounded text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:pointer-events-none disabled:opacity-30"
+                className="flex h-5 w-6 items-center justify-center rounded-[2px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:pointer-events-none disabled:opacity-30"
                 title={
                   undoRedoStatus.redoDescription
                     ? t('statusBar.redoDescription', {
@@ -563,7 +563,7 @@ const StatusBar = ({
           <>
             <button
               type="button"
-              className="flex items-center gap-1 rounded px-1.5 py-0.5 transition-colors hover:bg-xp-surface-light active:bg-xp-border"
+              className="flex items-center gap-1 rounded-[2px] px-1.5 py-0.5 transition-colors hover:bg-xp-surface-light active:bg-xp-border"
               style={{
                 cursor: 'pointer',
                 border: 'none',
@@ -615,7 +615,7 @@ const StatusBar = ({
         {onRestoreRightSidebar && rightSidebarCollapsed && (
           <button
             type="button"
-            className="rounded p-0.5 transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-[2px] p-0.5 transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             style={{
               border: 'none',
               background: 'transparent',
@@ -639,7 +639,7 @@ const StatusBar = ({
           <button
             type="button"
             data-tour="bottom-panel-toggle"
-            className="rounded p-0.5 transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-[2px] p-0.5 transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             style={{
               border: 'none',
               background: 'transparent',

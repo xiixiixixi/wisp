@@ -229,7 +229,7 @@ const CompareFilesDialog = ({
           </div>
 
           {file1Path && file2Path && file1Path === file2Path && (
-            <div className="rounded-lg border border-xp-yellow/30 bg-xp-yellow/10 p-3">
+            <div className="rounded-[2px] border border-xp-yellow/30 bg-xp-yellow/10 p-3">
               <div className="text-sm text-xp-yellow">
                 <AlertTriangle size={14} className="mr-1 inline-block" />{' '}
                 {t('dialogs.compareFiles.sameFileWarning')}

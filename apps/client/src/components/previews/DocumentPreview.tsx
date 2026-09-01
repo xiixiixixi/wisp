@@ -59,19 +59,19 @@ const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
 
   return (
     <div className="mt-4">
-      <h4 className="text-xp-text-muted mb-2 text-xs font-medium">Document Preview</h4>
+      <h4 className="mb-2 text-xs font-medium text-xp-text-muted">Document Preview</h4>
 
       {loading && (
-        <div className="bg-xp-surface border-xp-border text-xp-text-muted rounded border p-4 text-center">
+        <div className="rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
           <div className="animate-pulse">
-            <div className="bg-xp-bg mb-2 h-48 w-full rounded" />
+            <div className="mb-2 h-48 w-full rounded-[2px] bg-xp-bg" />
             <p className="text-xs">Loading document...</p>
           </div>
         </div>
       )}
 
       {error ? (
-        <div className="bg-xp-surface border-xp-border text-xp-text-muted rounded border p-4 text-center">
+        <div className="rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
           <svg className="mx-auto mb-2 h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
@@ -84,9 +84,9 @@ const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
         </div>
       ) : null}
       {!error && htmlContent && (
-        <div className="bg-xp-surface border-xp-border max-h-64 overflow-y-auto rounded border p-4">
+        <div className="max-h-64 overflow-y-auto rounded-[2px] border border-xp-border bg-xp-surface p-4">
           <div
-            className="text-xp-text prose prose-sm max-w-none text-xs"
+            className="prose prose-sm max-w-none text-xs text-xp-text"
             dangerouslySetInnerHTML={{ __html: htmlContent }}
             style={{
               fontFamily: 'inherit',

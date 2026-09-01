@@ -258,14 +258,14 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="max-h-[90vh] w-[600px] max-w-[90vw] overflow-hidden rounded-lg bg-xp-surface shadow-2xl">
+      <div className="max-h-[90vh] w-[600px] max-w-[90vw] overflow-hidden rounded-[2px] bg-xp-surface shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-xp-border p-6">
           <h2 className="text-xl font-semibold text-xp-text">{t('dialogs.extract.title')}</h2>
           <button
             onClick={handleClose}
             disabled={extracting}
-            className="rounded-md p-2 transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+            className="rounded-[2px] p-2 transition-colors hover:bg-xp-surface-light disabled:opacity-50"
           >
             <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -296,7 +296,7 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
               <p className="mb-4 text-xp-text-muted">{error}</p>
               <button
                 onClick={loadArchiveInfo}
-                className="rounded bg-xp-blue px-4 py-2 text-white transition-colors hover:bg-xp-blue-dark"
+                className="rounded-[2px] bg-xp-blue px-4 py-2 text-xp-on-accent transition-colors hover:bg-xp-blue-dark"
               >
                 {t('dialogs.extract.tryAgain')}
               </button>
@@ -305,7 +305,7 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
             <div className="space-y-6">
               {/* Archive Summary */}
               {archiveInfo && (
-                <div className="rounded-lg bg-xp-bg p-4">
+                <div className="rounded-[2px] bg-xp-bg p-4">
                   <div className="mb-3 flex items-center">
                     <span className="mr-3 text-2xl">{getArchiveIcon()}</span>
                     <div>
@@ -369,12 +369,12 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
                     type="text"
                     value={outputDirectory}
                     onChange={(e) => setOutputDirectory(e.target.value)}
-                    className="flex-1 rounded-md border border-xp-border bg-xp-bg px-3 py-2 text-xp-text focus:border-xp-blue focus:ring-xp-blue"
+                    className="flex-1 rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 text-xp-text focus:border-xp-blue"
                     placeholder={t('dialogs.extract.outputDirPlaceholder')}
                   />
                   <button
                     onClick={handleBrowseOutputDirectory}
-                    className="rounded-md border border-xp-border px-3 py-2 transition-colors hover:bg-xp-surface-light"
+                    className="rounded-[2px] border border-xp-border px-3 py-2 transition-colors hover:bg-xp-surface-light"
                   >
                     <FolderOpen size={16} />
                   </button>
@@ -391,7 +391,7 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-md border border-xp-border bg-xp-bg px-3 py-2 text-xp-text focus:border-xp-blue focus:ring-xp-blue"
+                    className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 text-xp-text focus:border-xp-blue"
                     placeholder={t('dialogs.extract.passwordPlaceholder')}
                   />
                   <p className="mt-1 text-xs text-xp-yellow">
@@ -410,7 +410,7 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
                       type="checkbox"
                       checked={overwriteExisting}
                       onChange={(e) => setOverwriteExisting(e.target.checked)}
-                      className="h-4 w-4 rounded border-xp-border bg-xp-bg text-xp-blue focus:ring-xp-blue"
+                      className="h-4 w-4 rounded-[2px] border-xp-border bg-xp-bg text-xp-blue"
                     />
                     <span className="text-sm text-xp-text">
                       {t('dialogs.extract.overwriteExisting')}
@@ -421,7 +421,7 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
                       type="checkbox"
                       checked={preservePermissions}
                       onChange={(e) => setPreservePermissions(e.target.checked)}
-                      className="h-4 w-4 rounded border-xp-border bg-xp-bg text-xp-blue focus:ring-xp-blue"
+                      className="h-4 w-4 rounded-[2px] border-xp-border bg-xp-bg text-xp-blue"
                     />
                     <span className="text-sm text-xp-text">
                       {t('dialogs.extract.preservePermissions')}
@@ -432,7 +432,7 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
                       type="checkbox"
                       checked={includeHidden}
                       onChange={(e) => setIncludeHidden(e.target.checked)}
-                      className="h-4 w-4 rounded border-xp-border bg-xp-bg text-xp-blue focus:ring-xp-blue"
+                      className="h-4 w-4 rounded-[2px] border-xp-border bg-xp-bg text-xp-blue"
                     />
                     <span className="text-sm text-xp-text">
                       {t('dialogs.extract.includeHidden')}
@@ -450,7 +450,7 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
                         count: archiveInfo.files.length,
                       })}
                       {selectionCount > 0 && (
-                        <span className="ml-2 rounded bg-xp-blue px-2 py-0.5 text-xs text-white">
+                        <span className="ml-2 rounded-[2px] bg-xp-blue px-2 py-0.5 text-xs text-xp-on-accent">
                           {t('dialogs.extract.selectionCount', { count: selectionCount })}
                         </span>
                       )}
@@ -463,7 +463,7 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
                       {allSelected ? t('dialogs.extract.deselectAll') : t('common.selectAll')}
                     </button>
                   </div>
-                  <div className="max-h-48 overflow-y-auto rounded border border-xp-border bg-xp-bg">
+                  <div className="max-h-48 overflow-y-auto rounded-[2px] border border-xp-border bg-xp-bg">
                     {archiveInfo.files.map((file, _index) => (
                       <div
                         key={file.path}
@@ -475,7 +475,7 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
                           checked={selectedEntries.has(file.path)}
                           onChange={() => toggleEntry(file.path)}
                           onClick={(e) => e.stopPropagation()}
-                          className="h-3.5 w-3.5 flex-shrink-0 rounded border-xp-border bg-xp-bg text-xp-blue focus:ring-xp-blue"
+                          className="h-3.5 w-3.5 flex-shrink-0 rounded-[2px] border-xp-border bg-xp-bg text-xp-blue"
                         />
                         <span className="flex-shrink-0 text-xp-text-muted">
                           {file.is_directory ? (
@@ -502,7 +502,7 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
           <button
             onClick={handleClose}
             disabled={extracting}
-            className="rounded px-4 py-2 text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+            className="rounded-[2px] px-4 py-2 text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
           >
             {t('common.cancel')}
           </button>
@@ -515,7 +515,7 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
                 !outputDirectory.trim() ||
                 (archiveInfo?.is_encrypted && !password.trim())
               }
-              className="flex items-center space-x-2 rounded bg-xp-green px-4 py-2 text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center space-x-2 rounded-[2px] bg-xp-green px-4 py-2 text-xp-on-accent transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {extracting && (
                 <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
@@ -535,7 +535,7 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
               !outputDirectory.trim() ||
               (archiveInfo?.is_encrypted && !password.trim())
             }
-            className="flex items-center space-x-2 rounded bg-xp-blue px-4 py-2 text-white transition-colors hover:bg-xp-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center space-x-2 rounded-[2px] bg-xp-blue px-4 py-2 text-xp-on-accent transition-colors hover:bg-xp-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
           >
             {extracting && (
               <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white" />

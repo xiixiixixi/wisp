@@ -231,7 +231,7 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
         <div className="flex items-center space-x-2">
           <button
             onClick={handleSelectAll}
-            className="rounded border border-xp-border bg-xp-surface px-3 py-1 text-sm hover:bg-xp-surface-light"
+            className="rounded-[2px] border border-xp-border bg-xp-surface px-3 py-1 text-sm hover:bg-xp-surface-light"
             aria-label={
               isAllSelected ? t('pages.trash.ariaDeselectAll') : t('pages.trash.ariaSelectAll')
             }
@@ -241,7 +241,7 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
           <button
             onClick={() => handleRestore()}
             disabled={selectedItems.size === 0}
-            className="rounded bg-xp-blue px-3 py-1 text-sm text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-[2px] bg-xp-blue px-3 py-1 text-sm text-xp-on-accent hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={t('pages.trash.ariaRestoreCount', { count: selectedItems.size })}
           >
             {t('pages.trash.restoreCount', { count: selectedItems.size })}
@@ -249,7 +249,7 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
           <button
             onClick={() => handlePermanentDelete()}
             disabled={selectedItems.size === 0}
-            className="rounded bg-xp-red px-3 py-1 text-sm text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-[2px] bg-xp-red px-3 py-1 text-sm text-xp-on-accent hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={t('pages.trash.ariaDeleteCount', { count: selectedItems.size })}
           >
             {t('pages.trash.deletePermanentlyCount', { count: selectedItems.size })}
@@ -257,7 +257,7 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
           <button
             onClick={handleEmptyTrash}
             disabled={trashItems.length === 0}
-            className="rounded bg-xp-red px-3 py-1 text-sm text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-[2px] bg-xp-red px-3 py-1 text-sm text-xp-on-accent hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={t('pages.trash.ariaEmptyBin')}
           >
             {t('pages.trash.emptyRecycleBin')}
@@ -265,7 +265,7 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
           {onClose && (
             <button
               onClick={onClose}
-              className="rounded border border-xp-border bg-xp-surface px-3 py-1 text-sm hover:bg-xp-surface-light"
+              className="rounded-[2px] border border-xp-border bg-xp-surface px-3 py-1 text-sm hover:bg-xp-surface-light"
               aria-label={t('pages.trash.ariaBackToHome')}
             >
               {t('pages.trash.backToHome')}
@@ -303,7 +303,7 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
                 <div
                   key={item.original_path}
                   onClick={(e) => handleSelectItem(item.original_path, e)}
-                  className={`flex cursor-pointer items-center rounded p-3 hover:bg-xp-surface ${
+                  className={`flex cursor-pointer items-center rounded-[2px] p-3 hover:bg-xp-surface ${
                     selectedItems.has(item.original_path) ? 'bg-xp-accent bg-opacity-20' : ''
                   }`}
                 >
@@ -337,7 +337,7 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
                           e.stopPropagation();
                           handleRestore(item.original_path);
                         }}
-                        className="rounded bg-xp-blue px-2 py-1 text-xs text-white hover:opacity-80"
+                        className="rounded-[2px] bg-xp-blue px-2 py-1 text-xs text-xp-on-accent hover:opacity-80"
                         aria-label={t('pages.trash.ariaRestoreItem', { name: item.name })}
                       >
                         {t('pages.trash.restore')}
@@ -347,7 +347,7 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
                           e.stopPropagation();
                           handlePermanentDelete(item.original_path);
                         }}
-                        className="rounded bg-xp-red px-2 py-1 text-xs text-white hover:opacity-80"
+                        className="rounded-[2px] bg-xp-red px-2 py-1 text-xs text-xp-on-accent hover:opacity-80"
                         aria-label={t('pages.trash.ariaDeleteItem', { name: item.name })}
                       >
                         {t('common.delete')}

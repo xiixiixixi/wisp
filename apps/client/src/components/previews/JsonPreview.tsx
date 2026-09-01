@@ -115,24 +115,24 @@ const JsonPreview = ({ file, onError, onLoad }: PreviewProps) => {
   return (
     <div className="mt-4">
       <div className="mb-2 flex items-center justify-between">
-        <h4 className="text-xp-text-muted text-xs font-medium">JSON Preview</h4>
+        <h4 className="text-xs font-medium text-xp-text-muted">JSON Preview</h4>
         <div className="flex space-x-1">
           <button
             onClick={() => setViewMode('formatted')}
-            className={`rounded px-2 py-1 text-xs ${
+            className={`rounded-[2px] px-2 py-1 text-xs ${
               viewMode === 'formatted'
-                ? 'bg-xp-blue text-white'
-                : 'bg-xp-bg border-xp-border hover:bg-xp-surface-light border'
+                ? 'bg-xp-blue text-xp-on-accent'
+                : 'border border-xp-border bg-xp-bg hover:bg-xp-surface-light'
             }`}
           >
             Formatted
           </button>
           <button
             onClick={() => setViewMode('raw')}
-            className={`rounded px-2 py-1 text-xs ${
+            className={`rounded-[2px] px-2 py-1 text-xs ${
               viewMode === 'raw'
-                ? 'bg-xp-blue text-white'
-                : 'bg-xp-bg border-xp-border hover:bg-xp-surface-light border'
+                ? 'bg-xp-blue text-xp-on-accent'
+                : 'border border-xp-border bg-xp-bg hover:bg-xp-surface-light'
             }`}
           >
             Raw
@@ -141,16 +141,16 @@ const JsonPreview = ({ file, onError, onLoad }: PreviewProps) => {
       </div>
 
       {loading && (
-        <div className="bg-xp-surface border-xp-border text-xp-text-muted rounded border p-4 text-center">
+        <div className="rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
           <div className="animate-pulse">
-            <div className="bg-xp-bg mb-2 h-48 w-full rounded" />
+            <div className="mb-2 h-48 w-full rounded-[2px] bg-xp-bg" />
             <p className="text-xs">Loading JSON...</p>
           </div>
         </div>
       )}
 
       {error ? (
-        <div className="bg-xp-surface border-xp-border text-xp-text-muted rounded border p-4 text-center">
+        <div className="rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
           <svg className="mx-auto mb-2 h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
@@ -163,11 +163,11 @@ const JsonPreview = ({ file, onError, onLoad }: PreviewProps) => {
         </div>
       ) : null}
       {!error && jsonData !== null && (
-        <div className="bg-xp-surface border-xp-border max-h-64 overflow-y-auto rounded border p-3">
+        <div className="max-h-64 overflow-y-auto rounded-[2px] border border-xp-border bg-xp-surface p-3">
           {viewMode === 'formatted' ? (
-            <div className="text-xp-text font-mono text-xs">{renderJsonValue(jsonData)}</div>
+            <div className="font-mono text-xs text-xp-text">{renderJsonValue(jsonData)}</div>
           ) : (
-            <pre className="text-xp-text whitespace-pre-wrap break-words font-mono text-xs">
+            <pre className="whitespace-pre-wrap break-words font-mono text-xs text-xp-text">
               {rawContent}
             </pre>
           )}

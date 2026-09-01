@@ -39,7 +39,7 @@ const NotesSearchResults = ({
       {searchResults.map((result) => (
         <li
           key={`${result.path}:${result.note.id}`}
-          className="cursor-pointer rounded px-2 py-2 transition-colors hover:bg-xp-surface-light"
+          className="cursor-pointer rounded-[2px] px-2 py-2 transition-colors hover:bg-xp-surface-light"
           onClick={() => handleNavigate(result.path)}
         >
           <div className="mb-1 flex items-center space-x-2">
@@ -138,7 +138,7 @@ const NotesPanel = ({ onClose, navigateToPath }: NotesPanelProps) => {
           <button
             onClick={loadAllNotes}
             disabled={loading}
-            className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             title={t('panels.notes.refreshTitle')}
             aria-label={t('panels.notes.refreshAria')}
           >
@@ -147,7 +147,7 @@ const NotesPanel = ({ onClose, navigateToPath }: NotesPanelProps) => {
           {onClose && (
             <button
               onClick={onClose}
-              className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+              className="rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               title={t('panels.notes.closePanelTitle')}
               aria-label={t('panels.notes.closePanelAria')}
             >
@@ -167,7 +167,7 @@ const NotesPanel = ({ onClose, navigateToPath }: NotesPanelProps) => {
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('panels.notes.searchPlaceholder')}
             aria-label={t('panels.notes.searchAria')}
-            className="w-full rounded border border-xp-border bg-xp-bg py-1.5 pl-7 pr-3 text-sm text-xp-text transition-colors placeholder:text-xp-text-muted focus:border-xp-blue focus:outline-none"
+            className="w-full rounded-[2px] border border-xp-border bg-xp-bg py-1.5 pl-7 pr-3 text-sm text-xp-text transition-colors placeholder:text-xp-text-muted focus:border-xp-blue focus:outline-none"
           />
         </div>
       </div>
@@ -198,7 +198,7 @@ const NotesPanel = ({ onClose, navigateToPath }: NotesPanelProps) => {
             {grouped.map((group) => (
               <li
                 key={group.path}
-                className="cursor-pointer rounded px-2 py-2 transition-colors hover:bg-xp-surface-light"
+                className="cursor-pointer rounded-[2px] px-2 py-2 transition-colors hover:bg-xp-surface-light"
                 onClick={() => handleNavigate(group.path)}
               >
                 <div className="flex items-center justify-between">

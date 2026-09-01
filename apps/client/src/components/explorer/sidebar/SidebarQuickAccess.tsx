@@ -121,7 +121,7 @@ const SidebarQuickAccess = ({
               <button
                 key={labelKey}
                 onClick={() => navigateToPath(path)}
-                className={`flex w-full items-center rounded-lg px-2.5 py-[7px] text-[13px] transition-colors ${
+                className={`flex w-full items-center rounded-[2px] px-2.5 py-[7px] text-[13px] transition-colors ${
                   isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
                 }`}
                 aria-label={t('sidebar.navigateTo', { label })}
@@ -144,7 +144,7 @@ const SidebarQuickAccess = ({
               <button
                 key="icloud"
                 onClick={() => navigateToPath(iCloudPath)}
-                className={`flex w-full items-center rounded-lg px-2.5 py-[7px] text-[13px] transition-colors ${
+                className={`flex w-full items-center rounded-[2px] px-2.5 py-[7px] text-[13px] transition-colors ${
                   isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
                 }`}
                 aria-label={t('sidebar.navigateTo', { label })}

@@ -66,7 +66,7 @@ const SidebarRecent = ({
             recentFiles.map((rf) => (
               <div
                 key={rf.path}
-                className="flex w-full cursor-pointer items-center rounded px-2 py-1 text-xs transition-colors hover:bg-xp-surface-light"
+                className="flex w-full cursor-pointer items-center rounded-[2px] px-2 py-1 text-xs transition-colors hover:bg-xp-surface-light"
                 onClick={() => {
                   if (rf.file_type === 'folder') {
                     navigateToPath(rf.path);

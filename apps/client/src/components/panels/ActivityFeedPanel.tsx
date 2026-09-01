@@ -169,8 +169,8 @@ const QuickActions: React.FC<{ entry: ActivityEntry; onNavigate?: (path: string)
           onClick={handleOpen}
           title={i18n.t('activityFeed.showInExplorer')}
           style={{
-            background: 'var(--xp-surface-light, rgba(255,255,255,0.06))',
-            border: '1px solid var(--xp-border, rgba(255,255,255,0.08))',
+            background: 'var(--xp-surface-light, var(--glass-well))',
+            border: '1px solid var(--xp-border, var(--glass-well))',
             borderRadius: '3px',
             padding: '1px 6px',
             fontSize: '10px',
@@ -185,8 +185,8 @@ const QuickActions: React.FC<{ entry: ActivityEntry; onNavigate?: (path: string)
           onClick={handleShowInExplorer}
           title="Show in Explorer"
           style={{
-            background: 'var(--xp-surface-light, rgba(255,255,255,0.06))',
-            border: '1px solid var(--xp-border, rgba(255,255,255,0.08))',
+            background: 'var(--xp-surface-light, var(--glass-well))',
+            border: '1px solid var(--xp-border, var(--glass-well))',
             borderRadius: '3px',
             padding: '1px 6px',
             fontSize: '10px',
@@ -224,7 +224,7 @@ const ActivityRow: React.FC<{ entry: ActivityEntry; onNavigate?: (path: string) 
           padding: '4px 12px',
           cursor: entry.type !== 'deleted' ? 'pointer' : 'default',
           animation: 'activity-slide-in 0.25s ease-out',
-          borderBottom: '1px solid var(--xp-border, rgba(255,255,255,0.04))',
+          borderBottom: '1px solid var(--xp-border, var(--glass-well))',
           position: 'relative',
         }}
         className="activity-row"
@@ -344,8 +344,8 @@ const ActivityFeedPanel: React.FC<ActivityFeedPanelProps> = React.memo(
             alignItems: 'center',
             gap: '6px',
             padding: '4px 12px',
-            borderBottom: '1px solid var(--xp-border, rgba(255,255,255,0.08))',
-            background: 'var(--xp-surface-light, rgba(255,255,255,0.03))',
+            borderBottom: '1px solid var(--xp-border, var(--glass-well))',
+            background: 'var(--xp-surface-light, var(--glass-well))',
             flexShrink: 0,
           }}
         >
@@ -499,8 +499,8 @@ const ActivityFeedPanel: React.FC<ActivityFeedPanelProps> = React.memo(
                       color: '#66655d',
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px',
-                      background: 'var(--xp-surface, rgba(255,255,255,0.02))',
-                      borderBottom: '1px solid var(--xp-border, rgba(255,255,255,0.06))',
+                      background: 'var(--xp-surface, var(--glass-well))',
+                      borderBottom: '1px solid var(--xp-border, var(--glass-well))',
                       position: 'sticky',
                       top: 0,
                       zIndex: 1,
@@ -528,7 +528,7 @@ const ActivityFeedPanel: React.FC<ActivityFeedPanelProps> = React.memo(
           to { opacity: 1; transform: translateX(0); }
         }
         .activity-row:hover {
-          background: var(--xp-surface-light, rgba(255,255,255,0.04));
+          background: var(--xp-surface-light, var(--glass-well));
         }
         .activity-row:hover .activity-quick-actions {
           opacity: 1 !important;

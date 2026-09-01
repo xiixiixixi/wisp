@@ -228,18 +228,30 @@ const ChatMessageBubble = ({
 
       {msg.content && (
         <div
-          style={{
-            padding: '8px 12px',
-            borderRadius: '8px',
-            fontSize: '13px',
-            lineHeight: '1.5',
-            background: msg.role === 'user' ? 'var(--xp-blue)' : 'var(--xp-surface-light)',
-            color: msg.role === 'user' ? 'white' : 'var(--xp-text)',
-            marginLeft: msg.role === 'user' ? '20%' : '0',
-            marginRight: msg.role === 'assistant' ? '20%' : '0',
-            whiteSpace: msg.role === 'user' ? 'pre-wrap' : undefined,
-            wordBreak: 'break-word',
-          }}
+          style={
+            msg.role === 'user'
+              ? {
+                  /* User stamp — 無印紅 squared slab, the one red moment in the chat */
+                  padding: '8px 12px',
+                  borderRadius: '2px',
+                  fontSize: '13px',
+                  lineHeight: '1.55',
+                  background: 'var(--xp-accent)',
+                  color: 'var(--xp-on-accent)',
+                  marginLeft: '20%',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                }
+              : {
+                  /* Assistant reply — bare ink on paper, no bubble */
+                  padding: '0',
+                  fontSize: '13px',
+                  lineHeight: '1.55',
+                  color: 'var(--xp-text)',
+                  marginRight: '20%',
+                  wordBreak: 'break-word',
+                }
+          }
         >
           {msg.role === 'assistant' ? (
             <ChatErrorBoundary label={i18n.t('chat.messageContent')}>

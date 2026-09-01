@@ -98,7 +98,7 @@ export const fuzzyScore = (query: string, target: string, matchIndices: number[]
 // ── Hoisted style objects (created once, never re-allocated) ────────────────
 
 export const highlightStyle: React.CSSProperties = {
-  color: 'var(--xp-blue, #7aa2f7)',
+  color: 'var(--xp-blue, #45423c)',
   fontWeight: 600,
 };
 
@@ -108,7 +108,7 @@ export const sectionHeaderStyle: React.CSSProperties = {
   fontWeight: 600,
   textTransform: 'uppercase',
   letterSpacing: '0.05em',
-  color: 'var(--xp-text-muted, #565f89)',
+  color: 'var(--xp-text-muted, #6e6a61)',
 };
 
 export const itemBaseStyle: React.CSSProperties = {
@@ -123,13 +123,13 @@ export const itemBaseStyle: React.CSSProperties = {
   background: 'transparent',
   cursor: 'pointer',
   transition: 'background-color 0.15s, color 0.15s',
-  color: 'var(--xp-text-secondary, #a9b1d6)',
+  color: 'var(--xp-text-secondary, #6e6a61)',
 };
 
 export const itemSelectedStyle: React.CSSProperties = {
   ...itemBaseStyle,
   backgroundColor: 'var(--xp-selection-bg)',
-  color: 'var(--xp-text, #c0caf5)',
+  color: 'var(--xp-text, #38352f)',
 };
 
 export const iconWrapStyle: React.CSSProperties = {
@@ -145,7 +145,7 @@ export const iconWrapStyle: React.CSSProperties = {
 export const shortcutStyle: React.CSSProperties = {
   flexShrink: 0,
   fontSize: '11px',
-  color: 'var(--xp-text-secondary, #a9b1d6)',
+  color: 'var(--xp-text-secondary, #6e6a61)',
   fontFamily: 'monospace',
   backgroundColor: 'var(--xp-surface-light)',
   padding: '2px 6px',
@@ -156,7 +156,7 @@ export const shortcutStyle: React.CSSProperties = {
 export const timestampStyle: React.CSSProperties = {
   flexShrink: 0,
   fontSize: '10px',
-  color: 'var(--xp-text-muted, #565f89)',
+  color: 'var(--xp-text-muted, #6e6a61)',
 };
 
 export const starBtnBaseStyle: React.CSSProperties = {
@@ -173,7 +173,7 @@ export const starBtnBaseStyle: React.CSSProperties = {
 
 export const kbdStyle: React.CSSProperties = {
   padding: '2px 4px',
-  color: 'var(--xp-text-secondary, #a9b1d6)',
+  color: 'var(--xp-text-secondary, #6e6a61)',
   backgroundColor: 'var(--xp-surface-light)',
   borderRadius: '3px',
   border: '1px solid var(--xp-border)',
@@ -204,7 +204,7 @@ export const fileNameStyle: React.CSSProperties = {
 export const filePathStyle: React.CSSProperties = {
   display: 'block',
   fontSize: '10px',
-  color: 'var(--xp-text-muted, #565f89)',
+  color: 'var(--xp-text-muted, #6e6a61)',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -226,8 +226,8 @@ export const dialogStyle: React.CSSProperties = {
   maxHeight: '68vh',
   display: 'flex',
   flexDirection: 'column',
-  background: 'var(--xp-popover, #1a1b2e)',
-  border: '1px solid var(--xp-border, #292e42)',
+  background: 'var(--xp-popover, #f7f5ee)',
+  border: '1px solid var(--xp-border, rgba(56,53,47,0.14))',
   borderRadius: '8px',
   boxShadow: 'var(--xp-shadow-popover)',
   overflow: 'hidden',
@@ -238,20 +238,20 @@ export const searchBarStyle: React.CSSProperties = {
   alignItems: 'center',
   gap: '12px',
   padding: '12px 18px',
-  borderBottom: '1px solid var(--xp-border, #292e42)',
+  borderBottom: '1px solid var(--xp-border, rgba(56,53,47,0.14))',
 };
 
 export const searchIconStyle: React.CSSProperties = {
   width: '16px',
   height: '16px',
   flexShrink: 0,
-  color: 'var(--xp-text-muted, #565f89)',
+  color: 'var(--xp-text-muted, #6e6a61)',
 };
 
 export const inputStyle: React.CSSProperties = {
   flex: 1,
   background: 'transparent',
-  color: 'var(--xp-text, #c0caf5)',
+  color: 'var(--xp-text, #38352f)',
   fontSize: '15px',
   outline: 'none',
   border: 'none',
@@ -262,7 +262,7 @@ export const clearBtnStyle: React.CSSProperties = {
   background: 'transparent',
   border: 'none',
   cursor: 'pointer',
-  color: 'var(--xp-text-muted, #565f89)',
+  color: 'var(--xp-text-muted, #6e6a61)',
 };
 
 export const clearIconStyle: React.CSSProperties = {
@@ -273,7 +273,7 @@ export const clearIconStyle: React.CSSProperties = {
 export const emptyStateStyle: React.CSSProperties = {
   padding: '32px 16px',
   textAlign: 'center',
-  color: 'var(--xp-text-muted, #565f89)',
+  color: 'var(--xp-text-muted, #6e6a61)',
   fontSize: '14px',
 };
 
@@ -282,7 +282,7 @@ export const loadingContainerStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: '8px',
-  color: 'var(--xp-text-muted, #565f89)',
+  color: 'var(--xp-text-muted, #6e6a61)',
   fontSize: '12px',
 };
 
@@ -290,16 +290,16 @@ export const loadingSpinnerStyle: React.CSSProperties = {
   width: '12px',
   height: '12px',
   borderRadius: '50%',
-  border: '2px solid var(--xp-text-muted, #565f89)',
+  border: '2px solid var(--xp-text-muted, #6e6a61)',
   borderTopColor: 'transparent',
   animation: 'spin 1s linear infinite',
 };
 
 export const footerStyle: React.CSSProperties = {
   padding: '9px 18px',
-  borderTop: '1px solid var(--xp-border, #292e42)',
+  borderTop: '1px solid var(--xp-border, rgba(56,53,47,0.14))',
   fontSize: '11px',
-  color: 'var(--xp-text-muted, #565f89)',
+  color: 'var(--xp-text-muted, #6e6a61)',
   display: 'flex',
   alignItems: 'center',
   gap: '16px',

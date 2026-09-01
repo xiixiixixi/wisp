@@ -29,13 +29,13 @@ export const Toggle = ({
     role="switch"
     aria-checked={checked}
     aria-label={label}
-    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded border border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-xp-bg ${
+    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-[2px] border border-transparent transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-xp-text ${
       checked ? 'bg-xp-selection' : 'bg-xp-border'
     }`}
     onClick={() => onChange(!checked)}
   >
     <span
-      className={`pointer-events-none inline-block h-4 w-4 rounded transition-all ${
+      className={`pointer-events-none inline-block h-4 w-4 rounded-[2px] transition-all ${
         checked ? 'translate-x-5 bg-xp-text' : 'translate-x-0.5 bg-xp-text-muted'
       }`}
     />
@@ -82,7 +82,7 @@ export const SettingsSection = ({
   description?: string;
   children: React.ReactNode;
 }) => (
-  <section className="glass-card rounded-xl p-1">
+  <section className="glass-card rounded-[2px] p-1">
     <div className="px-3 pb-1 pt-2.5">
       <h3 className="text-[13px] font-medium text-xp-text">{title}</h3>
       {description && <p className="mt-0.5 text-xs text-xp-text-secondary">{description}</p>}
@@ -103,7 +103,7 @@ export const SettingRow = ({
   description?: string;
   children: React.ReactNode;
 }) => (
-  <div className="group flex items-center justify-between gap-4 rounded-md px-3 py-3 transition-colors hover:bg-xp-surface-light/50">
+  <div className="group flex items-center justify-between gap-4 rounded-[2px] px-3 py-3 transition-colors hover:bg-xp-surface-light/50">
     <div className="flex min-w-0 items-center gap-3">
       {Icon && <Icon size={17} className="shrink-0 text-xp-text-secondary" />}
       <div className="min-w-0">
@@ -144,7 +144,7 @@ export const ColorField = ({
       type="color"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="h-8 w-8 shrink-0 cursor-pointer rounded border-none bg-transparent p-0"
+      className="h-8 w-8 shrink-0 cursor-pointer rounded-[2px] border-none bg-transparent p-0"
       style={{ WebkitAppearance: 'none' }}
     />
     <input
@@ -154,7 +154,7 @@ export const ColorField = ({
         const v = e.target.value;
         if (/^#[0-9a-fA-F]{0,6}$/.test(v) || v === '') onChange(v || '#000000');
       }}
-      className="w-[90px] rounded border border-xp-border bg-xp-bg px-2 py-1 font-mono text-xs text-xp-text"
+      className="w-[90px] rounded-[2px] border border-xp-border bg-xp-bg px-2 py-1 font-mono text-xs text-xp-text"
     />
   </div>
 );
@@ -164,7 +164,7 @@ export const PermToggle = ({ enabled, onChange }: { enabled: boolean; onChange: 
   <button
     type="button"
     onClick={onChange}
-    className={`rounded-md px-3 py-1 text-xs font-medium tracking-wide transition-all ${
+    className={`rounded-[2px] px-3 py-1 text-xs font-medium tracking-wide transition-all ${
       enabled
         ? 'border border-xp-green/40 bg-xp-green/10 text-xp-green hover:bg-xp-green/20'
         : 'border border-xp-red/20 bg-xp-red/10 text-xp-red hover:bg-xp-red/20'

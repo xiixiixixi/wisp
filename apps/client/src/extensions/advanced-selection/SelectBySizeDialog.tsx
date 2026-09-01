@@ -119,13 +119,13 @@ export const SelectBySizeDialog = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="flex max-h-[80vh] w-[450px] flex-col rounded-lg border border-xp-border bg-xp-surface shadow-xl">
+      <div className="flex max-h-[80vh] w-[450px] flex-col rounded-[2px] border border-xp-border bg-xp-surface shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-xp-border p-4">
           <h2 className="text-lg font-semibold text-xp-text">
             {t('advancedSelection.dialog.titleBySize')}
           </h2>
-          <button onClick={onClose} className="rounded p-1 hover:bg-xp-surface-light">
+          <button onClick={onClose} className="rounded-[2px] p-1 hover:bg-xp-surface-light">
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -140,7 +140,7 @@ export const SelectBySizeDialog = ({
         {/* Content */}
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
           {/* File Size Info */}
-          <div className="space-y-1 rounded-md bg-xp-bg p-3 text-sm">
+          <div className="space-y-1 rounded-[2px] bg-xp-bg p-3 text-sm">
             <div className="flex justify-between text-xp-text-muted">
               <span>{t('advancedSelection.dialog.totalFiles')}</span>
               <span>{totalFileCount}</span>
@@ -169,9 +169,9 @@ export const SelectBySizeDialog = ({
                 <button
                   key={preset.label}
                   onClick={() => applyPreset(preset)}
-                  className={`rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                  className={`rounded-[2px] px-3 py-2 text-left text-sm transition-colors ${
                     selectedPreset === preset.label
-                      ? 'bg-xp-accent text-white'
+                      ? 'bg-xp-accent text-xp-on-accent'
                       : 'border border-xp-border bg-xp-bg hover:bg-xp-surface-light'
                   }`}
                 >
@@ -201,12 +201,12 @@ export const SelectBySizeDialog = ({
                   }}
                   min="0"
                   placeholder="0"
-                  className="flex-1 rounded-md border border-xp-border bg-xp-bg px-3 py-2 text-sm"
+                  className="flex-1 rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 text-sm"
                 />
                 <select
                   value={minUnit}
                   onChange={(e) => setMinUnit(e.target.value as SizeUnit)}
-                  className="rounded-md border border-xp-border bg-xp-bg px-3 py-2 text-sm"
+                  className="rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 text-sm"
                 >
                   <option value="B">B</option>
                   <option value="KB">KB</option>
@@ -231,13 +231,13 @@ export const SelectBySizeDialog = ({
                   min="0"
                   placeholder={t('advancedSelection.dialog.noLimit')}
                   disabled={includeUnlimited}
-                  className="flex-1 rounded-md border border-xp-border bg-xp-bg px-3 py-2 text-sm disabled:opacity-50"
+                  className="flex-1 rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 text-sm disabled:opacity-50"
                 />
                 <select
                   value={maxUnit}
                   onChange={(e) => setMaxUnit(e.target.value as SizeUnit)}
                   disabled={includeUnlimited}
-                  className="rounded-md border border-xp-border bg-xp-bg px-3 py-2 text-sm disabled:opacity-50"
+                  className="rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 text-sm disabled:opacity-50"
                 >
                   <option value="B">B</option>
                   <option value="KB">KB</option>
@@ -257,7 +257,7 @@ export const SelectBySizeDialog = ({
                       setMaxValue('');
                     }
                   }}
-                  className="rounded border-xp-border"
+                  className="rounded-[2px] border-xp-border"
                 />
                 <span className="text-sm text-xp-text-muted">
                   {t('advancedSelection.dialog.noMaximumLimit')}
@@ -267,7 +267,7 @@ export const SelectBySizeDialog = ({
           </div>
 
           {/* Preview Count */}
-          <div className="flex items-center justify-between rounded-md border border-blue-500/30 bg-blue-500/10 p-3">
+          <div className="flex items-center justify-between rounded-[2px] border bg-xp-selection-bg bg-none p-3">
             <span className="text-sm text-xp-text">
               {t('advancedSelection.dialog.filesMatching')}
             </span>
@@ -290,7 +290,7 @@ export const SelectBySizeDialog = ({
             <button
               onClick={handleSelect}
               disabled={matchCount === 0}
-              className="rounded-md bg-xp-accent px-4 py-2 text-sm text-white disabled:opacity-50"
+              className="rounded-[2px] bg-xp-accent px-4 py-2 text-sm text-xp-on-accent disabled:opacity-50"
             >
               {t('advancedSelection.dialog.selectNFiles', { count: matchCount })}
             </button>

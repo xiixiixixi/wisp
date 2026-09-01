@@ -134,7 +134,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
         <span className="text-xp-red">{t('panels.properties.errorPrefix', { error })}</span>
         <button
           onClick={loadProperties}
-          className="rounded bg-xp-blue px-2 py-0.5 text-[10px] text-white hover:bg-xp-blue-dark"
+          className="rounded-[2px] bg-xp-blue px-2 py-0.5 text-[10px] text-xp-on-accent hover:bg-xp-blue-dark"
         >
           {t('panels.properties.retry')}
         </button>
@@ -152,7 +152,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`rounded px-2 py-0.5 text-[10px] font-medium capitalize ${
+            className={`rounded-[2px] px-2 py-0.5 text-[10px] font-medium capitalize ${
               activeTab === tab
                 ? 'bg-xp-blue/20 text-xp-blue'
                 : 'text-xp-text-muted hover:bg-xp-surface-light'
@@ -164,7 +164,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
         <div className="flex-1" />
         <button
           onClick={loadProperties}
-          className="rounded px-2 py-0.5 text-[10px] font-medium text-xp-text-muted hover:bg-xp-surface-light"
+          className="rounded-[2px] px-2 py-0.5 text-[10px] font-medium text-xp-text-muted hover:bg-xp-surface-light"
           title={t('panels.properties.refreshTitle')}
         >
           <svg
@@ -211,22 +211,22 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
                 {/* Attribute badges */}
                 <div className="mt-1 flex flex-wrap gap-1">
                   {properties.is_hidden && (
-                    <span className="rounded bg-xp-yellow/20 px-1 py-0.5 text-[9px] text-xp-yellow">
+                    <span className="rounded-[2px] bg-xp-yellow/20 px-1 py-0.5 text-[9px] text-xp-yellow">
                       {t('panels.properties.hiddenBadge')}
                     </span>
                   )}
                   {properties.is_readonly && (
-                    <span className="rounded bg-xp-red/20 px-1 py-0.5 text-[9px] text-xp-red">
+                    <span className="rounded-[2px] bg-xp-red/20 px-1 py-0.5 text-[9px] text-xp-red">
                       {t('panels.properties.readonlyBadge')}
                     </span>
                   )}
                   {properties.is_directory && (
-                    <span className="rounded bg-xp-blue/20 px-1 py-0.5 text-[9px] text-xp-blue">
+                    <span className="rounded-[2px] bg-xp-blue/20 px-1 py-0.5 text-[9px] text-xp-blue">
                       {t('panels.properties.directoryBadge')}
                     </span>
                   )}
                   {properties.attributes.symlink_target && (
-                    <span className="rounded bg-xp-purple/20 px-1 py-0.5 text-[9px] text-xp-purple">
+                    <span className="rounded-[2px] bg-xp-purple/20 px-1 py-0.5 text-[9px] text-xp-purple">
                       {t('panels.properties.symlinkBadge')}
                     </span>
                   )}
@@ -304,14 +304,14 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
                 }
                 onChange={(e) => setPermissionString(e.target.value)}
                 disabled={!editingPermissions}
-                className="flex-1 rounded border border-xp-border bg-xp-bg px-2 py-1 text-[11px] text-xp-text focus:ring-1 focus:ring-xp-blue disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex-1 rounded-[2px] border border-xp-border bg-xp-bg px-2 py-1 text-[11px] text-xp-text disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder={t('panels.properties.permPlaceholder')}
               />
               {editingPermissions ? (
                 <>
                   <button
                     onClick={handleSavePermissions}
-                    className="rounded bg-xp-blue px-2 py-1 text-[10px] text-white hover:bg-xp-blue-dark"
+                    className="rounded-[2px] bg-xp-blue px-2 py-1 text-[10px] text-xp-on-accent hover:bg-xp-blue-dark"
                   >
                     {t('common.save')}
                   </button>
@@ -320,7 +320,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
                       setEditingPermissions(false);
                       setPermissionString(properties.permissions.permissions_string);
                     }}
-                    className="rounded bg-xp-surface-light px-2 py-1 text-[10px] text-xp-text hover:bg-xp-border"
+                    className="rounded-[2px] bg-xp-surface-light px-2 py-1 text-[10px] text-xp-text hover:bg-xp-border"
                   >
                     {t('common.cancel')}
                   </button>
@@ -328,7 +328,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
               ) : (
                 <button
                   onClick={() => setEditingPermissions(true)}
-                  className="rounded bg-xp-surface-light px-2 py-1 text-[10px] text-xp-text hover:bg-xp-border"
+                  className="rounded-[2px] bg-xp-surface-light px-2 py-1 text-[10px] text-xp-text hover:bg-xp-border"
                 >
                   {t('common.edit')}
                 </button>
@@ -423,7 +423,7 @@ const PropRow = ({ label, value }: { label: string; value: string }) => {
 const PermBadge = ({ label, value }: { label: string; value: boolean }) => {
   return (
     <div
-      className={`flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium ${
+      className={`flex items-center gap-1 rounded-[2px] px-2 py-1 text-[10px] font-medium ${
         value ? 'bg-xp-green/10 text-xp-green' : 'bg-xp-red/10 text-xp-red'
       }`}
     >

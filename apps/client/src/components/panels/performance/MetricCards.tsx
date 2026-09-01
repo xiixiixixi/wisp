@@ -58,7 +58,7 @@ const MetricCards = ({
             <button
               onClick={handleEmptyTrash}
               disabled={emptying}
-              className="flex items-center gap-1.5 rounded border border-xp-border bg-xp-surface px-3 py-1.5 text-[11px] font-medium text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-[2px] border border-xp-border bg-xp-surface px-3 py-1.5 text-[11px] font-medium text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
             >
               <Trash2 size={11} aria-hidden="true" />
               {emptying ? t('performanceDashboard.refreshing') : trashSuggestion.actionLabel}
@@ -84,7 +84,7 @@ const MetricCards = ({
       </div>
 
       {/* Activity timeline */}
-      <div className="glass-card rounded-xl p-3">
+      <div className="glass-card rounded-[2px] p-3">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-xp-text-muted">
             {t('performanceDashboard.activity')}

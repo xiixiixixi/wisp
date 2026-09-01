@@ -473,8 +473,8 @@ const PasteRenameDialog = React.memo(
                 style={{
                   padding: '8px 12px',
                   borderRadius: '6px',
-                  backgroundColor: 'rgba(251, 191, 36, 0.1)',
-                  border: '1px solid rgba(251, 191, 36, 0.3)',
+                  backgroundColor: 'var(--xp-wash-yellow)',
+                  border: '1px solid var(--xp-wash-yellow-strong)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
@@ -512,8 +512,8 @@ const PasteRenameDialog = React.memo(
                 style={{
                   padding: '8px 12px',
                   borderRadius: '6px',
-                  backgroundColor: 'rgba(248, 113, 113, 0.1)',
-                  border: '1px solid rgba(248, 113, 113, 0.3)',
+                  backgroundColor: 'var(--xp-wash-red)',
+                  border: '1px solid var(--xp-wash-red-strong)',
                   fontSize: '12px',
                   color: 'var(--xp-red)',
                 }}
@@ -598,9 +598,9 @@ const PasteRenameDialog = React.memo(
                             fontSize: '12px',
                             borderBottom: '1px solid var(--xp-border)',
                             backgroundColor: (() => {
-                              if (hasError) return 'rgba(248, 113, 113, 0.08)';
-                              if (hasWarning) return 'rgba(251, 191, 36, 0.06)';
-                              if (isDragOver) return 'rgba(99, 102, 241, 0.1)';
+                              if (hasError) return 'var(--xp-wash-red)';
+                              if (hasWarning) return 'var(--xp-wash-yellow)';
+                              if (isDragOver) return 'var(--xp-selection-bg)';
                               return 'transparent';
                             })(),
                             transition: 'background-color 0.15s',

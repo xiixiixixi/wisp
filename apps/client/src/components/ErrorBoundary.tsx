@@ -35,7 +35,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       return (
         <div className="flex flex-col items-center justify-center gap-3 p-6 text-center">
           <svg
-            className="text-xp-red h-10 w-10 opacity-60"
+            className="h-10 w-10 text-xp-red opacity-60"
             fill="none"
             stroke="currentColor"
             strokeWidth={1.5}
@@ -47,15 +47,15 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
             />
           </svg>
-          <p className="text-xp-text-muted text-sm">{i18n.t('common.error.somethingWentWrong')}</p>
+          <p className="text-sm text-xp-text-muted">{i18n.t('common.error.somethingWentWrong')}</p>
           <p
-            className="text-xp-text-secondary max-w-xs truncate text-xs"
+            className="max-w-xs truncate text-xs text-xp-text-secondary"
             title={this.state.error?.message}
           >
             {this.state.error?.message}
           </p>
           <button
-            className="bg-xp-surface hover:bg-xp-surface-light border-xp-border rounded border px-3 py-1.5 text-xs transition-colors"
+            className="rounded-[2px] border border-xp-border bg-xp-surface px-3 py-1.5 text-xs transition-colors hover:bg-xp-surface-light"
             onClick={() => this.setState({ hasError: false, error: null })}
           >
             {i18n.t('common.error.tryAgain')}

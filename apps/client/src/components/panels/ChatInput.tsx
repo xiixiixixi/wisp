@@ -46,7 +46,7 @@ const ChatInput = ({
           placeholder={
             agentEnabled ? i18n.t('chat.agentPlaceholder') : i18n.t('chat.askPlaceholder')
           }
-          className="flex-1 resize-none rounded border border-xp-border bg-xp-bg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-xp-blue"
+          className="flex-1 resize-none rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 text-sm outline-none"
           disabled={isAiLoading || isAgentRunning}
           rows={1}
           aria-label={agentEnabled ? 'Ask the agent to manage your files' : 'Ask about your files'}
@@ -54,7 +54,7 @@ const ChatInput = ({
         {isAgentRunning ? (
           <button
             onClick={onCancel}
-            className="flex items-center justify-center rounded bg-xp-red px-4 py-2 text-xs font-medium text-white transition-colors hover:opacity-80"
+            className="flex items-center justify-center rounded-[2px] bg-xp-red px-4 py-2 text-xs font-medium text-xp-on-accent transition-colors hover:opacity-80"
             aria-label="Stop agent"
           >
             Stop
@@ -63,7 +63,7 @@ const ChatInput = ({
           <button
             onClick={onSendMessage}
             disabled={!chatInput.trim() || isAiLoading}
-            className="flex items-center justify-center rounded bg-xp-blue px-4 py-2 text-white transition-colors hover:bg-opacity-80 disabled:opacity-50"
+            className="flex items-center justify-center rounded-[2px] bg-xp-blue px-4 py-2 text-xp-on-accent transition-colors hover:bg-opacity-80 disabled:opacity-50"
             aria-label="Send message"
           >
             <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">

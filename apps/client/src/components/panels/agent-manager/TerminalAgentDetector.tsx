@@ -151,7 +151,7 @@ const TerminalAgentDetector = () => {
   const visibleAgents = agents.filter((agent) => agent.status !== 'exited');
   if (visibleAgents.length === 0) {
     return (
-      <div className="rounded-md border border-dashed border-xp-border px-3 py-4 text-center text-[11px] leading-5 text-xp-text-muted">
+      <div className="rounded-[2px] border border-dashed border-xp-border px-3 py-4 text-center text-[11px] leading-5 text-xp-text-muted">
         {t('agentManager.cockpit.noRunning')}
       </div>
     );
@@ -164,7 +164,7 @@ const TerminalAgentDetector = () => {
         return (
           <div
             key={agent.terminalSessionId}
-            className="rounded-md border border-xp-border bg-xp-bg px-2.5 py-2.5"
+            className="rounded-[2px] border border-xp-border bg-xp-bg px-2.5 py-2.5"
           >
             <div className="flex items-center gap-2">
               <span
@@ -180,7 +180,7 @@ const TerminalAgentDetector = () => {
               <button
                 type="button"
                 onClick={() => dismissExternalAgent(agent.terminalSessionId)}
-                className="rounded p-0.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                className="rounded-[2px] p-0.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                 aria-label={t('agentManager.externalAgents.dismiss')}
                 title={t('agentManager.externalAgents.dismiss')}
               >

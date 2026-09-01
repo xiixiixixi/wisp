@@ -173,14 +173,14 @@ const CodeEditorPanel = ({ selectedFile }: CodeEditorPanelProps) => {
         <div className="flex items-center gap-1">
           <button
             onClick={handleCopy}
-            className="rounded p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             title={t('panels.codeEditor.copyContents')}
           >
             {copied ? <Check size={14} className="text-xp-green" /> : <Copy size={14} />}
           </button>
           <button
             onClick={() => setWordWrap(!wordWrap)}
-            className={`rounded p-1.5 transition-colors hover:bg-xp-surface-light ${
+            className={`rounded-[2px] p-1.5 transition-colors hover:bg-xp-surface-light ${
               wordWrap ? 'text-xp-blue' : 'text-xp-text-muted hover:text-xp-text'
             }`}
             title={t('panels.codeEditor.toggleWordWrap')}
@@ -190,7 +190,7 @@ const CodeEditorPanel = ({ selectedFile }: CodeEditorPanelProps) => {
           <button
             onClick={handleRevert}
             disabled={!isDirty}
-            className="rounded p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-30"
+            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-30"
             title={t('panels.codeEditor.revertChanges')}
           >
             <RotateCcw size={14} />
@@ -198,7 +198,7 @@ const CodeEditorPanel = ({ selectedFile }: CodeEditorPanelProps) => {
           <button
             onClick={handleSave}
             disabled={!isDirty || saving}
-            className="rounded p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-blue disabled:opacity-30"
+            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-blue disabled:opacity-30"
             title={t('panels.codeEditor.saveCmdS')}
           >
             <Save size={14} />
@@ -207,13 +207,13 @@ const CodeEditorPanel = ({ selectedFile }: CodeEditorPanelProps) => {
       </div>
 
       {error && (
-        <div className="bg-xp-red/10 flex-shrink-0 px-3 py-1.5 text-xs text-xp-red">{error}</div>
+        <div className="flex-shrink-0 bg-xp-red/10 px-3 py-1.5 text-xs text-xp-red">{error}</div>
       )}
 
       {/* Editor area */}
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* Line numbers */}
-        <div className="bg-xp-surface/50 flex-shrink-0 select-none overflow-hidden border-r border-xp-border px-2 py-3">
+        <div className="flex-shrink-0 select-none overflow-hidden border-r border-xp-border bg-xp-surface/50 px-2 py-3">
           <div className="text-right font-mono text-xs leading-[1.4rem] text-xp-text-muted">
             {Array.from({ length: lineCount }, (_, i) => (
               <div key={i}>{i + 1}</div>

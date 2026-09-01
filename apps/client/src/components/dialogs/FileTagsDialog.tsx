@@ -132,7 +132,7 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
       }}
     >
       {/* Dialog */}
-      <div className="mx-4 flex w-full max-w-md flex-col overflow-hidden rounded-lg border border-xp-border bg-xp-surface shadow-2xl">
+      <div className="mx-4 flex w-full max-w-md flex-col overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-xp-border px-4 py-3">
           <div className="flex items-center space-x-2">
@@ -146,7 +146,7 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
           </div>
           <button
             onClick={onClose}
-            className="rounded p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             aria-label={t('dialogs.tags.closeAria')}
           >
             <X className="h-4 w-4" />
@@ -170,7 +170,7 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
                     <button
                       key={tag.name}
                       onClick={() => toggleTag(tag)}
-                      className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-left text-sm transition-colors ${
+                      className={`flex items-center gap-2 rounded-[2px] border px-2.5 py-1.5 text-left text-sm transition-colors ${
                         active
                           ? 'border-xp-accent bg-xp-accent/10 text-xp-text'
                           : 'border-xp-border text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text'
@@ -178,7 +178,7 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
                       aria-pressed={active}
                     >
                       <span
-                        className="h-3 w-3 flex-shrink-0 rounded border border-xp-border"
+                        className="h-3 w-3 flex-shrink-0 rounded-[2px] border border-xp-border"
                         style={{ backgroundColor: tag.color }}
                         aria-hidden="true"
                       />
@@ -204,7 +204,7 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
                 onChange={(e) => setNewTagName(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={t('dialogs.tags.tagNamePlaceholder')}
-                className="h-8 min-w-0 flex-1 rounded-md border border-xp-border bg-xp-bg px-2.5 text-sm text-xp-text placeholder:text-xp-text-muted focus:border-xp-accent focus:outline-none"
+                className="h-8 min-w-0 flex-1 rounded-[2px] border border-xp-border bg-xp-bg px-2.5 text-sm text-xp-text placeholder:text-xp-text-muted focus:border-xp-text-secondary focus:outline-none"
                 aria-label={t('dialogs.tags.addTag')}
               />
               <div className="flex items-center gap-1">
@@ -212,7 +212,7 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
                   <button
                     key={c.hex}
                     onClick={() => setSelectedColor(c.hex)}
-                    className={`h-5 w-5 rounded border transition-transform ${
+                    className={`h-5 w-5 rounded-[2px] border transition-transform ${
                       selectedColor === c.hex
                         ? 'scale-110 border-white ring-1 ring-xp-accent'
                         : 'border-xp-border hover:scale-105'
@@ -227,7 +227,7 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
               <button
                 onClick={handleCreate}
                 disabled={!newTagName.trim() || saving}
-                className="flex h-8 items-center gap-1 rounded-md bg-xp-accent px-2.5 text-xs font-medium text-white transition-colors hover:bg-xp-accent-hover disabled:opacity-50"
+                className="flex h-8 items-center gap-1 rounded-[2px] bg-xp-accent px-2.5 text-xs font-medium text-xp-on-accent transition-colors hover:bg-xp-accent-hover disabled:opacity-50"
                 aria-label={t('dialogs.tags.addTag')}
               >
                 <Plus className="h-3.5 w-3.5" />
@@ -244,7 +244,7 @@ const FileTagsDialog = ({ isOpen, onClose, filePath, onSaved }: FileTagsDialogPr
           <p className="text-xs text-xp-text-muted">{t('dialogs.tags.finderSyncNote')}</p>
           <button
             onClick={onClose}
-            className="rounded-md border border-xp-border px-3 py-1.5 text-sm text-xp-text transition-colors hover:bg-xp-surface-light"
+            className="rounded-[2px] border border-xp-border px-3 py-1.5 text-sm text-xp-text transition-colors hover:bg-xp-surface-light"
           >
             {t('common.close')}
           </button>

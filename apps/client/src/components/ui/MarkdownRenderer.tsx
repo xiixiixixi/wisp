@@ -76,21 +76,21 @@ const CodeBlockWithActions = ({
     <div className="group relative my-2">
       {language && (
         <div
-          className="rounded-t-md border border-b-0 border-xp-border bg-xp-bg px-3 py-1 text-[10px] text-xp-text-muted"
+          className="rounded-t-[2px] border border-b-0 border-xp-border bg-xp-bg px-3 py-1 text-[10px] text-xp-text-muted"
           style={{ fontFamily: 'monospace' }}
         >
           {language}
         </div>
       )}
       <pre
-        className={`overflow-x-auto border border-xp-border bg-xp-bg p-3 text-xs ${language ? 'rounded-b-md' : 'rounded-md'}`}
+        className={`overflow-x-auto border border-xp-border bg-xp-bg p-3 text-xs ${language ? 'rounded-b-[2px]' : 'rounded-[2px]'}`}
       >
         <code className="text-xp-text">{code}</code>
       </pre>
       <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
         <button
           onClick={handleCopy}
-          className="rounded border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
+          className="rounded-[2px] border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
           title="Copy to clipboard"
         >
           {copied ? 'Copied!' : 'Copy'}
@@ -98,7 +98,7 @@ const CodeBlockWithActions = ({
         {onSaveAsFile && (
           <button
             onClick={() => onSaveAsFile(code, language)}
-            className="rounded border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
+            className="rounded-[2px] border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
             title="Save as file"
           >
             Save as file
@@ -107,7 +107,7 @@ const CodeBlockWithActions = ({
         {onApplyCode && (
           <button
             onClick={() => onApplyCode(code)}
-            className="rounded border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
+            className="rounded-[2px] border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
             title="Replace selected code in editor"
           >
             Apply
@@ -358,7 +358,7 @@ const renderInline = (text: string): React.ReactNode => {
       parts.push(
         <code
           key={`c-${segKey++}`}
-          className="break-all rounded bg-xp-bg px-1 py-0.5 text-xs text-xp-purple"
+          className="break-all rounded-[2px] bg-xp-bg px-1 py-0.5 text-xs text-xp-purple"
         >
           {match[2]}
         </code>,

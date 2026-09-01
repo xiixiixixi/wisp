@@ -73,8 +73,16 @@ body {
   --xp-text-muted: #66655d;
   --xp-border: rgba(56, 53, 47, 0.14);
   --xp-border-light: rgba(56, 53, 47, 0.24);
+  --xp-wash-green: rgba(111, 127, 87, 0.14);
+  --xp-wash-green-strong: rgba(111, 127, 87, 0.3);
+  --xp-wash-red: rgba(99, 43, 32, 0.12);
+  --xp-wash-red-strong: rgba(168, 86, 70, 0.3);
+  --xp-wash-yellow: rgba(179, 154, 93, 0.15);
+  --xp-wash-yellow-strong: rgba(179, 154, 93, 0.35);
   --xp-selection-bg: rgba(200, 69, 46, 0.1);
   --xp-selection-border: rgba(200, 69, 46, 0.28);
+  /* Ink that sits on a filled accent button — paper-white in both polarities */
+  --xp-on-accent: #f7f5ee;
   --xp-shadow-popover: 0 0 0 1px rgba(56, 53, 47, 0.12), 0 12px 32px rgba(56, 53, 47, 0.12);
   --glow-blue: none;
   --glow-purple: none;
@@ -797,6 +805,7 @@ html.theme-rolex {
   --xp-border-light: rgba(233, 229, 218, 0.24);
   --xp-selection-bg: rgba(200, 69, 46, 0.3);
   --xp-selection-border: rgba(214, 100, 74, 0.5);
+  --xp-on-accent: #26231e;
   --xp-shadow-popover: 0 0 0 1px rgba(233, 229, 218, 0.12), 0 12px 32px rgba(15, 13, 10, 0.4);
   --glow-blue: none;
   --glow-purple: none;
@@ -866,8 +875,15 @@ html.theme-light {
   --xp-text-muted: #66655d;
   --xp-border: rgba(56, 53, 47, 0.14);
   --xp-border-light: rgba(56, 53, 47, 0.24);
+  --xp-wash-green: rgba(111, 127, 87, 0.14);
+  --xp-wash-green-strong: rgba(111, 127, 87, 0.3);
+  --xp-wash-red: rgba(99, 43, 32, 0.12);
+  --xp-wash-red-strong: rgba(168, 86, 70, 0.3);
+  --xp-wash-yellow: rgba(179, 154, 93, 0.15);
+  --xp-wash-yellow-strong: rgba(179, 154, 93, 0.35);
   --xp-selection-bg: rgba(200, 69, 46, 0.1);
   --xp-selection-border: rgba(200, 69, 46, 0.28);
+  --xp-on-accent: #f7f5ee;
   --xp-shadow-popover: 0 0 0 1px rgba(56, 53, 47, 0.12), 0 12px 32px rgba(56, 53, 47, 0.12);
   --glow-blue: none;
   --glow-purple: none;
@@ -888,9 +904,57 @@ html.theme-light {
    PAPER COMPONENT VOCABULARY — 紙の設計
    One sheet of paper the sky stains. The page canvas is transparent so
    the sun-phase veil IS the ground; every surface is a flat paper cut
-   separated from its neighbours by a hairline or whitespace. No blur,
-   no component gradients, no glow — anywhere.
+   separated from its neighbours by a hairline or whitespace. A faint
+   fractal grain (feTurbulence) is printed on the shell so the sheet
+   reads as *paper*, not a blank screen. No blur, no component gradients,
+   no glow — anywhere.
    ═══════════════════════════════════════════════════════════════════ */
+
+/* Paper grain — one feTurbulence sheet, alpha-tuned per polarity */
+:is(.theme-light) .paper-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' seed='42' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23p)' opacity='0.42'/%3E%3C/svg%3E");
+  background-size: 240px 240px;
+}
+:is(.theme-rolex) .paper-grain,
+:is(.theme-light) .paper-grain {
+  background-blend-mode: soft-light;
+  background-repeat: repeat;
+  pointer-events: none;
+}
+:is(.theme-rolex) .paper-grain {
+  background-blend-mode: overlay;
+}
+
+/* Apply the grain to the shell chrome (titlebar/sidebar/rail/inspector)
+   as a whisper-light texture — the veil reads through, the grain sits. */
+:is(.theme-rolex, .theme-light) .wisp-titlebar,
+:is(.theme-rolex, .theme-light) .wisp-sidebar,
+:is(.theme-rolex, .theme-light) .wisp-panel-rail,
+:is(.theme-rolex, .theme-light) .wisp-inspector,
+:is(.theme-rolex, .theme-light) .wisp-operationbar {
+  position: relative;
+}
+:is(.theme-rolex, .theme-light) .wisp-titlebar::before,
+:is(.theme-rolex, .theme-light) .wisp-sidebar::before,
+:is(.theme-rolex, .theme-light) .wisp-panel-rail::before,
+:is(.theme-rolex, .theme-light) .wisp-inspector::before,
+:is(.theme-rolex, .theme-light) .wisp-operationbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' seed='42' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23p)' opacity='0.42'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+:is(.theme-light) .wisp-titlebar::before,
+:is(.theme-light) .wisp-sidebar::before,
+:is(.theme-light) .wisp-panel-rail::before,
+:is(.theme-light) .wisp-inspector::before,
+:is(.theme-light) .wisp-operationbar::before {
+  mix-blend-mode: soft-light;
+}
 
 /* The canvas recedes — dawn/day/dusk/night veils read through it */
 :is(.theme-rolex, .theme-light) .bg-xp-bg,

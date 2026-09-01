@@ -74,7 +74,7 @@ const BatchRename = ({ files, onDone }: { files: FileEntry[]; onDone: () => void
   }, [renamable, changed, findText, replaceText, buildPattern, onDone]);
 
   return (
-    <div className="glass-card rounded-xl p-3">
+    <div className="glass-card rounded-[2px] p-3">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-[11px] font-semibold uppercase tracking-wider text-xp-text-muted">
           {t('performanceDashboard.batchRename')}
@@ -82,7 +82,7 @@ const BatchRename = ({ files, onDone }: { files: FileEntry[]; onDone: () => void
         <button
           type="button"
           onClick={() => setUseRegex((v) => !v)}
-          className={`flex h-6 items-center gap-1 rounded px-2 text-[10px] transition-colors ${
+          className={`flex h-6 items-center gap-1 rounded-[2px] px-2 text-[10px] transition-colors ${
             useRegex
               ? 'bg-xp-lime text-xp-bg'
               : 'bg-card text-xp-text-secondary shadow-[0_1px_5px_rgba(29,28,26,0.08)]'
@@ -100,7 +100,7 @@ const BatchRename = ({ files, onDone }: { files: FileEntry[]; onDone: () => void
           autoComplete="off"
           onChange={(e) => setFindText(e.target.value)}
           placeholder={t('performanceDashboard.findPlaceholder')}
-          className="border-xp-border/60 bg-xp-bg/60 h-8 min-w-0 flex-1 rounded-lg border px-2.5 text-xs text-xp-text placeholder-xp-text-muted focus:border-xp-blue/50 focus:outline-none"
+          className="border-xp-border/60 bg-xp-bg/60 h-8 min-w-0 flex-1 rounded-[2px] border px-2.5 text-xs text-xp-text placeholder-xp-text-muted focus:border-xp-blue/50 focus:outline-none"
         />
         <ArrowRight size={12} className="shrink-0 text-xp-text-muted" aria-hidden="true" />
         <input
@@ -108,7 +108,7 @@ const BatchRename = ({ files, onDone }: { files: FileEntry[]; onDone: () => void
           autoComplete="off"
           onChange={(e) => setReplaceText(e.target.value)}
           placeholder={t('performanceDashboard.replacePlaceholder')}
-          className="border-xp-border/60 bg-xp-bg/60 h-8 min-w-0 flex-1 rounded-lg border px-2.5 text-xs text-xp-text placeholder-xp-text-muted focus:border-xp-blue/50 focus:outline-none"
+          className="border-xp-border/60 bg-xp-bg/60 h-8 min-w-0 flex-1 rounded-[2px] border px-2.5 text-xs text-xp-text placeholder-xp-text-muted focus:border-xp-blue/50 focus:outline-none"
         />
       </div>
 
@@ -117,7 +117,7 @@ const BatchRename = ({ files, onDone }: { files: FileEntry[]; onDone: () => void
           type="button"
           onClick={runPreview}
           disabled={!findText || renamable.length === 0}
-          className="flex h-7 flex-1 items-center justify-center gap-1 rounded border border-xp-border bg-xp-surface px-3 text-[11px] font-medium text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-40"
+          className="flex h-7 flex-1 items-center justify-center gap-1 rounded-[2px] border border-xp-border bg-xp-surface px-3 text-[11px] font-medium text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-40"
         >
           <Wand2 size={11} aria-hidden="true" />
           {t('performanceDashboard.previewRename')}
@@ -127,7 +127,7 @@ const BatchRename = ({ files, onDone }: { files: FileEntry[]; onDone: () => void
             type="button"
             onClick={execute}
             disabled={running}
-            className="flex h-7 items-center gap-1 rounded bg-xp-text px-3.5 text-[11px] font-medium text-xp-bg disabled:opacity-50"
+            className="flex h-7 items-center gap-1 rounded-[2px] bg-xp-text px-3.5 text-[11px] font-medium text-xp-bg disabled:opacity-50"
           >
             <Check size={11} aria-hidden="true" />
             {running
@@ -144,7 +144,7 @@ const BatchRename = ({ files, onDone }: { files: FileEntry[]; onDone: () => void
       )}
 
       {preview.length > 0 && (
-        <div className="border-xp-border/40 mt-2 max-h-44 overflow-y-auto rounded-lg border">
+        <div className="border-xp-border/40 mt-2 max-h-44 overflow-y-auto rounded-[2px] border">
           {preview.slice(0, 30).map((r, i) => (
             <div
               key={i}

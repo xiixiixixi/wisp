@@ -14,7 +14,7 @@ const UpdateBanner = () => {
   if (!status.available || status.error) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-[9998] w-80 overflow-hidden rounded-xl border border-xp-border bg-xp-popover shadow-2xl duration-200 animate-in fade-in slide-in-from-bottom-2">
+    <div className="fixed bottom-4 right-4 z-[9998] w-80 overflow-hidden rounded-[2px] border border-xp-border bg-xp-popover shadow-2xl duration-200 animate-in fade-in slide-in-from-bottom-2">
       {status.downloading ? (
         <div className="p-4">
           <div className="mb-2 flex items-center gap-2">
@@ -24,9 +24,9 @@ const UpdateBanner = () => {
               {Math.round(status.progress)}%
             </span>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded bg-xp-bg">
+          <div className="h-1.5 w-full overflow-hidden rounded-[2px] bg-xp-bg">
             <div
-              className="h-full rounded bg-xp-lime transition-all"
+              className="h-full rounded-[2px] bg-xp-lime transition-all"
               style={{ width: `${status.progress}%` }}
             />
           </div>
@@ -35,7 +35,7 @@ const UpdateBanner = () => {
         <>
           <div className="flex items-start justify-between px-4 pt-3">
             <div className="flex min-w-0 items-center gap-2.5">
-              <div className="bg-xp-selection rounded-md p-1.5">
+              <div className="bg-xp-selection rounded-[2px] p-1.5">
                 <RefreshCw className="h-4 w-4 text-xp-lime" />
               </div>
               <span className="truncate text-sm font-medium text-xp-text">
@@ -44,7 +44,7 @@ const UpdateBanner = () => {
             </div>
             <button
               onClick={dismissUpdate}
-              className="-mr-1 rounded-md p-1 text-xp-text-muted transition-colors hover:bg-xp-bg hover:text-xp-text"
+              className="-mr-1 rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-bg hover:text-xp-text"
               aria-label={t('common.close')}
             >
               <X className="h-4 w-4" />
@@ -60,13 +60,13 @@ const UpdateBanner = () => {
           <div className="flex items-center gap-2 px-4 pb-3 pt-3">
             <button
               onClick={installUpdate}
-              className="flex-1 rounded-lg bg-xp-text px-3 py-1.5 text-xs font-medium text-xp-bg transition-colors hover:bg-xp-accent-hover"
+              className="flex-1 rounded-[2px] bg-xp-text px-3 py-1.5 text-xs font-medium text-xp-bg transition-colors hover:bg-xp-accent-hover"
             >
               {t('updater.install')}
             </button>
             <button
               onClick={dismissUpdate}
-              className="rounded-lg border border-xp-border px-3 py-1.5 text-xs text-xp-text-secondary transition-colors hover:bg-xp-bg hover:text-xp-text"
+              className="rounded-[2px] border border-xp-border px-3 py-1.5 text-xs text-xp-text-secondary transition-colors hover:bg-xp-bg hover:text-xp-text"
             >
               {t('updater.dismiss')}
             </button>

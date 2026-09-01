@@ -374,7 +374,7 @@ export const SearchHistoryDropdown = ({ onSelect, onClear }: SearchHistoryDropdo
   if (history.length === 0) return null;
 
   return (
-    <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-xp-border bg-xp-popover shadow-xl">
+    <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-[2px] border border-xp-border bg-xp-popover shadow-xl">
       <div className="flex items-center justify-between border-b border-xp-border px-3 py-2">
         <span className="flex items-center gap-1.5 text-xs font-medium text-xp-text-muted">
           <Clock size={12} />
@@ -460,7 +460,7 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
 
   return (
     <div
-      className="overflow-hidden rounded-lg border border-xp-border bg-xp-popover shadow-xl"
+      className="overflow-hidden rounded-[2px] border border-xp-border bg-xp-popover shadow-xl"
       onMouseDown={(e) => e.preventDefault()}
     >
       <div className="flex items-center justify-between border-b border-xp-border px-3 py-2">
@@ -468,7 +468,7 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
           <Filter size={12} className="text-xp-blue" />
           {t('explorer.searchFilter.title')}
           {activeCount > 0 && (
-            <span className="rounded bg-xp-bg px-1.5 py-0.5 text-xs font-medium text-xp-text-secondary">
+            <span className="rounded-[2px] bg-xp-bg px-1.5 py-0.5 text-xs font-medium text-xp-text-secondary">
               {activeCount}
             </span>
           )}
@@ -484,7 +484,7 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
           )}
           <button
             onClick={onClose}
-            className="rounded p-0.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-[2px] p-0.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
           >
             <X size={14} />
           </button>
@@ -506,7 +506,7 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
                 <button
                   key={opt.value}
                   onClick={() => toggleFileType(opt.value)}
-                  className={`rounded px-2 py-1.5 text-center text-xs transition-colors ${
+                  className={`rounded-[2px] px-2 py-1.5 text-center text-xs transition-colors ${
                     active
                       ? 'border border-xp-blue border-opacity-40 bg-xp-blue bg-opacity-20 text-xp-blue'
                       : 'border border-xp-border bg-xp-surface hover:bg-xp-surface-light'
@@ -531,7 +531,7 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
               <button
                 key={opt.value}
                 onClick={() => setDateRange(opt.value)}
-                className={`rounded px-2 py-1.5 text-center text-xs transition-colors ${
+                className={`rounded-[2px] px-2 py-1.5 text-center text-xs transition-colors ${
                   filters.dateRange === opt.value
                     ? 'border border-xp-blue border-opacity-40 bg-xp-blue bg-opacity-20 text-xp-blue'
                     : 'border border-xp-border bg-xp-surface hover:bg-xp-surface-light'
@@ -547,7 +547,7 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
                 type="date"
                 value={filters.customDateAfter || ''}
                 onChange={(e) => onChange({ ...filters, customDateAfter: e.target.value })}
-                className="flex-1 rounded border border-xp-border bg-xp-bg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-xp-blue"
+                className="flex-1 rounded-[2px] border border-xp-border bg-xp-bg px-2 py-1 text-xs focus:outline-none"
                 placeholder="From"
               />
               <span className="text-xs text-xp-text-muted">{t('explorer.searchFilter.to')}</span>
@@ -555,7 +555,7 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
                 type="date"
                 value={filters.customDateBefore || ''}
                 onChange={(e) => onChange({ ...filters, customDateBefore: e.target.value })}
-                className="flex-1 rounded border border-xp-border bg-xp-bg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-xp-blue"
+                className="flex-1 rounded-[2px] border border-xp-border bg-xp-bg px-2 py-1 text-xs focus:outline-none"
                 placeholder="To"
               />
             </div>
@@ -574,7 +574,7 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
               <button
                 key={opt.value}
                 onClick={() => setSizeRange(opt.value)}
-                className={`rounded px-2 py-1.5 text-center text-xs transition-colors ${
+                className={`rounded-[2px] px-2 py-1.5 text-center text-xs transition-colors ${
                   filters.sizeRange === opt.value
                     ? 'border border-xp-blue border-opacity-40 bg-xp-blue bg-opacity-20 text-xp-blue'
                     : 'border border-xp-border bg-xp-surface hover:bg-xp-surface-light'
@@ -598,14 +598,14 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
             value={filters.extensions}
             onChange={(e) => setExtensions(e.target.value)}
             placeholder="e.g. .ts, .tsx, .json"
-            className="w-full rounded border border-xp-border bg-xp-bg px-2 py-1.5 text-xs placeholder-xp-text-muted focus:outline-none focus:ring-1 focus:ring-xp-blue"
+            className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-2 py-1.5 text-xs placeholder-xp-text-muted focus:outline-none"
           />
           {filters.extensions.trim() && (
             <div className="mt-1.5 flex flex-wrap gap-1">
               {parseExtensionFilter(filters.extensions).map((ext) => (
                 <span
                   key={ext}
-                  className="rounded border border-xp-border bg-xp-surface px-1.5 py-0.5 text-xs"
+                  className="rounded-[2px] border border-xp-border bg-xp-surface px-1.5 py-0.5 text-xs"
                 >
                   .{ext}
                 </span>
@@ -630,7 +630,7 @@ interface FilterSectionProps {
 
 const FilterSection = ({ title, expanded, onToggle, badge, children }: FilterSectionProps) => {
   return (
-    <div className="overflow-hidden rounded border border-xp-border">
+    <div className="overflow-hidden rounded-[2px] border border-xp-border">
       <button
         onClick={onToggle}
         className="flex w-full items-center justify-between px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-xp-surface-light"
@@ -639,7 +639,7 @@ const FilterSection = ({ title, expanded, onToggle, badge, children }: FilterSec
           {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
           {title}
           {badge && (
-            <span className="rounded bg-xp-bg px-1 py-0 text-xs text-xp-text-secondary">
+            <span className="rounded-[2px] bg-xp-bg px-1 py-0 text-xs text-xp-text-secondary">
               {badge}
             </span>
           )}
@@ -713,7 +713,7 @@ export const GroupedSearchResults = ({
           const isHL = tokens.some((t) => part.toLowerCase() === t.toLowerCase());
           return isHL ? (
             // eslint-disable-next-line react/no-array-index-key
-            <mark key={i} className="bg-xp-selection rounded px-0.5">
+            <mark key={i} className="bg-xp-selection rounded-[2px] px-0.5">
               {part}
             </mark>
           ) : (
@@ -741,7 +741,7 @@ export const GroupedSearchResults = ({
               <span className="truncate text-xp-text-muted" title={group.folder}>
                 {group.folder}
               </span>
-              <span className="ml-auto flex-shrink-0 rounded bg-xp-surface px-1.5 py-0 text-xs text-xp-text-muted">
+              <span className="ml-auto flex-shrink-0 rounded-[2px] bg-xp-surface px-1.5 py-0 text-xs text-xp-text-muted">
                 {group.results.length}
               </span>
             </button>
@@ -767,11 +767,11 @@ export const GroupedSearchResults = ({
                           </h4>
                           <div className="ml-2 flex flex-shrink-0 items-center space-x-1">
                             <span
-                              className={`text-xs ${badge.color} rounded px-1.5 py-0.5 text-xp-text`}
+                              className={`text-xs ${badge.color} rounded-[2px] px-1.5 py-0.5 text-xp-text`}
                             >
                               {badge.label}
                             </span>
-                            <span className="rounded bg-xp-blue bg-opacity-20 px-1.5 py-0.5 text-xs text-xp-blue">
+                            <span className="rounded-[2px] bg-xp-blue bg-opacity-20 px-1.5 py-0.5 text-xs text-xp-blue">
                               {result.score.toFixed(1)}
                             </span>
                           </div>
@@ -789,7 +789,7 @@ export const GroupedSearchResults = ({
                                 <span className="text-xp-text-muted">
                                   {t('explorer.searchFilter.matchLabel')}{' '}
                                 </span>
-                                <span className="rounded bg-xp-bg px-1 text-xs text-xp-text-secondary">
+                                <span className="rounded-[2px] bg-xp-bg px-1 text-xs text-xp-text-secondary">
                                   {match.token}
                                 </span>
                                 {match.context && (

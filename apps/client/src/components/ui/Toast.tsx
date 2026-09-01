@@ -28,13 +28,11 @@ const Toast = ({
   const { t } = useTranslation();
   const titleId = title ? `toast-${id}-title` : undefined;
   const baseClasses =
-    presentation === 'dialog'
-      ? 'relative flex w-full overflow-hidden rounded-2xl border shadow-2xl transition-all duration-200 ease-in-out transform'
-      : 'relative flex w-full overflow-hidden rounded-lg border shadow-lg transition-all duration-200 ease-in-out transform';
+    'relative flex w-full overflow-hidden rounded-[2px] border shadow-[var(--xp-shadow-popover)] transition-all duration-200 ease-in-out transform';
   const variantClasses =
     variant === 'destructive'
-      ? 'bg-xp-surface border-xp-red/40 text-xp-red'
-      : 'bg-xp-surface border-xp-border text-xp-text';
+      ? 'bg-xp-popover border-xp-red/50 text-xp-text'
+      : 'bg-xp-popover border-xp-border text-xp-text';
   const visibilityClasses = open
     ? 'opacity-100 scale-100 translate-y-0'
     : 'opacity-0 scale-95 translate-y-1 pointer-events-none';
@@ -71,8 +69,8 @@ const Toast = ({
         onClick={onClose}
         className={
           presentation === 'dialog'
-            ? 'absolute right-3 top-3 rounded-lg p-2 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text'
-            : 'flex-shrink-0 p-4 transition-colors hover:bg-black hover:bg-opacity-10'
+            ? 'absolute right-3 top-3 rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text'
+            : 'flex-shrink-0 px-3 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text'
         }
         aria-label={t('common.close')}
       >
@@ -81,8 +79,8 @@ const Toast = ({
 
       {presentation !== 'dialog' && showCountdown && (
         <div
-          className={`absolute bottom-0 left-0 h-0.5 ${
-            variant === 'destructive' ? 'bg-xp-red' : 'bg-xp-blue'
+          className={`absolute bottom-0 left-0 h-px ${
+            variant === 'destructive' ? 'bg-xp-red' : 'bg-xp-lime'
           }`}
           style={{ animation: `toast-countdown ${TOAST_AUTO_DISMISS_DELAY}ms linear forwards` }}
           aria-hidden="true"
@@ -221,20 +219,20 @@ const ConfirmationToast = ({
   cancelText = 'Cancel',
 }: ConfirmationToastProps) => {
   return (
-    <div className="relative flex w-full overflow-hidden rounded-lg border border-xp-border bg-xp-surface text-xp-text shadow-lg">
+    <div className="relative flex w-full overflow-hidden rounded-[2px] border border-xp-border bg-xp-popover text-xp-text shadow-[var(--xp-shadow-popover)]">
       <div className="flex-1 p-4">
         <div className="mb-1 text-sm font-medium">{title}</div>
         {description && <div className="mb-3 text-xs opacity-90">{description}</div>}
         <div className="flex space-x-2">
           <button
             onClick={onConfirm}
-            className="rounded bg-xp-red px-3 py-1 text-xs text-white transition-colors hover:bg-xp-red/80"
+            className="rounded-[2px] bg-xp-red px-3 py-1 text-xs text-xp-on-accent transition-opacity hover:opacity-85"
           >
             {confirmText}
           </button>
           <button
             onClick={onCancel}
-            className="rounded border border-xp-border bg-xp-bg px-3 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
+            className="rounded-[2px] border border-xp-border bg-transparent px-3 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
           >
             {cancelText}
           </button>
@@ -283,7 +281,7 @@ const InputToast = ({
   };
 
   return (
-    <div className="relative flex w-full overflow-hidden rounded-lg border border-xp-border bg-xp-surface text-xp-text shadow-lg">
+    <div className="relative flex w-full overflow-hidden rounded-[2px] border border-xp-border bg-xp-popover text-xp-text shadow-[var(--xp-shadow-popover)]">
       <div className="flex-1 p-4">
         <div className="mb-1 text-sm font-medium">{title}</div>
         {description && <div className="mb-3 text-xs opacity-90">{description}</div>}
@@ -293,20 +291,20 @@ const InputToast = ({
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyPress}
           placeholder={placeholder}
-          className="mb-3 w-full rounded border border-xp-border bg-xp-bg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-xp-blue"
+          className="mb-3 w-full rounded-[2px] border border-xp-border bg-xp-surface-light px-3 py-1.5 text-sm text-xp-text placeholder:text-xp-text-muted focus:border-xp-text-secondary focus:outline-none"
           autoFocus
         />
         <div className="flex space-x-2">
           <button
             onClick={handleSubmit}
             disabled={!value.trim()}
-            className="rounded bg-xp-blue px-3 py-1 text-xs text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-[2px] bg-xp-accent px-3 py-1 text-xs text-xp-on-accent transition-colors hover:bg-xp-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
           >
             {submitText}
           </button>
           <button
             onClick={onCancel}
-            className="rounded border border-xp-border bg-xp-bg px-3 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
+            className="rounded-[2px] border border-xp-border bg-transparent px-3 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
           >
             {cancelText}
           </button>
@@ -376,7 +374,7 @@ const InputPromptContent = ({
           }
         }}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-xp-border bg-xp-bg px-4 py-3 text-sm text-xp-text outline-none transition placeholder:text-xp-text-muted focus:border-xp-blue focus:ring-1 focus:ring-xp-blue"
+        className="w-full rounded-[2px] border border-xp-border bg-xp-surface-light px-3 py-2 text-sm text-xp-text transition-colors placeholder:text-xp-text-muted hover:border-xp-border-light focus:border-xp-text-secondary focus:outline-none"
         autoFocus
         autoComplete="off"
         spellCheck={false}
@@ -392,14 +390,14 @@ const InputPromptContent = ({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-xp-border bg-xp-bg px-3.5 py-2 text-xs font-medium text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+          className="rounded-[2px] border border-xp-border bg-transparent px-3.5 py-2 text-xs font-medium text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
         >
           {cancelText}
         </button>
         <button
           type="submit"
           disabled={!canSubmit}
-          className="rounded-lg bg-xp-blue px-4 py-2 text-xs font-medium text-[var(--xp-bg)] transition hover:bg-xp-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-[2px] bg-xp-accent px-4 py-2 text-xs font-medium text-xp-on-accent transition-colors hover:bg-xp-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
           {submitText}
         </button>
@@ -429,7 +427,7 @@ const ConfirmationPromptContent = ({
       <button
         type="button"
         onClick={onCancel}
-        className="rounded-lg border border-xp-border bg-xp-bg px-3.5 py-2 text-xs font-medium text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+        className="rounded-[2px] border border-xp-border bg-transparent px-3.5 py-2 text-xs font-medium text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
       >
         {cancelText}
       </button>
@@ -437,7 +435,7 @@ const ConfirmationPromptContent = ({
         type="button"
         onClick={onConfirm}
         autoFocus
-        className="rounded-lg bg-xp-red px-4 py-2 text-xs font-medium text-white transition hover:bg-xp-red/80"
+        className="rounded-[2px] bg-xp-red px-4 py-2 text-xs font-medium text-xp-on-accent transition-opacity hover:opacity-85"
       >
         {confirmText}
       </button>

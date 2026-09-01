@@ -123,7 +123,7 @@ const FileRow = React.memo(
         data-file-path={file.path}
         data-drop-target={file.is_dir ? file.path : undefined}
         data-is-folder={file.is_dir ? 'true' : undefined}
-        className={`wisp-file-row grid cursor-pointer grid-cols-12 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-xp-surface-light ${
+        className={`wisp-file-row grid cursor-pointer grid-cols-12 items-center gap-3 rounded-[2px] px-3 py-2.5 transition-colors hover:bg-xp-surface-light ${
           selectedFiles.has(file.path) ? 'file-selected' : ''
         } text-xp-text`}
         {...(renamingPath === file.path ? {} : dragHandlers)}
@@ -197,7 +197,7 @@ const FileRow = React.memo(
 
 const GroupHeader = React.memo(({ name, count }: { name: string; count: number }) => (
   <div className="flex items-center px-3" style={{ height: GROUP_HEADER_HEIGHT }}>
-    <span className="flex items-center gap-2 rounded bg-xp-surface px-3 py-1">
+    <span className="flex items-center gap-2 rounded-[2px] bg-xp-surface px-3 py-1">
       <span className="text-xs font-medium uppercase tracking-wide text-xp-text-secondary">
         {name}
       </span>

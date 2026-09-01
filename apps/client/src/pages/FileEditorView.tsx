@@ -160,7 +160,7 @@ const FileEditorView = ({ filePath }: FileEditorViewProps) => {
 
   if (loading) {
     return (
-      <div className="text-xp-text-muted flex h-full items-center justify-center text-sm">
+      <div className="flex h-full items-center justify-center text-sm text-xp-text-muted">
         {t('pages.editor.loading')}
       </div>
     );
@@ -168,38 +168,38 @@ const FileEditorView = ({ filePath }: FileEditorViewProps) => {
 
   if (error && !content) {
     return (
-      <div className="text-xp-text-muted flex h-full items-center justify-center px-4 text-center text-sm">
+      <div className="flex h-full items-center justify-center px-4 text-center text-sm text-xp-text-muted">
         {error}
       </div>
     );
   }
 
   return (
-    <div className="bg-xp-bg flex h-full flex-col">
+    <div className="flex h-full flex-col bg-xp-bg">
       {/* Toolbar */}
-      <div className="border-xp-border bg-xp-surface flex flex-shrink-0 items-center justify-between border-b px-4 py-2">
+      <div className="flex flex-shrink-0 items-center justify-between border-b border-xp-border bg-xp-surface px-4 py-2">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="text-xp-text truncate text-sm font-medium" title={filePath}>
+          <span className="truncate text-sm font-medium text-xp-text" title={filePath}>
             {fileName}
           </span>
           {isDirty && (
-            <span className="text-xp-orange bg-xp-orange/10 rounded px-1.5 py-0.5 text-xs font-medium">
+            <span className="rounded-[2px] bg-xp-orange/10 px-1.5 py-0.5 text-xs font-medium text-xp-orange">
               {t('pages.editor.modified')}
             </span>
           )}
-          {saving && <span className="text-xp-text-muted text-xs">{t('pages.editor.saving')}</span>}
+          {saving && <span className="text-xs text-xp-text-muted">{t('pages.editor.saving')}</span>}
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={handleCopy}
-            className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-text rounded p-1.5 transition-colors"
+            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             title={t('pages.editor.titleCopyContents')}
           >
             {copied ? <Check size={15} className="text-xp-green" /> : <Copy size={15} />}
           </button>
           <button
             onClick={() => setWordWrap(!wordWrap)}
-            className={`hover:bg-xp-surface-light rounded p-1.5 transition-colors ${
+            className={`rounded-[2px] p-1.5 transition-colors hover:bg-xp-surface-light ${
               wordWrap ? 'text-xp-blue' : 'text-xp-text-muted hover:text-xp-text'
             }`}
             title={t('pages.editor.titleToggleWordWrap')}
@@ -209,7 +209,7 @@ const FileEditorView = ({ filePath }: FileEditorViewProps) => {
           <button
             onClick={handleRevert}
             disabled={!isDirty}
-            className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-text rounded p-1.5 transition-colors disabled:opacity-30"
+            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-30"
             title={t('pages.editor.titleRevertChanges')}
           >
             <RotateCcw size={15} />
@@ -217,7 +217,7 @@ const FileEditorView = ({ filePath }: FileEditorViewProps) => {
           <button
             onClick={handleSave}
             disabled={!isDirty || saving}
-            className="hover:bg-xp-surface-light text-xp-text-muted hover:text-xp-blue rounded p-1.5 transition-colors disabled:opacity-30"
+            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-blue disabled:opacity-30"
             title={t('pages.editor.titleSave')}
           >
             <Save size={15} />
@@ -226,7 +226,7 @@ const FileEditorView = ({ filePath }: FileEditorViewProps) => {
       </div>
 
       {error && (
-        <div className="bg-xp-red/10 text-xp-red flex-shrink-0 px-4 py-1.5 text-xs">{error}</div>
+        <div className="flex-shrink-0 bg-xp-red/10 px-4 py-1.5 text-xs text-xp-red">{error}</div>
       )}
 
       {/* Editor area */}
@@ -234,9 +234,9 @@ const FileEditorView = ({ filePath }: FileEditorViewProps) => {
         {/* Line numbers */}
         <div
           ref={lineNumbersRef}
-          className="bg-xp-surface/50 border-xp-border flex-shrink-0 select-none overflow-hidden border-r px-3 py-3"
+          className="flex-shrink-0 select-none overflow-hidden border-r border-xp-border bg-xp-surface/50 px-3 py-3"
         >
-          <div className="text-xp-text-muted text-right font-mono text-sm leading-[1.5rem]">
+          <div className="text-right font-mono text-sm leading-[1.5rem] text-xp-text-muted">
             {Array.from({ length: lineCount }, (_, i) => (
               <div key={i}>{i + 1}</div>
             ))}
@@ -257,7 +257,7 @@ const FileEditorView = ({ filePath }: FileEditorViewProps) => {
           onSelect={emitCursorPosition}
           onScroll={handleScroll}
           spellCheck={false}
-          className={`text-xp-text flex-1 resize-none bg-transparent p-3 font-mono text-sm leading-[1.5rem] outline-none ${
+          className={`flex-1 resize-none bg-transparent p-3 font-mono text-sm leading-[1.5rem] text-xp-text outline-none ${
             wordWrap ? 'whitespace-pre-wrap break-words' : 'overflow-x-auto whitespace-pre'
           }`}
           style={{ tabSize: 2 }}
@@ -265,7 +265,7 @@ const FileEditorView = ({ filePath }: FileEditorViewProps) => {
       </div>
 
       {/* Status bar */}
-      <div className="border-xp-border text-xp-text-muted bg-xp-surface flex flex-shrink-0 items-center justify-between border-t px-4 py-1.5 text-xs">
+      <div className="flex flex-shrink-0 items-center justify-between border-t border-xp-border bg-xp-surface px-4 py-1.5 text-xs text-xp-text-muted">
         <span>{t('pages.editor.lines', { count: lineCount })}</span>
         <span>{ext}</span>
       </div>

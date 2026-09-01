@@ -300,7 +300,7 @@ const DuplicateFinderPanel = ({ currentPath = '' }: DuplicateFinderPanelProps) =
             value={scanPath}
             onChange={(e) => setScanPath(e.target.value)}
             placeholder={t('panels.duplicateFinder.pathPlaceholder')}
-            className="flex-1 rounded border border-xp-border bg-xp-surface px-2 py-1.5 text-xs transition-colors focus:border-xp-blue focus:outline-none"
+            className="flex-1 rounded-[2px] border border-xp-border bg-xp-surface px-2 py-1.5 text-xs transition-colors focus:border-xp-blue focus:outline-none"
             disabled={isScanning}
             aria-label={t('panels.duplicateFinder.pathAriaLabel')}
           />
@@ -313,7 +313,7 @@ const DuplicateFinderPanel = ({ currentPath = '' }: DuplicateFinderPanelProps) =
               type="number"
               value={minFileSize}
               onChange={(e) => setMinFileSize(parseInt(e.target.value) || 0)}
-              className="w-20 rounded border border-xp-border bg-xp-surface px-1.5 py-1 text-xs focus:border-xp-blue focus:outline-none"
+              className="w-20 rounded-[2px] border border-xp-border bg-xp-surface px-1.5 py-1 text-xs focus:border-xp-blue focus:outline-none"
               disabled={isScanning}
               aria-label={t('panels.duplicateFinder.minAriaLabel')}
             />
@@ -323,7 +323,7 @@ const DuplicateFinderPanel = ({ currentPath = '' }: DuplicateFinderPanelProps) =
           {isScanning ? (
             <button
               onClick={handleCancelScan}
-              className="flex items-center gap-1.5 rounded border border-xp-red/20 bg-xp-red/10 px-3 py-1.5 text-xs font-medium text-xp-red transition-colors hover:bg-xp-red/20"
+              className="flex items-center gap-1.5 rounded-[2px] border border-xp-red/20 bg-xp-red/10 px-3 py-1.5 text-xs font-medium text-xp-red transition-colors hover:bg-xp-red/20"
               aria-label={t('panels.duplicateFinder.cancelAriaLabel')}
             >
               <X className="h-3 w-3" />
@@ -332,7 +332,7 @@ const DuplicateFinderPanel = ({ currentPath = '' }: DuplicateFinderPanelProps) =
           ) : (
             <button
               onClick={handleStartScan}
-              className="flex items-center gap-1.5 rounded bg-xp-blue px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-xp-blue/80"
+              className="flex items-center gap-1.5 rounded-[2px] bg-xp-blue px-3 py-1.5 text-xs font-medium text-xp-on-accent transition-colors hover:bg-xp-blue/80"
               aria-label={t('panels.duplicateFinder.scanAriaLabel')}
             >
               <Search className="h-3 w-3" />
@@ -353,9 +353,9 @@ const DuplicateFinderPanel = ({ currentPath = '' }: DuplicateFinderPanelProps) =
               {t('panels.duplicateFinder.files')}
             </span>
           </div>
-          <div className="h-1.5 w-full rounded bg-xp-surface">
+          <div className="h-1.5 w-full rounded-[2px] bg-xp-surface">
             <div
-              className="h-1.5 rounded bg-xp-blue transition-all duration-300"
+              className="h-1.5 rounded-[2px] bg-xp-blue transition-all duration-300"
               style={{
                 width:
                   progress.totalFiles > 0
@@ -434,7 +434,7 @@ const DuplicateFinderPanel = ({ currentPath = '' }: DuplicateFinderPanelProps) =
                     {/* Size badge */}
                     <span
                       className={cn(
-                        'rounded border px-1.5 py-0.5 font-mono text-[10px]',
+                        'rounded-[2px] border px-1.5 py-0.5 font-mono text-[10px]',
                         sizeBadgeColor(group.size),
                       )}
                     >
@@ -468,7 +468,7 @@ const DuplicateFinderPanel = ({ currentPath = '' }: DuplicateFinderPanelProps) =
                         selectAllDuplicatesInGroup(group);
                       }}
                       className={cn(
-                        'rounded border px-1.5 py-0.5 text-[10px] transition-colors',
+                        'rounded-[2px] border px-1.5 py-0.5 text-[10px] transition-colors',
                         allDupsSelected
                           ? 'border-xp-blue/30 bg-xp-blue/20 text-xp-blue'
                           : 'border-xp-border bg-xp-surface text-xp-text-muted hover:border-xp-blue/50',
@@ -498,7 +498,7 @@ const DuplicateFinderPanel = ({ currentPath = '' }: DuplicateFinderPanelProps) =
                           <div
                             key={file.path}
                             className={cn(
-                              'flex items-center gap-2 rounded px-2 py-1 text-xs transition-colors',
+                              'flex items-center gap-2 rounded-[2px] px-2 py-1 text-xs transition-colors',
                               selectedFiles.has(file.path)
                                 ? 'border border-xp-blue/20 bg-xp-blue/10'
                                 : 'hover:bg-xp-surface/50',
@@ -536,7 +536,7 @@ const DuplicateFinderPanel = ({ currentPath = '' }: DuplicateFinderPanelProps) =
 
                             <button
                               onClick={() => handleOpenFolder(file.path)}
-                              className="flex-shrink-0 rounded p-1 transition-colors hover:bg-xp-surface-light"
+                              className="flex-shrink-0 rounded-[2px] p-1 transition-colors hover:bg-xp-surface-light"
                               title={t('panels.duplicateFinder.openFolderTitle')}
                               aria-label={t('panels.duplicateFinder.openFolderAriaLabel', {
                                 name: file.name,
@@ -586,7 +586,7 @@ const DuplicateFinderPanel = ({ currentPath = '' }: DuplicateFinderPanelProps) =
               </span>
               <button
                 onClick={handleMoveToTrash}
-                className="flex items-center gap-1 rounded border border-xp-red/20 bg-xp-red/10 px-2 py-1 text-[11px] font-medium text-xp-red transition-colors hover:bg-xp-red/20"
+                className="flex items-center gap-1 rounded-[2px] border border-xp-red/20 bg-xp-red/10 px-2 py-1 text-[11px] font-medium text-xp-red transition-colors hover:bg-xp-red/20"
                 aria-label={t('panels.duplicateFinder.deleteSelectedAriaLabel', {
                   count: selectedFiles.size,
                 })}
@@ -599,7 +599,7 @@ const DuplicateFinderPanel = ({ currentPath = '' }: DuplicateFinderPanelProps) =
           <span className="flex-1" />
           <button
             onClick={handleExportReport}
-            className="flex items-center gap-1 rounded border border-xp-border bg-xp-surface px-2 py-1 text-[11px] font-medium text-xp-text-muted transition-colors hover:border-xp-blue/50 hover:text-xp-text"
+            className="flex items-center gap-1 rounded-[2px] border border-xp-border bg-xp-surface px-2 py-1 text-[11px] font-medium text-xp-text-muted transition-colors hover:border-xp-blue/50 hover:text-xp-text"
             aria-label={t('panels.duplicateFinder.exportReportAriaLabel')}
           >
             <ClipboardCopy className="h-3 w-3" />

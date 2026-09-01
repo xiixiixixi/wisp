@@ -32,7 +32,7 @@ const FileAssociationsSettings = () => {
             {entries.map(([ext, handler]) => (
               <div
                 key={ext}
-                className="hover:bg-xp-surface-light/50 flex items-center justify-between rounded-lg px-3 py-2.5 transition-colors"
+                className="flex items-center justify-between rounded-[2px] px-3 py-2.5 transition-colors hover:bg-xp-surface-light/50"
               >
                 <div className="flex items-center gap-3">
                   <FileCode size={16} className="shrink-0 text-xp-text-secondary" />
@@ -45,7 +45,7 @@ const FileAssociationsSettings = () => {
                 </div>
                 <button
                   onClick={() => clearPreference(ext)}
-                  className="rounded-md p-1.5 text-xp-text-secondary transition-colors hover:text-xp-red"
+                  className="rounded-[2px] p-1.5 text-xp-text-secondary transition-colors hover:text-xp-red"
                   title={t('settings.fileAssociations.reset')}
                   aria-label={t('settings.fileAssociations.resetExt', { ext })}
                 >
