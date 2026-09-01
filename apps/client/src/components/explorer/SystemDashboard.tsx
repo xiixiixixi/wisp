@@ -70,11 +70,17 @@ const Gauge = ({
         <p className="mt-1.5 truncate text-xs text-white/85" title={subtitle}>
           {subtitle}
         </p>
-        <div className="mt-2 h-1 rounded-full bg-white/30">
+        <div className="relative mt-2 h-1 rounded-full bg-white/30">
           <div
             className="h-1 rounded-full bg-white transition-all duration-500"
             style={{ width: `${value}%` }}
           />
+          {hasData && (
+            <span
+              className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-[var(--xp-lime)] shadow-[0_0_0_2px_rgba(255,255,255,0.85)]"
+              style={{ left: `calc(${Math.min(Math.max(value, 2), 98)}% - 5px)` }}
+            />
+          )}
         </div>
       </div>
     );
@@ -103,11 +109,17 @@ const Gauge = ({
       <p className="mt-1 truncate text-xs text-xp-text-muted" title={subtitle}>
         {subtitle}
       </p>
-      <div className="bg-xp-border/60 mt-2.5 h-1 rounded-full">
+      <div className="bg-xp-border/60 relative mt-2.5 h-1 rounded-full">
         <div
           className="h-1 rounded-full transition-all duration-500"
           style={{ width: `${value}%`, backgroundColor: color }}
         />
+        {hasData && (
+          <span
+            className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-[var(--xp-lime)] shadow-[0_0_0_2px_rgba(255,255,255,0.9)]"
+            style={{ left: `calc(${Math.min(Math.max(value, 2), 98)}% - 5px)` }}
+          />
+        )}
       </div>
     </div>
   );

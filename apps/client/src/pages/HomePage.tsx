@@ -131,6 +131,35 @@ const RecentFileTypeIcon = ({
   return <FileText className={className} />;
 };
 
+/** Hero stat: big dot-matrix number with a small white pill label. */
+const HeroStat = ({ value, label }: { value: string | number; label: string }) => (
+  <div className="flex items-center gap-2">
+    <span className="font-dot text-3xl leading-none text-xp-text">{value}</span>
+    <span className="rounded-full bg-card px-2 py-0.5 text-[10px] font-medium text-xp-text-secondary shadow-[0_1px_4px_rgba(29,28,26,0.08)]">
+      {label}
+    </span>
+  </div>
+);
+
+/** Section heading: title + muted subtitle, optional right-side action. */
+const SectionHeader = ({
+  title,
+  subtitle,
+  action,
+}: {
+  title: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+}) => (
+  <div className="mb-3 flex items-end justify-between gap-4">
+    <div>
+      <h2 className="text-lg font-semibold tracking-tight text-xp-text">{title}</h2>
+      {subtitle && <p className="mt-0.5 text-xs text-xp-text-muted">{subtitle}</p>}
+    </div>
+    {action}
+  </div>
+);
+
 const Clock = () => {
   const { t, i18n } = useTranslation();
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -160,7 +189,7 @@ const Clock = () => {
   return (
     <div className="flex items-end justify-between gap-8">
       <div>
-        <p className="text-2xl font-semibold leading-tight tracking-tight text-xp-text">
+        <p className="text-3xl font-semibold leading-tight tracking-tight text-xp-text">
           {t(greetingKey)}
         </p>
         <p className="mt-1 flex items-center gap-1.5 text-xs text-xp-text-muted">
@@ -213,7 +242,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
   const { toast } = useToast();
   const [recommendedFolders, setRecommendedFolders] = useState<string[]>([]);
   const [userDirectories, setUserDirectories] = useState<UserDirectories | null>(null);
-  const [_quickStats, setQuickStats] = useState<QuickStats>({
+  const [quickStats, setQuickStats] = useState<QuickStats>({
     totalFiles: 0,
     totalFolders: 0,
     totalSize: '0 B',
@@ -229,6 +258,14 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
   // Recent files state
   const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
   const [recentFilesLoading, setRecentFilesLoading] = useState(true);
+  const [indexCount, setIndexCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (isBrowserDemoMode()) return;
+    TauriAPI.getTokenizerStats()
+      .then((s) => setIndexCount(s.total_files))
+      .catch(() => setIndexCount(null));
+  }, []);
 
   const loadRecentFiles = useCallback(async () => {
     setRecentFilesLoading(true);
@@ -554,9 +591,20 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
   return (
     <div className="relative flex h-full flex-col overflow-auto bg-xp-bg text-xp-text">
       <div className="mx-auto grid min-h-0 w-full max-w-6xl flex-1 grid-cols-1 gap-y-5 px-6 py-6 lg:grid-cols-12 lg:gap-x-5 lg:px-8">
-        {/* Compact header */}
+        {/* Compact header + hero stat row */}
         <div className="order-0 lg:col-span-12">
           <Clock />
+          <div className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-3">
+            <HeroStat value={quickStats.totalFiles.toLocaleString()} label={t('home.statFiles')} />
+            <HeroStat
+              value={quickStats.totalFolders.toLocaleString()}
+              label={t('home.statFolders')}
+            />
+            <HeroStat value={quickStats.totalSize} label={t('home.statSize')} />
+            {indexCount !== null && (
+              <HeroStat value={indexCount.toLocaleString()} label={t('home.statIndexed')} />
+            )}
+          </div>
         </div>
 
         {/* System dashboard: live CPU / memory / disk gauges */}
@@ -567,9 +615,10 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
         {/* Quick access — ambient glass tiles for the everyday locations */}
         {quickAccessTiles.length > 0 && (
           <div className="order-2 lg:col-span-12">
-            <p className="mb-2.5 text-base font-semibold tracking-tight text-xp-text">
-              {t('sidebar.quickAccess')}
-            </p>
+            <SectionHeader
+              title={t('sidebar.quickAccess')}
+              subtitle={t('home.quickAccessSubtitle')}
+            />
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
               {quickAccessTiles.map(({ key, label, path, Icon, tintA, tintB }) => (
                 <button
@@ -577,7 +626,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                   type="button"
                   onClick={() => handleNavigate(path)}
                   title={path}
-                  className="glass-card group flex flex-col items-start gap-6 rounded-2xl p-3.5 text-left transition-transform duration-150 hover:-translate-y-0.5"
+                  className="glass-card group flex flex-col items-center gap-3 rounded-2xl p-4 text-center transition-transform duration-150 hover:-translate-y-0.5"
                   style={
                     {
                       '--tint-a': tintA,
@@ -585,7 +634,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                     } as React.CSSProperties
                   }
                 >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-card text-xp-text shadow-[0_1px_5px_rgba(29,28,26,0.1)]">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-card text-xp-text shadow-[0_1px_5px_rgba(29,28,26,0.1)]">
                     <Icon size={16} aria-hidden="true" />
                   </span>
                   <span className="w-full truncate text-xs font-medium text-xp-text">{label}</span>
@@ -625,18 +674,18 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
         {/* Recent Files */}
         {!recentFilesLoading && recentFiles.length > 0 && (
           <div className="order-4 lg:col-span-12">
-            <div className="mb-2 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Clock3 size={16} aria-hidden="true" />
-                <span className="text-sm font-medium text-xp-text">{t('home.recentFiles')}</span>
-              </div>
-              <button
-                onClick={handleClearRecentFiles}
-                className="hover:text-xp-error text-[11px] text-xp-text-muted transition-colors"
-              >
-                {t('home.clearAll')}
-              </button>
-            </div>
+            <SectionHeader
+              title={t('home.recentFiles')}
+              subtitle={t('home.recentFilesSubtitle')}
+              action={
+                <button
+                  onClick={handleClearRecentFiles}
+                  className="flex h-8 items-center rounded-full bg-card px-3.5 text-xs font-medium text-xp-text-secondary shadow-[0_1px_5px_rgba(29,28,26,0.08)] transition-transform hover:-translate-y-px hover:text-xp-text"
+                >
+                  {t('home.clearAll')}
+                </button>
+              }
+            />
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
               {recentFiles.map((file) => {
                 const gradient = recentFileGradient(file.file_type);
@@ -652,27 +701,27 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                     }}
                     role="button"
                     tabIndex={0}
-                    className="glass-card group relative flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-all duration-150"
+                    className="glass-card group relative flex cursor-pointer flex-col items-center gap-2.5 rounded-2xl px-3 py-4 text-center transition-transform duration-150 hover:-translate-y-0.5"
                     title={file.path}
                   >
                     <div
-                      className={`h-7 w-7 rounded-md bg-gradient-to-br ${gradient} flex flex-shrink-0 items-center justify-center`}
+                      className={`h-10 w-10 rounded-full bg-gradient-to-br ${gradient} flex flex-shrink-0 items-center justify-center shadow-[0_2px_8px_rgba(29,28,26,0.15)]`}
                     >
                       <RecentFileTypeIcon
                         fileType={file.file_type}
-                        className="h-3.5 w-3.5 text-white"
+                        className="h-4 w-4 text-white"
                       />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-xp-text">{file.name}</p>
-                      <p className="text-[10px] text-xp-text-muted">
+                    <div className="w-full min-w-0">
+                      <p className="truncate text-[13px] font-medium text-xp-text">{file.name}</p>
+                      <p className="mt-0.5 text-[10px] text-xp-text-muted">
                         {relativeTime(file.accessed_at, t)}
                       </p>
                     </div>
                     {/* Remove button on hover */}
                     <button
                       onClick={(e) => handleRemoveRecentFile(e, file.path)}
-                      className="hover:bg-xp-error/20 hover:text-xp-error absolute right-1 top-1 rounded p-0.5 text-xp-text-muted opacity-0 transition-all group-hover:opacity-100"
+                      className="hover:bg-xp-error/20 hover:text-xp-error absolute right-1.5 top-1.5 rounded-full bg-card p-1 text-xp-text-muted opacity-0 shadow-sm transition-all group-hover:opacity-100"
                       title={t('home.removeFromRecent')}
                       aria-label={t('home.removeFromRecent')}
                     >
