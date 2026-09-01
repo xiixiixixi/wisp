@@ -463,7 +463,7 @@ const Settings = () => {
               </div>
             </div>
 
-            <div className="border-xp-blue/30 bg-xp-blue/5 rounded-lg border p-5">
+            <div className="rounded-lg border border-xp-blue/30 bg-xp-blue/5 p-5">
               <div className="flex items-start gap-3">
                 <Heart size={20} className="mt-0.5 flex-shrink-0 text-xp-blue" />
                 <div>
@@ -475,7 +475,7 @@ const Settings = () => {
                   </p>
                   <button
                     onClick={() => TauriAPI.openUrl('https://github.com/sponsors/xiixiixixi')}
-                    className="hover:bg-xp-blue/80 mt-3 inline-flex items-center gap-2 rounded-md bg-xp-blue px-4 py-2 text-sm font-medium text-white transition-colors"
+                    className="mt-3 inline-flex items-center gap-2 rounded-md bg-xp-blue px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-xp-blue/80"
                   >
                     <Heart size={14} />
                     {t('settings.about.sponsorButton')}
@@ -524,7 +524,7 @@ const Settings = () => {
       <div className="flex-1 overflow-hidden">
         <div className="mx-auto flex h-full max-w-7xl">
           {/* Sidebar */}
-          <nav className="border-xp-border/50 w-64 shrink-0 overflow-y-auto border-r px-3 py-4">
+          <nav className="border-xp-border/50 scrollbar-none w-64 shrink-0 overflow-y-auto border-r px-3 py-4">
             <div className="space-y-4">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
@@ -558,7 +558,7 @@ const Settings = () => {
           </nav>
 
           {/* Content */}
-          <main className="flex-1 overflow-y-auto px-6 py-6">
+          <main className="scrollbar-none flex-1 overflow-y-auto px-6 py-6">
             <div className="max-w-3xl">
               {/* Tab heading */}
               <div className="mb-4 px-4">

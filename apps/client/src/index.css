@@ -2047,7 +2047,8 @@ html.theme-light .wisp-statusbar {
   backdrop-filter: none;
 }
 
-/* Thin quiet scrollbars */
+/* Thin quiet scrollbars — keep the app-wide auto-hide contract (thumbs
+   only paint while the container carries .is-scrolling), just inkier. */
 html.theme-light ::-webkit-scrollbar {
   width: 9px;
   height: 9px;
@@ -2056,17 +2057,22 @@ html.theme-light ::-webkit-scrollbar-track {
   background: transparent;
 }
 html.theme-light ::-webkit-scrollbar-thumb {
-  background: rgba(29, 28, 26, 0.16);
+  background: transparent;
+}
+html.theme-light .is-scrolling::-webkit-scrollbar-thumb {
+  background-color: rgba(29, 28, 26, 0.22);
   background-clip: content-box;
   border: 2px solid transparent;
   border-radius: 999px;
 }
-html.theme-light ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(29, 28, 26, 0.28);
+html.theme-light .is-scrolling::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(29, 28, 26, 0.32);
 }
 html.theme-light {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(29, 28, 26, 0.18) transparent;
+  scrollbar-color: transparent transparent;
+}
+html.theme-light .is-scrolling {
+  scrollbar-color: rgba(29, 28, 26, 0.25) transparent;
 }
 
 /* ── File-row selection ─────────────────────────────────────────────
