@@ -524,7 +524,7 @@ const Settings = () => {
       <div className="flex-1 overflow-hidden">
         <div className="mx-auto flex h-full max-w-7xl">
           {/* Sidebar */}
-          <nav className="border-xp-border/50 scrollbar-none w-64 shrink-0 overflow-y-auto border-r px-3 py-4">
+          <nav className="scrollbar-none w-64 shrink-0 overflow-y-auto px-3 py-4">
             <div className="space-y-4">
               {tabs.map((tab) => {
                 const Icon = tab.icon;

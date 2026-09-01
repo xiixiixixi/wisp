@@ -3107,6 +3107,7 @@
   },
   "performanceDashboard": {
     "title": "活动",
+    "activity": "活动",
     "batchRename": "批量改名",
     "findPlaceholder": "查找",
     "replacePlaceholder": "替换为",
