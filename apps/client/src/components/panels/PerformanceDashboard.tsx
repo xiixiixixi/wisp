@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import React, { useState, useCallback } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { usePerformanceStats, type CleanupSuggestion } from '@/hooks/use-performance-stats';
+import { usePerformanceStats } from '@/hooks/use-performance-stats';
 import {
   sectionHeaderStyle,
   type PerformanceDashboardProps,
@@ -21,15 +21,6 @@ const PerformanceDashboard = React.memo(
       currentPath,
       allFiles,
       true,
-    );
-
-    const handleSuggestionAction = useCallback(
-      (suggestion: CleanupSuggestion) => {
-        if (suggestion.actionType === 'navigate' && navigateToPath) {
-          navigateToPath(currentPath);
-        }
-      },
-      [navigateToPath, currentPath],
     );
 
     const handleCollapseAll = useCallback(() => {
@@ -95,9 +86,9 @@ const PerformanceDashboard = React.memo(
               <MetricCards
                 recentOps={recentOps}
                 suggestions={suggestions}
+                allFiles={allFiles}
                 isLoading={isLoading}
                 onRefresh={refreshStats}
-                onSuggestionAction={handleSuggestionAction}
               />
             )}
           </div>

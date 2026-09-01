@@ -910,7 +910,7 @@
     "ai": "AI",
     "agent": "Agent",
     "moreTools": "更多工具",
-    "performance": "性能",
+    "performance": "活动",
     "extensions": "扩展",
     "marketplace": "扩展市场",
     "settings": "设置"
@@ -3106,7 +3106,17 @@
     "moonWaningCrescent": "残月"
   },
   "performanceDashboard": {
-    "title": "性能指标",
+    "title": "活动",
+    "batchRename": "批量改名",
+    "findPlaceholder": "查找",
+    "replacePlaceholder": "替换为",
+    "previewRename": "预览",
+    "renameCount": "重命名 {{count}} 个",
+    "renaming": "重命名中…",
+    "renameDone": "已重命名 {{count}} 个文件",
+    "renameConflicts": "{{count}} 个冲突将跳过",
+    "regexToggle": "切换正则模式",
+    "plainText": "文本",
     "collapseAll": "全部折叠",
     "refresh": "刷新",
     "refreshing": "刷新中…",

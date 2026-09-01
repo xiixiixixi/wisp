@@ -141,7 +141,9 @@ const RecentFileTypeIcon = ({
 /** Hero stat: big dot-matrix number with a small white pill label. */
 const HeroStat = ({ value, label }: { value: string | number; label: string }) => (
   <div className="flex items-center gap-2">
-    <span className="font-dot text-3xl leading-none text-xp-text">{value}</span>
+    <span className="text-3xl font-light tabular-nums leading-none tracking-tight text-xp-text">
+      {value}
+    </span>
     <span className="rounded-full bg-card px-2 py-0.5 text-[10px] font-medium text-xp-text-secondary shadow-[0_1px_4px_rgba(29,28,26,0.08)]">
       {label}
     </span>
@@ -211,7 +213,7 @@ const Clock = () => {
         </p>
       </div>
       <div className="flex flex-col items-end gap-1.5">
-        <p className="font-dot text-5xl leading-none tracking-tight text-xp-text">
+        <p className="text-5xl font-extralight tabular-nums leading-none tracking-tighter text-xp-text">
           {currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
         </p>
         {report && descriptor && (

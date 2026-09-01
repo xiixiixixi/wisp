@@ -910,7 +910,7 @@
     "ai": "AI",
     "agent": "Agent",
     "moreTools": "More tools",
-    "performance": "Performance",
+    "performance": "Activity",
     "extensions": "Extensions",
     "marketplace": "Marketplace",
     "settings": "Settings"
@@ -3121,7 +3121,17 @@
     "moonWaningCrescent": "Waning crescent"
   },
   "performanceDashboard": {
-    "title": "Performance Metrics",
+    "title": "Activity",
+    "batchRename": "Batch Rename",
+    "findPlaceholder": "Find",
+    "replacePlaceholder": "Replace with",
+    "previewRename": "Preview",
+    "renameCount": "Rename {{count}}",
+    "renaming": "Renaming…",
+    "renameDone": "Renamed {{count}} files",
+    "renameConflicts": "{{count}} conflicts will be skipped",
+    "regexToggle": "Toggle regex mode",
+    "plainText": "Text",
     "collapseAll": "Collapse all",
     "refresh": "Refresh",
     "refreshing": "Refreshing…",

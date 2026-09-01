@@ -63,7 +63,7 @@ const Gauge = ({
             <span>{label}</span>
           </span>
         </div>
-        <p className="font-dot mt-1.5 text-4xl leading-none">
+        <p className="mt-1.5 text-4xl font-light leading-none tracking-tight">
           {hasData ? Math.round(value) : '—'}
           {hasData && <span className="ml-1 align-top text-lg">%</span>}
         </p>
@@ -102,7 +102,7 @@ const Gauge = ({
         </span>
         <span className="text-xs font-medium text-xp-text-muted">{label}</span>
       </div>
-      <p className="font-dot mt-2 text-3xl leading-none text-xp-text">
+      <p className="mt-2 text-3xl font-light tabular-nums leading-none tracking-tight text-xp-text">
         {hasData ? Math.round(value) : '—'}
         {hasData && <span className="ml-1 align-top text-base text-xp-text-secondary">%</span>}
       </p>
