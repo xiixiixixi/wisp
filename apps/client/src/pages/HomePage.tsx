@@ -5,7 +5,13 @@ import { AgentService, type AgentEvent, type AgentToolCall } from '@/lib/agent-s
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import SystemDashboard from '@/components/explorer/SystemDashboard';
 import { formatFileSize, applyTheme } from '@/lib/utils';
-import { isWindows, ROOT_PATH, PATH_SEPARATOR, CLOCK_UPDATE_INTERVAL_MS } from '@/lib/constants';
+import {
+  isMac,
+  isWindows,
+  ROOT_PATH,
+  PATH_SEPARATOR,
+  CLOCK_UPDATE_INTERVAL_MS,
+} from '@/lib/constants';
 import { useAllThemes } from '@/lib/theme-registry';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -19,6 +25,7 @@ import { useWeather } from '@/hooks/use-weather';
 import { getWeatherLocation } from '@/lib/weather-location';
 import { describeWeatherCode } from '@/lib/weather';
 import {
+  Cloud,
   ArrowRight,
   Clock3,
   Download,
@@ -242,6 +249,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
   const { toast } = useToast();
   const [recommendedFolders, setRecommendedFolders] = useState<string[]>([]);
   const [userDirectories, setUserDirectories] = useState<UserDirectories | null>(null);
+  const [iCloudPath, setICloudPath] = useState<string | null>(null);
   const [quickStats, setQuickStats] = useState<QuickStats>({
     totalFiles: 0,
     totalFolders: 0,
@@ -473,6 +481,15 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
       const userDirs = await TauriAPI.getUserDirectories();
       setUserDirectories(userDirs);
 
+      if (isMac) {
+        // Finder's iCloud Drive is the whole Mobile Documents root —
+        // CloudDocs alone hides the per-app containers (Keynote, …).
+        const mobileRoot = `${userDirs.home}/Library/Mobile Documents`;
+        const cloudDocs = `${mobileRoot}/com~apple~CloudDocs`;
+        const root = (await TauriAPI.fileExists(mobileRoot)) ? mobileRoot : cloudDocs;
+        setICloudPath((await TauriAPI.fileExists(root)) ? root : null);
+      }
+
       const recent = await TauriAPI.getRecentFolders();
       setRecommendedFolders(recent.slice(0, 4));
 
@@ -564,9 +581,21 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
         tintA: 'rgba(240, 120, 150, 0.42)',
         tintB: 'rgba(150, 90, 235, 0.4)',
       },
+      ...(iCloudPath
+        ? [
+            {
+              key: 'icloud',
+              label: t('sidebar.icloudDrive'),
+              path: iCloudPath,
+              Icon: Cloud,
+              tintA: 'rgba(96, 165, 250, 0.45)',
+              tintB: 'rgba(129, 140, 248, 0.38)',
+            },
+          ]
+        : []),
     ].filter((tile) => Boolean(tile.path));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userDirectories]);
+  }, [userDirectories, iCloudPath]);
 
   const handleNavigate = (path: string) => {
     // Persisting a recent destination is secondary and must never block navigation.
@@ -619,7 +648,11 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
               title={t('sidebar.quickAccess')}
               subtitle={t('home.quickAccessSubtitle')}
             />
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+            <div
+              className={`grid grid-cols-2 gap-2 sm:grid-cols-3 ${
+                quickAccessTiles.length > 6 ? 'lg:grid-cols-4 xl:grid-cols-7' : 'lg:grid-cols-6'
+              }`}
+            >
               {quickAccessTiles.map(({ key, label, path, Icon, tintA, tintB }) => (
                 <button
                   key={key}

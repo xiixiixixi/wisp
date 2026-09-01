@@ -36,9 +36,13 @@ const SidebarQuickAccess = ({
         const userDirs = await TauriAPI.getUserDirectories();
         setUserDirectories(userDirs);
         if (isMac) {
-          const cloudDocsPath = `${userDirs.home}/Library/Mobile Documents/com~apple~CloudDocs`;
-          const exists = await TauriAPI.fileExists(cloudDocsPath);
-          setICloudPath(exists ? cloudDocsPath : null);
+          // Finder's iCloud Drive is the whole Mobile Documents root —
+          // CloudDocs holds only Desktop/Documents; app containers
+          // (Keynote, GoodNotes, …) are its siblings and must show too.
+          const mobileRoot = `${userDirs.home}/Library/Mobile Documents`;
+          const cloudDocs = `${mobileRoot}/com~apple~CloudDocs`;
+          const root = (await TauriAPI.fileExists(mobileRoot)) ? mobileRoot : cloudDocs;
+          setICloudPath((await TauriAPI.fileExists(root)) ? root : null);
         }
       } catch (error) {
         console.error('Failed to load user directories:', error);
