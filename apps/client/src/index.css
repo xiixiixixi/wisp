@@ -1895,7 +1895,7 @@ html[data-sky="day"] {
   background-attachment: fixed;
 }
 
-html[data-sky="dark"] {
+html[data-sky="dark"]:not(.theme-light) {
   color-scheme: dark;
   --background: #070a12;
   --foreground: #f1f5fb;
@@ -1945,6 +1945,18 @@ html[data-sky="dark"] {
     radial-gradient(900px 620px at 90% 10%, rgba(38, 90, 120, 0.18), transparent 60%),
     radial-gradient(1000px 760px at 80% 94%, rgba(120, 52, 105, 0.22), transparent 64%),
     radial-gradient(820px 640px at 16% 90%, rgba(40, 55, 120, 0.3), transparent 62%), #070b12;
+  background-attachment: fixed;
+}
+
+/* Night on Paper: dim the paper and moonlight it — never swap to a dark
+   skin. The dark-sky token rewrite above is Ink/Slate-only; forcing it on
+   Paper put light ink-on-white cards and azure icons on a dark ground
+   (unreadable). */
+html.theme-light[data-sky="dark"] {
+  background:
+    radial-gradient(1100px 720px at 14% -8%, rgba(122, 134, 178, 0.16), transparent 62%),
+    radial-gradient(900px 620px at 88% 10%, rgba(150, 140, 180, 0.1), transparent 60%),
+    radial-gradient(1000px 760px at 80% 96%, rgba(96, 88, 120, 0.1), transparent 64%), #d8d3ca;
   background-attachment: fixed;
 }
 
