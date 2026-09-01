@@ -73,6 +73,7 @@ const ICLOUD_HIDDEN_CONTAINERS: &[&str] = &[
     "com~apple~CloudDocs",
     ".Trash",
     "com~apple~mail~preferences",
+    "com~apple~mail",
     "com~apple~mobilemail",
     "com~apple~TextInput",
     "com~apple~VoiceOver~Braille",
@@ -86,12 +87,46 @@ const ICLOUD_HIDDEN_CONTAINERS: &[&str] = &[
     "iCloud~com~apple~mobilesafari",
     "iCloud~com~apple~MobileSMS",
     "iCloud~com~apple~passd",
-    "iCloud~com~apple~shortcuts~runtime",
     "com~apple~iBooks~iTunesU",
     "iCloud~com~apple~iBooks~iTunesU",
     "MQSJ8S45ED~cairot",
     "iCloud~cairot",
 ];
+
+/// Finder resolves container names through FileProvider metadata; without
+/// that private lookup, these overrides cover the apps whose bundle ids
+/// don't self-describe.
+#[cfg(target_os = "macos")]
+const ICLOUD_CONTAINER_NAME_OVERRIDES: &[(&str, &str)] = &[
+    ("iCloud~is~workflow~my~workflows", "Shortcuts"),
+    ("com~apple~TextEdit", "文本编辑"),
+];
+
+/// A container is worth showing only when something (including an iCloud
+/// `.icloud` placeholder) actually lives inside — empty scaffolds are what
+/// Finder hides. The walk is capped so a huge container can't stall listing.
+#[cfg(target_os = "macos")]
+fn container_has_content(dir: &Path) -> bool {
+    let mut stack = vec![dir.to_path_buf()];
+    let mut visited = 0usize;
+    while let Some(current) = stack.pop() {
+        visited += 1;
+        if visited > 4_000 {
+            return true;
+        }
+        let Ok(entries) = fs::read_dir(&current) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            match entry.file_type() {
+                Ok(file_type) if file_type.is_dir() => stack.push(entry.path()),
+                Ok(_) => return true,
+                Err(_) => continue,
+            }
+        }
+    }
+    false
+}
 
 /// Best-effort friendly name: drop the team-id prefix and the
 /// iCloud/com/apple routing segments, keep the last meaningful segment
@@ -182,10 +217,17 @@ fn read_icloud_root_merged(mobile: &Path) -> Result<Vec<FileEntry>, String> {
             } else {
                 continue;
             };
+            if !container_has_content(&visible_dir) {
+                continue;
+            }
             let Some(mut entry) = file_entry_for(&visible_dir) else {
                 continue;
             };
-            let mut name = icloud_container_display_name(&raw);
+            let mut name = ICLOUD_CONTAINER_NAME_OVERRIDES
+                .iter()
+                .find(|(raw_name, _)| *raw_name == raw)
+                .map(|(_, friendly)| friendly.to_string())
+                .unwrap_or_else(|| icloud_container_display_name(&raw));
             let mut bump = 2;
             while !used_names.insert(name.to_lowercase()) {
                 name = format!("{} ({})", icloud_container_display_name(&raw), bump);
