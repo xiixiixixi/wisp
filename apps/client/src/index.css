@@ -23,94 +23,88 @@ body {
 }
 
 :root {
-  /* Liquid Glass defaults (html boots with class="theme-rolex" before JS loads).
-     Every chrome surface is a translucent pane over a fixed ambient aurora;
-     --glass-* vars carry the material so all themes share one glass vocabulary. */
-  --background: #070a12;
-  --foreground: #f1f5fb;
-  --muted: rgba(255, 255, 255, 0.055);
-  --muted-foreground: #9aa9c0;
-  --popover: rgba(15, 21, 36, 0.9);
-  --popover-foreground: #f1f5fb;
-  --card: rgba(255, 255, 255, 0.06);
-  --card-foreground: #f1f5fb;
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(255, 255, 255, 0.08);
-  --primary: #4da3ff;
-  --primary-foreground: #06101f;
-  --secondary: rgba(255, 255, 255, 0.07);
-  --secondary-foreground: #e3ecf6;
-  --accent: rgba(255, 255, 255, 0.08);
-  --accent-foreground: #f1f5fb;
-  --destructive: #ff7575;
-  --destructive-foreground: #200f0f;
-  --ring: #4da3ff;
-  --radius: 0.625rem;
+  /* MUJI paper defaults — html boots light; SkySync refines polarity. */
+  --background: #efece3;
+  --foreground: #38352f;
+  --muted: rgba(56, 53, 47, 0.05);
+  --muted-foreground: #6e6a61;
+  --popover: rgba(247, 245, 239, 0.99);
+  --popover-foreground: #38352f;
+  --card: #f7f5ee;
+  --card-foreground: #38352f;
+  --border: rgba(56, 53, 47, 0.14);
+  --input: rgba(247, 245, 238, 0.9);
+  --primary: #45423c;
+  --primary-foreground: #f7f5ee;
+  --secondary: rgba(56, 53, 47, 0.06);
+  --secondary-foreground: #45423c;
+  --accent: rgba(56, 53, 47, 0.07);
+  --accent-foreground: #38352f;
+  --destructive: #a85646;
+  --destructive-foreground: #f7f5ee;
+  --ring: #8c8880;
+  --radius: 0.375rem;
 
-  /* Glass material */
-  --glass-tint: rgba(10, 14, 26, 0.5);
-  --glass-tint-strong: rgba(14, 20, 34, 0.86);
-  --glass-hairline: rgba(255, 255, 255, 0.14);
-  --glass-highlight: rgba(255, 255, 255, 0.17);
-  --glass-well: rgba(255, 255, 255, 0.05);
-  --glass-blur: 36px;
-  --glass-saturate: 1.8;
-  --glass-shadow: 0 16px 48px rgba(3, 7, 15, 0.42), 0 2px 10px rgba(3, 7, 15, 0.3);
-  --glass-dotted: rgba(255, 255, 255, 0.22);
+  --glass-tint: rgba(247, 245, 238, 0.97);
+  --glass-tint-strong: rgba(249, 247, 241, 0.99);
+  --glass-hairline: rgba(56, 53, 47, 0.14);
+  --glass-highlight: transparent;
+  --glass-well: rgba(56, 53, 47, 0.04);
+  --glass-blur: 0px;
+  --glass-saturate: 1;
+  --glass-shadow: 0 0 0 1px rgba(56, 53, 47, 0.12);
+  --glass-dotted: rgba(56, 53, 47, 0.2);
 
-  --xp-bg: #070a12;
-  --xp-bg-gradient: #070a12;
-  --xp-surface: rgba(255, 255, 255, 0.065);
-  --xp-surface-light: rgba(255, 255, 255, 0.13);
-  --xp-sidebar: rgba(9, 13, 24, 0.5);
-  --xp-chrome: rgba(8, 12, 22, 0.52);
-  --xp-rail: rgba(7, 10, 19, 0.5);
-  --xp-inspector: rgba(9, 13, 24, 0.5);
-  --xp-popover: rgba(15, 21, 36, 0.92);
-  --xp-blue: #4da3ff;
-  --xp-blue-rgb: 77 163 255;
-  --xp-blue-dark: #2f7fe0;
-  --xp-blue-dark-rgb: 47 127 224;
-  --xp-accent: #4da3ff;
-  --xp-accent-rgb: 77 163 255;
-  --xp-accent-hover: #6fb5ff;
-  --xp-accent-hover-rgb: 111 181 255;
-  --xp-purple: #a9a2ff;
-  --xp-purple-rgb: 169 162 255;
-  --xp-pink: #ff8ec4;
-  --xp-pink-rgb: 255 142 196;
-  --xp-green: #4cd695;
-  --xp-green-rgb: 76 214 149;
-  --xp-orange: #ffab5e;
-  --xp-orange-rgb: 255 171 94;
-  --xp-yellow: #ffd166;
-  --xp-yellow-rgb: 255 209 102;
-  --xp-red: #ff7575;
-  --xp-red-rgb: 255 117 117;
-  --xp-cyan: #45d4dd;
-  --xp-cyan-rgb: 69 212 221;
-  --xp-text: #f1f5fb;
-  --xp-text-secondary: #aebdd1;
-  --xp-text-muted: #7d8ca3;
-  --xp-border: rgba(255, 255, 255, 0.12);
-  --xp-border-light: rgba(255, 255, 255, 0.22);
-  --xp-selection-bg: rgba(77, 163, 255, 0.24);
-  --xp-selection-border: rgba(77, 163, 255, 0.45);
-  --xp-shadow-popover: 0 18px 50px rgba(3, 7, 15, 0.5), 0 4px 14px rgba(3, 7, 15, 0.35);
+  --xp-bg: #efece3;
+  --xp-bg-gradient: #efece3;
+  --xp-surface: rgba(247, 245, 238, 0.97);
+  --xp-surface-light: rgba(251, 250, 245, 0.97);
+  --xp-sidebar: rgba(236, 233, 223, 0.97);
+  --xp-chrome: rgba(237, 234, 224, 0.97);
+  --xp-rail: rgba(235, 232, 221, 0.97);
+  --xp-inspector: rgba(242, 239, 231, 0.97);
+  --xp-popover: rgba(247, 245, 239, 0.99);
+  --xp-blue: #45423c;
+  --xp-blue-rgb: 69 66 60;
+  --xp-blue-dark: #33312c;
+  --xp-blue-dark-rgb: 51 49 44;
+  --xp-accent: #45423c;
+  --xp-accent-rgb: 69 66 60;
+  --xp-accent-hover: #5a564e;
+  --xp-accent-hover-rgb: 90 86 78;
+  --xp-purple: #7b7286;
+  --xp-purple-rgb: 123 114 134;
+  --xp-pink: #ab7d76;
+  --xp-pink-rgb: 171 125 118;
+  --xp-green: #6f7f57;
+  --xp-green-rgb: 111 127 87;
+  --xp-orange: #b0764a;
+  --xp-orange-rgb: 176 118 74;
+  --xp-yellow: #b39a5d;
+  --xp-yellow-rgb: 179 154 93;
+  --xp-red: #a85646;
+  --xp-red-rgb: 168 86 70;
+  --xp-cyan: #6a7f80;
+  --xp-cyan-rgb: 106 127 128;
+  --xp-text: #38352f;
+  --xp-text-secondary: #6e6a61;
+  --xp-text-muted: #66655d;
+  --xp-border: rgba(56, 53, 47, 0.14);
+  --xp-border-light: rgba(56, 53, 47, 0.24);
+  --xp-selection-bg: rgba(200, 69, 46, 0.1);
+  --xp-selection-border: rgba(200, 69, 46, 0.28);
+  --xp-shadow-popover: 0 0 0 1px rgba(56, 53, 47, 0.12), 0 12px 32px rgba(56, 53, 47, 0.12);
   --glow-blue: none;
   --glow-purple: none;
   --glow-pink: none;
   --glow-green: none;
 
-  /* Signature highlight chip (Best-Seller lime) — same value in every theme,
-     always paired with ink text, so it only needs a :root definition. */
-  --xp-lime: #d6f220;
-  --xp-lime-rgb: 214 242 32;
+  /* 無印紅 — the single human accent (selection, slider dots, chips) */
+  --xp-lime: #c8452e;
+  --xp-lime-rgb: 200 69 46;
 
-  /* Surfaces are white in every theme (alpha lives in the rgba token), so a
-     single triplet wakes the bg-xp-surface/N opacity variants everywhere. */
-  --xp-surface-rgb: 255 255 255;
-  --xp-surface-light-rgb: 255 255 255;
+  --xp-surface-rgb: 247 245 238;
+  --xp-surface-light-rgb: 251 250 245;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -836,88 +830,83 @@ html.high-contrast *:focus-visible {
 
 html.theme-rolex {
   color-scheme: dark;
-  --background: #070a12;
-  --foreground: #f1f5fb;
-  --muted: rgba(255, 255, 255, 0.055);
-  --muted-foreground: #9aa9c0;
-  --popover: rgba(15, 21, 36, 0.9);
-  --popover-foreground: #f1f5fb;
-  --card: rgba(255, 255, 255, 0.06);
-  --card-foreground: #f1f5fb;
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(255, 255, 255, 0.08);
-  --primary: #4da3ff;
-  --primary-foreground: #06101f;
-  --secondary: rgba(255, 255, 255, 0.07);
-  --secondary-foreground: #e3ecf6;
-  --accent: rgba(255, 255, 255, 0.08);
-  --accent-foreground: #f1f5fb;
-  --destructive: #ff7575;
-  --destructive-foreground: #200f0f;
-  --ring: #4da3ff;
-  --radius: 0.625rem;
+  --background: #26231e;
+  --foreground: #e9e5da;
+  --muted: rgba(233, 229, 218, 0.06);
+  --muted-foreground: #b5b0a4;
+  --popover: #312e27;
+  --popover-foreground: #e9e5da;
+  --card: #2d2a24;
+  --card-foreground: #e9e5da;
+  --border: rgba(233, 229, 218, 0.14);
+  --input: rgba(233, 229, 218, 0.08);
+  --primary: #e6e1d6;
+  --primary-foreground: #26231e;
+  --secondary: rgba(233, 229, 218, 0.07);
+  --secondary-foreground: #ddd8cc;
+  --accent: rgba(233, 229, 218, 0.08);
+  --accent-foreground: #e9e5da;
+  --destructive: #c07a68;
+  --destructive-foreground: #26150f;
+  --ring: #b5b0a4;
+  --radius: 0.375rem;
 
-  --glass-tint: rgba(10, 14, 26, 0.5);
-  --glass-tint-strong: rgba(14, 20, 34, 0.86);
-  --glass-hairline: rgba(255, 255, 255, 0.14);
-  --glass-highlight: rgba(255, 255, 255, 0.17);
-  --glass-well: rgba(255, 255, 255, 0.05);
-  --glass-blur: 36px;
-  --glass-saturate: 1.8;
-  --glass-shadow: 0 16px 48px rgba(3, 7, 15, 0.42), 0 2px 10px rgba(3, 7, 15, 0.3);
-  --glass-dotted: rgba(255, 255, 255, 0.22);
+  /* Flat paper material — no glass, no blur, hairlines carry structure */
+  --glass-tint: rgba(45, 42, 36, 0.97);
+  --glass-tint-strong: rgba(49, 46, 39, 0.99);
+  --glass-hairline: rgba(233, 229, 218, 0.14);
+  --glass-highlight: transparent;
+  --glass-well: rgba(233, 229, 218, 0.05);
+  --glass-blur: 0px;
+  --glass-saturate: 1;
+  --glass-shadow: 0 0 0 1px rgba(233, 229, 218, 0.12);
+  --glass-dotted: rgba(233, 229, 218, 0.2);
 
-  --xp-bg: #070a12;
-  --xp-bg-gradient: #070a12;
-  --xp-surface: rgba(255, 255, 255, 0.065);
-  --xp-surface-light: rgba(255, 255, 255, 0.13);
-  --xp-sidebar: rgba(9, 13, 24, 0.5);
-  --xp-chrome: rgba(8, 12, 22, 0.52);
-  --xp-rail: rgba(7, 10, 19, 0.5);
-  --xp-inspector: rgba(9, 13, 24, 0.5);
-  --xp-popover: rgba(15, 21, 36, 0.92);
-  --xp-blue: #4da3ff;
-  --xp-blue-rgb: 77 163 255;
-  --xp-blue-dark: #2f7fe0;
-  --xp-blue-dark-rgb: 47 127 224;
-  --xp-accent: #4da3ff;
-  --xp-accent-rgb: 77 163 255;
-  --xp-accent-hover: #6fb5ff;
-  --xp-accent-hover-rgb: 111 181 255;
-  --xp-purple: #a9a2ff;
-  --xp-purple-rgb: 169 162 255;
-  --xp-pink: #ff8ec4;
-  --xp-pink-rgb: 255 142 196;
-  --xp-green: #4cd695;
-  --xp-green-rgb: 76 214 149;
-  --xp-orange: #ffab5e;
-  --xp-orange-rgb: 255 171 94;
-  --xp-yellow: #ffd166;
-  --xp-yellow-rgb: 255 209 102;
-  --xp-red: #ff7575;
-  --xp-red-rgb: 255 117 117;
-  --xp-cyan: #45d4dd;
-  --xp-cyan-rgb: 69 212 221;
-  --xp-text: #f1f5fb;
-  --xp-text-secondary: #aebdd1;
-  --xp-text-muted: #7d8ca3;
-  --xp-border: rgba(255, 255, 255, 0.12);
-  --xp-border-light: rgba(255, 255, 255, 0.22);
-  --xp-selection-bg: rgba(77, 163, 255, 0.24);
-  --xp-selection-border: rgba(77, 163, 255, 0.45);
-  --xp-shadow-popover: 0 18px 50px rgba(3, 7, 15, 0.5), 0 4px 14px rgba(3, 7, 15, 0.35);
+  --xp-bg: #26231e;
+  --xp-bg-gradient: #26231e;
+  --xp-surface: rgba(45, 42, 36, 0.97);
+  --xp-surface-light: rgba(58, 54, 47, 0.97);
+  --xp-sidebar: rgba(41, 38, 33, 0.97);
+  --xp-chrome: rgba(41, 38, 32, 0.97);
+  --xp-rail: rgba(40, 37, 31, 0.97);
+  --xp-inspector: rgba(43, 40, 34, 0.97);
+  --xp-popover: rgba(49, 46, 39, 0.99);
+  /* 墨 accent: paper-white buttons on dark paper */
+  --xp-blue: #e6e1d6;
+  --xp-blue-rgb: 230 225 214;
+  --xp-blue-dark: #cfc9bc;
+  --xp-blue-dark-rgb: 207 201 188;
+  --xp-accent: #e6e1d6;
+  --xp-accent-rgb: 230 225 214;
+  --xp-accent-hover: #f0ece2;
+  --xp-accent-hover-rgb: 240 236 226;
+  --xp-purple: #a49bb0;
+  --xp-purple-rgb: 164 155 176;
+  --xp-pink: #c49a92;
+  --xp-pink-rgb: 196 154 146;
+  --xp-green: #9aa878;
+  --xp-green-rgb: 154 168 120;
+  --xp-orange: #c99268;
+  --xp-orange-rgb: 201 146 104;
+  --xp-yellow: #c7ae72;
+  --xp-yellow-rgb: 199 174 114;
+  --xp-red: #c07a68;
+  --xp-red-rgb: 192 122 104;
+  --xp-cyan: #93a8a8;
+  --xp-cyan-rgb: 147 168 168;
+  --xp-text: #e9e5da;
+  --xp-text-secondary: #b5b0a4;
+  --xp-text-muted: #918c80;
+  --xp-border: rgba(233, 229, 218, 0.14);
+  --xp-border-light: rgba(233, 229, 218, 0.24);
+  --xp-selection-bg: rgba(201, 146, 104, 0.2);
+  --xp-selection-border: rgba(201, 146, 104, 0.4);
+  --xp-shadow-popover: 0 0 0 1px rgba(233, 229, 218, 0.12), 0 12px 32px rgba(15, 13, 10, 0.4);
   --glow-blue: none;
   --glow-purple: none;
   --glow-pink: none;
   --glow-green: none;
-
-  /* Ambient aurora — the fixed scene every glass pane refracts */
-  background:
-    radial-gradient(1150px 760px at 14% -10%, rgba(64, 98, 255, 0.38), transparent 60%),
-    radial-gradient(900px 640px at 92% 6%, rgba(0, 190, 255, 0.22), transparent 58%),
-    radial-gradient(1050px 780px at 84% 96%, rgba(255, 61, 179, 0.2), transparent 62%),
-    radial-gradient(860px 660px at 10% 92%, rgba(37, 68, 220, 0.34), transparent 60%), var(--xp-bg);
-  background-attachment: fixed;
+  background: var(--xp-bg);
 }
 
 html.theme-glass {
@@ -1013,93 +1002,82 @@ html.theme-glass {
 
 html.theme-light {
   color-scheme: light;
-  --background: #e9e8e4;
-  --foreground: #1d1c1a;
-  --muted: rgba(29, 28, 26, 0.05);
-  --muted-foreground: #6f6e68;
-  --popover: rgba(253, 252, 250, 0.93);
-  --popover-foreground: #1d1c1a;
-  --card: rgba(255, 255, 255, 0.66);
-  --card-foreground: #1d1c1a;
-  --border: rgba(29, 28, 26, 0.08);
-  --input: rgba(255, 255, 255, 0.62);
-  --primary: #1d1c1a;
-  --primary-foreground: #faf9f7;
-  --secondary: rgba(29, 28, 26, 0.055);
-  --secondary-foreground: #2e2d2a;
-  --accent: rgba(29, 28, 26, 0.06);
-  --accent-foreground: #1d1c1a;
-  --destructive: #e03131;
-  --destructive-foreground: #ffffff;
-  --ring: #5f5e58;
-  --radius: 0.625rem;
+  --background: #efece3;
+  --foreground: #38352f;
+  --muted: rgba(56, 53, 47, 0.05);
+  --muted-foreground: #6e6a61;
+  --popover: #f7f5ef;
+  --popover-foreground: #38352f;
+  --card: #f7f5ee;
+  --card-foreground: #38352f;
+  --border: rgba(56, 53, 47, 0.14);
+  --input: rgba(247, 245, 238, 0.9);
+  --primary: #45423c;
+  --primary-foreground: #f7f5ee;
+  --secondary: rgba(56, 53, 47, 0.06);
+  --secondary-foreground: #45423c;
+  --accent: rgba(56, 53, 47, 0.07);
+  --accent-foreground: #38352f;
+  --destructive: #a85646;
+  --destructive-foreground: #f7f5ee;
+  --ring: #8c8880;
+  --radius: 0.375rem;
 
-  --glass-tint: rgba(255, 255, 255, 0.44);
-  --glass-tint-strong: rgba(255, 255, 255, 0.9);
-  --glass-hairline: rgba(255, 255, 255, 0.8);
-  --glass-highlight: rgba(255, 255, 255, 0.95);
-  --glass-well: rgba(255, 255, 255, 0.5);
-  --glass-blur: 30px;
-  --glass-saturate: 1.4;
-  --glass-shadow:
-    0 0 0 1px rgba(29, 28, 26, 0.05), 0 18px 44px rgba(29, 28, 26, 0.1),
-    0 3px 10px rgba(29, 28, 26, 0.05);
-  --glass-dotted: rgba(29, 28, 26, 0.24);
+  --glass-tint: rgba(247, 245, 238, 0.97);
+  --glass-tint-strong: rgba(249, 247, 241, 0.99);
+  --glass-hairline: rgba(56, 53, 47, 0.14);
+  --glass-highlight: transparent;
+  --glass-well: rgba(56, 53, 47, 0.04);
+  --glass-blur: 0px;
+  --glass-saturate: 1;
+  --glass-shadow: 0 0 0 1px rgba(56, 53, 47, 0.12);
+  --glass-dotted: rgba(56, 53, 47, 0.2);
 
-  --xp-bg: #e9e8e4;
-  --xp-bg-gradient: #e9e8e4;
-  --xp-surface: rgba(255, 255, 255, 0.66);
-  --xp-surface-light: rgba(255, 255, 255, 0.85);
-  --xp-sidebar: rgba(252, 251, 249, 0.32);
-  --xp-chrome: rgba(252, 251, 249, 0.38);
-  --xp-rail: rgba(248, 247, 244, 0.3);
-  --xp-inspector: rgba(253, 252, 250, 0.56);
-  --xp-popover: rgba(253, 252, 250, 0.93);
-  /* Ink monochrome chrome — color lives only in the accent washes below */
-  --xp-blue: #1d1c1a;
-  --xp-blue-rgb: 29 28 26;
-  --xp-blue-dark: #000000;
-  --xp-blue-dark-rgb: 0 0 0;
-  --xp-accent: #1d1c1a;
-  --xp-accent-rgb: 29 28 26;
-  --xp-accent-hover: #3d3c37;
-  --xp-accent-hover-rgb: 61 60 55;
-  --xp-purple: #7048e8;
-  --xp-purple-rgb: 112 72 232;
-  --xp-pink: #e64980;
-  --xp-pink-rgb: 230 73 128;
-  --xp-green: #2f9e44;
-  --xp-green-rgb: 47 158 68;
-  --xp-orange: #e2711d;
-  --xp-orange-rgb: 226 113 29;
-  --xp-yellow: #dcae0e;
-  --xp-yellow-rgb: 220 174 14;
-  --xp-red: #e03131;
-  --xp-red-rgb: 224 49 49;
-  --xp-cyan: #0c8599;
-  --xp-cyan-rgb: 12 133 153;
-  --xp-text: #1d1c1a;
-  --xp-text-secondary: #5d5c55;
+  --xp-bg: #efece3;
+  --xp-bg-gradient: #efece3;
+  --xp-surface: rgba(247, 245, 238, 0.97);
+  --xp-surface-light: rgba(251, 250, 245, 0.97);
+  --xp-sidebar: rgba(236, 233, 223, 0.97);
+  --xp-chrome: rgba(237, 234, 224, 0.97);
+  --xp-rail: rgba(235, 232, 221, 0.97);
+  --xp-inspector: rgba(242, 239, 231, 0.97);
+  --xp-popover: rgba(247, 245, 239, 0.99);
+  /* 墨 accent: ink buttons on kinari paper */
+  --xp-blue: #45423c;
+  --xp-blue-rgb: 69 66 60;
+  --xp-blue-dark: #33312c;
+  --xp-blue-dark-rgb: 51 49 44;
+  --xp-accent: #45423c;
+  --xp-accent-rgb: 69 66 60;
+  --xp-accent-hover: #5a564e;
+  --xp-accent-hover-rgb: 90 86 78;
+  --xp-purple: #7b7286;
+  --xp-purple-rgb: 123 114 134;
+  --xp-pink: #ab7d76;
+  --xp-pink-rgb: 171 125 118;
+  --xp-green: #6f7f57;
+  --xp-green-rgb: 111 127 87;
+  --xp-orange: #b0764a;
+  --xp-orange-rgb: 176 118 74;
+  --xp-yellow: #b39a5d;
+  --xp-yellow-rgb: 179 154 93;
+  --xp-red: #a85646;
+  --xp-red-rgb: 168 86 70;
+  --xp-cyan: #6a7f80;
+  --xp-cyan-rgb: 106 127 128;
+  --xp-text: #38352f;
+  --xp-text-secondary: #6e6a61;
   --xp-text-muted: #66655d;
-  --xp-border: rgba(29, 28, 26, 0.07);
-  --xp-border-light: rgba(29, 28, 26, 0.12);
-  --xp-selection-bg: rgba(29, 28, 26, 0.14);
-  --xp-selection-border: rgba(29, 28, 26, 0.24);
-  --xp-shadow-popover:
-    0 0 0 1px rgba(29, 28, 26, 0.05), 0 22px 55px rgba(29, 28, 26, 0.14),
-    0 4px 12px rgba(29, 28, 26, 0.06);
+  --xp-border: rgba(56, 53, 47, 0.14);
+  --xp-border-light: rgba(56, 53, 47, 0.24);
+  --xp-selection-bg: rgba(200, 69, 46, 0.1);
+  --xp-selection-border: rgba(200, 69, 46, 0.28);
+  --xp-shadow-popover: 0 0 0 1px rgba(56, 53, 47, 0.12), 0 12px 32px rgba(56, 53, 47, 0.12);
   --glow-blue: none;
   --glow-purple: none;
   --glow-pink: none;
   --glow-green: none;
-
-  /* Paper aurora — warm ground with faint peach / mint / rose washes */
-  background:
-    radial-gradient(1100px 700px at 14% -6%, rgba(255, 158, 84, 0.14), transparent 60%),
-    radial-gradient(900px 600px at 90% 4%, rgba(126, 217, 163, 0.13), transparent 58%),
-    radial-gradient(1000px 720px at 84% 96%, rgba(255, 105, 180, 0.1), transparent 62%),
-    radial-gradient(820px 600px at 12% 94%, rgba(255, 205, 120, 0.1), transparent 60%), var(--xp-bg);
-  background-attachment: fixed;
+  background: var(--xp-bg);
 }
 
 :is(.theme-rolex, .theme-glass, .theme-light) body {
@@ -1845,17 +1823,17 @@ html.reduce-motion .weather-fx {
    these veils ONLY paint the ground. Never swap tokens here. */
 html[data-sky="day"] {
   background:
-    radial-gradient(1100px 700px at 14% -6%, rgba(255, 190, 120, 0.1), transparent 60%),
-    radial-gradient(900px 600px at 88% 6%, rgba(160, 216, 190, 0.1), transparent 58%), var(--xp-bg);
+    radial-gradient(1100px 700px at 16% -8%, rgba(233, 219, 188, 0.22), transparent 60%),
+    radial-gradient(900px 600px at 88% 6%, rgba(214, 216, 196, 0.16), transparent 58%), var(--xp-bg);
   background-attachment: fixed;
 }
 
 /* 日出 — peach / rose first light */
 html[data-sky="dawn"] {
   background:
-    radial-gradient(1150px 720px at 18% 108%, rgba(255, 146, 96, 0.24), transparent 62%),
-    radial-gradient(950px 640px at 8% -8%, rgba(255, 178, 128, 0.22), transparent 60%),
-    radial-gradient(1000px 700px at 92% 10%, rgba(214, 150, 190, 0.12), transparent 62%),
+    radial-gradient(1150px 720px at 18% 108%, rgba(216, 148, 104, 0.22), transparent 62%),
+    radial-gradient(950px 640px at 10% -6%, rgba(224, 186, 148, 0.2), transparent 60%),
+    radial-gradient(1000px 700px at 90% 8%, rgba(204, 162, 158, 0.12), transparent 62%),
     var(--xp-bg);
   background-attachment: fixed;
 }
@@ -1863,19 +1841,19 @@ html[data-sky="dawn"] {
 /* 日落 — amber sinking into violet */
 html[data-sky="dusk"] {
   background:
-    radial-gradient(1150px 720px at 84% 106%, rgba(255, 132, 84, 0.26), transparent 62%),
-    radial-gradient(1000px 700px at 10% -10%, rgba(140, 108, 200, 0.16), transparent 62%),
-    radial-gradient(900px 600px at 92% 8%, rgba(226, 122, 150, 0.14), transparent 60%), var(--xp-bg);
+    radial-gradient(1150px 720px at 84% 106%, rgba(198, 118, 78, 0.24), transparent 62%),
+    radial-gradient(1000px 700px at 10% -8%, rgba(146, 122, 138, 0.16), transparent 62%),
+    radial-gradient(900px 600px at 90% 10%, rgba(196, 132, 112, 0.12), transparent 60%),
+    var(--xp-bg);
   background-attachment: fixed;
 }
 
 /* 夜 — moonlit indigo over the ink ground */
 html[data-sky="night"] {
   background:
-    radial-gradient(1100px 720px at 12% -8%, rgba(84, 92, 200, 0.22), transparent 62%),
-    radial-gradient(900px 620px at 90% 12%, rgba(60, 100, 150, 0.12), transparent 60%),
-    radial-gradient(1000px 760px at 82% 96%, rgba(110, 70, 160, 0.14), transparent 64%),
-    var(--xp-bg);
+    radial-gradient(1100px 720px at 12% -8%, rgba(96, 100, 128, 0.12), transparent 62%),
+    radial-gradient(900px 620px at 90% 12%, rgba(88, 96, 118, 0.08), transparent 60%),
+    radial-gradient(1000px 760px at 82% 96%, rgba(110, 92, 122, 0.1), transparent 64%), var(--xp-bg);
   background-attachment: fixed;
 }
 
@@ -2052,4 +2030,84 @@ html .divide-y > :not([hidden]) ~ :not([hidden]) {
 }
 .wisp-list-header {
   border-bottom: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MUJI — 紙の設計. The whole app is one sheet of kinari paper the sky
+   stains. Flat surfaces, hairline structure, ink type, one red accent.
+   No glass, no blur, no gradients on components, no glow.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Flatten every pane to paper — hairlines carry the structure */
+html .glass-card,
+html .glass-card::before,
+html .bg-xp-surface,
+html .bg-xp-popover,
+html .bg-popover,
+html .wisp-sidebar,
+html .wisp-titlebar,
+html .wisp-shell,
+html .wisp-panel-rail,
+html .wisp-inspector,
+html .wisp-operationbar,
+html .wisp-statusbar {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html .glass-card::before {
+  content: none !important;
+}
+html .glass-card {
+  background-color: var(--xp-surface) !important;
+  border: 1px solid var(--xp-border);
+  border-radius: 0.5rem;
+  box-shadow: none !important;
+}
+
+/* Quiet geometry — squares, not bubbles */
+html .rounded-2xl {
+  border-radius: 0.5rem;
+}
+html .rounded-xl {
+  border-radius: 0.375rem;
+}
+html .rounded-lg {
+  border-radius: 0.25rem;
+}
+html .rounded-md {
+  border-radius: 0.25rem;
+}
+
+/* Ink typography everywhere — the dot-matrix face is retired */
+.font-dot {
+  font-family: inherit !important;
+  font-weight: 500;
+  font-variation-settings: normal;
+}
+
+/* Components rest on hairlines and type weight, not shadows */
+html .bg-card {
+  box-shadow: none !important;
+}
+
+/* Weather is ink on paper — muted, never neon */
+html .weather-fx {
+  opacity: 0.7;
+}
+
+/* Focus: a quiet sumi ring */
+:is(.theme-rolex, .theme-light, .theme-glass)
+  :is(button, input, textarea, select, [role="button"]):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--xp-text) 45%, transparent);
+  outline-offset: 1px;
+}
+
+/* WKWebView autofill paints a neon yellow — force paper instead */
+html input:-webkit-autofill,
+html input:-webkit-autofill:hover,
+html input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--xp-surface) inset;
+  -webkit-text-fill-color: var(--xp-text);
+  caret-color: var(--xp-text);
+  transition: background-color 9999s ease-out;
 }

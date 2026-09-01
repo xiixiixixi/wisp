@@ -45,20 +45,15 @@ const Gauge = ({
 
   if (hero) {
     return (
-      <div
-        className="relative overflow-hidden rounded-2xl p-4 text-white shadow-[0_14px_36px_rgba(232,113,29,0.28)]"
-        style={{
-          background: 'linear-gradient(135deg, #ffc46a 0%, #ff9d3f 34%, #f0609e 78%, #e0447f 100%)',
-        }}
-      >
+      <div className="relative overflow-hidden rounded-xl border border-xp-border bg-xp-surface p-4 text-xp-text">
         <div
-          className="dot-grid pointer-events-none absolute inset-x-4 bottom-9 h-7 opacity-50"
+          className="dot-grid pointer-events-none absolute inset-x-4 bottom-9 h-7 opacity-60"
           style={{
-            backgroundImage: 'radial-gradient(rgba(255,255,255,0.8) 1.2px, transparent 1.3px)',
+            backgroundImage: 'radial-gradient(var(--xp-border) 1.2px, transparent 1.3px)',
           }}
         />
         <div className="flex items-center justify-between">
-          <span className="flex items-center gap-1.5 text-xs font-medium text-white/85">
+          <span className="flex items-center gap-1.5 text-xs font-medium text-xp-text-secondary">
             {icon}
             <span>{label}</span>
           </span>
@@ -67,12 +62,12 @@ const Gauge = ({
           {hasData ? Math.round(value) : '—'}
           {hasData && <span className="ml-1 align-top text-lg">%</span>}
         </p>
-        <p className="mt-1.5 truncate text-xs text-white/85" title={subtitle}>
+        <p className="mt-1.5 truncate text-xs text-xp-text-secondary" title={subtitle}>
           {subtitle}
         </p>
-        <div className="relative mt-2 h-1 rounded-full bg-white/30">
+        <div className="bg-xp-border/60 relative mt-2 h-1 rounded-full">
           <div
-            className="h-1 rounded-full bg-white transition-all duration-500"
+            className="h-1 rounded-full bg-xp-text transition-all duration-500"
             style={{ width: `${value}%` }}
           />
           {hasData && (

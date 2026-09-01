@@ -84,46 +84,7 @@ const relativeTime = (
 };
 
 /** Icon gradient based on file type. */
-const recentFileGradient = (fileType: string): string => {
-  const t = fileType.toLowerCase();
-  if (t === 'folder') return 'from-amber-500 to-amber-600';
-  if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'ico'].includes(t)) {
-    return 'from-pink-500 to-pink-600';
-  }
-  if (['mp4', 'mkv', 'avi', 'mov', 'wmv', 'webm'].includes(t)) {
-    return 'from-orange-500 to-orange-600';
-  }
-  if (['mp3', 'wav', 'ogg', 'flac', 'aac', 'wma'].includes(t)) return 'from-cyan-500 to-cyan-600';
-  if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz'].includes(t)) {
-    return 'from-yellow-500 to-yellow-600';
-  }
-  if (
-    [
-      'js',
-      'ts',
-      'jsx',
-      'tsx',
-      'py',
-      'rs',
-      'go',
-      'java',
-      'c',
-      'cpp',
-      'html',
-      'css',
-      'json',
-      'yaml',
-      'toml',
-      'xml',
-    ].includes(t)
-  ) {
-    return 'from-emerald-500 to-emerald-600';
-  }
-  if (['txt', 'md', 'rtf', 'doc', 'docx', 'pdf', 'csv', 'log'].includes(t)) {
-    return 'from-blue-500 to-blue-600';
-  }
-  return 'from-slate-500 to-slate-600';
-};
+const recentFileGradient = (_fileType: string): string => 'from-stone-400 to-stone-500';
 
 /** Icon-library glyph for recent files based on type. */
 const RecentFileTypeIcon = ({

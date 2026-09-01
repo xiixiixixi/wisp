@@ -97,6 +97,7 @@ const BatchRename = ({ files, onDone }: { files: FileEntry[]; onDone: () => void
       <div className="flex items-center gap-1.5">
         <input
           value={findText}
+          autoComplete="off"
           onChange={(e) => setFindText(e.target.value)}
           placeholder={t('performanceDashboard.findPlaceholder')}
           className="border-xp-border/60 bg-xp-bg/60 h-8 min-w-0 flex-1 rounded-lg border px-2.5 text-xs text-xp-text placeholder-xp-text-muted focus:border-xp-blue/50 focus:outline-none"
@@ -104,6 +105,7 @@ const BatchRename = ({ files, onDone }: { files: FileEntry[]; onDone: () => void
         <ArrowRight size={12} className="shrink-0 text-xp-text-muted" aria-hidden="true" />
         <input
           value={replaceText}
+          autoComplete="off"
           onChange={(e) => setReplaceText(e.target.value)}
           placeholder={t('performanceDashboard.replacePlaceholder')}
           className="border-xp-border/60 bg-xp-bg/60 h-8 min-w-0 flex-1 rounded-lg border px-2.5 text-xs text-xp-text placeholder-xp-text-muted focus:border-xp-blue/50 focus:outline-none"
