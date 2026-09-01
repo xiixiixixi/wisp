@@ -103,7 +103,7 @@ export const SettingRow = ({
   description?: string;
   children: React.ReactNode;
 }) => (
-  <div className="hover:bg-xp-surface-light/50 group flex items-center justify-between gap-4 rounded-md px-3 py-3 transition-colors">
+  <div className="group flex items-center justify-between gap-4 rounded-md px-3 py-3 transition-colors hover:bg-xp-surface-light/50">
     <div className="flex min-w-0 items-center gap-3">
       {Icon && <Icon size={17} className="shrink-0 text-xp-text-secondary" />}
       <div className="min-w-0">
@@ -301,15 +301,19 @@ export interface AppSettings {
  * an OPENROUTER_API_KEY env var that no UI ever sets). Legacy profiles that
  * still carry aiServiceMode 'cloud' are migrated to 'custom' on load.
  */
-export const migrateLegacyAiSettings = <T extends { aiServiceMode?: string }>(s: T): T => {
-  if (s.aiServiceMode === 'cloud') {
-    return { ...s, aiServiceMode: 'custom' };
+export const migrateLegacyAiSettings = <T extends { aiServiceMode?: string; theme?: string }>(
+  s: T,
+): T => {
+  const migrated = s.aiServiceMode === 'cloud' ? { ...s, aiServiceMode: 'custom' } : { ...s };
+  // The three legacy themes collapsed into the single adaptive theme.
+  if (migrated.theme && migrated.theme !== 'auto') {
+    return { ...migrated, theme: 'auto' };
   }
-  return s;
+  return migrated;
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  theme: 'glass',
+  theme: 'auto',
   language: DEFAULT_LANGUAGE,
   showHiddenFiles: false,
   enableMarkdownPreview: true,

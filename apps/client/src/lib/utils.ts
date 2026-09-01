@@ -545,27 +545,17 @@ export interface ThemeDef {
 }
 
 export const themes: Record<string, ThemeDef> = {
-  rolex: {
-    name: 'Wisp Ink',
-    primary: '#79a8d8',
-    bg: '#11161d',
-    surface: '#171d25',
-    text: '#e6ebf1',
+  auto: {
+    name: 'Wisp',
+    primary: '#4a6fa5',
+    bg: '#e9e8e4',
+    surface: '#ffffff',
+    text: '#1d1c1a',
   },
-  glass: {
-    name: 'Wisp Slate',
-    primary: '#8aa8c8',
-    bg: '#242a32',
-    surface: '#2b323b',
-    text: '#edf0f3',
-  },
-  light: {
-    name: 'Wisp Paper',
-    primary: '#4f759b',
-    bg: '#f1f3f5',
-    surface: '#e8ecf0',
-    text: '#26313b',
-  },
+  // Legacy keys resolve to the same adaptive theme.
+  rolex: { name: 'Wisp', primary: '#4a6fa5', bg: '#e9e8e4', surface: '#ffffff', text: '#1d1c1a' },
+  glass: { name: 'Wisp', primary: '#4a6fa5', bg: '#e9e8e4', surface: '#ffffff', text: '#1d1c1a' },
+  light: { name: 'Wisp', primary: '#4a6fa5', bg: '#e9e8e4', surface: '#ffffff', text: '#1d1c1a' },
 };
 
 // Helper to create a config icon
@@ -716,9 +706,11 @@ export const loadFontSize = () => {
 // Theme utility function — the .theme-* CSS classes in index.css are the
 // single source of truth for each theme's full palette.
 export const applyTheme = (themeKey: string) => {
+  // One adaptive theme: SkySync owns the polarity class from the real sun.
+  // Any legacy key just clears the class for SkySync to re-apply.
+  void themeKey;
   const root = document.documentElement;
   root.classList.forEach((cls) => {
     if (cls.startsWith('theme-')) root.classList.remove(cls);
   });
-  root.classList.add(`theme-${themeKey}`);
 };

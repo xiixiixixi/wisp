@@ -63,7 +63,7 @@ const SidebarQuickAccess = ({
 
   return (
     <div
-      className="border-b border-xp-border px-3 py-2"
+      className="px-3 py-2"
       role="region"
       aria-label={t('sidebar.quickAccess')}
       data-sidebar-section="quickAccess"

@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'wouter';
 import {
   CloudSun,
-  Palette,
   Globe,
   Type,
   Sparkles,
@@ -19,7 +18,6 @@ import { TauriAPI } from '@/lib/tauri-api';
 import { useWeather } from '@/hooks/use-weather';
 import { describeWeatherCode } from '@/lib/weather';
 import { normalizeLanguage } from '@/lib/language-settings';
-import { useAllThemes } from '@/lib/theme-registry';
 import {
   Toggle,
   SelectField,
@@ -67,13 +65,6 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
   };
   const [, setLocation] = useLocation();
   const { t, i18n } = useTranslation();
-  const allThemes = useAllThemes();
-
-  const themes = Object.entries(allThemes).map(([key, th]) => ({
-    value: key,
-    label: th.name,
-  }));
-
   const fontSizes = [
     { value: 'small', label: t('settings.general.small') },
     { value: 'medium', label: t('settings.general.medium') },
@@ -90,18 +81,6 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
   return (
     <div className="space-y-4">
       <SettingsSection title={t('settings.general.appearance')}>
-        <SettingRow
-          icon={Palette}
-          label={t('settings.general.theme')}
-          description={t('settings.general.themeDesc')}
-        >
-          <SelectField
-            label={t('settings.general.theme')}
-            value={settings.theme}
-            onChange={(v) => updateSetting('theme', v)}
-            options={themes}
-          />
-        </SettingRow>
         <SettingRow
           icon={Globe}
           label={t('settings.general.language')}
@@ -258,7 +237,7 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
       <div className="px-4 pt-4">
         <button
           onClick={() => setSettings(DEFAULT_SETTINGS)}
-          className="hover:bg-xp-red/10 flex items-center gap-2 rounded-md px-3 py-2 text-sm text-xp-red transition-colors"
+          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-xp-red transition-colors hover:bg-xp-red/10"
         >
           <RotateCcw size={14} />
           {t('settings.resetAll')}

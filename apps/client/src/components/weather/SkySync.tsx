@@ -4,70 +4,91 @@ import { skyScene, type SkyScene } from '@/lib/weather';
 import { isWeatherSyncEnabled } from '@/lib/weather-location';
 
 /**
- * Route-independent sky sync: flips the document's data-sky attribute
- * (light / dark / gloom palette) from live weather. Lives at the app entry
- * so it keeps working on routes without the explorer shell (e.g. settings).
- *
- * Day/night is derived from today's sunrise/sunset in the report (local
- * time of the configured city) rather than the API's is_day flag — it flips
- * exactly at the sun boundary and stays correct around restarts.
+ * The one Wisp theme: polarity (paper by day, ink by night) and the sky
+ * ground both follow the real sun — dawn and dusk get their transitional
+ * washes around sunrise/sunset, weather adds precipitation on its own layer.
  */
-const isDaytime = (sunriseIso?: string, sunsetIso?: string, apiIsDay?: boolean): boolean => {
-  if (sunriseIso && sunsetIso) {
-    const now = Date.now();
-    const rise = Date.parse(sunriseIso);
-    const set = Date.parse(sunsetIso);
-    if (Number.isFinite(rise) && Number.isFinite(set)) return now >= rise && now < set;
+type SunPhase = 'dawn' | 'day' | 'dusk' | 'night';
+
+const PHASE_WINDOW_MS = 40 * 60 * 1000;
+
+const sunPhase = (now: number, sunrise?: string, sunset?: string): SunPhase => {
+  const rise = sunrise ? Date.parse(sunrise) : NaN;
+  const set = sunset ? Date.parse(sunset) : NaN;
+  if (Number.isFinite(rise) && Number.isFinite(set)) {
+    if (now < rise) return now >= rise - PHASE_WINDOW_MS ? 'dawn' : 'night';
+    if (now < set) {
+      if (now < rise + PHASE_WINDOW_MS) return 'dawn';
+      return now >= set - PHASE_WINDOW_MS ? 'dusk' : 'day';
+    }
+    return now < set + PHASE_WINDOW_MS ? 'dusk' : 'night';
   }
-  return apiIsDay ?? false;
+  const hour = new Date(now).getHours();
+  if (hour >= 5 && hour < 7) return 'dawn';
+  if (hour >= 17 && hour < 19) return 'dusk';
+  return hour >= 7 && hour < 17 ? 'day' : 'night';
 };
+
+const isDaytime = (phase: SunPhase) => phase === 'dawn' || phase === 'day';
 
 const SkySync = () => {
   const { report } = useWeather();
-  const [enabled, setEnabled] = useState(isWeatherSyncEnabled());
-  // Bumped at the next sun boundary so day/night flips without waiting for
-  // the 30-minute weather poll.
+  const [weatherEnabled, setWeatherEnabled] = useState(isWeatherSyncEnabled());
+  // Bumped at the next sun boundary so phase flips without waiting for the
+  // 30-minute weather poll.
   const [, setSunTick] = useState(0);
 
   // The toggle lives in settings (another route) — follow it live.
   useEffect(() => {
-    const sync = () => setEnabled(isWeatherSyncEnabled());
+    const sync = () => setWeatherEnabled(isWeatherSyncEnabled());
     window.addEventListener('wisp-settings-changed', sync);
     return () => window.removeEventListener('wisp-settings-changed', sync);
   }, []);
 
-  let scene: SkyScene | null = null;
-  if (enabled && report) {
-    // daily[0] is "today" in the report's local timezone
-    const today = report?.daily?.[0];
-    scene = skyScene(report.weather_code, isDaytime(today?.sunrise, today?.sunset, report.is_day));
-  }
+  const today = report?.daily?.[0];
+  const now = Date.now();
+  const phase = sunPhase(now, today?.sunrise, today?.sunset);
 
   useEffect(() => {
-    const today = report?.daily?.[0];
-    if (!today?.sunrise || !today?.sunset) return;
-    const now = Date.now();
-    const rise = Date.parse(today.sunrise);
-    const set = Date.parse(today.sunset);
-    const next = now < rise ? rise : now < set ? set : rise + 24 * 3600_000;
-    const timer = setTimeout(() => setSunTick((n) => n + 1), Math.max(0, next - now + 1000));
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [report?.daily?.[0]?.sunrise, report?.daily?.[0]?.sunset, report?.updated_at]);
+    const sunrise = today?.sunrise;
+    const sunset = today?.sunset;
+    if (!sunrise || !sunset) return;
+    const parsed = { rise: Date.parse(sunrise), set: Date.parse(sunset) };
+    const boundaries = [
+      parsed.rise - PHASE_WINDOW_MS,
+      parsed.rise + PHASE_WINDOW_MS,
+      parsed.set - PHASE_WINDOW_MS,
+      parsed.set + PHASE_WINDOW_MS,
+    ];
+    const next = boundaries.find((time) => time > Date.now());
+    if (next) {
+      const timer = setTimeout(() => setSunTick((n) => n + 1), next - Date.now() + 1000);
+      return () => clearTimeout(timer);
+    }
+    // After the last boundary, re-evaluate on the next poll tick.
+  }, [today?.sunrise, today?.sunset, report?.updated_at]);
 
+  // Polarity + sky ground, recomputed on every phase/tick change.
   useEffect(() => {
     const root = document.documentElement;
-    if (!scene) {
-      delete root.dataset.sky;
-      return;
+    root.classList.remove('theme-rolex', 'theme-glass', 'theme-light');
+    root.classList.add(isDaytime(phase) ? 'theme-light' : 'theme-rolex');
+    root.dataset.sky = phase;
+  }, [phase]);
+
+  // Weather overlays: gloom veil when the sky is overcast (weather opt-in),
+  // precipitation itself is painted by WeatherFx on its own layer.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (weatherEnabled && report) {
+      const scene: SkyScene | null = skyScene(report.weather_code, isDaytime(phase));
+      if (scene === 'cloudy' || scene === 'fog') {
+        root.dataset.sky = 'gloom';
+        return;
+      }
     }
-    root.dataset.sky =
-      scene === 'clear-day' || scene === 'partly-day' || scene === 'snow'
-        ? 'day'
-        : scene === 'cloudy' || scene === 'fog'
-          ? 'gloom'
-          : 'dark';
-  }, [scene]);
+    root.dataset.sky = phase;
+  }, [weatherEnabled, report, phase]);
 
   return null;
 };

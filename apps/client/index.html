@@ -1,10 +1,18 @@
 <!doctype html>
-<html lang="en" class="theme-rolex">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <title>Wisp</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </head>
+  <script>
+    // Boot polarity by clock so the light day theme never flashes dark;
+    // SkySync refines it from the real sunrise/sunset once weather loads.
+    try {
+      var h = new Date().getHours();
+      document.documentElement.classList.add(h >= 6 && h < 18 ? 'theme-light' : 'theme-rolex');
+    } catch (e) {}
+  </script>
   <body>
     <div
       id="root"
