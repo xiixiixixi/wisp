@@ -2068,3 +2068,28 @@ html.theme-light {
   scrollbar-width: thin;
   scrollbar-color: rgba(29, 28, 26, 0.18) transparent;
 }
+
+/* ── File-row selection ─────────────────────────────────────────────
+   Dark themes keep the azure 30% wash; on the Paper ground a selected
+   row lifts as a floating white card instead of graying out. Rows are
+   divs with tabIndex, so the WebKit default blue focus outline would
+   otherwise paint over the wash — the selection state is feedback
+   enough, so it's suppressed. */
+.wisp-file-row.file-selected {
+  background-color: rgb(var(--xp-blue-rgb) / 0.3);
+}
+
+html.theme-light .wisp-file-row.file-selected {
+  background-color: rgba(255, 255, 255, 0.94);
+  box-shadow:
+    0 1px 2px rgba(29, 28, 26, 0.05),
+    0 10px 26px rgba(29, 28, 26, 0.1);
+}
+
+html.theme-light .wisp-file-row:hover {
+  background-color: rgba(255, 255, 255, 0.42);
+}
+
+.wisp-file-row:focus-visible {
+  outline: none;
+}
