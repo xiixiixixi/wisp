@@ -284,6 +284,16 @@ const MainLayout = (props: MainLayoutProps) => {
     handleDismissAllChanges,
   } = props;
 
+  // Preview links (markdown etc.) ask the shell to open URLs in a web tab.
+  React.useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ url?: string }>).detail;
+      if (detail?.url) navigateToPath(detail.url);
+    };
+    window.addEventListener('wisp-open-url', handler);
+    return () => window.removeEventListener('wisp-open-url', handler);
+  }, [navigateToPath]);
+
   const activeTabObj = activeGroup.tabs.find((t: TabItem) => t.id === activeGroup.activeTabId);
 
   // ── Build ExplorerContext value ───────────────────────────────────────────

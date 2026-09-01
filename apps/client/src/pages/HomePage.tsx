@@ -271,7 +271,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
   useEffect(() => {
     if (isBrowserDemoMode()) return;
     TauriAPI.getTokenizerStats()
-      .then((s) => setIndexCount(s.total_files))
+      .then((s) => setIndexCount(s?.total_files ?? null))
       .catch(() => setIndexCount(null));
   }, []);
 

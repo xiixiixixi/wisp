@@ -33,6 +33,32 @@ export const useNavigationActions = (deps: NavigationActionsDeps) => {
       const ag = activeGroupRef.current;
       const sl = splitLayoutRef.current;
 
+      // Web URLs open in (or activate) a web tab in the current pane.
+      if (/^https?:\/\//i.test(newPath)) {
+        const existingWebTab = ag.tabs.find((t: TabItem) => t.type === 'web' && t.path === newPath);
+        if (existingWebTab) {
+          sl.switchTab(ag.id, existingWebTab.id);
+          return;
+        }
+        let hostname = newPath;
+        try {
+          hostname = new URL(newPath).hostname;
+        } catch {
+          // keep raw string
+        }
+        sl.addTab(
+          ag.id,
+          {
+            id: `tab-web-${Date.now()}`,
+            name: hostname,
+            path: newPath,
+            type: 'web',
+          },
+          true,
+        );
+        return;
+      }
+
       const activeTabObj = ag.tabs.find((t: TabItem) => t.id === ag.activeTabId);
       const isGDriveTab =
         activeTabObj?.type === 'gdrive' || activeTabObj?.type === 'gdrive-manager';

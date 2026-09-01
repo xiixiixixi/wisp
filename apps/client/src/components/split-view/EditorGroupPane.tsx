@@ -6,6 +6,7 @@ import { useFolderSizes } from '@/hooks/use-folder-sizes';
 import { useHiddenFiles } from '@/hooks/use-hidden-files';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { useCollectionFiles } from '@/hooks/use-collection-files';
+import WebTabView from '@/components/web/WebTabView';
 import type { EditorGroup } from '@/types/split-view';
 import { extensionHost } from '@/lib/extension-host';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -216,6 +217,8 @@ const EditorGroupPane = ({
   // Detect collection paths
   const isCollectionPath = currentPath.startsWith('collection://');
   const collectionId = isCollectionPath ? currentPath.replace('collection://', '') : null;
+  // Web tabs render a live page in a native child webview — no fs querying.
+  const isWebPath = /^https?:\/\//i.test(currentPath);
 
   // Stable empty array to avoid creating a new [] reference on every render
   // when useQuery returns undefined (query disabled or data not yet loaded).
@@ -272,6 +275,7 @@ const EditorGroupPane = ({
       currentPath !== 'wisp://home' &&
       currentPath !== 'wisp://trash' &&
       currentPath !== 'wisp://gdrive-manager' &&
+      !isWebPath &&
       !currentPath.startsWith('comparison://') &&
       (!currentPath.startsWith('wisp://') || currentPath.startsWith('wisp://tag/')) &&
       !isCollectionPath,
@@ -671,6 +675,10 @@ const EditorGroupPane = ({
       );
     }
 
+    if (activeTab?.type === 'web' && activeTab.path && /^https?:\/\//i.test(activeTab.path)) {
+      return <WebTabView tabId={activeTab.id} url={activeTab.path} />;
+    }
+
     if (
       activeTab?.type === 'gdrive-manager' ||
       (activeTab?.type === 'gdrive' && activeTab.gdriveData)
@@ -788,14 +796,15 @@ const EditorGroupPane = ({
     !isEditorTab &&
     !currentPath.startsWith('wisp://') &&
     !currentPath.startsWith('gdrive://') &&
-    !currentPath.startsWith('collection://');
+    !currentPath.startsWith('collection://') &&
+    !isWebPath;
 
   // Only show PaneTabBar when there are multiple tabs or multiple panes
   const showTabBar = group.tabs.length > 1 || totalGroups > 1;
 
   return (
     <div
-      className={`flex h-full flex-col overflow-hidden ${isActive ? 'ring-xp-blue/30 ring-1' : ''}`}
+      className={`flex h-full flex-col overflow-hidden ${isActive ? 'ring-1 ring-xp-blue/30' : ''}`}
       data-drop-target={isDroppablePath ? currentPath : undefined}
       data-is-folder={isDroppablePath ? 'true' : undefined}
       onMouseDown={() => {

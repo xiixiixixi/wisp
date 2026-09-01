@@ -23,6 +23,7 @@ pub mod operations;
 pub mod pty;
 pub mod search;
 pub mod weather;
+pub mod webview_tabs;
 pub mod secure_credentials;
 pub mod shortcuts;
 pub mod storage;

@@ -108,6 +108,14 @@ const parseBreadcrumbSegments = (path: string): PathSegment[] => {
   ) {
     return [];
   }
+  // Web tabs: a single crumb with the hostname, full path preserved.
+  if (/^https?:\/\//i.test(path)) {
+    try {
+      return [{ name: new URL(path).hostname, fullPath: path }];
+    } catch {
+      return [];
+    }
+  }
 
   const segments: PathSegment[] = [];
   const isWin = /^[A-Za-z]:/.test(path);

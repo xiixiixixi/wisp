@@ -76,21 +76,21 @@ const CodeBlockWithActions = ({
     <div className="group relative my-2">
       {language && (
         <div
-          className="text-xp-text-muted bg-xp-bg border-xp-border rounded-t-md border border-b-0 px-3 py-1 text-[10px]"
+          className="rounded-t-md border border-b-0 border-xp-border bg-xp-bg px-3 py-1 text-[10px] text-xp-text-muted"
           style={{ fontFamily: 'monospace' }}
         >
           {language}
         </div>
       )}
       <pre
-        className={`bg-xp-bg border-xp-border overflow-x-auto border p-3 text-xs ${language ? 'rounded-b-md' : 'rounded-md'}`}
+        className={`overflow-x-auto border border-xp-border bg-xp-bg p-3 text-xs ${language ? 'rounded-b-md' : 'rounded-md'}`}
       >
         <code className="text-xp-text">{code}</code>
       </pre>
       <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
         <button
           onClick={handleCopy}
-          className="border-xp-border bg-xp-surface text-xp-text-muted hover:text-xp-text rounded border px-2 py-0.5 text-[10px]"
+          className="rounded border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
           title="Copy to clipboard"
         >
           {copied ? 'Copied!' : 'Copy'}
@@ -98,7 +98,7 @@ const CodeBlockWithActions = ({
         {onSaveAsFile && (
           <button
             onClick={() => onSaveAsFile(code, language)}
-            className="border-xp-border bg-xp-surface text-xp-text-muted hover:text-xp-text rounded border px-2 py-0.5 text-[10px]"
+            className="rounded border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
             title="Save as file"
           >
             Save as file
@@ -107,7 +107,7 @@ const CodeBlockWithActions = ({
         {onApplyCode && (
           <button
             onClick={() => onApplyCode(code)}
-            className="border-xp-border bg-xp-surface text-xp-text-muted hover:text-xp-text rounded border px-2 py-0.5 text-[10px]"
+            className="rounded border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
             title="Replace selected code in editor"
           >
             Apply
@@ -158,7 +158,7 @@ const parseMarkdown = (
 
     // Horizontal rule
     if (/^-{3,}$/.test(line.trim()) || /^\*{3,}$/.test(line.trim())) {
-      elements.push(<hr key={key++} className="border-xp-border my-3" />);
+      elements.push(<hr key={key++} className="my-3 border-xp-border" />);
       i++;
       continue;
     }
@@ -182,13 +182,13 @@ const parseMarkdown = (
 
       elements.push(
         <div key={key++} className="my-2 overflow-x-auto">
-          <table className="border-xp-border w-full border-collapse border text-xs">
+          <table className="w-full border-collapse border border-xp-border text-xs">
             <thead>
               <tr className="bg-xp-bg">
                 {tableRows[0].map((cell, ci) => (
                   <th
                     key={`header-${ci}`} // eslint-disable-line react/no-array-index-key
-                    className="border-xp-border border px-2 py-1.5 text-left font-semibold"
+                    className="border border-xp-border px-2 py-1.5 text-left font-semibold"
                     style={{ textAlign: alignments[ci] || 'left' }}
                   >
                     {renderInline(cell)}
@@ -203,7 +203,7 @@ const parseMarkdown = (
                   {row.map((cell, ci) => (
                     <td
                       key={`cell-${ci}`} // eslint-disable-line react/no-array-index-key
-                      className="border-xp-border border px-2 py-1"
+                      className="border border-xp-border px-2 py-1"
                       style={{ textAlign: alignments[ci] || 'left' }}
                     >
                       {renderInline(cell)}
@@ -248,7 +248,7 @@ const parseMarkdown = (
       elements.push(
         <blockquote
           key={key++}
-          className="border-xp-border-light text-xp-text-muted my-2 border-l-2 pl-3"
+          className="my-2 border-l-2 border-xp-border-light pl-3 text-xp-text-muted"
         >
           {quoteLines.map((ql, qi) => (
             <p key={`quote-${qi}`}>{renderInline(ql)}</p> // eslint-disable-line react/no-array-index-key
@@ -358,7 +358,7 @@ const renderInline = (text: string): React.ReactNode => {
       parts.push(
         <code
           key={`c-${segKey++}`}
-          className="bg-xp-bg text-xp-purple break-all rounded px-1 py-0.5 text-xs"
+          className="break-all rounded bg-xp-bg px-1 py-0.5 text-xs text-xp-purple"
         >
           {match[2]}
         </code>,
@@ -378,9 +378,12 @@ const renderInline = (text: string): React.ReactNode => {
           <a
             key={`a-${segKey++}`}
             href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xp-blue break-all underline"
+            onClick={(event) => {
+              if (!/^(https?:\/\/|mailto:)/i.test(href)) return;
+              event.preventDefault();
+              window.dispatchEvent(new CustomEvent('wisp-open-url', { detail: { url: href } }));
+            }}
+            className="break-all text-xp-blue underline"
           >
             {match[2]}
           </a>,

@@ -15,6 +15,7 @@ use wisp::file_organizer;
 use wisp::file_watcher;
 use wisp::search;
 use wisp::weather;
+use wisp::webview_tabs;
 use wisp::git;
 use wisp::google_drive;
 use wisp::mcp_host;
@@ -256,6 +257,10 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             // File system operations (modular)
+            webview_tabs::web_tab_create,
+            webview_tabs::web_tab_bounds,
+            webview_tabs::web_tab_visibility,
+            webview_tabs::web_tab_destroy,
             operations::read_directory,
             operations::read_text_file,
             operations::write_text_file,
