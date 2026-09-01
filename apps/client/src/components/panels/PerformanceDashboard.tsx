@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 import React, { useState, useCallback } from 'react';
-import { TauriAPI } from '@/lib/tauri-api';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { usePerformanceStats, type CleanupSuggestion } from '@/hooks/use-performance-stats';
 import {
@@ -18,29 +17,19 @@ const PerformanceDashboard = React.memo(
     const [metricsExpanded, setMetricsExpanded] = useState(true);
     const [organizerExpanded, setOrganizerExpanded] = useState(true);
 
-    const { directoryStats, recentOps, suggestions, memoryUsage, isLoading, refreshStats } =
-      usePerformanceStats(currentPath, allFiles, true);
-
-    const handleEmptyTrash = useCallback(async () => {
-      try {
-        await TauriAPI.emptyTrash();
-      } catch {
-        // silently fail
-      }
-      refreshStats();
-    }, [refreshStats]);
+    const { recentOps, suggestions, isLoading, refreshStats } = usePerformanceStats(
+      currentPath,
+      allFiles,
+      true,
+    );
 
     const handleSuggestionAction = useCallback(
       (suggestion: CleanupSuggestion) => {
-        if (suggestion.id === 'trash') {
-          handleEmptyTrash();
-        } else if (suggestion.id === 'large-files' && navigateToPath) {
-          navigateToPath(currentPath);
-        } else if (suggestion.id === 'untagged' && navigateToPath) {
+        if (suggestion.actionType === 'navigate' && navigateToPath) {
           navigateToPath(currentPath);
         }
       },
-      [handleEmptyTrash, navigateToPath, currentPath],
+      [navigateToPath, currentPath],
     );
 
     const handleCollapseAll = useCallback(() => {
@@ -104,10 +93,8 @@ const PerformanceDashboard = React.memo(
 
             {metricsExpanded && (
               <MetricCards
-                directoryStats={directoryStats}
                 recentOps={recentOps}
                 suggestions={suggestions}
-                memoryUsage={memoryUsage}
                 isLoading={isLoading}
                 onRefresh={refreshStats}
                 onSuggestionAction={handleSuggestionAction}
