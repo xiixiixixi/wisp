@@ -206,8 +206,14 @@ export const getFileIconPng = async (path: string): Promise<string> =>
 export const getDirSize = async (path: string): Promise<DirectorySize> =>
   await transport('get_dir_size', { path });
 
-export const readTextFile = async (path: string): Promise<string> =>
-  await transport('read_text_file', { path });
+export const readTextFile = async (path: string): Promise<string> => {
+  if (isBrowserDemoMode()) {
+    const { getDemoTextFile } = await import('../browser-demo-files');
+    const text = getDemoTextFile(path);
+    if (text !== null) return text;
+  }
+  return await transport('read_text_file', { path });
+};
 
 export const saveTextFile = async (path: string, content: string): Promise<void> =>
   await transport('write_text_file', { path, content });

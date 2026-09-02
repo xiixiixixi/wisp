@@ -1646,6 +1646,20 @@ html[data-sky="gloom"] {
   border-bottom: none;
 }
 
+/* 工具行最小化 — the toolbar rests at a whisper and speaks on hover.
+   Everything stays where it is and clickable; it just stops shouting. */
+.wisp-operationbar > div,
+.wisp-operationbar > .flex {
+  opacity: 0.35;
+  transition: opacity 0.18s ease;
+}
+.wisp-operationbar:hover > div,
+.wisp-operationbar:hover > .flex,
+.wisp-operationbar:focus-within > div,
+.wisp-operationbar:focus-within > .flex {
+  opacity: 1;
+}
+
 html .divide-y > :not([hidden]) ~ :not([hidden]) {
   border-top-width: 0;
 }

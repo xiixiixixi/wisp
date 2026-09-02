@@ -301,7 +301,7 @@ const PreviewPanel = ({
   isCalculatingSize,
   currentPath,
 }: PreviewPanelProps) => {
-  const [showProperties, setShowProperties] = useState(true);
+  const [showProperties, setShowProperties] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
   const copyFeedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
