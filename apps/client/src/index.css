@@ -46,6 +46,7 @@ body {
   --xp-rail: rgba(235, 232, 221, 0.97);
   --xp-inspector: rgba(242, 239, 231, 0.97);
   --xp-popover: rgba(247, 245, 239, 0.99);
+  --fx-folder: #5878a0;
   --xp-blue: #45423c;
   --xp-blue-rgb: 69 66 60;
   --xp-blue-dark: #33312c;
@@ -776,6 +777,7 @@ html.theme-rolex {
   --xp-inspector: rgba(43, 40, 34, 0.97);
   --xp-popover: rgba(49, 46, 39, 0.99);
   /* 墨 accent: paper-white buttons on dark paper */
+  --fx-folder: #8fb0d6;
   --xp-blue: #e6e1d6;
   --xp-blue-rgb: 230 225 214;
   --xp-blue-dark: #cfc9bc;

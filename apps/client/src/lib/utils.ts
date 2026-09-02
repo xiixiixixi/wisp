@@ -95,9 +95,20 @@ export const cn = (...inputs: ClassValue[]) => {
 const icon = (Icon: LucideIcon, color: string): React.ReactNode =>
   React.createElement(Icon, { size: '1em', className: `inline-block ${color}` });
 
+// 資料夾 — solid, filled, in its own indigo. Finder's strongest cue: the
+// container reads as an OBJECT, distinct from every thin-stroked file.
+const folderIcon = (): React.ReactNode =>
+  React.createElement(FolderClosed, {
+    size: '1em',
+    fill: 'currentColor',
+    strokeWidth: 1,
+    className: 'inline-block',
+    style: { color: 'var(--fx-folder)' },
+  });
+
 // File icon mapping utility
 export const getFileIcon = (fileEntry: FileEntry): React.ReactNode => {
-  if (fileEntry.is_dir) return icon(FolderClosed, 'text-xp-blue');
+  if (fileEntry.is_dir) return folderIcon();
 
   const ext = fileEntry.name.split('.').pop()?.toLowerCase();
   switch (ext) {
@@ -137,7 +148,7 @@ export const getFileIcon = (fileEntry: FileEntry): React.ReactNode => {
     case 'svg':
     case 'webp':
     case 'ico':
-      return icon(ImageIcon, 'text-xp-purple');
+      return icon(ImageIcon, 'text-xp-cyan');
     case 'mp4':
     case 'avi':
     case 'mkv':
@@ -149,7 +160,7 @@ export const getFileIcon = (fileEntry: FileEntry): React.ReactNode => {
     case 'flac':
     case 'ogg':
     case 'aac':
-      return icon(Music, 'text-xp-cyan');
+      return icon(Music, 'text-xp-purple');
     case 'pdf':
       return icon(BookOpen, 'text-xp-red');
     case 'doc':

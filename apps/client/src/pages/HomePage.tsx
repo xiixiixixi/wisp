@@ -89,7 +89,15 @@ const RecentFileTypeIcon = ({
   className?: string;
 }) => {
   const t = fileType.toLowerCase();
-  if (t === 'folder') return <Folder className={className} />;
+  if (t === 'folder')
+    {return (
+      <Folder
+        className={className}
+        fill="currentColor"
+        strokeWidth={1}
+        style={{ color: 'var(--fx-folder)' }}
+      />
+    );}
   return <FileText className={className} />;
 };
 
