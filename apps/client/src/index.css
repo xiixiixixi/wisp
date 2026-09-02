@@ -1639,7 +1639,10 @@ html[data-sky="gloom"] {
    ═══════════════════════════════════════════════════════════════════ */
 
 .wisp-list-header {
-  background-color: transparent;
+  /* The header is a strip of paper: OPAQUE, so rows never ghost through
+     it while scrolling (bg-xp-bg is forced transparent for the canvas —
+     the header must not inherit that). */
+  background-color: var(--xp-bg) !important;
   border-bottom: none;
 }
 
