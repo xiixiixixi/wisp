@@ -2,6 +2,10 @@ import React, { useRef, useState, useEffect, forwardRef } from 'react';
 import { isTauri } from '@/lib/transport';
 import { Minus, Square, Copy, X, Columns, Rows, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import WeatherGlyph from '@/components/weather/WeatherGlyph';
+import { useWeather } from '@/hooks/use-weather';
+import { getWeatherLocation } from '@/lib/weather-location';
+import { describeWeatherCode } from '@/lib/weather';
 import wispLogo from '../../../../src-tauri/icons/icon.png';
 
 export interface TopBarHandle {
@@ -45,6 +49,9 @@ const TopBar = React.memo(
         ReturnType<typeof import('@tauri-apps/api/window').getCurrentWindow>
       > | null>(null);
       const isMac = navigator.platform.toUpperCase().includes('MAC');
+      const location = getWeatherLocation();
+      const { report } = useWeather();
+      const descriptor = report ? describeWeatherCode(report.weather_code) : null;
 
       useEffect(() => {
         if (!isTauri()) return;
@@ -156,6 +163,27 @@ const TopBar = React.memo(
             </button>
 
             <div className="flex-1" />
+
+            {/* 天气 — lives on the running-head level, beside the search line */}
+            {report && descriptor && (
+              <div
+                className="mr-1 flex flex-shrink-0 items-center gap-2 rounded-[2px] border border-xp-border bg-muted px-2.5 py-1"
+                title={`${location.city} · ${t(descriptor.labelKey)}`}
+              >
+                <WeatherGlyph
+                  code={report.weather_code}
+                  isDay={report.is_day}
+                  size={14}
+                  className="text-xp-text-secondary"
+                />
+                <span className="text-xs font-medium text-xp-text">
+                  {Math.round(report.temperature)}°
+                </span>
+                <span className="hidden text-[11px] text-xp-text-muted min-[1100px]:inline">
+                  {t(descriptor.labelKey)} · {location.city}
+                </span>
+              </div>
+            )}
 
             {/* Split actions */}
             <div className="ml-1 flex flex-shrink-0 items-center gap-0.5">

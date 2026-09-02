@@ -20,10 +20,6 @@ import {
   getDemoUserDirectories,
   isBrowserDemoMode,
 } from '@/lib/browser-demo-files';
-import WeatherGlyph from '@/components/weather/WeatherGlyph';
-import { useWeather } from '@/hooks/use-weather';
-import { getWeatherLocation } from '@/lib/weather-location';
-import { describeWeatherCode } from '@/lib/weather';
 import {
   Cloud,
   ArrowRight,
@@ -150,10 +146,6 @@ const Clock = () => {
             ? 'home.greetingAfternoon'
             : 'home.greetingEvening';
 
-  const location = getWeatherLocation();
-  const { report } = useWeather();
-  const descriptor = report ? describeWeatherCode(report.weather_code) : null;
-
   return (
     <div className="flex items-end justify-between gap-8">
       <div>
@@ -175,22 +167,6 @@ const Clock = () => {
         <p className="text-5xl font-extralight tabular-nums leading-none tracking-tighter text-xp-text">
           {currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
         </p>
-        {report && descriptor && (
-          <div className="flex items-center gap-2 rounded-[2px] border border-xp-border bg-xp-surface px-3 py-1">
-            <WeatherGlyph
-              code={report.weather_code}
-              isDay={report.is_day}
-              size={14}
-              className="text-xp-text-secondary"
-            />
-            <span className="text-xs font-medium text-xp-text">
-              {Math.round(report.temperature)}°
-            </span>
-            <span className="text-[11px] text-xp-text-muted">
-              {t(descriptor.labelKey)} · {location.city}
-            </span>
-          </div>
-        )}
       </div>
     </div>
   );

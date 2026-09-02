@@ -658,16 +658,33 @@ fn main() {
             sync::stop_auto_sync,
             sync::get_auto_sync_status,
         ])
-        .on_window_event(|_window, event| {
-            if let WindowEvent::CloseRequested { .. } = event {
+        .on_window_event(|window, event| {
+            if let WindowEvent::CloseRequested { api, .. } = event {
                 duplicate_finder::cancel_current_scan();
                 file_watcher::stop_primary_watcher();
                 file_watcher::stop_all_watchers();
                 extensions::dev_watcher::stop_all_dev_watchers();
                 sync::stop_auto_sync_blocking();
                 let _ = pty::pty_kill_all();
+                // macOS convention: closing the window hides it and keeps the
+                // app alive in the Dock (⌘Q / 右键 Dock 退出 才真正退出程序).
+                #[cfg(target_os = "macos")]
+                {
+                    let _ = window.hide();
+                    api.prevent_close();
+                }
             }
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while running tauri application")
+        .run(|_app, event| {
+            // Dock icon click re-opens (unhides) the main window.
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen { .. } = event {
+                if let Some(window) = _app.get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
+            }
+        });
 }
