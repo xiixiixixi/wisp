@@ -38,6 +38,7 @@ export interface SizeBadgeInfo {
 }
 
 export interface FileGridItemProps {
+  onQuickLook?: (file: FileEntry) => void;
   file: FileEntry;
   isSelected: boolean;
   tags: FileTag[];

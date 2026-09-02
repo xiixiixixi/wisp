@@ -19,6 +19,7 @@ const ColumnFileRow = React.memo(
     isActive,
     isSelected,
     getFileIcon,
+    onQuickLook,
     onClick,
     onDoubleClick,
     onRightClick,
@@ -27,6 +28,7 @@ const ColumnFileRow = React.memo(
     isActive: boolean;
     isSelected: boolean;
     getFileIcon: (file: FileEntry) => React.ReactNode;
+    onQuickLook?: (file: FileEntry) => void;
     onClick: (e: React.MouseEvent) => void;
     onDoubleClick: () => void;
     onRightClick: (e: React.MouseEvent) => void;
@@ -47,6 +49,12 @@ const ColumnFileRow = React.memo(
             window.dispatchEvent(
               new CustomEvent('start-inline-rename', { detail: { path: file.path } }),
             );
+          }
+          // Space previews (Finder behaviour)
+          if (e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            onQuickLook?.(file);
           }
         }}
         style={{
@@ -136,6 +144,7 @@ const VirtualizedColumnPane = ({
   colIndex,
   selectedFiles,
   getFileIcon,
+  onQuickLook,
   handleColumnFileClick,
   handleFileDoubleClick,
   handleFileRightClick,
@@ -144,6 +153,7 @@ const VirtualizedColumnPane = ({
   colIndex: number;
   selectedFiles: Set<string>;
   getFileIcon: (file: FileEntry) => React.ReactNode;
+  onQuickLook?: (file: FileEntry) => void;
   handleColumnFileClick: (file: FileEntry, colIndex: number, e: React.MouseEvent) => void;
   handleFileDoubleClick: (file: FileEntry) => void;
   handleFileRightClick: (file: FileEntry, e: React.MouseEvent) => void;
@@ -180,6 +190,7 @@ const VirtualizedColumnPane = ({
             isActive={column.selectedFile === file.path}
             isSelected={selectedFiles.has(file.path)}
             getFileIcon={getFileIcon}
+            onQuickLook={onQuickLook}
             onClick={(e) => handleColumnFileClick(file, colIndex, e)}
             onDoubleClick={() => handleFileDoubleClick(file)}
             onRightClick={(e) => handleFileRightClick(file, e)}
@@ -240,6 +251,7 @@ const VirtualizedColumnPane = ({
                 isActive={column.selectedFile === file.path}
                 isSelected={selectedFiles.has(file.path)}
                 getFileIcon={getFileIcon}
+                onQuickLook={onQuickLook}
                 onClick={(e) => handleColumnFileClick(file, colIndex, e)}
                 onDoubleClick={() => handleFileDoubleClick(file)}
                 onRightClick={(e) => handleFileRightClick(file, e)}
@@ -261,6 +273,7 @@ const ColumnView = ({
   handleFileRightClick,
   handleBackgroundRightClick,
   getFileIcon,
+  onQuickLook,
   formatFileSize,
   formatDate,
 }: ViewComponentProps) => {
@@ -353,6 +366,7 @@ const ColumnView = ({
           colIndex={colIndex}
           selectedFiles={selectedFiles}
           getFileIcon={getFileIcon}
+          onQuickLook={onQuickLook}
           handleColumnFileClick={handleColumnFileClick}
           handleFileDoubleClick={handleFileDoubleClick}
           handleFileRightClick={handleFileRightClick}

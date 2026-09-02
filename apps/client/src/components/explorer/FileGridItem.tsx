@@ -376,6 +376,7 @@ InlineRenameInput.displayName = 'InlineRenameInput';
 
 const FileGridItem = React.memo(
   ({
+    onQuickLook,
     file,
     isSelected,
     tags,
@@ -532,6 +533,15 @@ const FileGridItem = React.memo(
         }}
         onContextMenu={(e) => {
           if (!isRenaming) onFileRightClick(file, e);
+        }}
+        onKeyDown={(e) => {
+          // Space previews (Finder behaviour) — the grid variant of the
+          // DetailsView row handler.
+          if (e.key === ' ' && !isRenaming) {
+            e.preventDefault();
+            e.stopPropagation();
+            onQuickLook?.(file);
+          }
         }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
