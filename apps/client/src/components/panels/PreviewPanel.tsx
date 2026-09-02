@@ -5,7 +5,6 @@ import { getFileIcon } from '@/lib/utils';
 import { defaultPreviewFactory, PreviewProps, PreviewType } from '@/lib/preview-factory';
 import { extensionHost } from '@/lib/extension-host';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
-import PreviewActionBar from './PreviewActionBar';
 
 // Module-level cache for preview components by file type, avoiding redundant dynamic imports
 const previewComponentCache = new Map<PreviewType, React.ComponentType<PreviewProps>>();
@@ -446,7 +445,6 @@ const PreviewPanel = ({
       </div>
 
       {/* Quick Actions Bar */}
-      <PreviewActionBar file={selectedFile} />
 
       {/* Collapsible File Properties Section */}
       <div className="border-t border-xp-border bg-xp-surface">
