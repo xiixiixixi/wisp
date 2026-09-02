@@ -162,7 +162,7 @@ const BottomPanel = ({
       // Collapsed hides the same tree instead of unmounting it, so terminal
       // sessions (and any other panel state) survive collapse/expand.
       className={`${bottomPanelCollapsed ? 'hidden' : 'flex flex-shrink-0 flex-col border-t border-xp-border bg-xp-surface'}`}
-      style={{ height: height ?? 192 }}
+      style={{ height: height ?? 148 }}
     >
       {/* Bottom Panel Tabs */}
       <div
@@ -179,7 +179,7 @@ const BottomPanel = ({
             aria-controls={`bottom-panel-${tab}`}
             id={`bottom-tab-${tab}`}
             onClick={() => setBottomPanelTab(tab)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium ${
+            className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium ${
               bottomPanelTab === tab
                 ? 'border-b-2 border-xp-blue bg-xp-bg text-xp-blue'
                 : 'hover:bg-xp-surface-light'
@@ -208,7 +208,7 @@ const BottomPanel = ({
             aria-controls={`bottom-panel-${extTab.id}`}
             id={`bottom-tab-${extTab.id}`}
             onClick={() => setBottomPanelTab(extTab.id as BottomPanelTab)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium ${
+            className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium ${
               bottomPanelTab === extTab.id
                 ? 'border-b-2 border-xp-blue bg-xp-bg text-xp-blue'
                 : 'hover:bg-xp-surface-light'
