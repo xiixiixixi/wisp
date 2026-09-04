@@ -5,6 +5,7 @@
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 import { detectSep } from '@/lib/constants';
 import { addEntry as addClipboardHistoryEntry } from '@/hooks/use-clipboard-history';
+import i18n from '@/i18n';
 
 // ── Error formatting ─────────────────────────────────────────────────────────
 
@@ -69,10 +70,12 @@ export const setClipboardEntries = (
     files.map((f) => ({ path: f.path, name: f.name, isDir: f.is_dir })),
     operation,
   );
-  const label = operation === 'copy' ? 'Copied' : 'Cut';
   toast({
-    title: label,
-    description: `${files.length} item${files.length > 1 ? 's' : ''} ${label.toLowerCase()}`,
+    title: i18n.t(operation === 'copy' ? 'toast.copied' : 'toast.cut'),
+    description: i18n.t(
+      operation === 'copy' ? 'toast.clipboardCopiedDesc' : 'toast.clipboardCutDesc',
+      { count: files.length },
+    ),
   });
 };
 

@@ -12,7 +12,7 @@ type ToastProps = {
   returnFocus?: HTMLElement | null;
 };
 
-const TOAST_LIMIT = 3;
+const NOTIFICATION_TOAST_LIMIT = 3;
 const TOAST_REMOVE_DELAY = 1000;
 export const TOAST_AUTO_DISMISS_DELAY = 10000;
 
@@ -80,11 +80,28 @@ const addToRemoveQueue = (toastId: string) => {
 
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
-    case 'ADD_TOAST':
+    case 'ADD_TOAST': {
+      const existingNotifications = state.toasts.filter((item) => item.presentation !== 'dialog');
+      if (action.toast.presentation === 'dialog') {
+        return {
+          ...state,
+          // Dialogs have their own slot. `toast()` closes the previous dialog
+          // before dispatching this action, while the reducer also enforces a
+          // single-dialog state for direct reducer callers.
+          toasts: [action.toast, ...existingNotifications],
+        };
+      }
+
+      const activeDialog = state.toasts.find((item) => item.presentation === 'dialog');
+      const notifications = [action.toast, ...existingNotifications].slice(
+        0,
+        NOTIFICATION_TOAST_LIMIT,
+      );
       return {
         ...state,
-        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
+        toasts: activeDialog ? [...notifications, activeDialog] : notifications,
       };
+    }
 
     case 'UPDATE_TOAST':
       return {
@@ -153,16 +170,48 @@ const dispatch = (action: Action) => {
 
 export type Toast = Omit<ToasterToast, 'id'>;
 
+const dismissToastState = (toastId?: string) => {
+  dispatch({ type: 'DISMISS_TOAST', toastId });
+};
+
+const dismissAndSettleDialogs = (toastId?: string) => {
+  const dialogs = memoryState.toasts.filter(
+    (item) =>
+      item.presentation === 'dialog' &&
+      item.open !== false &&
+      (toastId === undefined || item.id === toastId),
+  );
+
+  // Dialog helpers resolve their Promise from onOpenChange(false). Keep that
+  // contract for programmatic dismisses as well as clicks and Escape.
+  dialogs.forEach((item) => item.onOpenChange?.(false));
+  dismissToastState(toastId);
+};
+
+const closeExistingDialogs = () => {
+  // Interactive toast helpers settle their Promise from onOpenChange(false).
+  // Removing a replaced dialog without this notification would leave that
+  // Promise pending forever.
+  while (true) {
+    const existing = memoryState.toasts.find((item) => item.presentation === 'dialog');
+    if (!existing) return;
+    if (existing.open !== false) existing.onOpenChange?.(false);
+    dispatch({ type: 'REMOVE_TOAST', toastId: existing.id });
+  }
+};
+
 const toast = ({ ...props }: Toast) => {
   const id = genId();
   const externalOnOpenChange = props.onOpenChange;
+
+  if (props.presentation === 'dialog') closeExistingDialogs();
 
   const update = (props: ToasterToast) =>
     dispatch({
       type: 'UPDATE_TOAST',
       toast: { ...props, id },
     });
-  const dismiss = () => dispatch({ type: 'DISMISS_TOAST', toastId: id });
+  const dismiss = () => dismissAndSettleDialogs(id);
 
   dispatch({
     type: 'ADD_TOAST',
@@ -176,7 +225,9 @@ const toast = ({ ...props }: Toast) => {
       open: true,
       onOpenChange: (open: boolean) => {
         externalOnOpenChange?.(open);
-        if (!open) dismiss();
+        // Use the raw state transition here: calling the public dismiss path
+        // would notify this same callback recursively.
+        if (!open) dismissToastState(id);
       },
     },
   });
@@ -224,7 +275,7 @@ const useToast = () => {
   }, []);
 
   const dismissToast = React.useCallback((toastId?: string) => {
-    dispatch({ type: 'DISMISS_TOAST', toastId });
+    dismissAndSettleDialogs(toastId);
   }, []);
 
   const removeToast = React.useCallback((toastId?: string) => {

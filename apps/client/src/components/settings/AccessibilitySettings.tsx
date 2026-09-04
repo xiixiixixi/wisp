@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Sparkles, Monitor, Eye } from 'lucide-react';
+import { Sparkles, Monitor, Eye, Layers } from 'lucide-react';
 import { Toggle, SettingRow, type AppSettings, SettingsSection } from './shared';
 
 interface AccessibilitySettingsProps {
@@ -12,6 +12,23 @@ const AccessibilitySettings = ({ settings, updateSetting }: AccessibilitySetting
 
   return (
     <div className="space-y-4">
+      <SettingsSection title={t('settings.accessibility.materials')}>
+        <SettingRow
+          icon={Layers}
+          label={t('settings.accessibility.reduceTransparency')}
+          description={t('settings.accessibility.reduceTransparencyDesc')}
+        >
+          <Toggle
+            id="reduceTransparency"
+            label={t('settings.accessibility.reduceTransparency')}
+            checked={settings.reduceTransparency}
+            onChange={(v) => {
+              updateSetting('reduceTransparency', v);
+              document.documentElement.classList.toggle('reduce-transparency', v);
+            }}
+          />
+        </SettingRow>
+      </SettingsSection>
       <SettingsSection title={t('settings.accessibility.motion')}>
         <SettingRow
           icon={Sparkles}

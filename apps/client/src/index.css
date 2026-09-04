@@ -1314,275 +1314,11 @@ html.high-contrast.theme-light {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   WEATHER FX — global ambience driven by live weather.
-   A fixed, pointer-transparent layer at z-index:-1: above the html
-   aurora, below every panel — so frosted panes refract falling rain
-   and snow. Pure CSS animation; layers only exist when the scene needs
-   them. Tints are additive over whichever theme is active.
-   ═══════════════════════════════════════════════════════════════════ */
-
-.weather-fx {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.weather-fx-tint {
-  position: absolute;
-  inset: 0;
-  transition: background 2.5s ease;
-}
-
-/* Scene tints (additive washes over the theme aurora) */
-.weather-scene-clear-day .weather-fx-tint {
-  background:
-    radial-gradient(900px 520px at 82% 10%, rgba(255, 200, 115, 0.2), transparent 65%),
-    radial-gradient(1100px 640px at 18% 100%, rgba(255, 176, 96, 0.1), transparent 60%);
-}
-.weather-scene-clear-night .weather-fx-tint {
-  background:
-    radial-gradient(900px 550px at 80% 12%, rgba(150, 170, 255, 0.14), transparent 65%),
-    radial-gradient(1000px 600px at 14% 92%, rgba(88, 110, 200, 0.12), transparent 62%);
-}
-.weather-scene-partly-day .weather-fx-tint {
-  background:
-    radial-gradient(900px 500px at 80% 10%, rgba(255, 212, 130, 0.14), transparent 62%),
-    radial-gradient(1000px 600px at 30% 30%, rgba(165, 185, 225, 0.1), transparent 65%);
-}
-.weather-scene-partly-night .weather-fx-tint {
-  background:
-    radial-gradient(900px 520px at 80% 12%, rgba(150, 170, 255, 0.1), transparent 62%),
-    radial-gradient(900px 600px at 25% 42%, rgba(120, 140, 190, 0.1), transparent 65%);
-}
-.weather-scene-cloudy .weather-fx-tint {
-  background: linear-gradient(180deg, rgba(125, 135, 155, 0.15), rgba(92, 102, 122, 0.1));
-}
-.weather-scene-fog .weather-fx-tint {
-  background: linear-gradient(180deg, rgba(150, 160, 175, 0.17), rgba(130, 140, 155, 0.12));
-}
-.weather-scene-rain .weather-fx-tint {
-  background: linear-gradient(180deg, rgba(58, 88, 120, 0.22), rgba(38, 58, 90, 0.17));
-}
-.weather-scene-snow .weather-fx-tint {
-  background: linear-gradient(180deg, rgba(168, 190, 220, 0.17), rgba(140, 160, 200, 0.12));
-}
-.weather-scene-storm .weather-fx-tint {
-  background: linear-gradient(180deg, rgba(38, 48, 78, 0.3), rgba(24, 30, 52, 0.24));
-}
-
-/* ── Light (abstract — no celestial bodies) ─────────────────── */
-.weather-glow {
-  position: absolute;
-  pointer-events: none;
-}
-
-.weather-glow-sun {
-  top: -140px;
-  right: -80px;
-  width: 680px;
-  height: 620px;
-  background: radial-gradient(
-    ellipse at 62% 38%,
-    rgba(255, 210, 130, 0.34),
-    rgba(255, 186, 110, 0.14) 46%,
-    transparent 72%
-  );
-  animation: weather-breathe 14s ease-in-out infinite;
-}
-
-.weather-glow-moon {
-  top: -110px;
-  right: -60px;
-  width: 620px;
-  height: 560px;
-  background: radial-gradient(
-    ellipse at 58% 40%,
-    rgba(214, 226, 252, 0.26),
-    rgba(168, 190, 240, 0.1) 48%,
-    transparent 74%
-  );
-  opacity: var(--moon-glow, 0.5);
-  transition: opacity 3s ease;
-}
-
-@keyframes weather-breathe {
-  0%,
-  100% {
-    opacity: 0.82;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-/* ── Clouds ─────────────────────────────────────────────────── */
-.weather-cloud {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(30px);
-  background: radial-gradient(
-    ellipse at center,
-    rgba(202, 212, 232, 0.5),
-    rgba(182, 196, 222, 0.16) 60%,
-    transparent 76%
-  );
-  will-change: transform;
-}
-.weather-cloud-a {
-  width: 430px;
-  height: 150px;
-  top: 12%;
-  left: 5%;
-  opacity: 0.85;
-  animation: weather-drift 80s ease-in-out infinite alternate;
-}
-.weather-cloud-b {
-  width: 540px;
-  height: 170px;
-  top: 25%;
-  right: 3%;
-  opacity: 0.6;
-  animation: weather-drift 120s ease-in-out infinite alternate-reverse;
-}
-.weather-cloud-c {
-  width: 660px;
-  height: 210px;
-  top: 5%;
-  left: 28%;
-  opacity: 0.75;
-  animation: weather-drift 95s ease-in-out infinite alternate;
-}
-
-@keyframes weather-drift {
-  from {
-    transform: translateX(-7%);
-  }
-  to {
-    transform: translateX(7%);
-  }
-}
-
-/* ── Rain (SVG streak tiles, two parallax layers) ───────────── */
-.weather-precip {
-  position: absolute;
-  inset: -80px 0 0;
-  opacity: 0.55;
-  will-change: background-position;
-}
-.weather-rain-a {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='190'%3E%3Cg stroke='%23a9c4e2' stroke-width='1' stroke-linecap='round' opacity='0.55'%3E%3Cline x1='12' y1='0' x2='8' y2='28'/%3E%3Cline x1='54' y1='36' x2='50' y2='64'/%3E%3Cline x1='98' y1='6' x2='94' y2='34'/%3E%3Cline x1='126' y1='74' x2='122' y2='102'/%3E%3Cline x1='32' y1='100' x2='28' y2='128'/%3E%3Cline x1='80' y1='128' x2='76' y2='156'/%3E%3C/g%3E%3C/svg%3E");
-  animation: weather-rainfall 0.9s linear infinite;
-}
-.weather-rain-b {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='210' height='260'%3E%3Cg stroke='%23bcd2ea' stroke-width='1.4' stroke-linecap='round' opacity='0.35'%3E%3Cline x1='26' y1='0' x2='20' y2='40'/%3E%3Cline x1='120' y1='52' x2='114' y2='92'/%3E%3Cline x1='182' y1='10' x2='176' y2='50'/%3E%3Cline x1='66' y1='130' x2='60' y2='170'/%3E%3Cline x1='158' y1='176' x2='152' y2='216'/%3E%3C/g%3E%3C/svg%3E");
-  opacity: 0.35;
-  animation: weather-rainfall 1.4s linear infinite;
-}
-
-@keyframes weather-rainfall {
-  to {
-    background-position: -110px 760px;
-  }
-}
-
-/* ── Snow (sparse radial dots, gentle sway) ─────────────────── */
-.weather-snow-a {
-  background-image:
-    radial-gradient(2.5px 2.5px at 22px 34px, rgba(255, 255, 255, 0.95), transparent 60%),
-    radial-gradient(2px 2px at 74px 92px, rgba(255, 255, 255, 0.75), transparent 60%),
-    radial-gradient(1.6px 1.6px at 112px 26px, rgba(255, 255, 255, 0.6), transparent 60%),
-    radial-gradient(2.2px 2.2px at 46px 128px, rgba(255, 255, 255, 0.8), transparent 60%);
-  background-size: 150px 150px;
-  opacity: 0.85;
-  animation: weather-snowfall 15s linear infinite;
-}
-.weather-snow-b {
-  background-image:
-    radial-gradient(1.8px 1.8px at 30px 60px, rgba(255, 255, 255, 0.65), transparent 60%),
-    radial-gradient(2.6px 2.6px at 96px 18px, rgba(255, 255, 255, 0.5), transparent 60%),
-    radial-gradient(1.4px 1.4px at 140px 110px, rgba(255, 255, 255, 0.45), transparent 60%);
-  background-size: 190px 190px;
-  opacity: 0.55;
-  animation: weather-snowfall 24s linear infinite;
-}
-
-@keyframes weather-snowfall {
-  to {
-    background-position:
-      14px 600px,
-      -12px 600px,
-      22px 600px,
-      -6px 600px;
-  }
-}
-
-/* ── Fog bands ──────────────────────────────────────────────── */
-.weather-fog {
-  position: absolute;
-  left: -20%;
-  right: -20%;
-  height: 190px;
-  filter: blur(28px);
-  background: linear-gradient(90deg, transparent, rgba(192, 202, 218, 0.28), transparent);
-  will-change: transform;
-}
-.weather-fog-a {
-  top: 28%;
-  animation: weather-fogdrift 42s ease-in-out infinite alternate;
-}
-.weather-fog-b {
-  top: 58%;
-  animation: weather-fogdrift 58s ease-in-out infinite alternate-reverse;
-}
-
-@keyframes weather-fogdrift {
-  from {
-    transform: translateX(-6%);
-  }
-  to {
-    transform: translateX(6%);
-  }
-}
-
-/* ── Lightning ──────────────────────────────────────────────── */
-.weather-lightning {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(760px 420px at 68% 16%, rgba(214, 226, 255, 0.3), transparent 70%);
-  opacity: 0;
-  animation: weather-flash 11s linear infinite;
-}
-
-@keyframes weather-flash {
-  0%,
-  91.5%,
-  96%,
-  100% {
-    opacity: 0;
-  }
-  92.5%,
-  94.5% {
-    opacity: 1;
-  }
-  93.5% {
-    opacity: 0.15;
-  }
-}
-
-/* Motion-sensitive users get the tint, none of the movement */
-html.reduce-motion .weather-fx *,
-html.reduce-motion .weather-fx {
-  animation: none !important;
-  transition: none !important;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   SKY-DRIVEN PALETTE — when live weather is known, the whole UI follows
-   the sky: bright days force the light palette, nights / rain / storms
-   force the dark one, cloud & fog keep the theme but wear a gray veil.
-   Appended after the theme blocks so it wins specificity ties.
+   SKY-DRIVEN GROUND — the whole weather system is ONE still wash on the
+   html ground, below every panel. Sun phases stain the paper; weather
+   that actually changes the light (overcast, rain, snow, storm) claims
+   the ground outright. No particles, no glows, no animation — the
+   weather chip carries the literal sky.
    ═══════════════════════════════════════════════════════════════════ */
 
 /* ── Sun phases — the one theme's ground ─────────────────────────────
@@ -1590,17 +1326,17 @@ html.reduce-motion .weather-fx {
    these veils ONLY paint the ground. Never swap tokens here. */
 html[data-sky="day"] {
   background:
-    radial-gradient(1100px 700px at 16% -8%, rgba(233, 219, 188, 0.22), transparent 60%),
-    radial-gradient(900px 600px at 88% 6%, rgba(214, 216, 196, 0.16), transparent 58%), var(--xp-bg);
+    radial-gradient(1100px 700px at 16% -8%, rgba(233, 219, 188, 0.32), transparent 60%),
+    radial-gradient(900px 600px at 88% 6%, rgba(214, 216, 196, 0.22), transparent 58%), var(--xp-bg);
   background-attachment: fixed;
 }
 
 /* 日出 — peach / rose first light */
 html[data-sky="dawn"] {
   background:
-    radial-gradient(1150px 720px at 18% 108%, rgba(216, 148, 104, 0.22), transparent 62%),
-    radial-gradient(950px 640px at 10% -6%, rgba(224, 186, 148, 0.2), transparent 60%),
-    radial-gradient(1000px 700px at 90% 8%, rgba(204, 162, 158, 0.12), transparent 62%),
+    radial-gradient(1150px 720px at 18% 108%, rgba(216, 148, 104, 0.3), transparent 62%),
+    radial-gradient(950px 640px at 10% -6%, rgba(224, 186, 148, 0.28), transparent 60%),
+    radial-gradient(1000px 700px at 90% 8%, rgba(204, 162, 158, 0.18), transparent 62%),
     var(--xp-bg);
   background-attachment: fixed;
 }
@@ -1608,9 +1344,9 @@ html[data-sky="dawn"] {
 /* 日落 — amber sinking into violet */
 html[data-sky="dusk"] {
   background:
-    radial-gradient(1150px 720px at 84% 106%, rgba(198, 118, 78, 0.24), transparent 62%),
-    radial-gradient(1000px 700px at 10% -8%, rgba(146, 122, 138, 0.16), transparent 62%),
-    radial-gradient(900px 600px at 90% 10%, rgba(196, 132, 112, 0.12), transparent 60%),
+    radial-gradient(1150px 720px at 84% 106%, rgba(198, 118, 78, 0.32), transparent 62%),
+    radial-gradient(1000px 700px at 10% -8%, rgba(146, 122, 138, 0.22), transparent 62%),
+    radial-gradient(900px 600px at 90% 10%, rgba(196, 132, 112, 0.16), transparent 60%),
     var(--xp-bg);
   background-attachment: fixed;
 }
@@ -1618,9 +1354,10 @@ html[data-sky="dusk"] {
 /* 夜 — moonlit indigo over the ink ground */
 html[data-sky="night"] {
   background:
-    radial-gradient(1100px 720px at 12% -8%, rgba(96, 100, 128, 0.12), transparent 62%),
-    radial-gradient(900px 620px at 90% 12%, rgba(88, 96, 118, 0.08), transparent 60%),
-    radial-gradient(1000px 760px at 82% 96%, rgba(110, 92, 122, 0.1), transparent 64%), var(--xp-bg);
+    radial-gradient(1100px 720px at 12% -8%, rgba(96, 100, 128, 0.18), transparent 62%),
+    radial-gradient(900px 620px at 90% 12%, rgba(88, 96, 118, 0.12), transparent 60%),
+    radial-gradient(1000px 760px at 82% 96%, rgba(110, 92, 122, 0.15), transparent 64%),
+    var(--xp-bg);
   background-attachment: fixed;
 }
 
@@ -1628,9 +1365,36 @@ html[data-sky="night"] {
    theme aurora — 阴天稍微压暗，不翻暗色 */
 html[data-sky="gloom"] {
   background:
-    radial-gradient(1100px 720px at 14% -8%, rgba(140, 150, 168, 0.28), transparent 62%),
-    radial-gradient(900px 620px at 88% 12%, rgba(120, 132, 152, 0.2), transparent 60%),
-    linear-gradient(180deg, rgba(108, 118, 138, 0.16), rgba(90, 100, 120, 0.14)), var(--xp-bg);
+    radial-gradient(1100px 720px at 14% -8%, rgba(140, 150, 168, 0.4), transparent 62%),
+    radial-gradient(900px 620px at 88% 12%, rgba(120, 132, 152, 0.3), transparent 60%),
+    linear-gradient(180deg, rgba(108, 118, 138, 0.2), rgba(90, 100, 120, 0.16)), var(--xp-bg);
+  background-attachment: fixed;
+}
+
+/* 雨 — one cool slate stain; the chip says 雨, the ground says damp */
+html[data-sky="rain"] {
+  background:
+    radial-gradient(1100px 720px at 14% -8%, rgba(104, 124, 150, 0.38), transparent 62%),
+    radial-gradient(920px 640px at 88% 14%, rgba(88, 108, 138, 0.28), transparent 60%),
+    linear-gradient(180deg, rgba(92, 108, 134, 0.2), rgba(80, 94, 118, 0.16)), var(--xp-bg);
+  background-attachment: fixed;
+}
+
+/* 雪 — the ground goes pale and even, like paper left in the mist */
+html[data-sky="snow"] {
+  background:
+    radial-gradient(1100px 720px at 14% -8%, rgba(224, 230, 240, 0.62), transparent 64%),
+    radial-gradient(940px 640px at 88% 12%, rgba(206, 216, 232, 0.46), transparent 62%),
+    linear-gradient(180deg, rgba(214, 222, 236, 0.3), rgba(200, 210, 228, 0.26)), var(--xp-bg);
+  background-attachment: fixed;
+}
+
+/* 雷雨 — the rain stain, deepened */
+html[data-sky="storm"] {
+  background:
+    radial-gradient(1100px 720px at 14% -8%, rgba(74, 86, 114, 0.42), transparent 62%),
+    radial-gradient(920px 640px at 88% 14%, rgba(62, 72, 98, 0.32), transparent 60%),
+    linear-gradient(180deg, rgba(66, 76, 102, 0.24), rgba(56, 64, 88, 0.2)), var(--xp-bg);
   background-attachment: fixed;
 }
 
@@ -1730,11 +1494,6 @@ html .rounded-md {
 /* Components rest on hairlines and type weight, not shadows */
 html .bg-card {
   box-shadow: none !important;
-}
-
-/* Weather is ink on paper — muted, never neon */
-html .weather-fx {
-  opacity: 0.7;
 }
 
 /* Focus: a quiet sumi ring */

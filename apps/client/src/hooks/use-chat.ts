@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AIService, type FileContext, type ChatMessage } from '@/lib/ai-service';
 import {
   TauriAPI,
@@ -39,6 +40,7 @@ const deriveTitle = (messages: ChatMessage[]): string => {
 
 export const useChat = (deps: UseChatDeps) => {
   const { selectedFile, toast } = deps;
+  const { t } = useTranslation();
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
@@ -151,7 +153,7 @@ export const useChat = (deps: UseChatDeps) => {
           const next = [...prev, aiResponse];
           return next.length > MAX_CHAT_MESSAGES ? next.slice(-MAX_CHAT_MESSAGES) : next;
         });
-        toast({ title: 'AI Response', description: 'Successfully received AI response' });
+        toast({ title: t('toast.aiResponse'), description: t('toast.aiResponseReceived') });
       } catch (error) {
         console.error('Failed to get AI response:', error);
         const errorMessage: ChatMessage = {
@@ -164,14 +166,14 @@ export const useChat = (deps: UseChatDeps) => {
         });
         toast({
           variant: 'destructive',
-          title: 'AI Error',
-          description: `Failed to get AI response: ${formatError(error)}`,
+          title: t('toast.aiError'),
+          description: t('toast.aiResponseFailedDesc', { error: formatError(error) }),
         });
       } finally {
         setIsAiLoading(false);
       }
     },
-    [chatInput, isAiLoading, chatMessages, selectedFile, toast],
+    [chatInput, isAiLoading, chatMessages, selectedFile, toast, t],
   );
 
   // ── Session operations ─────────────────────────────────────────────────
@@ -206,12 +208,12 @@ export const useChat = (deps: UseChatDeps) => {
       } catch (error) {
         toast({
           variant: 'destructive',
-          title: 'Error',
-          description: `Failed to load session: ${formatError(error)}`,
+          title: t('toast.chatSessionLoadFailed'),
+          description: t('toast.chatSessionLoadFailedDesc', { error: formatError(error) }),
         });
       }
     },
-    [toast],
+    [toast, t],
   );
 
   /** Delete a session */
@@ -229,12 +231,12 @@ export const useChat = (deps: UseChatDeps) => {
       } catch (error) {
         toast({
           variant: 'destructive',
-          title: 'Error',
-          description: `Failed to delete session: ${formatError(error)}`,
+          title: t('toast.chatSessionDeleteFailed'),
+          description: t('toast.chatSessionDeleteFailedDesc', { error: formatError(error) }),
         });
       }
     },
-    [toast],
+    [toast, t],
   );
 
   /** Clear all history */
@@ -248,11 +250,11 @@ export const useChat = (deps: UseChatDeps) => {
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: `Failed to clear history: ${formatError(error)}`,
+        title: t('toast.chatHistoryClearFailed'),
+        description: t('toast.chatHistoryClearFailedDesc', { error: formatError(error) }),
       });
     }
-  }, [toast]);
+  }, [toast, t]);
 
   return {
     chatMessages,

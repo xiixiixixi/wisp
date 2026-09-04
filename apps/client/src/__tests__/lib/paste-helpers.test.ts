@@ -55,6 +55,7 @@ import {
   type PasteResult,
 } from '@/lib/paste-helpers';
 import type { FileEntry } from '@/lib/tauri-api';
+import i18n from '@/i18n';
 
 const makeFile = (name: string, path?: string): FileEntry => {
   return {
@@ -270,8 +271,8 @@ describe('showPasteResultToast', () => {
 
     expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Copied',
-        description: expect.stringContaining('3 items copied'),
+        title: i18n.t('toast.copied'),
+        description: i18n.t('toast.pasteCopiedDesc', { count: 3 }),
       }),
     );
   });
@@ -284,8 +285,8 @@ describe('showPasteResultToast', () => {
 
     expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Moved',
-        description: '1 item moved',
+        title: i18n.t('toast.moved'),
+        description: i18n.t('toast.pasteMovedDesc', { count: 1 }),
       }),
     );
   });
@@ -302,7 +303,7 @@ describe('showPasteResultToast', () => {
 
     expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Paste completed with errors',
+        title: i18n.t('toast.pasteCompletedWithErrors'),
         variant: 'destructive',
       }),
     );
@@ -319,6 +320,7 @@ describe('showPasteResultToast', () => {
     showPasteResultToast(result, toast);
 
     const call = toast.mock.calls[0][0];
-    expect(call.description).toContain('...');
+    expect(call.description).toContain('…');
+    expect(call.description).not.toContain('err4');
   });
 });

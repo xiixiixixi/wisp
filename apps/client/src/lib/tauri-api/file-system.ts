@@ -203,6 +203,9 @@ export const copyFilesToClipboard = async (paths: string[]): Promise<void> =>
 export const getFileIconPng = async (path: string): Promise<string> =>
   await transport('get_file_icon', { path });
 
+export const getFileThumbnailPng = async (path: string, size: number = 96): Promise<string> =>
+  await transport('get_file_thumbnail', { path, size });
+
 export const getDirSize = async (path: string): Promise<DirectorySize> =>
   await transport('get_dir_size', { path });
 

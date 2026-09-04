@@ -4,8 +4,7 @@ interface ResizeHandleProps {
   direction: 'horizontal' | 'vertical';
   onResize: (delta: number) => void;
   onResizeEnd?: () => void;
-  /** Extra classes — e.g. `-ml-1` to overlap the handle over the pane on its
-   *  left so the two panes sit flush with no visible gap between them. */
+  /** Extra classes for layout-specific positioning. */
   className?: string;
 }
 
@@ -49,10 +48,10 @@ const ResizeHandle = ({ direction, onResize, onResizeEnd, className = '' }: Resi
   return (
     <div
       onMouseDown={handleMouseDown}
-      className={`group flex-shrink-0 ${
+      className={`wisp-resize-handle group flex-shrink-0 ${
         isHorizontal
-          ? 'hover:bg-xp-blue/40 active:bg-xp-blue/60 w-1 cursor-col-resize'
-          : 'hover:bg-xp-blue/40 active:bg-xp-blue/60 h-1 cursor-row-resize'
+          ? 'wisp-resize-handle-horizontal w-1 cursor-col-resize hover:bg-xp-blue/40 active:bg-xp-blue/60'
+          : 'wisp-resize-handle-vertical h-1 cursor-row-resize hover:bg-xp-blue/40 active:bg-xp-blue/60'
       } transition-colors ${className}`}
     />
   );

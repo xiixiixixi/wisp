@@ -95,7 +95,7 @@ describe('useToast', () => {
   });
 
   describe('Toast limit', () => {
-    it('limits toasts to 3', () => {
+    it('limits ordinary notifications to 3', () => {
       const { result } = renderHook(() => useToast());
 
       act(() => {
@@ -105,7 +105,31 @@ describe('useToast', () => {
         toast({ title: 'Toast 4' });
       });
 
-      expect(result.current.toasts.length).toBeLessThanOrEqual(3);
+      expect(result.current.toasts.filter((item) => item.presentation !== 'dialog')).toHaveLength(
+        3,
+      );
+    });
+
+    it('preserves one dialog outside the ordinary notification limit', () => {
+      const { result } = renderHook(() => useToast());
+
+      act(() => {
+        toast({ title: 'Dialog', presentation: 'dialog', autoDismiss: false });
+        toast({ title: 'Toast 1', autoDismiss: false });
+        toast({ title: 'Toast 2', autoDismiss: false });
+        toast({ title: 'Toast 3', autoDismiss: false });
+        toast({ title: 'Toast 4', autoDismiss: false });
+      });
+
+      expect(result.current.toasts.filter((item) => item.presentation === 'dialog')).toHaveLength(
+        1,
+      );
+      expect(result.current.toasts.filter((item) => item.presentation !== 'dialog')).toHaveLength(
+        3,
+      );
+      expect(result.current.toasts.find((item) => item.presentation === 'dialog')?.title).toBe(
+        'Dialog',
+      );
     });
   });
 
@@ -284,14 +308,19 @@ describe('reducer', () => {
     expect(newState.toasts[1].id).toBe('1');
   });
 
-  it('limits toasts to TOAST_LIMIT', () => {
+  it('limits ordinary notifications while preserving a dialog', () => {
     let state: typeof initialState = initialState;
+    state = reducer(state, {
+      type: 'ADD_TOAST',
+      toast: { id: 'dialog', title: 'Dialog', open: true, presentation: 'dialog' },
+    });
     for (let i = 0; i < 5; i++) {
       state = reducer(state, {
         type: 'ADD_TOAST',
         toast: { id: String(i), title: `Toast ${i}`, open: true },
       });
     }
-    expect(state.toasts.length).toBeLessThanOrEqual(3);
+    expect(state.toasts.filter((item) => item.presentation !== 'dialog')).toHaveLength(3);
+    expect(state.toasts.filter((item) => item.presentation === 'dialog')).toHaveLength(1);
   });
 });

@@ -30,7 +30,6 @@ import SplitContainer from '@/components/split-view/SplitContainer';
 import { DragDropProvider } from '@/contexts/DragDropContext';
 import { CrossTabSelectionProvider } from '@/contexts/CrossTabSelectionContext';
 import { ExplorerProvider, type ExplorerContextValue } from '@/contexts/ExplorerContext';
-import WeatherFx from '@/components/weather/WeatherFx';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -382,6 +381,20 @@ const MainLayout = (props: MainLayoutProps) => {
     ],
   );
 
+  const topBarRightActions = React.useMemo(
+    () => (
+      <VerticalExtensionsBar
+        data-tour="extensions-bar"
+        orientation="horizontal"
+        rightPanelTab={rightPanelTab}
+        setRightPanelTab={setRightPanelTab}
+        rightSidebarCollapsed={rightSidebarCollapsed}
+        setRightSidebarCollapsed={setRightSidebarCollapsed}
+      />
+    ),
+    [rightPanelTab, setRightPanelTab, rightSidebarCollapsed, setRightSidebarCollapsed],
+  );
+
   return (
     <DragDropProvider>
       <CrossTabSelectionProvider value={crossTabSelection}>
@@ -398,8 +411,6 @@ const MainLayout = (props: MainLayoutProps) => {
             overflow: 'hidden',
           }}
         >
-          {/* Weather ambience — painted behind every glass panel */}
-          <WeatherFx />
           {/* Top Bar */}
           <TopBar
             data-tour="top-bar"
@@ -413,10 +424,14 @@ const MainLayout = (props: MainLayoutProps) => {
             hasMultiTabSelection={crossTabSelection.hasMultiTabSelection}
             onOpenBatchActions={() => setCrossTabDialogOpen(true)}
             onClearCrossTabSelection={crossTabSelection.clearAll}
+            rightActions={topBarRightActions}
           />
 
           {/* Main Content Area */}
-          <div style={{ flex: '1 1 0%', display: 'flex', overflow: 'hidden', minHeight: 0 }}>
+          <div
+            className="wisp-workspace"
+            style={{ flex: '1 1 0%', display: 'flex', overflow: 'hidden', minHeight: 0 }}
+          >
             {/* Left Sidebar */}
             {!leftSidebarCollapsed && (
               <>
@@ -432,19 +447,13 @@ const MainLayout = (props: MainLayoutProps) => {
                   searchPanelOpen={searchPanelOpen}
                   onToggleSearchPanel={() => setSearchPanelOpen((prev) => !prev)}
                 />
-                {/* -ml-1 overlaps the handle onto the sidebar edge so the
-                    sidebar and content sit flush (no gap in the toolbar row) */}
-                <ResizeHandle
-                  direction="horizontal"
-                  onResize={handleLeftResize}
-                  className="-ml-1"
-                />
+                <ResizeHandle direction="horizontal" onResize={handleLeftResize} />
               </>
             )}
 
             {/* Center Content -- Split Panes */}
             <div
-              className="flex flex-1 flex-col overflow-hidden"
+              className="wisp-content-canvas flex flex-1 flex-col overflow-hidden"
               style={{ minHeight: 0, position: 'relative' }}
               data-tour="file-grid"
             >
@@ -478,25 +487,9 @@ const MainLayout = (props: MainLayoutProps) => {
               )}
             </div>
 
-            {/* Vertical Extensions Bar */}
-            <VerticalExtensionsBar
-              data-tour="extensions-bar"
-              rightPanelTab={rightPanelTab}
-              setRightPanelTab={setRightPanelTab}
-              rightSidebarCollapsed={rightSidebarCollapsed}
-              setRightSidebarCollapsed={setRightSidebarCollapsed}
-            />
-
             {/* Right Sidebar */}
             {!rightSidebarCollapsed && (
-              /* -mr-1 overlaps the handle onto the sidebar's left edge for a
-                 flush seam; relative+z-10 keeps the handle grabbable, since the
-                 later-painted sidebar would otherwise cover it. */
-              <ResizeHandle
-                direction="horizontal"
-                onResize={handleRightResize}
-                className="relative z-10 -mr-1"
-              />
+              <ResizeHandle direction="horizontal" onResize={handleRightResize} />
             )}
             <ErrorBoundary>
               <RightSidebar

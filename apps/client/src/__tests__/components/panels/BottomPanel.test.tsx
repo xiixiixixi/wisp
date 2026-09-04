@@ -4,6 +4,10 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import BottomPanel from '@/components/panels/BottomPanel';
 
+const { mockIsBrowserDemoMode } = vi.hoisted(() => ({
+  mockIsBrowserDemoMode: vi.fn(() => false),
+}));
+
 // Helper to render with Suspense boundary for lazy-loaded child components
 const renderWithSuspense = (ui: React.ReactElement) => {
   return render(<React.Suspense fallback={<div>Loading...</div>}>{ui}</React.Suspense>);
@@ -39,6 +43,9 @@ vi.mock('@/hooks/use-notification-history', () => ({
 }));
 vi.mock('@/components/ErrorBoundary', () => ({
   ErrorBoundary: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+}));
+vi.mock('@/lib/browser-demo-files', () => ({
+  isBrowserDemoMode: mockIsBrowserDemoMode,
 }));
 vi.mock('@/lib/extension-host', () => ({
   extensionHost: {
@@ -83,6 +90,7 @@ describe('BottomPanel', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockIsBrowserDemoMode.mockReturnValue(false);
   });
 
   describe('Collapsed state', () => {
@@ -122,7 +130,7 @@ describe('BottomPanel', () => {
       render(<BottomPanel {...defaultProps} bottomPanelTab="terminal" />);
 
       const terminalTab = screen.getByRole('tab', { name: 'Terminal' });
-      expect(terminalTab.className).toContain('border-xp-blue');
+      expect(terminalTab).toHaveAttribute('aria-selected', 'true');
     });
 
     it('renders close button', () => {
@@ -162,6 +170,16 @@ describe('BottomPanel', () => {
     it('shows terminal panel when terminal tab is active', async () => {
       renderWithSuspense(<BottomPanel {...defaultProps} bottomPanelTab="terminal" />);
       expect(await screen.findByTestId('terminal-panel')).toBeInTheDocument();
+    });
+
+    it('shows a desktop terminal placeholder in browser demo mode', () => {
+      mockIsBrowserDemoMode.mockReturnValue(true);
+
+      render(<BottomPanel {...defaultProps} bottomPanelTab="terminal" />);
+
+      expect(screen.getByText('Desktop terminal')).toBeInTheDocument();
+      expect(screen.getByText('Available in the Wisp desktop app')).toBeInTheDocument();
+      expect(screen.queryByTestId('terminal-panel')).not.toBeInTheDocument();
     });
 
     it('shows output messages in activity-log tab', () => {
@@ -263,10 +281,10 @@ describe('BottomPanel', () => {
   });
 
   describe('Height prop', () => {
-    it('uses default height of 192 when not specified', () => {
+    it('uses the compact default height when not specified', () => {
       const { container } = render(<BottomPanel {...defaultProps} />);
       const panel = container.firstChild as HTMLElement;
-      expect(panel.style.height).toBe('192px');
+      expect(panel.style.height).toBe('148px');
     });
 
     it('uses custom height when specified', () => {

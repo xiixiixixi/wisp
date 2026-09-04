@@ -8,6 +8,7 @@ import { installAutoScrollbars } from '@/lib/auto-scrollbars';
 import App from './App';
 import SkySync from '@/components/weather/SkySync';
 import './index.css';
+import './styles/liquid-glass.css';
 import { migrateLegacyDefaultView } from './lib/view-default';
 
 // One-time rewrite of stored legacy view defaults ('grid'/'medium') to details
@@ -39,7 +40,34 @@ window.addEventListener('unhandledrejection', (event) => {
 migrateFolderColorsToFinderTags();
 ensureTagPalette();
 
-createRoot(document.getElementById('root')!).render(
+// Radix portals hide the application root while a modal surface is open.
+// Mirror that state to the native inert attribute so hidden controls also
+// leave the keyboard focus order until the elevated surface closes.
+const appRoot = document.getElementById('root')!;
+let inertReturnTarget: HTMLElement | null = null;
+const syncRootInert = () => {
+  const hidden = appRoot.getAttribute('aria-hidden') === 'true';
+  if (hidden) {
+    inertReturnTarget = appRoot.querySelector<HTMLElement>('[aria-expanded="true"]');
+    appRoot.setAttribute('inert', '');
+    return;
+  }
+
+  appRoot.removeAttribute('inert');
+  const returnTarget = inertReturnTarget;
+  inertReturnTarget = null;
+  queueMicrotask(() => {
+    if (document.activeElement === document.body && returnTarget?.isConnected) {
+      returnTarget.focus({ preventScroll: true });
+    }
+  });
+};
+new MutationObserver(syncRootInert).observe(appRoot, {
+  attributes: true,
+  attributeFilter: ['aria-hidden'],
+});
+
+createRoot(appRoot).render(
   <>
     <SkySync />
     <App />

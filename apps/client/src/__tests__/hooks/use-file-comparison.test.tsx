@@ -3,6 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { useFileComparison } from '@/hooks/use-file-comparison';
 import { useToast } from '@/hooks/use-toast';
+import en from '@/locales/en.json';
 
 // Mock the toast hook
 vi.mock('@/hooks/use-toast', () => ({
@@ -44,8 +45,8 @@ describe('useFileComparison', () => {
 
     expect(result.current.markedFile).toEqual(mockFile);
     expect(mockToast).toHaveBeenCalledWith({
-      title: 'File marked for comparison',
-      description: 'test.txt is ready to compare',
+      title: en.toast.fileMarkedForComparison,
+      description: en.toast.fileReadyToCompare.replace('{{name}}', 'test.txt'),
     });
   });
 
@@ -193,7 +194,7 @@ describe('useFileComparison', () => {
     });
 
     expect(mockToast).toHaveBeenCalledWith({
-      title: 'Comparison Error',
+      title: en.toast.comparisonError,
       description: errorMessage,
       variant: 'destructive',
     });

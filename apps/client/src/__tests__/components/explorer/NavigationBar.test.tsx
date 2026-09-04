@@ -146,6 +146,17 @@ describe('NavigationBar', () => {
   });
 
   describe('Path editing mode', () => {
+    it('keeps the address field box stable between breadcrumb and input modes', () => {
+      const { container } = render(<NavigationBar {...defaultProps} />);
+      const addressField = container.querySelector('.wisp-address-field');
+
+      expect(addressField).toBeInTheDocument();
+      fireEvent.click(screen.getByLabelText('Edit path'));
+
+      expect(container.querySelector('.wisp-address-field')).toBe(addressField);
+      expect(screen.getByLabelText('File path')).toHaveClass('wisp-address-input');
+    });
+
     it('enters editing mode when clicking the edit button', () => {
       render(<NavigationBar {...defaultProps} />);
 

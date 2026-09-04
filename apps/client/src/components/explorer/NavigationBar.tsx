@@ -475,15 +475,15 @@ const NavigationBar = ({
   }, [currentPath, t]);
 
   return (
-    <div className="wisp-no-select flex h-9 items-center gap-1.5 border-b border-xp-border bg-xp-surface px-3">
+    <div className="wisp-navigationbar wisp-no-select flex h-9 items-center gap-1.5 border-b border-xp-border bg-xp-surface px-3">
       {/* Per-pane navigation — kept right next to the path it acts on */}
       {(onNavigateBack || onNavigateForward || onNavigateUp || refetch) && (
-        <div className="flex flex-shrink-0 items-center gap-0.5">
+        <div className="wisp-control-group flex flex-shrink-0 items-center gap-0.5">
           {onNavigateBack && (
             <button
               onClick={onNavigateBack}
               disabled={!canNavigateBack}
-              className="rounded-[2px] p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
+              className="wisp-control-icon rounded-[2px] p-1 transition-colors disabled:opacity-30"
               title={t('topBar.goBack')}
               aria-label={t('topBar.goBack')}
             >
@@ -500,7 +500,7 @@ const NavigationBar = ({
             <button
               onClick={onNavigateForward}
               disabled={!canNavigateForward}
-              className="rounded-[2px] p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
+              className="wisp-control-icon rounded-[2px] p-1 transition-colors disabled:opacity-30"
               title={t('topBar.goForward')}
               aria-label={t('topBar.goForward')}
             >
@@ -517,7 +517,7 @@ const NavigationBar = ({
             <button
               onClick={onNavigateUp}
               disabled={!canNavigateUp}
-              className="rounded-[2px] p-1 transition-colors hover:bg-xp-surface-light disabled:opacity-30"
+              className="wisp-control-icon rounded-[2px] p-1 transition-colors disabled:opacity-30"
               title={t('topBar.goUp')}
               aria-label={t('topBar.goUp')}
             >
@@ -527,18 +527,17 @@ const NavigationBar = ({
           {refetch && (
             <button
               onClick={refetch}
-              className="rounded-[2px] p-1 transition-colors hover:bg-xp-surface-light"
+              className="wisp-control-icon rounded-[2px] p-1 transition-colors"
               title={t('topBar.refresh')}
               aria-label={t('topBar.refresh')}
             >
               <RefreshCw size={14} />
             </button>
           )}
-          <div className="mx-0.5 h-5 w-px bg-xp-border" />
         </div>
       )}
       <div
-        className="relative flex h-7 min-w-0 flex-1 items-center self-center rounded-[2px] border border-xp-border bg-xp-bg px-2"
+        className="wisp-address-field wisp-control-field relative flex h-7 min-w-0 flex-1 basis-0 items-center self-center rounded-[2px] border border-xp-border bg-xp-bg px-2"
         style={
           isEditingPath && validationBorderColor
             ? {
@@ -554,8 +553,8 @@ const NavigationBar = ({
         {(() => {
           if (isEditingPath) {
             return (
-              <div className="relative w-full">
-                <div className="flex w-full items-center gap-1.5">
+              <div className="relative flex h-full min-w-0 flex-1 items-center">
+                <div className="flex min-w-0 flex-1 items-center gap-1.5">
                   {/* Validation indicator dot */}
                   {validation !== 'idle' && (
                     <span
@@ -581,7 +580,7 @@ const NavigationBar = ({
                     onChange={(e) => handleInputChange(e.target.value)}
                     onKeyDown={handleKeyDown}
                     onBlur={handleBlur}
-                    className="w-full bg-transparent text-sm outline-none"
+                    className="wisp-address-input min-w-0 flex-1 border-0 bg-transparent p-0 text-sm outline-none"
                     placeholder={t('navigation.pathPlaceholder')}
                     aria-label={t('navigation.filePath')}
                     aria-expanded={showDropdown}
@@ -684,7 +683,7 @@ const NavigationBar = ({
           }
           if (special) {
             return (
-              <div className="flex h-full cursor-text items-center gap-2 px-1">
+              <div className="flex h-full min-w-0 flex-1 cursor-text items-center gap-2 px-1">
                 <span className="text-xp-text-muted">{special.icon}</span>
                 <span className="text-sm font-medium">{special.label}</span>
               </div>
@@ -692,7 +691,7 @@ const NavigationBar = ({
           }
           if (tagLabel) {
             return (
-              <div className="flex h-full cursor-text items-center gap-2 px-1">
+              <div className="flex h-full min-w-0 flex-1 cursor-text items-center gap-2 px-1">
                 <Tag size={12} className="flex-shrink-0 text-xp-text-muted" />
                 <span className="text-sm font-medium">{tagLabel}</span>
               </div>
@@ -700,7 +699,7 @@ const NavigationBar = ({
           }
           if (collectionLabel) {
             return (
-              <div className="flex h-full cursor-text items-center gap-2 px-1">
+              <div className="flex h-full min-w-0 flex-1 cursor-text items-center gap-2 px-1">
                 <span className="text-sm font-medium">{collectionLabel}</span>
               </div>
             );
@@ -708,7 +707,7 @@ const NavigationBar = ({
           return (
             <nav
               aria-label={t('navigation.breadcrumb')}
-              className="scrollbar-none flex h-full cursor-text items-center gap-0.5 overflow-x-auto"
+              className="scrollbar-none flex h-full min-w-0 flex-1 cursor-text items-center gap-0.5 overflow-x-auto"
             >
               {segments.map((seg, i) => {
                 const segContent = (() => {
@@ -744,7 +743,7 @@ const NavigationBar = ({
                       }}
                       data-drop-target={i === segments.length - 1 ? undefined : seg.fullPath}
                       data-is-folder={i === segments.length - 1 ? undefined : 'true'}
-                      className={`max-w-[160px] flex-shrink-0 truncate rounded-[2px] px-1.5 py-0.5 text-sm transition-colors hover:bg-xp-surface-light ${
+                      className={`wisp-breadcrumb max-w-[160px] flex-shrink-0 truncate rounded-[2px] px-1.5 py-0.5 text-sm transition-colors ${
                         i === segments.length - 1
                           ? 'font-semibold text-xp-text'
                           : 'text-xp-text-muted hover:text-xp-text'
@@ -763,7 +762,7 @@ const NavigationBar = ({
                   e.stopPropagation();
                   setIsEditingPath(true);
                 }}
-                className="ml-1 flex-shrink-0 rounded-[2px] p-0.5 text-xp-text-muted opacity-60 transition-all hover:bg-xp-surface-light hover:text-xp-text hover:opacity-100"
+                className="wisp-breadcrumb-edit ml-1 flex-shrink-0 rounded-[2px] p-0.5 text-xp-text-muted opacity-60 transition-all hover:text-xp-text hover:opacity-100"
                 title={t('navigation.editPath')}
                 aria-label={t('navigation.editPath')}
               >

@@ -48,9 +48,7 @@ interface TabsListProps {
   onValueChange?: (value: string) => void;
 }
 
-/**
- * MUJI tabs — a hairline shelf; the active tab is a red tick, not a filled bubble.
- */
+/** Apple-style segmented glass control. */
 export const TabsList = ({
   className = '',
   children,
@@ -59,7 +57,7 @@ export const TabsList = ({
 }: TabsListProps) => {
   return (
     <div
-      className={`inline-flex h-9 items-stretch justify-start gap-0 border-b border-xp-border ${className}`}
+      className={`segmented-control inline-flex h-9 items-center justify-start gap-0.5 ${className}`}
     >
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
@@ -94,10 +92,11 @@ export const TabsTrigger = ({
 
   return (
     <button
-      className={`relative inline-flex items-center justify-center whitespace-nowrap px-3 text-sm transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40 ${
-        isActive
-          ? 'font-medium text-xp-text after:absolute after:inset-x-2 after:bottom-0 after:h-px after:bg-xp-lime'
-          : 'text-xp-text-muted hover:text-xp-text'
+      role="tab"
+      aria-selected={isActive}
+      data-active={isActive ? 'true' : 'false'}
+      className={`segmented-control-item relative inline-flex items-center justify-center whitespace-nowrap px-3 text-sm transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40 ${
+        isActive ? 'font-medium text-xp-text' : 'text-xp-text-muted hover:text-xp-text'
       } ${className}`}
       onClick={() => onValueChange?.(value)}
     >

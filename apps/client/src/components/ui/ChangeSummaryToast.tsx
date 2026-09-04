@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Bell, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { FileChangeSet } from '@/hooks/use-focus-change-tracker';
+import { BottomRightOverlayStackItem } from '@/components/ui/BottomRightOverlayStack';
 
 const AUTO_DISMISS_MS = 30_000; // 30 seconds
 
@@ -11,39 +14,64 @@ interface ChangeSummaryToastProps {
 
 const ChangeSummaryToast = React.memo(
   ({ changes, onDismiss, onReview }: ChangeSummaryToastProps) => {
+    const { t } = useTranslation();
     const [visible, setVisible] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const [interacted, setInteracted] = useState(false);
-    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const autoDismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const exitingRef = useRef(false);
+
+    const beginExit = useCallback((onExited: () => void) => {
+      if (exitingRef.current) return;
+
+      exitingRef.current = true;
+      if (autoDismissTimerRef.current) {
+        clearTimeout(autoDismissTimerRef.current);
+        autoDismissTimerRef.current = null;
+      }
+      setVisible(false);
+      exitTimerRef.current = setTimeout(() => {
+        exitTimerRef.current = null;
+        onExited();
+      }, 300);
+    }, []);
 
     // Animate in on mount
     useEffect(() => {
-      const t = setTimeout(() => setVisible(true), 20);
+      const t = setTimeout(() => {
+        if (!exitingRef.current) setVisible(true);
+      }, 20);
       return () => clearTimeout(t);
     }, []);
+
+    useEffect(
+      () => () => {
+        if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+      },
+      [],
+    );
 
     // Auto-dismiss after 30 seconds if not interacted
     useEffect(() => {
       if (interacted) return;
-      timerRef.current = setTimeout(() => {
-        setVisible(false);
-        setTimeout(onDismiss, 300);
-      }, AUTO_DISMISS_MS);
+      autoDismissTimerRef.current = setTimeout(() => beginExit(onDismiss), AUTO_DISMISS_MS);
       return () => {
-        if (timerRef.current) clearTimeout(timerRef.current);
+        if (autoDismissTimerRef.current) {
+          clearTimeout(autoDismissTimerRef.current);
+          autoDismissTimerRef.current = null;
+        }
       };
-    }, [interacted, onDismiss]);
+    }, [beginExit, interacted, onDismiss]);
 
     const handleDismiss = useCallback(() => {
-      setVisible(false);
-      setTimeout(onDismiss, 300);
-    }, [onDismiss]);
+      beginExit(onDismiss);
+    }, [beginExit, onDismiss]);
 
     const handleReview = useCallback(() => {
       setInteracted(true);
-      setVisible(false);
-      setTimeout(onReview, 300);
-    }, [onReview]);
+      beginExit(onReview);
+    }, [beginExit, onReview]);
 
     const handleExpand = useCallback(() => {
       setInteracted(true);
@@ -51,18 +79,15 @@ const ChangeSummaryToast = React.memo(
     }, []);
 
     const containerStyle: React.CSSProperties = {
-      position: 'fixed',
-      bottom: 40,
-      right: 16,
-      zIndex: 9999,
-      minWidth: 320,
-      maxWidth: 420,
+      position: 'relative',
+      width: '100%',
       background: 'var(--xp-surface)',
       border: '1px solid var(--xp-border)',
       borderRadius: 4,
       boxShadow: '0 0 0 1px var(--xp-border)',
       transform: visible ? 'translateY(0)' : 'translateY(20px)',
       opacity: visible ? 1 : 0,
+      pointerEvents: visible ? 'auto' : 'none',
       transition: 'transform 0.3s ease, opacity 0.3s ease',
       overflow: 'hidden',
     };
@@ -86,6 +111,20 @@ const ChangeSummaryToast = React.memo(
       fontSize: 12,
       fontWeight: 500,
       color: 'var(--xp-text)',
+    };
+
+    const closeButtonStyle: React.CSSProperties = {
+      width: 28,
+      height: 28,
+      flexShrink: 0,
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      border: 0,
+      borderRadius: 2,
+      background: 'transparent',
+      color: 'var(--xp-text-muted)',
+      cursor: 'pointer',
     };
 
     const subtitleStyle: React.CSSProperties = {
@@ -168,89 +207,100 @@ const ChangeSummaryToast = React.memo(
     ];
 
     return (
-      <div style={containerStyle}>
-        <div style={headerStyle}>
-          {/* Bell/change icon */}
-          <svg
-            style={iconStyle}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-            />
-          </svg>
-          <span style={titleStyle}>
-            {changes.totalCount} file{changes.totalCount !== 1 ? 's' : ''} changed while you were
-            away
-          </span>
-        </div>
-
-        <div style={subtitleStyle}>
-          {changes.added.length > 0 && (
-            <span style={countStyle('var(--xp-green)')}>+{changes.added.length} new</span>
-          )}
-          {changes.removed.length > 0 && (
-            <span style={countStyle('var(--xp-red)')}>-{changes.removed.length} deleted</span>
-          )}
-          {changes.modified.length > 0 && (
-            <span style={countStyle('var(--xp-orange)')}>~{changes.modified.length} modified</span>
-          )}
-        </div>
-
-        <div style={buttonRowStyle}>
-          <button style={reviewBtnStyle} onClick={handleReview}>
-            Review
-          </button>
-          <button style={expandBtnStyle} onClick={handleExpand}>
-            {expanded ? 'Collapse' : 'Details'}
-          </button>
-          <button style={dismissBtnStyle} onClick={handleDismiss}>
-            Dismiss
-          </button>
-        </div>
-
-        {expanded && (
-          <div style={listStyle}>
-            {allChanges.map((change) => (
-              <div key={change.path} style={listItemStyle(change.color)}>
-                <div style={typeIndicatorStyle(change.color)} />
-                <span
-                  style={{
-                    flex: 1,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {change.name}
-                </span>
-                <span style={{ fontSize: 10, color: 'var(--xp-text-muted)' }}>{change.type}</span>
-              </div>
-            ))}
+      <BottomRightOverlayStackItem>
+        <div role="region" aria-label={t('changeSummaryToast.regionLabel')} style={containerStyle}>
+          <div style={headerStyle}>
+            <Bell style={iconStyle} aria-hidden="true" />
+            <span role="status" aria-atomic="true" style={titleStyle}>
+              {t(
+                changes.totalCount === 1
+                  ? 'changeSummaryToast.titleOne'
+                  : 'changeSummaryToast.titleOther',
+                { count: changes.totalCount },
+              )}
+            </span>
+            <button
+              type="button"
+              onClick={handleDismiss}
+              aria-label={t('changeSummaryToast.close')}
+              title={t('changeSummaryToast.close')}
+              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xp-blue"
+              style={closeButtonStyle}
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
           </div>
-        )}
 
-        {/* Auto-dismiss countdown (pauses once the user interacts/expands) */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            height: 3,
-            width: '100%',
-            background: 'var(--xp-blue)',
-            opacity: interacted ? 0.35 : 1,
-            animation: `toast-countdown ${AUTO_DISMISS_MS}ms linear forwards`,
-            animationPlayState: interacted ? 'paused' : 'running',
-          }}
-          aria-hidden="true"
-        />
-      </div>
+          <div style={subtitleStyle}>
+            {changes.added.length > 0 && (
+              <span style={countStyle('var(--xp-green)')}>
+                {t('changeSummaryToast.added', { count: changes.added.length })}
+              </span>
+            )}
+            {changes.removed.length > 0 && (
+              <span style={countStyle('var(--xp-red)')}>
+                {t('changeSummaryToast.removed', { count: changes.removed.length })}
+              </span>
+            )}
+            {changes.modified.length > 0 && (
+              <span style={countStyle('var(--xp-orange)')}>
+                {t('changeSummaryToast.modified', { count: changes.modified.length })}
+              </span>
+            )}
+          </div>
+
+          <div style={buttonRowStyle}>
+            <button type="button" style={reviewBtnStyle} onClick={handleReview}>
+              {t('changeSummaryToast.review')}
+            </button>
+            <button type="button" style={expandBtnStyle} onClick={handleExpand}>
+              {t(expanded ? 'changeSummaryToast.collapse' : 'changeSummaryToast.showDetails')}
+            </button>
+            <button type="button" style={dismissBtnStyle} onClick={handleDismiss}>
+              {t('changeSummaryToast.dismiss')}
+            </button>
+          </div>
+
+          {expanded && (
+            <div style={listStyle}>
+              {allChanges.map((change) => (
+                <div key={change.path} style={listItemStyle(change.color)}>
+                  <div style={typeIndicatorStyle(change.color)} />
+                  <span
+                    style={{
+                      flex: 1,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {change.name}
+                  </span>
+                  <span style={{ fontSize: 10, color: 'var(--xp-text-muted)' }}>
+                    {t(`changeSummaryToast.types.${change.type}`)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Auto-dismiss countdown (pauses once the user interacts/expands) */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              height: 3,
+              width: '100%',
+              background: 'var(--xp-blue)',
+              opacity: interacted ? 0.35 : 1,
+              animation: `toast-countdown ${AUTO_DISMISS_MS}ms linear forwards`,
+              animationPlayState: interacted ? 'paused' : 'running',
+            }}
+            aria-hidden="true"
+          />
+        </div>
+      </BottomRightOverlayStackItem>
     );
   },
 );

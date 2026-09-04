@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 import { formatError } from '@/lib/file-operation-helpers';
 import { showConfirmationToast } from '@/components/ui/Toast';
@@ -26,6 +27,7 @@ export interface FileActionsDeps {
 }
 
 export const useFileActions = (deps: FileActionsDeps) => {
+  const { t } = useTranslation();
   const {
     splitLayoutRef,
     activeGroupRef,
@@ -106,12 +108,15 @@ export const useFileActions = (deps: FileActionsDeps) => {
         console.error('Failed to open file:', error);
         toast({
           variant: 'destructive',
-          title: 'Open File Failed',
-          description: `Failed to open "${file.name}": ${formatError(error)}`,
+          title: t('toast.openFileFailed'),
+          description: t('toast.openFileFailedDesc', {
+            name: file.name,
+            error: formatError(error),
+          }),
         });
       }
     },
-    [splitLayoutRef, activeGroupRef, toast],
+    [splitLayoutRef, activeGroupRef, toast, t],
   );
 
   const handleFileDoubleClick = useCallback(
@@ -150,12 +155,15 @@ export const useFileActions = (deps: FileActionsDeps) => {
         console.error('Failed to open file:', error);
         toast({
           variant: 'destructive',
-          title: 'Open File Failed',
-          description: `Failed to open "${file.name}": ${formatError(error)}`,
+          title: t('toast.openFileFailed'),
+          description: t('toast.openFileFailedDesc', {
+            name: file.name,
+            error: formatError(error),
+          }),
         });
       }
     },
-    [toast, navigateWithHistory, executeOpenHandler, openOpenWithDialog],
+    [toast, navigateWithHistory, executeOpenHandler, openOpenWithDialog, t],
   );
 
   // ── Google Drive ───────────────────────────────────────────────────────────
@@ -213,21 +221,24 @@ export const useFileActions = (deps: FileActionsDeps) => {
         } catch (err) {
           toast({
             variant: 'destructive',
-            title: 'Move Failed',
-            description: `Failed to move "${file.name}": ${formatError(err)}`,
+            title: t('toast.moveFailed'),
+            description: t('toast.moveFailedDesc', {
+              name: file.name,
+              error: formatError(err),
+            }),
           });
         }
       }
       if (moved > 0) {
         toast({
-          title: 'Moved',
-          description: `Moved ${moved} file${moved !== 1 ? 's' : ''} to ${destination}`,
+          title: t('toast.moved'),
+          description: t('toast.movedToDestinationDesc', { count: moved, destination }),
         });
         crossTabSelection.clearAll();
         refetch();
       }
     },
-    [crossTabSelection, toast, refetch],
+    [crossTabSelection, toast, refetch, t],
   );
 
   const handleCrossTabCopyAll = useCallback(
@@ -247,21 +258,24 @@ export const useFileActions = (deps: FileActionsDeps) => {
         } catch (err) {
           toast({
             variant: 'destructive',
-            title: 'Copy Failed',
-            description: `Failed to copy "${file.name}": ${formatError(err)}`,
+            title: t('toast.copyFailed'),
+            description: t('toast.copyFailedDesc', {
+              name: file.name,
+              error: formatError(err),
+            }),
           });
         }
       }
       if (copied > 0) {
         toast({
-          title: 'Copied',
-          description: `Copied ${copied} file${copied !== 1 ? 's' : ''} to ${destination}`,
+          title: t('toast.copied'),
+          description: t('toast.copiedToDestinationDesc', { count: copied, destination }),
         });
         crossTabSelection.clearAll();
         refetch();
       }
     },
-    [crossTabSelection, toast, refetch],
+    [crossTabSelection, toast, refetch, t],
   );
 
   const handleCrossTabCompressAll = useCallback(
@@ -280,29 +294,34 @@ export const useFileActions = (deps: FileActionsDeps) => {
           follow_symlinks: false,
         });
         toast({
-          title: 'Compressed',
-          description: `Created ${archiveName} with ${filePaths.length} file${filePaths.length !== 1 ? 's' : ''}`,
+          title: t('toast.compressed'),
+          description: t('toast.compressedDesc', {
+            archiveName,
+            count: filePaths.length,
+          }),
         });
         crossTabSelection.clearAll();
         refetch();
       } catch (err) {
         toast({
           variant: 'destructive',
-          title: 'Compression Failed',
+          title: t('toast.compressionFailed'),
           description: formatError(err),
         });
       }
     },
-    [crossTabSelection, toast, refetch],
+    [crossTabSelection, toast, refetch, t],
   );
 
   const handleCrossTabDeleteAll = useCallback(async () => {
     const allFiles = crossTabSelection.getAllSelectedFiles();
     const confirmed = await showConfirmationToast({
-      title: 'Delete All Cross-Tab Files',
-      description: `Are you sure you want to move ${allFiles.length} file(s) from ${crossTabSelection.selectedTabCount} tab(s) to the recycle bin?`,
-      confirmText: 'Move to Recycle Bin',
-      cancelText: 'Cancel',
+      title: t('toast.deleteCrossTabTitle'),
+      description: t('toast.deleteCrossTabDesc', {
+        count: allFiles.length,
+        tabCount: crossTabSelection.selectedTabCount,
+      }),
+      confirmText: t('toast.moveToRecycleBin'),
     });
     if (!confirmed) return;
     let deleted = 0;
@@ -313,20 +332,23 @@ export const useFileActions = (deps: FileActionsDeps) => {
       } catch (err) {
         toast({
           variant: 'destructive',
-          title: 'Delete Failed',
-          description: `Failed to delete "${file.name}": ${formatError(err)}`,
+          title: t('toast.deleteFailed'),
+          description: t('toast.deleteFailedDesc', {
+            name: file.name,
+            error: formatError(err),
+          }),
         });
       }
     }
     if (deleted > 0) {
       toast({
-        title: 'Deleted',
-        description: `Moved ${deleted} file${deleted !== 1 ? 's' : ''} to recycle bin`,
+        title: t('toast.deleted'),
+        description: t('toast.movedToRecycleBinDesc', { count: deleted }),
       });
       crossTabSelection.clearAll();
       refetch();
     }
-  }, [crossTabSelection, toast, refetch]);
+  }, [crossTabSelection, toast, refetch, t]);
 
   return {
     addTab,

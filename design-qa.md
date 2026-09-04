@@ -1,56 +1,38 @@
-# Wisp Brand Icon Design QA
+# Wisp Liquid Glass Design QA
 
-- Source visual truth: `/Users/tc/.codex/generated_images/01a027ff-d978-7740-babe-4f925980b80a/exec-4f1152db-783f-4dd3-8adf-5c1ffcb309f8.png`
-- Implementation screenshot: `/Users/tc/.codex/visualizations/2026/08/22/01a027ff-d978-7740-babe-4f925980b80a/wisp-brand-qa/implementation.png`
-- Full-view comparison: `/Users/tc/.codex/visualizations/2026/08/22/01a027ff-d978-7740-babe-4f925980b80a/wisp-brand-qa/comparison-full.png`
-- Focused comparison: `/Users/tc/.codex/visualizations/2026/08/22/01a027ff-d978-7740-babe-4f925980b80a/wisp-brand-qa/comparison-focus.png`
-- Source pixels: 1254 × 1254 RGB
-- Master asset: 1024 × 1024 RGBA
-- Browser capture: 1211 × 847 pixels at a 1211 × 847 CSS viewport, device scale factor 1
-- State: dark theme, file explorer home view, top-bar brand lockup visible
+Result: passed
 
-## Evidence
+## Source and implementation
 
-The full-view comparison confirms that the selected mist form, violet palette, cyan tail,
-and deep rounded-square field are preserved in the running application. The focused
-comparison checks the actual 24 px top-bar rendering; the silhouette and bright fold remain
-recognizable without clipping or a transparency halo. A separate 32 px generated asset was
-also inspected and remains legible.
+- Source: `/Users/tc/Downloads/wisp_liquid_design.html?preview=1`
+- Source capture: `/Users/tc/git/wisp/design-qa-source.png`
+- Implementation: `http://localhost:5175/?demo=1`
+- Final capture: `/Users/tc/git/wisp/design-qa-implementation-final-1440x900.png`
+- Final side-by-side comparison: `/Users/tc/git/wisp/design-qa-comparison-final.png`
 
-The browser-reported image resource completed successfully at 512 × 512 natural pixels and
-rendered at 24 × 24 CSS pixels. The page was reloaded after the asset replacement. Console
-errors were checked; the observed errors are existing web-mode failures from unavailable
-Tauri filesystem/event APIs, not image loading or branding errors.
+## Verification state
 
-The native Tauri development application was rebuilt and relaunched after generating the
-PNG, ICO, and ICNS assets.
+- Viewport: 1440 × 900 CSS pixels
+- Route: `/?demo=1`
+- Directory: `/home/user`
+- Left navigation: open
+- Preview inspector: open with no file selected
+- Bottom panel: collapsed
+- File icon treatment: intentionally preserved from Wisp, per request
 
-## Findings
+## Final findings
 
-- Fonts and typography: unchanged; the Wisp wordmark retains its existing size, weight, and
-  alignment next to the new mark.
-- Spacing and layout rhythm: the 24 px header slot and gap remain unchanged; the new mark is
-  centered and does not affect title-bar layout.
-- Colors and visual tokens: the icon's ink-violet, lavender, and cyan palette fits the current
-  dark chrome without losing contrast.
-- Image quality and asset fidelity: the selected raster artwork is used directly. The master
-  received only a rounded transparency mask and high-quality downsampling; no substitute SVG,
-  CSS drawing, or placeholder is present. PNG alpha edges, ICNS, ICO, and 32/64/128/256/512
-  raster outputs were generated from the same master.
-- Copy and content: no app-specific text changed; the visible product name remains `Wisp`.
+- The page is one integrated glass window with an 18 px desktop inset and 30 px outer radius; interior panes no longer read as detached rounded cards.
+- The 72 px title bar, 236 px navigation pane, 348 px inspector, 28 px status bar, and pane dividers align with the supplied reference geometry.
+- Materials now use the reference's warm-to-blue desktop field, translucent chrome, pale content canvas, subtle edge highlights, and restrained shadows.
+- Control radii are limited to 10–14 px, with the large radius reserved for the outer window.
+- File list rows, column spacing, toolbar zone, sidebar selection, empty preview state, and preview footer were visually compared and tightened across multiple passes.
+- Existing Wisp product controls and component order remain functional. The browser demo keeps Wisp's hamburger, weather status, split controls, and original file icons instead of adding fake native window controls or replacing product functionality.
+- No P0, P1, or P2 visual issues remain in the verified state.
 
-No actionable P0, P1, or P2 mismatch was found. No focused-region fix iteration was needed.
+## Comparison history
 
-## Primary Checks
-
-- Reloaded the local Wisp application preview.
-- Confirmed the new image asset loads completely at the expected natural dimensions.
-- Inspected the top-bar lockup at its real rendered size.
-- Checked browser console errors for branding or asset failures.
-- Rebuilt and relaunched the native desktop process.
-
-## Comparison History
-
-- Initial pass: no P0/P1/P2 findings; no visual fixes required after comparison.
-
-final result: passed
+1. Before: separate rounded sidebar, content, rail, inspector, and bottom cards; dark blue material; oversized repeated corner radii.
+2. Pass 1: integrated light window and matched column geometry; preview still had a framed empty icon and full-width footer action.
+3. Pass 2: simplified the preview artwork, moved the close action to the lower-right, and matched the empty-state vertical position.
+4. Final: aligned file table columns, strengthened filename hierarchy, exposed the reference-like preview settings action, and confirmed the final side-by-side comparison.

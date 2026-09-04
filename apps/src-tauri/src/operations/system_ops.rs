@@ -1,5 +1,7 @@
 use tauri::command;
 use tauri::Emitter;
+#[cfg(target_os = "macos")]
+use tauri::Manager;
 
 #[cfg(windows)]
 use crate::operations::get_disk_space;
@@ -785,6 +787,41 @@ mod tests {
         let img = image::load_from_memory(&bytes).expect("decode png");
         assert_eq!(img.width(), 64, "drag icon must be 64px wide");
         assert_eq!(img.height(), 64, "drag icon must be 64px tall");
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn test_file_thumbnail_cache_key_tracks_file_content() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let file = dir.path().join("cover.txt");
+        std::fs::write(&file, "first").expect("write fixture");
+        let first = file_thumbnail_cache_key(&file, 96).expect("first key");
+        std::fs::write(&file, "a longer second version").expect("update fixture");
+        let second = file_thumbnail_cache_key(&file, 96).expect("second key");
+        assert_ne!(first, second, "content metadata must invalidate the cache");
+    }
+
+    #[cfg(target_os = "macos")]
+    #[tokio::test]
+    async fn test_quicklook_thumbnail_is_cached_as_png() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let cache = dir.path().join("cache");
+        let file = dir.path().join("Finder thumbnail.txt");
+        std::fs::write(&file, "Quick Look thumbnail fixture").expect("write fixture");
+
+        let first = get_file_thumbnail_with_cache_dir(&file, 72, &cache)
+            .await
+            .expect("generate thumbnail");
+        let second = get_file_thumbnail_with_cache_dir(&file, 72, &cache)
+            .await
+            .expect("reuse thumbnail");
+
+        assert_eq!(first, second, "the metadata cache key should be stable");
+        let bytes = std::fs::read(&first).expect("read thumbnail");
+        let image = image::load_from_memory(&bytes).expect("valid PNG thumbnail");
+        assert!(image.width() > 0);
+        assert!(image.height() > 0);
+        assert!(std::path::Path::new(&first).starts_with(&cache));
     }
     use super::*;
 
@@ -2126,6 +2163,178 @@ pub async fn get_file_icon(path: String) -> Result<String, String> {
 #[command]
 pub async fn get_file_icon(_path: String) -> Result<String, String> {
     Err("Not supported on this platform".to_string())
+}
+
+// ─── macOS Finder-style file thumbnails ───────────────────────────────────
+
+/// Hash every value that can make a Finder/Quick Look thumbnail stale. Using
+/// file metadata instead of the path alone means editing a photo, PDF, or book
+/// produces a fresh cache entry immediately.
+#[cfg(target_os = "macos")]
+fn file_thumbnail_cache_key(path: &std::path::Path, size: u32) -> Result<u64, String> {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    let metadata =
+        std::fs::metadata(path).map_err(|e| format!("Failed to read thumbnail metadata: {}", e))?;
+    let modified = metadata
+        .modified()
+        .unwrap_or(std::time::SystemTime::UNIX_EPOCH)
+        .duration_since(std::time::SystemTime::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos();
+
+    let mut hasher = DefaultHasher::new();
+    path.hash(&mut hasher);
+    metadata.len().hash(&mut hasher);
+    modified.hash(&mut hasher);
+    size.hash(&mut hasher);
+    Ok(hasher.finish())
+}
+
+/// Generate the icon-mode representation Finder asks Quick Look for. Quick
+/// Look provides content thumbnails for images, PDFs, books, media, and every
+/// installed thumbnail provider; unsupported types fall back to NSWorkspace.
+#[cfg(target_os = "macos")]
+async fn get_file_thumbnail_with_cache_dir(
+    path: &std::path::Path,
+    requested_size: u32,
+    cache_dir: &std::path::Path,
+) -> Result<String, String> {
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    static WORK_ID: AtomicU64 = AtomicU64::new(1);
+
+    let size = requested_size.clamp(24, 512);
+    let metadata = std::fs::metadata(path)
+        .map_err(|e| format!("Cannot thumbnail '{}': {}", path.display(), e))?;
+    let cache_key = file_thumbnail_cache_key(path, size)?;
+    std::fs::create_dir_all(cache_dir)
+        .map_err(|e| format!("Failed to create thumbnail cache: {}", e))?;
+
+    let output_path = cache_dir.join(format!("{:016x}-{}.png", cache_key, size));
+    if output_path.is_file() {
+        return Ok(output_path.to_string_lossy().to_string());
+    }
+
+    let mut quicklook_error: Option<String> = None;
+
+    // qlmanage can block on directories and volumes. Finder renders those as
+    // system icons anyway, so only regular files go through Quick Look.
+    if metadata.is_file() {
+        let work_id = WORK_ID.fetch_add(1, Ordering::Relaxed);
+        let staging_dir = cache_dir.join(format!(
+            ".quicklook-{:016x}-{}-{}",
+            cache_key,
+            std::process::id(),
+            work_id
+        ));
+        std::fs::create_dir_all(&staging_dir)
+            .map_err(|e| format!("Failed to create Quick Look staging directory: {}", e))?;
+
+        let mut command = tokio::process::Command::new("/usr/bin/qlmanage");
+        command
+            .kill_on_drop(true)
+            .arg("-t")
+            .arg("-i")
+            .arg("-s")
+            .arg(size.to_string())
+            .arg("-o")
+            .arg(&staging_dir)
+            .arg(path);
+
+        match tokio::time::timeout(std::time::Duration::from_secs(12), command.output()).await {
+            Ok(Ok(output)) if output.status.success() => {
+                let generated = std::fs::read_dir(&staging_dir).ok().and_then(|entries| {
+                    entries
+                        .flatten()
+                        .map(|entry| entry.path())
+                        .find(|candidate| {
+                            candidate
+                                .extension()
+                                .and_then(|ext| ext.to_str())
+                                .is_some_and(|ext| ext.eq_ignore_ascii_case("png"))
+                        })
+                });
+
+                if let Some(generated) = generated {
+                    if let Err(rename_error) = std::fs::rename(&generated, &output_path) {
+                        // A concurrent request may have won the race. Otherwise
+                        // copy across and surface a real I/O failure.
+                        if !output_path.is_file() {
+                            std::fs::copy(&generated, &output_path).map_err(|copy_error| {
+                                format!(
+                                    "Failed to store Quick Look thumbnail (rename: {}; copy: {})",
+                                    rename_error, copy_error
+                                )
+                            })?;
+                        }
+                    }
+                } else {
+                    quicklook_error = Some("Quick Look returned no PNG thumbnail".to_string());
+                }
+            }
+            Ok(Ok(output)) => {
+                quicklook_error = Some(format!(
+                    "Quick Look failed: {}",
+                    String::from_utf8_lossy(&output.stderr).trim()
+                ));
+            }
+            Ok(Err(error)) => quicklook_error = Some(format!("Quick Look failed: {}", error)),
+            Err(_) => quicklook_error = Some("Quick Look thumbnail timed out".to_string()),
+        }
+
+        let _ = std::fs::remove_dir_all(&staging_dir);
+        if output_path.is_file() {
+            return Ok(output_path.to_string_lossy().to_string());
+        }
+    }
+
+    // The drag-icon cache lives in the OS temp directory, which the webview
+    // cannot read. Copy the system icon into APPDATA, already present in the
+    // asset-protocol allowlist, before returning it to React.
+    let fallback_path = path.to_string_lossy().to_string();
+    let system_icon = tokio::task::spawn_blocking(move || get_file_icon_sync(&fallback_path))
+        .await
+        .map_err(|e| format!("System icon task failed: {}", e))??;
+    std::fs::copy(&system_icon, &output_path).map_err(|e| {
+        format!(
+            "{}; system icon copy failed: {}",
+            quicklook_error.unwrap_or_else(|| "Quick Look unavailable".to_string()),
+            e
+        )
+    })?;
+
+    Ok(output_path.to_string_lossy().to_string())
+}
+
+/// Return a Finder-style icon/thumbnail PNG beneath APPDATA so the webview can
+/// load it through Tauri's existing asset protocol scope.
+#[cfg(target_os = "macos")]
+#[command]
+pub async fn get_file_thumbnail(
+    app_handle: tauri::AppHandle,
+    path: String,
+    size: Option<u32>,
+) -> Result<String, String> {
+    validate_file_path(&path)?;
+    let cache_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to locate app data directory: {}", e))?
+        .join("finder-thumbnails");
+    get_file_thumbnail_with_cache_dir(std::path::Path::new(&path), size.unwrap_or(96), &cache_dir)
+        .await
+}
+
+#[cfg(not(target_os = "macos"))]
+#[command]
+pub async fn get_file_thumbnail(
+    _app_handle: tauri::AppHandle,
+    _path: String,
+    _size: Option<u32>,
+) -> Result<String, String> {
+    Err("Finder thumbnails are only available on macOS".to_string())
 }
 
 /// Check which CLI binaries are installed (found on PATH).

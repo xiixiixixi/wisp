@@ -6,13 +6,10 @@ interface BadgeProps {
   children: React.ReactNode;
 }
 
-/**
- * MUJI paper badge — a squared paper tag, never a pill.
- * The default is the one 無印紅 moment; the rest are quiet ink washes.
- */
+/** Compact status capsule. Status is communicated with color, not shouting. */
 export const Badge = ({ variant = 'default', className = '', children }: BadgeProps) => {
   const baseClasses =
-    'inline-flex items-center rounded-[2px] px-1.5 py-px text-[10px] font-medium tracking-wide uppercase';
+    'liquid-badge inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium';
 
   const variantClasses = {
     default: 'bg-xp-selection-bg text-xp-lime',

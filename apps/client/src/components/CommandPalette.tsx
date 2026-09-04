@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { TauriAPI, SearchResult, RecentFile } from '@/lib/tauri-api';
+import { TauriAPI, RecentFile } from '@/lib/tauri-api';
 import { File, Files, Folder, Search, Sparkles, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -33,6 +33,7 @@ import {
   LOADING_ROW_HEIGHT,
   type CommandPaletteProps,
   type PaletteItem,
+  type PaletteSearchResult,
   type VirtualRow,
 } from './command-palette-helpers';
 
@@ -50,12 +51,14 @@ const CommandPaletteInner = ({
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState<PaletteMode>('files');
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [fileResults, setFileResults] = useState<SearchResult[]>([]);
+  const [fileResults, setFileResults] = useState<PaletteSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchGenerationRef = useRef(0);
+  const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
 
   // Deferred query for filtering - input stays responsive while filtering catches up
   const deferredQuery = useDeferredValue(query);
@@ -63,25 +66,45 @@ const CommandPaletteInner = ({
   const isAssistantMode = mode === 'assistant';
   const effectiveQuery = deferredQuery.trim();
 
-  // Load recent files when palette opens
+  // Load recent files when the palette opens, ignoring completion after this
+  // instance closes or unmounts.
   useEffect(() => {
-    if (isOpen) {
-      setQuery('');
-      setMode('files');
-      setSelectedIndex(0);
-      setFileResults([]);
-      // Fetch recent files from backend
-      TauriAPI.getRecentFiles(10)
-        .then((files) => {
-          setRecentFiles(files);
-        })
-        .catch(() => {
-          setRecentFiles([]);
-        });
-      requestAnimationFrame(() => {
-        inputRef.current?.focus();
+    if (!isOpen) return;
+
+    let cancelled = false;
+    setQuery('');
+    setMode('files');
+    setSelectedIndex(0);
+    setFileResults([]);
+    TauriAPI.getRecentFiles(10)
+      .then((files) => {
+        if (!cancelled) setRecentFiles(files);
+      })
+      .catch(() => {
+        if (!cancelled) setRecentFiles([]);
       });
-    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
+
+  // DialogsOverlay conditionally mounts the palette, so focus restoration has
+  // to happen in cleanup rather than waiting for an isOpen=false render.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    previouslyFocusedElementRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusFrame = requestAnimationFrame(() => inputRef.current?.focus());
+
+    return () => {
+      cancelAnimationFrame(focusFrame);
+      const previous = previouslyFocusedElementRef.current;
+      const trigger = document.querySelector<HTMLElement>('[data-command-palette-trigger]');
+      const focusTarget = trigger ?? (previous?.isConnected ? previous : null);
+      requestAnimationFrame(() => focusTarget?.focus());
+    };
   }, [isOpen]);
 
   // Build the flat item list for keyboard navigation
@@ -131,6 +154,15 @@ const CommandPaletteInner = ({
   // Show file results only when a query is typed and there are results
   const showFileResults = !isAssistantMode && effectiveQuery.length >= 2 && fileResults.length > 0;
   const totalItems = paletteItems.length + (showFileResults ? fileResults.length : 0);
+
+  // Results can shrink asynchronously. Keep aria-activedescendant and Enter
+  // within the current collection instead of leaving a stale or -1 index.
+  useEffect(() => {
+    setSelectedIndex((previous) => {
+      if (totalItems === 0) return 0;
+      return Math.min(Math.max(previous, 0), totalItems - 1);
+    });
+  }, [totalItems]);
 
   // Build flat virtual rows for the virtualizer
   const virtualRows = useMemo((): VirtualRow[] => {
@@ -204,24 +236,31 @@ const CommandPaletteInner = ({
     setSelectedIndex(0);
   }, [effectiveQuery, isAssistantMode]);
 
-  // Search files when query has no good command matches (skip in command mode)
+  // Search files when query has no good command matches. Every query, path,
+  // mode, open/close transition receives a generation so stale results and
+  // stale loading completions cannot overwrite the latest request.
   useEffect(() => {
+    const generation = ++searchGenerationRef.current;
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     const q = query.trim();
-    if (!q || q.length < 2 || isAssistantMode) {
-      setFileResults([]);
-      return;
-    }
+    setFileResults([]);
+    setIsSearching(false);
+    if (!isOpen || !q || q.length < 2 || isAssistantMode) return;
+
     searchTimerRef.current = setTimeout(async () => {
+      if (generation !== searchGenerationRef.current) return;
       setIsSearching(true);
       try {
-        let results: SearchResult[] = [];
+        let results: PaletteSearchResult[] = [];
         try {
           const enhanced = await TauriAPI.enhancedSearch(q, undefined, 10);
-          results = enhanced.results;
+          // Indexed search contains files only; directory results come from
+          // the filesystem fallback and are classified explicitly below.
+          results = enhanced.results.map((result) => ({ ...result, isDir: false }));
         } catch {
           try {
-            results = await TauriAPI.searchTokens(q, 10);
+            const tokenResults = await TauriAPI.searchTokens(q, 10);
+            results = tokenResults.map((result) => ({ ...result, isDir: false }));
           } catch {
             /* ignore */
           }
@@ -229,28 +268,41 @@ const CommandPaletteInner = ({
         if (results.length === 0 && currentPath && !currentPath.startsWith('wisp://')) {
           try {
             const paths = await TauriAPI.findFiles(q, currentPath);
-            results = paths.slice(0, 10).map((p) => ({
-              path: p,
-              filename: p.split(/[/\\]/).pop() || p,
-              matches: [],
-              score: 1,
-              relevance_type: 'filesystem',
-            }));
+            const classified = await Promise.all(
+              paths.slice(0, 10).map(async (path): Promise<PaletteSearchResult | null> => {
+                try {
+                  const isDir = await TauriAPI.isDir(path);
+                  return {
+                    path,
+                    filename: path.split(/[/\\]/).pop() || path,
+                    matches: [],
+                    score: 1,
+                    relevance_type: 'filesystem',
+                    isDir,
+                  };
+                } catch {
+                  // Omit an unclassified path instead of guessing from a dot
+                  // in its display name.
+                  return null;
+                }
+              }),
+            );
+            results = classified.filter((result): result is PaletteSearchResult => result !== null);
           } catch {
             /* ignore */
           }
         }
-        setFileResults(results);
+        if (generation === searchGenerationRef.current) setFileResults(results);
       } catch {
-        setFileResults([]);
+        if (generation === searchGenerationRef.current) setFileResults([]);
       } finally {
-        setIsSearching(false);
+        if (generation === searchGenerationRef.current) setIsSearching(false);
       }
     }, 200);
     return () => {
       if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     };
-  }, [query, currentPath, isAssistantMode]);
+  }, [query, currentPath, isAssistantMode, isOpen]);
 
   // Scroll selected item into view via virtualizer
   useEffect(() => {
@@ -266,6 +318,8 @@ const CommandPaletteInner = ({
 
   const executeItem = useCallback(
     (index: number) => {
+      if (!Number.isInteger(index) || index < 0 || index >= totalItems) return;
+
       if (index < paletteItems.length) {
         const item = paletteItems[index];
         if (item.type === 'go-to-path') {
@@ -279,9 +333,9 @@ const CommandPaletteInner = ({
         } else if (item.type === 'recent-file') {
           onClose();
           if (onFileSelect) {
-            const hasExt = item.file.name.includes('.') && !item.file.name.startsWith('.');
+            const isDir = item.file.file_type.trim().toLowerCase() === 'folder';
             requestAnimationFrame(() => {
-              onFileSelect(item.file.path, !hasExt);
+              onFileSelect(item.file.path, isDir);
             });
           }
         } else {
@@ -300,42 +354,42 @@ const CommandPaletteInner = ({
         const file = fileResults[fileIndex];
         if (file && onFileSelect) {
           onClose();
-          const hasExt = file.filename.includes('.') && !file.filename.startsWith('.');
           requestAnimationFrame(() => {
-            onFileSelect(file.path, !hasExt);
+            onFileSelect(file.path, file.isDir);
           });
         }
       }
     },
-    [paletteItems, fileResults, onClose, onFileSelect, currentPath],
+    [paletteItems, fileResults, onClose, onFileSelect, currentPath, totalItems],
   );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       switch (e.key) {
         case 'ArrowDown':
+          if (totalItems === 0) break;
           e.preventDefault();
-          setSelectedIndex((prev) => (prev < totalItems - 1 ? prev + 1 : 0));
+          setSelectedIndex((previous) => {
+            const current = Math.min(Math.max(previous, 0), totalItems - 1);
+            return current < totalItems - 1 ? current + 1 : 0;
+          });
           break;
         case 'ArrowUp':
+          if (totalItems === 0) break;
           e.preventDefault();
-          setSelectedIndex((prev) => (prev > 0 ? prev - 1 : totalItems - 1));
+          setSelectedIndex((previous) => {
+            const current = Math.min(Math.max(previous, 0), totalItems - 1);
+            return current > 0 ? current - 1 : totalItems - 1;
+          });
           break;
         case 'Enter':
+          if (totalItems === 0 || selectedIndex < 0 || selectedIndex >= totalItems) break;
           e.preventDefault();
           executeItem(selectedIndex);
           break;
         case 'Escape':
           e.preventDefault();
           onClose();
-          break;
-        case 'Tab':
-          e.preventDefault();
-          if (e.shiftKey) {
-            setSelectedIndex((prev) => (prev > 0 ? prev - 1 : totalItems - 1));
-          } else {
-            setSelectedIndex((prev) => (prev < totalItems - 1 ? prev + 1 : 0));
-          }
           break;
       }
     },
@@ -421,8 +475,7 @@ const CommandPaletteInner = ({
 
       case 'recent-file': {
         const rf = row.file;
-        const hasExt = rf.name.includes('.') && !rf.name.startsWith('.');
-        const isDir = !hasExt;
+        const isDir = rf.file_type.trim().toLowerCase() === 'folder';
         const parentPath = rf.path.replace(/[/\\][^/\\]+$/, '');
         const isSelected = row.itemIndex === selectedIndex;
         return (
@@ -447,8 +500,7 @@ const CommandPaletteInner = ({
 
       case 'search-file': {
         const result = row.result;
-        const hasExt = result.filename.includes('.') && !result.filename.startsWith('.');
-        const isDir = !hasExt;
+        const isDir = result.isDir;
         const parentPath = result.path.replace(/[/\\][^/\\]+$/, '');
         const isSelected = row.itemIndex === selectedIndex;
         return (
@@ -504,7 +556,7 @@ const CommandPaletteInner = ({
 
       case 'loading':
         return (
-          <div style={loadingContainerStyle}>
+          <div style={loadingContainerStyle} role="status" aria-live="polite">
             <div style={loadingSpinnerStyle} />
             {t('commandPalette.searchingFiles')}
           </div>
@@ -526,7 +578,11 @@ const CommandPaletteInner = ({
     if (!hasContent && !isSearching) {
       if (isAssistantMode && !effectiveQuery) {
         return (
-          <div className="flex flex-col items-center px-8 py-10 text-center">
+          <div
+            className="flex flex-col items-center px-8 py-10 text-center"
+            role="status"
+            aria-live="polite"
+          >
             <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-[2px] bg-xp-purple/15 text-xp-purple ring-1 ring-xp-purple/20">
               <Sparkles size={20} aria-hidden="true" />
             </span>
@@ -539,7 +595,11 @@ const CommandPaletteInner = ({
           </div>
         );
       }
-      return <div style={emptyStateStyle}>{t('commandPalette.noResults')}</div>;
+      return (
+        <div style={emptyStateStyle} role="status" aria-live="polite">
+          {t('commandPalette.noResults')}
+        </div>
+      );
     }
 
     return (
@@ -637,6 +697,7 @@ const CommandPaletteInner = ({
           <input
             ref={inputRef}
             type="text"
+            role="combobox"
             value={query}
             onChange={(e) => handleQueryChange(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -644,9 +705,15 @@ const CommandPaletteInner = ({
             style={inputStyle}
             autoComplete="off"
             spellCheck={false}
+            aria-label={t(placeholderKey)}
+            aria-autocomplete="list"
+            aria-haspopup="listbox"
+            aria-expanded={isOpen}
             aria-controls="command-palette-results"
             aria-activedescendant={
-              totalItems > 0 ? `command-palette-option-${selectedIndex}` : undefined
+              totalItems > 0 && selectedIndex >= 0 && selectedIndex < totalItems
+                ? `command-palette-option-${selectedIndex}`
+                : undefined
             }
           />
           {effectiveQuery && (
@@ -666,6 +733,8 @@ const CommandPaletteInner = ({
           ref={listRef}
           id="command-palette-results"
           role="listbox"
+          aria-label={t('commandPalette.results')}
+          aria-busy={isSearching}
           style={{ flex: 1, overflowY: 'auto', padding: '4px 0' }}
         >
           {renderResultsContent()}

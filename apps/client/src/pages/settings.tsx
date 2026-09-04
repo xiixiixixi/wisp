@@ -375,6 +375,9 @@ const Settings = () => {
   useEffect(() => {
     loadFontSize();
     if (settings.reducedMotion) document.documentElement.classList.add('reduce-motion');
+    if (settings.reduceTransparency) {
+      document.documentElement.classList.add('reduce-transparency');
+    }
     if (settings.enhancedFocus) document.documentElement.classList.add('enhanced-focus');
     if (settings.highContrast) document.documentElement.classList.add('high-contrast');
     // Mount-only: apply persisted accessibility settings on init
@@ -489,10 +492,10 @@ const Settings = () => {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-xp-bg text-xp-text">
+    <div className="wisp-settings-shell flex h-screen flex-col overflow-hidden bg-xp-bg text-xp-text">
       {/* Header — draggable window region */}
       <div
-        className="border-xp-border/50 bg-xp-bg/80 shrink-0 border-b"
+        className="wisp-settings-header border-xp-border/50 bg-xp-bg/80 shrink-0 border-b"
         onMouseDown={handleHeaderMouseDown}
         onDoubleClick={handleHeaderDoubleClick}
       >
@@ -520,9 +523,9 @@ const Settings = () => {
 
       {/* Body: Sidebar + Content */}
       <div className="flex-1 overflow-hidden">
-        <div className="mx-auto flex h-full max-w-7xl">
+        <div className="wisp-settings-layout mx-auto flex h-full max-w-7xl">
           {/* Sidebar */}
-          <nav className="scrollbar-none w-64 shrink-0 overflow-y-auto px-3 py-4">
+          <nav className="wisp-settings-sidebar scrollbar-none w-64 shrink-0 overflow-y-auto px-3 py-4">
             <div className="space-y-4">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
@@ -556,7 +559,7 @@ const Settings = () => {
           </nav>
 
           {/* Content */}
-          <main className="scrollbar-none flex-1 overflow-y-auto px-6 py-6">
+          <main className="wisp-settings-content scrollbar-none flex-1 overflow-y-auto px-6 py-6">
             <div className="max-w-3xl">
               {/* Tab heading */}
               <div className="mb-4 px-4">

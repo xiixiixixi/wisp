@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useWindowEvent } from '@/hooks/use-window-event';
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 import { isTauri } from '@/lib/transport';
@@ -137,6 +138,7 @@ export interface WispEffectsDeps {
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
 export const useWispEffects = (deps: WispEffectsDeps) => {
+  const { t } = useTranslation();
   const {
     currentPath,
     files,
@@ -149,7 +151,6 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
     toast,
     pendingSelectRef,
     topBarRef: _topBarRef,
-    leftSidebarRef,
     toggleQuickLook,
     toggleHiddenFiles,
     navigateWithHistory,
@@ -180,8 +181,6 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
     leftSidebarWidth,
     rightSidebarWidth,
     bottomPanelHeight,
-    searchPanelOpen: _searchPanelOpen,
-    setSearchPanelOpen,
     sortBy,
     sortOrder,
     theme,
@@ -263,26 +262,34 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
         TauriAPI.undoOperation()
           .then((result) => {
             if (result.success) {
-              toast({ title: 'Undo', description: result.message });
+              toast({ title: t('toast.undo'), description: result.message });
               refetch();
             }
           })
           .catch((err) => {
             console.error('Undo operation failed:', err);
-            toast({ variant: 'destructive', title: 'Undo Failed', description: formatError(err) });
+            toast({
+              variant: 'destructive',
+              title: t('toast.undoFailed'),
+              description: formatError(err),
+            });
           });
       },
       onRedo: () => {
         TauriAPI.redoOperation()
           .then((result) => {
             if (result.success) {
-              toast({ title: 'Redo', description: result.message });
+              toast({ title: t('toast.redo'), description: result.message });
               refetch();
             }
           })
           .catch((err) => {
             console.error('Redo operation failed:', err);
-            toast({ variant: 'destructive', title: 'Redo Failed', description: formatError(err) });
+            toast({
+              variant: 'destructive',
+              title: t('toast.redoFailed'),
+              description: formatError(err),
+            });
           });
       },
       onSelectAll: () => {
@@ -323,7 +330,7 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
           } catch (err) {
             toast({
               variant: 'destructive',
-              title: 'Duplicate Failed',
+              title: t('toast.duplicateFailed'),
               description: formatError(err),
             });
           }
@@ -331,8 +338,8 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
         if (duplicated > 0) {
           refetch();
           toast({
-            title: 'Duplicated',
-            description: `Duplicated ${duplicated} item${duplicated > 1 ? 's' : ''}`,
+            title: t('toast.duplicated'),
+            description: t('toast.duplicatedItemsDesc', { count: duplicated }),
           });
         }
       },
@@ -404,16 +411,15 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
         setBottomPanelTab('terminal');
       },
       onSearch: () => {
-        leftSidebarRef?.current?.focusSearch();
+        setCommandPaletteOpen(true);
       },
       onQuickSearch: () => {
         setCommandPaletteOpen(true);
       },
       onNaturalLanguageSearch: () => {
-        // Matches the behaviour this key had before it became configurable:
-        // open the AI search panel and reveal the sidebar
-        setSearchPanelOpen((prev) => !prev);
-        setLeftSidebarCollapsed(false);
+        // Search now has one consistent entry point. The palette already
+        // exposes Files and Ask Wisp modes with the current folder as context.
+        setCommandPaletteOpen(true);
       },
       onOpenSettings: () => {
         window.dispatchEvent(new CustomEvent('wisp-open-settings'));
@@ -526,19 +532,25 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
       if (e.shiftKey) {
         if (currentPath && !currentPath.startsWith('wisp://')) {
           assignPathBookmark(slot, currentPath);
-          toast({ title: `Saved to bookmark ${slot}`, description: getFolderName(currentPath) });
+          toast({
+            title: t('toast.bookmarkSavedSlot', { slot }),
+            description: getFolderName(currentPath),
+          });
         }
       } else {
         const bm = getBookmarkBySlot(slot);
         if (bm) {
           navigateWithHistory(bm.path);
-          toast({ title: `Bookmark ${slot}`, description: bm.label || getFolderName(bm.path) });
+          toast({
+            title: t('toast.bookmarkSlot', { slot }),
+            description: bm.label || getFolderName(bm.path),
+          });
         }
       }
     };
     document.addEventListener('keydown', handleBookmarkKeys, true);
     return () => document.removeEventListener('keydown', handleBookmarkKeys, true);
-  }, [currentPath, toast, navigateWithHistory]);
+  }, [currentPath, toast, navigateWithHistory, t]);
 
   // ── Initialize extension system (deferred — open folder first) ───────────
   useEffect(() => {

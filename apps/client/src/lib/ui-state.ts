@@ -19,7 +19,7 @@ export const patchUiState = (patch: Record<string, unknown>): void => {
 // ── Theme resolution ─────────────────────────────────────────────────────────
 
 /** Theme used when no stored preference exists. */
-export const DEFAULT_THEME = 'rolex';
+export const DEFAULT_THEME = 'auto';
 
 const readStoredTheme = (key: string): string | null => {
   try {
@@ -38,15 +38,15 @@ const readStoredTheme = (key: string): string | null => {
 /**
  * Single source of truth for the active theme. The explorer and the settings
  * page both use this so the applied theme and the settings dropdown can never
- * disagree. Prefers `wisp:ui-state` (runtime state), falls back to
- * `wisp:settings`, then the default Wisp Ink theme.
+ * disagree. Historical stored keys are intentionally collapsed into Wisp's
+ * single stable appearance.
  */
 export const resolveTheme = (): string => {
   const uiTheme = readStoredTheme(STORAGE_KEYS.UI_STATE);
-  if (uiTheme) return uiTheme;
+  if (uiTheme) return DEFAULT_THEME;
 
   const settingsTheme = readStoredTheme(STORAGE_KEYS.SETTINGS);
-  if (settingsTheme) return settingsTheme;
+  if (settingsTheme) return DEFAULT_THEME;
 
   return DEFAULT_THEME;
 };

@@ -26,9 +26,9 @@ interface FolderViewSettingsResult {
 // ── Defaults ──────────────────────────────────────────────────────────────────
 
 const DEFAULT_VIEW_MODE = 'details';
-const DEFAULT_SORT_BY: SortField = 'name';
-const DEFAULT_SORT_ORDER: 'asc' | 'desc' = 'asc';
-const DEFAULT_GROUP_BY_DATE = false;
+const DEFAULT_SORT_BY: SortField = 'dateModified';
+const DEFAULT_SORT_ORDER: 'asc' | 'desc' = 'desc';
+const DEFAULT_GROUP_BY_DATE = true;
 
 // ── Persistence helpers ───────────────────────────────────────────────────────
 
@@ -105,14 +105,6 @@ const saveGlobalSort = (patch: { sortBy?: SortField; sortOrder?: 'asc' | 'desc' 
   );
 };
 
-// ── Auto-detection helpers ────────────────────────────────────────────────────
-
-/** Folders that default to date-grouped, reverse-chronological sort */
-const isDateGroupedFolder = (path: string): boolean => {
-  const lowerPath = path.toLowerCase().replace(/\\/g, '/');
-  return /\/(downloads|desktop|documents)\/?$/i.test(lowerPath);
-};
-
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
 /**
@@ -120,8 +112,7 @@ const isDateGroupedFolder = (path: string): boolean => {
  * persist per folder path (localStorage), but the sort field/order is a
  * single global choice: changing it anywhere applies to every folder and
  * every open pane (synced live via a window event). Until the user picks a
- * sort once, folders fall back to auto-detected defaults (date folders start
- * date-desc, others name ascending).
+ * sort once, folders start reverse-chronological and grouped by date.
  *
  * The `globalViewMode` parameter provides a baseline from the smart-view
  * auto-detection system — it's used only when no per-folder view setting
@@ -131,22 +122,20 @@ export const useFolderViewSettings = (
   currentPath: string,
   globalViewMode: string,
 ): FolderViewSettingsResult => {
-  // Compute initial values for this path. Sorting is global: a stored global
-  // choice wins everywhere; folders only differ by the fallback default
-  // (date folders start date-desc) until the user picks a sort once.
+  // Compute initial values for this path. Stored global sorting and stored
+  // per-folder grouping always win over the first-open defaults.
   const computeDefaults = useCallback(
     (
       path: string,
     ): { viewMode: string; sortBy: SortField; sortOrder: 'asc' | 'desc'; groupByDate: boolean } => {
       const saved = getSettingsForPath(path);
       const globalSort = loadGlobalSort();
-      const isDateFolder = isDateGroupedFolder(path);
 
       return {
         viewMode: saved?.viewMode ?? globalViewMode ?? DEFAULT_VIEW_MODE,
-        sortBy: globalSort?.sortBy ?? (isDateFolder ? 'dateModified' : DEFAULT_SORT_BY),
-        sortOrder: globalSort?.sortOrder ?? (isDateFolder ? 'desc' : DEFAULT_SORT_ORDER),
-        groupByDate: saved?.groupByDate ?? (isDateFolder ? true : DEFAULT_GROUP_BY_DATE),
+        sortBy: globalSort?.sortBy ?? DEFAULT_SORT_BY,
+        sortOrder: globalSort?.sortOrder ?? DEFAULT_SORT_ORDER,
+        groupByDate: saved?.groupByDate ?? DEFAULT_GROUP_BY_DATE,
       };
     },
     [globalViewMode],

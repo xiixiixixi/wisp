@@ -24,11 +24,19 @@ export type PaletteItem =
   | { type: 'recent-file'; file: RecentFile; sectionLabel?: string }
   | { type: 'assistant'; prompt: string; sectionLabel?: string };
 
+/**
+ * SearchResult deliberately mirrors the backend search contract, which only
+ * describes indexed files.  The command palette also adapts paths returned by
+ * `findFiles`, so it carries an explicit directory flag locally instead of
+ * guessing from the display name.
+ */
+export type PaletteSearchResult = SearchResult & { isDir: boolean };
+
 export type VirtualRow =
   | { kind: 'section-header'; label: string }
   | { kind: 'go-to-path'; path: string; itemIndex: number }
   | { kind: 'recent-file'; file: RecentFile; itemIndex: number }
-  | { kind: 'search-file'; result: SearchResult; itemIndex: number }
+  | { kind: 'search-file'; result: PaletteSearchResult; itemIndex: number }
   | { kind: 'assistant'; prompt: string; itemIndex: number }
   | { kind: 'loading' };
 
@@ -122,14 +130,15 @@ export const itemBaseStyle: React.CSSProperties = {
   border: 'none',
   background: 'transparent',
   cursor: 'pointer',
-  transition: 'background-color 0.15s, color 0.15s',
+  transition: 'background-color var(--lg-motion-fast), color var(--lg-motion-fast)',
   color: 'var(--xp-text-secondary, #6e6a61)',
 };
 
 export const itemSelectedStyle: React.CSSProperties = {
   ...itemBaseStyle,
-  backgroundColor: 'var(--xp-selection-bg)',
+  background: 'linear-gradient(90deg, var(--xp-selection-bg), transparent 92%)',
   color: 'var(--xp-text, #38352f)',
+  boxShadow: 'inset 3px 0 0 var(--xp-blue)',
 };
 
 export const iconWrapStyle: React.CSSProperties = {
@@ -218,7 +227,9 @@ export const backdropStyle: React.CSSProperties = {
   alignItems: 'flex-start',
   justifyContent: 'center',
   paddingTop: '11vh',
-  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  backgroundColor: 'rgba(8, 17, 31, 0.24)',
+  WebkitBackdropFilter: 'blur(8px) saturate(115%)',
+  backdropFilter: 'blur(8px) saturate(115%)',
 };
 
 export const dialogStyle: React.CSSProperties = {
@@ -226,10 +237,12 @@ export const dialogStyle: React.CSSProperties = {
   maxHeight: '68vh',
   display: 'flex',
   flexDirection: 'column',
-  background: 'var(--xp-popover, #f7f5ee)',
-  border: '1px solid var(--xp-border, rgba(56,53,47,0.14))',
-  borderRadius: '8px',
-  boxShadow: 'var(--xp-shadow-popover)',
+  background: 'var(--lg-glass-strong, var(--xp-popover, #f7f5ee))',
+  border: '1px solid var(--lg-glass-stroke-strong, var(--xp-border))',
+  borderRadius: 'var(--lg-radius-xl, 26px)',
+  boxShadow: 'var(--lg-shadow-elevated, var(--xp-shadow-popover))',
+  WebkitBackdropFilter: 'saturate(var(--lg-saturate, 175%)) blur(var(--lg-blur-strong, 40px))',
+  backdropFilter: 'saturate(var(--lg-saturate, 175%)) blur(var(--lg-blur-strong, 40px))',
   overflow: 'hidden',
 };
 
@@ -239,6 +252,7 @@ export const searchBarStyle: React.CSSProperties = {
   gap: '12px',
   padding: '12px 18px',
   borderBottom: '1px solid var(--xp-border, rgba(56,53,47,0.14))',
+  background: 'linear-gradient(180deg, rgba(255,255,255,0.08), transparent)',
 };
 
 export const searchIconStyle: React.CSSProperties = {

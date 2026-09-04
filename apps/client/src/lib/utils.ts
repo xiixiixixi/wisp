@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
 import React from 'react';
+import FinderFileIcon from '@/components/explorer/FinderFileIcon';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import i18n from '@/i18n';
 import {
@@ -91,9 +92,26 @@ export const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs));
 };
 
-// Helper to create a file icon element
+// File icons intentionally retain their existing palette while the surrounding
+// interface adopts Liquid Glass. Keeping these colors on dedicated tokens
+// prevents UI accent/theme changes from recoloring the user's file cues.
+const FILE_ICON_COLORS: Record<string, string> = {
+  'text-xp-text-muted': 'var(--file-icon-muted)',
+  'text-xp-yellow': 'var(--file-icon-yellow)',
+  'text-xp-green': 'var(--file-icon-green)',
+  'text-xp-orange': 'var(--file-icon-orange)',
+  'text-xp-cyan': 'var(--file-icon-cyan)',
+  'text-xp-red': 'var(--file-icon-red)',
+  'text-xp-purple': 'var(--file-icon-purple)',
+  'text-xp-blue': 'var(--file-icon-blue)',
+};
+
 const icon = (Icon: LucideIcon, color: string): React.ReactNode =>
-  React.createElement(Icon, { size: '1em', className: `inline-block ${color}` });
+  React.createElement(Icon, {
+    size: '1em',
+    className: 'inline-block',
+    style: { color: FILE_ICON_COLORS[color] ?? 'var(--file-icon-muted)' },
+  });
 
 // 資料夾 — solid, filled, in its own indigo. Finder's strongest cue: the
 // container reads as an OBJECT, distinct from every thin-stroked file.
@@ -103,11 +121,12 @@ const folderIcon = (): React.ReactNode =>
     fill: 'currentColor',
     strokeWidth: 1,
     className: 'inline-block',
-    style: { color: 'var(--fx-folder)' },
+    style: { color: 'var(--file-icon-folder)' },
   });
 
-// File icon mapping utility
-export const getFileIcon = (fileEntry: FileEntry): React.ReactNode => {
+// Immediate fallback shown while macOS resolves the real Finder/Quick Look
+// visual. Keeping it synchronous prevents list rows from shifting or flashing.
+const getFallbackFileIcon = (fileEntry: FileEntry): React.ReactNode => {
   if (fileEntry.is_dir) return folderIcon();
 
   const ext = fileEntry.name.split('.').pop()?.toLowerCase();
@@ -197,6 +216,15 @@ export const getFileIcon = (fileEntry: FileEntry): React.ReactNode => {
       return icon(FileIcon, 'text-xp-text-muted');
   }
 };
+
+// File icon mapping utility. The public signature stays synchronous so every
+// explorer view can keep using getFileIcon(file), while FinderFileIcon handles
+// native thumbnail resolution and caching internally.
+export const getFileIcon = (fileEntry: FileEntry): React.ReactNode =>
+  React.createElement(FinderFileIcon, {
+    file: fileEntry,
+    fallback: getFallbackFileIcon(fileEntry),
+  });
 
 // ── Icon Name Registry ────────────────────────────────────────────────────────
 // Maps string icon names to lucide-react components. Used by collections,
@@ -714,14 +742,13 @@ export const loadFontSize = () => {
   applyFontSize(saved || 'medium');
 };
 
-// Theme utility function — the .theme-* CSS classes in index.css are the
-// single source of truth for each theme's full palette.
-export const applyTheme = (themeKey: string) => {
-  // One adaptive theme: SkySync owns the polarity class from the real sun.
-  // Any legacy key just clears the class for SkySync to re-apply.
-  void themeKey;
+// Wisp now has one stable neutral appearance. Keep accepting historical keys
+// for settings and extension compatibility, but resolve all of them to the
+// same light material instead of letting persisted state fight SkySync.
+export const applyTheme = (_themeKey: string) => {
   const root = document.documentElement;
   root.classList.forEach((cls) => {
     if (cls.startsWith('theme-')) root.classList.remove(cls);
   });
+  root.classList.add('theme-light');
 };

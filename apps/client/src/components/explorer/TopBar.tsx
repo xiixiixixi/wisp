@@ -1,10 +1,11 @@
-import React, { useRef, useState, useEffect, forwardRef } from 'react';
+import React, { useCallback, useRef, useState, useEffect, forwardRef } from 'react';
 import { isTauri } from '@/lib/transport';
-import { Minus, Square, Copy, X, Columns, Rows, Search } from 'lucide-react';
+import { Minus, Square, Copy, X, Columns, Rows, Search, CloudSun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import WeatherGlyph from '@/components/weather/WeatherGlyph';
 import { useWeather } from '@/hooks/use-weather';
-import { getWeatherLocation } from '@/lib/weather-location';
+import { setWeatherLocation } from '@/lib/weather-location';
+import { geocodeWeatherCity } from '@/lib/weather-geocoding';
 import { describeWeatherCode } from '@/lib/weather';
 import wispLogo from '../../../../src-tauri/icons/icon.png';
 
@@ -24,6 +25,7 @@ interface TopBarProps {
   hasMultiTabSelection?: boolean;
   onOpenBatchActions?: () => void;
   onClearCrossTabSelection?: () => void;
+  rightActions?: React.ReactNode;
 }
 
 const TopBar = React.memo(
@@ -40,18 +42,121 @@ const TopBar = React.memo(
         hasMultiTabSelection = false,
         onOpenBatchActions,
         onClearCrossTabSelection,
+        rightActions,
       },
       _ref,
     ) => {
       const { t } = useTranslation();
       const [isMaximized, setIsMaximized] = useState(false);
+      const [isEditingWeatherCity, setIsEditingWeatherCity] = useState(false);
+      const [weatherCityDraft, setWeatherCityDraft] = useState('');
+      const [weatherCityStatus, setWeatherCityStatus] = useState<
+        'idle' | 'saving' | 'not-found' | 'error'
+      >('idle');
+      const weatherCityTriggerRef = useRef<HTMLButtonElement>(null);
+      const weatherCityFocusReturnRef = useRef<HTMLButtonElement | null>(null);
+      const weatherCityInputRef = useRef<HTMLInputElement>(null);
+      const weatherCityRequestRef = useRef(0);
+      const weatherCitySavingRef = useRef(false);
       const appWindowRef = useRef<Awaited<
         ReturnType<typeof import('@tauri-apps/api/window').getCurrentWindow>
       > | null>(null);
       const isMac = navigator.platform.toUpperCase().includes('MAC');
-      const location = getWeatherLocation();
-      const { report } = useWeather();
+      const { report, city, loading: weatherLoading } = useWeather();
       const descriptor = report ? describeWeatherCode(report.weather_code) : null;
+      let weatherSummary = city;
+      if (descriptor) weatherSummary = `${t(descriptor.labelKey)} · ${city}`;
+      else if (weatherLoading) weatherSummary = `${t('topBar.weatherLoading')} · ${city}`;
+
+      useEffect(() => {
+        if (!isEditingWeatherCity) setWeatherCityDraft(city);
+      }, [city, isEditingWeatherCity]);
+
+      useEffect(() => {
+        if (!isEditingWeatherCity) return;
+        weatherCityInputRef.current?.focus();
+        weatherCityInputRef.current?.select();
+      }, [isEditingWeatherCity]);
+
+      useEffect(
+        () => () => {
+          weatherCityRequestRef.current += 1;
+        },
+        [],
+      );
+
+      const restoreWeatherCityTriggerFocus = useCallback(() => {
+        if (!weatherCityFocusReturnRef.current) return;
+        requestAnimationFrame(() => {
+          weatherCityTriggerRef.current?.focus();
+          weatherCityFocusReturnRef.current = null;
+        });
+      }, []);
+
+      const restoreWeatherCityInputFocus = useCallback(() => {
+        requestAnimationFrame(() => weatherCityInputRef.current?.focus());
+      }, []);
+
+      const startEditingWeatherCity = useCallback(() => {
+        weatherCityFocusReturnRef.current = weatherCityTriggerRef.current;
+        setWeatherCityDraft(city);
+        setWeatherCityStatus('idle');
+        setIsEditingWeatherCity(true);
+      }, [city]);
+
+      const cancelEditingWeatherCity = useCallback(() => {
+        weatherCityRequestRef.current += 1;
+        weatherCitySavingRef.current = false;
+        setWeatherCityDraft(city);
+        setWeatherCityStatus('idle');
+        setIsEditingWeatherCity(false);
+        restoreWeatherCityTriggerFocus();
+      }, [city, restoreWeatherCityTriggerFocus]);
+
+      const saveWeatherCity = useCallback(async () => {
+        const nextCity = weatherCityDraft.trim();
+        if (weatherCitySavingRef.current) return;
+        if (!nextCity) {
+          setWeatherCityStatus('not-found');
+          return;
+        }
+        if (nextCity === city) {
+          setWeatherCityStatus('idle');
+          setIsEditingWeatherCity(false);
+          restoreWeatherCityTriggerFocus();
+          return;
+        }
+
+        weatherCitySavingRef.current = true;
+        const requestId = ++weatherCityRequestRef.current;
+        setWeatherCityStatus('saving');
+        try {
+          const places = await geocodeWeatherCity(nextCity);
+          if (requestId !== weatherCityRequestRef.current) return;
+          const place = places[0];
+          if (!place) {
+            setWeatherCityStatus('not-found');
+            restoreWeatherCityInputFocus();
+            return;
+          }
+          setWeatherLocation({
+            city: place.name,
+            latitude: place.latitude,
+            longitude: place.longitude,
+          });
+          setWeatherCityDraft(place.name);
+          setWeatherCityStatus('idle');
+          setIsEditingWeatherCity(false);
+          restoreWeatherCityTriggerFocus();
+        } catch {
+          if (requestId === weatherCityRequestRef.current) {
+            setWeatherCityStatus('error');
+            restoreWeatherCityInputFocus();
+          }
+        } finally {
+          if (requestId === weatherCityRequestRef.current) weatherCitySavingRef.current = false;
+        }
+      }, [city, restoreWeatherCityInputFocus, restoreWeatherCityTriggerFocus, weatherCityDraft]);
 
       useEffect(() => {
         if (!isTauri()) return;
@@ -121,13 +226,13 @@ const TopBar = React.memo(
             }}
           >
             <div
-              className="flex items-center"
+              className="wisp-titlebar-left flex items-center gap-2"
               style={isMac && isTauri() ? { paddingLeft: '80px' } : undefined}
             >
-              <div className="flex items-center gap-2.5">
+              <div className="wisp-brand-cluster flex items-center gap-2.5">
                 <button
                   onClick={() => setLeftSidebarCollapsed(!leftSidebarCollapsed)}
-                  className="flex h-8 w-8 items-center justify-center rounded-[2px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-[2px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                   aria-label={t('topBar.toggleSidebar')}
                   title={t('topBar.toggleSidebarShortcut')}
                 >
@@ -140,10 +245,100 @@ const TopBar = React.memo(
                   </svg>
                 </button>
                 <div className="flex items-center gap-2">
-                  <img src={wispLogo} alt="" className="h-6 w-6 rounded-[2px]" aria-hidden="true" />
+                  <img src={wispLogo} alt="" className="h-6 w-6 rounded-lg" aria-hidden="true" />
                   <h1 className="text-sm font-semibold tracking-tight">Wisp</h1>
                 </div>
               </div>
+
+              {isEditingWeatherCity ? (
+                <div className="flex min-w-0 items-center gap-1.5 text-xs text-xp-text-secondary">
+                  {report ? (
+                    <WeatherGlyph
+                      code={report.weather_code}
+                      isDay={report.is_day}
+                      size={14}
+                      className="shrink-0"
+                    />
+                  ) : (
+                    <CloudSun size={14} className="shrink-0" aria-hidden="true" />
+                  )}
+                  <input
+                    ref={weatherCityInputRef}
+                    value={weatherCityDraft}
+                    onChange={(event) => {
+                      setWeatherCityDraft(event.target.value);
+                      if (weatherCityStatus !== 'saving') setWeatherCityStatus('idle');
+                    }}
+                    onBlur={() => void saveWeatherCity()}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        void saveWeatherCity();
+                      } else if (event.key === 'Escape') {
+                        event.preventDefault();
+                        cancelEditingWeatherCity();
+                      }
+                    }}
+                    maxLength={80}
+                    disabled={weatherCityStatus === 'saving'}
+                    aria-label={t('topBar.weatherCityInput')}
+                    aria-describedby={
+                      weatherCityStatus === 'not-found' || weatherCityStatus === 'error'
+                        ? 'topbar-weather-city-error'
+                        : undefined
+                    }
+                    className="h-7 w-28 border-0 border-b border-xp-border bg-transparent px-0.5 text-xs text-xp-text outline-none transition-colors placeholder:text-xp-text-muted focus:border-primary disabled:cursor-wait disabled:opacity-60"
+                    placeholder={t('settings.general.weatherCityPlaceholder')}
+                  />
+                  {weatherCityStatus === 'saving' && (
+                    <span
+                      className="whitespace-nowrap text-[11px] text-xp-text-muted"
+                      role="status"
+                    >
+                      {t('common.saving')}
+                    </span>
+                  )}
+                  {(weatherCityStatus === 'not-found' || weatherCityStatus === 'error') && (
+                    <span
+                      id="topbar-weather-city-error"
+                      className="max-w-32 truncate text-[11px] text-xp-red"
+                      role="alert"
+                    >
+                      {t(
+                        weatherCityStatus === 'not-found'
+                          ? 'topBar.weatherCityNotFound'
+                          : 'topBar.weatherCitySaveFailed',
+                      )}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <button
+                  ref={weatherCityTriggerRef}
+                  type="button"
+                  onClick={startEditingWeatherCity}
+                  className="flex min-w-0 flex-shrink items-center gap-1.5 border-0 bg-transparent p-0 text-left text-xs text-xp-text-secondary transition-colors hover:text-xp-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+                  aria-label={t('topBar.editWeatherCity', { city })}
+                  title={t('topBar.editWeatherCity', { city })}
+                >
+                  {report ? (
+                    <WeatherGlyph
+                      code={report.weather_code}
+                      isDay={report.is_day}
+                      size={14}
+                      className="shrink-0"
+                    />
+                  ) : (
+                    <CloudSun size={14} className="shrink-0" aria-hidden="true" />
+                  )}
+                  {report && (
+                    <span className="font-medium text-xp-text">
+                      {Math.round(report.temperature)}°
+                    </span>
+                  )}
+                  <span className="max-w-40 truncate text-[11px]">{weatherSummary}</span>
+                </button>
+              )}
             </div>
 
             {/* One global entry point for files, commands, and actions. */}
@@ -151,46 +346,27 @@ const TopBar = React.memo(
               type="button"
               data-command-palette-trigger
               onClick={() => window.dispatchEvent(new CustomEvent('wisp-open-command-palette'))}
-              className="absolute left-1/2 hidden h-8 w-[min(38vw,420px)] -translate-x-1/2 items-center gap-2 rounded-[2px] border border-xp-border bg-muted px-3 text-left text-xs text-xp-text-muted shadow-sm transition-all hover:border-primary hover:bg-xp-surface-light hover:text-xp-text min-[820px]:flex"
+              className="wisp-command-pill absolute left-1/2 hidden h-8 w-[min(38vw,420px)] -translate-x-1/2 items-center gap-2 rounded-[2px] border border-xp-border bg-muted px-3 text-left text-xs text-xp-text-muted shadow-sm transition-all hover:border-primary hover:bg-xp-surface-light hover:text-xp-text min-[820px]:flex"
               aria-label={t('commandPalette.trigger')}
               title={t('commandPalette.trigger')}
             >
               <Search size={14} className="shrink-0" />
               <span className="min-w-0 flex-1 truncate">{t('commandPalette.trigger')}</span>
-              <kbd className="rounded-[2px] border border-xp-border bg-xp-surface px-1.5 py-0.5 font-sans text-[10px] text-xp-text-secondary">
+              <kbd className="wisp-keycap rounded-[2px] border border-xp-border bg-xp-surface px-1.5 py-0.5 font-sans text-[10px] text-xp-text-secondary">
                 {isMac ? '⌘P' : 'Ctrl+P'}
               </kbd>
             </button>
 
             <div className="flex-1" />
 
-            {/* 天气 — lives on the running-head level, beside the search line */}
-            {report && descriptor && (
-              <div
-                className="mr-1 flex flex-shrink-0 items-center gap-2 rounded-[2px] border border-xp-border bg-muted px-2.5 py-1"
-                title={`${location.city} · ${t(descriptor.labelKey)}`}
-              >
-                <WeatherGlyph
-                  code={report.weather_code}
-                  isDay={report.is_day}
-                  size={14}
-                  className="text-xp-text-secondary"
-                />
-                <span className="text-xs font-medium text-xp-text">
-                  {Math.round(report.temperature)}°
-                </span>
-                <span className="hidden text-[11px] text-xp-text-muted min-[1100px]:inline">
-                  {t(descriptor.labelKey)} · {location.city}
-                </span>
-              </div>
-            )}
+            {rightActions}
 
             {/* Split actions */}
-            <div className="ml-1 flex flex-shrink-0 items-center gap-0.5">
+            <div className="wisp-toolbar-group ml-1 flex flex-shrink-0 items-center gap-0.5">
               {onSplitRight && (
                 <button
                   onClick={onSplitRight}
-                  className="flex h-8 w-8 items-center justify-center rounded-[2px] text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-[2px] text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                   title={t('topBar.splitRightShortcut')}
                   aria-label={t('topBar.splitRight')}
                 >
@@ -200,7 +376,7 @@ const TopBar = React.memo(
               {onSplitDown && (
                 <button
                   onClick={onSplitDown}
-                  className="flex h-8 w-8 items-center justify-center rounded-[2px] text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-[2px] text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                   title={t('topBar.splitDownShortcut')}
                   aria-label={t('topBar.splitDown')}
                 >
@@ -210,7 +386,11 @@ const TopBar = React.memo(
             </div>
 
             {!isMac && (
-              <div className="ml-2 flex items-center" role="toolbar" aria-label="Window controls">
+              <div
+                className="wisp-window-controls ml-2 flex items-center"
+                role="toolbar"
+                aria-label="Window controls"
+              >
                 <button
                   onClick={() => appWindowRef.current?.minimize()}
                   className="rounded-[2px] p-2 transition-colors hover:bg-xp-surface-light"

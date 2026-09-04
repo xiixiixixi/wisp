@@ -145,10 +145,10 @@ export const useLayoutState = (): LayoutState => {
   // Sorting — global. The same `wisp:ui-state` fields drive the per-pane
   // folder settings; the event tells every open pane to re-sort immediately.
   const [sortBy, setSortByRaw] = useState<SortField>(() =>
-    loadUiState<SortField>('sortBy', 'name'),
+    loadUiState<SortField>('sortBy', 'dateModified'),
   );
   const [sortOrder, setSortOrderRaw] = useState<'asc' | 'desc'>(() =>
-    loadUiState('sortOrder', 'asc'),
+    loadUiState('sortOrder', 'desc'),
   );
 
   const notifySortChanged = useCallback(

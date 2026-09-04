@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
 import { TauriAPI, type BulkRenameResult, type FileEntry } from '@/lib/tauri-api';
 import type {
@@ -54,6 +55,7 @@ export const useBulkRename = (
   onClose: () => void,
   onComplete?: () => void,
 ): { state: BulkRenameState; actions: BulkRenameActions; derived: BulkRenameDerived } => {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [pattern, setPattern] = useState('');
   const [replacement, setReplacement] = useState('');
@@ -124,7 +126,7 @@ export const useBulkRename = (
       const message = (err as Error).message || String(err);
       setPatternError(message);
       toast({
-        title: 'Preview Failed',
+        title: t('toast.bulkRenamePreviewFailed'),
         description: message,
         variant: 'destructive',
       });
@@ -136,8 +138,8 @@ export const useBulkRename = (
   const handleRename = async () => {
     if (!pattern.trim() && !activeTemplateLabel) {
       toast({
-        title: 'Pattern Required',
-        description: 'Please enter a regex pattern or select a template.',
+        title: t('toast.bulkRenamePatternRequired'),
+        description: t('toast.bulkRenamePatternRequiredDesc'),
         variant: 'destructive',
       });
       return;
@@ -154,13 +156,13 @@ export const useBulkRename = (
 
       if (failCount === 0) {
         toast({
-          title: 'Bulk Rename Complete',
-          description: `Successfully renamed ${successCount} file${successCount !== 1 ? 's' : ''}.`,
+          title: t('toast.bulkRenameComplete'),
+          description: t('toast.bulkRenameCompleteDesc', { count: successCount }),
         });
       } else {
         toast({
-          title: 'Bulk Rename Partially Complete',
-          description: `${successCount} succeeded, ${failCount} failed.`,
+          title: t('toast.bulkRenamePartial'),
+          description: t('toast.bulkRenamePartialDesc', { successCount, failCount }),
           variant: 'destructive',
         });
       }
@@ -170,7 +172,7 @@ export const useBulkRename = (
       }
     } catch (err) {
       toast({
-        title: 'Bulk Rename Failed',
+        title: t('toast.bulkRenameFailed'),
         description: (err as Error).message || String(err),
         variant: 'destructive',
       });

@@ -89,16 +89,17 @@ const RecentFileTypeIcon = ({
   className?: string;
 }) => {
   const t = fileType.toLowerCase();
-  if (t === 'folder')
-    {return (
+  if (t === 'folder') {
+    return (
       <Folder
         className={className}
         fill="currentColor"
         strokeWidth={1}
         style={{ color: 'var(--fx-folder)' }}
       />
-    );}
-  return <FileText className={className} />;
+    );
+  }
+  return <FileText className={className} style={{ color: 'var(--file-icon-muted)' }} />;
 };
 
 /** Hero stat: big light numeral with a small stone label. */
@@ -641,32 +642,27 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                 return (
                   <div
                     key={`${file.path}-${file.accessed_at}`}
-                    onClick={() => handleRecentFileClick(file)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleRecentFileClick(file);
-                      }
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    className="glass-card group relative flex cursor-pointer flex-col items-center gap-2.5 px-3 py-4 text-center transition-colors hover:border-xp-border-light"
-                    title={file.path}
+                    className="glass-card group relative overflow-hidden transition-colors hover:border-xp-border-light"
                   >
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[2px] bg-xp-bg">
-                      <RecentFileTypeIcon
-                        fileType={file.file_type}
-                        className="h-4 w-4 text-xp-text-secondary group-hover:text-xp-text"
-                      />
-                    </div>
-                    <div className="w-full min-w-0">
-                      <p className="truncate text-[13px] font-medium text-xp-text">{file.name}</p>
-                      <p className="mt-0.5 text-[10px] text-xp-text-muted">
-                        {relativeTime(file.accessed_at, t)}
-                      </p>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRecentFileClick(file)}
+                      className="flex w-full cursor-pointer flex-col items-center gap-2.5 px-3 py-4 text-center"
+                      title={file.path}
+                    >
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[2px] bg-xp-bg">
+                        <RecentFileTypeIcon fileType={file.file_type} className="h-4 w-4" />
+                      </div>
+                      <div className="w-full min-w-0">
+                        <p className="truncate text-[13px] font-medium text-xp-text">{file.name}</p>
+                        <p className="mt-0.5 text-[10px] text-xp-text-muted">
+                          {relativeTime(file.accessed_at, t)}
+                        </p>
+                      </div>
+                    </button>
                     {/* Remove button on hover */}
                     <button
+                      type="button"
                       onClick={(e) => handleRemoveRecentFile(e, file.path)}
                       className="hover:bg-xp-selection absolute right-1.5 top-1.5 rounded-[2px] bg-xp-surface p-1 text-xp-text-muted opacity-0 transition-opacity hover:text-xp-red group-hover:opacity-100"
                       title={t('home.removeFromRecent')}

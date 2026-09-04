@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Terminal as TerminalIcon } from 'lucide-react';
 
 // Lazy-loaded sub-panels -- only loaded when the user switches to their tab
 const XTermPanel = React.lazy(() => import('./XTermPanel'));
@@ -14,6 +15,7 @@ import { useNotificationHistory } from '@/hooks/use-notification-history';
 import type { ClipboardEntry } from '@/hooks/use-clipboard-history';
 import type { FileChangeSet } from '@/hooks/use-focus-change-tracker';
 import type { BottomPanelTabId } from '@/hooks/use-layout-state';
+import { isBrowserDemoMode } from '@/lib/browser-demo-files';
 import { extensionHost } from '@/lib/extension-host';
 import { CLI_AGENT_LAUNCHED_EVENT } from './agent-manager/cli-launch-bus';
 
@@ -161,12 +163,12 @@ const BottomPanel = ({
     <div
       // Collapsed hides the same tree instead of unmounting it, so terminal
       // sessions (and any other panel state) survive collapse/expand.
-      className={`${bottomPanelCollapsed ? 'hidden' : 'flex flex-shrink-0 flex-col border-t border-xp-border bg-xp-surface'}`}
+      className={`wisp-bottom-panel ${bottomPanelCollapsed ? 'hidden' : 'flex flex-shrink-0 flex-col border-t border-xp-border bg-xp-surface'}`}
       style={{ height: height ?? 148 }}
     >
       {/* Bottom Panel Tabs */}
       <div
-        className="wisp-no-select flex border-b border-xp-border"
+        className="wisp-bottom-tabbar wisp-no-select flex items-center border-b border-xp-border"
         role="tablist"
         aria-label="Bottom panel tabs"
       >
@@ -179,10 +181,8 @@ const BottomPanel = ({
             aria-controls={`bottom-panel-${tab}`}
             id={`bottom-tab-${tab}`}
             onClick={() => setBottomPanelTab(tab)}
-            className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium ${
-              bottomPanelTab === tab
-                ? 'border-b-2 border-xp-blue bg-xp-bg text-xp-blue'
-                : 'hover:bg-xp-surface-light'
+            className={`wisp-bottom-tab flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium ${
+              bottomPanelTab === tab ? 'text-xp-blue' : 'text-xp-text-secondary hover:text-xp-text'
             }`}
           >
             {getTabLabel(tab)}
@@ -208,10 +208,10 @@ const BottomPanel = ({
             aria-controls={`bottom-panel-${extTab.id}`}
             id={`bottom-tab-${extTab.id}`}
             onClick={() => setBottomPanelTab(extTab.id as BottomPanelTab)}
-            className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium ${
+            className={`wisp-bottom-tab flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium ${
               bottomPanelTab === extTab.id
-                ? 'border-b-2 border-xp-blue bg-xp-bg text-xp-blue'
-                : 'hover:bg-xp-surface-light'
+                ? 'text-xp-blue'
+                : 'text-xp-text-secondary hover:text-xp-text'
             }`}
           >
             {extTab.icon && <span className="h-3.5 w-3.5">{extTab.icon}</span>}
@@ -221,7 +221,7 @@ const BottomPanel = ({
 
         <button
           onClick={() => setBottomPanelCollapsed(true)}
-          className="ml-auto px-2 hover:bg-xp-surface-light"
+          className="wisp-bottom-close ml-auto flex h-7 w-7 items-center justify-center text-xp-text-muted hover:text-xp-text"
           title="Close (Ctrl+J)"
           aria-label="Close bottom panel"
         >
@@ -245,20 +245,36 @@ const BottomPanel = ({
         className="flex min-h-0 flex-1 flex-col overflow-hidden"
         style={{ display: bottomPanelTab === 'terminal' ? 'flex' : 'none' }}
       >
-        <ErrorBoundary>
-          <React.Suspense
-            fallback={
-              <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
-                Loading...
+        {isBrowserDemoMode() ? (
+          <div className="wisp-terminal-demo-state flex h-full items-center justify-center gap-3 px-6 text-left">
+            <div className="wisp-terminal-demo-icon flex h-9 w-9 flex-none items-center justify-center">
+              <TerminalIcon className="h-4 w-4" aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs font-medium text-xp-text">
+                {t('bottomPanel.terminalDemoTitle')}
               </div>
-            }
-          >
-            <XTermPanel
-              cwd={terminalCwd}
-              visible={!bottomPanelCollapsed && bottomPanelTab === 'terminal'}
-            />
-          </React.Suspense>
-        </ErrorBoundary>
+              <div className="mt-0.5 text-[11px] text-xp-text-muted">
+                {t('bottomPanel.terminalDemoDescription')}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <ErrorBoundary>
+            <React.Suspense
+              fallback={
+                <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
+                  Loading...
+                </div>
+              }
+            >
+              <XTermPanel
+                cwd={terminalCwd}
+                visible={!bottomPanelCollapsed && bottomPanelTab === 'terminal'}
+              />
+            </React.Suspense>
+          </ErrorBoundary>
+        )}
       </div>
 
       {/* Bottom Panel Content (non-terminal tabs) */}

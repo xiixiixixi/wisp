@@ -3,6 +3,11 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import FileOperationProgressDialog from '@/components/dialogs/FileOperationProgressDialog';
 import { TauriAPI, type FileOperationProgress } from '@/lib/tauri-api';
+import { suppressFileOperationProgress } from '@/lib/file-operation-progress';
+import english from '@/locales/en.json';
+import chinese from '@/locales/zh.json';
+import japanese from '@/locales/ja.json';
+import indonesian from '@/locales/id.json';
 
 // Capture the callback passed to listenToFileOperationProgress
 let progressCallback: ((progress: FileOperationProgress) => void) | null = null;
@@ -90,6 +95,15 @@ describe('FileOperationProgressDialog', () => {
       });
 
       expect(screen.getByText('Copy')).toBeInTheDocument();
+      const region = screen.getByRole('region', { name: 'File operation progress' });
+      expect(region).toBeInTheDocument();
+      expect(region).not.toHaveAttribute('aria-live');
+      expect(screen.getByRole('group', { name: 'Copy: file.txt' })).toBeInTheDocument();
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      expect(screen.getByRole('progressbar', { name: 'Progress for file.txt' })).toHaveAttribute(
+        'aria-valuenow',
+        '50',
+      );
     });
 
     it('displays the current file name', async () => {
@@ -183,6 +197,80 @@ describe('FileOperationProgressDialog', () => {
 
       expect(screen.getByText('Move')).toBeInTheDocument();
     });
+
+    it('maps every backend operation type to a localized label', async () => {
+      render(<FileOperationProgressDialog />);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
+      });
+
+      const operationTypes = [
+        ['secure_delete', 'Secure Delete'],
+        ['encrypt', 'Encrypt'],
+        ['decrypt', 'Decrypt'],
+        ['accelerated_copy_file', 'Accelerated Copy'],
+        ['accelerated_copy_directory', 'Accelerated Folder Copy'],
+      ] as const;
+
+      await act(async () => {
+        for (const [operationType] of operationTypes) {
+          progressCallback?.(
+            makeProgress({
+              operation_id: `op-${operationType}`,
+              operation_type: operationType,
+              current_file: `C:\\${operationType}.txt`,
+            }),
+          );
+        }
+      });
+
+      for (const [, expectedLabel] of operationTypes) {
+        expect(screen.getByText(expectedLabel)).toBeInTheDocument();
+      }
+    });
+
+    it('provides a named cancel control for an active operation', async () => {
+      render(<FileOperationProgressDialog />);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
+      });
+
+      await act(async () => {
+        progressCallback?.(makeProgress());
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel operation for file.txt' }));
+
+      expect(TauriAPI.cancelFileOperation).toHaveBeenCalledWith('op-1');
+    });
+
+    it('does not duplicate an operation owned by the dedicated transfer notice', async () => {
+      render(<FileOperationProgressDialog />);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
+        progressCallback?.(makeProgress({ operation_id: 'drag-transfer-op' }));
+      });
+
+      expect(screen.getByText('file.txt')).toBeInTheDocument();
+
+      act(() => suppressFileOperationProgress(['drag-transfer-op']));
+      expect(
+        screen.queryByRole('region', { name: 'File operation progress' }),
+      ).not.toBeInTheDocument();
+
+      act(() =>
+        progressCallback?.(
+          makeProgress({ operation_id: 'drag-transfer-op', progress_percentage: 90 }),
+        ),
+      );
+      expect(
+        screen.queryByRole('region', { name: 'File operation progress' }),
+      ).not.toBeInTheDocument();
+      expect(TauriAPI.cancelFileOperation).not.toHaveBeenCalled();
+    });
   });
 
   describe('Completed Operations', () => {
@@ -203,6 +291,7 @@ describe('FileOperationProgressDialog', () => {
       });
 
       expect(screen.getByText('Done')).toBeInTheDocument();
+      expect(screen.getByRole('status')).toHaveTextContent('Done');
     });
 
     it('auto-dismisses completed operations after 4 seconds', async () => {
@@ -331,20 +420,67 @@ describe('FileOperationProgressDialog', () => {
 
       expect(screen.getByText('Copy')).toBeInTheDocument();
 
-      // Find and click the dismiss button (the X icon button, last button in the header)
-      const buttons = screen
-        .getByText('Copy')
-        .closest('.bg-xp-surface')
-        ?.querySelectorAll('button');
-      expect(buttons).toBeTruthy();
-      const dismissButton = buttons![buttons!.length - 1];
-      expect(dismissButton).not.toBeNull();
-
       await act(async () => {
-        fireEvent.click(dismissButton!);
+        fireEvent.click(screen.getByRole('button', { name: 'Dismiss operation for file.txt' }));
       });
 
       expect(screen.queryByText('Copy')).not.toBeInTheDocument();
+      expect(TauriAPI.cancelFileOperation).not.toHaveBeenCalled();
+    });
+
+    it('does not recreate a dismissed active operation from later progress events', async () => {
+      render(<FileOperationProgressDialog />);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
+        progressCallback?.(makeProgress({ progress_percentage: 25 }));
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Dismiss operation for file.txt' }));
+
+      await act(async () => {
+        progressCallback?.(makeProgress({ progress_percentage: 75 }));
+        progressCallback?.(makeProgress({ status: 'Completed', progress_percentage: 100 }));
+      });
+
+      expect(
+        screen.queryByRole('region', { name: 'File operation progress' }),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText('75%')).not.toBeInTheDocument();
+      expect(screen.queryByText('Done')).not.toBeInTheDocument();
+      expect(TauriAPI.cancelFileOperation).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Localization', () => {
+    const operationKeys = [
+      'operationSecureDelete',
+      'operationEncrypt',
+      'operationDecrypt',
+      'operationAcceleratedCopy',
+      'operationAcceleratedCopyFolder',
+    ] as const;
+
+    it.each([
+      [
+        'English',
+        english,
+        ['Secure Delete', 'Encrypt', 'Decrypt', 'Accelerated Copy', 'Accelerated Folder Copy'],
+      ],
+      ['Chinese', chinese, ['安全删除', '加密', '解密', '加速复制', '加速复制文件夹']],
+      [
+        'Japanese',
+        japanese,
+        ['安全に削除', '暗号化', '復号', '高速コピー', 'フォルダを高速コピー'],
+      ],
+      [
+        'Indonesian',
+        indonesian,
+        ['Hapus Aman', 'Enkripsi', 'Dekripsi', 'Salin Cepat', 'Salin Folder Cepat'],
+      ],
+    ])('provides natural %s labels for backend operation types', (_name, locale, expected) => {
+      const labels = locale.dialogs.fileOp;
+      expect(operationKeys.map((key) => labels[key])).toEqual(expected);
     });
   });
 

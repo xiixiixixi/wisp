@@ -141,6 +141,10 @@ export const getFileIconPng = async (path: string): Promise<string> => {
   return await transport('get_file_icon', { path });
 };
 
+export const getFileThumbnailPng = async (path: string, size: number = 96): Promise<string> => {
+  return await transport('get_file_thumbnail', { path, size });
+};
+
 export const acceleratedCopyFile = async (source: string, destination: string): Promise<string> => {
   return await transport('accelerated_copy_file', { source, destination });
 };

@@ -249,13 +249,13 @@ describe('DetailsView', () => {
           files: [sampleFiles[1]],
         },
       ];
-      render(<DetailsView {...defaultProps} fileGroups={fileGroups} />);
+      const { container } = render(<DetailsView {...defaultProps} fileGroups={fileGroups} />);
 
       expect(screen.getByText('Documents')).toBeInTheDocument();
       expect(screen.getByText('Folders')).toBeInTheDocument();
-      // Both groups have (1) count
-      const counts = screen.getAllByText('(1)');
+      const counts = container.querySelectorAll('.wisp-file-group-header .font-dot');
       expect(counts).toHaveLength(2);
+      expect(Array.from(counts).map((count) => count.textContent)).toEqual(['1', '1']);
     });
   });
 

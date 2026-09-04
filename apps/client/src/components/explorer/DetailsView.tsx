@@ -16,7 +16,7 @@ interface DetailsViewProps extends ViewComponentProps {
   fileGroups?: FileGroup[] | null;
 }
 
-const DETAILS_ROW_HEIGHT = 40;
+const DETAILS_ROW_HEIGHT = 56;
 const GROUP_HEADER_HEIGHT = 36;
 const DETAILS_VIRTUALIZATION_THRESHOLD = 200;
 
@@ -132,14 +132,14 @@ const FileRow = React.memo(
         onContextMenu={handleContextMenu}
         onKeyDown={handleKeyDown}
       >
-        <div className="col-span-1 flex justify-center">
+        <div className="col-span-1 flex justify-center" role="gridcell">
           <span className={`text-lg ${isHiddenFile(file) ? 'opacity-60' : ''}`}>
             <FileReferenceBadge file={file} compact>
               {getFileIcon(file)}
             </FileReferenceBadge>
           </span>
         </div>
-        <div className="col-span-5 min-w-0">
+        <div className="col-span-5 min-w-0" role="gridcell">
           {renamingPath === file.path && onRenameFile ? (
             <InlineRenameInput
               fileName={file.name}
@@ -165,7 +165,7 @@ const FileRow = React.memo(
             </div>
           )}
         </div>
-        <div className="col-span-2 text-right text-xs text-xp-text-muted">
+        <div className="col-span-2 text-right text-xs text-xp-text-muted" role="gridcell">
           {(() => {
             if (!file.is_dir) return formatFileSize(file.size);
             if (getFolderSize(file.path) || isCalculatingSize(file.path)) {
@@ -182,12 +182,12 @@ const FileRow = React.memo(
             );
           })()}
         </div>
-        <div className="col-span-2 text-center text-xs text-xp-text-muted">
+        <div className="col-span-2 text-center text-xs text-xp-text-muted" role="gridcell">
           <span className="text-xs capitalize">
             {file.is_dir ? t('common.folder') : file.file_type}
           </span>
         </div>
-        <div className="col-span-2 text-right font-mono text-xs text-xp-text-muted">
+        <div className="col-span-2 text-right font-mono text-xs text-xp-text-muted" role="gridcell">
           {formatDate(file.modified)}
         </div>
       </div>
@@ -196,8 +196,11 @@ const FileRow = React.memo(
 );
 
 const GroupHeader = React.memo(({ name, count }: { name: string; count: number }) => (
-  <div className="flex items-center px-3" style={{ height: GROUP_HEADER_HEIGHT }}>
-    <span className="flex items-center gap-2 rounded-[2px] bg-xp-surface px-3 py-1">
+  <div
+    className="wisp-file-group-header flex items-center px-3"
+    style={{ height: GROUP_HEADER_HEIGHT }}
+  >
+    <span className="ml-8 flex items-center gap-2 rounded-[2px] bg-xp-surface px-3 py-1">
       <span className="text-xs font-medium uppercase tracking-wide text-xp-text-secondary">
         {name}
       </span>

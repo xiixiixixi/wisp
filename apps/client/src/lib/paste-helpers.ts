@@ -8,6 +8,7 @@ import { detectSep } from '@/lib/constants';
 import { toast as rawToast } from '@/hooks/use-toast';
 import type { ConflictResolution } from '@/components/dialogs/FileConflictDialog';
 import { formatError } from '@/lib/file-operation-helpers';
+import i18n from '@/i18n';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -49,7 +50,7 @@ export const executePaste = async (ctx: PasteContext): Promise<PasteResult> => {
   const { files, operation, targetPath, resolveConflict, emitFileActivity, emitFilesChanged } = ctx;
   const total = files.length;
   const isCut = operation === 'cut';
-  const verb = isCut ? 'Moving' : 'Copying';
+  const progressTitle = i18n.t(isCut ? 'toast.moving' : 'toast.copying');
 
   // Pre-check conflicts to get metadata for source vs destination comparison
   const conflictMap = new Map<string, { source: ConflictFileInfo; dest: ConflictFileInfo }>();
@@ -64,7 +65,12 @@ export const executePaste = async (ctx: PasteContext): Promise<PasteResult> => {
   }
 
   const progressToast =
-    total > 1 ? rawToast({ title: `${verb}...`, description: `0 / ${total} items` }) : null;
+    total > 1
+      ? rawToast({
+          title: progressTitle,
+          description: i18n.t('toast.pasteProgress', { current: 0, total }),
+        })
+      : null;
 
   let succeeded = 0;
   const errors: string[] = [];
@@ -130,8 +136,8 @@ export const executePaste = async (ctx: PasteContext): Promise<PasteResult> => {
     if (progressToast) {
       progressToast.update({
         id: progressToast.id,
-        title: `${verb}...`,
-        description: `${i + 1} / ${total} items`,
+        title: progressTitle,
+        description: i18n.t('toast.pasteProgress', { current: i + 1, total }),
       });
     }
   }
@@ -153,16 +159,26 @@ export const showPasteResultToast = (
     variant?: 'default' | 'destructive';
   }) => void,
 ): void => {
-  const verbPast = result.isCut ? 'moved' : 'copied';
   if (result.errors.length === 0) {
     toast({
-      title: result.isCut ? 'Moved' : 'Copied',
-      description: `${result.succeeded} item${result.succeeded > 1 ? 's' : ''} ${verbPast}`,
+      title: i18n.t(result.isCut ? 'toast.moved' : 'toast.copied'),
+      description: i18n.t(result.isCut ? 'toast.pasteMovedDesc' : 'toast.pasteCopiedDesc', {
+        count: result.succeeded,
+      }),
     });
   } else {
+    const shownErrors = result.errors.slice(0, 3).join('; ');
     toast({
-      title: 'Paste completed with errors',
-      description: `${result.succeeded} ${verbPast}, ${result.errors.length} failed: ${result.errors.slice(0, 3).join('; ')}${result.errors.length > 3 ? '...' : ''}`,
+      title: i18n.t('toast.pasteCompletedWithErrors'),
+      description: i18n.t(
+        result.isCut ? 'toast.pasteMovedWithErrorsDesc' : 'toast.pasteCopiedWithErrorsDesc',
+        {
+          successCount: result.succeeded,
+          failCount: result.errors.length,
+          errors: shownErrors,
+          more: result.errors.length > 3 ? '…' : '',
+        },
+      ),
       variant: 'destructive',
     });
   }

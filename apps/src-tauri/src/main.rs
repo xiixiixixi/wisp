@@ -309,6 +309,7 @@ fn main() {
             operations::bulk_rename,
             operations::open_in_terminal,
             operations::get_file_icon,
+            operations::get_file_thumbnail,
             operations::execute_command,
             operations::execute_command_stream,
             operations::check_cli_installed,

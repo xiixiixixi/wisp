@@ -1,8 +1,9 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import RightSidebar from '@/components/panels/RightSidebar';
+import i18n from '@/i18n';
 
 // Helper to render with Suspense boundary for lazy-loaded child components
 const renderWithSuspense = (ui: React.ReactElement) => {
@@ -107,24 +108,36 @@ describe('RightSidebar', () => {
       expect(container.firstChild).toBeNull();
     });
 
-    it('renders when not collapsed', () => {
-      const { container } = render(<RightSidebar {...defaultProps} />);
+    it('renders when not collapsed', async () => {
+      const { container } = renderWithSuspense(<RightSidebar {...defaultProps} />);
+      await screen.findByTestId('preview-panel');
       expect(container.firstChild).not.toBeNull();
     });
   });
 
-  describe('Header', () => {
-    it('renders close button', () => {
+  describe('Panel chrome', () => {
+    it('renders a single close control in the preview header', () => {
       render(<RightSidebar {...defaultProps} />);
-      const buttons = screen.getAllByRole('button');
-      expect(buttons.length).toBeGreaterThan(0);
+      expect(screen.getByTestId('preview-panel')).toBeInTheDocument();
+      const header = screen.getByRole('toolbar', { name: i18n.t('extensionsBar.preview') });
+      const closeButton = within(header).getByRole('button', {
+        name: i18n.t('previewPanel.closePreview'),
+      });
+
+      expect(within(header).queryByRole('heading')).not.toBeInTheDocument();
+      expect(within(header).queryByText(i18n.t('extensionsBar.preview'))).not.toBeInTheDocument();
+      expect(
+        within(header).queryByText(i18n.t('previewPanel.noFileSelectedShort')),
+      ).not.toBeInTheDocument();
+      expect(within(header).getAllByRole('button')).toEqual([closeButton]);
+
+      fireEvent.click(closeButton);
+      expect(mockSetRightSidebarCollapsed).toHaveBeenCalledWith(true);
     });
 
-    it('calls setRightSidebarCollapsed when close button is clicked', () => {
+    it('leaves collapse control to the external panel rail', () => {
       render(<RightSidebar {...defaultProps} />);
-      const buttons = screen.getAllByRole('button');
-      fireEvent.click(buttons[0]);
-      expect(mockSetRightSidebarCollapsed).toHaveBeenCalledWith(true);
+      expect(mockSetRightSidebarCollapsed).not.toHaveBeenCalled();
     });
   });
 

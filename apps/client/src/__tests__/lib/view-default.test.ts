@@ -71,15 +71,57 @@ describe('explorer default view', () => {
     const { renderHook } = await import('@testing-library/react');
     const { result } = renderHook(() => useLayoutState());
     expect(result.current.viewMode).toBe('details');
+    expect(result.current.sortBy).toBe('dateModified');
+    expect(result.current.sortOrder).toBe('desc');
   });
 
-  it('honors a stored non-default view', async () => {
+  it('honors stored view and sorting choices', async () => {
     vi.resetModules();
     localStorage.clear();
-    localStorage.setItem(STORAGE_KEYS.UI_STATE, JSON.stringify({ viewMode: 'gallery' }));
+    localStorage.setItem(
+      STORAGE_KEYS.UI_STATE,
+      JSON.stringify({ viewMode: 'gallery', sortBy: 'name', sortOrder: 'asc' }),
+    );
     const { useLayoutState } = await import('@/hooks/use-layout-state');
     const { renderHook } = await import('@testing-library/react');
     const { result } = renderHook(() => useLayoutState());
     expect(result.current.viewMode).toBe('gallery');
+    expect(result.current.sortBy).toBe('name');
+    expect(result.current.sortOrder).toBe('asc');
+  });
+});
+
+describe('explorer initial sorting and grouping', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('starts an unseen folder modified-date descending and grouped by date', async () => {
+    const { useFolderViewSettings } = await import('@/hooks/use-folder-view-settings');
+    const { renderHook } = await import('@testing-library/react');
+    const { result } = renderHook(() => useFolderViewSettings('/Users/test/Pictures', 'details'));
+
+    expect(result.current.sortBy).toBe('dateModified');
+    expect(result.current.sortOrder).toBe('desc');
+    expect(result.current.groupByDate).toBe(true);
+  });
+
+  it('keeps explicit stored sorting and grouping choices', async () => {
+    const path = '/Users/test/Pictures';
+    localStorage.setItem(
+      STORAGE_KEYS.UI_STATE,
+      JSON.stringify({ sortBy: 'name', sortOrder: 'asc' }),
+    );
+    localStorage.setItem(
+      STORAGE_KEYS.FOLDER_SETTINGS,
+      JSON.stringify({ [path]: { groupByDate: false } }),
+    );
+    const { useFolderViewSettings } = await import('@/hooks/use-folder-view-settings');
+    const { renderHook } = await import('@testing-library/react');
+    const { result } = renderHook(() => useFolderViewSettings(path, 'details'));
+
+    expect(result.current.sortBy).toBe('name');
+    expect(result.current.sortOrder).toBe('asc');
+    expect(result.current.groupByDate).toBe(false);
   });
 });

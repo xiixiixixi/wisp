@@ -35,6 +35,7 @@ import {
   findUniqueFilePath,
 } from '@/lib/file-operation-helpers';
 import type { FileEntry } from '@/lib/tauri-api';
+import i18n from '@/i18n';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -159,8 +160,8 @@ describe('setClipboardEntries', () => {
     expect(updateFactory).toHaveBeenCalledWith(files, 'copy');
     expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Copied',
-        description: '2 items copied',
+        title: i18n.t('toast.copied'),
+        description: i18n.t('toast.clipboardCopiedDesc', { count: 2 }),
       }),
     );
   });
@@ -173,8 +174,8 @@ describe('setClipboardEntries', () => {
 
     expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Cut',
-        description: '1 item cut',
+        title: i18n.t('toast.cut'),
+        description: i18n.t('toast.clipboardCutDesc', { count: 1 }),
       }),
     );
   });

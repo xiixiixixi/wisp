@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FileEntry } from '@/lib/tauri-api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -11,6 +12,7 @@ export interface ComparisonState {
 }
 
 export const useFileComparison = () => {
+  const { t } = useTranslation();
   const [state, setState] = useState<ComparisonState>({
     markedFile: null,
     comparisonDialogOpen: false,
@@ -30,11 +32,11 @@ export const useFileComparison = () => {
       }));
 
       toast({
-        title: 'File marked for comparison',
-        description: `${file.name} is ready to compare`,
+        title: t('toast.fileMarkedForComparison'),
+        description: t('toast.fileReadyToCompare', { name: file.name }),
       });
     },
-    [toast],
+    [toast, t],
   );
 
   // Clear the marked file
@@ -101,12 +103,12 @@ export const useFileComparison = () => {
   const handleComparisonError = useCallback(
     (error: string) => {
       toast({
-        title: 'Comparison Error',
+        title: t('toast.comparisonError'),
         description: error,
         variant: 'destructive',
       });
     },
-    [toast],
+    [toast, t],
   );
 
   // Open file selection dialog for comparison

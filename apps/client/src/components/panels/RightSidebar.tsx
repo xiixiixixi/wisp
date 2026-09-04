@@ -6,6 +6,7 @@ import { extensionHost } from '@/lib/extension-host';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
 import { usePreviewHistory } from '@/hooks/use-preview-history';
+import { X } from 'lucide-react';
 
 // Lazy-loaded panels -- only loaded when the user switches to their tab
 const PreviewPanel = React.lazy(() => import('./PreviewPanel'));
@@ -279,6 +280,7 @@ const RightSidebar = ({
     if (panel) return panel.title;
     return rightPanelTab;
   };
+  const tabTitle = getTabTitle();
 
   return (
     <div
@@ -295,28 +297,36 @@ const RightSidebar = ({
           overflow: 'hidden',
         }}
       >
-        {/* Panel header — preview runs edge-to-edge, so it gets none */}
-        {rightPanelTab !== 'preview' && (
-          <div
-            className="wisp-no-select flex items-center justify-between border-b border-xp-border px-3 py-2"
-            style={{ flexShrink: 0 }}
+        <div
+          className={`wisp-inspector-header wisp-no-select flex items-center border-b border-xp-border ${
+            isPreviewTab ? 'wisp-inspector-header-preview justify-end' : 'justify-between px-3 py-2'
+          }`}
+          style={{ flexShrink: 0 }}
+          role="toolbar"
+          aria-label={tabTitle}
+        >
+          {!isPreviewTab && (
+            <div className="min-w-0">
+              <h3 className="truncate text-sm font-semibold">{tabTitle}</h3>
+            </div>
+          )}
+          <button
+            onClick={() => setRightSidebarCollapsed(true)}
+            className="wisp-icon-button ml-2 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[2px] text-xp-text-secondary hover:bg-xp-surface-light"
+            aria-label={
+              rightPanelTab === 'preview'
+                ? i18n.t('previewPanel.closePreview')
+                : i18n.t('panel.collapse', { defaultValue: '收起' })
+            }
+            title={
+              rightPanelTab === 'preview'
+                ? i18n.t('previewPanel.closePreview')
+                : i18n.t('panel.collapse', { defaultValue: '收起' })
+            }
           >
-            <h3 className="truncate text-sm font-medium">{getTabTitle()}</h3>
-            <button
-              onClick={() => setRightSidebarCollapsed(true)}
-              className="ml-2 flex-shrink-0 rounded-[2px] p-1 hover:bg-xp-surface-light"
-              aria-label={i18n.t('panel.collapse', { defaultValue: '收起' })}
-            >
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-          </div>
-        )}
+            <X size={16} />
+          </button>
+        </div>
 
         {/* Preview scrubber navigation bar (multi-select only) */}
         {showScrubber && (

@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import PreviewPanel from '@/components/panels/PreviewPanel';
 import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
+import i18n from '@/i18n';
 
 // Mock preview-factory
 vi.mock('@/lib/preview-factory', () => ({
@@ -33,6 +34,10 @@ vi.mock('@/lib/preview-factory', () => ({
 }));
 
 describe('PreviewPanel', () => {
+  const expandProperties = () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Show file properties' }));
+  };
+
   const mockFile: FileEntry = {
     name: 'document.txt',
     path: 'C:\\Users\\Test\\document.txt',
@@ -65,7 +70,7 @@ describe('PreviewPanel', () => {
     it('shows empty state message when no file is selected', () => {
       render(<PreviewPanel {...mockProps} selectedFile={null} />);
 
-      expect(screen.getByText('Select a file to preview')).toBeInTheDocument();
+      expect(screen.getByText(i18n.t('previewPanel.selectFileToPreview'))).toBeInTheDocument();
     });
 
     it('shows file icon in empty state', () => {
@@ -98,12 +103,14 @@ describe('PreviewPanel', () => {
 
     it('displays formatted date', () => {
       render(<PreviewPanel {...mockProps} />);
+      expandProperties();
 
       expect(mockProps.formatDate).toHaveBeenCalledWith(mockFile.modified);
     });
 
     it('displays file type information', () => {
       render(<PreviewPanel {...mockProps} />);
+      expandProperties();
 
       expect(screen.getByText('Type:')).toBeInTheDocument();
       expect(screen.getByText('File')).toBeInTheDocument();
@@ -111,6 +118,7 @@ describe('PreviewPanel', () => {
 
     it('displays file path', () => {
       render(<PreviewPanel {...mockProps} />);
+      expandProperties();
 
       expect(screen.getByText('Path:')).toBeInTheDocument();
       expect(screen.getByText('C:\\Users\\Test\\document.txt')).toBeInTheDocument();
@@ -118,14 +126,16 @@ describe('PreviewPanel', () => {
 
     it('displays file category', () => {
       render(<PreviewPanel {...mockProps} />);
+      expandProperties();
 
       expect(screen.getByText('Category:')).toBeInTheDocument();
     });
 
     it('shows copy path button', () => {
       render(<PreviewPanel {...mockProps} />);
+      expandProperties();
 
-      expect(screen.getByText('Copy')).toBeInTheDocument();
+      expect(screen.getByText(i18n.t('common.copy'))).toBeInTheDocument();
     });
   });
 
@@ -133,15 +143,14 @@ describe('PreviewPanel', () => {
     it('toggles properties section visibility', () => {
       render(<PreviewPanel {...mockProps} />);
 
-      // Properties should be visible by default
-      expect(screen.getByText('Type:')).toBeInTheDocument();
+      // Properties start collapsed to keep the preview area visually quiet.
+      expect(screen.queryByText('Type:')).not.toBeInTheDocument();
 
-      // Click the properties header to collapse
+      // Click the properties header to expand.
       const headerButton = screen.getByText('document.txt').closest('button');
       if (headerButton) {
         fireEvent.click(headerButton);
-        // After collapsing, Type: should not be visible
-        expect(screen.queryByText('Type:')).not.toBeInTheDocument();
+        expect(screen.getByText('Type:')).toBeInTheDocument();
       }
     });
 
@@ -150,13 +159,13 @@ describe('PreviewPanel', () => {
 
       const headerButton = screen.getByText('document.txt').closest('button');
       if (headerButton) {
-        // Collapse
-        fireEvent.click(headerButton);
-        expect(screen.queryByText('Type:')).not.toBeInTheDocument();
-
-        // Re-expand
+        // Expand
         fireEvent.click(headerButton);
         expect(screen.getByText('Type:')).toBeInTheDocument();
+
+        // Collapse again
+        fireEvent.click(headerButton);
+        expect(screen.queryByText('Type:')).not.toBeInTheDocument();
       }
     });
   });
@@ -228,7 +237,7 @@ describe('PreviewPanel', () => {
       // Wait for debounce (200ms) + async preview component resolution
       await waitFor(
         () => {
-          expect(screen.getByText('File is too large for preview')).toBeInTheDocument();
+          expect(screen.getByText(i18n.t('previewPanel.tooLarge'))).toBeInTheDocument();
         },
         { timeout: 1000 },
       );
@@ -243,6 +252,7 @@ describe('PreviewPanel', () => {
       };
 
       render(<PreviewPanel {...mockProps} selectedFile={fileWithMime} />);
+      expandProperties();
 
       expect(screen.getByText('MIME Type:')).toBeInTheDocument();
       expect(screen.getByText('text/plain')).toBeInTheDocument();
@@ -281,7 +291,7 @@ describe('PreviewPanel', () => {
 
       rerender(<PreviewPanel {...mockProps} selectedFile={null} />);
 
-      expect(screen.getByText('Select a file to preview')).toBeInTheDocument();
+      expect(screen.getByText(i18n.t('previewPanel.selectFileToPreview'))).toBeInTheDocument();
     });
 
     it('handles switching between different files', () => {

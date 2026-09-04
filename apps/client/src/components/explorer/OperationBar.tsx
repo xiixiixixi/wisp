@@ -34,6 +34,8 @@ interface SortOption {
   icon: React.ReactNode;
 }
 
+type OperationMenu = 'sort' | 'view' | 'actions';
+
 interface OperationBarProps {
   viewMode: string;
   setViewMode: (mode: string) => void;
@@ -117,30 +119,112 @@ const OperationBar = ({
   statusAccessory,
 }: OperationBarProps) => {
   const { t } = useTranslation();
-  const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
-  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
-  const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState<OperationMenu | null>(null);
   const barRef = useRef<HTMLDivElement>(null);
+  const sortTriggerRef = useRef<HTMLButtonElement>(null);
+  const viewTriggerRef = useRef<HTMLButtonElement>(null);
+  const actionsTriggerRef = useRef<HTMLButtonElement>(null);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
+  const viewMenuRef = useRef<HTMLDivElement>(null);
+  const actionsMenuRef = useRef<HTMLDivElement>(null);
+
+  const triggerFor = (menu: OperationMenu) => {
+    if (menu === 'sort') return sortTriggerRef.current;
+    if (menu === 'view') return viewTriggerRef.current;
+    return actionsTriggerRef.current;
+  };
+
+  const menuFor = (menu: OperationMenu) => {
+    if (menu === 'sort') return sortMenuRef.current;
+    if (menu === 'view') return viewMenuRef.current;
+    return actionsMenuRef.current;
+  };
+
+  const closeMenu = (restoreFocus = false) => {
+    const menu = openMenu;
+    setOpenMenu(null);
+    if (restoreFocus && menu) requestAnimationFrame(() => triggerFor(menu)?.focus());
+  };
+
+  const menuItems = (menu: OperationMenu) =>
+    Array.from(
+      menuFor(menu)?.querySelectorAll<HTMLElement>(
+        '[role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]',
+      ) ?? [],
+    );
+
+  const focusMenuItem = (menu: OperationMenu, position: 'first' | 'last' | 'next' | 'previous') => {
+    const items = menuItems(menu);
+    if (items.length === 0) return;
+    const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+    let nextIndex = 0;
+    if (position === 'last') nextIndex = items.length - 1;
+    if (position === 'next') nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % items.length;
+    if (position === 'previous') {
+      nextIndex =
+        currentIndex < 0 ? items.length - 1 : (currentIndex - 1 + items.length) % items.length;
+    }
+    items[nextIndex]?.focus();
+  };
+
+  const handleMenuTriggerKeyDown = (
+    menu: OperationMenu,
+    event: React.KeyboardEvent<HTMLButtonElement>,
+  ) => {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    event.preventDefault();
+    setOpenMenu(menu);
+    requestAnimationFrame(() => focusMenuItem(menu, event.key === 'ArrowUp' ? 'last' : 'first'));
+  };
+
+  const handleMenuKeyDown = (menu: OperationMenu, event: React.KeyboardEvent<HTMLDivElement>) => {
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        focusMenuItem(menu, 'next');
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        focusMenuItem(menu, 'previous');
+        break;
+      case 'Home':
+        event.preventDefault();
+        focusMenuItem(menu, 'first');
+        break;
+      case 'End':
+        event.preventDefault();
+        focusMenuItem(menu, 'last');
+        break;
+      case 'Escape':
+        event.preventDefault();
+        closeMenu(true);
+        break;
+    }
+  };
 
   useEffect(() => {
-    const anyOpen = isViewDropdownOpen || isSortDropdownOpen || isActionsDropdownOpen;
-    if (!anyOpen) return;
-    const closeAll = () => {
-      setIsViewDropdownOpen(false);
-      setIsSortDropdownOpen(false);
-      setIsActionsDropdownOpen(false);
-    };
+    if (!openMenu) return;
     // Capture phase: pane/drag handlers that stopPropagation on mousedown
     // would otherwise swallow the event before it reaches this listener.
     // The click fallback also covers synthetic accessibility presses that
     // never dispatch pointer events.
     const onPointerDown = (e: PointerEvent) => {
-      if (barRef.current && !barRef.current.contains(e.target as Node)) closeAll();
+      if (barRef.current && !barRef.current.contains(e.target as Node)) setOpenMenu(null);
     };
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeAll();
+      if (e.key === 'Escape') {
+        const menu = openMenu;
+        setOpenMenu(null);
+        requestAnimationFrame(() => {
+          if (menu === 'sort') sortTriggerRef.current?.focus();
+          else if (menu === 'view') viewTriggerRef.current?.focus();
+          else actionsTriggerRef.current?.focus();
+        });
+      }
     };
-    const onClick = () => closeAll();
+    const onClick = (e: MouseEvent) => {
+      if (barRef.current && !barRef.current.contains(e.target as Node)) setOpenMenu(null);
+    };
     document.addEventListener('pointerdown', onPointerDown, true);
     document.addEventListener('keydown', onKeyDown, true);
     document.addEventListener('click', onClick, true);
@@ -149,12 +233,12 @@ const OperationBar = ({
       document.removeEventListener('keydown', onKeyDown, true);
       document.removeEventListener('click', onClick, true);
     };
-  }, [isViewDropdownOpen, isSortDropdownOpen, isActionsDropdownOpen]);
+  }, [openMenu]);
 
   const handleOpenTerminal = () => {
     setBottomPanelCollapsed(false);
     setBottomPanelTab('terminal');
-    setIsActionsDropdownOpen(false);
+    setOpenMenu(null);
   };
 
   const getSortLabel = (id: SortField) =>
@@ -175,7 +259,7 @@ const OperationBar = ({
     return (
       <div
         ref={barRef}
-        className="border-b border-xp-blue/30 bg-xp-blue/5 px-3 py-1.5"
+        className="wisp-operationbar border-b border-xp-blue/30 bg-xp-blue/5 px-3 py-1.5"
         role="toolbar"
         aria-label={t('operationBar.selectionActions')}
       >
@@ -297,36 +381,54 @@ const OperationBar = ({
   return (
     <div
       ref={barRef}
-      className="wisp-operationbar wisp-no-select relative z-30 border-b border-xp-border bg-xp-surface px-3 py-1.5"
+      className="wisp-operationbar wisp-component-toolbar wisp-no-select relative z-30 border-b border-xp-border bg-xp-surface px-3 py-1.5"
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-1">
+      <div className="wisp-operationbar-layout flex items-center justify-between gap-4">
+        <div className="wisp-toolbar-controls wisp-toolbar-controls-primary flex min-w-0 items-center">
           {/* Sort Dropdown */}
           <div className="relative">
             <button
-              onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-              className="flex items-center gap-1 rounded-[2px] px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+              ref={sortTriggerRef}
+              type="button"
+              onClick={() => setOpenMenu((current) => (current === 'sort' ? null : 'sort'))}
+              onKeyDown={(event) => handleMenuTriggerKeyDown('sort', event)}
+              className="wisp-control flex items-center gap-1 rounded-[2px] px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:text-xp-text"
               aria-label={t('operationBar.sortBy', {
                 name: currentSortLabel,
                 order: currentSortOrder,
               })}
+              aria-haspopup="menu"
+              aria-expanded={openMenu === 'sort'}
             >
               <span className="whitespace-nowrap">{currentSortLabel}</span>
               <ChevronDown size={12} className="opacity-60" />
             </button>
 
-            {isSortDropdownOpen && sortOptions && (
-              <div className="border-xp-border/60 absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-[2px] border bg-xp-popover py-1 shadow-xl">
+            {openMenu === 'sort' && sortOptions && (
+              <div
+                ref={sortMenuRef}
+                role="menu"
+                aria-label={t('operationBar.sortBy', {
+                  name: currentSortLabel,
+                  order: currentSortOrder,
+                })}
+                onKeyDown={(event) => handleMenuKeyDown('sort', event)}
+                className="wisp-popover-menu border-xp-border/60 absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-[2px] border bg-xp-popover py-1 shadow-xl"
+              >
                 {Object.values(sortOptions).map((option) => (
                   <button
                     key={option.id}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={sortBy === option.id}
+                    tabIndex={-1}
                     onClick={() => {
                       if (sortBy === option.id) {
                         toggleSortOrder();
                       } else {
                         setSortBy(option.id);
                       }
-                      setIsSortDropdownOpen(false);
+                      setOpenMenu(null);
                     }}
                     className={`flex w-full items-center justify-between px-3 py-1.5 text-left transition-colors hover:bg-xp-surface-light ${
                       sortBy === option.id ? 'text-xp-blue' : ''
@@ -341,11 +443,15 @@ const OperationBar = ({
                 {/* Group by Date toggle inside sort dropdown */}
                 {setGroupByDate && (
                   <>
-                    <div className="my-1 border-t border-xp-border" />
+                    <div role="separator" className="my-1 border-t border-xp-border" />
                     <button
+                      type="button"
+                      role="menuitemcheckbox"
+                      aria-checked={Boolean(groupByDate)}
+                      tabIndex={-1}
                       onClick={() => {
                         setGroupByDate(!groupByDate);
-                        setIsSortDropdownOpen(false);
+                        setOpenMenu(null);
                       }}
                       className={`flex w-full items-center justify-between px-3 py-1.5 text-left transition-colors hover:bg-xp-surface-light ${
                         groupByDate ? 'text-xp-blue' : ''
@@ -371,30 +477,43 @@ const OperationBar = ({
             )}
           </div>
 
-          {/* Separator */}
-          <div className="h-4 w-px bg-xp-border" />
           {/* View Mode Dropdown */}
           <div className="relative flex items-center gap-1">
             <button
-              onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
-              className="flex items-center gap-1 rounded-[2px] px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+              ref={viewTriggerRef}
+              type="button"
+              onClick={() => setOpenMenu((current) => (current === 'view' ? null : 'view'))}
+              onKeyDown={(event) => handleMenuTriggerKeyDown('view', event)}
+              className="wisp-control flex items-center gap-1 rounded-[2px] px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:text-xp-text"
               aria-label={t('operationBar.viewMode', {
                 name: currentViewLabel,
               })}
+              aria-haspopup="menu"
+              aria-expanded={openMenu === 'view'}
             >
               <span className="text-sm">{viewModes[viewMode]?.icon}</span>
               <span className="whitespace-nowrap">{currentViewLabel}</span>
               <ChevronDown size={12} className="opacity-60" />
             </button>
 
-            {isViewDropdownOpen && (
-              <div className="border-xp-border/60 absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-[2px] border bg-xp-popover py-1 shadow-xl">
+            {openMenu === 'view' && (
+              <div
+                ref={viewMenuRef}
+                role="menu"
+                aria-label={t('operationBar.viewMode', { name: currentViewLabel })}
+                onKeyDown={(event) => handleMenuKeyDown('view', event)}
+                className="wisp-popover-menu border-xp-border/60 absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-[2px] border bg-xp-popover py-1 shadow-xl"
+              >
                 {Object.values(viewModes).map((mode) => (
                   <button
                     key={mode.id}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={viewMode === mode.id}
+                    tabIndex={-1}
                     onClick={() => {
                       setViewMode(mode.id);
-                      setIsViewDropdownOpen(false);
+                      setOpenMenu(null);
                     }}
                     className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left transition-colors hover:bg-xp-surface-light ${
                       viewMode === mode.id ? 'text-xp-blue' : ''
@@ -464,14 +583,11 @@ const OperationBar = ({
             </button>
           )}
 
-          {/* Separator */}
-          <div className="h-4 w-px bg-xp-border" />
-
           {/* Size Map toggle */}
           {onToggleSizeBadges && (
             <button
               onClick={onToggleSizeBadges}
-              className={`flex items-center gap-1 rounded-[2px] px-2 py-1 text-xs transition-colors ${
+              className={`wisp-control wisp-size-map-control flex items-center gap-1 rounded-[2px] px-2 py-1 text-xs transition-colors ${
                 showSizeBadges
                   ? 'bg-xp-blue/10 text-xp-blue'
                   : 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
@@ -489,153 +605,184 @@ const OperationBar = ({
               aria-pressed={showSizeBadges}
             >
               <BarChart3 size={14} />
-              <span className="whitespace-nowrap">{t('operationBar.sizeMap')}</span>
+              <span className="wisp-size-map-label whitespace-nowrap">
+                {t('operationBar.sizeMap')}
+              </span>
             </button>
           )}
-
-          {/* Separator */}
-          <div className="h-4 w-px bg-xp-border" />
         </div>
 
-        <div className="flex items-center space-x-1">
-          {statusAccessory}
+        <div className="flex min-w-0 items-center gap-2">
+          {statusAccessory && <div className="wisp-toolbar-accessory">{statusAccessory}</div>}
 
-          {/* Action Buttons */}
-          <button
-            onClick={handleCreateFolder}
-            className="flex items-center gap-1.5 rounded-[2px] px-2 py-1.5 text-xs font-medium text-xp-text transition-colors hover:bg-xp-surface-light hover:text-xp-blue"
-            title={t('operationBar.createFolder')}
-            aria-label={t('operationBar.createFolder')}
-          >
-            <FolderPlus size={16} />
-            <span className="hidden xl:inline">{t('operationBar.newFolder')}</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setBottomPanelCollapsed(false);
-              setBottomPanelTab('terminal');
-            }}
-            className="flex h-8 w-8 items-center justify-center rounded-[2px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-            title={t('operationBar.openTerminal')}
-            aria-label={t('operationBar.openTerminal')}
-          >
-            <Terminal size={16} />
-          </button>
-
-          {/* Gear / Actions dropdown */}
-          <div className="relative">
+          <div className="wisp-toolbar-controls wisp-toolbar-controls-secondary flex flex-shrink-0 items-center">
+            {/* Action Buttons */}
             <button
-              onClick={() => setIsActionsDropdownOpen(!isActionsDropdownOpen)}
-              className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-              title={t('operationBar.actionsMenu')}
-              aria-label={t('operationBar.actionsMenu')}
-              aria-haspopup="menu"
-              aria-expanded={isActionsDropdownOpen}
+              onClick={handleCreateFolder}
+              className="wisp-control flex items-center gap-1.5 rounded-[2px] px-2 py-1.5 text-xs font-medium text-xp-text transition-colors hover:text-xp-blue"
+              title={t('operationBar.createFolder')}
+              aria-label={t('operationBar.createFolder')}
             >
-              <Settings size={16} />
+              <FolderPlus size={16} />
+              <span className="hidden xl:inline">{t('operationBar.newFolder')}</span>
             </button>
 
-            {isActionsDropdownOpen && (
-              <div className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-[2px] border border-xp-border bg-xp-popover py-1 shadow-xl">
-                {/* New Folder */}
-                <button
-                  onClick={() => {
-                    handleCreateFolder();
-                    setIsActionsDropdownOpen(false);
-                  }}
-                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
+            <button
+              onClick={() => {
+                setBottomPanelCollapsed(false);
+                setBottomPanelTab('terminal');
+              }}
+              className="wisp-control-icon flex h-8 w-8 items-center justify-center rounded-[2px] text-xp-text-secondary transition-colors hover:text-xp-text"
+              title={t('operationBar.openTerminal')}
+              aria-label={t('operationBar.openTerminal')}
+            >
+              <Terminal size={16} />
+            </button>
+
+            {/* Gear / Actions dropdown */}
+            <div className="relative">
+              <button
+                ref={actionsTriggerRef}
+                type="button"
+                onClick={() => setOpenMenu((current) => (current === 'actions' ? null : 'actions'))}
+                onKeyDown={(event) => handleMenuTriggerKeyDown('actions', event)}
+                className="wisp-control-icon rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:text-xp-text"
+                title={t('operationBar.actionsMenu')}
+                aria-label={t('operationBar.actionsMenu')}
+                aria-haspopup="menu"
+                aria-expanded={openMenu === 'actions'}
+              >
+                <Settings size={16} />
+              </button>
+
+              {openMenu === 'actions' && (
+                <div
+                  ref={actionsMenuRef}
+                  role="menu"
+                  aria-label={t('operationBar.actionsMenu')}
+                  onKeyDown={(event) => handleMenuKeyDown('actions', event)}
+                  className="wisp-popover-menu absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-[2px] border border-xp-border bg-xp-popover py-1 shadow-xl"
                 >
-                  <FolderPlus size={14} className="shrink-0 text-xp-text-muted" />
-                  <span>{t('operationBar.newFolder')}</span>
-                </button>
-
-                {/* New File */}
-                {onCreateFile && (
+                  {/* New Folder */}
                   <button
+                    type="button"
+                    role="menuitem"
+                    tabIndex={-1}
                     onClick={() => {
-                      onCreateFile();
-                      setIsActionsDropdownOpen(false);
+                      handleCreateFolder();
+                      setOpenMenu(null);
                     }}
                     className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
                   >
-                    <FilePlus size={14} className="shrink-0 text-xp-text-muted" />
-                    <span>{t('operationBar.newFile')}</span>
+                    <FolderPlus size={14} className="shrink-0 text-xp-text-muted" />
+                    <span>{t('operationBar.newFolder')}</span>
                   </button>
-                )}
 
-                <div className="my-1 border-t border-xp-border" />
+                  {/* New File */}
+                  {onCreateFile && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      tabIndex={-1}
+                      onClick={() => {
+                        onCreateFile();
+                        setOpenMenu(null);
+                      }}
+                      className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
+                    >
+                      <FilePlus size={14} className="shrink-0 text-xp-text-muted" />
+                      <span>{t('operationBar.newFile')}</span>
+                    </button>
+                  )}
 
-                {/* Compress */}
-                {onCompress && (
+                  <div role="separator" className="my-1 border-t border-xp-border" />
+
+                  {/* Compress */}
+                  {onCompress && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      tabIndex={-1}
+                      onClick={() => {
+                        onCompress();
+                        setOpenMenu(null);
+                      }}
+                      className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
+                    >
+                      <Package size={14} className="shrink-0 text-xp-text-muted" />
+                      <span>{t('operationBar.compress')}</span>
+                    </button>
+                  )}
+
+                  {/* Extract */}
+                  {onExtract && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      tabIndex={-1}
+                      onClick={() => {
+                        onExtract();
+                        setOpenMenu(null);
+                      }}
+                      className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
+                    >
+                      <PackageOpen size={14} className="shrink-0 text-xp-text-muted" />
+                      <span>{t('operationBar.extract')}</span>
+                    </button>
+                  )}
+
+                  <div role="separator" className="my-1 border-t border-xp-border" />
+
+                  {/* Open in Terminal */}
                   <button
-                    onClick={() => {
-                      onCompress();
-                      setIsActionsDropdownOpen(false);
-                    }}
+                    type="button"
+                    role="menuitem"
+                    tabIndex={-1}
+                    onClick={handleOpenTerminal}
                     className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
                   >
-                    <Package size={14} className="shrink-0 text-xp-text-muted" />
-                    <span>{t('operationBar.compress')}</span>
+                    <Terminal size={14} className="shrink-0 text-xp-text-muted" />
+                    <span>{t('operationBar.openInTerminal')}</span>
                   </button>
-                )}
 
-                {/* Extract */}
-                {onExtract && (
-                  <button
-                    onClick={() => {
-                      onExtract();
-                      setIsActionsDropdownOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
-                  >
-                    <PackageOpen size={14} className="shrink-0 text-xp-text-muted" />
-                    <span>{t('operationBar.extract')}</span>
-                  </button>
-                )}
+                  {/* Copy Path */}
+                  {onCopyPath && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      tabIndex={-1}
+                      onClick={() => {
+                        onCopyPath();
+                        setOpenMenu(null);
+                      }}
+                      className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
+                    >
+                      <Copy size={14} className="shrink-0 text-xp-text-muted" />
+                      <span>{t('operationBar.copyPath')}</span>
+                    </button>
+                  )}
 
-                <div className="my-1 border-t border-xp-border" />
+                  <div role="separator" className="my-1 border-t border-xp-border" />
 
-                {/* Open in Terminal */}
-                <button
-                  onClick={handleOpenTerminal}
-                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
-                >
-                  <Terminal size={14} className="shrink-0 text-xp-text-muted" />
-                  <span>{t('operationBar.openInTerminal')}</span>
-                </button>
-
-                {/* Copy Path */}
-                {onCopyPath && (
-                  <button
-                    onClick={() => {
-                      onCopyPath();
-                      setIsActionsDropdownOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
-                  >
-                    <Copy size={14} className="shrink-0 text-xp-text-muted" />
-                    <span>{t('operationBar.copyPath')}</span>
-                  </button>
-                )}
-
-                <div className="my-1 border-t border-xp-border" />
-
-                {/* Properties */}
-                {onProperties && (
-                  <button
-                    onClick={() => {
-                      onProperties();
-                      setIsActionsDropdownOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
-                  >
-                    <Info size={14} className="shrink-0 text-xp-text-muted" />
-                    <span>{t('operationBar.properties')}</span>
-                  </button>
-                )}
-              </div>
-            )}
+                  {/* Properties */}
+                  {onProperties && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      tabIndex={-1}
+                      onClick={() => {
+                        onProperties();
+                        setOpenMenu(null);
+                      }}
+                      className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
+                    >
+                      <Info size={14} className="shrink-0 text-xp-text-muted" />
+                      <span>{t('operationBar.properties')}</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

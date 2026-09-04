@@ -1,15 +1,11 @@
 import React, {
   useState,
-  useRef,
   useMemo,
   useImperativeHandle,
   forwardRef,
   useSyncExternalStore,
 } from 'react';
 import { FileEntry } from '@/lib/tauri-api';
-import SearchResultsPanel, {
-  type SearchResultsPanelHandle,
-} from '@/components/explorer/SearchResultsPanel';
 import { extensionHost } from '@/lib/extension-host';
 import SidebarTabBar from '@/components/explorer/sidebar/SidebarTabBar';
 import SidebarQuickAccess from '@/components/explorer/sidebar/SidebarQuickAccess';
@@ -35,30 +31,14 @@ interface LeftSidebarProps {
 }
 
 const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function LeftSidebar(
-  {
-    currentPath,
-    navigateToPath,
-    handleFileClick,
-    handleFileRightClick,
-    handleFileOpen,
-    width,
-    searchPanelOpen = false,
-    onToggleSearchPanel,
-    'data-tour': dataTour,
-  },
+  { currentPath, navigateToPath, handleFileRightClick, width, 'data-tour': dataTour },
   ref,
 ) {
   const { t } = useTranslation();
-  const searchPanelRef = useRef<SearchResultsPanelHandle>(null);
 
   useImperativeHandle(ref, () => ({
     focusSearch: () => {
-      if (!searchPanelOpen && onToggleSearchPanel) {
-        onToggleSearchPanel();
-        setTimeout(() => searchPanelRef.current?.focus(), 100);
-      } else {
-        searchPanelRef.current?.focus();
-      }
+      window.dispatchEvent(new CustomEvent('wisp-open-command-palette'));
     },
   }));
 
@@ -79,24 +59,12 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [extRefreshKey]);
 
-  let activeTabId: string;
-  if (activeExtensionTab) {
-    activeTabId = activeExtensionTab;
-  } else if (searchPanelOpen) {
-    activeTabId = '__search__';
-  } else {
-    activeTabId = '__explorer__';
-  }
+  const activeTabId = activeExtensionTab ?? '__explorer__';
 
   const handleTabClick = (tabId: string) => {
     if (tabId === '__explorer__') {
       setActiveExtensionTab(null);
-      if (searchPanelOpen && onToggleSearchPanel) onToggleSearchPanel();
-    } else if (tabId === '__search__') {
-      setActiveExtensionTab(null);
-      if (!searchPanelOpen && onToggleSearchPanel) onToggleSearchPanel();
     } else {
-      if (searchPanelOpen && onToggleSearchPanel) onToggleSearchPanel();
       setActiveExtensionTab(tabId);
     }
   };
@@ -109,23 +77,12 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
       className="wisp-sidebar wisp-no-select flex flex-shrink-0 flex-col border-r border-xp-border bg-xp-surface"
       style={{ width: width ?? 256, minHeight: 0, overflow: 'hidden' }}
     >
-      {/* Sidebar tab bar */}
-      {onToggleSearchPanel && (
+      {/* The tab strip only earns space when an extension contributes a tab. */}
+      {extensionSidebarTabs.length > 0 && (
         <SidebarTabBar
           activeTabId={activeTabId}
           onTabClick={handleTabClick}
           extensionTabs={extensionSidebarTabs}
-        />
-      )}
-
-      {/* Search panel */}
-      {activeTabId === '__search__' && (
-        <SearchResultsPanel
-          ref={searchPanelRef}
-          basePath={currentPath}
-          navigateToPath={navigateToPath}
-          onFileSelect={handleFileClick}
-          onFileOpen={handleFileOpen}
         />
       )}
 
@@ -161,7 +118,7 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
             onClick={() => navigateToPath('wisp://trash')}
             aria-label={t('navigation.trash')}
             title={t('navigation.trash')}
-            className={`flex w-full flex-shrink-0 items-center border-t border-xp-border px-5 py-2.5 text-xs transition-colors ${
+            className={`wisp-sidebar-trash flex w-full flex-shrink-0 items-center border-t border-xp-border px-5 py-2.5 text-xs transition-colors ${
               currentPath === 'wisp://trash'
                 ? 'bg-xp-blue/15 text-xp-blue'
                 : 'text-xp-text hover:bg-xp-surface-light'

@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useWeather } from '@/hooks/use-weather';
-import { skyScene, type SkyScene } from '@/lib/weather';
+import { skyGround } from '@/lib/weather';
 import { isWeatherSyncEnabled } from '@/lib/weather-location';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 /**
- * The one Wisp theme: polarity (paper by day, ink by night) and the sky
- * ground both follow the real sun — dawn and dusk get their transitional
- * washes around sunrise/sunset, weather adds precipitation on its own layer.
+ * Wisp has one stable, neutral appearance. The real sky can still stain the
+ * paper ground — one quiet wash, painted on the html background and nothing
+ * else. No particles, no glows, no animation; the weather chip carries the
+ * literal sky.
  */
 type SunPhase = 'dawn' | 'day' | 'dusk' | 'night';
 
@@ -29,7 +31,28 @@ const sunPhase = (now: number, sunrise?: string, sunset?: string): SunPhase => {
   return hour >= 7 && hour < 17 ? 'day' : 'night';
 };
 
-const isDaytime = (phase: SunPhase) => phase === 'dawn' || phase === 'day';
+const syncAccessibilityClasses = () => {
+  const root = document.documentElement;
+  try {
+    const settings = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}') as {
+      reducedMotion?: boolean;
+      reduceTransparency?: boolean;
+      enhancedFocus?: boolean;
+      highContrast?: boolean;
+    };
+    root.classList.toggle('reduce-motion', settings.reducedMotion === true);
+    root.classList.toggle('reduce-transparency', settings.reduceTransparency === true);
+    root.classList.toggle('enhanced-focus', settings.enhancedFocus === true);
+    root.classList.toggle('high-contrast', settings.highContrast === true);
+  } catch {
+    root.classList.remove(
+      'reduce-motion',
+      'reduce-transparency',
+      'enhanced-focus',
+      'high-contrast',
+    );
+  }
+};
 
 const SkySync = () => {
   const { report } = useWeather();
@@ -40,7 +63,11 @@ const SkySync = () => {
 
   // The toggle lives in settings (another route) — follow it live.
   useEffect(() => {
-    const sync = () => setWeatherEnabled(isWeatherSyncEnabled());
+    const sync = () => {
+      setWeatherEnabled(isWeatherSyncEnabled());
+      syncAccessibilityClasses();
+    };
+    syncAccessibilityClasses();
     window.addEventListener('wisp-settings-changed', sync);
     return () => window.removeEventListener('wisp-settings-changed', sync);
   }, []);
@@ -68,22 +95,23 @@ const SkySync = () => {
     // After the last boundary, re-evaluate on the next poll tick.
   }, [today?.sunrise, today?.sunset, report?.updated_at]);
 
-  // Polarity + sky ground, recomputed on every phase/tick change.
+  // Keep the product appearance stable. Only the ambient sky layer follows
+  // the sun; the functional interface remains the same neutral light theme.
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove('theme-rolex', 'theme-glass', 'theme-light');
-    root.classList.add(isDaytime(phase) ? 'theme-light' : 'theme-rolex');
+    root.classList.add('theme-light');
     root.dataset.sky = phase;
   }, [phase]);
 
-  // Weather overlays: gloom veil when the sky is overcast (weather opt-in),
-  // precipitation itself is painted by WeatherFx on its own layer.
+  // Weather grounds: precipitation and overcast claim the whole ground (the
+  // rain IS the sky, whatever the clock says); clear skies keep the phase.
   useEffect(() => {
     const root = document.documentElement;
     if (weatherEnabled && report) {
-      const scene: SkyScene | null = skyScene(report.weather_code, isDaytime(phase));
-      if (scene === 'cloudy' || scene === 'fog') {
-        root.dataset.sky = 'gloom';
+      const ground = skyGround(report.weather_code);
+      if (ground !== 'clear') {
+        root.dataset.sky = ground;
         return;
       }
     }

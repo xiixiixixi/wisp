@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import LeftSidebar from '@/components/explorer/LeftSidebar';
+import { createRef } from 'react';
+import LeftSidebar, { type LeftSidebarHandle } from '@/components/explorer/LeftSidebar';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
+import { extensionHost } from '@/lib/extension-host';
 
 // Mock constants
 vi.mock('@/lib/constants', () => ({
@@ -126,6 +128,8 @@ describe('LeftSidebar', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    vi.mocked(extensionHost.getSidebarTabs).mockReturnValue([]);
+    vi.mocked(extensionHost.getSidebarTabRenderer).mockReturnValue(null);
   });
 
   describe('Quick Access Section', () => {
@@ -328,6 +332,43 @@ describe('LeftSidebar', () => {
       expect(screen.queryByText('FILTERS')).not.toBeInTheDocument();
       expect(screen.queryByText('RECENT')).not.toBeInTheDocument();
       expect(screen.queryByText('FILE TREE')).not.toBeInTheDocument();
+    });
+
+    it('uses the global command palette instead of a duplicate sidebar search tab', () => {
+      const openPalette = vi.fn();
+      window.addEventListener('wisp-open-command-palette', openPalette);
+      const ref = createRef<LeftSidebarHandle>();
+
+      render(<LeftSidebar ref={ref} {...mockProps} />);
+
+      expect(
+        screen.queryByRole('tab', { name: /search current folder|搜索当前文件夹/i }),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+
+      ref.current?.focusSearch();
+      expect(openPalette).toHaveBeenCalledOnce();
+      window.removeEventListener('wisp-open-command-palette', openPalette);
+    });
+
+    it('keeps extension sidebar tabs available without restoring the search tab', () => {
+      vi.mocked(extensionHost.getSidebarTabs).mockReturnValue([
+        { id: 'notes', title: 'Notes', icon: <span aria-hidden="true">N</span> },
+      ]);
+      vi.mocked(extensionHost.getSidebarTabRenderer).mockReturnValue(() => (
+        <div>Notes extension</div>
+      ));
+
+      render(<LeftSidebar {...mockProps} />);
+
+      expect(screen.getByRole('tab', { name: /file explorer|文件浏览器/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: 'Notes' })).toBeInTheDocument();
+      expect(
+        screen.queryByRole('tab', { name: /search current folder|搜索当前文件夹/i }),
+      ).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('tab', { name: 'Notes' }));
+      expect(screen.getByText('Notes extension')).toBeInTheDocument();
     });
   });
 

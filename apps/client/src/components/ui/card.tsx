@@ -1,15 +1,15 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-/**
- * MUJI paper card — a flat paper cut separated by a single hairline.
- * No shadow, no rounding beyond a whisper; whitespace carries the padding.
- */
+/** Stable content-layer surface. It intentionally isn't an elevated glass pane. */
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('rounded-[2px] border border-xp-border bg-xp-surface text-xp-text', className)}
+      className={cn(
+        'content-card rounded-xl border border-xp-border bg-xp-surface text-xp-text',
+        className,
+      )}
       {...props}
     />
   ),

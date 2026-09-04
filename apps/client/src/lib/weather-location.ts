@@ -50,3 +50,33 @@ export function getWeatherLocation(): WeatherLocation {
   }
   return FALLBACK;
 }
+
+/**
+ * Persist a resolved weather location without replacing unrelated settings.
+ * Consumers listen for the shared settings event and refresh from storage.
+ */
+export function setWeatherLocation(location: WeatherLocation): void {
+  const city = location.city.trim();
+  if (!city || !Number.isFinite(location.latitude) || !Number.isFinite(location.longitude)) {
+    throw new TypeError('Invalid weather location');
+  }
+
+  let current: Record<string, unknown> = { ...DEFAULT_SETTINGS };
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (raw) current = { ...current, ...(JSON.parse(raw) as Record<string, unknown>) };
+  } catch {
+    // Recover from malformed persisted settings while keeping safe defaults.
+  }
+
+  localStorage.setItem(
+    SETTINGS_KEY,
+    JSON.stringify({
+      ...current,
+      weatherCity: city,
+      weatherLat: location.latitude,
+      weatherLon: location.longitude,
+    }),
+  );
+  window.dispatchEvent(new CustomEvent('wisp-settings-changed'));
+}

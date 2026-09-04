@@ -134,7 +134,7 @@ export const Dialog = ({
           aria-modal="true"
           aria-labelledby={titleId}
           tabIndex={-1}
-          className="mx-4 max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-[2px] border border-xp-border bg-xp-popover shadow-[var(--xp-shadow-popover)]"
+          className="elevated-glass mx-4 max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-2xl border border-xp-border bg-xp-popover shadow-[var(--xp-shadow-popover)]"
           style={{ outline: 'none' }}
           onClick={(e) => e.stopPropagation()}
           onKeyDown={handleKeyDown}

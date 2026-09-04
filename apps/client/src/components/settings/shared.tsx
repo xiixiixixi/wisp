@@ -29,13 +29,13 @@ export const Toggle = ({
     role="switch"
     aria-checked={checked}
     aria-label={label}
-    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-[2px] border border-transparent transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-xp-text ${
+    className={`liquid-toggle relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-transparent transition-all focus-visible:outline-none ${
       checked ? 'bg-xp-selection' : 'bg-xp-border'
     }`}
     onClick={() => onChange(!checked)}
   >
     <span
-      className={`pointer-events-none inline-block h-4 w-4 rounded-[2px] transition-all ${
+      className={`liquid-toggle-thumb pointer-events-none inline-block h-5 w-5 rounded-full transition-all ${
         checked ? 'translate-x-5 bg-xp-text' : 'translate-x-0.5 bg-xp-text-muted'
       }`}
     />
@@ -82,7 +82,7 @@ export const SettingsSection = ({
   description?: string;
   children: React.ReactNode;
 }) => (
-  <section className="glass-card rounded-[2px] p-1">
+  <section className="content-card rounded-2xl p-1">
     <div className="px-3 pb-1 pt-2.5">
       <h3 className="text-[13px] font-medium text-xp-text">{title}</h3>
       {description && <p className="mt-0.5 text-xs text-xp-text-secondary">{description}</p>}
@@ -274,6 +274,7 @@ export interface AppSettings {
   fontSize: string;
   sidebarWidth: string;
   reducedMotion: boolean;
+  reduceTransparency: boolean;
   enhancedFocus: boolean;
   highContrast: boolean;
   autoCalculateFolderSizes: boolean;
@@ -323,6 +324,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   fontSize: 'medium',
   sidebarWidth: 'medium',
   reducedMotion: false,
+  reduceTransparency: false,
   enhancedFocus: false,
   highContrast: false,
   autoCalculateFolderSizes: false,

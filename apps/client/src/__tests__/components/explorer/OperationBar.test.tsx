@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import OperationBar from '@/components/explorer/OperationBar';
 import type { SortField } from '@/lib/utils';
@@ -86,6 +87,55 @@ describe('OperationBar', () => {
     fireEvent.click(screen.getByText('Large Icons'));
 
     expect(mockProps.setViewMode).toHaveBeenCalledWith('large');
+  });
+
+  it('activates sort and view options through real pointer interaction', async () => {
+    const user = userEvent.setup();
+    render(<OperationBar {...mockProps} />);
+
+    await user.click(screen.getByText('Name'));
+    await user.click(screen.getByText('Size'));
+    expect(mockProps.setSortBy).toHaveBeenCalledWith('size');
+
+    await user.click(screen.getByText('Medium Icons'));
+    await user.click(screen.getByText('Large Icons'));
+    expect(mockProps.setViewMode).toHaveBeenCalledWith('large');
+  });
+
+  it('keeps only one toolbar menu open at a time', async () => {
+    const user = userEvent.setup();
+    render(<OperationBar {...mockProps} />);
+
+    const sortTrigger = screen.getByRole('button', { name: /Sort by/ });
+    const viewTrigger = screen.getByRole('button', { name: /View mode/ });
+
+    await user.click(sortTrigger);
+    expect(sortTrigger).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('Date Modified')).toBeInTheDocument();
+
+    await user.click(viewTrigger);
+    expect(sortTrigger).toHaveAttribute('aria-expanded', 'false');
+    expect(viewTrigger).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.queryByText('Date Modified')).not.toBeInTheDocument();
+    expect(screen.getByRole('menuitemradio', { name: /Large Icons$/ })).toBeInTheDocument();
+  });
+
+  it('supports arrow navigation and restores trigger focus on Escape', async () => {
+    const user = userEvent.setup();
+    render(<OperationBar {...mockProps} />);
+
+    const sortTrigger = screen.getByRole('button', { name: /Sort by/ });
+    sortTrigger.focus();
+    await user.keyboard('{ArrowDown}');
+
+    const firstOption = screen.getByRole('menuitemradio', { name: 'Name' });
+    await vi.waitFor(() => expect(firstOption).toHaveFocus());
+    await user.keyboard('{ArrowDown}');
+    expect(screen.getByRole('menuitemradio', { name: 'Date Modified' })).toHaveFocus();
+
+    await user.keyboard('{Escape}');
+    await vi.waitFor(() => expect(sortTrigger).toHaveFocus());
+    expect(sortTrigger).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('keeps selection actions hidden when nothing is selected', () => {
@@ -228,7 +278,7 @@ describe('OperationBar', () => {
     fireEvent.click(screen.getByText('Name'));
     expect(screen.getByText('Date Modified')).toBeInTheDocument();
 
-    fireEvent.mouseDown(document.body);
+    fireEvent.pointerDown(document.body);
     expect(screen.queryByText('Date Modified')).not.toBeInTheDocument();
   });
 

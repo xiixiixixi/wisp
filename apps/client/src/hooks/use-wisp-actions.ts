@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TauriAPI, type FileEntry, type ConflictFileInfo } from '@/lib/tauri-api';
 import { detectSep } from '@/lib/constants';
 import { isEditableFile } from '@/lib/editable-files';
@@ -94,6 +95,7 @@ export interface WispActionsDeps {
 }
 
 export const useWispActions = (deps: WispActionsDeps) => {
+  const { t } = useTranslation();
   const {
     currentPath,
     splitLayout,
@@ -116,7 +118,6 @@ export const useWispActions = (deps: WispActionsDeps) => {
     paneRefetchRef,
     pendingSelectRef,
     topBarRef: _topBarRef,
-    leftSidebarRef,
     dismissFileChanges,
     viewMode,
     leftSidebarCollapsed,
@@ -409,12 +410,12 @@ export const useWispActions = (deps: WispActionsDeps) => {
       openFile: (file: FileEntry) => fileActions.handleFileDoubleClick(file),
       setSelectedFiles,
       setSelectedFile,
-      focusSearch: () => leftSidebarRef.current?.focusSearch(),
+      focusSearch: () => setCommandPaletteOpen(true),
       copyFiles: (filesToCopy: FileEntry[]) => {
         fileOps.setClipboard({ files: filesToCopy, operation: 'copy' });
         toast({
-          title: 'Copied',
-          description: `${filesToCopy.length} item${filesToCopy.length > 1 ? 's' : ''} yanked`,
+          title: t('toast.copied'),
+          description: t('toast.yankedItemsDesc', { count: filesToCopy.length }),
         });
       },
       pasteFiles: () => {
@@ -429,10 +430,15 @@ export const useWispActions = (deps: WispActionsDeps) => {
       addBookmark: (path: string) => {
         const name = path.split(/[/\\]/).pop() || path;
         TauriAPI.addBookmark(path, name)
-          .then(() => toast({ title: 'Bookmarked', description: `Added "${name}" to bookmarks` }))
+          .then(() =>
+            toast({
+              title: t('toast.bookmarked'),
+              description: t('toast.bookmarkAddedDesc', { name }),
+            }),
+          )
           .catch((err: unknown) =>
             toast({
-              title: 'Bookmark failed',
+              title: t('toast.bookmarkFailed'),
               description: formatError(err),
               variant: 'destructive',
             }),
@@ -445,13 +451,14 @@ export const useWispActions = (deps: WispActionsDeps) => {
     }),
     [
       fileOps,
-      leftSidebarRef,
       refetch,
       toast,
       navigation,
       fileActions,
       setSelectedFiles,
       setSelectedFile,
+      setCommandPaletteOpen,
+      t,
     ],
   );
 

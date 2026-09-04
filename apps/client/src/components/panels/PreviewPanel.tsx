@@ -5,6 +5,7 @@ import { getFileIcon } from '@/lib/utils';
 import { defaultPreviewFactory, PreviewProps, PreviewType } from '@/lib/preview-factory';
 import { extensionHost } from '@/lib/extension-host';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
+import { FileText } from 'lucide-react';
 
 // Module-level cache for preview components by file type, avoiding redundant dynamic imports
 const previewComponentCache = new Map<PreviewType, React.ComponentType<PreviewProps>>();
@@ -376,24 +377,16 @@ const PreviewPanel = ({
   if (!selectedFile) {
     return (
       <div
-        className="flex h-full items-center justify-center text-center text-xp-text-secondary"
+        className="wisp-preview-empty flex h-full items-center justify-center text-center text-xp-text-secondary"
         role="region"
-        aria-label="No file selected for preview"
+        aria-label={i18n.t('previewPanel.noFileSelectedAria')}
       >
-        <div>
-          <svg
-            className="mx-auto mb-3 h-12 w-12"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <p>Select a file to preview</p>
+        <div className="wisp-preview-empty-content">
+          <div className="wisp-preview-empty-visual" aria-hidden="true">
+            <FileText className="h-12 w-12" size={68} strokeWidth={1.25} />
+          </div>
+          <h4>{i18n.t('previewPanel.selectFileToPreview')}</h4>
+          <p>{i18n.t('previewPanel.emptyDescription')}</p>
         </div>
       </div>
     );

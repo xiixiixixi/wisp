@@ -285,7 +285,7 @@ const PaneFileExplorer = React.memo(
 
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-auto p-4"
+          className="wisp-file-scroll flex-1 overflow-auto"
           onMouseDown={(e) => {
             bgMouseDownPosRef.current = { x: e.clientX, y: e.clientY };
           }}

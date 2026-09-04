@@ -82,6 +82,7 @@ export class TauriAPI {
   static sameVolume = fileSystem.sameVolume;
   static copyFilesToClipboard = fileSystem.copyFilesToClipboard;
   static getFileIconPng = fileSystem.getFileIconPng;
+  static getFileThumbnailPng = fileSystem.getFileThumbnailPng;
   static getDirSize = fileSystem.getDirSize;
   static readTextFile = fileSystem.readTextFile;
   static getWeather = weather.getWeather;

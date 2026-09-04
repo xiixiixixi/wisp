@@ -2,6 +2,7 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useToast, toast, TOAST_AUTO_DISMISS_DELAY } from '@/hooks/use-toast';
+import { BottomRightOverlayStackItem } from '@/components/ui/BottomRightOverlayStack';
 
 interface ToastProps {
   id: string;
@@ -12,8 +13,34 @@ interface ToastProps {
   open?: boolean;
   /** Show the shrinking countdown bar (matches the auto-dismiss timer). */
   showCountdown?: boolean;
-  onClose?: () => void;
+  onClose: () => void;
 }
+
+interface ToastCloseButtonProps {
+  onClose: () => void;
+  presentation?: 'toast' | 'dialog';
+}
+
+const ToastCloseButton = ({ onClose, presentation = 'toast' }: ToastCloseButtonProps) => {
+  const { t } = useTranslation();
+  const closeLabel = t('toast.closeNotification');
+
+  return (
+    <button
+      type="button"
+      onClick={onClose}
+      className={
+        presentation === 'dialog'
+          ? 'absolute right-3 top-3 rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xp-blue'
+          : 'flex-shrink-0 px-3 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-xp-blue'
+      }
+      aria-label={closeLabel}
+      title={closeLabel}
+    >
+      <X className="h-4 w-4" aria-hidden="true" />
+    </button>
+  );
+};
 
 const Toast = ({
   id,
@@ -25,7 +52,6 @@ const Toast = ({
   showCountdown = false,
   onClose,
 }: ToastProps) => {
-  const { t } = useTranslation();
   const titleId = title ? `toast-${id}-title` : undefined;
   const baseClasses =
     'relative flex w-full overflow-hidden rounded-[2px] border shadow-[var(--xp-shadow-popover)] transition-all duration-200 ease-in-out transform';
@@ -65,17 +91,7 @@ const Toast = ({
         {description && <div className="text-xs opacity-90">{description}</div>}
       </div>
 
-      <button
-        onClick={onClose}
-        className={
-          presentation === 'dialog'
-            ? 'absolute right-3 top-3 rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text'
-            : 'flex-shrink-0 px-3 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text'
-        }
-        aria-label={t('common.close')}
-      >
-        <X className="h-4 w-4" aria-hidden="true" />
-      </button>
+      <ToastCloseButton onClose={onClose} presentation={presentation} />
 
       {presentation !== 'dialog' && showCountdown && (
         <div
@@ -154,21 +170,25 @@ export const Toaster = () => {
 
   return (
     <>
-      <div className="fixed bottom-4 right-4 z-50 flex w-full max-w-sm flex-col-reverse space-y-2 space-y-reverse">
-        {notifications.map((item) => (
-          <div key={item.id} className="relative">
-            <Toast
-              id={item.id}
-              title={item.title}
-              description={item.description}
-              variant={item.variant}
-              open={item.open !== false}
-              showCountdown={item.autoDismiss !== false}
-              onClose={() => closeToast(item.id, item.onOpenChange)}
-            />
+      {notifications.length > 0 && (
+        <BottomRightOverlayStackItem>
+          <div className="flex w-full flex-col-reverse gap-2">
+            {notifications.map((item) => (
+              <div key={item.id} className="relative">
+                <Toast
+                  id={item.id}
+                  title={item.title}
+                  description={item.description}
+                  variant={item.variant}
+                  open={item.open !== false}
+                  showCountdown={item.autoDismiss !== false}
+                  onClose={() => closeToast(item.id, item.onOpenChange)}
+                />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </BottomRightOverlayStackItem>
+      )}
 
       {dialogToast && (
         <div
@@ -215,29 +235,34 @@ const ConfirmationToast = ({
   description,
   onConfirm,
   onCancel,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText,
+  cancelText,
 }: ConfirmationToastProps) => {
+  const { t } = useTranslation();
+
   return (
     <div className="relative flex w-full overflow-hidden rounded-[2px] border border-xp-border bg-xp-popover text-xp-text shadow-[var(--xp-shadow-popover)]">
-      <div className="flex-1 p-4">
+      <div className="flex-1 p-4 pr-12">
         <div className="mb-1 text-sm font-medium">{title}</div>
         {description && <div className="mb-3 text-xs opacity-90">{description}</div>}
         <div className="flex space-x-2">
           <button
+            type="button"
             onClick={onConfirm}
             className="rounded-[2px] bg-xp-red px-3 py-1 text-xs text-xp-on-accent transition-opacity hover:opacity-85"
           >
-            {confirmText}
+            {confirmText ?? t('common.confirm')}
           </button>
           <button
+            type="button"
             onClick={onCancel}
             className="rounded-[2px] border border-xp-border bg-transparent px-3 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
           >
-            {cancelText}
+            {cancelText ?? t('common.cancel')}
           </button>
         </div>
       </div>
+      <ToastCloseButton onClose={onCancel} presentation="dialog" />
     </div>
   );
 };
@@ -261,9 +286,10 @@ const InputToast = ({
   placeholder = '',
   onSubmit,
   onCancel,
-  submitText = 'Create',
-  cancelText = 'Cancel',
+  submitText,
+  cancelText,
 }: InputToastProps) => {
+  const { t } = useTranslation();
   const [value, setValue] = React.useState('');
 
   const handleSubmit = () => {
@@ -282,7 +308,7 @@ const InputToast = ({
 
   return (
     <div className="relative flex w-full overflow-hidden rounded-[2px] border border-xp-border bg-xp-popover text-xp-text shadow-[var(--xp-shadow-popover)]">
-      <div className="flex-1 p-4">
+      <div className="flex-1 p-4 pr-12">
         <div className="mb-1 text-sm font-medium">{title}</div>
         {description && <div className="mb-3 text-xs opacity-90">{description}</div>}
         <input
@@ -296,20 +322,23 @@ const InputToast = ({
         />
         <div className="flex space-x-2">
           <button
+            type="button"
             onClick={handleSubmit}
             disabled={!value.trim()}
             className="rounded-[2px] bg-xp-accent px-3 py-1 text-xs text-xp-on-accent transition-colors hover:bg-xp-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {submitText}
+            {submitText ?? t('common.create')}
           </button>
           <button
+            type="button"
             onClick={onCancel}
             className="rounded-[2px] border border-xp-border bg-transparent px-3 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
           >
-            {cancelText}
+            {cancelText ?? t('common.cancel')}
           </button>
         </div>
       </div>
+      <ToastCloseButton onClose={onCancel} presentation="dialog" />
     </div>
   );
 };
@@ -332,11 +361,12 @@ const InputPromptContent = ({
   initialValue = '',
   selectNameWithoutExtension = false,
   validate,
-  submitText = 'Create',
-  cancelText = 'Cancel',
+  submitText,
+  cancelText,
   onSubmit,
   onCancel,
 }: InputPromptContentProps) => {
+  const { t } = useTranslation();
   const [value, setValue] = React.useState(initialValue);
   const errorId = React.useId();
   const normalizedValue = value.trim();
@@ -392,14 +422,14 @@ const InputPromptContent = ({
           onClick={onCancel}
           className="rounded-[2px] border border-xp-border bg-transparent px-3.5 py-2 text-xs font-medium text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
         >
-          {cancelText}
+          {cancelText ?? t('common.cancel')}
         </button>
         <button
           type="submit"
           disabled={!canSubmit}
           className="rounded-[2px] bg-xp-accent px-4 py-2 text-xs font-medium text-xp-on-accent transition-colors hover:bg-xp-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {submitText}
+          {submitText ?? t('common.create')}
         </button>
       </div>
     </form>
@@ -416,32 +446,38 @@ interface ConfirmationPromptContentProps {
 
 const ConfirmationPromptContent = ({
   description,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText,
+  cancelText,
   onConfirm,
   onCancel,
-}: ConfirmationPromptContentProps) => (
-  <div className="space-y-4">
-    {description && <p className="text-sm leading-relaxed text-xp-text-secondary">{description}</p>}
-    <div className="flex justify-end gap-2 pt-1">
-      <button
-        type="button"
-        onClick={onCancel}
-        className="rounded-[2px] border border-xp-border bg-transparent px-3.5 py-2 text-xs font-medium text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-      >
-        {cancelText}
-      </button>
-      <button
-        type="button"
-        onClick={onConfirm}
-        autoFocus
-        className="rounded-[2px] bg-xp-red px-4 py-2 text-xs font-medium text-xp-on-accent transition-opacity hover:opacity-85"
-      >
-        {confirmText}
-      </button>
+}: ConfirmationPromptContentProps) => {
+  const { t } = useTranslation();
+
+  return (
+    <div className="space-y-4">
+      {description && (
+        <p className="text-sm leading-relaxed text-xp-text-secondary">{description}</p>
+      )}
+      <div className="flex justify-end gap-2 pt-1">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-[2px] border border-xp-border bg-transparent px-3.5 py-2 text-xs font-medium text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+        >
+          {cancelText ?? t('common.cancel')}
+        </button>
+        <button
+          type="button"
+          onClick={onConfirm}
+          autoFocus
+          className="rounded-[2px] bg-xp-red px-4 py-2 text-xs font-medium text-xp-on-accent transition-opacity hover:opacity-85"
+        >
+          {confirmText ?? t('common.confirm')}
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Helper functions to show confirmation and input toasts
 export const showConfirmationToast = (

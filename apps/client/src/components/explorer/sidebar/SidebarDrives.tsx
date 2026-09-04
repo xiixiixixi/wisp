@@ -93,7 +93,7 @@ const SidebarDrives = ({ navigateToPath }: SidebarDrivesProps) => {
                 onClick={() => navigateToPath(drive.path)}
                 data-drop-target={drive.path}
                 data-is-folder="true"
-                className="w-full rounded-[2px] px-2 py-1.5 text-left text-xs transition-colors hover:bg-xp-surface-light"
+                className="wisp-sidebar-item w-full rounded-[2px] px-2 py-1.5 text-left text-xs transition-colors"
                 aria-label={t('navigation.navigateTo', {
                   name: drive.letter ? `${drive.letter}:` : drive.label,
                 })}

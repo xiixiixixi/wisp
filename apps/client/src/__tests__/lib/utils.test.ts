@@ -435,17 +435,17 @@ describe('loadFontSize', () => {
 // ── applyTheme ────────────────────────────────────────────────────────────
 
 describe('applyTheme', () => {
-  it('adds the theme class to document root', () => {
+  it('maps legacy theme keys to the stable light appearance', () => {
     applyTheme('glass');
-    expect(document.documentElement.classList.add).toHaveBeenCalledWith('theme-glass');
+    expect(document.documentElement.classList.add).toHaveBeenCalledWith('theme-light');
   });
 
-  it('swaps the previous theme class', () => {
+  it('removes the previous theme class before restoring the stable appearance', () => {
     applyTheme('glass');
     applyTheme('light');
     const calls = (document.documentElement.classList.remove as ReturnType<typeof vi.fn>).mock
       .calls;
-    expect(calls.some((call) => call.includes('theme-glass'))).toBe(true);
+    expect(calls.some((call) => call.includes('theme-light'))).toBe(true);
     expect(document.documentElement.classList.add).toHaveBeenCalledWith('theme-light');
   });
 });
