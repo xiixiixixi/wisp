@@ -1635,7 +1635,8 @@
     "send": "Kirim",
     "suggestionListRecent": "Tampilkan file terbaru saya",
     "suggestionOrganize": "Atur folder Unduhan saya",
-    "suggestionLargeFiles": "File besar apa yang saya miliki?"
+    "suggestionLargeFiles": "File besar apa yang saya miliki?",
+    "topProcesses": "Proses paling berat"
   },
   "toast": {
     "closeNotification": "Tutup notifikasi",

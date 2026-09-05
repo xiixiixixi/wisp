@@ -1699,7 +1699,8 @@
     "greetingNoon": "Good afternoon",
     "greetingAfternoon": "Good afternoon",
     "greetingEvening": "Good evening",
-    "greetingNight": "Working late"
+    "greetingNight": "Working late",
+    "topProcesses": "Heaviest processes"
   },
   "toast": {
     "closeNotification": "Close notification",

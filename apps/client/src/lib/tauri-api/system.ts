@@ -414,3 +414,14 @@ export interface SystemStats {
 
 /** Live CPU / memory / disk metrics for the home dashboard. */
 export const getSystemStats = async (): Promise<SystemStats> => await transport('get_system_stats');
+
+export interface TopProcess {
+  pid: number;
+  name: string;
+  cpu_usage: number;
+  memory: number;
+}
+
+/** The heaviest processes right now, for the home 性能 leaderboard. */
+export const getTopProcesses = async (): Promise<TopProcess[]> =>
+  await transport('get_top_processes');

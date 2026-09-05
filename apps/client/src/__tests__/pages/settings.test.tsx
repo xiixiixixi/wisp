@@ -413,15 +413,14 @@ describe('Settings Page', () => {
   });
 
   describe('General Tab - Settings Controls', () => {
-    it('renders the Theme setting row', async () => {
+    it('renders the Language setting row (the theme picker is retired — one adaptive theme)', async () => {
       render(<Settings />);
 
       const mainContent = document.querySelector('main')!;
       const mainSection = within(mainContent);
 
       await waitFor(() => {
-        expect(mainSection.getByText('Theme')).toBeInTheDocument();
-        expect(mainSection.getByText('Color scheme for the application')).toBeInTheDocument();
+        expect(mainSection.getByText('Language')).toBeInTheDocument();
       });
     });
 

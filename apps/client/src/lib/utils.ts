@@ -756,12 +756,19 @@ export const loadFontSize = () => {
 // Wisp now has one stable neutral appearance. Keep accepting historical keys
 // for settings and extension compatibility, but resolve all of them to the
 // same light material instead of letting persisted state fight SkySync.
-// theme-fluid is NOT a legacy theme — it's SkySync's live glass toggle and
-// must survive this sweep (wiping it silently killed the whole fluid shell).
+// theme-fluid is SkySync's live glass toggle and theme-light/theme-rolex are
+// its polarity decision — none of them may be wiped here ( wiping either
+// silently killed the fluid shell or stranded the wrong polarity).
 export const applyTheme = (_themeKey: string) => {
   const root = document.documentElement;
   root.classList.forEach((cls) => {
-    if (cls.startsWith('theme-') && cls !== 'theme-fluid') root.classList.remove(cls);
+    if (
+      cls.startsWith('theme-') &&
+      cls !== 'theme-fluid' &&
+      cls !== 'theme-light' &&
+      cls !== 'theme-rolex'
+    ) {
+      root.classList.remove(cls);
+    }
   });
-  root.classList.add('theme-light');
 };

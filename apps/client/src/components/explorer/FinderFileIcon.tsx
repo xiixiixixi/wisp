@@ -486,6 +486,12 @@ const FinderFileIcon = ({ file, fallback }: FinderFileIconProps) => {
         }}
       />
     );
+  } else if (nativeMode && !failedKey) {
+    // Native icon still resolving: show NOTHING rather than the generic
+    // fallback — flashing a placeholder and then swapping to the real
+    // icon read as "two icon sets". Keep the space reserved so rows
+    // don't shift; the disk cache makes this a one-frame blank at most.
+    visual = <span className="opacity-0">{fallback}</span>;
   }
 
   return (

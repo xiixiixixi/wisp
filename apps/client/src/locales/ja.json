@@ -1635,7 +1635,8 @@
     "send": "送信",
     "suggestionListRecent": "最近のファイルを一覧表示",
     "suggestionOrganize": "ダウンロードフォルダを整理",
-    "suggestionLargeFiles": "大きなファイルはどれですか？"
+    "suggestionLargeFiles": "大きなファイルはどれですか？",
+    "topProcesses": "負荷の高いプロセス"
   },
   "toast": {
     "closeNotification": "通知を閉じる",

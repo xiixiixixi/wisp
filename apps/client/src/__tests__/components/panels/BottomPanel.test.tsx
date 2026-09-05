@@ -184,9 +184,13 @@ describe('BottomPanel', () => {
       expect(await screen.findByTestId('events-panel')).toBeInTheDocument();
     });
 
-    it('compacts the events tab to the tabbar while it has no content', () => {
-      render(<BottomPanel {...defaultProps} bottomPanelTab="events" />);
-      expect(screen.queryByTestId('events-panel')).not.toBeInTheDocument();
+    it('keeps the events panel mounted at full drawer height while empty', async () => {
+      // User vetoed both the hide and the 32px strip: switching to 动态 must
+      // keep the drawer at its remembered height, empty state inside.
+      renderWithSuspense(<BottomPanel {...defaultProps} bottomPanelTab="events" />);
+      expect(await screen.findByTestId('events-panel')).toBeInTheDocument();
+      const panel = document.querySelector('.wisp-bottom-panel') as HTMLElement | null;
+      expect(panel?.className).not.toContain('hidden');
       expect(screen.getByRole('tab', { name: 'Events' })).toBeInTheDocument();
     });
 

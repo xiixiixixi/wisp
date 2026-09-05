@@ -348,6 +348,7 @@ fn main() {
             operations::get_directory_item_count,
             operations::set_file_permissions,
             operations::get_system_stats,
+            operations::get_top_processes,
             // AI Agent operations
             operations::agent_read_file_tree,
             operations::agent_request_write_permission,

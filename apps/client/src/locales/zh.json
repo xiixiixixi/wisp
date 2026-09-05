@@ -1699,7 +1699,8 @@
     "greetingNoon": "中午好",
     "greetingAfternoon": "下午好",
     "greetingEvening": "晚上好",
-    "greetingNight": "夜深了"
+    "greetingNight": "夜深了",
+    "topProcesses": "最吃性能的进程"
   },
   "toast": {
     "closeNotification": "关闭通知",

@@ -99,25 +99,18 @@ const SkySync = () => {
 
   // Keep the product appearance stable. Only the ambient sky layer follows
   // the sun; the functional interface remains the same neutral light theme.
+  // Dark grounds (night / rain / storm) flip the panel polarity to ink so
+  // text stays readable over the deep color fields.
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('theme-rolex', 'theme-glass', 'theme-light');
-    root.classList.add('theme-light');
-    root.dataset.sky = phase;
-  }, [phase]);
-
-  // Weather grounds: precipitation and overcast claim the whole ground (the
-  // rain IS the sky, whatever the clock says); clear skies keep the phase.
-  useEffect(() => {
-    const root = document.documentElement;
-    if (weatherEnabled && report) {
-      const ground = skyGround(report.weather_code);
-      if (ground !== 'clear') {
-        root.dataset.sky = ground;
-        return;
-      }
-    }
-    root.dataset.sky = phase;
+    const effective =
+      weatherEnabled && report ? skyGround(report.weather_code) : ('clear' as const);
+    const sky = effective !== 'clear' ? effective : phase;
+    root.classList.remove('theme-rolex', 'theme-glass');
+    root.classList.add(
+      sky === 'night' || sky === 'rain' || sky === 'storm' ? 'theme-rolex' : 'theme-light',
+    );
+    root.dataset.sky = sky;
   }, [weatherEnabled, report, phase]);
 
   return null;

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Cpu, HardDrive, MemoryStick } from 'lucide-react';
-import { TauriAPI } from '@/lib/tauri-api';
+import { TauriAPI, type TopProcess } from '@/lib/tauri-api';
 import { isBrowserDemoMode } from '@/lib/browser-demo-files';
 import { formatFileSize } from '@/lib/utils';
 
@@ -103,16 +103,23 @@ const Gauge = ({
   );
 };
 
-/** Home dashboard: live CPU / memory / root-volume gauges. */
+/** Home dashboard: live CPU / memory / root-volume gauges + the heaviest
+ *  processes right now (用户要求：显示最吃性能的是那几个). */
 const SystemDashboard = () => {
   const { t } = useTranslation();
   const [stats, setStats] = useState<SystemStatsState | null>(null);
+  const [topProcesses, setTopProcesses] = useState<TopProcess[]>([]);
 
   const poll = useCallback(async () => {
     try {
       setStats(await TauriAPI.getSystemStats());
     } catch {
       // Keep the last good sample; gauges just stop moving.
+    }
+    try {
+      setTopProcesses(await TauriAPI.getTopProcesses());
+    } catch {
+      // Leaderboard is additive — keep the last good list.
     }
   }, []);
 
@@ -167,6 +174,41 @@ const SystemDashboard = () => {
           hero
         />
       </div>
+
+      {/* 最吃性能 — top processes by CPU (memory as tiebreaker) */}
+      {topProcesses.length > 0 && (
+        <div className="mt-3 rounded-[2px] border border-xp-border bg-xp-surface px-4 py-3">
+          <p className="text-xs font-medium text-xp-text-muted">{t('home.topProcesses')}</p>
+          <div className="mt-2 flex flex-col gap-1">
+            {topProcesses.map((proc) => (
+              <div
+                key={`${proc.pid}-${proc.name}`}
+                className="flex items-center gap-3 text-xs"
+                title={`${proc.name} (pid ${proc.pid})`}
+              >
+                <span className="w-40 min-w-0 flex-shrink-0 truncate text-xp-text">
+                  {proc.name}
+                </span>
+                <div className="relative h-1 min-w-0 flex-1 rounded-none bg-xp-bg">
+                  <div
+                    className="h-1 rounded-none transition-all duration-500"
+                    style={{
+                      width: `${Math.min(proc.cpu_usage, 100)}%`,
+                      backgroundColor: gaugeColor(proc.cpu_usage),
+                    }}
+                  />
+                </div>
+                <span className="w-12 flex-shrink-0 text-right tabular-nums text-xp-text-secondary">
+                  {proc.cpu_usage.toFixed(1)}%
+                </span>
+                <span className="w-20 flex-shrink-0 text-right tabular-nums text-xp-text-muted">
+                  {formatFileSize(proc.memory)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 };

@@ -70,12 +70,6 @@ const recentFileEntry = (file: RecentFile): FileEntry => ({
   is_readonly: false,
 });
 
-/** The folder a recent file lives in, for the「来自」line. */
-const parentFolderOf = (path: string): string => {
-  const segments = path.split(/[\\/]/).filter(Boolean);
-  return segments.length >= 2 ? segments[segments.length - 2] : segments[0] || path;
-};
-
 /** Hero stat: big light numeral with a small stone label. */
 const HeroStat = ({ value, label }: { value: string | number; label: string }) => (
   <div className="flex items-center gap-2">
@@ -534,11 +528,14 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                         <span className="block truncate text-[13px] font-medium text-xp-text">
                           {file.name}
                         </span>
+                        {/* Full path; rtl direction pins the ellipsis to the
+                            leading side so the meaningful tail stays visible. */}
                         <span
                           className="block truncate text-[11px] text-xp-text-muted"
                           title={file.path}
+                          style={{ direction: 'rtl', textAlign: 'left' }}
                         >
-                          {parentFolderOf(file.path)}
+                          {file.path}
                         </span>
                       </span>
                       <span className="flex-shrink-0 text-[11px] text-xp-text-muted">

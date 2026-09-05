@@ -200,7 +200,6 @@ html.theme-light {
   --xp-shadow-popover: var(--lg-shadow-elevated);
   --glass-well: rgba(255, 255, 255, 0.34);
   --fx-folder: var(--file-icon-folder);
-  background-color: #eceff3;
 }
 
 html.theme-rolex {
@@ -300,7 +299,6 @@ html.theme-rolex {
   --xp-shadow-popover: var(--lg-shadow-elevated);
   --glass-well: rgba(255, 255, 255, 0.08);
   --fx-folder: var(--file-icon-folder);
-  background-color: #1c1c1e;
 }
 
 /* The sky ground (html background) is owned by index.css — one still wash

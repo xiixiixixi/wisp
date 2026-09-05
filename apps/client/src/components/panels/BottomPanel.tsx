@@ -67,12 +67,6 @@ const BottomPanel = ({
   const { entries, clearFeed } = useActivityFeed();
   const [eventsFilter, setEventsFilter] = useState<EventsFilter>('all');
 
-  // 空的动态面板不配占三分之一窗口：无内容时只剩标签行（32px），
-  // 有任务（条目/通知/待审变更）出现时自动回到记忆高度。
-  const eventsEmpty =
-    entries.length === 0 && notifications.length === 0 && !fileChanges?.totalCount;
-  const compactEventsRow = bottomPanelTab === 'events' && eventsEmpty;
-
   // 剪贴板/属性的空态也不配占完整抽屉（ChatGPT R4 评审：空态 150–170px，
   // 有内容时回到记忆高度；属性带文件时钳制在 180–300px 的检查器区间）。
   const [clipboardEmpty, setClipboardEmpty] = useState(getClipboardHistory().length === 0);
@@ -157,14 +151,9 @@ const BottomPanel = ({
     return tab.charAt(0).toUpperCase() + tab.slice(1);
   };
 
-  // An EMPTY events tab must NOT hide the whole panel — that read as
-  // "点击就自动关闭了". Collapse to a 32px tab-row strip instead so the
-  // tabs stay clickable and the panel never vanishes.
-  const panelHeight = (() => {
-    if (bottomPanelCollapsed) return undefined;
-    if (compactEventsRow) return 32;
-    return drawerHeight;
-  })();
+  // The drawer keeps its remembered height on every tab — switching to 动态
+  // must never shrink or hide the panel (user vetoed both behaviors).
+  const panelHeight = bottomPanelCollapsed ? undefined : drawerHeight;
 
   return (
     <div
@@ -336,7 +325,7 @@ const BottomPanel = ({
       </div>
 
       {/* Bottom Panel Content (non-terminal tabs) */}
-      {bottomPanelTab !== 'terminal' && !compactEventsRow && (
+      {bottomPanelTab !== 'terminal' && (
         <div
           role="tabpanel"
           id={`bottom-panel-${bottomPanelTab}`}

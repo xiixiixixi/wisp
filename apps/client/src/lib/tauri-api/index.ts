@@ -302,6 +302,7 @@ export class TauriAPI {
   static listenToTerminalOutput = system.listenToTerminalOutput;
   static listenToEvent = system.listenToEvent;
   static getSystemStats = system.getSystemStats;
+  static getTopProcesses = system.getTopProcesses;
   static getAppVersion = system.getAppVersion;
   static getSystemInfo = system.getSystemInfo;
   static getUserDirectories = system.getUserDirectories;
