@@ -4,8 +4,9 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import BottomPanel from '@/components/panels/BottomPanel';
 
-const { mockIsBrowserDemoMode } = vi.hoisted(() => ({
+const { mockIsBrowserDemoMode, mockUseActivityFeed } = vi.hoisted(() => ({
   mockIsBrowserDemoMode: vi.fn(() => false),
+  mockUseActivityFeed: vi.fn(() => ({ entries: [], clearFeed: vi.fn() })),
 }));
 
 // Helper to render with Suspense boundary for lazy-loaded child components
@@ -19,27 +20,26 @@ vi.mock('@/components/panels/XTermPanel', () => ({
     <div data-testid="terminal-panel">Terminal: {props.terminalCwd}</div>
   ),
 }));
-vi.mock('@/components/panels/UndoHistoryPanel', () => ({
-  default: () => <div data-testid="undo-history-panel">Undo History</div>,
-}));
-vi.mock('@/components/panels/NotificationCenter', () => ({
-  default: () => <div data-testid="notification-center">Notifications</div>,
+vi.mock('@/components/panels/EventsPanel', () => ({
+  default: ({ fileChanges }: { fileChanges?: { totalCount?: number } | null }) => (
+    <div data-testid="events-panel">Events: {fileChanges?.totalCount ?? 0}</div>
+  ),
 }));
 vi.mock('@/components/panels/ClipboardHistoryPanel', () => ({
   default: ({ onPaste: _onPaste }: { onPaste?: () => void }) => (
     <div data-testid="clipboard-panel">Clipboard</div>
   ),
 }));
-vi.mock('@/components/panels/ChangeReviewPanel', () => ({
-  default: ({ changes }: { changes?: unknown }) => (
-    <div data-testid="change-review-panel">Changes: {changes?.totalCount}</div>
-  ),
-}));
-vi.mock('@/components/panels/ActivityFeedWrapper', () => ({
-  default: () => <div data-testid="activity-feed-panel">Activity Feed</div>,
-}));
 vi.mock('@/hooks/use-notification-history', () => ({
-  useNotificationHistory: () => ({ unreadCount: 0 }),
+  useNotificationHistory: () => ({
+    unreadCount: 0,
+    notifications: [],
+    markAllAsRead: vi.fn(),
+    clearAll: vi.fn(),
+  }),
+}));
+vi.mock('@/hooks/use-activity-feed', () => ({
+  useActivityFeed: mockUseActivityFeed,
 }));
 vi.mock('@/components/ErrorBoundary', () => ({
   ErrorBoundary: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
@@ -59,8 +59,6 @@ vi.mock('@/lib/extension-host', () => ({
 describe('BottomPanel', () => {
   const mockSetBottomPanelCollapsed = vi.fn();
   const mockSetBottomPanelTab = vi.fn();
-  const mockSetTerminalInput = vi.fn();
-  const mockExecuteTerminalCommand = vi.fn();
   const mockOnPasteFromHistory = vi.fn();
   const mockOnNavigate = vi.fn();
   const mockOnDismissChanges = vi.fn();
@@ -70,18 +68,8 @@ describe('BottomPanel', () => {
     setBottomPanelCollapsed: mockSetBottomPanelCollapsed,
     bottomPanelTab: 'terminal' as const,
     setBottomPanelTab: mockSetBottomPanelTab,
-    terminalHistory: [] as string[],
-    terminalInput: '',
-    setTerminalInput: mockSetTerminalInput,
     terminalCwd: 'C:\\Users\\Test',
-    executeTerminalCommand: mockExecuteTerminalCommand,
-    files: [{ name: 'file1.txt', path: 'C:\\Users\\Test\\file1.txt', is_dir: false, size: 100 }],
     currentPath: 'C:\\Users\\Test',
-    themes: { glass: { name: 'Glass' } } as Record<string, { name: string }>,
-    theme: 'glass',
-    selectedFiles: new Set<string>(),
-    selectedFile: null,
-    outputMessages: ['[INFO] Ready'],
     onNavigate: mockOnNavigate,
     onPasteFromHistory: mockOnPasteFromHistory,
     fileChanges: null,
@@ -91,6 +79,7 @@ describe('BottomPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockIsBrowserDemoMode.mockReturnValue(false);
+    mockUseActivityFeed.mockReturnValue({ entries: [], clearFeed: vi.fn() });
   });
 
   describe('Collapsed state', () => {
@@ -109,21 +98,17 @@ describe('BottomPanel', () => {
   });
 
   describe('Tab rendering', () => {
-    it('renders all tab buttons', () => {
+    it('renders the four core tab buttons', () => {
       render(<BottomPanel {...defaultProps} />);
 
-      const tabs = [
-        'Terminal',
-        'Activity Log',
-        'Changes',
-        'Clipboard',
-        'Notifications',
-        'Properties',
-      ];
+      const tabs = ['Terminal', 'Events', 'Clipboard', 'Properties'];
       tabs.forEach((tab) => {
         expect(screen.getByRole('tab', { name: tab })).toBeInTheDocument();
       });
-      expect(screen.queryByRole('tab', { name: 'Agents' })).not.toBeInTheDocument();
+      // The merged-away tabs are gone
+      ['Activity Log', 'Changes', 'Notifications'].forEach((tab) => {
+        expect(screen.queryByRole('tab', { name: tab })).not.toBeInTheDocument();
+      });
     });
 
     it('highlights the active tab', () => {
@@ -136,7 +121,7 @@ describe('BottomPanel', () => {
     it('renders close button', () => {
       render(<BottomPanel {...defaultProps} />);
 
-      const closeButton = screen.getByTitle('Close (Ctrl+J)');
+      const closeButton = screen.getByTitle(/Close \(Ctrl \+ J\)/);
       expect(closeButton).toBeInTheDocument();
     });
   });
@@ -145,8 +130,8 @@ describe('BottomPanel', () => {
     it('calls setBottomPanelTab when clicking a tab', () => {
       render(<BottomPanel {...defaultProps} />);
 
-      fireEvent.click(screen.getByRole('tab', { name: 'Activity Log' }));
-      expect(mockSetBottomPanelTab).toHaveBeenCalledWith('activity-log');
+      fireEvent.click(screen.getByRole('tab', { name: 'Events' }));
+      expect(mockSetBottomPanelTab).toHaveBeenCalledWith('events');
     });
 
     it('calls setBottomPanelTab with clipboard', () => {
@@ -161,7 +146,7 @@ describe('BottomPanel', () => {
     it('calls setBottomPanelCollapsed(true) when close button clicked', () => {
       render(<BottomPanel {...defaultProps} />);
 
-      fireEvent.click(screen.getByTitle('Close (Ctrl+J)'));
+      fireEvent.click(screen.getByTitle(/Close \(Ctrl \+ J\)/));
       expect(mockSetBottomPanelCollapsed).toHaveBeenCalledWith(true);
     });
   });
@@ -182,100 +167,43 @@ describe('BottomPanel', () => {
       expect(screen.queryByTestId('terminal-panel')).not.toBeInTheDocument();
     });
 
-    it('shows output messages in activity-log tab', () => {
-      render(
-        <BottomPanel
-          {...defaultProps}
-          bottomPanelTab="activity-log"
-          outputMessages={['[INFO] Ready']}
-        />,
-      );
-      expect(screen.getByText('[INFO] Ready')).toBeInTheDocument();
+    it('shows the events panel when events tab is active and has content', async () => {
+      mockUseActivityFeed.mockReturnValue({
+        entries: [
+          {
+            id: 'a1',
+            type: 'created' as const,
+            path: '/tmp/a.txt',
+            name: 'a.txt',
+            timestamp: Date.now(),
+          },
+        ],
+        clearFeed: vi.fn(),
+      });
+      renderWithSuspense(<BottomPanel {...defaultProps} bottomPanelTab="events" />);
+      expect(await screen.findByTestId('events-panel')).toBeInTheDocument();
     });
 
-    it('shows file count in activity-log tab', () => {
-      render(<BottomPanel {...defaultProps} bottomPanelTab="activity-log" />);
-      expect(screen.getByText(/Loaded 1 files from/)).toBeInTheDocument();
-    });
-
-    it('shows theme info in activity-log tab', () => {
-      render(<BottomPanel {...defaultProps} bottomPanelTab="activity-log" />);
-      expect(screen.getByText(/Theme applied: Glass/)).toBeInTheDocument();
-    });
-
-    it('shows selection count in activity-log tab when files selected', () => {
-      render(
-        <BottomPanel
-          {...defaultProps}
-          bottomPanelTab="activity-log"
-          selectedFiles={new Set(['C:\\Users\\Test\\file1.txt'])}
-        />,
-      );
-      expect(screen.getByText(/1 file\(s\) selected/)).toBeInTheDocument();
-    });
-
-    it('shows active file in activity-log tab', () => {
-      render(
-        <BottomPanel
-          {...defaultProps}
-          bottomPanelTab="activity-log"
-          selectedFile={{
-            name: 'file1.txt',
-            path: 'C:\\Users\\Test\\file1.txt',
-            is_dir: false,
-            size: 100,
-          }}
-        />,
-      );
-      expect(screen.getByText(/Active file: file1.txt/)).toBeInTheDocument();
-    });
-
-    it('shows undo history panel in activity-log tab', async () => {
-      renderWithSuspense(<BottomPanel {...defaultProps} bottomPanelTab="activity-log" />);
-      expect(await screen.findByTestId('undo-history-panel')).toBeInTheDocument();
-    });
-
-    it('shows activity feed in activity-log tab', async () => {
-      renderWithSuspense(<BottomPanel {...defaultProps} bottomPanelTab="activity-log" />);
-      expect(await screen.findByTestId('activity-feed-panel')).toBeInTheDocument();
+    it('compacts the events tab to the tabbar while it has no content', () => {
+      render(<BottomPanel {...defaultProps} bottomPanelTab="events" />);
+      expect(screen.queryByTestId('events-panel')).not.toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: 'Events' })).toBeInTheDocument();
     });
 
     it('shows clipboard panel when clipboard tab is active', async () => {
       renderWithSuspense(<BottomPanel {...defaultProps} bottomPanelTab="clipboard" />);
       expect(await screen.findByTestId('clipboard-panel')).toBeInTheDocument();
     });
-
-    it('shows notification center when notifications tab is active', async () => {
-      renderWithSuspense(<BottomPanel {...defaultProps} bottomPanelTab="notifications" />);
-      expect(await screen.findByTestId('notification-center')).toBeInTheDocument();
-    });
-
-    it('shows no changes message when changes tab is empty', () => {
-      render(<BottomPanel {...defaultProps} bottomPanelTab="changes" />);
-      expect(screen.getByText('No external file changes detected')).toBeInTheDocument();
-    });
-
-    it('shows change review panel when changes exist', async () => {
-      renderWithSuspense(
-        <BottomPanel
-          {...defaultProps}
-          bottomPanelTab="changes"
-          fileChanges={{ totalCount: 5, added: [], removed: [], modified: [] } as unknown}
-        />,
-      );
-      expect(await screen.findByTestId('change-review-panel')).toBeInTheDocument();
-    });
   });
 
   describe('Badge counts', () => {
-    it('shows changes count badge when there are file changes', () => {
+    it('shows the away-digest count badge on the events tab', () => {
       render(
         <BottomPanel
           {...defaultProps}
           fileChanges={{ totalCount: 3, added: [], removed: [], modified: [] } as unknown}
         />,
       );
-      // The CHANGES tab should have a badge with the count
       expect(screen.getByText('3')).toBeInTheDocument();
     });
   });

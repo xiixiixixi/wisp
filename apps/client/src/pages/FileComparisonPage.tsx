@@ -139,10 +139,10 @@ const FileComparisonPage = ({ file1Path, file2Path, onError }: FileComparisonPag
   // ─── Keyboard shortcuts ────────────────────────────────────────────
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === 'ArrowDown') {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowDown') {
         e.preventDefault();
         goNextHunk();
-      } else if (e.ctrlKey && e.key === 'ArrowUp') {
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowUp') {
         e.preventDefault();
         goPrevHunk();
       }

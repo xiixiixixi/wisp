@@ -176,6 +176,16 @@ const StatusBar = ({
   const { t } = useTranslation();
   const [gitInfo, setGitInfo] = useState<GitInfo | null>(null);
   const [freeSpace, setFreeSpace] = useState<string | null>(null);
+  const [indexCount, setIndexCount] = useState(0);
+
+  useEffect(() => {
+    const listener = (e: Event) => {
+      const count = (e as CustomEvent<{ count?: number }>).detail?.count;
+      if (typeof count === 'number') setIndexCount(count);
+    };
+    window.addEventListener('wisp-index-stats', listener);
+    return () => window.removeEventListener('wisp-index-stats', listener);
+  }, []);
   const [encoding, setEncoding] = useState<string | null>(null);
   const [lineEnding, setLineEnding] = useState<'CRLF' | 'LF' | 'CR' | null>(null);
   const [cursorPos, setCursorPos] = useState<CursorPositionDetail | null>(null);
@@ -600,8 +610,18 @@ const StatusBar = ({
           </>
         )}
 
+        {/* Index stats — moved here from the search toolbar */}
+        {indexCount > 0 && (
+          <span title={t('statusBar.indexedLabel', { count: indexCount })}>
+            {t('statusBar.indexedShort', { count: indexCount.toLocaleString() } as Record<
+              string,
+              unknown
+            >)}
+          </span>
+        )}
+
         {/* Free disk space */}
-        {freeSpace && (
+        {freeSpace && freeSpace !== '0 B' && (
           <span
             title={t('statusBar.freeSpace')}
             aria-label={t('statusBar.freeSpaceLabel', { size: freeSpace })}

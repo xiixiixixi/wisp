@@ -280,6 +280,12 @@ html.enhanced-focus *:focus-visible {
     outline-offset: 1px;
   }
 
+  /* Except the palette's search field — the open dialog already carries the
+     focus context, so its ring stays a whisper (ChatGPT review: 蓝环略强). */
+  [data-command-palette] input:focus-visible {
+    outline: none;
+  }
+
   /* Scrollbar Styling — auto-hide overlay bars: thumbs stay transparent
      until the container actually scrolls (.is-scrolling is toggled by
      lib/auto-scrollbars.ts), Finder-style. */
@@ -1314,88 +1320,150 @@ html.high-contrast.theme-light {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   SKY-DRIVEN GROUND — the whole weather system is ONE still wash on the
-   html ground, below every panel. Sun phases stain the paper; weather
-   that actually changes the light (overcast, rain, snow, storm) claims
-   the ground outright. No particles, no glows, no animation — the
-   weather chip carries the literal sky.
+   SKY-DRIVEN GROUND — 写意天气层. Two oversized radial color fields
+   (::before / ::after) drift across the paper, endlessly and slowly.
+   Sun phases set the palette; weather that changes the light (gloom,
+   rain, snow, storm) claims it outright. The drift IS the weather:
+   impressionistic color and light, never literal props. The weather
+   chip carries the facts; the ground carries the mood.
    ═══════════════════════════════════════════════════════════════════ */
 
-/* ── Sun phases — the one theme's ground ─────────────────────────────
-   Polarity comes from the theme class (paper by day, ink by night);
-   these veils ONLY paint the ground. Never swap tokens here. */
-html[data-sky="day"] {
-  background:
-    radial-gradient(1100px 700px at 16% -8%, rgba(233, 219, 188, 0.32), transparent 60%),
-    radial-gradient(900px 600px at 88% 6%, rgba(214, 216, 196, 0.22), transparent 58%), var(--xp-bg);
-  background-attachment: fixed;
+html[data-sky] {
+  background: var(--xp-bg);
 }
 
-/* 日出 — peach / rose first light */
-html[data-sky="dawn"] {
-  background:
-    radial-gradient(1150px 720px at 18% 108%, rgba(216, 148, 104, 0.3), transparent 62%),
-    radial-gradient(950px 640px at 10% -6%, rgba(224, 186, 148, 0.28), transparent 60%),
-    radial-gradient(1000px 700px at 90% 8%, rgba(204, 162, 158, 0.18), transparent 62%),
-    var(--xp-bg);
-  background-attachment: fixed;
+html[data-sky]::before,
+html[data-sky]::after {
+  content: "";
+  position: fixed;
+  inset: -25%;
+  z-index: -1;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  will-change: transform;
 }
 
-/* 日落 — amber sinking into violet */
-html[data-sky="dusk"] {
-  background:
-    radial-gradient(1150px 720px at 84% 106%, rgba(198, 118, 78, 0.32), transparent 62%),
-    radial-gradient(1000px 700px at 10% -8%, rgba(146, 122, 138, 0.22), transparent 62%),
-    radial-gradient(900px 600px at 90% 10%, rgba(196, 132, 112, 0.16), transparent 60%),
-    var(--xp-bg);
-  background-attachment: fixed;
+/* Two fields, two rhythms — they never sync, so the sky never repeats */
+html[data-sky]::before {
+  animation: sky-drift-a 100s ease-in-out infinite alternate;
+}
+html[data-sky]::after {
+  animation: sky-drift-b 140s ease-in-out infinite alternate;
 }
 
-/* 夜 — moonlit indigo over the ink ground */
-html[data-sky="night"] {
-  background:
-    radial-gradient(1100px 720px at 12% -8%, rgba(96, 100, 128, 0.18), transparent 62%),
-    radial-gradient(900px 620px at 90% 12%, rgba(88, 96, 118, 0.12), transparent 60%),
-    radial-gradient(1000px 760px at 82% 96%, rgba(110, 92, 122, 0.15), transparent 64%),
-    var(--xp-bg);
-  background-attachment: fixed;
+@keyframes sky-drift-a {
+  from {
+    transform: translate3d(-3%, -2%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(3%, 2.5%, 0) scale(1.08);
+  }
+}
+@keyframes sky-drift-b {
+  from {
+    transform: translate3d(2.5%, 2%, 0) scale(1.06);
+  }
+  to {
+    transform: translate3d(-3%, -1.5%, 0) scale(1);
+  }
 }
 
-/* Gloom keeps the theme's tokens but wears a gray veil instead of the
-   theme aurora — 阴天稍微压暗，不翻暗色 */
-html[data-sky="gloom"] {
-  background:
-    radial-gradient(1100px 720px at 14% -8%, rgba(140, 150, 168, 0.4), transparent 62%),
-    radial-gradient(900px 620px at 88% 12%, rgba(120, 132, 152, 0.3), transparent 60%),
-    linear-gradient(180deg, rgba(108, 118, 138, 0.2), rgba(90, 100, 120, 0.16)), var(--xp-bg);
-  background-attachment: fixed;
+html.reduce-motion[data-sky]::before,
+html.reduce-motion[data-sky]::after {
+  animation: none !important;
 }
 
-/* 雨 — one cool slate stain; the chip says 雨, the ground says damp */
-html[data-sky="rain"] {
-  background:
-    radial-gradient(1100px 720px at 14% -8%, rgba(104, 124, 150, 0.38), transparent 62%),
-    radial-gradient(920px 640px at 88% 14%, rgba(88, 108, 138, 0.28), transparent 60%),
-    linear-gradient(180deg, rgba(92, 108, 134, 0.2), rgba(80, 94, 118, 0.16)), var(--xp-bg);
-  background-attachment: fixed;
+@media (prefers-reduced-motion: reduce) {
+  html[data-sky]::before,
+  html[data-sky]::after {
+    animation: none !important;
+  }
 }
 
-/* 雪 — the ground goes pale and even, like paper left in the mist */
-html[data-sky="snow"] {
-  background:
-    radial-gradient(1100px 720px at 14% -8%, rgba(224, 230, 240, 0.62), transparent 64%),
-    radial-gradient(940px 640px at 88% 12%, rgba(206, 216, 232, 0.46), transparent 62%),
-    linear-gradient(180deg, rgba(214, 222, 236, 0.3), rgba(200, 210, 228, 0.26)), var(--xp-bg);
-  background-attachment: fixed;
+/* ── 白天 — warm paper light ── */
+html[data-sky="day"]::before {
+  background-image: radial-gradient(
+    120% 90% at 30% 12%,
+    rgba(233, 219, 188, 0.32),
+    transparent 85%
+  );
+}
+html[data-sky="day"]::after {
+  background-image: radial-gradient(
+    110% 85% at 85% 12%,
+    rgba(214, 216, 196, 0.22),
+    transparent 85%
+  );
 }
 
-/* 雷雨 — the rain stain, deepened */
-html[data-sky="storm"] {
-  background:
-    radial-gradient(1100px 720px at 14% -8%, rgba(74, 86, 114, 0.42), transparent 62%),
-    radial-gradient(920px 640px at 88% 14%, rgba(62, 72, 98, 0.32), transparent 60%),
-    linear-gradient(180deg, rgba(66, 76, 102, 0.24), rgba(56, 64, 88, 0.2)), var(--xp-bg);
-  background-attachment: fixed;
+/* ── 日出 — peach / rose first light ── */
+html[data-sky="dawn"]::before {
+  background-image:
+    radial-gradient(120% 95% at 22% 96%, rgba(216, 138, 116, 0.34), transparent 85%),
+    radial-gradient(105% 85% at 12% 2%, rgba(228, 172, 158, 0.3), transparent 85%);
+}
+html[data-sky="dawn"]::after {
+  background-image: radial-gradient(115% 90% at 88% 10%, rgba(212, 152, 160, 0.2), transparent 85%);
+}
+
+/* ── 日落 — amber sinking into violet ── */
+html[data-sky="dusk"]::before {
+  background-image:
+    radial-gradient(120% 95% at 80% 98%, rgba(198, 118, 78, 0.32), transparent 85%),
+    radial-gradient(110% 85% at 90% 8%, rgba(196, 132, 112, 0.16), transparent 85%);
+}
+html[data-sky="dusk"]::after {
+  background-image: radial-gradient(115% 92% at 8% 0%, rgba(146, 122, 138, 0.22), transparent 85%);
+}
+
+/* ── 夜 — moonlit indigo ── */
+html[data-sky="night"]::before {
+  background-image:
+    radial-gradient(120% 92% at 14% 0%, rgba(88, 92, 124, 0.22), transparent 85%),
+    radial-gradient(108% 85% at 88% 14%, rgba(80, 88, 114, 0.15), transparent 85%);
+}
+html[data-sky="night"]::after {
+  background-image: radial-gradient(115% 92% at 80% 96%, rgba(102, 84, 120, 0.18), transparent 85%);
+}
+
+/* ── 阴 — even gray veil ── */
+html[data-sky="gloom"]::before {
+  background-image:
+    radial-gradient(120% 92% at 16% 0%, rgba(140, 150, 168, 0.4), transparent 85%),
+    radial-gradient(110% 88% at 86% 14%, rgba(120, 132, 152, 0.3), transparent 85%);
+}
+html[data-sky="gloom"]::after {
+  background-image: linear-gradient(180deg, rgba(108, 118, 138, 0.2), rgba(90, 100, 120, 0.16));
+}
+
+/* ── 雨 — cool slate, damp ── */
+html[data-sky="rain"]::before {
+  background-image:
+    radial-gradient(120% 92% at 16% 0%, rgba(104, 124, 150, 0.38), transparent 85%),
+    radial-gradient(110% 88% at 86% 16%, rgba(88, 108, 138, 0.28), transparent 85%);
+}
+html[data-sky="rain"]::after {
+  background-image: linear-gradient(180deg, rgba(92, 108, 134, 0.2), rgba(80, 94, 118, 0.16));
+}
+
+/* ── 雪 — pale, even, bright ── */
+html[data-sky="snow"]::before {
+  background-image:
+    radial-gradient(120% 92% at 16% 0%, rgba(226, 226, 236, 0.54), transparent 85%),
+    radial-gradient(110% 88% at 86% 14%, rgba(210, 212, 228, 0.4), transparent 85%);
+}
+html[data-sky="snow"]::after {
+  background-image: linear-gradient(180deg, rgba(222, 216, 232, 0.26), rgba(204, 204, 224, 0.22));
+}
+
+/* ── 雷暴 — the rain field, deepened ── */
+html[data-sky="storm"]::before {
+  background-image:
+    radial-gradient(120% 92% at 16% 0%, rgba(56, 70, 100, 0.48), transparent 85%),
+    radial-gradient(110% 88% at 86% 16%, rgba(46, 58, 86, 0.38), transparent 85%);
+}
+html[data-sky="storm"]::after {
+  background-image: linear-gradient(180deg, rgba(52, 62, 88, 0.28) 55%, rgba(40, 50, 76, 0.34));
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1537,4 +1605,56 @@ input[type="range"]::-moz-range-thumb {
   background: var(--xp-lime);
   border: none;
   cursor: pointer;
+}
+
+/* ═══ DetailsView 自适应列 — 名称永远最后被压缩 ═══
+   窗格 ≥620px 五列全开；以下依次收起类型、时间；名称列最小 180px。
+   头部与文件行使用同一套模板，"名称"表头不换行。 */
+.wisp-pane-container {
+  container-type: inline-size;
+}
+
+@container (max-width: 640px) {
+  .wisp-pane-container :is(.wisp-file-row, .wisp-list-header > div) > :nth-child(4) {
+    display: none;
+  }
+}
+
+@container (max-width: 520px) {
+  .wisp-pane-container :is(.wisp-file-row, .wisp-list-header > div) > :nth-child(4),
+  .wisp-pane-container :is(.wisp-file-row, .wisp-list-header > div) > :nth-child(5) {
+    display: none;
+  }
+}
+
+/* 名称表头不换行 */
+.wisp-pane-container .wisp-list-header > :nth-child(2) {
+  white-space: nowrap;
+}
+
+/* ── 主页系统状态：降级为底部紧凑摘要（R2） ──
+   问候与文件导航是主角；仪表退为一行小卡，数字缩小、留白收紧。 */
+.home-status-compact .glass-card {
+  padding: 0.7rem 1rem;
+}
+.home-status-compact .glass-card .text-3xl {
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+.home-status-compact .glass-card .h-8 {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+.home-status-compact .glass-card .h-10 {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+.home-status-compact section > div:first-child {
+  margin-bottom: 0.4rem;
+}
+.home-status-compact section > div:first-child p {
+  font-size: 0.8rem;
+}
+.home-status-compact section .grid {
+  gap: 0.5rem;
 }

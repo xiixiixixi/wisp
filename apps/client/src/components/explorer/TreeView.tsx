@@ -59,7 +59,11 @@ const TreeRow = ({
             ? 'border border-xp-purple/40 bg-xp-purple/20'
             : 'border border-transparent text-xp-text'
         } `}
-        style={{ paddingLeft: `${depth * 20 + 8}px` }}
+        style={{
+          paddingLeft: `${depth * 20 + 8}px`,
+          borderLeft: depth > 0 ? '1px solid rgba(120,132,152,0.18)' : undefined,
+          marginLeft: depth > 0 ? '10px' : undefined,
+        }}
         {...dragHandlers}
         onClick={(e) => {
           if (file.is_dir) {
@@ -147,7 +151,11 @@ const TreeRow = ({
           ) : (
             <div
               className="flex items-center py-1 text-xs text-xp-text-muted"
-              style={{ paddingLeft: `${(depth + 1) * 20 + 8}px` }}
+              style={{
+                paddingLeft: `${(depth + 1) * 20 + 8}px`,
+                borderLeft: '1px solid rgba(120,132,152,0.18)',
+                marginLeft: '10px',
+              }}
             >
               <svg className="mr-2 h-3 w-3 animate-spin" fill="currentColor" viewBox="0 0 20 20">
                 <path

@@ -182,10 +182,10 @@ export const starBtnBaseStyle: React.CSSProperties = {
 
 export const kbdStyle: React.CSSProperties = {
   padding: '2px 4px',
-  color: 'var(--xp-text-secondary, #6e6a61)',
-  backgroundColor: 'var(--xp-surface-light)',
+  color: 'color-mix(in srgb, var(--xp-text-secondary, #6e6a61) 80%, transparent)',
+  backgroundColor: 'color-mix(in srgb, var(--xp-surface-light) 70%, transparent)',
   borderRadius: '3px',
-  border: '1px solid var(--xp-border)',
+  border: '1px solid color-mix(in srgb, var(--xp-border) 70%, transparent)',
   fontSize: '10px',
   fontFamily: 'monospace',
 };
@@ -233,16 +233,17 @@ export const backdropStyle: React.CSSProperties = {
 };
 
 export const dialogStyle: React.CSSProperties = {
-  width: 'min(640px, calc(100vw - 32px))',
-  maxHeight: '68vh',
+  // R4 评审：宽收窄至 ~560、玻璃减轻（与轻薄主题统一）、整体高度压缩
+  width: 'min(560px, calc(100vw - 32px))',
+  maxHeight: '58vh',
   display: 'flex',
   flexDirection: 'column',
-  background: 'var(--lg-glass-strong, var(--xp-popover, #f7f5ee))',
-  border: '1px solid var(--lg-glass-stroke-strong, var(--xp-border))',
+  background: 'var(--lg-glass-regular, var(--xp-popover, #f7f5ee))',
+  border: '1px solid var(--lg-glass-stroke, var(--xp-border))',
   borderRadius: 'var(--lg-radius-xl, 26px)',
   boxShadow: 'var(--lg-shadow-elevated, var(--xp-shadow-popover))',
-  WebkitBackdropFilter: 'saturate(var(--lg-saturate, 175%)) blur(var(--lg-blur-strong, 40px))',
-  backdropFilter: 'saturate(var(--lg-saturate, 175%)) blur(var(--lg-blur-strong, 40px))',
+  WebkitBackdropFilter: 'saturate(var(--lg-saturate, 150%)) blur(var(--lg-blur-regular, 24px))',
+  backdropFilter: 'saturate(var(--lg-saturate, 150%)) blur(var(--lg-blur-regular, 24px))',
   overflow: 'hidden',
 };
 
@@ -264,11 +265,18 @@ export const searchIconStyle: React.CSSProperties = {
 
 export const inputStyle: React.CSSProperties = {
   flex: 1,
-  background: 'transparent',
+  appearance: 'none',
+  WebkitAppearance: 'none',
+  /* macOS draws the system focus ring on the focused input regardless of CSS
+     (Full Keyboard Access). Give it a Finder-like white bezel so the ring
+     reads as a designed field, not an artifact. */
+  background: 'rgba(255,255,255,0.92)',
+  border: '1px solid var(--xp-border, rgba(56,53,47,0.14))',
+  borderRadius: '9px',
+  padding: '5px 12px',
   color: 'var(--xp-text, #38352f)',
   fontSize: '15px',
   outline: 'none',
-  border: 'none',
 };
 
 export const clearBtnStyle: React.CSSProperties = {
@@ -285,10 +293,11 @@ export const clearIconStyle: React.CSSProperties = {
 };
 
 export const emptyStateStyle: React.CSSProperties = {
-  padding: '32px 16px',
+  // R4 评审：空态上移贴近输入框（28-32px）、字号 12-13px、颜色比次级再低一档
+  padding: '30px 16px 22px',
   textAlign: 'center',
   color: 'var(--xp-text-muted, #6e6a61)',
-  fontSize: '14px',
+  fontSize: '12.5px',
 };
 
 export const loadingContainerStyle: React.CSSProperties = {
@@ -313,7 +322,8 @@ export const footerStyle: React.CSSProperties = {
   padding: '9px 18px',
   borderTop: '1px solid var(--xp-border, rgba(56,53,47,0.14))',
   fontSize: '11px',
-  color: 'var(--xp-text-muted, #6e6a61)',
+  /* review: 让快捷键提示更退后 — recede until hovered/read deliberately */
+  color: 'color-mix(in srgb, var(--xp-text-muted, #6e6a61) 72%, transparent)',
   display: 'flex',
   alignItems: 'center',
   gap: '16px',

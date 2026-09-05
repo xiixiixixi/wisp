@@ -83,7 +83,7 @@ export const SettingsSection = ({
   children: React.ReactNode;
 }) => (
   <section className="content-card rounded-2xl p-1">
-    <div className="px-3 pb-1 pt-2.5">
+    <div className="px-4 pb-1 pt-2.5">
       <h3 className="text-[13px] font-medium text-xp-text">{title}</h3>
       {description && <p className="mt-0.5 text-xs text-xp-text-secondary">{description}</p>}
     </div>
@@ -91,7 +91,9 @@ export const SettingsSection = ({
   </section>
 );
 
-/** A single setting row: icon + label/desc on the left, control on the right. */
+/** A single setting row: icon + label/desc on the left, control on the right.
+ *  R5 review: 64px rhythm — px-4 keeps 20px inset with the card, py-2 keeps
+ *  rows from ballooning past 64px. */
 export const SettingRow = ({
   icon: Icon,
   label,
@@ -103,7 +105,7 @@ export const SettingRow = ({
   description?: string;
   children: React.ReactNode;
 }) => (
-  <div className="group flex items-center justify-between gap-4 rounded-[2px] px-3 py-3 transition-colors hover:bg-xp-surface-light/50">
+  <div className="group flex items-center justify-between gap-4 rounded-[2px] px-4 py-2 transition-colors hover:bg-xp-surface-light/50">
     <div className="flex min-w-0 items-center gap-3">
       {Icon && <Icon size={17} className="shrink-0 text-xp-text-secondary" />}
       <div className="min-w-0">
@@ -293,6 +295,7 @@ export interface AppSettings {
   weatherLat: number;
   weatherLon: number;
   weatherSync: boolean;
+  fluidGlass: boolean;
 }
 
 /**
@@ -343,6 +346,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   weatherLat: 31.2304,
   weatherLon: 121.4737,
   weatherSync: true,
+  fluidGlass: true,
 };
 
 export const SETTINGS_KEY = STORAGE_KEYS.SETTINGS;

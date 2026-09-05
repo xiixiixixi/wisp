@@ -198,7 +198,9 @@
     "branch": "Branch: {{name}}",
     "modified": "{{count}} modified",
     "staged": "{{count}} staged",
-    "untracked": "{{count}} untracked"
+    "untracked": "{{count}} untracked",
+    "indexedLabel": "{{count}} files indexed",
+    "indexedShort": "{{count}} indexed"
   },
   "contextMenu": {
     "open": "Open",
@@ -367,7 +369,9 @@
       "weatherCityDesc": "The home weather card and the whole app ambience follow live conditions (rain, snow, clouds, moon phase)",
       "weatherCityPlaceholder": "City name, e.g. Shanghai",
       "weatherSync": "Weather ambience",
-      "weatherSyncDesc": "Let live weather drive the whole palette: sunny days go light, nights go dark (with moon phase), overcast dims, rain and snow fall"
+      "weatherSyncDesc": "Let live weather drive the whole palette: sunny days go light, nights go dark (with moon phase), overcast dims, rain and snow fall",
+      "fluidGlass": "Fluid Glass",
+      "fluidGlassDesc": "Panels become one continuous fluid-glass surface: edge refraction, specular highlights, weather tinting"
     },
     "explorer": {
       "display": "Display",
@@ -898,7 +902,6 @@
     "auto": "Auto",
     "autoDetected": "View mode auto-detected based on folder contents. Click to reset.",
     "actions": "Actions",
-    "actionsMenu": "File actions menu",
     "newFolder": "New Folder",
     "newFile": "New File",
     "preview": "Preview selected file",
@@ -1630,12 +1633,10 @@
     "terminal": "Terminal",
     "terminalDemoTitle": "Desktop terminal",
     "terminalDemoDescription": "Available in the Wisp desktop app",
-    "activityLog": "Activity Log",
-    "changes": "Changes",
     "clipboard": "Clipboard",
-    "notifications": "Notifications",
     "properties": "Properties",
-    "agents": "Agents"
+    "agents": "Agents",
+    "events": "Events"
   },
   "previewPanel": {
     "noFileSelectedShort": "No file selected",
@@ -2182,7 +2183,9 @@
       "toastPermUpdatedTitle": "Permissions Updated",
       "toastPermUpdatedDesc": "File permissions have been successfully updated.",
       "toastPermErrorTitle": "Error Updating Permissions",
-      "toastPermErrorDesc": "Failed to update permissions: {{error}}"
+      "toastPermErrorDesc": "Failed to update permissions: {{error}}",
+      "emptyTitle": "Select a file to see its properties",
+      "emptyDesc": "See its size, type, location, and created/modified times"
     },
     "previewAction": {
       "quickActions": "Quick actions",
@@ -3370,5 +3373,44 @@
       "untaggedDesc": "Tag files to make them easier to organize and find",
       "tagFiles": "Tag files"
     }
+  },
+  "eventsPanel": {
+    "filterAll": "All",
+    "filterFiles": "Files",
+    "filterNotices": "Notices",
+    "filterUndo": "Undo",
+    "markAllRead": "Mark all read",
+    "clearAll": "Clear all",
+    "empty": "Nothing yet",
+    "created": "created",
+    "modified": "modified",
+    "deleted": "deleted",
+    "renamed": "renamed"
+  },
+  "fileType": {
+    "File": "File",
+    "Image": "Image",
+    "Video": "Video",
+    "Audio": "Audio",
+    "Archive": "Archive",
+    "Document": "Document",
+    "Pdf": "PDF document",
+    "Spreadsheet": "Spreadsheet",
+    "Markdown": "Markdown document",
+    "Text": "Text document",
+    "Keynote": "Keynote presentation",
+    "Word": "Word document"
+  },
+  "clipboardHistory": {
+    "emptyTitle": "No clipboard history",
+    "emptyDesc": "Copy or cut files to see them here",
+    "entrySingle": "{{count}} entry",
+    "entriesCount": "{{count}} entries",
+    "clear": "Clear",
+    "pasteHere": "Paste Here",
+    "moreFiles": "+{{count}} more",
+    "justNow": "just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago"
   }
 }

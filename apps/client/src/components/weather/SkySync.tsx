@@ -39,11 +39,13 @@ const syncAccessibilityClasses = () => {
       reduceTransparency?: boolean;
       enhancedFocus?: boolean;
       highContrast?: boolean;
+      fluidGlass?: boolean;
     };
     root.classList.toggle('reduce-motion', settings.reducedMotion === true);
     root.classList.toggle('reduce-transparency', settings.reduceTransparency === true);
     root.classList.toggle('enhanced-focus', settings.enhancedFocus === true);
     root.classList.toggle('high-contrast', settings.highContrast === true);
+    root.classList.toggle('theme-fluid', settings.fluidGlass !== false);
   } catch {
     root.classList.remove(
       'reduce-motion',

@@ -189,7 +189,7 @@ const EditorGroupPane = ({
     handleBackgroundRightClick,
     handleDelete,
     handleCreateFolder,
-    handleCreateFile,
+    handleCreateFile: _handleCreateFile,
     handleCompress,
     handleExtract,
     handleProperties,
@@ -776,7 +776,6 @@ const EditorGroupPane = ({
         onAdvancedSelection={onAdvancedSelection}
         onQuickLook={onQuickLook}
         onRenameFile={renameFileInline}
-        onCreateFile={() => handleCreateFile(currentPath)}
         onCompress={selectedEntries.length > 0 ? () => handleCompress(selectedEntries) : undefined}
         onExtract={
           singleSelectedEntry && selectedEntryIsArchive
@@ -792,6 +791,8 @@ const EditorGroupPane = ({
   // (cross-pane drag, or dropping on empty space). Folder-level data-drop-target
   // attributes inside FileGrid take priority via closest().
   const isEditorTab = activeTab?.type === 'editor';
+  // 主页自身不需要路径栏（R2 评审：删主页里的整条路径栏）
+  const isHomeTab = currentPath === 'wisp://home';
   const isDroppablePath =
     !isEditorTab &&
     !currentPath.startsWith('wisp://') &&
@@ -850,7 +851,7 @@ const EditorGroupPane = ({
       )}
 
       {/* Navigation / Address Bar */}
-      {!isEditorTab && (
+      {!isEditorTab && !isHomeTab && (
         <NavigationBar
           currentPath={currentPath}
           navigateToPath={sharedActions.navigateToPath}

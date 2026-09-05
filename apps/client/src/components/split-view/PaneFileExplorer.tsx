@@ -250,19 +250,9 @@ const PaneFileExplorer = React.memo(
             onAdvancedSelection={onAdvancedSelection}
             showSizeBadges={showSizeBadges}
             onToggleSizeBadges={toggleSizeBadges}
-            onCreateFile={onCreateFile}
             onCompress={onCompress}
             onExtract={onExtract}
             onProperties={onProperties}
-            onCopyPath={
-              currentPath
-                ? () => {
-                    navigator.clipboard.writeText(currentPath).catch(() => {
-                      /* ignore clipboard errors */
-                    });
-                  }
-                : undefined
-            }
             currentPath={currentPath}
             onCopy={clipboardCtx.copySelectedFiles}
             onCut={clipboardCtx.cutSelectedFiles}
@@ -285,7 +275,7 @@ const PaneFileExplorer = React.memo(
 
         <div
           ref={scrollContainerRef}
-          className="wisp-file-scroll flex-1 overflow-auto"
+          className="wisp-file-scroll wisp-pane-container flex-1 overflow-auto"
           onMouseDown={(e) => {
             bgMouseDownPosRef.current = { x: e.clientX, y: e.clientY };
           }}

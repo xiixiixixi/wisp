@@ -5,6 +5,7 @@
  */
 
 import i18n from '@/i18n';
+import { formatKeyComboForDisplay } from '@/lib/shortcut-utils';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   getLayouts,
@@ -732,7 +733,7 @@ const WorkspaceLayoutDialog = ({
             </span>{' '}
             to close
           </span>
-          <span>Ctrl+Shift+L to toggle</span>
+          <span>{formatKeyComboForDisplay('ctrl+shift+l')} to toggle</span>
         </div>
       </div>
     </div>

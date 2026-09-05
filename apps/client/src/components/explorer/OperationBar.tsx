@@ -5,9 +5,7 @@ import {
   ChevronDown,
   Rows3,
   BarChart3,
-  Settings,
   FolderPlus,
-  FilePlus,
   Package,
   PackageOpen,
   Info,
@@ -34,7 +32,7 @@ interface SortOption {
   icon: React.ReactNode;
 }
 
-type OperationMenu = 'sort' | 'view' | 'actions';
+type OperationMenu = 'sort' | 'view';
 
 interface OperationBarProps {
   viewMode: string;
@@ -65,11 +63,9 @@ interface OperationBarProps {
   /** Callback to clear the auto-detected view and re-trigger detection */
   onClearAutoDetect?: () => void;
   /** Optional action callbacks for the gear menu */
-  onCreateFile?: () => void;
   onCompress?: () => void;
   onExtract?: () => void;
   onProperties?: () => void;
-  onCopyPath?: () => void;
   /** Current directory path (used for Open in Terminal fallback) */
   currentPath?: string;
   /** Clipboard actions */
@@ -105,11 +101,9 @@ const OperationBar = ({
   onToggleSizeBadges,
   isAutoDetected: _isAutoDetected,
   onClearAutoDetect: _onClearAutoDetect,
-  onCreateFile,
   onCompress,
   onExtract,
   onProperties,
-  onCopyPath,
   currentPath: _currentPath,
   onCopy,
   onCut,
@@ -123,22 +117,14 @@ const OperationBar = ({
   const barRef = useRef<HTMLDivElement>(null);
   const sortTriggerRef = useRef<HTMLButtonElement>(null);
   const viewTriggerRef = useRef<HTMLButtonElement>(null);
-  const actionsTriggerRef = useRef<HTMLButtonElement>(null);
   const sortMenuRef = useRef<HTMLDivElement>(null);
   const viewMenuRef = useRef<HTMLDivElement>(null);
-  const actionsMenuRef = useRef<HTMLDivElement>(null);
 
-  const triggerFor = (menu: OperationMenu) => {
-    if (menu === 'sort') return sortTriggerRef.current;
-    if (menu === 'view') return viewTriggerRef.current;
-    return actionsTriggerRef.current;
-  };
+  const triggerFor = (menu: OperationMenu) =>
+    menu === 'sort' ? sortTriggerRef.current : viewTriggerRef.current;
 
-  const menuFor = (menu: OperationMenu) => {
-    if (menu === 'sort') return sortMenuRef.current;
-    if (menu === 'view') return viewMenuRef.current;
-    return actionsMenuRef.current;
-  };
+  const menuFor = (menu: OperationMenu) =>
+    menu === 'sort' ? sortMenuRef.current : viewMenuRef.current;
 
   const closeMenu = (restoreFocus = false) => {
     const menu = openMenu;
@@ -217,8 +203,7 @@ const OperationBar = ({
         setOpenMenu(null);
         requestAnimationFrame(() => {
           if (menu === 'sort') sortTriggerRef.current?.focus();
-          else if (menu === 'view') viewTriggerRef.current?.focus();
-          else actionsTriggerRef.current?.focus();
+          else viewTriggerRef.current?.focus();
         });
       }
     };
@@ -234,12 +219,6 @@ const OperationBar = ({
       document.removeEventListener('click', onClick, true);
     };
   }, [openMenu]);
-
-  const handleOpenTerminal = () => {
-    setBottomPanelCollapsed(false);
-    setBottomPanelTab('terminal');
-    setOpenMenu(null);
-  };
 
   const getSortLabel = (id: SortField) =>
     t(`operationBar.sortOptions.${id}`, {
@@ -638,151 +617,6 @@ const OperationBar = ({
             >
               <Terminal size={16} />
             </button>
-
-            {/* Gear / Actions dropdown */}
-            <div className="relative">
-              <button
-                ref={actionsTriggerRef}
-                type="button"
-                onClick={() => setOpenMenu((current) => (current === 'actions' ? null : 'actions'))}
-                onKeyDown={(event) => handleMenuTriggerKeyDown('actions', event)}
-                className="wisp-control-icon rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:text-xp-text"
-                title={t('operationBar.actionsMenu')}
-                aria-label={t('operationBar.actionsMenu')}
-                aria-haspopup="menu"
-                aria-expanded={openMenu === 'actions'}
-              >
-                <Settings size={16} />
-              </button>
-
-              {openMenu === 'actions' && (
-                <div
-                  ref={actionsMenuRef}
-                  role="menu"
-                  aria-label={t('operationBar.actionsMenu')}
-                  onKeyDown={(event) => handleMenuKeyDown('actions', event)}
-                  className="wisp-popover-menu absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-[2px] border border-xp-border bg-xp-popover py-1 shadow-xl"
-                >
-                  {/* New Folder */}
-                  <button
-                    type="button"
-                    role="menuitem"
-                    tabIndex={-1}
-                    onClick={() => {
-                      handleCreateFolder();
-                      setOpenMenu(null);
-                    }}
-                    className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
-                  >
-                    <FolderPlus size={14} className="shrink-0 text-xp-text-muted" />
-                    <span>{t('operationBar.newFolder')}</span>
-                  </button>
-
-                  {/* New File */}
-                  {onCreateFile && (
-                    <button
-                      type="button"
-                      role="menuitem"
-                      tabIndex={-1}
-                      onClick={() => {
-                        onCreateFile();
-                        setOpenMenu(null);
-                      }}
-                      className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
-                    >
-                      <FilePlus size={14} className="shrink-0 text-xp-text-muted" />
-                      <span>{t('operationBar.newFile')}</span>
-                    </button>
-                  )}
-
-                  <div role="separator" className="my-1 border-t border-xp-border" />
-
-                  {/* Compress */}
-                  {onCompress && (
-                    <button
-                      type="button"
-                      role="menuitem"
-                      tabIndex={-1}
-                      onClick={() => {
-                        onCompress();
-                        setOpenMenu(null);
-                      }}
-                      className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
-                    >
-                      <Package size={14} className="shrink-0 text-xp-text-muted" />
-                      <span>{t('operationBar.compress')}</span>
-                    </button>
-                  )}
-
-                  {/* Extract */}
-                  {onExtract && (
-                    <button
-                      type="button"
-                      role="menuitem"
-                      tabIndex={-1}
-                      onClick={() => {
-                        onExtract();
-                        setOpenMenu(null);
-                      }}
-                      className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
-                    >
-                      <PackageOpen size={14} className="shrink-0 text-xp-text-muted" />
-                      <span>{t('operationBar.extract')}</span>
-                    </button>
-                  )}
-
-                  <div role="separator" className="my-1 border-t border-xp-border" />
-
-                  {/* Open in Terminal */}
-                  <button
-                    type="button"
-                    role="menuitem"
-                    tabIndex={-1}
-                    onClick={handleOpenTerminal}
-                    className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
-                  >
-                    <Terminal size={14} className="shrink-0 text-xp-text-muted" />
-                    <span>{t('operationBar.openInTerminal')}</span>
-                  </button>
-
-                  {/* Copy Path */}
-                  {onCopyPath && (
-                    <button
-                      type="button"
-                      role="menuitem"
-                      tabIndex={-1}
-                      onClick={() => {
-                        onCopyPath();
-                        setOpenMenu(null);
-                      }}
-                      className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
-                    >
-                      <Copy size={14} className="shrink-0 text-xp-text-muted" />
-                      <span>{t('operationBar.copyPath')}</span>
-                    </button>
-                  )}
-
-                  <div role="separator" className="my-1 border-t border-xp-border" />
-
-                  {/* Properties */}
-                  {onProperties && (
-                    <button
-                      type="button"
-                      role="menuitem"
-                      tabIndex={-1}
-                      onClick={() => {
-                        onProperties();
-                        setOpenMenu(null);
-                      }}
-                      className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors hover:bg-xp-surface-light"
-                    >
-                      <Info size={14} className="shrink-0 text-xp-text-muted" />
-                      <span>{t('operationBar.properties')}</span>
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>

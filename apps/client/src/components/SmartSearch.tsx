@@ -805,12 +805,9 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
               {searchContent ? t('smartSearch.sortByContent') : t('smartSearch.sortByName')}
             </button>
 
-            {/* Index Stats */}
-            {indexedFileCount > 0 && (
-              <span className="text-xs text-xp-text-muted">
-                {indexedFileCount.toLocaleString()}
-              </span>
-            )}
+            {/* Index Stats — lives in the status bar now; keep the engine count
+                flowing through the shared event so the bar stays in sync */}
+            {indexedFileCount > 0 && <IndexStatsBridge count={indexedFileCount} />}
 
             {/* Save Search Button */}
             {query.trim() && (
@@ -1175,3 +1172,16 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
 SmartSearch.displayName = 'SmartSearch';
 
 export default SmartSearch;
+
+/** Silent bridge: publishes the index count to the status bar without
+ *  coupling the search toolbar to it. Renders nothing. */
+function IndexStatsBridge({ count }: { count: number }): null {
+  useIndexStatsEvent(count);
+  return null;
+}
+
+function useIndexStatsEvent(count: number): void {
+  React.useEffect(() => {
+    window.dispatchEvent(new CustomEvent('wisp-index-stats', { detail: { count } }));
+  }, [count]);
+}

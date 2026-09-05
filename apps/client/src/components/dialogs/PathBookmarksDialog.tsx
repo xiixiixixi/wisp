@@ -6,6 +6,7 @@ import {
   getFolderName,
   type PathBookmark,
 } from '@/lib/path-bookmarks';
+import { formatKeyComboForDisplay } from '@/lib/shortcut-utils';
 
 // ── Styles (inline, using CSS variables) ──────────────────────────────────────
 
@@ -439,7 +440,7 @@ const PathBookmarksDialog = React.memo(
                     onMouseLeave={() => setHoveredSlot(null)}
                     title={
                       bm
-                        ? `Ctrl+${slot}: ${bm.path}`
+                        ? `${formatKeyComboForDisplay(`ctrl+${slot}`)}: ${bm.path}`
                         : `Slot ${slot} — click to assign current path`
                     }
                   >

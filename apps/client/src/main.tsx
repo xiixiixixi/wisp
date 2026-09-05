@@ -9,6 +9,7 @@ import App from './App';
 import SkySync from '@/components/weather/SkySync';
 import './index.css';
 import './styles/liquid-glass.css';
+import './styles/fluid-glass.css';
 import { migrateLegacyDefaultView } from './lib/view-default';
 
 // One-time rewrite of stored legacy view defaults ('grid'/'medium') to details

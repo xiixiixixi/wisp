@@ -79,7 +79,7 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <SettingsSection title={t('settings.general.appearance')}>
         <SettingRow
           icon={Globe}
@@ -135,41 +135,59 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
             onChange={(v) => updateSetting('weatherSync', v)}
           />
         </SettingRow>
+        <SettingRow
+          icon={CloudSun}
+          label={t('settings.general.fluidGlass')}
+          description={t('settings.general.fluidGlassDesc')}
+        >
+          <Toggle
+            id="fluid-glass"
+            label={t('settings.general.fluidGlass')}
+            checked={settings.fluidGlass}
+            onChange={(v) => updateSetting('fluidGlass', v)}
+          />
+        </SettingRow>
         {settings.weatherSync && (
           <SettingRow
             icon={CloudSun}
             label={t('settings.general.weatherCity')}
             description={t('settings.general.weatherCityDesc')}
           >
-            <input
-              type="text"
-              defaultValue={settings.weatherCity}
-              placeholder={t('settings.general.weatherCityPlaceholder')}
-              onBlur={handleWeatherCitySave}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-              }}
-              className="h-8 w-44 rounded-[2px] border border-xp-border bg-xp-popover px-2.5 text-sm text-xp-text outline-none transition-colors focus:border-primary"
-              aria-label={t('settings.general.weatherCity')}
-            />
-            {weatherStatus === 'saving' && (
-              <span className="text-xs text-xp-text-muted">{t('common.saving')}</span>
-            )}
-            {weatherStatus === 'ok' && <span className="text-xs text-xp-green">✓</span>}
-            {weatherStatus === 'error' && <span className="text-xs text-xp-red">✗</span>}
-            {weatherReport && (
-              <span className="text-xs text-xp-text-muted">
-                {settings.weatherCity} {Math.round(weatherReport.temperature)}°{' '}
-                {t(describeWeatherCode(weatherReport.weather_code).labelKey)} ·{' '}
-                {weatherReport.is_day
-                  ? t('weather.clear') === '晴'
-                    ? '白天'
-                    : 'day'
-                  : t('weather.clear') === '晴'
-                    ? '夜间'
-                    : 'night'}
-              </span>
-            )}
+            {/* R5 review: input on top, live status tucked below it — the
+                two no longer fight for the same horizontal line. */}
+            <div className="flex flex-col items-end gap-1.5">
+              <input
+                type="text"
+                defaultValue={settings.weatherCity}
+                placeholder={t('settings.general.weatherCityPlaceholder')}
+                onBlur={handleWeatherCitySave}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                }}
+                className="h-8 w-44 rounded-[2px] border border-xp-border bg-xp-popover px-2.5 text-sm text-xp-text outline-none transition-colors focus:border-primary"
+                aria-label={t('settings.general.weatherCity')}
+              />
+              <div className="flex items-center gap-2 text-xs">
+                {weatherStatus === 'saving' && (
+                  <span className="text-xp-text-muted">{t('common.saving')}</span>
+                )}
+                {weatherStatus === 'ok' && <span className="text-xp-green">✓</span>}
+                {weatherStatus === 'error' && <span className="text-xp-red">✗</span>}
+                {weatherReport && (
+                  <span className="text-xp-text-muted">
+                    {settings.weatherCity} {Math.round(weatherReport.temperature)}°{' '}
+                    {t(describeWeatherCode(weatherReport.weather_code).labelKey)} ·{' '}
+                    {weatherReport.is_day
+                      ? t('weather.clear') === '晴'
+                        ? '白天'
+                        : 'day'
+                      : t('weather.clear') === '晴'
+                        ? '夜间'
+                        : 'night'}
+                  </span>
+                )}
+              </div>
+            </div>
           </SettingRow>
         )}
       </SettingsSection>{' '}

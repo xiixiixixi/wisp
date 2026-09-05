@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
@@ -7,6 +8,7 @@ import { useThumbnailCache } from '@/hooks/use-thumbnail-cache';
 import { isImageFile } from './FileGridHelpers';
 import { ViewComponentProps } from './FileGridTypes';
 import { FileReferenceBadge } from './FileReferenceBadge';
+import { formatDateTimeShort } from '@/lib/utils';
 
 // Filmstrip thumbnail item
 const GalleryStripThumb = React.memo(
@@ -113,7 +115,7 @@ const GalleryView = ({
   currentPath,
   getFileIcon,
   formatFileSize,
-  formatDate,
+  formatDate: _formatDate,
   handleFileClick,
   handleFileDoubleClick,
   handleFileRightClick,
@@ -122,6 +124,7 @@ const GalleryView = ({
   const [focusedFile, setFocusedFile] = useState<FileEntry | null>(null);
   const [previewError, setPreviewError] = useState(false);
   const [previewDimensions, setPreviewDimensions] = useState<{ w: number; h: number } | null>(null);
+  const { t } = useTranslation();
   const [aiDescription, setAiDescription] = useState<string | null>(null);
   const [indexingStatus, setIndexingStatus] = useState<'idle' | 'indexing' | 'done'>('idle');
   const stripRef = useRef<HTMLDivElement>(null);
@@ -344,15 +347,15 @@ const GalleryView = ({
             );
           }
           return (
-            <div className="flex flex-col items-center gap-3 text-xp-text-muted">
-              <span className="text-7xl opacity-50">
+            <div className="flex flex-col items-center gap-2.5 text-xp-text-secondary">
+              <span className="text-[110px] leading-none opacity-80">
                 <FileReferenceBadge file={displayFile}>
                   {getFileIcon(displayFile)}
                 </FileReferenceBadge>
               </span>
-              <span className="text-sm font-medium">{displayFile.name}</span>
-              <span className="text-xs">
-                {displayFile.is_dir ? 'Folder' : formatFileSize(displayFile.size)}
+              <span className="text-base font-medium">{displayFile.name}</span>
+              <span className="text-sm">
+                {displayFile.is_dir ? t('common.folder') : formatFileSize(displayFile.size)}
               </span>
             </div>
           );
@@ -360,11 +363,13 @@ const GalleryView = ({
 
         {/* File info overlay */}
         {displayFile && (
-          <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-4 py-2">
+          <div className="gallery-info-bar absolute bottom-0 left-0 right-0 px-4 py-2">
             <div className="truncate text-sm font-medium text-xp-on-accent">{displayFile.name}</div>
             <div className="text-xp-on-accent/70 text-xs">
-              {displayFile.is_dir ? 'Folder' : formatFileSize(displayFile.size)}
-              {displayFile.modified > 0 && <> &middot; {formatDate(displayFile.modified)}</>}
+              {displayFile.is_dir ? t('common.folder') : formatFileSize(displayFile.size)}
+              {displayFile.modified > 0 && (
+                <> &middot; {formatDateTimeShort(displayFile.modified)}</>
+              )}
             </div>
             {(() => {
               if (aiDescription) {
@@ -393,7 +398,7 @@ const GalleryView = ({
         <div
           ref={stripRef}
           className="gallery-filmstrip overflow-x-auto p-2"
-          style={{ position: 'relative', height: '72px' }}
+          style={{ position: 'relative', height: '56px' }}
         >
           <div
             style={{
@@ -412,7 +417,7 @@ const GalleryView = ({
                     top: 0,
                     left: 0,
                     width: `${virtualItem.size - 4}px`,
-                    height: '64px',
+                    height: '48px',
                     transform: `translateX(${virtualItem.start}px)`,
                   }}
                 >

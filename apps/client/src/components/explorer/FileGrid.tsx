@@ -241,8 +241,8 @@ const FileGrid = ({
   // Stable callback refs for click handlers
   const onFileClick = useCallback(
     (file: FileEntry, event: React.MouseEvent) => {
-      // Ctrl+Shift+Click = toggle cross-tab selection
-      if (event.ctrlKey && event.shiftKey) {
+      // Ctrl/Cmd+Shift+Click = toggle cross-tab selection
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey) {
         event.preventDefault();
         event.stopPropagation();
         setLocalCrossTabPaths((prev) => {

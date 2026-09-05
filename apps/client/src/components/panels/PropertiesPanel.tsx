@@ -82,7 +82,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
     } finally {
       setLoading(false);
     }
-  }, [filePath, toast]);
+  }, [filePath, toast, t]);
 
   useEffect(() => {
     if (filePath) {
@@ -112,9 +112,31 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
   };
 
   if (!filePath) {
+    // ChatGPT R4: the properties tab is an inspector, not a placeholder —
+    // its empty state previews the field area (top-left, not dead center).
     return (
-      <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
-        {t('panels.properties.noFileSelected')}
+      <div className="flex h-full flex-col items-start gap-2 px-5 pt-9">
+        <svg
+          className="text-xp-text-muted"
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 16v-4M12 8h.01" />
+        </svg>
+        <div className="text-[13px] font-semibold text-xp-text">
+          {t('panels.properties.emptyTitle')}
+        </div>
+        <div className="text-[11.5px] leading-relaxed text-xp-text-muted">
+          {t('panels.properties.emptyDesc')}
+        </div>
       </div>
     );
   }
@@ -184,7 +206,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-3">
+      <div className="flex-1 overflow-y-auto px-5 py-3">
         {activeTab === 'general' && (
           <div className="flex gap-6">
             {/* Left: file identity */}
@@ -410,10 +432,14 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
 };
 
 const PropRow = ({ label, value }: { label: string; value: string }) => {
+  // ChatGPT R4 spec: fixed 88px label column, value ≥180px, 28px rows —
+  // reads as a field grid instead of a wrapped sentence.
   return (
-    <div className="flex min-w-0 items-baseline gap-1 py-0.5">
-      <span className="flex-shrink-0 text-[10px] font-medium text-xp-text-muted">{label}:</span>
-      <span className="truncate text-[11px] text-xp-text" title={value}>
+    <div className="flex min-h-[28px] min-w-0 items-baseline gap-2">
+      <span className="w-[88px] flex-shrink-0 text-[10px] font-medium text-xp-text-muted">
+        {label}
+      </span>
+      <span className="min-w-[180px] truncate text-[11px] text-xp-text" title={value}>
         {value}
       </span>
     </div>

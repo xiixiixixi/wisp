@@ -409,6 +409,17 @@ export const formatDate = (timestamp: number): string => {
   return date.toLocaleString();
 };
 
+/** Compact "8月21日 17:40" — no year, for chips and info bars. */
+export const formatDateTimeShort = (timestamp: number): string => {
+  if (!timestamp || !isFinite(timestamp)) return '—';
+  const date = new Date(timestamp * 1000);
+  if (isNaN(date.getTime())) return '—';
+  return `${date.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })} ${date.toLocaleTimeString(
+    undefined,
+    { hour: '2-digit', minute: '2-digit', hour12: false },
+  )}`;
+};
+
 // Natural-sort collator: "file2" before "file10", case-insensitive
 const naturalCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 

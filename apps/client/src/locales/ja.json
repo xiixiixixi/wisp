@@ -188,7 +188,9 @@
     "branch": "ブランチ: {{name}}",
     "modified": "{{count}} 変更",
     "staged": "{{count}} ステージ",
-    "untracked": "{{count}} 未追跡"
+    "untracked": "{{count}} 未追跡",
+    "indexedLabel": "{{count}} 件をインデックス済み",
+    "indexedShort": "索引 {{count}}"
   },
   "contextMenu": {
     "open": "開く",
@@ -353,7 +355,9 @@
       "replayTour": "ツアーを再生",
       "betaWarning": "ベータ警告",
       "betaWarningDesc": "早期ベータ警告ダイアログを再表示",
-      "showWarning": "警告を表示"
+      "showWarning": "警告を表示",
+      "fluidGlass": "流体ガラス",
+      "fluidGlassDesc": "パネルが連続した流体ガラス面になる：エッジの屈折、鏡面ハイライト、天気の色調"
     },
     "explorer": {
       "display": "表示",
@@ -851,7 +855,6 @@
     "auto": "自動",
     "autoDetected": "フォルダの内容に基づいて表示モードを自動検出しました。クリックでリセット。",
     "actions": "操作",
-    "actionsMenu": "ファイル操作メニュー",
     "newFolder": "新しいフォルダ",
     "newFile": "新しいファイル",
     "preview": "選択したファイルをプレビュー",
@@ -1579,12 +1582,10 @@
     "terminal": "ターミナル",
     "terminalDemoTitle": "デスクトップターミナル",
     "terminalDemoDescription": "Wisp デスクトップアプリで利用できます",
-    "activityLog": "アクティビティログ",
-    "changes": "変更",
     "clipboard": "クリップボード",
-    "notifications": "通知",
     "properties": "プロパティ",
-    "agents": "エージェント"
+    "agents": "エージェント",
+    "events": "イベント"
   },
   "previewPanel": {
     "noFileSelectedShort": "ファイル未選択",
@@ -2118,7 +2119,9 @@
       "toastPermUpdatedTitle": "Permissions Updated",
       "toastPermUpdatedDesc": "File permissions have been successfully updated.",
       "toastPermErrorTitle": "Error Updating Permissions",
-      "toastPermErrorDesc": "Failed to update permissions: {{error}}"
+      "toastPermErrorDesc": "Failed to update permissions: {{error}}",
+      "emptyTitle": "ファイルを選択してプロパティを表示",
+      "emptyDesc": "サイズ・種類・場所・作成日時・更新日時などを確認できます"
     },
     "previewAction": {
       "quickActions": "Quick actions",
@@ -2973,5 +2976,44 @@
       "applications": "アプリケーションへ",
       "home": "ホームへ"
     }
+  },
+  "eventsPanel": {
+    "filterAll": "すべて",
+    "filterFiles": "ファイル",
+    "filterNotices": "通知",
+    "filterUndo": "取り消す",
+    "markAllRead": "すべて既読",
+    "clearAll": "クリア",
+    "empty": "まだ何もありません",
+    "created": "作成",
+    "modified": "変更",
+    "deleted": "削除",
+    "renamed": "名前変更"
+  },
+  "fileType": {
+    "File": "ファイル",
+    "Image": "画像",
+    "Video": "ビデオ",
+    "Audio": "オーディオ",
+    "Archive": "アーカイブ",
+    "Document": "書類",
+    "Pdf": "PDF 書類",
+    "Spreadsheet": "表計算",
+    "Markdown": "Markdown 書類",
+    "Text": "テキスト",
+    "Keynote": "Keynote 資料",
+    "Word": "Word 書類"
+  },
+  "clipboardHistory": {
+    "emptyTitle": "クリップボードの履歴はありません",
+    "emptyDesc": "ファイルをコピーまたはカットするとここに表示されます",
+    "entrySingle": "履歴 {{count}} 件",
+    "entriesCount": "履歴 {{count}} 件",
+    "clear": "クリア",
+    "pasteHere": "ここに貼り付け",
+    "moreFiles": "他 {{count}} 件",
+    "justNow": "たった今",
+    "minutesAgo": "{{count}}分前",
+    "hoursAgo": "{{count}}時間前"
   }
 }

@@ -16,8 +16,8 @@ interface DetailsViewProps extends ViewComponentProps {
   fileGroups?: FileGroup[] | null;
 }
 
-const DETAILS_ROW_HEIGHT = 56;
-const GROUP_HEADER_HEIGHT = 36;
+const DETAILS_ROW_HEIGHT = 40;
+const GROUP_HEADER_HEIGHT = 26;
 const DETAILS_VIRTUALIZATION_THRESHOLD = 200;
 
 type FlatItem =
@@ -31,7 +31,7 @@ interface FileRowProps {
   getFileIcon: (file: FileEntry) => React.ReactNode;
   formatFileSize: (bytes: number) => string;
   formatFolderSize: (folderSizeInfo: FolderSizeInfo | null, isCalculating?: boolean) => string;
-  formatDate: (timestamp: number) => string;
+  formatDate?: (timestamp: number) => string;
   onFileClick: (filePath: string, event: React.MouseEvent) => void;
   onFileDoubleClick: (filePath: string) => void;
   onFileRightClick: (filePath: string, event: React.MouseEvent) => void;
@@ -54,7 +54,7 @@ const FileRow = React.memo(
     getFileIcon,
     formatFileSize,
     formatFolderSize,
-    formatDate,
+    formatDate: _formatDate,
     onFileClick,
     onFileDoubleClick,
     onFileRightClick,
@@ -123,7 +123,7 @@ const FileRow = React.memo(
         data-file-path={file.path}
         data-drop-target={file.is_dir ? file.path : undefined}
         data-is-folder={file.is_dir ? 'true' : undefined}
-        className={`wisp-file-row grid cursor-pointer grid-cols-12 items-center gap-3 rounded-[2px] px-3 py-2.5 transition-colors hover:bg-xp-surface-light ${
+        className={`wisp-file-row border-xp-border/40 grid cursor-pointer grid-cols-12 items-center gap-3 border-b px-3 transition-colors hover:bg-xp-surface-light ${
           selectedFiles.has(file.path) ? 'file-selected' : ''
         } text-xp-text`}
         {...(renamingPath === file.path ? {} : dragHandlers)}
@@ -184,11 +184,16 @@ const FileRow = React.memo(
         </div>
         <div className="col-span-2 text-center text-xs text-xp-text-muted" role="gridcell">
           <span className="text-xs capitalize">
-            {file.is_dir ? t('common.folder') : file.file_type}
+            {file.is_dir
+              ? t('common.folder')
+              : t(`fileType.${file.file_type}`, { defaultValue: file.file_type })}
           </span>
         </div>
-        <div className="col-span-2 text-right font-mono text-xs text-xp-text-muted" role="gridcell">
-          {formatDate(file.modified)}
+        <div className="col-span-2 text-right text-xs text-xp-text-muted" role="gridcell">
+          {new Date(file.modified * 1000).toLocaleDateString(undefined, {
+            month: 'short',
+            day: 'numeric',
+          })}
         </div>
       </div>
     );
@@ -197,15 +202,14 @@ const FileRow = React.memo(
 
 const GroupHeader = React.memo(({ name, count }: { name: string; count: number }) => (
   <div
-    className="wisp-file-group-header flex items-center px-3"
+    className="wisp-file-group-header flex items-center gap-2.5 px-3"
     style={{ height: GROUP_HEADER_HEIGHT }}
   >
-    <span className="ml-8 flex items-center gap-2 rounded-[2px] bg-xp-surface px-3 py-1">
-      <span className="text-xs font-medium uppercase tracking-wide text-xp-text-secondary">
-        {name}
-      </span>
-      <span className="font-dot text-[11px] leading-none text-xp-text-muted">{count}</span>
-    </span>
+    {/* Finder-parity group title: same size class as the file names (13px,
+        medium ink), flush with the icon column, count trailing in muted gray.
+        A section header must never render smaller than its content. */}
+    <span className="text-[13px] font-medium leading-none text-xp-text">{name}</span>
+    <span className="text-xs leading-none text-xp-text-muted">{count}</span>
   </div>
 ));
 
@@ -217,7 +221,7 @@ const DetailsView = (props: DetailsViewProps) => {
     getFileIcon,
     formatFileSize,
     formatFolderSize,
-    formatDate,
+    formatDate: _formatDate,
     handleFileClick,
     handleFileDoubleClick,
     handleFileRightClick,
@@ -317,7 +321,7 @@ const DetailsView = (props: DetailsViewProps) => {
       className="wisp-list-header border-xp-border/60 sticky top-0 z-20 border-b bg-xp-bg"
       role="row"
     >
-      <div className="grid grid-cols-12 items-center gap-3 px-3 py-3 text-xs font-medium text-xp-text-muted">
+      <div className="grid h-[30px] grid-cols-12 items-center gap-3 px-3 text-xs font-medium text-xp-text-muted">
         <div
           className="col-span-1"
           role="columnheader"
@@ -345,7 +349,6 @@ const DetailsView = (props: DetailsViewProps) => {
     getFileIcon,
     formatFileSize,
     formatFolderSize,
-    formatDate,
     onFileClick,
     onFileDoubleClick,
     onFileRightClick,

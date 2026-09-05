@@ -524,18 +524,8 @@ const MainLayout = (props: MainLayoutProps) => {
               bottomPanelTab={bottomPanelTab}
               setBottomPanelTab={setBottomPanelTab}
               height={bottomPanelHeight}
-              terminalHistory={terminal.terminalHistory}
-              terminalInput={terminal.terminalInput}
-              setTerminalInput={terminal.setTerminalInput}
               terminalCwd={terminal.terminalCwd}
-              executeTerminalCommand={terminal.executeTerminalCommand}
-              files={files}
               currentPath={currentPath}
-              themes={themes}
-              theme={theme}
-              selectedFiles={selectedFiles}
-              selectedFile={selectedFile}
-              outputMessages={terminal.outputMessages}
               onNavigate={navigateWithHistory}
               onPasteFromHistory={(entry) => {
                 if (fileOps.contextMenuActions.pasteFromHistory) {

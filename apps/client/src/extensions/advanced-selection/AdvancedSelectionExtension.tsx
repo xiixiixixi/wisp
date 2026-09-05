@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { FileEntry } from '@/lib/tauri-api';
 import i18n from '@/i18n';
+import { formatKeyComboForDisplay } from '@/lib/shortcut-utils';
 import {
   ContextMenuExtension,
   ContextMenuItem,
@@ -238,7 +239,7 @@ export const AdvancedSelectionExtension = ({
               id: 'invert-selection',
               label: i18n.t('advancedSelection.menu.invertSelection'),
               icon: <RotateCcw size={14} className="inline-block" />,
-              shortcut: 'Ctrl+I',
+              shortcut: formatKeyComboForDisplay('ctrl+shift+i'),
               action: handleInvertSelection,
             },
             {

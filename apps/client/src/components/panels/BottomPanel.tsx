@@ -1,34 +1,29 @@
-import React, { useState, useEffect, useMemo, useSyncExternalStore } from 'react';
+import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Terminal as TerminalIcon } from 'lucide-react';
+import { Terminal as TerminalIcon, CheckCheck, Trash2 } from 'lucide-react';
 
 // Lazy-loaded sub-panels -- only loaded when the user switches to their tab
 const XTermPanel = React.lazy(() => import('./XTermPanel'));
-const UndoHistoryPanel = React.lazy(() => import('./UndoHistoryPanel'));
-const NotificationCenter = React.lazy(() => import('./NotificationCenter'));
+const EventsPanel = React.lazy(() => import('./EventsPanel'));
 const ClipboardHistoryPanel = React.lazy(() => import('./ClipboardHistoryPanel'));
-const ChangeReviewPanel = React.lazy(() => import('./ChangeReviewPanel'));
-const ActivityFeedWrapper = React.lazy(() => import('./ActivityFeedWrapper'));
 const PropertiesPanel = React.lazy(() => import('./PropertiesPanel'));
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useNotificationHistory } from '@/hooks/use-notification-history';
-import type { ClipboardEntry } from '@/hooks/use-clipboard-history';
+import { useActivityFeed } from '@/hooks/use-activity-feed';
+import {
+  getHistory as getClipboardHistory,
+  type ClipboardEntry,
+} from '@/hooks/use-clipboard-history';
 import type { FileChangeSet } from '@/hooks/use-focus-change-tracker';
 import type { BottomPanelTabId } from '@/hooks/use-layout-state';
+import { formatKeyComboForDisplay } from '@/lib/shortcut-utils';
 import { isBrowserDemoMode } from '@/lib/browser-demo-files';
 import { extensionHost } from '@/lib/extension-host';
 import { CLI_AGENT_LAUNCHED_EVENT } from './agent-manager/cli-launch-bus';
 
 type BottomPanelTab = BottomPanelTabId;
 
-type ActivityLogFilter = 'all' | 'output' | 'activity' | 'history';
-
-interface BottomPanelFileEntry {
-  name: string;
-  path: string;
-  is_dir: boolean;
-  size?: number;
-}
+type EventsFilter = 'all' | 'files' | 'notices' | 'undo';
 
 interface BottomPanelProps {
   bottomPanelCollapsed: boolean;
@@ -36,18 +31,8 @@ interface BottomPanelProps {
   bottomPanelTab: BottomPanelTab;
   setBottomPanelTab: (tab: BottomPanelTab) => void;
   height?: number;
-  terminalHistory: string[];
-  terminalInput: string;
-  setTerminalInput: (input: string) => void;
   terminalCwd: string;
-  executeTerminalCommand: (command: string) => void;
-  files: BottomPanelFileEntry[];
   currentPath: string;
-  themes: Record<string, { name: string }>;
-  theme: string;
-  selectedFiles: Set<string>;
-  selectedFile: BottomPanelFileEntry | null;
-  outputMessages: string[];
   onNavigate?: (path: string) => void;
   onPasteFromHistory?: (entry: ClipboardEntry) => void;
   fileChanges?: FileChangeSet | null;
@@ -56,14 +41,7 @@ interface BottomPanelProps {
 }
 
 /** Core (built-in) bottom panel tab IDs */
-const CORE_TABS: BottomPanelTab[] = [
-  'terminal',
-  'activity-log',
-  'changes',
-  'clipboard',
-  'notifications',
-  'properties',
-];
+const CORE_TABS: BottomPanelTab[] = ['terminal', 'events', 'clipboard', 'properties'];
 
 const BottomPanel = ({
   bottomPanelCollapsed,
@@ -71,18 +49,8 @@ const BottomPanel = ({
   bottomPanelTab,
   setBottomPanelTab,
   height,
-  terminalHistory: _terminalHistory,
-  terminalInput: _terminalInput,
-  setTerminalInput: _setTerminalInput,
   terminalCwd,
-  executeTerminalCommand: _executeTerminalCommand,
-  files,
   currentPath,
-  themes,
-  theme,
-  selectedFiles,
-  selectedFile,
-  outputMessages,
   onNavigate,
   onPasteFromHistory,
   fileChanges,
@@ -90,8 +58,40 @@ const BottomPanel = ({
   propertiesFilePath,
 }: BottomPanelProps) => {
   const { t } = useTranslation();
-  const { unreadCount } = useNotificationHistory();
-  const [activityLogFilter, setActivityLogFilter] = useState<ActivityLogFilter>('all');
+  const {
+    unreadCount,
+    notifications,
+    markAllAsRead,
+    clearAll: clearNotifications,
+  } = useNotificationHistory();
+  const { entries, clearFeed } = useActivityFeed();
+  const [eventsFilter, setEventsFilter] = useState<EventsFilter>('all');
+
+  // 空的动态面板不配占三分之一窗口：无内容时只剩标签行（32px），
+  // 有任务（条目/通知/待审变更）出现时自动回到记忆高度。
+  const eventsEmpty =
+    entries.length === 0 && notifications.length === 0 && !fileChanges?.totalCount;
+  const compactEventsRow = bottomPanelTab === 'events' && eventsEmpty;
+
+  // 剪贴板/属性的空态也不配占完整抽屉（ChatGPT R4 评审：空态 150–170px，
+  // 有内容时回到记忆高度；属性带文件时钳制在 180–300px 的检查器区间）。
+  const [clipboardEmpty, setClipboardEmpty] = useState(getClipboardHistory().length === 0);
+  useEffect(() => {
+    const refresh = () => setClipboardEmpty(getClipboardHistory().length === 0);
+    refresh();
+    window.addEventListener('clipboard-history-changed', refresh);
+    return () => window.removeEventListener('clipboard-history-changed', refresh);
+  }, []);
+  const propertiesEmpty = !propertiesFilePath;
+  const drawerHeight = (() => {
+    const persisted = height ?? 148;
+    if (bottomPanelTab === 'clipboard' && clipboardEmpty) return Math.min(persisted, 160);
+    if (bottomPanelTab === 'properties') {
+      if (propertiesEmpty) return Math.min(persisted, 160);
+      return Math.max(180, Math.min(persisted, 300));
+    }
+    return persisted;
+  })();
 
   // When a CLI agent launches, expand this panel and switch to the terminal
   // tab so the attached session is immediately visible.
@@ -138,10 +138,8 @@ const BottomPanel = ({
 
   const coreTabLabelKeys: Record<string, string> = {
     terminal: 'bottomPanel.terminal',
-    'activity-log': 'bottomPanel.activityLog',
-    changes: 'bottomPanel.changes',
+    events: 'bottomPanel.events',
     clipboard: 'bottomPanel.clipboard',
-    notifications: 'bottomPanel.notifications',
     properties: 'bottomPanel.properties',
   };
 
@@ -163,8 +161,8 @@ const BottomPanel = ({
     <div
       // Collapsed hides the same tree instead of unmounting it, so terminal
       // sessions (and any other panel state) survive collapse/expand.
-      className={`wisp-bottom-panel ${bottomPanelCollapsed ? 'hidden' : 'flex flex-shrink-0 flex-col border-t border-xp-border bg-xp-surface'}`}
-      style={{ height: height ?? 148 }}
+      className={`wisp-bottom-panel ${bottomPanelCollapsed || compactEventsRow ? 'hidden' : 'flex flex-shrink-0 flex-col border-t border-xp-border bg-xp-surface'}`}
+      style={{ height: compactEventsRow ? undefined : drawerHeight }}
     >
       {/* Bottom Panel Tabs */}
       <div
@@ -186,12 +184,12 @@ const BottomPanel = ({
             }`}
           >
             {getTabLabel(tab)}
-            {tab === 'changes' && fileChanges && fileChanges.totalCount > 0 && (
+            {tab === 'events' && fileChanges && fileChanges.totalCount > 0 && (
               <span className="ml-0.5 rounded-[2px] bg-xp-yellow/20 px-1 text-[10px] font-medium text-xp-yellow">
                 {fileChanges.totalCount}
               </span>
             )}
-            {tab === 'notifications' && unreadCount > 0 && (
+            {tab === 'events' && unreadCount > 0 && (
               <span className="ml-0.5 rounded-[2px] bg-xp-blue/20 px-1 text-[10px] font-medium text-xp-blue">
                 {unreadCount}
               </span>
@@ -219,13 +217,64 @@ const BottomPanel = ({
           </button>
         ))}
 
+        {/* 动态过滤器与操作直接住在标签行里 —— 底部只有一条 32px 的栏 */}
+        {bottomPanelTab === 'events' && (
+          <div className="ml-auto flex items-center gap-1">
+            {(
+              [
+                ['all', 'eventsPanel.filterAll'],
+                ['files', 'eventsPanel.filterFiles'],
+                ['notices', 'eventsPanel.filterNotices'],
+                ['undo', 'eventsPanel.filterUndo'],
+              ] as const
+            ).map(([value, key]) => (
+              <button
+                key={value}
+                onClick={() => setEventsFilter(value)}
+                className={`rounded-[2px] px-2 py-0.5 text-[10px] font-medium ${
+                  eventsFilter === value
+                    ? 'bg-xp-blue/20 text-xp-blue'
+                    : 'text-xp-text-muted hover:bg-xp-surface-light'
+                }`}
+              >
+                {t(key)}
+              </button>
+            ))}
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllAsRead}
+                title={t('eventsPanel.markAllRead')}
+                aria-label={t('eventsPanel.markAllRead')}
+                className="flex h-6 w-6 items-center justify-center rounded-[2px] text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+              >
+                <CheckCheck size={13} />
+              </button>
+            )}
+            {(entries.length > 0 || notifications.length > 0) && (
+              <button
+                onClick={() => {
+                  clearFeed();
+                  clearNotifications();
+                }}
+                title={t('eventsPanel.clearAll')}
+                aria-label={t('eventsPanel.clearAll')}
+                className="flex h-6 w-6 items-center justify-center rounded-[2px] text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+              >
+                <Trash2 size={13} />
+              </button>
+            )}
+          </div>
+        )}
+
         <button
           onClick={() => setBottomPanelCollapsed(true)}
-          className="wisp-bottom-close ml-auto flex h-7 w-7 items-center justify-center text-xp-text-muted hover:text-xp-text"
-          title="Close (Ctrl+J)"
+          className={`wisp-bottom-close flex h-7 w-7 items-center justify-center text-xp-text-muted hover:text-xp-text ${
+            bottomPanelTab === 'events' ? '' : 'ml-auto'
+          }`}
+          title={`Close (${formatKeyComboForDisplay('ctrl+j')})`}
           aria-label="Close bottom panel"
         >
-          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
               d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -278,7 +327,7 @@ const BottomPanel = ({
       </div>
 
       {/* Bottom Panel Content (non-terminal tabs) */}
-      {bottomPanelTab !== 'terminal' && (
+      {bottomPanelTab !== 'terminal' && !compactEventsRow && (
         <div
           role="tabpanel"
           id={`bottom-panel-${bottomPanelTab}`}
@@ -294,18 +343,13 @@ const BottomPanel = ({
                   </div>
                 }
               >
-                {bottomPanelTab === 'activity-log' && (
-                  <ActivityLogContent
-                    activityLogFilter={activityLogFilter}
-                    setActivityLogFilter={setActivityLogFilter}
-                    outputMessages={outputMessages}
-                    files={files}
-                    currentPath={currentPath}
-                    themes={themes}
-                    theme={theme}
-                    terminalCwd={terminalCwd}
-                    selectedFiles={selectedFiles}
-                    selectedFile={selectedFile}
+                {bottomPanelTab === 'events' && (
+                  <EventsPanel
+                    filter={eventsFilter}
+                    entries={entries}
+                    notifications={notifications}
+                    fileChanges={fileChanges ?? null}
+                    onDismissChanges={onDismissChanges ?? (() => {})}
                     onNavigate={onNavigate}
                   />
                 )}
@@ -313,32 +357,6 @@ const BottomPanel = ({
                 {bottomPanelTab === 'clipboard' && onPasteFromHistory && (
                   <ClipboardHistoryPanel onPaste={onPasteFromHistory} />
                 )}
-
-                {bottomPanelTab === 'notifications' && <NotificationCenter />}
-
-                {bottomPanelTab === 'changes' &&
-                  (fileChanges && fileChanges.totalCount > 0 ? (
-                    <ChangeReviewPanel
-                      changes={fileChanges}
-                      onDismiss={onDismissChanges ?? (() => {})}
-                      onNavigate={onNavigate}
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
-                      <svg
-                        className="mr-2 h-4 w-4 text-xp-green"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      No external file changes detected
-                    </div>
-                  ))}
 
                 {bottomPanelTab === 'properties' && (
                   <PropertiesPanel filePath={propertiesFilePath ?? ''} />
@@ -359,139 +377,6 @@ const BottomPanel = ({
           </ErrorBoundary>
         </div>
       )}
-    </div>
-  );
-};
-
-// ── Merged Activity Log content ─────────────────────────────────────────────
-
-interface ActivityLogContentProps {
-  activityLogFilter: ActivityLogFilter;
-  setActivityLogFilter: (filter: ActivityLogFilter) => void;
-  outputMessages: string[];
-  files: BottomPanelFileEntry[];
-  currentPath: string;
-  themes: Record<string, { name: string }>;
-  theme: string;
-  terminalCwd: string;
-  selectedFiles: Set<string>;
-  selectedFile: BottomPanelFileEntry | null;
-  onNavigate?: (path: string) => void;
-}
-
-const ACTIVITY_LOG_FILTERS: { value: ActivityLogFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'output', label: 'Output' },
-  { value: 'activity', label: 'Activity' },
-  { value: 'history', label: 'History' },
-];
-
-const ActivityLogContent = ({
-  activityLogFilter,
-  setActivityLogFilter,
-  outputMessages,
-  files,
-  currentPath,
-  themes,
-  theme,
-  terminalCwd,
-  selectedFiles,
-  selectedFile,
-  onNavigate,
-}: ActivityLogContentProps) => {
-  return (
-    <div className="flex h-full flex-col">
-      {/* Sub-filter toolbar */}
-      <div className="flex flex-shrink-0 items-center gap-1 border-b border-xp-border bg-xp-surface-light/30 px-3 py-1.5">
-        {ACTIVITY_LOG_FILTERS.map((f) => (
-          <button
-            key={f.value}
-            onClick={() => setActivityLogFilter(f.value)}
-            className={`rounded-[2px] px-2 py-0.5 text-[10px] font-medium ${
-              activityLogFilter === f.value
-                ? 'bg-xp-blue/20 text-xp-blue'
-                : 'text-xp-text-muted hover:bg-xp-surface-light'
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Sections */}
-      <div className="flex-1 overflow-y-auto">
-        {/* Output section */}
-        {(activityLogFilter === 'all' || activityLogFilter === 'output') && (
-          <div>
-            {activityLogFilter === 'all' && (
-              <div className="border-xp-border/50 sticky top-0 z-[1] border-b bg-xp-surface-light/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-xp-text-muted">
-                Output
-              </div>
-            )}
-            <div className="space-y-1 p-3 text-xs">
-              {selectedFile && (
-                <div className="text-xp-green">[INFO] Active file: {selectedFile.name}</div>
-              )}
-              {selectedFiles.size > 0 && (
-                <div className="text-xp-blue">[INFO] {selectedFiles.size} file(s) selected</div>
-              )}
-              <div className="text-xp-text-muted">
-                [INFO] Terminal working directory: {terminalCwd}
-              </div>
-              <div className="text-xp-text-muted">[INFO] Theme applied: {themes[theme]?.name}</div>
-              <div className="text-xp-text-muted">
-                [INFO] Loaded {files.length} files from {currentPath}
-              </div>
-              {[...outputMessages].reverse().map((message, index) => (
-                // eslint-disable-next-line react/no-array-index-key
-                <div key={`${index}-${message.slice(0, 32)}`} className="text-xp-text-muted">
-                  {message}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Activity section */}
-        {(activityLogFilter === 'all' || activityLogFilter === 'activity') && (
-          <div>
-            {activityLogFilter === 'all' && (
-              <div className="border-xp-border/50 sticky top-0 z-[1] border-b bg-xp-surface-light/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-xp-text-muted">
-                Activity
-              </div>
-            )}
-            <React.Suspense
-              fallback={
-                <div className="flex h-16 items-center justify-center text-xs text-xp-text-muted">
-                  Loading...
-                </div>
-              }
-            >
-              <ActivityFeedWrapper onNavigate={onNavigate} />
-            </React.Suspense>
-          </div>
-        )}
-
-        {/* History section */}
-        {(activityLogFilter === 'all' || activityLogFilter === 'history') && (
-          <div>
-            {activityLogFilter === 'all' && (
-              <div className="border-xp-border/50 sticky top-0 z-[1] border-b bg-xp-surface-light/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-xp-text-muted">
-                History
-              </div>
-            )}
-            <React.Suspense
-              fallback={
-                <div className="flex h-16 items-center justify-center text-xs text-xp-text-muted">
-                  Loading...
-                </div>
-              }
-            >
-              <UndoHistoryPanel />
-            </React.Suspense>
-          </div>
-        )}
-      </div>
     </div>
   );
 };

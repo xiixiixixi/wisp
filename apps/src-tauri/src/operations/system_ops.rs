@@ -768,7 +768,7 @@ mod tests {
                 eprintln!("skip missing {}", path);
                 continue;
             }
-            let icon_path = get_file_icon_sync(path).expect("icon extraction");
+            let icon_path = get_file_icon_sync(path, &icon_cache_dir()).expect("icon extraction");
             let bytes = std::fs::read(&icon_path).expect("read icon png");
             eprintln!("{} -> {} bytes", path, bytes.len());
             let img = image::load_from_memory(&bytes).expect("decode png");
@@ -782,7 +782,8 @@ mod tests {
     #[test]
     fn test_get_file_icon_is_64x64() {
         let cargo_toml = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
-        let icon_path = get_file_icon_sync(&cargo_toml.to_string_lossy()).expect("icon extraction");
+        let icon_path = get_file_icon_sync(&cargo_toml.to_string_lossy(), &icon_cache_dir())
+            .expect("icon extraction");
         let bytes = std::fs::read(&icon_path).expect("read icon png");
         let img = image::load_from_memory(&bytes).expect("decode png");
         assert_eq!(img.width(), 64, "drag icon must be 64px wide");
@@ -2093,16 +2094,25 @@ else echo "Node.js required for full CLI features."; exit 1; fi
 
 // ─── macOS file icon extraction (drag ghost preview) ─────────────────────────
 
+/// Legacy scratch cache for icon PNGs nobody serves to the webview (drag
+/// ghosts, Quick Look fallback copies). Frontend-facing icon reads go through
+/// `get_file_icon`, which caches inside the app data dir instead.
 #[cfg(target_os = "macos")]
-fn get_file_icon_sync(path: &str) -> Result<String, String> {
+fn icon_cache_dir() -> std::path::PathBuf {
+    std::env::temp_dir().join("wisp-drag-icons")
+}
+
+#[cfg(target_os = "macos")]
+fn get_file_icon_sync(path: &str, cache_dir: &std::path::Path) -> Result<String, String> {
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
 
-    // Cache one PNG per file path in the temp dir
+    // Cache one PNG per file path. The cache lives in the app data dir (NOT
+    // the system temp dir): the webview loads these PNGs through Tauri's
+    // asset protocol, whose scope covers app data but not /var/folders.
     let mut hasher = DefaultHasher::new();
     path.hash(&mut hasher);
-    let cache_dir = std::env::temp_dir().join("wisp-drag-icons");
-    std::fs::create_dir_all(&cache_dir)
+    std::fs::create_dir_all(cache_dir)
         .map_err(|e| format!("Failed to create icon cache dir: {}", e))?;
     // Include the icon size in the cache key so entries written by older
     // (full-resolution) builds can never be served again.
@@ -2153,8 +2163,16 @@ fn get_file_icon_sync(path: &str) -> Result<String, String> {
 /// Returns the PNG path, used as the native drag ghost preview.
 #[cfg(target_os = "macos")]
 #[command]
-pub async fn get_file_icon(path: String) -> Result<String, String> {
-    tokio::task::spawn_blocking(move || get_file_icon_sync(&path))
+pub async fn get_file_icon(
+    app: tauri::AppHandle,
+    path: String,
+) -> Result<String, String> {
+    let cache_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to locate app data directory: {}", e))?
+        .join("file-type-icons");
+    tokio::task::spawn_blocking(move || get_file_icon_sync(&path, &cache_dir))
         .await
         .map_err(|e| e.to_string())?
 }
@@ -2294,7 +2312,9 @@ async fn get_file_thumbnail_with_cache_dir(
     // cannot read. Copy the system icon into APPDATA, already present in the
     // asset-protocol allowlist, before returning it to React.
     let fallback_path = path.to_string_lossy().to_string();
-    let system_icon = tokio::task::spawn_blocking(move || get_file_icon_sync(&fallback_path))
+    let system_icon = tokio::task::spawn_blocking(move || {
+        get_file_icon_sync(&fallback_path, &icon_cache_dir())
+    })
         .await
         .map_err(|e| format!("System icon task failed: {}", e))??;
     std::fs::copy(&system_icon, &output_path).map_err(|e| {

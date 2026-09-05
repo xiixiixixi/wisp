@@ -4,6 +4,89 @@
  */
 import i18n from '@/i18n';
 
+/** macOS detection for shortcut DISPLAY — bindings store the token "ctrl",
+ *  which means the platform's primary modifier (⌘ on macOS, Ctrl elsewhere). */
+export const isMacPlatform = (): boolean => {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  return /Macintosh|Mac OS X|Macintosh Intel/i.test(ua) || /Mac/.test(navigator.platform || '');
+};
+
+/** Convert "ctrl+shift+b" to a platform-native display string.
+ *  macOS renders Finder-style glyphs (⌘⇧B); other platforms render
+ *  "Ctrl + Shift + B". */
+export const formatKeyComboForDisplay = (keyCombination: string): string => {
+  if (!keyCombination) return '';
+
+  if (isMacPlatform()) {
+    // Finder style: glyphs, no separators — ⌘⇧N, ⌥⌘V, ⌘⌫, ⌘↓
+    const symbols: Record<string, string> = {
+      ctrl: '⌘',
+      meta: '⌘',
+      alt: '⌥',
+      shift: '⇧',
+      esc: '⎋',
+      del: '⌫',
+      enter: '↩',
+      space: 'Space',
+      backspace: '⌫',
+      tab: '⇥',
+      up: '↑',
+      down: '↓',
+      left: '←',
+      right: '→',
+    };
+    return keyCombination
+      .split('+')
+      .map((part) => {
+        if (symbols[part]) return symbols[part];
+        if (part.startsWith('f') && !isNaN(Number(part.slice(1)))) return part.toUpperCase();
+        return part.length === 1 ? part.toUpperCase() : part;
+      })
+      .join('');
+  }
+
+  return keyCombination
+    .split('+')
+    .map((part) => {
+      switch (part) {
+        case 'ctrl':
+          return 'Ctrl';
+        case 'alt':
+          return 'Alt';
+        case 'shift':
+          return 'Shift';
+        case 'meta':
+          return 'Meta';
+        case 'esc':
+          return 'Esc';
+        case 'del':
+          return 'Del';
+        case 'enter':
+          return 'Enter';
+        case 'space':
+          return 'Space';
+        case 'backspace':
+          return 'Backspace';
+        case 'tab':
+          return 'Tab';
+        case 'up':
+          return '↑';
+        case 'down':
+          return '↓';
+        case 'left':
+          return '←';
+        case 'right':
+          return '→';
+        default:
+          // Function keys (f1-f12) and single chars
+          if (part.startsWith('f') && !isNaN(Number(part.slice(1)))) return part.toUpperCase();
+          return part.length === 1 ? part.toUpperCase() : part;
+      }
+    })
+    .join(' + ');
+};
+
 /** Normalize a KeyboardEvent into a string like "ctrl+shift+b" */
 export const getKeyString = (event: KeyboardEvent): string => {
   const parts: string[] = [];
@@ -96,50 +179,6 @@ export const getKeyString = (event: KeyboardEvent): string => {
 
   parts.push(key);
   return parts.join('+');
-};
-
-/** Convert "ctrl+shift+b" to "Ctrl + Shift + B" for display */
-export const formatKeyComboForDisplay = (keyCombination: string): string => {
-  if (!keyCombination) return '';
-  return keyCombination
-    .split('+')
-    .map((part) => {
-      switch (part) {
-        case 'ctrl':
-          return 'Ctrl';
-        case 'alt':
-          return 'Alt';
-        case 'shift':
-          return 'Shift';
-        case 'meta':
-          return 'Meta';
-        case 'esc':
-          return 'Esc';
-        case 'del':
-          return 'Del';
-        case 'enter':
-          return 'Enter';
-        case 'space':
-          return 'Space';
-        case 'backspace':
-          return 'Backspace';
-        case 'tab':
-          return 'Tab';
-        case 'up':
-          return '\u2191';
-        case 'down':
-          return '\u2193';
-        case 'left':
-          return '\u2190';
-        case 'right':
-          return '\u2192';
-        default:
-          // Function keys (f1-f12) and single chars
-          if (part.startsWith('f') && !isNaN(Number(part.slice(1)))) return part.toUpperCase();
-          return part.length === 1 ? part.toUpperCase() : part;
-      }
-    })
-    .join(' + ');
 };
 
 /** Map action string → category id */

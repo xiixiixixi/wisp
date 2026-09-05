@@ -246,32 +246,6 @@ describe('OperationBar', () => {
     expect(onPaste).toHaveBeenCalledTimes(1);
   });
 
-  it('exposes secondary create and file-management actions from the menu', () => {
-    const onCreateFile = vi.fn();
-    const onCompress = vi.fn();
-    const onProperties = vi.fn();
-    render(
-      <OperationBar
-        {...mockProps}
-        onCreateFile={onCreateFile}
-        onCompress={onCompress}
-        onProperties={onProperties}
-      />,
-    );
-
-    fireEvent.click(screen.getByTitle('File actions menu'));
-    fireEvent.click(screen.getByText('New File'));
-    expect(onCreateFile).toHaveBeenCalledTimes(1);
-
-    fireEvent.click(screen.getByTitle('File actions menu'));
-    fireEvent.click(screen.getByText('Compress'));
-    expect(onCompress).toHaveBeenCalledTimes(1);
-
-    fireEvent.click(screen.getByTitle('File actions menu'));
-    fireEvent.click(screen.getByText('Properties'));
-    expect(onProperties).toHaveBeenCalledTimes(1);
-  });
-
   it('closes open dropdowns when clicking outside the toolbar', () => {
     render(<OperationBar {...mockProps} />);
 

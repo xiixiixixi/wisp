@@ -173,7 +173,7 @@ const Clock = () => {
         </p>
       </div>
       <div className="flex flex-col items-end gap-1.5">
-        <p className="text-5xl font-extralight tabular-nums leading-none tracking-tighter text-xp-text">
+        <p className="text-4xl font-extralight tabular-nums leading-none tracking-tighter text-xp-text">
           {currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
         </p>
       </div>
@@ -547,27 +547,21 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
         {/* Compact header + hero stat row */}
         <div className="order-0 lg:col-span-12">
           <Clock />
-          <div className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-3">
+          <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
             <HeroStat value={quickStats.totalFiles.toLocaleString()} label={t('home.statFiles')} />
             <HeroStat
               value={quickStats.totalFolders.toLocaleString()}
               label={t('home.statFolders')}
             />
-            <HeroStat value={quickStats.totalSize} label={t('home.statSize')} />
             {indexCount !== null && (
               <HeroStat value={indexCount.toLocaleString()} label={t('home.statIndexed')} />
             )}
           </div>
         </div>
 
-        {/* System dashboard: live CPU / memory / disk gauges */}
-        <div className="order-1 lg:col-span-12">
-          <SystemDashboard />
-        </div>
-
-        {/* Quick access — ambient glass tiles for the everyday locations */}
+        {/* Quick access — the primary jump-off: everyday locations */}
         {quickAccessTiles.length > 0 && (
-          <div className="order-2 lg:col-span-12">
+          <div className="order-1 lg:col-span-12">
             <SectionHeader
               title={t('sidebar.quickAccess')}
               subtitle={t('home.quickAccessSubtitle')}
@@ -583,12 +577,14 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                   type="button"
                   onClick={() => handleNavigate(path)}
                   title={path}
-                  className="glass-card group flex flex-col items-center gap-3 p-4 text-center transition-colors hover:border-xp-border-light"
+                  className="glass-card group flex flex-col items-center gap-2.5 p-3.5 text-center transition-colors hover:border-xp-border-light"
                 >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-[2px] bg-xp-bg text-xp-text-secondary group-hover:text-xp-text">
-                    <Icon size={16} aria-hidden="true" />
+                  <span className="flex h-9 w-9 items-center justify-center rounded-[2px] bg-xp-bg text-xp-text-secondary group-hover:text-xp-text">
+                    <Icon size={18} aria-hidden="true" />
                   </span>
-                  <span className="w-full truncate text-xs font-medium text-xp-text">{label}</span>
+                  <span className="w-full truncate text-[13px] font-medium text-xp-text">
+                    {label}
+                  </span>
                 </button>
               ))}
             </div>
@@ -597,7 +593,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
 
         {/* Recent folders inline */}
         {recommendedFolders.length > 0 && (
-          <div className="order-3 lg:col-span-12">
+          <div className="order-2 lg:col-span-12">
             <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-xp-text-muted">
               {t('home.recentFolders')}
             </p>
@@ -624,7 +620,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
 
         {/* Recent Files */}
         {!recentFilesLoading && recentFiles.length > 0 && (
-          <div className="order-4 lg:col-span-12">
+          <div className="order-3 lg:col-span-12">
             <SectionHeader
               title={t('home.recentFiles')}
               subtitle={t('home.recentFilesSubtitle')}
@@ -637,34 +633,34 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                 </button>
               }
             />
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+            <div className="flex flex-col gap-0.5">
               {recentFiles.map((file) => {
                 return (
                   <div
                     key={`${file.path}-${file.accessed_at}`}
-                    className="glass-card group relative overflow-hidden transition-colors hover:border-xp-border-light"
+                    className="group relative overflow-hidden rounded-[2px] transition-colors hover:bg-xp-surface-light"
                   >
                     <button
                       type="button"
                       onClick={() => handleRecentFileClick(file)}
-                      className="flex w-full cursor-pointer flex-col items-center gap-2.5 px-3 py-4 text-center"
+                      className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left"
                       title={file.path}
                     >
-                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[2px] bg-xp-bg">
+                      <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[2px] bg-xp-bg text-xp-text-secondary">
                         <RecentFileTypeIcon fileType={file.file_type} className="h-4 w-4" />
-                      </div>
-                      <div className="w-full min-w-0">
-                        <p className="truncate text-[13px] font-medium text-xp-text">{file.name}</p>
-                        <p className="mt-0.5 text-[10px] text-xp-text-muted">
-                          {relativeTime(file.accessed_at, t)}
-                        </p>
-                      </div>
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-xp-text">
+                        {file.name}
+                      </span>
+                      <span className="flex-shrink-0 text-[11px] text-xp-text-muted">
+                        {relativeTime(file.accessed_at, t)}
+                      </span>
                     </button>
                     {/* Remove button on hover */}
                     <button
                       type="button"
                       onClick={(e) => handleRemoveRecentFile(e, file.path)}
-                      className="hover:bg-xp-selection absolute right-1.5 top-1.5 rounded-[2px] bg-xp-surface p-1 text-xp-text-muted opacity-0 transition-opacity hover:text-xp-red group-hover:opacity-100"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-[2px] bg-xp-surface p-1 text-xp-text-muted opacity-0 transition-opacity hover:text-xp-red group-hover:opacity-100"
                       title={t('home.removeFromRecent')}
                       aria-label={t('home.removeFromRecent')}
                     >
@@ -702,6 +698,12 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
             </div>
           </div>
         )}
+
+        {/* System status — demoted to a compact bottom summary (R2: 问候 →
+            快速进入文件 → 最近活动 → 系统状态；状态不是视觉中心) */}
+        <div className="home-status-compact order-4 lg:col-span-12">
+          <SystemDashboard />
+        </div>
 
         {/* Legacy built-in Agent: intentionally disconnected from the product UI. */}
         <div className="hidden" aria-hidden="true">

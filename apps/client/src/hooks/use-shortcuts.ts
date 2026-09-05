@@ -141,6 +141,12 @@ const resolveAction = (keyCombo: string, context: string): ShortcutAction | null
   return null;
 };
 
+/** Actions the terminal owns when its textarea has focus — the app must not
+ *  hijack ⌘C/⌘V/⌘Z/⌘A away from the PTY and its selection copy behavior. */
+const isTerminalOwnedAction = (action: ShortcutAction): boolean =>
+  typeof action === 'string' &&
+  ['Copy', 'Cut', 'Paste', 'PasteMove', 'CopyPath', 'SelectAll', 'Undo', 'Redo'].includes(action);
+
 // ── Hook ──────────────────────────────────────────────────────────────────
 
 export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file-explorer') => {
@@ -320,15 +326,27 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
     // Ensure shortcuts are loaded before keydown events fire
     ensureLoaded();
 
+    // Capture phase: xterm's textarea keydown handler stops propagation on
+    // keys it consumes, which would hide terminal-panel ⌘J/⌘K/⌘1-4 from a
+    // bubble-phase document listener. Capture runs before it.
     const handleKeyDown = (event: KeyboardEvent) => {
       // Ignore if typing in input fields
       const target = event.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-        return;
-      }
+      const inEditable =
+        target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
       // Ignore if a modal dialog or command palette is open
       if (target.closest('[role="dialog"]') || document.querySelector('[data-command-palette]')) {
         return;
+      }
+
+      // The integrated terminal's xterm textarea grabs focus the moment the
+      // panel opens — a blanket input exemption here would kill EVERY app
+      // shortcut while the panel is visible. Inside xterm, modifier combos
+      // (⌘J, ⌘K, ⌘1-4…) still reach app bindings; only actions that collide
+      // with terminal text editing (⌘C/⌘V/⌘Z…) stay with the terminal.
+      if (inEditable) {
+        const inTerminal = !!target.closest('.xterm');
+        if (!inTerminal || !(event.metaKey || event.ctrlKey)) return;
       }
 
       const keyString = getKeyString(event);
@@ -337,6 +355,7 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
       // Synchronous lookup — no IPC roundtrip
       const action = resolveAction(keyString, context);
       if (action) {
+        if (inEditable && isTerminalOwnedAction(action)) return;
         event.preventDefault();
         event.stopPropagation();
         executeAction(action);
@@ -352,10 +371,10 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
     const handleShortcutsChanged = () => reloadShortcuts();
     window.addEventListener('shortcuts-changed', handleShortcutsChanged);
 
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown, { capture: true });
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keydown', handleKeyDown, { capture: true });
       window.removeEventListener('shortcuts-changed', handleShortcutsChanged);
       unlistenGlobal.then((unlisten) => unlisten()).catch(console.error);
     };

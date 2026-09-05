@@ -524,8 +524,8 @@ const Settings = () => {
       {/* Body: Sidebar + Content */}
       <div className="flex-1 overflow-hidden">
         <div className="wisp-settings-layout mx-auto flex h-full max-w-7xl">
-          {/* Sidebar */}
-          <nav className="wisp-settings-sidebar scrollbar-none w-64 shrink-0 overflow-y-auto px-3 py-4">
+          {/* Sidebar — R5 review: 244px, not a wide panel */}
+          <nav className="wisp-settings-sidebar scrollbar-none w-[244px] shrink-0 overflow-y-auto px-3 py-4">
             <div className="space-y-4">
               {tabs.map((tab) => {
                 const Icon = tab.icon;

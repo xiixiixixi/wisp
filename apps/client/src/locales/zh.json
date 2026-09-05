@@ -198,7 +198,9 @@
     "branch": "分支: {{name}}",
     "modified": "{{count}} 已修改",
     "staged": "{{count}} 已暂存",
-    "untracked": "{{count}} 未跟踪"
+    "untracked": "{{count}} 未跟踪",
+    "indexedLabel": "已索引 {{count}} 个文件",
+    "indexedShort": "已索引 {{count}}"
   },
   "contextMenu": {
     "open": "打开",
@@ -367,7 +369,9 @@
       "weatherCityDesc": "主页天气卡片与全局氛围效果随实际天气变化（雨、雪、阴晴、月相）",
       "weatherCityPlaceholder": "城市名，如 上海",
       "weatherSync": "天气氛围",
-      "weatherSyncDesc": "跟随实际天气自动切换整套配色：晴天亮色、夜晚暗色（含月相）、阴天压灰、雨雪有雨雪"
+      "weatherSyncDesc": "跟随实际天气自动切换整套配色：晴天亮色、夜晚暗色（含月相）、阴天压灰、雨雪有雨雪",
+      "fluidGlass": "流体玻璃",
+      "fluidGlassDesc": "面板化为连续的流体玻璃：边缘轻折射、顶部镜面高光、随天气染色"
     },
     "explorer": {
       "display": "显示",
@@ -898,7 +902,6 @@
     "auto": "自动",
     "autoDetected": "根据文件夹内容自动检测视图模式。点击重置。",
     "actions": "操作",
-    "actionsMenu": "文件操作菜单",
     "newFolder": "新建文件夹",
     "newFile": "新建文件",
     "preview": "预览选中文件",
@@ -1630,12 +1633,10 @@
     "terminal": "终端",
     "terminalDemoTitle": "桌面终端",
     "terminalDemoDescription": "请在 Wisp 桌面应用中使用",
-    "activityLog": "活动日志",
-    "changes": "更改",
     "clipboard": "剪贴板",
-    "notifications": "通知",
     "properties": "属性",
-    "agents": "代理"
+    "agents": "代理",
+    "events": "动态"
   },
   "previewPanel": {
     "noFileSelectedShort": "未选择文件",
@@ -2182,7 +2183,9 @@
       "toastPermUpdatedTitle": "权限已更新",
       "toastPermUpdatedDesc": "文件权限已成功更新。",
       "toastPermErrorTitle": "更新权限出错",
-      "toastPermErrorDesc": "更新权限失败：{{error}}"
+      "toastPermErrorDesc": "更新权限失败：{{error}}",
+      "emptyTitle": "选择文件查看属性",
+      "emptyDesc": "可查看大小、类型、位置、创建与修改时间等信息"
     },
     "previewAction": {
       "quickActions": "快捷操作",
@@ -3355,5 +3358,44 @@
       "untaggedDesc": "给文件打上标签，方便整理和搜索",
       "tagFiles": "去打标签"
     }
+  },
+  "eventsPanel": {
+    "filterAll": "全部",
+    "filterFiles": "文件",
+    "filterNotices": "通知",
+    "filterUndo": "撤销",
+    "markAllRead": "全部已读",
+    "clearAll": "清空",
+    "empty": "暂无动态",
+    "created": "新建",
+    "modified": "修改",
+    "deleted": "删除",
+    "renamed": "重命名"
+  },
+  "fileType": {
+    "File": "文件",
+    "Image": "图片",
+    "Video": "视频",
+    "Audio": "音频",
+    "Archive": "压缩包",
+    "Document": "文档",
+    "Pdf": "PDF 文档",
+    "Spreadsheet": "电子表格",
+    "Markdown": "Markdown 文档",
+    "Text": "文本文档",
+    "Keynote": "Keynote 演示",
+    "Word": "Word 文档"
+  },
+  "clipboardHistory": {
+    "emptyTitle": "暂无剪贴板历史",
+    "emptyDesc": "复制或剪切文件后会出现在这里",
+    "entrySingle": "{{count}} 条记录",
+    "entriesCount": "{{count}} 条记录",
+    "clear": "清空",
+    "pasteHere": "粘贴到此处",
+    "moreFiles": "还有 {{count}} 项",
+    "justNow": "刚刚",
+    "minutesAgo": "{{count}} 分钟前",
+    "hoursAgo": "{{count}} 小时前"
   }
 }

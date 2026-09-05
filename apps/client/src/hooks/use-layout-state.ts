@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
+import { patchUiState } from '@/lib/ui-state';
 import type { SortField } from '@/lib/utils';
 
 // ── Helpers for persisting UI state to localStorage ──────────────────────────
@@ -96,8 +97,12 @@ export const useLayoutState = (): LayoutState => {
   });
   const [bottomPanelTab, _setBottomPanelTabRaw] = useState<BottomPanelTabId>(() => {
     const stored = loadUiState<string>('bottomPanelTab', 'terminal');
+    // The activity-log / changes / notifications tabs merged into 'events'
+    if (stored === 'activity-log' || stored === 'changes' || stored === 'notifications') {
+      return 'events';
+    }
     // Migrate old tab IDs that were merged into 'activity-log'
-    if (stored === 'output' || stored === 'activity' || stored === 'history') return 'activity-log';
+    if (stored === 'output' || stored === 'activity' || stored === 'history') return 'events';
     if (stored === 'agents') return 'terminal';
     return stored as BottomPanelTabId;
   });
@@ -137,6 +142,122 @@ export const useLayoutState = (): LayoutState => {
   }, []);
   const handleBottomResize = useCallback((delta: number) => {
     setBottomPanelHeight((h) => Math.min(500, Math.max(120, h - delta)));
+  }, []);
+
+  // ── Responsive panel collapsing ──────────────────────────────────────────
+  // When the window gets too small for the file area to stay usable, panels
+  // fold by priority (inspector first, then the sidebar; the bottom panel
+  // folds on short windows) instead of every pane squishing. Panels the
+  // layout hid itself are restored when space returns; panels the user
+  // closed stay closed — user actions always win over the automation.
+  const COLLAPSE_W = 560;
+  const RESTORE_W = 640; // hysteresis so dragging the window edge doesn't flap
+  const COLLAPSE_H = 460;
+  const RESTORE_H = 540;
+
+  const autoHidden = useRef({ left: false, right: false, bottom: false });
+  // The flags survive reloads: an auto-collapsed panel must come back on the
+  // next launch when the window is wide again, unlike a user-closed one.
+  const [autoHiddenPanels, setAutoHiddenPanels] = useState<{
+    left: boolean;
+    right: boolean;
+    bottom: boolean;
+  }>(() => loadUiState('autoHiddenPanels', { left: false, right: false, bottom: false }));
+  autoHidden.current = autoHiddenPanels;
+  useEffect(() => {
+    patchUiState({ autoHiddenPanels });
+  }, [autoHiddenPanels]);
+  const markAutoHidden = (next: { left: boolean; right: boolean; bottom: boolean }) => {
+    setAutoHiddenPanels((prev) =>
+      prev.left === next.left && prev.right === next.right && prev.bottom === next.bottom
+        ? prev
+        : next,
+    );
+  };
+  const liveRef = useRef({
+    leftSidebarCollapsed,
+    rightSidebarCollapsed,
+    bottomPanelCollapsed,
+    leftSidebarWidth,
+    rightSidebarWidth,
+  });
+  liveRef.current = {
+    leftSidebarCollapsed,
+    rightSidebarCollapsed,
+    bottomPanelCollapsed,
+    leftSidebarWidth,
+    rightSidebarWidth,
+  };
+
+  useEffect(() => {
+    const evaluate = () => {
+      const s = liveRef.current;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const flags = { ...autoHidden.current };
+
+      // Horizontal: the inspector folds before the sidebar; both restore in
+      // reverse order, and only panels this logic hid come back on their own.
+      const space = (leftOpen: boolean, rightOpen: boolean) =>
+        vw - (leftOpen ? s.leftSidebarWidth : 0) - (rightOpen ? s.rightSidebarWidth : 0);
+      let leftOpen = !s.leftSidebarCollapsed;
+      let rightOpen = !s.rightSidebarCollapsed;
+      if (space(leftOpen, rightOpen) < COLLAPSE_W) {
+        // Fold in priority order within one pass — the state snapshot `s`
+        // goes stale the moment a setter fires, so track openness locally.
+        if (rightOpen) {
+          rightOpen = false;
+          flags.right = true;
+          setRightSidebarCollapsed(true);
+        }
+        if (leftOpen && space(leftOpen, rightOpen) < COLLAPSE_W) {
+          flags.left = true;
+          setLeftSidebarCollapsed(true);
+        }
+      } else {
+        if (flags.left && space(true, rightOpen) >= RESTORE_W) {
+          flags.left = false;
+          setLeftSidebarCollapsed(false);
+          leftOpen = true;
+        }
+        if (flags.right && space(leftOpen, true) >= RESTORE_W) {
+          flags.right = false;
+          setRightSidebarCollapsed(false);
+        }
+      }
+
+      // Vertical: a short window can't afford the bottom panel either.
+      if (vh < COLLAPSE_H) {
+        if (!s.bottomPanelCollapsed) {
+          flags.bottom = true;
+          setBottomPanelCollapsed(true);
+        }
+      } else if (vh >= RESTORE_H && flags.bottom) {
+        flags.bottom = false;
+        setBottomPanelCollapsed(false);
+      }
+
+      markAutoHidden(flags);
+    };
+
+    evaluate();
+    window.addEventListener('resize', evaluate);
+    return () => window.removeEventListener('resize', evaluate);
+  }, []);
+
+  // User-facing collapse setters: taking manual control of a panel retires
+  // any pending auto-restore for it, so the automation never fights the user.
+  const collapseLeft = useCallback<React.Dispatch<React.SetStateAction<boolean>>>((action) => {
+    if (autoHidden.current.left) markAutoHidden({ ...autoHidden.current, left: false });
+    setLeftSidebarCollapsed(action);
+  }, []);
+  const collapseRight = useCallback<React.Dispatch<React.SetStateAction<boolean>>>((action) => {
+    if (autoHidden.current.right) markAutoHidden({ ...autoHidden.current, right: false });
+    setRightSidebarCollapsed(action);
+  }, []);
+  const collapseBottom = useCallback<React.Dispatch<React.SetStateAction<boolean>>>((action) => {
+    if (autoHidden.current.bottom) markAutoHidden({ ...autoHidden.current, bottom: false });
+    setBottomPanelCollapsed(action);
   }, []);
 
   // View mode — details list is the Wisp default
@@ -201,11 +322,11 @@ export const useLayoutState = (): LayoutState => {
 
   return {
     leftSidebarCollapsed,
-    setLeftSidebarCollapsed,
+    setLeftSidebarCollapsed: collapseLeft,
     rightSidebarCollapsed,
-    setRightSidebarCollapsed,
+    setRightSidebarCollapsed: collapseRight,
     bottomPanelCollapsed,
-    setBottomPanelCollapsed,
+    setBottomPanelCollapsed: collapseBottom,
     leftSidebarWidth,
     setLeftSidebarWidth,
     rightSidebarWidth,

@@ -168,6 +168,22 @@ const createTab = (label?: string, attachSessionId?: string): TermTab => {
   const fitAddon = new FitAddon();
   terminal.loadAddon(fitAddon);
 
+  // macOS Terminal semantics: ⌘C copies the selection when there is one
+  // (and only sends SIGINT when nothing is selected — that stays xterm's
+  // default Ctrl+C path). ⌘V needs no handler here: the browser's native
+  // paste event reaches xterm's hidden textarea on its own.
+  terminal.attachCustomKeyEventHandler((event) => {
+    if (event.type !== 'keydown') return true;
+    if (!event.metaKey || event.key.toLowerCase() !== 'c') return true;
+    const selection = terminal.getSelection();
+    if (selection) {
+      navigator.clipboard.writeText(selection).catch(() => {});
+      terminal.clearSelection();
+      return false;
+    }
+    return true;
+  });
+
   return {
     id,
     label: label ?? `Terminal ${tabCounter}`,

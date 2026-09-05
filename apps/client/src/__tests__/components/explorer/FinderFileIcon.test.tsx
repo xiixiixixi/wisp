@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   demoMode: vi.fn(() => false),
   isTauri: vi.fn(() => true),
   getFileThumbnailPng: vi.fn(),
+  getFileIconPng: vi.fn(),
   convertAssetUrl: vi.fn((path: string) => `asset://${path}`),
 }));
 
@@ -23,6 +24,7 @@ vi.mock('@/lib/transport', () => ({
 vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {
     getFileThumbnailPng: mocks.getFileThumbnailPng,
+    getFileIconPng: mocks.getFileIconPng,
   },
 }));
 
@@ -99,36 +101,53 @@ describe('FinderFileIcon', () => {
     await waitFor(() => expect(container.querySelector('img')).toBeInTheDocument());
     expect(container.querySelector('img')).toHaveAttribute('src', `asset://${file.path}`);
     expect(mocks.getFileThumbnailPng).not.toHaveBeenCalled();
+    expect(mocks.getFileIconPng).not.toHaveBeenCalled();
   });
 
-  it('uses Quick Look output for PDFs and other previewable documents', async () => {
+  it('renders the macOS type icon for documents instead of a content preview', async () => {
     const file = makeFile('guide.pdf');
-    mocks.getFileThumbnailPng.mockResolvedValue('/app-data/finder-thumbnails/guide.png');
+    mocks.getFileIconPng.mockResolvedValue('/app-data/file-type-icons/guide-64.png');
     const { container } = render(
       <FinderFileIcon file={file} fallback={<span data-testid="fallback">fallback</span>} />,
     );
 
     expect(screen.getByTestId('fallback')).toBeInTheDocument();
     await waitFor(() => expect(container.querySelector('img')).toBeInTheDocument());
-    expect(mocks.getFileThumbnailPng).toHaveBeenCalledWith(file.path, 96);
+    // Finder's list views draw the colored type icon (Word W / Excel X / PDF
+    // badge), NOT a Quick Look page preview — page previews for every row
+    // destroy type recognition.
+    expect(mocks.getFileIconPng).toHaveBeenCalledWith(file.path);
+    expect(mocks.getFileThumbnailPng).not.toHaveBeenCalled();
     expect(container.querySelector('img')).toHaveAttribute(
       'src',
-      'asset:///app-data/finder-thumbnails/guide.png',
+      'asset:///app-data/file-type-icons/guide-64.png',
     );
   });
 
-  it('keeps the semantic fallback when native thumbnail generation fails', async () => {
+  it('keeps the Quick Look poster frame for videos', async () => {
+    const file = makeFile('clip.mov');
+    mocks.getFileThumbnailPng.mockResolvedValue('/app-data/finder-thumbnails/clip.png');
+    const { container } = render(
+      <FinderFileIcon file={file} fallback={<span data-testid="fallback">fallback</span>} />,
+    );
+
+    await waitFor(() => expect(container.querySelector('img')).toBeInTheDocument());
+    expect(mocks.getFileThumbnailPng).toHaveBeenCalledWith(file.path, 96);
+    expect(mocks.getFileIconPng).not.toHaveBeenCalled();
+  });
+
+  it('keeps the semantic fallback when native icon generation fails', async () => {
     const file = makeFile('unsupported.xyz');
-    mocks.getFileThumbnailPng.mockRejectedValue(new Error('no provider'));
+    mocks.getFileIconPng.mockRejectedValue(new Error('no icon'));
     render(<FinderFileIcon file={file} fallback={<span data-testid="fallback">fallback</span>} />);
 
-    await waitFor(() => expect(mocks.getFileThumbnailPng).toHaveBeenCalled());
+    await waitFor(() => expect(mocks.getFileIconPng).toHaveBeenCalled());
     expect(screen.getByTestId('fallback')).toBeInTheDocument();
   });
 
   it('deduplicates native work for multiple subscribers of the same file', async () => {
     const file = makeFile('shared-preview.pdf');
-    mocks.getFileThumbnailPng.mockResolvedValue('/cache/shared-preview.png');
+    mocks.getFileIconPng.mockResolvedValue('/cache/shared-preview.png');
     const { container } = render(
       <>
         <FinderFileIcon file={file} fallback={<span>fallback</span>} />
@@ -137,7 +156,7 @@ describe('FinderFileIcon', () => {
     );
 
     await waitFor(() => expect(container.querySelectorAll('img')).toHaveLength(2));
-    expect(mocks.getFileThumbnailPng).toHaveBeenCalledTimes(1);
+    expect(mocks.getFileIconPng).toHaveBeenCalledTimes(1);
   });
 
   it('does not call native APIs for remote provider paths', async () => {
@@ -146,6 +165,7 @@ describe('FinderFileIcon', () => {
 
     expect(screen.getByTestId('fallback')).toBeInTheDocument();
     await Promise.resolve();
+    expect(mocks.getFileIconPng).not.toHaveBeenCalled();
     expect(mocks.getFileThumbnailPng).not.toHaveBeenCalled();
   });
 
@@ -153,6 +173,7 @@ describe('FinderFileIcon', () => {
     mocks.demoMode.mockReturnValue(true);
     const pdf = makeFile('Brand-guidelines.pdf');
     const folder = makeFile('Launch', { is_dir: true, file_type: 'folder' });
+    const doc = makeFile('设计方案.docx');
     const { container, rerender } = render(
       <FinderFileIcon file={pdf} fallback={<span>fallback</span>} />,
     );
@@ -160,13 +181,16 @@ describe('FinderFileIcon', () => {
     expect(container.querySelector('[data-demo-file-visual="pdf"]')).toBeInTheDocument();
     rerender(<FinderFileIcon file={folder} fallback={<span>fallback</span>} />);
     expect(container.querySelector('[data-demo-file-visual="folder"]')).toBeInTheDocument();
+    rerender(<FinderFileIcon file={doc} fallback={<span>fallback</span>} />);
+    expect(container.querySelector('[data-demo-file-visual="word"]')).toBeInTheDocument();
     expect(mocks.getFileThumbnailPng).not.toHaveBeenCalled();
+    expect(mocks.getFileIconPng).not.toHaveBeenCalled();
   });
 
-  it('cancels a queued thumbnail when its icon leaves the observed range', async () => {
+  it('cancels a queued icon request when its icon leaves the observed range', async () => {
     const files = Array.from({ length: 6 }, (_, index) => makeFile(`queued-${index + 1}.pdf`));
     const resolvers = new Map<string, (value: string) => void>();
-    mocks.getFileThumbnailPng.mockImplementation(
+    mocks.getFileIconPng.mockImplementation(
       (path: string) =>
         new Promise<string>((resolve) => {
           resolvers.set(path, resolve);
@@ -181,7 +205,7 @@ describe('FinderFileIcon', () => {
       </>,
     );
 
-    await waitFor(() => expect(mocks.getFileThumbnailPng).toHaveBeenCalledTimes(4));
+    await waitFor(() => expect(mocks.getFileIconPng).toHaveBeenCalledTimes(4));
     const cancelledFile = files[4];
     const nextFile = files[5];
     const cancelledObserver = TestIntersectionObserver.instances.find((observer) =>
@@ -195,9 +219,9 @@ describe('FinderFileIcon', () => {
       await Promise.resolve();
     });
 
-    await waitFor(() => expect(mocks.getFileThumbnailPng).toHaveBeenCalledTimes(5));
-    expect(mocks.getFileThumbnailPng).not.toHaveBeenCalledWith(cancelledFile.path, 96);
-    expect(mocks.getFileThumbnailPng).toHaveBeenCalledWith(nextFile.path, 96);
+    await waitFor(() => expect(mocks.getFileIconPng).toHaveBeenCalledTimes(5));
+    expect(mocks.getFileIconPng).not.toHaveBeenCalledWith(cancelledFile.path);
+    expect(mocks.getFileIconPng).toHaveBeenCalledWith(nextFile.path);
 
     unmount();
     await act(async () => {

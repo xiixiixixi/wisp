@@ -62,6 +62,61 @@ fn main() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .setup(|app| {
+            // macOS menu bar: Tauri's DEFAULT menu ships an Edit submenu whose
+            // Cut/Copy/Paste/SelectAll/Undo/Redo items claim ⌘C/⌘X/⌘V/⌘A/⌘Z as
+            // native key equivalents — they are consumed by AppKit BEFORE the
+            // WKWebView sees them, which silently killed every ⌘ shortcut in
+            // the web UI (users fell back to Ctrl+… Windows-style). Replace it
+            // with a lean menu whose only key equivalents are ones we want
+            // native: ⌘, (Settings, forwarded to the web UI) and ⌘Q (Quit).
+            // Everything else reaches the webview and is handled by the
+            // Finder-aligned shortcut system in JS.
+            #[cfg(target_os = "macos")]
+            {
+                use tauri::menu::{AboutMetadata, MenuBuilder, MenuItem, SubmenuBuilder};
+
+                let handle = app.handle();
+                let settings_item = MenuItem::with_id(
+                    handle,
+                    "open-settings",
+                    "Settings…",
+                    true,
+                    Some("CmdOrCtrl+,".to_string()),
+                )?;
+
+                let menu = MenuBuilder::new(handle)
+                    .item(
+                        &SubmenuBuilder::new(handle, "Wisp")
+                            .about(Some(AboutMetadata::default()))
+                            .separator()
+                            .item(&settings_item)
+                            .separator()
+                            .services()
+                            .hide()
+                            .hide_others()
+                            .separator()
+                            .quit()
+                            .build()?,
+                    )
+                    .item(&SubmenuBuilder::new(handle, "View").fullscreen().build()?)
+                    .item(
+                        &SubmenuBuilder::new(handle, "Window")
+                            .minimize()
+                            .maximize()
+                            .build()?,
+                    )
+                    .build()?;
+                app.set_menu(menu)?;
+            }
+
+            app.on_menu_event(move |handle, event| {
+                if event.id() == "open-settings" {
+                    // Same channel the frontend shortcut hook already listens
+                    // to for backend-triggered actions.
+                    let _ = handle.emit("global_shortcut_triggered", "OpenSettings");
+                }
+            });
+
             // Mouse side buttons (back/forward) → frontend navigation events
             mouse_navigation::install_mouse_navigation(app.handle().clone());
 

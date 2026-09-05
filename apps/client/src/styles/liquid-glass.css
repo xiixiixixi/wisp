@@ -1189,7 +1189,8 @@ html .fixed.inset-0[class~="z-[10000]"] > div {
 }
 
 .wisp-settings-sidebar button.bg-muted {
-  background: var(--xp-selection-bg) !important;
+  /* R5 review: the selected nav state was too heavy — keep it a quiet tint. */
+  background: color-mix(in srgb, var(--xp-selection-bg) 68%, transparent) !important;
   color: var(--xp-blue) !important;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.36) inset;
 }
@@ -1202,11 +1203,20 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
   color: var(--xp-accent-hover) !important;
 }
 
+/* R5 review: the settings page must sit ON the glass, not on stacked white
+   cards. The content canvas goes transparent; group cards lift only 3–5%
+   above it and carry no hairline of their own. */
 .wisp-settings-content {
-  background: var(--lg-content-canvas);
-  border: 1px solid var(--lg-divider);
+  background: transparent;
+  border: none;
   border-radius: var(--lg-radius-md);
   box-shadow: none;
+}
+
+.wisp-settings-content .content-card {
+  background: color-mix(in srgb, var(--lg-content-surface) 55%, transparent) !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .wisp-preview-empty {
@@ -1356,23 +1366,9 @@ html.reduce-motion .glass-card:hover {
   transform: none !important;
 }
 
-@media (max-width: 1100px) {
-  .wisp-sidebar {
-    width: 204px !important;
-  }
-
-  .wisp-inspector {
-    width: 248px !important;
-  }
-
-  .wisp-panel-rail {
-    width: 36px !important;
-  }
-
-  .wisp-bottom-panel:not(.hidden) {
-    height: 156px !important;
-  }
-}
+/* Panel sizing at narrow widths is handled by the layout's responsive
+   auto-collapse (use-layout-state), not by width overrides here — user
+   panel widths are authoritative at every window size. */
 
 @media (max-width: 920px) {
   .wisp-titlebar {
@@ -1393,18 +1389,6 @@ html.reduce-motion .glass-card:hover {
 
   .wisp-settings-sidebar {
     width: 220px !important;
-  }
-
-  .wisp-sidebar {
-    width: 184px !important;
-  }
-
-  .wisp-inspector {
-    width: 224px !important;
-  }
-
-  .wisp-bottom-panel:not(.hidden) {
-    height: 144px !important;
   }
 }
 
@@ -1577,7 +1561,7 @@ html.reduce-motion .glass-card:hover {
 }
 
 .wisp-sidebar {
-  width: 236px !important;
+  /* Width comes from the layout state (user-resizable); never pin it here. */
   margin: 0 !important;
   border: 0 !important;
   border-right: 1px solid rgba(61, 88, 120, 0.17) !important;
@@ -1746,7 +1730,7 @@ html .wisp-address-field:focus-within {
 }
 
 .wisp-inspector {
-  width: 348px !important;
+  /* Width comes from the layout state (user-resizable); never pin it here. */
   margin: 0 !important;
   border: 0 !important;
   border-left: 1px solid rgba(61, 88, 120, 0.17) !important;
@@ -1837,16 +1821,6 @@ html .wisp-address-field:focus-within {
   backdrop-filter: blur(22px) saturate(140%);
 }
 
-.wisp-resize-handle-horizontal {
-  width: 1px !important;
-  background: transparent !important;
-}
-
-.wisp-resize-handle-vertical {
-  height: 1px !important;
-  background: transparent !important;
-}
-
 @media (max-width: 1100px) {
   .wisp-shell {
     top: 0 !important;
@@ -1854,14 +1828,6 @@ html .wisp-address-field:focus-within {
     bottom: 0 !important;
     left: 0 !important;
     border-radius: 0;
-  }
-
-  .wisp-sidebar {
-    width: 204px !important;
-  }
-
-  .wisp-inspector {
-    width: 270px !important;
   }
 
   .wisp-titlebar .wisp-toolbar-group {
@@ -1884,14 +1850,6 @@ html .wisp-address-field:focus-within {
 @media (max-width: 920px) {
   .wisp-titlebar > div:first-child {
     padding-inline: 12px !important;
-  }
-
-  .wisp-sidebar {
-    width: 184px !important;
-  }
-
-  .wisp-inspector {
-    width: 244px !important;
   }
 
   .wisp-panel-rail-horizontal .wisp-rail-button {

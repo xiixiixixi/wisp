@@ -20,6 +20,10 @@ const WEB_IMAGE_EXTENSIONS = new Set([
   'webp',
 ]);
 
+// Formats whose Quick Look result is a poster/frame worth showing in lists.
+// Everything else renders as the macOS type icon (NSWorkspace), not a preview.
+const VIDEO_EXTENSIONS = new Set(['avi', 'mkv', 'mov', 'mp4', 'webm']);
+
 interface ScheduledRequest {
   promise: Promise<string | null>;
   accepted: boolean;
@@ -189,17 +193,27 @@ const loadFinderVisual = (file: FileEntry): VisualRequest => {
   const extension = extensionOf(file);
   const cacheKey = `${file.path}\u0000${file.modified}\u0000${file.size}\u0000${NATIVE_THUMBNAIL_SIZE}`;
   // Browser-native formats are already the highest-fidelity thumbnail: the
-  // file itself. Other formats (PDF, EPUB, HEIC, Office, video…) go through
-  // macOS Quick Look so installed Finder thumbnail providers are respected.
+  // file itself.
   if (!file.is_dir && WEB_IMAGE_EXTENSIONS.has(extension)) {
     return resolvedVisual(cacheKey, convertAssetUrl(file.path));
   }
-
-  return cacheVisual(cacheKey, () =>
-    scheduleNativeRequest(async () => {
-      const thumbnailPath = await TauriAPI.getFileThumbnailPng(file.path, NATIVE_THUMBNAIL_SIZE);
-      return convertAssetUrl(thumbnailPath);
-    }),
+  // Video: the poster frame IS the right list visual (Finder does the same).
+  if (!file.is_dir && VIDEO_EXTENSIONS.has(extension)) {
+    return cacheVisual(cacheKey, () =>
+      scheduleNativeRequest(async () => {
+        const thumbnailPath = await TauriAPI.getFileThumbnailPng(file.path, NATIVE_THUMBNAIL_SIZE);
+        return convertAssetUrl(thumbnailPath);
+      }),
+    );
+  }
+  // Everything else — Office docs, PDFs, EPUB, archives, code, plain text —
+  // gets the real macOS type icon via NSWorkspace (blue Word W, green Excel X,
+  // orange Keynote P…), exactly what Finder's list views draw. Quick Look
+  // content previews are wrong here: a wall of near-identical page thumbnails
+  // destroys at-a-glance type recognition. NSWorkspace icons resolve instantly
+  // (no per-file Quick Look subprocess) and the command caches on disk.
+  return cacheVisual(`icon\u0000${file.path}`, () =>
+    scheduleNativeRequest(async () => convertAssetUrl(await TauriAPI.getFileIconPng(file.path))),
   );
 };
 
@@ -208,6 +222,7 @@ type DemoVisualKind =
   | 'image'
   | 'pdf'
   | 'book'
+  | 'word'
   | 'spreadsheet'
   | 'presentation'
   | 'video'
@@ -224,7 +239,8 @@ const demoVisualKind = (file: FileEntry): DemoVisualKind => {
   }
   if (ext === 'pdf') return 'pdf';
   if (['epub', 'mobi', 'azw', 'azw3', 'cbz', 'cbr'].includes(ext)) return 'book';
-  if (['xls', 'xlsx', 'csv', 'ods'].includes(ext)) return 'spreadsheet';
+  if (['doc', 'docx', 'docm', 'odt', 'rtf', 'pages'].includes(ext)) return 'word';
+  if (['xls', 'xlsx', 'csv', 'ods', 'numbers'].includes(ext)) return 'spreadsheet';
   if (['ppt', 'pptx', 'key'].includes(ext)) return 'presentation';
   if (['mp4', 'mov', 'mkv', 'avi', 'webm'].includes(ext)) return 'video';
   if (['mp3', 'm4a', 'wav', 'flac', 'aac', 'ogg'].includes(ext)) return 'audio';
@@ -306,6 +322,23 @@ const DemoFinderVisual = ({ file }: { file: FileEntry }) => {
             <rect x="13" y="8" width="3" height="30" rx="1" fill="#2b568a" />
             <circle cx="23" cy="19" r="5" fill="#f2d17b" />
             <path d="M18 29h11M18 32h8" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+          </>
+        )}
+        {kind === 'word' && (
+          <>
+            <rect x="13" y="10" width="20" height="27" rx="1" fill="#eaf2fb" stroke="#5b8fc9" />
+            <rect x="13" y="10" width="20" height="5" fill="#3f77bd" />
+            <text
+              x="23"
+              y="30"
+              textAnchor="middle"
+              fontFamily="-apple-system, 'SF Pro Text', sans-serif"
+              fontWeight="700"
+              fontSize="15"
+              fill="#3f77bd"
+            >
+              W
+            </text>
           </>
         )}
         {kind === 'spreadsheet' && (

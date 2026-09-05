@@ -1,15 +1,23 @@
-import i18n from '@/i18n';
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getHistory, clearHistory, type ClipboardEntry } from '@/hooks/use-clipboard-history';
 import { useWindowEvent } from '@/hooks/use-window-event';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-const formatTimestamp = (ts: number): string => {
+type Translate = (key: string, opts?: Record<string, unknown>) => string;
+
+const formatTimestamp = (ts: number, t: Translate): string => {
   const diff = Date.now() - ts;
-  if (diff < 60_000) return 'just now';
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  if (diff < 60_000) {
+    return t('clipboardHistory.justNow');
+  }
+  if (diff < 3_600_000) {
+    return t('clipboardHistory.minutesAgo', { count: Math.floor(diff / 60_000) });
+  }
+  if (diff < 86_400_000) {
+    return t('clipboardHistory.hoursAgo', { count: Math.floor(diff / 3_600_000) });
+  }
   return new Date(ts).toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
@@ -134,6 +142,7 @@ interface ClipboardHistoryPanelProps {
 // ── Component ────────────────────────────────────────────────────────────────
 
 const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
+  const { t } = useTranslation();
   const [entries, setEntries] = useState<ClipboardEntry[]>([]);
 
   const refresh = useCallback(() => {
@@ -152,6 +161,8 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
   }, []);
 
   if (entries.length === 0) {
+    // ChatGPT R4: keep the empty state centered (clipboard is a history
+    // panel) but tighten the group so it doesn't read as a filler screen.
     return (
       <div
         style={{
@@ -160,14 +171,13 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
           alignItems: 'center',
           justifyContent: 'center',
           height: '100%',
-          gap: 8,
+          gap: 5,
           color: 'var(--xp-text-muted)',
-          fontSize: 12,
         }}
       >
         <ClipboardIcon />
-        <span>No clipboard history</span>
-        <span style={{ fontSize: 11, opacity: 0.7 }}>Copy or cut files to see them here</span>
+        <span style={{ fontSize: 12, fontWeight: 500 }}>{t('clipboardHistory.emptyTitle')}</span>
+        <span style={{ fontSize: 11, opacity: 0.7 }}>{t('clipboardHistory.emptyDesc')}</span>
       </div>
     );
   }
@@ -194,11 +204,13 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
         }}
       >
         <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--xp-text-muted)' }}>
-          {entries.length} entr{entries.length === 1 ? 'y' : 'ies'}
+          {entries.length === 1
+            ? t('clipboardHistory.entrySingle', { count: entries.length })
+            : t('clipboardHistory.entriesCount', { count: entries.length })}
         </span>
         <button
           onClick={handleClear}
-          title={i18n.t('clipboardHistory.clearHistory')}
+          title={t('clipboardHistory.clear')}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -219,7 +231,7 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
           }}
         >
           <TrashIcon />
-          Clear
+          {t('clipboardHistory.clear')}
         </button>
       </div>
 
@@ -251,7 +263,7 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
                 marginTop: 2,
                 color: entry.operation === 'cut' ? 'var(--xp-yellow)' : 'var(--xp-blue)',
               }}
-              title={entry.operation === 'cut' ? i18n.t('common.cut') : i18n.t('common.copy')}
+              title={entry.operation === 'cut' ? t('common.cut') : t('common.copy')}
             >
               {entry.operation === 'cut' ? <ScissorsIcon /> : <CopyIcon />}
             </div>
@@ -288,7 +300,7 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
                 ))}
                 {entry.files.length > 3 && (
                   <span style={{ fontSize: 11, color: 'var(--xp-text-muted)' }}>
-                    +{entry.files.length - 3} more
+                    {t('clipboardHistory.moreFiles', { count: entry.files.length - 3 })}
                   </span>
                 )}
               </div>
@@ -302,14 +314,14 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
                   opacity: 0.7,
                 }}
               >
-                {formatTimestamp(entry.timestamp)}
+                {formatTimestamp(entry.timestamp, t)}
               </div>
             </div>
 
             {/* Paste button */}
             <button
               onClick={() => onPaste(entry)}
-              title={i18n.t('clipboardHistory.pasteThese')}
+              title={t('clipboardHistory.pasteHere')}
               style={{
                 flexShrink: 0,
                 padding: '3px 10px',
@@ -331,7 +343,7 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
                 (e.target as HTMLElement).style.backgroundColor = 'rgb(var(--xp-blue-rgb) / 0.1)';
               }}
             >
-              Paste Here
+              {t('clipboardHistory.pasteHere')}
             </button>
           </div>
         ))}

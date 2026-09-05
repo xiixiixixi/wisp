@@ -44,6 +44,18 @@ const documents = [
     modified: '2026-08-21T14:32:00Z',
     file_type: 'text',
   }),
+  makeEntry(`${DEMO_HOME_PATH}/Documents`, '设计方案.docx', {
+    is_dir: false,
+    size: 142336,
+    modified: '2026-08-20T11:05:00Z',
+    file_type: 'document',
+  }),
+  makeEntry(`${DEMO_HOME_PATH}/Documents`, '路演-keynote.pptx', {
+    is_dir: false,
+    size: 5128448,
+    modified: '2026-08-18T09:40:00Z',
+    file_type: 'presentation',
+  }),
   makeEntry(`${DEMO_HOME_PATH}/Documents`, 'Budget-forecast.xlsx', {
     is_dir: false,
     size: 284672,

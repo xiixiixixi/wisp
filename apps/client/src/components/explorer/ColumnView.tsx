@@ -176,7 +176,7 @@ const VirtualizedColumnPane = ({
         style={{
           minWidth: '220px',
           maxWidth: '280px',
-          width: '250px',
+          width: '280px',
           height: '100%',
           borderRight: '1px solid var(--xp-border)',
           overflowY: 'auto',
@@ -218,7 +218,7 @@ const VirtualizedColumnPane = ({
       style={{
         minWidth: '220px',
         maxWidth: '280px',
-        width: '250px',
+        width: '280px',
         height: '100%',
         borderRight: '1px solid var(--xp-border)',
         overflowY: 'auto',
@@ -376,7 +376,7 @@ const ColumnView = ({
       {selectedFileForPreview && (
         <div
           style={{
-            minWidth: '250px',
+            minWidth: '280px',
             width: '300px',
             height: '100%',
             padding: '16px',

@@ -1,0 +1,127 @@
+/* ═══════════════════════════════════════════════════════════════════
+   FLUID GLASS — 定稿规范（2026-09-05，与 ChatGPT 四轮迭代后的设计）
+   一整张连续玻璃：三区域按信息密度分配雾度（侧栏 20 / 画布 40 / 检查
+   器 60），内部全直角通缝（1px 高光缝，无卡片缝隙），圆角只属于原生
+   窗口外四角。所有面板顶部 2px 镜面高光。整包收在 html.theme-fluid
+   下（设置 → 流体玻璃），关闭即回到纸面材质。
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── 一段：侧栏 ── 最透，天空直接透进来 */
+html.theme-fluid .wisp-sidebar {
+  background: rgba(252, 253, 255, 0.1) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  border-right: 1px solid transparent;
+  border-image: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.05)) 1;
+  box-shadow: none !important;
+}
+
+/* ── 二段：文件画布 ── 与壁纸同色系的浅色调，内容优先 */
+html.theme-fluid .wisp-content-canvas {
+  background: rgba(250, 250, 248, 0.16) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(140%) !important;
+  backdrop-filter: blur(40px) saturate(140%) !important;
+}
+
+/* 画布内的工具行不再有独立外壳——它就是画布的一部分（直角通缝） */
+html.theme-fluid .wisp-component-toolbar {
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  border-radius: 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ── 三段：检查器 ── 最厚，壁纸色隐约流动 */
+html.theme-fluid .wisp-inspector {
+  background: rgba(247, 247, 245, 0.4) !important;
+  -webkit-backdrop-filter: blur(70px) saturate(125%) !important;
+  backdrop-filter: blur(70px) saturate(125%) !important;
+  border-left: 1px solid transparent;
+  border-image: linear-gradient(180deg, rgba(255, 255, 255, 0.27), rgba(255, 255, 255, 0.045)) 1;
+}
+
+/* ── 标题栏 ── 一段玻璃 */
+html.theme-fluid .wisp-titlebar {
+  background: rgba(252, 253, 255, 0.12) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+}
+
+/* ── 底部抽屉 ── 继承列表材质（二段），不设第四雾度 */
+html.theme-fluid .wisp-bottom-panel {
+  background: rgba(250, 250, 248, 0.16) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(140%) !important;
+  backdrop-filter: blur(40px) saturate(140%) !important;
+}
+
+html.theme-fluid .wisp-statusbar {
+  background: rgba(252, 253, 255, 0.12) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+}
+
+/* ── 顶部 2px 镜面高光 ── 只属于窗口上沿（标题栏），面板之间不再各自加线 */
+html.theme-fluid .wisp-titlebar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 内部直角通缝：接缝处绝不出现圆角或留缝 */
+html.theme-fluid :is(.wisp-sidebar, .wisp-inspector, .wisp-content-canvas) {
+  border-radius: 0 !important;
+}
+
+/* ── 自适应列：名称永远最后被压缩（容器 = 每个窗格的滚动区） ──
+.wisp-pane-container {
+  container-type: inline-size;
+}
+
+   ≥640px 五列全开；≤640 收起类型；≤520 收起类型与修改时间。
+   liquid-glass.css 的 min-height 56px 在主题下解锁为行高 36px。 */
+html.theme-fluid .wisp-file-row {
+  min-height: 0 !important;
+}
+
+@container (max-width: 640px) {
+  .wisp-file-row,
+  .wisp-list-header > div {
+    --wisp-details-grid: 32px minmax(0, 1fr) 64px 132px;
+  }
+}
+
+@container (max-width: 520px) {
+  .wisp-file-row,
+  .wisp-list-header > div {
+    --wisp-details-grid: 32px minmax(0, 1fr) 64px;
+  }
+}
+
+/* ── 画廊预览的信息条 ── 黑条改为与主题同材质的玻璃条（R2 多视图评审） */
+html.theme-fluid .gallery-info-bar {
+  left: auto;
+  right: 20px;
+  bottom: 20px;
+  width: auto;
+  background: rgba(252, 253, 255, 0.78) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
+  backdrop-filter: blur(24px) saturate(160%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.65) !important;
+  border-radius: 12px;
+  padding: 10px 16px !important;
+  box-shadow: 0 6px 20px rgba(30, 50, 80, 0.12);
+}
+html.theme-fluid .gallery-info-bar .text-xp-on-accent {
+  color: var(--xp-text) !important;
+}
+html.theme-fluid .gallery-info-bar .text-xp-on-accent\/70,
+html.theme-fluid .gallery-info-bar .text-xp-on-accent\/60 {
+  color: var(--xp-text-secondary) !important;
+}

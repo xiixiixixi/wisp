@@ -188,7 +188,9 @@
     "branch": "Cabang: {{name}}",
     "modified": "{{count}} diubah",
     "staged": "{{count}} disiapkan",
-    "untracked": "{{count}} tidak terlacak"
+    "untracked": "{{count}} tidak terlacak",
+    "indexedLabel": "{{count}} berkas terindeks",
+    "indexedShort": "{{count}} terindeks"
   },
   "contextMenu": {
     "open": "Buka",
@@ -353,7 +355,9 @@
       "replayTour": "Putar Ulang Tur",
       "betaWarning": "Peringatan Beta",
       "betaWarningDesc": "Tampilkan dialog peringatan beta awal lagi",
-      "showWarning": "Tampilkan Peringatan"
+      "showWarning": "Tampilkan Peringatan",
+      "fluidGlass": "Kaca Cair",
+      "fluidGlassDesc": "Panel menjadi satu permukaan kaca cair kontinu: refraksi tepi, sorotan spekular, pewarnaan cuaca"
     },
     "explorer": {
       "display": "Tampilan",
@@ -851,7 +855,6 @@
     "auto": "Otomatis",
     "autoDetected": "Mode tampilan terdeteksi otomatis berdasarkan isi folder. Klik untuk mengatur ulang.",
     "actions": "Tindakan",
-    "actionsMenu": "Menu tindakan file",
     "newFolder": "Folder Baru",
     "newFile": "File Baru",
     "preview": "Pratinjau file terpilih",
@@ -1579,12 +1582,10 @@
     "terminal": "Terminal",
     "terminalDemoTitle": "Terminal desktop",
     "terminalDemoDescription": "Tersedia di aplikasi desktop Wisp",
-    "activityLog": "Log Aktivitas",
-    "changes": "Perubahan",
     "clipboard": "Papan Klip",
-    "notifications": "Notifikasi",
     "properties": "Properti",
-    "agents": "Agen"
+    "agents": "Agen",
+    "events": "Peristiwa"
   },
   "previewPanel": {
     "noFileSelectedShort": "Tidak ada berkas dipilih",
@@ -2118,7 +2119,9 @@
       "toastPermUpdatedTitle": "Permissions Updated",
       "toastPermUpdatedDesc": "File permissions have been successfully updated.",
       "toastPermErrorTitle": "Error Updating Permissions",
-      "toastPermErrorDesc": "Failed to update permissions: {{error}}"
+      "toastPermErrorDesc": "Failed to update permissions: {{error}}",
+      "emptyTitle": "Pilih file untuk melihat properti",
+      "emptyDesc": "Lihat ukuran, jenis, lokasi, serta waktu dibuat/diubah"
     },
     "previewAction": {
       "quickActions": "Quick actions",
@@ -2973,5 +2976,44 @@
       "applications": "Buka Aplikasi",
       "home": "Buka Beranda"
     }
+  },
+  "eventsPanel": {
+    "filterAll": "Semua",
+    "filterFiles": "Berkas",
+    "filterNotices": "Notifikasi",
+    "filterUndo": "Urungkan",
+    "markAllRead": "Tandai semua dibaca",
+    "clearAll": "Bersihkan",
+    "empty": "Belum ada apa pun",
+    "created": "dibuat",
+    "modified": "diubah",
+    "deleted": "dihapus",
+    "renamed": "diganti nama"
+  },
+  "fileType": {
+    "File": "Berkas",
+    "Image": "Gambar",
+    "Video": "Video",
+    "Audio": "Audio",
+    "Archive": "Arsip",
+    "Document": "Dokumen",
+    "Pdf": "Dokumen PDF",
+    "Spreadsheet": "Lembar sebar",
+    "Markdown": "Dokumen Markdown",
+    "Text": "Dokumen teks",
+    "Keynote": "Presentasi Keynote",
+    "Word": "Dokumen Word"
+  },
+  "clipboardHistory": {
+    "emptyTitle": "Belum ada riwayat papan klip",
+    "emptyDesc": "Salin atau potong file untuk melihatnya di sini",
+    "entrySingle": "{{count}} entri",
+    "entriesCount": "{{count}} entri",
+    "clear": "Bersihkan",
+    "pasteHere": "Tempel di Sini",
+    "moreFiles": "+{{count}} lainnya",
+    "justNow": "baru saja",
+    "minutesAgo": "{{count}} mnt lalu",
+    "hoursAgo": "{{count}} jam lalu"
   }
 }

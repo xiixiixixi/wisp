@@ -184,7 +184,7 @@ export const useWispActions = (deps: WispActionsDeps) => {
   const handleReviewChanges = useCallback(() => {
     setShowChangeSummaryToast(false);
     setBottomPanelCollapsed(false);
-    setBottomPanelTab('changes');
+    setBottomPanelTab('events');
   }, [setShowChangeSummaryToast, setBottomPanelCollapsed, setBottomPanelTab]);
 
   const handleDismissChangesToast = useCallback(() => {
