@@ -134,7 +134,8 @@
 
 html.theme-light {
   color-scheme: light;
-  --background: #eceff3;
+  /* macOS 冷蓝白玻璃（2026-09-06 定稿参考图）：底 #F5F8FD、强调 #3478F6 */
+  --background: #f5f8fd;
   --foreground: #1d1d1f;
   --muted: rgba(60, 60, 67, 0.07);
   --muted-foreground: #6e6e73;
@@ -144,7 +145,7 @@ html.theme-light {
   --card-foreground: #1d1d1f;
   --border: var(--lg-divider);
   --input: var(--lg-glass-clear);
-  --primary: #0071e3;
+  --primary: #3478f6;
   --primary-foreground: #fff;
   --secondary: rgba(255, 255, 255, 0.48);
   --secondary-foreground: #2c2c2e;
@@ -152,10 +153,10 @@ html.theme-light {
   --accent-foreground: #005bb5;
   --destructive: #ff3b30;
   --destructive-foreground: #fff;
-  --ring: #0071e3;
+  --ring: #3478f6;
   --radius: var(--lg-radius-md);
-  --xp-bg: #eceff3;
-  --xp-bg-gradient: #eceff3;
+  --xp-bg: #f5f8fd;
+  --xp-bg-gradient: #f5f8fd;
   --xp-surface: var(--lg-content-surface);
   --xp-surface-light: rgba(255, 255, 255, 0.52);
   --xp-sidebar: var(--lg-glass-regular);
@@ -165,14 +166,14 @@ html.theme-light {
   --xp-popover: var(--lg-glass-strong);
   --xp-surface-rgb: 249 252 255;
   --xp-surface-light-rgb: 255 255 255;
-  --xp-blue: #0071e3;
-  --xp-blue-rgb: 0 113 227;
-  --xp-blue-dark: #005bb5;
-  --xp-blue-dark-rgb: 0 91 181;
-  --xp-accent: #0071e3;
-  --xp-accent-rgb: 0 113 227;
-  --xp-accent-hover: #005bb5;
-  --xp-accent-hover-rgb: 0 91 181;
+  --xp-blue: #3478f6;
+  --xp-blue-rgb: 52 120 246;
+  --xp-blue-dark: #2865c8;
+  --xp-blue-dark-rgb: 40 101 200;
+  --xp-accent: #3478f6;
+  --xp-accent-rgb: 52 120 246;
+  --xp-accent-hover: #2865c8;
+  --xp-accent-hover-rgb: 40 101 200;
   --xp-purple: #8b5cf6;
   --xp-purple-rgb: 139 92 246;
   --xp-pink: #ff375f;
@@ -190,15 +191,15 @@ html.theme-light {
   --xp-lime: #0a84ff;
   --xp-lime-rgb: 10 132 255;
   --xp-text: #1d1d1f;
-  --xp-text-secondary: #515154;
-  --xp-text-muted: #76767b;
+  --xp-text-secondary: #5a6577;
+  --xp-text-muted: #7a8598;
   --xp-border: var(--lg-divider);
   --xp-border-light: rgba(31, 67, 108, 0.22);
-  --xp-selection-bg: rgba(10, 132, 255, 0.13);
-  --xp-selection-border: rgba(10, 132, 255, 0.34);
+  --xp-selection-bg: #c9ddf6;
+  --xp-selection-border: rgba(52, 120, 246, 0.28);
   --xp-on-accent: #fff;
   --xp-shadow-popover: var(--lg-shadow-elevated);
-  --glass-well: rgba(255, 255, 255, 0.34);
+  --glass-well: rgba(255, 255, 255, 0.55);
   --fx-folder: var(--file-icon-folder);
 }
 
@@ -1599,7 +1600,7 @@ html.reduce-motion .glass-card:hover {
 
 .wisp-content-canvas {
   --wisp-content-gutter: 20px;
-  --wisp-details-grid: 32px minmax(0, 1fr) 88px 96px 140px;
+  --wisp-details-grid: 44px minmax(0, 1fr) 88px 96px 140px;
   margin: 0 !important;
   border: 0 !important;
   border-radius: 0 !important;
@@ -1723,10 +1724,11 @@ html .wisp-address-field:focus-within {
 .wisp-file-row.file-selected,
 .file-item.selected,
 .file-selected {
-  border-color: rgba(10, 115, 255, 0.18) !important;
-  border-radius: 10px !important;
-  background: rgba(10, 115, 255, 0.1) !important;
-  box-shadow: 0 0 0 1px rgba(10, 115, 255, 0.16) inset !important;
+  /* macOS 参考图：#C9DDF6 实色浅蓝选中行 */
+  border-color: transparent !important;
+  border-radius: 8px !important;
+  background: #c9ddf6 !important;
+  box-shadow: none !important;
 }
 
 .wisp-inspector {

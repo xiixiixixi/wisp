@@ -133,7 +133,8 @@ const FileRow = React.memo(
         onKeyDown={handleKeyDown}
       >
         <div className="col-span-1 flex justify-center" role="gridcell">
-          <span className={`text-lg ${isHiddenFile(file) ? 'opacity-60' : ''}`}>
+          {/* macOS 参考图：行内大号类型图标 */}
+          <span className={`text-[26px] leading-none ${isHiddenFile(file) ? 'opacity-60' : ''}`}>
             <FileReferenceBadge file={file} compact>
               {getFileIcon(file)}
             </FileReferenceBadge>
@@ -208,7 +209,7 @@ const GroupHeader = React.memo(({ name, count }: { name: string; count: number }
     {/* Finder-parity group title: same size class as the file names (13px,
         medium ink), flush with the icon column, count trailing in muted gray.
         A section header must never render smaller than its content. */}
-    <span className="text-[13px] font-medium leading-none text-xp-text">{name}</span>
+    <span className="text-[13.5px] font-semibold leading-none text-xp-text">{name}</span>
     <span className="text-xs leading-none text-xp-text-muted">{count}</span>
   </div>
 ));

@@ -8,7 +8,7 @@
 
 /* ── 一段：侧栏 ── 低透 tint，天空直接透进来（ChatGPT 材质定稿） */
 html.theme-fluid .wisp-sidebar {
-  background: rgba(238, 245, 251, 0.28) !important;
+  background: rgba(242, 246, 252, 0.3) !important;
   -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
   backdrop-filter: blur(22px) saturate(160%) !important;
   border-right: 1px solid transparent;
@@ -18,7 +18,7 @@ html.theme-fluid .wisp-sidebar {
 
 /* ── 二段：文件画布 ── 48% 白 tint：天空色穿过玻璃（不是 93% 白盖住） */
 html.theme-fluid .wisp-content-canvas {
-  background: rgba(242, 247, 252, 0.48) !important;
+  background: rgba(244, 248, 253, 0.78) !important;
   -webkit-backdrop-filter: blur(28px) saturate(140%) !important;
   backdrop-filter: blur(28px) saturate(140%) !important;
 }
@@ -34,7 +34,7 @@ html.theme-fluid .wisp-component-toolbar {
 
 /* ── 三段：检查器 ── 略厚，暖白 tint（桥的暖米色） */
 html.theme-fluid .wisp-inspector {
-  background: rgba(244, 239, 232, 0.58) !important;
+  background: rgba(246, 250, 254, 0.72) !important;
   -webkit-backdrop-filter: blur(40px) saturate(130%) !important;
   backdrop-filter: blur(40px) saturate(130%) !important;
   border-left: 1px solid transparent;
@@ -43,20 +43,20 @@ html.theme-fluid .wisp-inspector {
 
 /* ── 标题栏 ── 一段玻璃 */
 html.theme-fluid .wisp-titlebar {
-  background: rgba(236, 244, 251, 0.24) !important;
+  background: rgba(242, 246, 252, 0.42) !important;
   -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
   backdrop-filter: blur(24px) saturate(160%) !important;
 }
 
 /* ── 底部抽屉 ── 继承画布 tint */
 html.theme-fluid .wisp-bottom-panel {
-  background: rgba(242, 247, 252, 0.48) !important;
+  background: rgba(244, 248, 253, 0.78) !important;
   -webkit-backdrop-filter: blur(28px) saturate(140%) !important;
   backdrop-filter: blur(28px) saturate(140%) !important;
 }
 
 html.theme-fluid .wisp-statusbar {
-  background: rgba(236, 244, 251, 0.38) !important;
+  background: rgba(242, 246, 252, 0.5) !important;
   -webkit-backdrop-filter: blur(24px) saturate(150%) !important;
   backdrop-filter: blur(24px) saturate(150%) !important;
 }
@@ -151,7 +151,16 @@ html.theme-fluid :is(.wisp-sidebar, .wisp-inspector, .wisp-content-canvas) {
    ≥640px 五列全开；≤640 收起类型；≤520 收起类型与修改时间。
    liquid-glass.css 的 min-height 56px 在主题下解锁为行高 36px。 */
 html.theme-fluid .wisp-file-row {
-  min-height: 0 !important;
+  /* macOS 参考图：52px 圆角行，行间靠留白+2px 间距分隔（直角行线退役） */
+  min-height: 52px !important;
+  border-bottom: none !important;
+  border-radius: 8px !important;
+  margin-bottom: 2px;
+}
+
+html.theme-fluid .wisp-list-header {
+  border-radius: 8px !important;
+  background: transparent !important;
 }
 
 @container (max-width: 640px) {
