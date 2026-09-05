@@ -6,11 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </head>
   <script>
-    // Boot polarity by clock so the light day theme never flashes dark;
-    // SkySync refines it from the real sunrise/sunset once weather loads.
+    // Always light — the ink polarity was removed (2026-09-06). SkySync
+    // re-applies theme-light plus the fluid/accessibility classes on boot.
     try {
-      var h = new Date().getHours();
-      document.documentElement.classList.add(h >= 6 && h < 18 ? 'theme-light' : 'theme-rolex');
+      document.documentElement.classList.add('theme-light');
     } catch (e) {}
   </script>
   <body>
