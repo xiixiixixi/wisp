@@ -1328,8 +1328,11 @@ html.high-contrast.theme-light {
    chip carries the facts; the ground carries the mood.
    ═══════════════════════════════════════════════════════════════════ */
 
+/* The base ground color rides ON the drifting ::before field (z -2) —
+   an opaque html background would paint OVER the z -1 fields and hide
+   the whole weather layer. html itself stays clear. */
 html[data-sky] {
-  background: var(--xp-bg);
+  background: transparent;
 }
 
 html[data-sky]::before,
@@ -1345,6 +1348,8 @@ html[data-sky]::after {
 
 /* Two fields, two rhythms — they never sync, so the sky never repeats */
 html[data-sky]::before {
+  background-color: var(--xp-bg);
+  z-index: -2;
   animation: sky-drift-a 100s ease-in-out infinite alternate;
 }
 html[data-sky]::after {
@@ -1382,16 +1387,12 @@ html.reduce-motion[data-sky]::after {
 
 /* ── 白天 — warm paper light ── */
 html[data-sky="day"]::before {
-  background-image: radial-gradient(
-    120% 90% at 30% 12%,
-    rgba(233, 219, 188, 0.32),
-    transparent 85%
-  );
+  background-image: radial-gradient(120% 90% at 30% 12%, rgba(233, 219, 188, 0.5), transparent 85%);
 }
 html[data-sky="day"]::after {
   background-image: radial-gradient(
     110% 85% at 85% 12%,
-    rgba(214, 216, 196, 0.22),
+    rgba(214, 216, 196, 0.34),
     transparent 85%
   );
 }

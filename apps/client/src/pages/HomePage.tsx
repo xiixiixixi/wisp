@@ -1,17 +1,11 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TauriAPI, type RecentFile } from '@/lib/tauri-api';
+import { TauriAPI, type RecentFile, type FileEntry } from '@/lib/tauri-api';
 import { AgentService, type AgentEvent, type AgentToolCall } from '@/lib/agent-service';
 import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import SystemDashboard from '@/components/explorer/SystemDashboard';
-import { formatFileSize, applyTheme } from '@/lib/utils';
-import {
-  isMac,
-  isWindows,
-  ROOT_PATH,
-  PATH_SEPARATOR,
-  CLOCK_UPDATE_INTERVAL_MS,
-} from '@/lib/constants';
+import { formatFileSize, applyTheme, getFileIcon } from '@/lib/utils';
+import { isWindows, ROOT_PATH, PATH_SEPARATOR, CLOCK_UPDATE_INTERVAL_MS } from '@/lib/constants';
 import { useAllThemes } from '@/lib/theme-registry';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -20,21 +14,7 @@ import {
   getDemoUserDirectories,
   isBrowserDemoMode,
 } from '@/lib/browser-demo-files';
-import {
-  Cloud,
-  ArrowRight,
-  Clock3,
-  Download,
-  FileText,
-  Folder,
-  Home as HomeIcon,
-  Image as ImageIcon,
-  Monitor,
-  Music,
-  Search,
-  Sparkles,
-  X,
-} from 'lucide-react';
+import { ArrowRight, Clock3, Folder, Search, Sparkles, X } from 'lucide-react';
 
 interface QuickStats {
   totalFiles: number;
@@ -79,27 +59,21 @@ const relativeTime = (
   return t('home.weeksAgo', { count: Math.floor(days / 7) });
 };
 
-/** Icon gradient based on file type. */
-/** Icon-library glyph for recent files based on type. */
-const RecentFileTypeIcon = ({
-  fileType,
-  className = 'w-3.5 h-3.5',
-}: {
-  fileType: string;
-  className?: string;
-}) => {
-  const t = fileType.toLowerCase();
-  if (t === 'folder') {
-    return (
-      <Folder
-        className={className}
-        fill="currentColor"
-        strokeWidth={1}
-        style={{ color: 'var(--fx-folder)' }}
-      />
-    );
-  }
-  return <FileText className={className} style={{ color: 'var(--file-icon-muted)' }} />;
+/** The Finder-faithful icon for a recent file — same visual as the lists. */
+const recentFileEntry = (file: RecentFile): FileEntry => ({
+  name: file.name,
+  path: file.path,
+  is_dir: false,
+  size: file.size,
+  modified: Math.floor(file.accessed_at / 1000),
+  file_type: file.file_type,
+  is_readonly: false,
+});
+
+/** The folder a recent file lives in, for the「来自」line. */
+const parentFolderOf = (path: string): string => {
+  const segments = path.split(/[\\/]/).filter(Boolean);
+  return segments.length >= 2 ? segments[segments.length - 2] : segments[0] || path;
 };
 
 /** Hero stat: big light numeral with a small stone label. */
@@ -187,7 +161,6 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
   const { toast } = useToast();
   const [recommendedFolders, setRecommendedFolders] = useState<string[]>([]);
   const [userDirectories, setUserDirectories] = useState<UserDirectories | null>(null);
-  const [iCloudPath, setICloudPath] = useState<string | null>(null);
   const [quickStats, setQuickStats] = useState<QuickStats>({
     totalFiles: 0,
     totalFolders: 0,
@@ -419,15 +392,6 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
       const userDirs = await TauriAPI.getUserDirectories();
       setUserDirectories(userDirs);
 
-      if (isMac) {
-        // Finder's iCloud Drive is the whole Mobile Documents root —
-        // CloudDocs alone hides the per-app containers (Keynote, …).
-        const mobileRoot = `${userDirs.home}/Library/Mobile Documents`;
-        const cloudDocs = `${mobileRoot}/com~apple~CloudDocs`;
-        const root = (await TauriAPI.fileExists(mobileRoot)) ? mobileRoot : cloudDocs;
-        setICloudPath((await TauriAPI.fileExists(root)) ? root : null);
-      }
-
       const recent = await TauriAPI.getRecentFolders();
       setRecommendedFolders(recent.slice(0, 4));
 
@@ -468,59 +432,6 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
     }
   };
 
-  const quickAccessTiles = useMemo(() => {
-    if (!userDirectories) return [];
-    return [
-      {
-        key: 'home',
-        label: t('sidebar.home'),
-        path: userDirectories.home,
-        Icon: HomeIcon,
-      },
-      {
-        key: 'documents',
-        label: t('sidebar.documents'),
-        path: userDirectories.documents,
-        Icon: FileText,
-      },
-      {
-        key: 'downloads',
-        label: t('sidebar.downloads'),
-        path: userDirectories.downloads,
-        Icon: Download,
-      },
-      {
-        key: 'desktop',
-        label: t('sidebar.desktop'),
-        path: userDirectories.desktop,
-        Icon: Monitor,
-      },
-      {
-        key: 'pictures',
-        label: t('sidebar.pictures'),
-        path: userDirectories.pictures,
-        Icon: ImageIcon,
-      },
-      {
-        key: 'music',
-        label: t('home.music'),
-        path: userDirectories.music,
-        Icon: Music,
-      },
-      ...(iCloudPath
-        ? [
-            {
-              key: 'icloud',
-              label: t('sidebar.icloudDrive'),
-              path: iCloudPath,
-              Icon: Cloud,
-            },
-          ]
-        : []),
-    ].filter((tile) => Boolean(tile.path));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userDirectories, iCloudPath]);
-
   const handleNavigate = (path: string) => {
     // Persisting a recent destination is secondary and must never block navigation.
     if (!isBrowserDemoMode()) {
@@ -559,37 +470,7 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
           </div>
         </div>
 
-        {/* Quick access — the primary jump-off: everyday locations */}
-        {quickAccessTiles.length > 0 && (
-          <div className="order-1 lg:col-span-12">
-            <SectionHeader
-              title={t('sidebar.quickAccess')}
-              subtitle={t('home.quickAccessSubtitle')}
-            />
-            <div
-              className={`grid grid-cols-2 gap-2 sm:grid-cols-3 ${
-                quickAccessTiles.length > 6 ? 'lg:grid-cols-4 xl:grid-cols-7' : 'lg:grid-cols-6'
-              }`}
-            >
-              {quickAccessTiles.map(({ key, label, path, Icon }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => handleNavigate(path)}
-                  title={path}
-                  className="glass-card group flex flex-col items-center gap-2.5 p-3.5 text-center transition-colors hover:border-xp-border-light"
-                >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-[2px] bg-xp-bg text-xp-text-secondary group-hover:text-xp-text">
-                    <Icon size={18} aria-hidden="true" />
-                  </span>
-                  <span className="w-full truncate text-[13px] font-medium text-xp-text">
-                    {label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Quick access is gone on purpose — the sidebar already owns it. */}
 
         {/* Recent folders inline */}
         {recommendedFolders.length > 0 && (
@@ -646,11 +527,19 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
                       className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left"
                       title={file.path}
                     >
-                      <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[2px] bg-xp-bg text-xp-text-secondary">
-                        <RecentFileTypeIcon fileType={file.file_type} className="h-4 w-4" />
+                      <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center text-[24px] leading-none">
+                        {getFileIcon(recentFileEntry(file))}
                       </span>
-                      <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-xp-text">
-                        {file.name}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[13px] font-medium text-xp-text">
+                          {file.name}
+                        </span>
+                        <span
+                          className="block truncate text-[11px] text-xp-text-muted"
+                          title={file.path}
+                        >
+                          {parentFolderOf(file.path)}
+                        </span>
                       </span>
                       <span className="flex-shrink-0 text-[11px] text-xp-text-muted">
                         {relativeTime(file.accessed_at, t)}

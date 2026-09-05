@@ -49,8 +49,10 @@
   --lg-ease: cubic-bezier(0.2, 0.75, 0.25, 1);
   --lg-spring: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Stable file-icon colors. These deliberately do not follow the new UI tint. */
-  --file-icon-folder: #5878a0;
+  /* Stable file-icon colors. These deliberately do not follow the new UI tint.
+     Folder = Finder's own folder blue: the fallback must match the NSWorkspace
+     icon that replaces it, or every folder flashes dark→light on entry. */
+  --file-icon-folder: #4aa7f2;
   --file-icon-muted: #66655d;
   --file-icon-yellow: #b39a5d;
   --file-icon-green: #6f7f57;
@@ -223,7 +225,7 @@ html.theme-rolex {
     0 10px 28px rgba(0, 0, 0, 0.34);
   --lg-shadow-control: 0 1px 0 rgba(255, 255, 255, 0.1) inset, 0 8px 22px rgba(0, 0, 0, 0.24);
 
-  --file-icon-folder: #8fb0d6;
+  --file-icon-folder: #4aa7f2;
   --file-icon-muted: #918c80;
   --file-icon-yellow: #c7ae72;
   --file-icon-green: #9aa878;

@@ -157,12 +157,21 @@ const BottomPanel = ({
     return tab.charAt(0).toUpperCase() + tab.slice(1);
   };
 
+  // An EMPTY events tab must NOT hide the whole panel — that read as
+  // "点击就自动关闭了". Collapse to a 32px tab-row strip instead so the
+  // tabs stay clickable and the panel never vanishes.
+  const panelHeight = (() => {
+    if (bottomPanelCollapsed) return undefined;
+    if (compactEventsRow) return 32;
+    return drawerHeight;
+  })();
+
   return (
     <div
       // Collapsed hides the same tree instead of unmounting it, so terminal
       // sessions (and any other panel state) survive collapse/expand.
-      className={`wisp-bottom-panel ${bottomPanelCollapsed || compactEventsRow ? 'hidden' : 'flex flex-shrink-0 flex-col border-t border-xp-border bg-xp-surface'}`}
-      style={{ height: compactEventsRow ? undefined : drawerHeight }}
+      className={`wisp-bottom-panel ${bottomPanelCollapsed ? 'hidden' : 'flex flex-shrink-0 flex-col border-t border-xp-border bg-xp-surface'}`}
+      style={{ height: panelHeight, overflow: 'hidden' }}
     >
       {/* Bottom Panel Tabs */}
       <div
