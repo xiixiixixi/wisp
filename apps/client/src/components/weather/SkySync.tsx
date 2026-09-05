@@ -1,14 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useWeather } from '@/hooks/use-weather';
-import { skyGround } from '@/lib/weather';
-import { isWeatherSyncEnabled } from '@/lib/weather-location';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 /**
- * Wisp has one stable, neutral appearance. The real sky can still stain the
- * paper ground — one quiet wash, painted on the html background and nothing
- * else. No particles, no glows, no animation; the weather chip carries the
- * literal sky.
+ * 天气只以芯片与主页卡片呈现。SkySync 现在只管两件事：跟随日照的
+ * 明/暗极性（白天亮纸、夜间墨纸）与流体玻璃/无障碍类开关。
  */
 type SunPhase = 'dawn' | 'day' | 'dusk' | 'night';
 
@@ -58,20 +54,16 @@ const syncAccessibilityClasses = () => {
 
 const SkySync = () => {
   const { report } = useWeather();
-  const [weatherEnabled, setWeatherEnabled] = useState(isWeatherSyncEnabled());
   // Bumped at the next sun boundary so phase flips without waiting for the
   // 30-minute weather poll.
   const [, setSunTick] = useState(0);
 
-  // The toggle lives in settings (another route) — follow it live.
+  // The accessibility & fluid-glass classes live in settings (another route)
+  // — follow them live.
   useEffect(() => {
-    const sync = () => {
-      setWeatherEnabled(isWeatherSyncEnabled());
-      syncAccessibilityClasses();
-    };
     syncAccessibilityClasses();
-    window.addEventListener('wisp-settings-changed', sync);
-    return () => window.removeEventListener('wisp-settings-changed', sync);
+    window.addEventListener('wisp-settings-changed', syncAccessibilityClasses);
+    return () => window.removeEventListener('wisp-settings-changed', syncAccessibilityClasses);
   }, []);
 
   const today = report?.daily?.[0];
@@ -97,21 +89,15 @@ const SkySync = () => {
     // After the last boundary, re-evaluate on the next poll tick.
   }, [today?.sunrise, today?.sunset, report?.updated_at]);
 
-  // Keep the product appearance stable. Only the ambient sky layer follows
-  // the sun; the functional interface remains the same neutral light theme.
-  // Dark grounds (night / rain / storm) flip the panel polarity to ink so
-  // text stays readable over the deep color fields.
+  // 2026-09-06 用户决定：删除全幅天气色场，天气只以芯片与主页卡片呈现。
+  // SkySync 保留两件事：跟随日照的明/暗极性（白天亮纸、夜间墨纸）与
+  // 流体玻璃开关；不再往 html 写 data-sky（色场 CSS 已移除）。
   useEffect(() => {
     const root = document.documentElement;
-    const effective =
-      weatherEnabled && report ? skyGround(report.weather_code) : ('clear' as const);
-    const sky = effective !== 'clear' ? effective : phase;
     root.classList.remove('theme-rolex', 'theme-glass');
-    root.classList.add(
-      sky === 'night' || sky === 'rain' || sky === 'storm' ? 'theme-rolex' : 'theme-light',
-    );
-    root.dataset.sky = sky;
-  }, [weatherEnabled, report, phase]);
+    root.classList.add(phase === 'night' ? 'theme-rolex' : 'theme-light');
+    delete root.dataset.sky;
+  }, [phase]);
 
   return null;
 };
