@@ -16,11 +16,12 @@ html.theme-fluid .wisp-sidebar {
   box-shadow: none !important;
 }
 
-/* ── 二段：文件画布 ── 与壁纸同色系的浅色调，内容优先 */
+/* ── 二段：文件画布 ── 按定稿设计图：一张近实心的白纸，文件浏览永远
+   在干净底子上读；天空色只从两侧玻璃和缝隙透进来，不进阅读区 */
 html.theme-fluid .wisp-content-canvas {
-  background: rgba(250, 250, 248, 0.16) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(140%) !important;
-  backdrop-filter: blur(40px) saturate(140%) !important;
+  background: rgba(251, 252, 254, 0.93) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
+  backdrop-filter: blur(24px) saturate(130%) !important;
 }
 
 /* 画布内的工具行不再有独立外壳——它就是画布的一部分（直角通缝） */
@@ -32,11 +33,11 @@ html.theme-fluid .wisp-component-toolbar {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-/* ── 三段：检查器 ── 最厚，壁纸色隐约流动 */
+/* ── 三段：检查器 ── 厚玻璃，天空色隐约流动但不干扰属性阅读 */
 html.theme-fluid .wisp-inspector {
-  background: rgba(247, 247, 245, 0.4) !important;
-  -webkit-backdrop-filter: blur(70px) saturate(125%) !important;
-  backdrop-filter: blur(70px) saturate(125%) !important;
+  background: rgba(249, 250, 252, 0.72) !important;
+  -webkit-backdrop-filter: blur(48px) saturate(130%) !important;
+  backdrop-filter: blur(48px) saturate(130%) !important;
   border-left: 1px solid transparent;
   border-image: linear-gradient(180deg, rgba(255, 255, 255, 0.27), rgba(255, 255, 255, 0.045)) 1;
 }
@@ -48,15 +49,15 @@ html.theme-fluid .wisp-titlebar {
   backdrop-filter: blur(20px) saturate(160%) !important;
 }
 
-/* ── 底部抽屉 ── 继承列表材质（二段），不设第四雾度 */
+/* ── 底部抽屉 ── 继承列表材质（近实心白纸），终端/动态都要可读 */
 html.theme-fluid .wisp-bottom-panel {
-  background: rgba(250, 250, 248, 0.16) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(140%) !important;
-  backdrop-filter: blur(40px) saturate(140%) !important;
+  background: rgba(251, 252, 254, 0.9) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
+  backdrop-filter: blur(24px) saturate(130%) !important;
 }
 
 html.theme-fluid .wisp-statusbar {
-  background: rgba(252, 253, 255, 0.12) !important;
+  background: rgba(252, 253, 255, 0.4) !important;
   -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
   backdrop-filter: blur(20px) saturate(150%) !important;
 }
