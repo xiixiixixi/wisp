@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TauriAPI, type RecentFile, type FileEntry } from '@/lib/tauri-api';
-import { AgentService, type AgentEvent, type AgentToolCall } from '@/lib/agent-service';
-import MarkdownRenderer from '@/components/ui/MarkdownRenderer';
 import SystemDashboard from '@/components/explorer/SystemDashboard';
 import { formatFileSize, applyTheme, getFileIcon } from '@/lib/utils';
 import { isWindows, ROOT_PATH, PATH_SEPARATOR, CLOCK_UPDATE_INTERVAL_MS } from '@/lib/constants';
@@ -14,7 +12,7 @@ import {
   getDemoUserDirectories,
   isBrowserDemoMode,
 } from '@/lib/browser-demo-files';
-import { ArrowRight, Clock3, Folder, Search, Sparkles, X } from 'lucide-react';
+import { ArrowRight, Clock3, Folder, X } from 'lucide-react';
 
 interface QuickStats {
   totalFiles: number;
@@ -136,8 +134,6 @@ const Clock = () => {
             month: 'long',
             day: 'numeric',
           })}
-          <span className="text-xp-text-muted opacity-60">·</span>
-          {t('home.workspace')}
         </p>
       </div>
       <div className="flex flex-col items-end gap-1.5">
@@ -238,136 +234,6 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
     }
   };
 
-  // AI Assistant state
-  const [aiInput, setAiInput] = useState('');
-  const [aiMessages, setAiMessages] = useState<
-    Array<{ role: 'user' | 'assistant'; content: string }>
-  >([]);
-  const [aiStreaming, setAiStreaming] = useState('');
-  const [aiRunning, setAiRunning] = useState(false);
-  const [aiToolCalls, setAiToolCalls] = useState<
-    Array<{ id: string; name: string; status: string }>
-  >([]);
-  const [aiPendingApprovals, setAiPendingApprovals] = useState<AgentToolCall[]>([]);
-  const aiScrollRef = useRef<HTMLDivElement>(null);
-
-  const scrollAiToBottom = () => {
-    if (aiScrollRef.current) {
-      aiScrollRef.current.scrollTop = aiScrollRef.current.scrollHeight;
-    }
-  };
-
-  useEffect(scrollAiToBottom, [aiMessages, aiStreaming, aiToolCalls]);
-
-  const handleAiSend = async () => {
-    const msg = aiInput.trim();
-    if (!msg || aiRunning) return;
-    setAiInput('');
-
-    const userMsg = { role: 'user' as const, content: msg };
-    setAiMessages((prev) => [...prev, userMsg]);
-    setAiRunning(true);
-    setAiStreaming('');
-    setAiToolCalls([]);
-    setAiPendingApprovals([]);
-
-    let streamBuf = '';
-    const conversationForApi = [...aiMessages, userMsg].map((m) => ({
-      role: m.role,
-      content: m.content,
-    }));
-
-    try {
-      await AgentService.startAgentChat(
-        conversationForApi,
-        userDirectories?.home || ROOT_PATH,
-        (event: AgentEvent) => {
-          switch (event.event_type) {
-            case 'text':
-            case 'text_delta':
-              if (event.text) {
-                streamBuf += event.text;
-                setAiStreaming(streamBuf);
-              }
-              break;
-            case 'tool_call':
-              if (event.tool_call) {
-                setAiToolCalls((prev) => [
-                  ...prev,
-                  {
-                    id: event.tool_call!.id,
-                    name: event.tool_call!.name,
-                    status: event.tool_call!.status,
-                  },
-                ]);
-              }
-              break;
-            case 'approval_request':
-              if (event.tool_call) {
-                setAiPendingApprovals((prev) => [...prev, event.tool_call!]);
-              }
-              break;
-            case 'tool_result':
-              if (event.tool_call) {
-                setAiToolCalls((prev) =>
-                  prev.map((tc) =>
-                    tc.id === event.tool_call!.id ? { ...tc, status: event.tool_call!.status } : tc,
-                  ),
-                );
-                setAiPendingApprovals((prev) => prev.filter((tc) => tc.id !== event.tool_call!.id));
-              }
-              break;
-            case 'complete': {
-              const finalText = streamBuf || event.text || '';
-              if (finalText) {
-                setAiMessages((prev) => [...prev, { role: 'assistant', content: finalText }]);
-              }
-              setAiStreaming('');
-              streamBuf = '';
-              setAiRunning(false);
-              setAiToolCalls([]);
-              break;
-            }
-            case 'error':
-              if (streamBuf) {
-                setAiMessages((prev) => [...prev, { role: 'assistant', content: streamBuf }]);
-              }
-              setAiMessages((prev) => [
-                ...prev,
-                { role: 'assistant', content: `Error: ${event.text || 'Unknown error'}` },
-              ]);
-              setAiStreaming('');
-              setAiRunning(false);
-              break;
-          }
-        },
-      );
-    } catch (err) {
-      setAiMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: `Failed to start agent: ${err}` },
-      ]);
-      setAiRunning(false);
-    }
-  };
-
-  const handleApproval = async (toolCallId: string, response: string) => {
-    try {
-      await AgentService.respondToApproval(toolCallId, response);
-      setAiPendingApprovals((prev) => prev.filter((tc) => tc.id !== toolCallId));
-    } catch (err) {
-      console.error('Approval failed:', err);
-    }
-  };
-
-  useEffect(() => {
-    loadUserData();
-    loadSystemStats();
-    loadRecentFiles();
-    // Mount-only initialization
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const loadUserData = async () => {
     try {
       if (isBrowserDemoMode()) {
@@ -426,6 +292,16 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
     }
   };
 
+  // Mount: load user data, stats, recents (restored after the legacy-agent
+  // state block removal took the old effect with it).
+  useEffect(() => {
+    loadUserData();
+    loadSystemStats();
+    loadRecentFiles();
+    // Mount-only initialization
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleNavigate = (path: string) => {
     // Persisting a recent destination is secondary and must never block navigation.
     if (!isBrowserDemoMode()) {
@@ -452,6 +328,10 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
         {/* Compact header + hero stat row */}
         <div className="order-0 lg:col-span-12">
           <Clock />
+          {/* 系统状态：紧凑一行，紧跟问候（用户：放顶上、占地方别太大） */}
+          <div className="mt-2">
+            <SystemDashboard />
+          </div>
           <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
             <HeroStat value={quickStats.totalFiles.toLocaleString()} label={t('home.statFiles')} />
             <HeroStat
@@ -584,205 +464,6 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
             </div>
           </div>
         )}
-
-        {/* System status — demoted to a compact bottom summary (R2: 问候 →
-            快速进入文件 → 最近活动 → 系统状态；状态不是视觉中心) */}
-        <div className="home-status-compact order-4 lg:col-span-12">
-          <SystemDashboard />
-        </div>
-
-        {/* Legacy built-in Agent: intentionally disconnected from the product UI. */}
-        <div className="hidden" aria-hidden="true">
-          <div className="flex h-full flex-col overflow-hidden rounded-[2px] border border-xp-border bg-muted shadow-xl shadow-black/10">
-            {/* Chat messages area */}
-            <div ref={aiScrollRef} className="max-h-72 overflow-y-auto px-5 pb-2 pt-4 sm:px-6">
-              {aiMessages.length === 0 && !aiStreaming && (
-                <div className="flex items-center gap-3 py-2">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[2px] border border-xp-border bg-muted">
-                    <Sparkles className="h-5 w-5 text-xp-blue" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-base font-semibold text-xp-text">{t('home.agentTitle')}</p>
-                      <span className="bg-xp-selection rounded-[2px] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-xp-lime">
-                        {t('home.ready')}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 text-sm leading-5 text-xp-text-muted">
-                      {t('home.agentDescription')}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-3">
-                {aiMessages.map((msg, i) => (
-                  <div
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={i}
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[85%] rounded-[2px] px-3.5 py-2.5 text-sm ${
-                        msg.role === 'user'
-                          ? 'bg-xp-blue/20 text-xp-text'
-                          : 'bg-xp-bg/60 text-xp-text'
-                      }`}
-                    >
-                      {msg.role === 'user' ? (
-                        <span>{msg.content}</span>
-                      ) : (
-                        <MarkdownRenderer content={msg.content} />
-                      )}
-                    </div>
-                  </div>
-                ))}
-
-                {/* Streaming response */}
-                {aiStreaming && (
-                  <div className="flex justify-start">
-                    <div className="bg-xp-bg/60 max-w-[85%] rounded-[2px] px-3.5 py-2.5 text-sm text-xp-text">
-                      <MarkdownRenderer content={aiStreaming} />
-                    </div>
-                  </div>
-                )}
-
-                {/* Tool calls */}
-                {aiToolCalls.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {aiToolCalls.map((tc) => {
-                      let dotClass = 'animate-pulse bg-xp-accent';
-                      if (tc.status === 'completed') {
-                        dotClass = 'bg-xp-green';
-                      } else if (tc.status === 'error' || tc.status === 'denied') {
-                        dotClass = 'bg-xp-red';
-                      }
-                      return (
-                        <span
-                          key={tc.id}
-                          className="bg-xp-bg/60 inline-flex items-center gap-1.5 rounded-[2px] border border-xp-border px-2.5 py-1 text-xs text-xp-text-muted"
-                        >
-                          <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${dotClass}`} />
-                          {tc.name}
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Approval requests */}
-                {aiPendingApprovals.map((tc) => {
-                  let approvalDetail: string;
-                  if (tc.name === 'execute_command') {
-                    approvalDetail = String((tc.input as Record<string, unknown>)?.command || '');
-                  } else if (tc.name === 'write_file' || tc.name === 'delete') {
-                    approvalDetail = String((tc.input as Record<string, unknown>)?.path || '');
-                  } else {
-                    approvalDetail = JSON.stringify(tc.input).slice(0, 80);
-                  }
-                  return (
-                    <div
-                      key={tc.id}
-                      className="rounded-[2px] border border-xp-selection-border bg-xp-selection-bg p-3"
-                    >
-                      <p className="mb-1.5 text-xs font-medium text-xp-yellow">
-                        {t('home.approve')}: {tc.name}
-                      </p>
-                      <p className="mb-2 truncate font-mono text-xs text-xp-text-muted">
-                        {approvalDetail}
-                      </p>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleApproval(tc.id, 'allow_once')}
-                          className="rounded-[2px] bg-xp-green px-3 py-1 text-xs text-xp-on-accent transition-colors hover:bg-xp-green"
-                        >
-                          {t('home.thisTime')}
-                        </button>
-                        <button
-                          onClick={() => handleApproval(tc.id, 'allow_always')}
-                          className="rounded-[2px] bg-xp-blue px-3 py-1 text-xs text-xp-on-accent transition-colors hover:opacity-80"
-                        >
-                          {t('home.always')}
-                        </button>
-                        <button
-                          onClick={() => handleApproval(tc.id, 'deny_always')}
-                          className="rounded-[2px] border border-xp-border bg-xp-surface px-3 py-1 text-xs text-xp-text transition-colors hover:bg-xp-bg"
-                        >
-                          {t('home.never')}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Input area - pinned at bottom */}
-            <div className="flex-shrink-0 border-t border-xp-border p-4 sm:px-6 sm:pb-5">
-              <div className="flex items-center gap-3">
-                <div className="relative flex-1">
-                  <Search
-                    size={17}
-                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xp-text-muted"
-                    aria-hidden="true"
-                  />
-                  <input
-                    type="text"
-                    value={aiInput}
-                    onChange={(e) => setAiInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleAiSend();
-                      }
-                    }}
-                    placeholder={t('home.askAnything')}
-                    disabled={aiRunning}
-                    className="h-12 w-full rounded-[2px] border border-xp-border bg-xp-surface pl-11 pr-24 text-sm text-xp-text placeholder-xp-text-muted shadow-inner transition-colors focus:border-primary focus:outline-none disabled:opacity-50"
-                  />
-                  <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
-                    {aiRunning ? (
-                      <button
-                        onClick={() => AgentService.cancelSession()}
-                        className="bg-xp-error/20 text-xp-error hover:bg-xp-error/30 rounded-[2px] px-2.5 py-1 text-xs transition-colors"
-                      >
-                        {t('home.stop')}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleAiSend}
-                        disabled={!aiInput.trim()}
-                        className="inline-flex h-8 items-center gap-1.5 rounded-[2px] bg-xp-blue px-3 text-xs font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-xp-blue-dark disabled:opacity-30"
-                      >
-                        {t('home.send')}
-                        <ArrowRight size={13} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-              {aiMessages.length === 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {[
-                    t('home.suggestionListRecent'),
-                    t('home.suggestionOrganize'),
-                    t('home.suggestionLargeFiles'),
-                  ].map((suggestion) => (
-                    <button
-                      key={suggestion}
-                      onClick={() => {
-                        setAiInput(suggestion);
-                      }}
-                      className="rounded-[2px] border border-xp-border bg-muted px-3 py-1.5 text-xs text-xp-text-muted transition-colors hover:border-primary hover:bg-xp-surface-light hover:text-xp-text"
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

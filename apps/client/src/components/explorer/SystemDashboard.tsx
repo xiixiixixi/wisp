@@ -22,87 +22,6 @@ const gaugeColor = (pct: number): string => {
   return 'var(--xp-red)';
 };
 
-const Gauge = ({
-  pct,
-  label,
-  subtitle,
-  icon,
-  hero = false,
-}: {
-  pct: number | null;
-  label: string;
-  subtitle: string;
-  icon: React.ReactNode;
-  /** hero renders larger, with the 無印紅 position marker on the meter. */
-  hero?: boolean;
-}) => {
-  const hasData = pct !== null;
-  const value = hasData ? (pct as number) : 0;
-  const color = hasData ? gaugeColor(value) : 'var(--xp-border)';
-
-  if (hero) {
-    return (
-      <div className="relative overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface p-4 text-xp-text">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-[2px] bg-xp-bg text-xp-text-secondary">
-            {icon}
-          </span>
-          <span className="text-xs font-medium text-xp-text-muted">{label}</span>
-        </div>
-        <p className="mt-1.5 text-4xl font-light tabular-nums leading-none tracking-tight">
-          {hasData ? Math.round(value) : '—'}
-          {hasData && <span className="ml-1 align-top text-lg">%</span>}
-        </p>
-        <p className="mt-1.5 truncate text-xs text-xp-text-secondary" title={subtitle}>
-          {subtitle}
-        </p>
-        <div className="relative mt-2 h-1 rounded-none bg-xp-bg">
-          <div
-            className="h-1 rounded-none bg-xp-text transition-all duration-500"
-            style={{ width: `${value}%` }}
-          />
-          {hasData && (
-            <span
-              className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-[2px] bg-[var(--xp-lime)] shadow-[0_0_0_2px_var(--xp-surface)]"
-              style={{ left: `calc(${Math.min(Math.max(value, 2), 98)}% - 5px)` }}
-            />
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="glass-card flex flex-col p-4">
-      <div className="flex items-center gap-2.5">
-        <span className="flex h-8 w-8 items-center justify-center rounded-[2px] bg-xp-bg text-xp-text-secondary">
-          {icon}
-        </span>
-        <span className="text-xs font-medium text-xp-text-muted">{label}</span>
-      </div>
-      <p className="mt-2 text-3xl font-light tabular-nums leading-none tracking-tight text-xp-text">
-        {hasData ? Math.round(value) : '—'}
-        {hasData && <span className="ml-1 align-top text-base text-xp-text-secondary">%</span>}
-      </p>
-      <p className="mt-1 truncate text-xs text-xp-text-muted" title={subtitle}>
-        {subtitle}
-      </p>
-      <div className="relative mt-2.5 h-1 rounded-none bg-xp-bg">
-        <div
-          className="h-1 rounded-none transition-all duration-500"
-          style={{ width: `${value}%`, backgroundColor: color }}
-        />
-        {hasData && (
-          <span
-            className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-[2px] bg-[var(--xp-lime)] shadow-[0_0_0_2px_var(--xp-surface)]"
-            style={{ left: `calc(${Math.min(Math.max(value, 2), 98)}% - 5px)` }}
-          />
-        )}
-      </div>
-    </div>
-  );
-};
-
 /** Home dashboard: live CPU / memory / root-volume gauges + the heaviest
  *  processes right now (用户要求：显示最吃性能的是那几个). */
 const SystemDashboard = () => {
@@ -133,82 +52,38 @@ const SystemDashboard = () => {
     return () => clearInterval(timer);
   }, [poll]);
 
-  const memPct = stats && stats.mem_total > 0 ? (stats.mem_used / stats.mem_total) * 100 : null;
-  const diskPct =
-    stats && stats.disk_total > 0
-      ? ((stats.disk_total - stats.disk_available) / stats.disk_total) * 100
-      : null;
-
   return (
-    <section aria-label={t('home.systemDashboard')}>
-      <div className="mb-3">
-        <p className="text-base font-medium tracking-tight text-xp-text">
-          {t('home.systemDashboard')}
-        </p>
-        <p className="mt-0.5 text-xs text-xp-text-muted">
-          {stats ? t('home.systemDashboardLive') : t('home.statsUnavailable')}
-        </p>
+    <section aria-label={t('home.systemDashboard')} className="compact-system-dashboard">
+      {/* 一行小仪表 + 进程榜（用户要求：放顶上、占地方别太大） */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+        <span className="font-medium text-xp-text-secondary">{t('home.systemDashboard')}</span>
+        <span className="flex items-center gap-1.5 tabular-nums text-xp-text">
+          <Cpu size={12} aria-hidden="true" className="text-xp-text-muted" />
+          {stats ? `${Math.round(stats.cpu_usage)}%` : '—'}
+        </span>
+        <span className="flex items-center gap-1.5 tabular-nums text-xp-text">
+          <MemoryStick size={12} aria-hidden="true" className="text-xp-text-muted" />
+          {stats ? `${Math.round((stats.mem_used / stats.mem_total) * 100)}%` : '—'}
+        </span>
+        <span className="flex items-center gap-1.5 tabular-nums text-xp-text">
+          <HardDrive size={12} aria-hidden="true" className="text-xp-text-muted" />
+          {stats ? t('home.diskAvailable', { size: formatFileSize(stats.disk_available) }) : '—'}
+        </span>
+        {topProcesses.slice(0, 4).map((proc) => (
+          <span
+            key={`${proc.pid}-${proc.name}`}
+            className="hidden items-center gap-1 tabular-nums text-xp-text-muted md:inline-flex"
+            title={`${t('home.topProcesses')} · ${formatFileSize(proc.memory)}`}
+          >
+            <span
+              className="inline-block h-1.5 w-1.5 rounded-full"
+              style={{ backgroundColor: gaugeColor(proc.cpu_usage) }}
+            />
+            <span className="max-w-[110px] truncate">{proc.name}</span>
+            {proc.cpu_usage.toFixed(0)}%
+          </span>
+        ))}
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Gauge
-          pct={stats ? stats.cpu_usage : null}
-          label={t('home.cpu')}
-          subtitle={stats ? t('home.cpuCores', { count: navigator.hardwareConcurrency || 0 }) : '—'}
-          icon={<Cpu size={14} aria-hidden="true" />}
-        />
-        <Gauge
-          pct={memPct}
-          label={t('home.memory')}
-          subtitle={
-            stats ? `${formatFileSize(stats.mem_used)} / ${formatFileSize(stats.mem_total)}` : '—'
-          }
-          icon={<MemoryStick size={14} aria-hidden="true" />}
-        />
-        <Gauge
-          pct={diskPct}
-          label={t('home.disk')}
-          subtitle={
-            stats ? t('home.diskAvailable', { size: formatFileSize(stats.disk_available) }) : '—'
-          }
-          icon={<HardDrive size={14} aria-hidden="true" />}
-          hero
-        />
-      </div>
-
-      {/* 最吃性能 — top processes by CPU (memory as tiebreaker) */}
-      {topProcesses.length > 0 && (
-        <div className="mt-3 rounded-[2px] border border-xp-border bg-xp-surface px-4 py-3">
-          <p className="text-xs font-medium text-xp-text-muted">{t('home.topProcesses')}</p>
-          <div className="mt-2 flex flex-col gap-1">
-            {topProcesses.map((proc) => (
-              <div
-                key={`${proc.pid}-${proc.name}`}
-                className="flex items-center gap-3 text-xs"
-                title={`${proc.name} (pid ${proc.pid})`}
-              >
-                <span className="w-40 min-w-0 flex-shrink-0 truncate text-xp-text">
-                  {proc.name}
-                </span>
-                <div className="relative h-1 min-w-0 flex-1 rounded-none bg-xp-bg">
-                  <div
-                    className="h-1 rounded-none transition-all duration-500"
-                    style={{
-                      width: `${Math.min(proc.cpu_usage, 100)}%`,
-                      backgroundColor: gaugeColor(proc.cpu_usage),
-                    }}
-                  />
-                </div>
-                <span className="w-12 flex-shrink-0 text-right tabular-nums text-xp-text-secondary">
-                  {proc.cpu_usage.toFixed(1)}%
-                </span>
-                <span className="w-20 flex-shrink-0 text-right tabular-nums text-xp-text-muted">
-                  {formatFileSize(proc.memory)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </section>
   );
 };
