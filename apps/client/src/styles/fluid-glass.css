@@ -6,22 +6,21 @@
    下（设置 → 流体玻璃），关闭即回到纸面材质。
    ═══════════════════════════════════════════════════════════════════ */
 
-/* ── 一段：侧栏 ── 最透，天空直接透进来 */
+/* ── 一段：侧栏 ── 低透 tint，天空直接透进来（ChatGPT 材质定稿） */
 html.theme-fluid .wisp-sidebar {
-  background: rgba(252, 253, 255, 0.1) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
-  backdrop-filter: blur(20px) saturate(160%) !important;
+  background: rgba(238, 245, 251, 0.28) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
+  backdrop-filter: blur(22px) saturate(160%) !important;
   border-right: 1px solid transparent;
   border-image: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.05)) 1;
   box-shadow: none !important;
 }
 
-/* ── 二段：文件画布 ── 按定稿设计图：一张近实心的白纸，文件浏览永远
-   在干净底子上读；天空色只从两侧玻璃和缝隙透进来，不进阅读区 */
+/* ── 二段：文件画布 ── 48% 白 tint：天空色穿过玻璃（不是 93% 白盖住） */
 html.theme-fluid .wisp-content-canvas {
-  background: rgba(251, 252, 254, 0.93) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
-  backdrop-filter: blur(24px) saturate(130%) !important;
+  background: rgba(242, 247, 252, 0.48) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(140%) !important;
+  backdrop-filter: blur(28px) saturate(140%) !important;
 }
 
 /* 画布内的工具行不再有独立外壳——它就是画布的一部分（直角通缝） */
@@ -33,93 +32,81 @@ html.theme-fluid .wisp-component-toolbar {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-/* ── 三段：检查器 ── 厚玻璃，天空色隐约流动但不干扰属性阅读 */
+/* ── 三段：检查器 ── 略厚，暖白 tint（桥的暖米色） */
 html.theme-fluid .wisp-inspector {
-  background: rgba(249, 250, 252, 0.72) !important;
-  -webkit-backdrop-filter: blur(48px) saturate(130%) !important;
-  backdrop-filter: blur(48px) saturate(130%) !important;
+  background: rgba(244, 239, 232, 0.58) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(130%) !important;
+  backdrop-filter: blur(40px) saturate(130%) !important;
   border-left: 1px solid transparent;
   border-image: linear-gradient(180deg, rgba(255, 255, 255, 0.27), rgba(255, 255, 255, 0.045)) 1;
 }
 
 /* ── 标题栏 ── 一段玻璃 */
 html.theme-fluid .wisp-titlebar {
-  background: rgba(252, 253, 255, 0.12) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
-  backdrop-filter: blur(20px) saturate(160%) !important;
+  background: rgba(236, 244, 251, 0.24) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
+  backdrop-filter: blur(24px) saturate(160%) !important;
 }
 
-/* ── 底部抽屉 ── 继承列表材质（近实心白纸），终端/动态都要可读 */
+/* ── 底部抽屉 ── 继承画布 tint */
 html.theme-fluid .wisp-bottom-panel {
-  background: rgba(251, 252, 254, 0.9) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
-  backdrop-filter: blur(24px) saturate(130%) !important;
+  background: rgba(242, 247, 252, 0.48) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(140%) !important;
+  backdrop-filter: blur(28px) saturate(140%) !important;
 }
 
 html.theme-fluid .wisp-statusbar {
-  background: rgba(252, 253, 255, 0.4) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
-  backdrop-filter: blur(20px) saturate(150%) !important;
+  background: rgba(236, 244, 251, 0.38) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(150%) !important;
+  backdrop-filter: blur(24px) saturate(150%) !important;
 }
 
-/* ── 夜/雨/雷暴（theme-rolex 极性）：白纸配方整体翻成墨纸 ──
-   夜间 SkySync 切到 rolex（浅色文字）；画布若还是白纸就是浅字配白底，
-   整窗惨白不可读（用户实测抓包）。墨纸同样近实心，色场仍只在边缘。 */
-html.theme-fluid.theme-rolex .wisp-content-canvas {
-  background: rgba(24, 25, 28, 0.93) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
-  backdrop-filter: blur(24px) saturate(130%) !important;
-}
-
+/* ── 夜/雨/雷暴（theme-rolex 极性）：看得见夜色的深玻璃，不是实色墨底
+   （ChatGPT 材质定稿：夜间不整套换墨纸，改低透明度深 tint，blur 与白天
+   接近；纸时代的白色垫层在 rolex 下压到近透明让夜场透出来） */
+html.theme-fluid.theme-rolex .wisp-content-canvas,
 html.theme-fluid.theme-rolex .wisp-bottom-panel {
-  background: rgba(24, 25, 28, 0.9) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
-  backdrop-filter: blur(24px) saturate(130%) !important;
+  background: rgba(9, 14, 25, 0.62) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(140%) !important;
+  backdrop-filter: blur(28px) saturate(140%) !important;
 }
 
 html.theme-fluid.theme-rolex .wisp-inspector {
-  background: rgba(30, 31, 34, 0.72) !important;
-  -webkit-backdrop-filter: blur(48px) saturate(130%) !important;
-  backdrop-filter: blur(48px) saturate(130%) !important;
+  background: rgba(11, 16, 27, 0.68) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(130%) !important;
+  backdrop-filter: blur(40px) saturate(130%) !important;
 }
 
 html.theme-fluid.theme-rolex .wisp-titlebar,
 html.theme-fluid.theme-rolex .wisp-statusbar {
-  background: rgba(26, 27, 31, 0.42) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
-  backdrop-filter: blur(20px) saturate(150%) !important;
+  background: rgba(12, 18, 31, 0.32) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(150%) !important;
+  backdrop-filter: blur(24px) saturate(150%) !important;
 }
 
 html.theme-fluid.theme-rolex .wisp-sidebar {
-  background: rgba(26, 27, 31, 0.1) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
-  backdrop-filter: blur(20px) saturate(160%) !important;
+  background: rgba(8, 13, 23, 0.38) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
+  backdrop-filter: blur(22px) saturate(160%) !important;
 }
 
-/* 纸时代的白色垫层在夜里全部翻成墨色，否则整窗惨白：
-   shell 12% 白 → 墨 35%；shell::before 左上白斑 → 暗蓝氛围光；
-   workspace 62% 白 → 墨 55%；导航条白药丸 → 墨玻璃；操作行同理。 */
-html.theme-fluid.theme-rolex .wisp-shell {
-  background: rgba(16, 17, 22, 0.35) !important;
+/* 纸时代的白色垫层在 rolex 下全部压透明——夜场必须看得见 */
+html.theme-fluid.theme-rolex .wisp-shell,
+html.theme-fluid.theme-rolex .wisp-workspace {
+  background: transparent !important;
 }
 
 html.theme-fluid.theme-rolex .wisp-shell::before {
-  background:
-    radial-gradient(720px 340px at 16% -8%, rgba(110, 140, 205, 0.16), transparent 64%),
-    linear-gradient(115deg, rgba(12, 14, 24, 0.2), rgba(20, 30, 55, 0.08)) !important;
-}
-
-html.theme-fluid.theme-rolex .wisp-workspace {
-  background: rgba(22, 23, 27, 0.55) !important;
+  background: transparent !important;
 }
 
 html.theme-fluid.theme-rolex .wisp-navigationbar {
-  background: rgba(40, 42, 48, 0.55) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(20, 28, 46, 0.42) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
 }
 
 html.theme-fluid.theme-rolex .wisp-operationbar {
-  background: rgba(24, 25, 28, 0.58) !important;
+  background: rgba(9, 14, 25, 0.4) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
@@ -130,7 +117,7 @@ html.theme-fluid.theme-rolex .wisp-component-toolbar {
 
 /* 表头与行悬停：纸时代的白表头 88% 在夜里就是一条白带配浅字 */
 html.theme-fluid.theme-rolex .wisp-list-header {
-  background: rgba(30, 31, 35, 0.92) !important;
+  background: rgba(13, 19, 33, 0.6) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
