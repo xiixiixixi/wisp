@@ -62,6 +62,72 @@ html.theme-fluid .wisp-statusbar {
   backdrop-filter: blur(20px) saturate(150%) !important;
 }
 
+/* ── 夜/雨/雷暴（theme-rolex 极性）：白纸配方整体翻成墨纸 ──
+   夜间 SkySync 切到 rolex（浅色文字）；画布若还是白纸就是浅字配白底，
+   整窗惨白不可读（用户实测抓包）。墨纸同样近实心，色场仍只在边缘。 */
+html.theme-fluid.theme-rolex .wisp-content-canvas {
+  background: rgba(24, 25, 28, 0.93) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
+  backdrop-filter: blur(24px) saturate(130%) !important;
+}
+
+html.theme-fluid.theme-rolex .wisp-bottom-panel {
+  background: rgba(24, 25, 28, 0.9) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
+  backdrop-filter: blur(24px) saturate(130%) !important;
+}
+
+html.theme-fluid.theme-rolex .wisp-inspector {
+  background: rgba(30, 31, 34, 0.72) !important;
+  -webkit-backdrop-filter: blur(48px) saturate(130%) !important;
+  backdrop-filter: blur(48px) saturate(130%) !important;
+}
+
+html.theme-fluid.theme-rolex .wisp-titlebar,
+html.theme-fluid.theme-rolex .wisp-statusbar {
+  background: rgba(26, 27, 31, 0.42) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+}
+
+html.theme-fluid.theme-rolex .wisp-sidebar {
+  background: rgba(26, 27, 31, 0.1) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+}
+
+/* 纸时代的白色垫层在夜里全部翻成墨色，否则整窗惨白：
+   shell 12% 白 → 墨 35%；shell::before 左上白斑 → 暗蓝氛围光；
+   workspace 62% 白 → 墨 55%；导航条白药丸 → 墨玻璃；操作行同理。 */
+html.theme-fluid.theme-rolex .wisp-shell {
+  background: rgba(16, 17, 22, 0.35) !important;
+}
+
+html.theme-fluid.theme-rolex .wisp-shell::before {
+  background:
+    radial-gradient(720px 340px at 16% -8%, rgba(110, 140, 205, 0.16), transparent 64%),
+    linear-gradient(115deg, rgba(12, 14, 24, 0.2), rgba(20, 30, 55, 0.08)) !important;
+}
+
+html.theme-fluid.theme-rolex .wisp-workspace {
+  background: rgba(22, 23, 27, 0.55) !important;
+}
+
+html.theme-fluid.theme-rolex .wisp-navigationbar {
+  background: rgba(40, 42, 48, 0.55) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html.theme-fluid.theme-rolex .wisp-operationbar {
+  background: rgba(24, 25, 28, 0.58) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+html.theme-fluid.theme-rolex .wisp-component-toolbar {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
 /* ── 顶部 2px 镜面高光 ── 只属于窗口上沿（标题栏），面板之间不再各自加线 */
 html.theme-fluid .wisp-titlebar::before {
   content: "";
