@@ -52,6 +52,10 @@ const SystemDashboard = () => {
     return () => clearInterval(timer);
   }, [poll]);
 
+  // 没有后端数据（浏览器 demo / 后端不可用）时整行不渲染——
+  // 曾经显示成「系统状态 — — —」三个破折号占位，被用户点名。
+  if (!stats) return null;
+
   return (
     <section aria-label={t('home.systemDashboard')} className="compact-system-dashboard">
       {/* 一行小仪表 + 进程榜（用户要求：放顶上、占地方别太大） */}
@@ -59,15 +63,15 @@ const SystemDashboard = () => {
         <span className="font-medium text-xp-text-secondary">{t('home.systemDashboard')}</span>
         <span className="flex items-center gap-1.5 tabular-nums text-xp-text">
           <Cpu size={12} aria-hidden="true" className="text-xp-text-muted" />
-          {stats ? `${Math.round(stats.cpu_usage)}%` : '—'}
+          {`${Math.round(stats.cpu_usage)}%`}
         </span>
         <span className="flex items-center gap-1.5 tabular-nums text-xp-text">
           <MemoryStick size={12} aria-hidden="true" className="text-xp-text-muted" />
-          {stats ? `${Math.round((stats.mem_used / stats.mem_total) * 100)}%` : '—'}
+          {`${Math.round((stats.mem_used / stats.mem_total) * 100)}%`}
         </span>
         <span className="flex items-center gap-1.5 tabular-nums text-xp-text">
           <HardDrive size={12} aria-hidden="true" className="text-xp-text-muted" />
-          {stats ? t('home.diskAvailable', { size: formatFileSize(stats.disk_available) }) : '—'}
+          {t('home.diskAvailable', { size: formatFileSize(stats.disk_available) })}
         </span>
         {topProcesses.slice(0, 4).map((proc) => (
           <span

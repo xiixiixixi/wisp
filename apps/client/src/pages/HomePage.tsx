@@ -2,24 +2,16 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TauriAPI, type RecentFile, type FileEntry } from '@/lib/tauri-api';
 import SystemDashboard from '@/components/explorer/SystemDashboard';
-import { formatFileSize, applyTheme, getFileIcon } from '@/lib/utils';
-import { isWindows, ROOT_PATH, PATH_SEPARATOR, CLOCK_UPDATE_INTERVAL_MS } from '@/lib/constants';
+import { applyTheme, getFileIcon } from '@/lib/utils';
+import { isWindows, ROOT_PATH, PATH_SEPARATOR } from '@/lib/constants';
 import { useAllThemes } from '@/lib/theme-registry';
 import { useToast } from '@/hooks/use-toast';
 import {
-  getDemoDirectory,
   getDemoRecentFiles,
   getDemoUserDirectories,
   isBrowserDemoMode,
 } from '@/lib/browser-demo-files';
 import { ArrowRight, Clock3, Folder, X } from 'lucide-react';
-
-interface QuickStats {
-  totalFiles: number;
-  totalFolders: number;
-  totalSize: string;
-  recentFiles: string[];
-}
 
 interface UserDirectories {
   home: string;
@@ -68,43 +60,12 @@ const recentFileEntry = (file: RecentFile): FileEntry => ({
   is_readonly: false,
 });
 
-/** Hero stat: big light numeral with a small stone label. */
-const HeroStat = ({ value, label }: { value: string | number; label: string }) => (
-  <div className="flex items-center gap-2">
-    <span className="text-3xl font-light tabular-nums leading-none tracking-tight text-xp-text">
-      {value}
-    </span>
-    <span className="rounded-[2px] bg-xp-bg px-2 py-0.5 text-[10px] font-medium text-xp-text-secondary">
-      {label}
-    </span>
-  </div>
-);
-
-/** Section heading: title + muted subtitle, optional right-side action. */
-const SectionHeader = ({
-  title,
-  subtitle,
-  action,
-}: {
-  title: string;
-  subtitle?: string;
-  action?: React.ReactNode;
-}) => (
-  <div className="mb-3 flex items-end justify-between gap-4">
-    <div>
-      <h2 className="text-lg font-semibold tracking-tight text-xp-text">{title}</h2>
-      {subtitle && <p className="mt-0.5 text-xs text-xp-text-muted">{subtitle}</p>}
-    </div>
-    {action}
-  </div>
-);
-
 const Clock = () => {
   const { t, i18n } = useTranslation();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), CLOCK_UPDATE_INTERVAL_MS);
+    const timer = setInterval(() => setCurrentTime(new Date()), 30_000);
     return () => clearInterval(timer);
   }, []);
 
@@ -151,31 +112,9 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
   const { toast } = useToast();
   const [recommendedFolders, setRecommendedFolders] = useState<string[]>([]);
   const [userDirectories, setUserDirectories] = useState<UserDirectories | null>(null);
-  const [quickStats, setQuickStats] = useState<QuickStats>({
-    totalFiles: 0,
-    totalFolders: 0,
-    totalSize: '0 B',
-    recentFiles: [],
-  });
-  const [_systemStats, setSystemStats] = useState<{
-    os: string;
-    arch: string;
-    version: string;
-    hostname: string;
-  } | null>(null);
-
   // Recent files state
   const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
   const [recentFilesLoading, setRecentFilesLoading] = useState(true);
-  const [indexCount, setIndexCount] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (isBrowserDemoMode()) return;
-    TauriAPI.getTokenizerStats()
-      .then((s) => setIndexCount(s?.total_files ?? null))
-      .catch(() => setIndexCount(null));
-  }, []);
-
   const loadRecentFiles = useCallback(async () => {
     setRecentFilesLoading(true);
     try {
@@ -238,15 +177,8 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
     try {
       if (isBrowserDemoMode()) {
         const userDirs = getDemoUserDirectories();
-        const files = getDemoDirectory(userDirs.home) ?? [];
         setUserDirectories(userDirs);
         setRecommendedFolders([`${userDirs.documents}/Launch`, `${userDirs.documents}/Research`]);
-        setQuickStats({
-          totalFiles: files.filter((file) => !file.is_dir).length,
-          totalFolders: files.filter((file) => file.is_dir).length,
-          totalSize: formatFileSize(files.reduce((sum, file) => sum + file.size, 0)),
-          recentFiles: [],
-        });
         return;
       }
       const userDirs = await TauriAPI.getUserDirectories();
@@ -254,20 +186,6 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
 
       const recent = await TauriAPI.getRecentFolders();
       setRecommendedFolders(recent.slice(0, 4));
-
-      const homeExists = await TauriAPI.fileExists(userDirs.home);
-      if (homeExists) {
-        const files = await TauriAPI.readDirectory(userDirs.home);
-        const totalFiles = files.filter((f) => !f.is_dir).length;
-        const totalFolders = files.filter((f) => f.is_dir).length;
-        const totalSize = files.reduce((sum, f) => sum + f.size, 0);
-        setQuickStats({
-          totalFiles,
-          totalFolders,
-          totalSize: formatFileSize(totalSize),
-          recentFiles: [],
-        });
-      }
     } catch (error) {
       console.error('Failed to load user data:', error);
       const home = isWindows ? 'C:\\Users\\Public' : '/home/user';
@@ -283,20 +201,10 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
     }
   };
 
-  const loadSystemStats = async () => {
-    try {
-      const systemInfo = await TauriAPI.getSystemInfo();
-      setSystemStats(systemInfo);
-    } catch (error) {
-      console.error('Failed to load system stats:', error);
-    }
-  };
-
   // Mount: load user data, stats, recents (restored after the legacy-agent
   // state block removal took the old effect with it).
   useEffect(() => {
     loadUserData();
-    loadSystemStats();
     loadRecentFiles();
     // Mount-only initialization
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -325,22 +233,13 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
   return (
     <div className="relative flex h-full flex-col overflow-auto bg-xp-bg text-xp-text">
       <div className="mx-auto grid min-h-0 w-full max-w-6xl flex-1 grid-cols-1 gap-y-5 px-6 py-6 lg:grid-cols-12 lg:gap-x-5 lg:px-8">
-        {/* Compact header + hero stat row */}
+        {/* Compact header */}
         <div className="order-0 lg:col-span-12">
           <Clock />
-          {/* 系统状态：紧凑一行，紧跟问候（用户：放顶上、占地方别太大） */}
+          {/* 系统状态：紧凑一行，紧跟问候（用户：放顶上、占地方别太大；
+              无后端数据时整行不渲染） */}
           <div className="mt-2">
             <SystemDashboard />
-          </div>
-          <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
-            <HeroStat value={quickStats.totalFiles.toLocaleString()} label={t('home.statFiles')} />
-            <HeroStat
-              value={quickStats.totalFolders.toLocaleString()}
-              label={t('home.statFolders')}
-            />
-            {indexCount !== null && (
-              <HeroStat value={indexCount.toLocaleString()} label={t('home.statIndexed')} />
-            )}
           </div>
         </div>
 
