@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TauriAPI, type RecentFile, type FileEntry } from '@/lib/tauri-api';
+import SystemDashboard from '@/components/explorer/SystemDashboard';
 import { applyTheme, getFileIcon } from '@/lib/utils';
 import { isWindows, ROOT_PATH, PATH_SEPARATOR } from '@/lib/constants';
 import { useAllThemes } from '@/lib/theme-registry';
@@ -254,6 +255,10 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
         {/* Compact header */}
         <div className="order-0 lg:col-span-12">
           <Clock />
+          {/* 系统状态紧凑卡：指标行 + 进程表，固定结构 5s 刷新（用户：换形式，别删） */}
+          <div className="mt-3">
+            <SystemDashboard />
+          </div>
         </div>
 
         {/* Quick access is gone on purpose — the sidebar already owns it. */}
