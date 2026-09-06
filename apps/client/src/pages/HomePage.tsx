@@ -60,6 +60,25 @@ const recentFileEntry = (file: RecentFile): FileEntry => ({
   is_readonly: false,
 });
 
+/** Section heading with optional action button. */
+const SectionHeader = ({
+  title,
+  subtitle,
+  action,
+}: {
+  title: string;
+  subtitle: string;
+  action?: React.ReactNode;
+}) => (
+  <div className="mb-3 flex items-end justify-between gap-4">
+    <div>
+      <h2 className="text-lg font-semibold tracking-tight text-xp-text">{title}</h2>
+      <p className="mt-0.5 text-xs text-xp-text-muted">{subtitle}</p>
+    </div>
+    {action}
+  </div>
+);
+
 const Clock = () => {
   const { t, i18n } = useTranslation();
   const [currentTime, setCurrentTime] = useState(new Date());
