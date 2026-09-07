@@ -336,7 +336,8 @@ export const useWispActions = (deps: WispActionsDeps) => {
       handleCompress: (filesToCompress: FileEntry[]) =>
         fileOpsRef.current.contextMenuActions.compressTo(filesToCompress),
       handleExtract: (file: FileEntry) => fileOpsRef.current.contextMenuActions.extractHere(file),
-      handleProperties: (file: FileEntry) => fileOpsRef.current.contextMenuActions.properties(file),
+      handleProperties: (file: FileEntry | FileEntry[]) =>
+        fileOpsRef.current.contextMenuActions.properties(file),
       theme,
       setTheme,
       setBottomPanelCollapsed,

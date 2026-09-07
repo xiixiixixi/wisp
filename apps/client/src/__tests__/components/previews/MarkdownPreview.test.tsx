@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import MarkdownPreview from '@/components/previews/MarkdownPreview';
+import HtmlPreview from '@/components/previews/HtmlPreview';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
 
 // CodeMirror stub: rendered tab tests don't need a live editor.
@@ -19,13 +20,31 @@ vi.mock('@/lib/codemirror', () => ({
     editorRef?: { current: unknown };
     onDocChanged?: () => void;
   }) => {
+    const buffer = React.useRef(doc);
+    const [value, setValue] = React.useState(doc);
     React.useEffect(() => {
-      if (editorRef) editorRef.current = { state: { doc: { toString: () => doc } } };
+      buffer.current = doc;
+      setValue(doc);
+    }, [doc]);
+    React.useEffect(() => {
+      if (editorRef) editorRef.current = { state: { doc: { toString: () => buffer.current } } };
+      return () => {
+        if (editorRef) editorRef.current = null;
+      };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     return (
       <div data-testid="cm-editor" data-read-only={String(readOnly)}>
         {doc}
+        <textarea
+          aria-label="Source draft"
+          value={value}
+          onChange={(event) => {
+            buffer.current = event.target.value;
+            setValue(event.target.value);
+            onDocChanged?.();
+          }}
+        />
         <button type="button" data-testid="cm-edit-trigger" onClick={onDocChanged}>
           edit
         </button>
@@ -126,7 +145,7 @@ describe('MarkdownPreview', () => {
         expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole('button', { name: 'Edit' }));
+      await user.click(screen.getByRole('tab', { name: 'Edit' }));
 
       expect(screen.getByTestId('cm-editor')).toHaveAttribute('data-read-only', 'false');
       expect(screen.getByTestId('cm-editor').textContent).toContain('# Hello World');
@@ -140,7 +159,7 @@ describe('MarkdownPreview', () => {
         expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole('button', { name: 'Edit' }));
+      await user.click(screen.getByRole('tab', { name: 'Edit' }));
       await user.click(screen.getByTestId('cm-edit-trigger'));
 
       await user.click(screen.getByRole('button', { name: 'Save' }));
@@ -164,5 +183,98 @@ describe('MarkdownPreview', () => {
         expect(mockProps.onError).toHaveBeenCalledWith(error);
       });
     });
+  });
+
+  it('previews and saves the unsaved draft without unmounting the editor', async () => {
+    render(<MarkdownPreview {...mockProps} />);
+    await screen.findByRole('heading', { name: 'Hello World' });
+    fireEvent.click(screen.getByRole('tab', { name: 'Edit' }));
+    const editor = screen.getByTestId('cm-editor');
+    fireEvent.change(screen.getByRole('textbox', { name: 'Source draft' }), {
+      target: { value: '# Updated draft' },
+    });
+    fireEvent.click(screen.getByRole('tab', { name: 'Preview' }));
+    expect(screen.getByRole('heading', { name: 'Updated draft' })).toBeInTheDocument();
+    expect(editor).not.toBeVisible();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() =>
+      expect(TauriAPI.saveTextFile).toHaveBeenCalledWith(mockFile.path, '# Updated draft'),
+    );
+    fireEvent.click(screen.getByRole('tab', { name: 'Edit' }));
+    expect(screen.getByTestId('cm-editor')).toBe(editor);
+    expect(screen.getByRole('textbox', { name: 'Source draft' })).toHaveValue('# Updated draft');
+  });
+
+  it('supports arrow-key mode switching with correct selected state', async () => {
+    render(<MarkdownPreview {...mockProps} />);
+    await screen.findByRole('heading', { name: 'Hello World' });
+    const preview = screen.getByRole('tab', { name: 'Preview' });
+    preview.focus();
+    fireEvent.keyDown(preview, { key: 'ArrowRight' });
+    expect(screen.getByRole('tab', { name: 'Edit' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: 'Edit' })).toHaveFocus();
+    expect(screen.getAllByRole('tabpanel')).toHaveLength(1);
+  });
+
+  it('does not discard newer typing when an earlier save finishes', async () => {
+    let finishSave!: () => void;
+    vi.mocked(TauriAPI.saveTextFile).mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishSave = resolve;
+      }),
+    );
+    render(<MarkdownPreview {...mockProps} />);
+    await screen.findByRole('heading', { name: 'Hello World' });
+    fireEvent.click(screen.getByRole('tab', { name: 'Edit' }));
+    const source = screen.getByRole('textbox', { name: 'Source draft' });
+    fireEvent.change(source, { target: { value: '# First draft' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    fireEvent.change(source, { target: { value: '# Newer typing' } });
+    await act(async () => finishSave());
+    expect(source).toHaveValue('# Newer typing');
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+    fireEvent.click(screen.getByRole('tab', { name: 'Preview' }));
+    expect(screen.getByRole('heading', { name: 'Newer typing' })).toBeInTheDocument();
+  });
+
+  it('keeps the draft and Save action after a failed save', async () => {
+    const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    vi.mocked(TauriAPI.saveTextFile).mockRejectedValueOnce(new Error('Disk full'));
+    render(<MarkdownPreview {...mockProps} />);
+    await screen.findByRole('heading', { name: 'Hello World' });
+    fireEvent.click(screen.getByRole('tab', { name: 'Edit' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Source draft' }), {
+      target: { value: '# Keep this draft' },
+    });
+    fireEvent.click(screen.getByRole('tab', { name: 'Preview' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(alert).toHaveBeenCalledWith(expect.stringContaining('Disk full')));
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+    expect(screen.getByRole('heading', { name: 'Keep this draft' })).toBeInTheDocument();
+    alert.mockRestore();
+  });
+
+  it('also retains HTML source and previews its live draft across mode switches', async () => {
+    vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce('<h1>Original</h1>');
+    const file = { ...mockFile, name: 'index.html', path: '/index.html' };
+    const { container } = render(<HtmlPreview {...mockProps} file={file} />);
+    await waitFor(() =>
+      expect(container.querySelector('iframe')).toHaveAttribute('srcdoc', '<h1>Original</h1>'),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    const editor = screen.getByTestId('cm-editor');
+    fireEvent.change(screen.getByRole('textbox', { name: 'Source draft' }), {
+      target: { value: '<h1>Updated</h1>' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
+    expect(container.querySelector('iframe')).toHaveAttribute('srcdoc', '<h1>Updated</h1>');
+    expect(editor).not.toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() =>
+      expect(TauriAPI.saveTextFile).toHaveBeenCalledWith('/index.html', '<h1>Updated</h1>'),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    expect(screen.getByTestId('cm-editor')).toBe(editor);
   });
 });

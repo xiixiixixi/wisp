@@ -1,175 +1,556 @@
-/* ═══════════════════════════════════════════════════════════════════
-   FLUID GLASS — 定稿规范（2026-09-05，与 ChatGPT 四轮迭代后的设计）
-   一整张连续玻璃：三区域按信息密度分配雾度（侧栏 20 / 画布 40 / 检查
-   器 60），内部全直角通缝（1px 高光缝，无卡片缝隙），圆角只属于原生
-   窗口外四角。所有面板顶部 2px 镜面高光。整包收在 html.theme-fluid
-   下（设置 → 流体玻璃），关闭即回到纸面材质。
-   ═══════════════════════════════════════════════════════════════════ */
+/* Wisp Liquid Glass: a silver navigation surround, lifted white workspace,
+ * and frosted inspector. Shared 64px location / 56px action rails align panes.
+ * Selection transforms the action rail without moving the file content.
+ * Glass belongs to navigation and controls, never to individual file rows.
+ */
+html.theme-fluid {
+  --lg-glass-clear: rgb(255 255 255 / 26%);
+  --lg-glass-regular: rgb(255 255 255 / 58%);
+  --lg-glass-strong: rgb(252 252 253 / 94%);
+  --lg-content-canvas: rgb(255 255 255 / 94%);
+  --lg-content-surface: rgb(255 255 255 / 48%);
+  --lg-content-surface-strong: rgb(255 255 255 / 76%);
+  --lg-control-fill: rgb(255 255 255 / 48%);
+  --lg-control-fill-hover: rgb(255 255 255 / 78%);
+  --lg-control-fill-pressed: rgb(225 228 233 / 76%);
+  --lg-control-well: rgb(28 30 36 / 6%);
+  --lg-control-stroke: rgb(40 43 51 / 14%);
+  --lg-control-highlight: rgb(255 255 255 / 92%);
+  --lg-glass-stroke: rgb(255 255 255 / 72%);
+  --lg-glass-stroke-strong: rgb(255 255 255 / 94%);
+  --lg-divider: rgb(40 43 51 / 10%);
+  --lg-control-shadow:
+    inset 0 1px 0 var(--lg-control-highlight), inset 0 -1px 0 rgb(50 72 108 / 5%),
+    0 2px 4px rgb(32 54 89 / 6%), 0 5px 14px rgb(32 54 89 / 5%);
+  --lg-shadow-elevated:
+    inset 0 1px 0 var(--lg-control-highlight), 0 18px 54px rgb(27 49 86 / 18%),
+    0 4px 12px rgb(27 49 86 / 10%);
+  --lg-specular: linear-gradient(155deg, rgb(255 255 255 / 42%), transparent 48%);
+  --lg-ambient:
+    radial-gradient(ellipse at 0% 100%, rgb(205 215 229 / 48%), transparent 60%),
+    linear-gradient(125deg, #e7e9ee, #f6f6f8 55%, #e8eaf0);
+  --lg-blur-clear: 14px;
+  --lg-blur-regular: 24px;
+  --lg-blur-strong: 32px;
+  --lg-motion-fast: 180ms;
+  --lg-motion-medium: 220ms;
+  --lg-radius-sm: 8px;
+  --lg-radius-md: 12px;
+  --lg-radius-lg: 16px;
+  --lg-radius-xl: 22px;
+  --xp-blue: #0866d9;
+  --xp-blue-rgb: 8 102 217;
+  --xp-blue-dark: #0054b8;
+  --xp-blue-dark-rgb: 0 84 184;
+  --xp-accent: var(--xp-blue);
+  --xp-accent-rgb: var(--xp-blue-rgb);
+  --xp-accent-hover: var(--xp-blue-dark);
+  --xp-accent-hover-rgb: var(--xp-blue-dark-rgb);
+  --xp-lime: var(--xp-blue);
+  --xp-lime-rgb: var(--xp-blue-rgb);
+  --xp-text: #24262b;
+  --xp-text-secondary: #555b66;
+  --xp-text-muted: #616772;
+  --xp-text-rgb: 36 38 43;
+  --xp-text-secondary-rgb: 85 91 102;
+  --xp-text-muted-rgb: 97 103 114;
+  --xp-surface-rgb: 255 255 255;
+  --xp-bg-rgb: 239 240 244;
+  --xp-red: #ba302b;
+  --xp-red-rgb: 186 48 43;
+  --xp-selection-bg: #dbe9fc;
+  --xp-selection-border: rgb(8 102 217 / 26%);
+  --xp-bg: #eff0f4;
+  --xp-border: var(--lg-divider);
+  --xp-surface: var(--lg-content-surface);
+  --xp-surface-light: var(--lg-control-fill-hover);
+  --xp-sidebar: var(--lg-glass-clear);
+  --xp-chrome: var(--lg-glass-regular);
+  --xp-inspector: var(--lg-glass-regular);
+  --xp-popover: var(--lg-glass-strong);
+  --xp-shadow-popover: var(--lg-shadow-elevated);
+  --primary: var(--xp-blue);
+  --ring: var(--xp-blue);
+  --foreground: var(--xp-text);
+  --muted-foreground: var(--xp-text-secondary);
+  --glass-well: var(--lg-control-well);
+  background: var(--lg-ambient);
+}
 
-/* ── 一段：侧栏 ── 低透 tint，天空直接透进来（ChatGPT 材质定稿） */
+/* Continuous window joins; rounding belongs to controls and presentations. */
+html.theme-fluid :is(.wisp-shell, .wisp-workspace, .wisp-settings-shell) {
+  background: transparent !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html.theme-fluid :is(.wisp-shell, .wisp-settings-shell)::before {
+  background: none;
+}
+html.theme-fluid :is(.paper-grain, .wisp-sidebar::before, .wisp-inspector::before) {
+  background-image: none !important;
+}
+html.theme-fluid
+  :is(
+    .wisp-titlebar,
+    .wisp-sidebar,
+    .wisp-inspector,
+    .wisp-statusbar,
+    .wisp-bottom-panel,
+    .wisp-settings-header,
+    .wisp-settings-sidebar
+  ) {
+  background: var(--lg-glass-regular) !important;
+  border-color: var(--lg-divider) !important;
+  border-image: none;
+  box-shadow: inset 0 1px 0 var(--lg-glass-stroke) !important;
+  -webkit-backdrop-filter: blur(var(--lg-blur-regular)) saturate(145%) !important;
+  backdrop-filter: blur(var(--lg-blur-regular)) saturate(145%) !important;
+}
 html.theme-fluid .wisp-sidebar {
-  background: rgba(242, 246, 252, 0.3) !important;
-  -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
-  backdrop-filter: blur(22px) saturate(160%) !important;
-  border-right: 1px solid transparent;
-  border-image: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.05)) 1;
+  background: var(--lg-glass-clear) !important;
+}
+html.theme-fluid .wisp-titlebar::before {
+  content: "" !important;
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: var(--lg-control-highlight);
+  pointer-events: none;
+}
+html.theme-fluid :is(.wisp-content-canvas, .wisp-bottom-panel) {
+  background: var(--lg-content-canvas) !important;
+}
+html.theme-fluid .wisp-sidebar {
+  border-radius: 0 !important;
+}
+html.theme-fluid :is(.wisp-file-scroll, .wisp-home, .wisp-operationbar) {
+  background: transparent !important;
+}
+html.theme-fluid :is(.wisp-navigationbar, .wisp-operationbar) {
+  border-color: var(--lg-divider) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html.theme-fluid .wisp-navigationbar {
+  background: transparent !important;
   box-shadow: none !important;
 }
 
-/* ── 二段：文件画布 ── 48% 白 tint：天空色穿过玻璃（不是 93% 白盖住） */
-html.theme-fluid .wisp-content-canvas {
-  background: rgba(244, 248, 253, 0.78) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(140%) !important;
-  backdrop-filter: blur(28px) saturate(140%) !important;
+/* The file canvas and inspector are siblings, with the same top/bottom edges.
+ * Resize handles stay in the gutter; the sidebar remains part of the surround. */
+html.theme-fluid .wisp-workspace {
+  padding: 0 12px 8px 0 !important;
 }
-
-/* 画布内的工具行不再有独立外壳——它就是画布的一部分（直角通缝） */
-html.theme-fluid .wisp-component-toolbar {
-  background: transparent !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-  border-radius: 0 !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-/* ── 三段：检查器 ── 略厚，暖白 tint（桥的暖米色） */
-html.theme-fluid .wisp-inspector {
-  background: rgba(246, 250, 254, 0.72) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(130%) !important;
-  backdrop-filter: blur(40px) saturate(130%) !important;
-  border-left: 1px solid transparent;
-  border-image: linear-gradient(180deg, rgba(255, 255, 255, 0.27), rgba(255, 255, 255, 0.045)) 1;
-}
-
-/* ── 标题栏 ── 一段玻璃 */
 html.theme-fluid .wisp-titlebar {
-  background: rgba(242, 246, 252, 0.42) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
-  backdrop-filter: blur(24px) saturate(160%) !important;
-}
-
-/* ── 底部抽屉 ── 继承画布 tint */
-html.theme-fluid .wisp-bottom-panel {
-  background: rgba(244, 248, 253, 0.78) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(140%) !important;
-  backdrop-filter: blur(28px) saturate(140%) !important;
-}
-
-html.theme-fluid .wisp-statusbar {
-  background: rgba(242, 246, 252, 0.5) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(150%) !important;
-  backdrop-filter: blur(24px) saturate(150%) !important;
-}
-
-/* ── 夜/雨/雷暴（theme-rolex 极性）：看得见夜色的深玻璃，不是实色墨底
-   （ChatGPT 材质定稿：夜间不整套换墨纸，改低透明度深 tint，blur 与白天
-   接近；纸时代的白色垫层在 rolex 下压到近透明让夜场透出来） */
-html.theme-fluid.theme-rolex .wisp-content-canvas,
-html.theme-fluid.theme-rolex .wisp-bottom-panel {
-  background: rgba(9, 14, 25, 0.62) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(140%) !important;
-  backdrop-filter: blur(28px) saturate(140%) !important;
-}
-
-html.theme-fluid.theme-rolex .wisp-inspector {
-  background: rgba(11, 16, 27, 0.68) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(130%) !important;
-  backdrop-filter: blur(40px) saturate(130%) !important;
-}
-
-html.theme-fluid.theme-rolex .wisp-titlebar,
-html.theme-fluid.theme-rolex .wisp-statusbar {
-  background: rgba(12, 18, 31, 0.32) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(150%) !important;
-  backdrop-filter: blur(24px) saturate(150%) !important;
-}
-
-html.theme-fluid.theme-rolex .wisp-sidebar {
-  background: rgba(8, 13, 23, 0.38) !important;
-  -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
-  backdrop-filter: blur(22px) saturate(160%) !important;
-}
-
-/* 纸时代的白色垫层在 rolex 下全部压透明——夜场必须看得见 */
-html.theme-fluid.theme-rolex .wisp-shell,
-html.theme-fluid.theme-rolex .wisp-workspace {
+  height: 64px !important;
+  min-height: 64px !important;
+  border: 0 !important;
   background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
-
-html.theme-fluid.theme-rolex .wisp-shell::before {
+html.theme-fluid .wisp-sidebar {
   background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
-
-html.theme-fluid.theme-rolex .wisp-navigationbar {
-  background: rgba(20, 28, 46, 0.42) !important;
-  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+html.theme-fluid :is(.wisp-content-canvas, .wisp-inspector) {
+  border: 0 !important;
+  border-radius: 20px !important;
+  box-shadow:
+    0 2px 8px rgb(30 34 44 / 5%),
+    0 12px 32px rgb(30 34 44 / 4%) !important;
 }
-
-html.theme-fluid.theme-rolex .wisp-operationbar {
-  background: rgba(9, 14, 25, 0.4) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+html.theme-fluid .wisp-content-canvas {
+  --wisp-content-gutter: 16px;
+  min-width: 0;
 }
-
-html.theme-fluid.theme-rolex .wisp-component-toolbar {
-  background: transparent !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+html.theme-fluid .wisp-inspector {
+  background: var(--lg-specular), var(--lg-glass-regular) !important;
 }
-
-/* 表头与行悬停：纸时代的白表头 88% 在夜里就是一条白带配浅字 */
-html.theme-fluid.theme-rolex .wisp-list-header {
-  background: rgba(13, 19, 33, 0.6) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
-}
-
-html.theme-fluid.theme-rolex .wisp-file-row:hover {
-  background: rgba(255, 255, 255, 0.05) !important;
-}
-
-/* ── 顶部 2px 镜面高光 ── 只属于窗口上沿（标题栏），面板之间不再各自加线 */
-html.theme-fluid .wisp-titlebar::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* 内部直角通缝：接缝处绝不出现圆角或留缝 */
-html.theme-fluid :is(.wisp-sidebar, .wisp-inspector, .wisp-content-canvas) {
+html.theme-fluid .wisp-navigationbar {
+  height: auto;
+  min-height: 64px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  margin: 0 !important;
+  padding: 12px 16px !important;
+  border: 0 !important;
   border-radius: 0 !important;
+  gap: 12px;
 }
-
-/* ── 自适应列：名称永远最后被压缩（容器 = 每个窗格的滚动区） ──
-.wisp-pane-container {
-  container-type: inline-size;
+html.theme-fluid .wisp-navigationbar .wisp-address-field {
+  min-width: min(140px, 100%);
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
 }
-
-   ≥640px 五列全开；≤640 收起类型；≤520 收起类型与修改时间。
-   liquid-glass.css 的 min-height 56px 在主题下解锁为行高 36px。 */
+html.theme-fluid .wisp-breadcrumb:is([aria-current], [data-current]) {
+  font-size: 15px;
+  font-weight: 600;
+}
+html.theme-fluid .wisp-operationbar {
+  height: 56px;
+  min-height: 56px;
+  flex-shrink: 0;
+  padding: 8px 16px !important;
+  container: action-rail / inline-size;
+}
+html.theme-fluid .wisp-operationbar > div {
+  opacity: 1;
+}
+html.theme-fluid .wisp-inspector-header.wisp-inspector-header {
+  height: 64px;
+  min-height: 64px;
+  padding: 12px 16px !important;
+  border-bottom: 0;
+  background: transparent;
+  justify-content: space-between;
+}
+html.theme-fluid .wisp-preview-content {
+  padding: 16px;
+}
+.wisp-preview-error {
+  display: flex;
+  min-height: 240px;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--lg-content-surface);
+  text-align: center;
+}
+.wisp-preview-error > p {
+  max-width: 34ch;
+  overflow-wrap: anywhere;
+}
 html.theme-fluid .wisp-file-row {
-  /* macOS 参考图：52px 圆角行，行间靠留白+2px 间距分隔（直角行线退役） */
-  min-height: 52px !important;
-  border-bottom: none !important;
-  border-radius: 8px !important;
+  min-height: 44px;
+}
+html.theme-fluid .wisp-file-row .font-medium {
+  font-weight: 500 !important;
+}
+html.theme-fluid .wisp-file-scroll {
+  padding-top: 8px;
+}
+html.theme-fluid .wisp-list-header {
+  min-height: 32px;
+  background: transparent !important;
+}
+html.theme-fluid .wisp-statusbar {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.wisp-selection-summary {
+  flex: 0 1 auto;
+}
+html.theme-fluid .wisp-selection-toolbar > div {
+  flex-wrap: nowrap;
+  gap: 8px;
+  height: 100%;
+}
+html.theme-fluid .wisp-selection-actions {
+  gap: 2px;
+  background: var(--lg-specular), var(--lg-control-fill);
+  border-radius: 12px;
+  padding: 2px;
+  box-shadow: var(--lg-control-shadow);
+}
+@container action-rail (max-width: 640px) {
+  .wisp-selection-actions button > span,
+  .wisp-selection-summary button > span {
+    display: none !important;
+  }
+  .wisp-selection-actions button {
+    padding-inline: 8px !important;
+  }
+  .wisp-selection-summary {
+    gap: 4px !important;
+  }
+  .wisp-selection-summary > span[aria-hidden] {
+    display: none;
+  }
+}
+@container action-rail (max-width: 390px) {
+  .wisp-selection-summary > span[aria-live] {
+    max-width: 64px;
+  }
+  .wisp-selection-actions button {
+    padding-inline: 6px !important;
+  }
+  .wisp-selection-summary button {
+    padding-inline: 4px !important;
+  }
+}
+@media (max-width: 700px) {
+  html.theme-fluid .wisp-workspace {
+    padding: 0 8px 8px !important;
+  }
+}
+
+/* A group has one glass body. Children gain a lens on interaction.
+ * Large content collections deliberately have no per-item backdrop blur. */
+html.theme-fluid
+  :is(
+    .wisp-command-pill,
+    .wisp-toolbar-group,
+    .wisp-window-controls,
+    .wisp-panel-rail-horizontal,
+    .wisp-toolbar-controls,
+    .wisp-control-group,
+    .segmented-control
+  ) {
+  background: var(--lg-specular), var(--lg-control-fill) !important;
+  border: 1px solid var(--lg-glass-stroke) !important;
+  box-shadow: var(--lg-control-shadow) !important;
+  border-radius: var(--lg-radius-md) !important;
+  color: var(--xp-text-secondary) !important;
+  -webkit-backdrop-filter: blur(var(--lg-blur-clear)) saturate(150%);
+  backdrop-filter: blur(var(--lg-blur-clear)) saturate(150%);
+}
+html.theme-fluid .wisp-command-pill {
+  border-radius: 999px !important;
+}
+html.theme-fluid
+  :is(
+    .wisp-control,
+    .wisp-control-icon,
+    .wisp-sidebar-tab,
+    .glass-button[data-variant="outline"],
+    .glass-button[data-variant="secondary"]
+  ) {
+  background: var(--lg-specular), var(--lg-control-fill) !important;
+  border-color: var(--lg-control-stroke) !important;
+  box-shadow: var(--lg-control-shadow) !important;
+  color: var(--xp-text) !important;
+  border-radius: 10px !important;
+}
+html.theme-fluid .glass-button {
+  min-height: 32px;
+}
+html.theme-fluid
+  :is(.wisp-toolbar-controls, .wisp-control-group, .wisp-panel-rail)
+  :is(.wisp-control, .wisp-control-icon, .wisp-rail-button) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html.theme-fluid
+  :is(
+    .wisp-control,
+    .wisp-control-icon,
+    .wisp-rail-button,
+    .wisp-sidebar-tab,
+    .wisp-bottom-tab,
+    .segmented-control-item
+  ) {
+  min-height: 30px;
+}
+html.theme-fluid
+  :is(
+    .wisp-control,
+    .wisp-control-icon,
+    .wisp-rail-button,
+    .wisp-sidebar-tab,
+    .wisp-icon-button,
+    .wisp-bottom-tab,
+    .segmented-control-item,
+    .glass-button[data-variant="outline"],
+    .glass-button[data-variant="secondary"],
+    .glass-button[data-variant="ghost"]
+  ):hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--lg-control-fill-hover) !important;
+  box-shadow: inset 0 1px 0 var(--lg-control-highlight) !important;
+}
+html.theme-fluid
+  :is(
+    .wisp-control[aria-pressed="true"],
+    .wisp-panel-rail .wisp-rail-button[aria-pressed="true"],
+    .wisp-sidebar-tab[aria-selected="true"],
+    .wisp-bottom-tab[aria-selected="true"],
+    .segmented-control-item[aria-selected="true"],
+    .segmented-control-item[data-active="true"]
+  ) {
+  background: var(--lg-specular), var(--lg-content-surface-strong) !important;
+  color: var(--xp-blue) !important;
+  box-shadow: var(--lg-control-shadow) !important;
+  border-color: var(--lg-glass-stroke) !important;
+}
+html.theme-fluid
+  :is(
+    .wisp-sidebar-item-active,
+    .sidebar-item.active,
+    .wisp-settings-sidebar button[aria-current="page"]
+  ) {
+  color: var(--xp-blue-dark) !important;
+  background: var(--lg-specular), var(--lg-control-fill-hover) !important;
+  border-color: var(--lg-glass-stroke) !important;
+  box-shadow: var(--lg-control-shadow) !important;
+}
+html.theme-fluid
+  :is(
+    .glass-button[data-variant="default"],
+    button.bg-xp-blue,
+    button.bg-xp-accent,
+    button.bg-primary
+  ) {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 12%), transparent), var(--xp-blue) !important;
+  color: var(--xp-on-accent) !important;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 25%),
+    0 3px 8px rgb(8 102 217 / 17%) !important;
+}
+html.theme-fluid .glass-button[data-variant="destructive"] {
+  background: var(--xp-red) !important;
+  color: var(--xp-on-accent) !important;
+}
+html.theme-fluid
+  :is(
+    .glass-button[data-variant="default"],
+    button.bg-xp-blue,
+    button.bg-xp-accent,
+    button.bg-primary
+  ):hover:not(:disabled) {
+  background: var(--xp-blue-dark) !important;
+}
+/* Scale is independent of transforms used to centre/position floating UI.
+ * Only actual controls compress; navigation and file rows stay still. */
+html.theme-fluid :is(button, [role="button"]):active {
+  scale: 1;
+}
+html.theme-fluid
+  :is(.glass-button, .wisp-control, .wisp-control-icon, .wisp-icon-button):active:not(:disabled) {
+  scale: 0.97;
+}
+html.theme-fluid :is(button, input, select, textarea, [role="button"], [role="tab"]) {
+  transition-property: background-color, border-color, color, box-shadow, opacity, scale;
+  transition-duration: var(--lg-motion-fast) !important;
+  transition-timing-function: var(--lg-ease) !important;
+}
+html.theme-fluid
+  :is(
+    button,
+    a,
+    input,
+    select,
+    textarea,
+    [role="button"],
+    [role="tab"],
+    [role="tabpanel"]
+  ):focus-visible {
+  outline: 2px solid var(--xp-blue) !important;
+  outline-offset: 2px !important;
+}
+html.theme-fluid :is(button, input, select, textarea):disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+  scale: 1;
+}
+html.theme-fluid
+  :is(
+    .glass-input,
+    input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]):not(
+        .wisp-address-input
+      ),
+    textarea,
+    select,
+    [role="combobox"],
+    .wisp-address-field
+  ) {
+  background: var(--lg-control-fill) !important;
+  border-color: var(--lg-control-stroke) !important;
+  box-shadow:
+    inset 0 1px 2px rgb(32 54 89 / 4%),
+    0 1px 0 var(--lg-control-highlight) !important;
+  color: var(--xp-text);
+  border-radius: 10px !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html.theme-fluid :is(input, textarea)::placeholder {
+  color: var(--xp-text-muted);
+  opacity: 1;
+}
+html.theme-fluid :is(input, textarea) {
+  caret-color: var(--xp-blue);
+}
+html.theme-fluid [aria-invalid="true"] {
+  border-color: var(--xp-red) !important;
+}
+html.theme-fluid .liquid-toggle {
+  width: 44px;
+  height: 26px;
+  background: rgb(67 84 109 / 25%) !important;
+  border: 1px solid var(--lg-control-stroke);
+}
+html.theme-fluid .liquid-toggle[aria-checked="true"] {
+  background: var(--xp-blue) !important;
+}
+html.theme-fluid .liquid-toggle-thumb {
+  width: 22px;
+  height: 22px;
+  transform: translateX(1px);
+  background: linear-gradient(160deg, #fff, #f1f5fa) !important;
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 2px 4px rgb(21 38 65 / 25%);
+  transition: transform var(--lg-motion-fast) var(--lg-spring) !important;
+}
+html.theme-fluid .liquid-toggle[aria-checked="true"] .liquid-toggle-thumb {
+  transform: translateX(18px);
+}
+html.theme-fluid .liquid-checkbox {
+  background: var(--lg-control-fill) !important;
+  border-color: var(--lg-control-stroke) !important;
+}
+html.theme-fluid .liquid-checkbox:is([data-state="checked"], [data-state="indeterminate"]) {
+  background: var(--xp-blue) !important;
+  color: white;
+}
+
+/* Selection survives hover; file rows keep a stable reading rhythm. */
+html.theme-fluid .wisp-file-row {
+  min-height: 44px !important;
+  border-bottom: 0 !important;
+  border-radius: 9px !important;
   margin-bottom: 2px;
 }
-
 html.theme-fluid .wisp-list-header {
-  border-radius: 8px !important;
-  background: transparent !important;
+  background: var(--lg-content-canvas) !important;
+  border-radius: 0 !important;
+  color: var(--xp-text-secondary);
 }
-
+html.theme-fluid :is(.wisp-file-row, .file-item):hover {
+  background: var(--lg-control-well) !important;
+}
+html.theme-fluid :is(.wisp-file-row.file-selected, .file-item.selected, .file-selected) {
+  background: var(--xp-selection-bg) !important;
+  border-color: var(--xp-selection-border) !important;
+  box-shadow: none !important;
+}
+html.theme-fluid .wisp-selection-toolbar > div {
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+html.theme-fluid .wisp-selection-actions {
+  flex-wrap: nowrap;
+}
 @container (max-width: 640px) {
   .wisp-file-row,
   .wisp-list-header > div {
     --wisp-details-grid: 32px minmax(0, 1fr) 64px 132px;
   }
 }
-
 @container (max-width: 520px) {
   .wisp-file-row,
   .wisp-list-header > div {
@@ -177,24 +558,316 @@ html.theme-fluid .wisp-list-header {
   }
 }
 
-/* ── 画廊预览的信息条 ── 黑条改为与主题同材质的玻璃条（R2 多视图评审） */
+/* Menus, sheets, palette and notifications are thicker floating material. */
+html.theme-fluid
+  :is(
+    .elevated-glass,
+    [role="dialog"],
+    .wisp-popover-menu,
+    .context-menu-scroll,
+    .bg-xp-popover,
+    .bg-popover,
+    [data-radix-popper-content-wrapper] > *
+  ) {
+  background: var(--lg-specular), var(--lg-glass-strong) !important;
+  border-color: var(--lg-glass-stroke-strong) !important;
+  box-shadow: var(--lg-shadow-elevated) !important;
+  -webkit-backdrop-filter: blur(var(--lg-blur-strong)) saturate(150%);
+  backdrop-filter: blur(var(--lg-blur-strong)) saturate(150%);
+}
+html.theme-fluid
+  :is(
+    .wisp-popover-menu > button,
+    [role="option"],
+    [role="menuitem"],
+    [role="menuitemradio"],
+    [role="menuitemcheckbox"]
+  ) {
+  min-height: 32px;
+  border-radius: 8px;
+}
+html.theme-fluid [role="option"] {
+  margin-inline: 0;
+}
+html.theme-fluid
+  :is([role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"], [role="option"]):is(
+    :focus,
+    [data-highlighted]
+  ) {
+  background: var(--xp-selection-bg) !important;
+}
+.wisp-dialog-backdrop {
+  padding-block: 20px;
+}
+html.theme-fluid .wisp-dialog-backdrop {
+  background: rgb(8 16 29 / 24%) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: blur(8px) saturate(115%);
+  backdrop-filter: blur(8px) saturate(115%);
+}
 html.theme-fluid .gallery-info-bar {
   left: auto;
   right: 20px;
   bottom: 20px;
   width: auto;
-  background: rgba(252, 253, 255, 0.78) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
-  backdrop-filter: blur(24px) saturate(160%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.65) !important;
-  border-radius: 12px;
+  max-width: calc(100% - 40px);
   padding: 10px 16px !important;
-  box-shadow: 0 6px 20px rgba(30, 50, 80, 0.12);
+  border-radius: 14px;
+  background: var(--lg-glass-strong) !important;
+  box-shadow: var(--lg-shadow-elevated);
+  color: var(--xp-text);
 }
-html.theme-fluid .gallery-info-bar .text-xp-on-accent {
+html.theme-fluid .gallery-info-bar [class*="text-xp-on-accent"] {
   color: var(--xp-text) !important;
 }
-html.theme-fluid .gallery-info-bar .text-xp-on-accent\/70,
-html.theme-fluid .gallery-info-bar .text-xp-on-accent\/60 {
-  color: var(--xp-text-secondary) !important;
+
+/* Settings shares the window's material, with readable grouped rows. */
+html.theme-fluid .wisp-settings-header {
+  margin: 0;
+  border-radius: 0;
+  border-width: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html.theme-fluid .wisp-settings-layout {
+  width: 100%;
+  max-width: none;
+  gap: 0;
+  padding: 0 12px 12px 0;
+}
+html.theme-fluid .wisp-settings-sidebar {
+  border-radius: 0;
+  border-width: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html.theme-fluid .wisp-settings-sidebar > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+html.theme-fluid .wisp-settings-sidebar > div > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0;
+}
+html.theme-fluid .wisp-settings-content {
+  min-width: 0;
+  border-radius: 20px;
+  background: rgb(250 250 252 / 90%);
+}
+html.theme-fluid .wisp-settings-content > div {
+  margin-inline: auto;
+}
+html.theme-fluid .wisp-settings-content .content-card {
+  background: rgb(255 255 255 / 88%) !important;
+  border: 0 !important;
+  box-shadow: 0 1px 4px rgb(30 34 44 / 5%) !important;
+  border-radius: 16px !important;
+}
+.wisp-setting-row {
+  min-height: 64px;
+}
+.wisp-preview-navigation {
+  height: 56px;
+  min-height: 56px;
+}
+.wisp-preview-navigation > div:first-child {
+  height: 28px;
+  padding: 2px 12px !important;
+}
+.wisp-preview-navigation .preview-nav-tab-strip {
+  min-height: 28px;
+  padding: 0 12px 4px !important;
+}
+.wisp-preview-navigation .preview-nav-tab-strip button {
+  padding-block: 1px !important;
+}
+.wisp-home-layout {
+  align-content: start;
+}
+.wisp-layout-row-actions:focus-within {
+  opacity: 1 !important;
+}
+@media (hover: none) {
+  .wisp-layout-row-actions {
+    opacity: 1 !important;
+  }
+}
+.wisp-navigationbar {
+  container-type: inline-size;
+}
+.wisp-breadcrumb-measure {
+  position: absolute;
+  display: flex;
+  width: max-content;
+  gap: 4px;
+  visibility: hidden;
+  pointer-events: none;
+}
+.wisp-breadcrumb-segment {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.wisp-breadcrumb {
+  display: block;
+  min-width: 0;
+  max-width: 160px;
+  overflow: hidden;
+  padding: 2px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  color: var(--xp-text-muted);
+}
+.wisp-breadcrumb:is([aria-current], [data-current]) {
+  max-width: none;
+  font-weight: 600;
+  color: var(--xp-text);
+}
+.wisp-breadcrumb:hover {
+  color: var(--xp-text);
+}
+.wisp-path-breadcrumbs :is(.wisp-breadcrumb-edit, .wisp-breadcrumb-ellipsis) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+}
+.wisp-breadcrumb-menu {
+  width: max-content;
+  max-width: min(360px, calc(100vw - 16px));
+}
+.wisp-text-preview-toolbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+html.theme-fluid .wisp-home button:focus-visible {
+  opacity: 1;
+}
+
+/* Explorer auto-collapses through its existing layout hook.
+ * Settings switches to a scrollable category strip in small windows. */
+@media (max-width: 700px) {
+  .wisp-settings-layout {
+    flex-direction: column;
+  }
+  html.theme-fluid .wisp-settings-sidebar {
+    width: 100% !important;
+    padding: 8px 12px;
+    border-width: 0 0 1px !important;
+    overflow-x: auto;
+  }
+  html.theme-fluid .wisp-settings-sidebar > div {
+    flex-direction: row;
+    width: max-content;
+  }
+  .wisp-settings-sidebar button {
+    width: auto;
+    min-height: 40px;
+  }
+  .wisp-settings-sidebar .wisp-settings-nav-description,
+  .wisp-settings-sidebar button > svg:last-child {
+    display: none;
+  }
+  .wisp-settings-content {
+    padding: 20px 12px;
+  }
+  .wisp-setting-row {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-block: 12px;
+  }
+  .wisp-setting-row > div:first-child {
+    flex: 1 1 180px;
+  }
+  .wisp-titlebar-left > .wisp-weather-editor,
+  .wisp-titlebar-left > .wisp-weather-summary {
+    display: none;
+  }
+}
+
+/* Accessibility comes last: change opacity AND blur, including portals. */
+html.theme-fluid:is(.reduce-transparency, .high-contrast) {
+  --lg-glass-clear: #eaf0f8;
+  --lg-glass-regular: #edf2f9;
+  --lg-glass-strong: #f7f9fc;
+  --lg-content-canvas: #f5f8fc;
+  --lg-content-surface: #fff;
+  --lg-content-surface-strong: #fff;
+  --lg-control-fill: #f8fafc;
+  --lg-control-fill-hover: #fff;
+  --lg-specular: none;
+  --lg-ambient: #edf2f8;
+}
+html.theme-fluid.high-contrast {
+  --lg-control-stroke: #66758a;
+  --lg-glass-stroke: #66758a;
+  --lg-glass-stroke-strong: #66758a;
+  --lg-divider: #66758a;
+  --xp-text: #132137;
+  --xp-text-secondary: #23374e;
+  --xp-text-muted: #33465b;
+}
+html.theme-fluid:is(.reduce-transparency, .high-contrast) *,
+html.theme-fluid:is(.reduce-transparency, .high-contrast) *::before,
+html.theme-fluid:is(.reduce-transparency, .high-contrast) *::after {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  html.theme-fluid {
+    --lg-glass-clear: #eaf0f8;
+    --lg-glass-regular: #edf2f9;
+    --lg-glass-strong: #f7f9fc;
+    --lg-content-canvas: #f5f8fc;
+    --lg-content-surface: #fff;
+    --lg-content-surface-strong: #fff;
+    --lg-control-fill: #f8fafc;
+    --lg-control-fill-hover: #fff;
+    --lg-specular: none;
+    --lg-ambient: #edf2f8;
+  }
+  html.theme-fluid *,
+  html.theme-fluid *::before,
+  html.theme-fluid *::after {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html.theme-fluid {
+    --lg-glass-clear: #eaf0f8;
+    --lg-glass-regular: #edf2f9;
+    --lg-glass-strong: #f7f9fc;
+    --lg-content-canvas: #f5f8fc;
+    --lg-content-surface: #fff;
+    --lg-control-fill: #f8fafc;
+  }
+}
+html.theme-fluid.reduce-motion *,
+html.theme-fluid.reduce-motion *::before,
+html.theme-fluid.reduce-motion *::after {
+  transition-duration: 0.001ms !important;
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  scale: 1 !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.theme-fluid *,
+  html.theme-fluid *::before,
+  html.theme-fluid *::after {
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+    scale: 1 !important;
+  }
 }

@@ -93,12 +93,12 @@ export interface ContextMenuAction {
   rename: (file: FileEntry) => void;
   createFolder: (parentPath: string) => void;
   createFile: (parentPath: string) => void;
-  properties: (file: FileEntry) => void;
+  properties: (file: FileEntry | FileEntry[]) => void;
   refresh: () => void;
   selectAll: () => void;
   invertSelection: () => void;
   openAdvancedSelection: () => void;
-  copyPath: (file: FileEntry) => void;
+  copyPath: (files: FileEntry | FileEntry[]) => void;
   openInTerminal: (path: string) => void;
   openRecycleBin: () => void;
   openWith: (file: FileEntry) => void;
@@ -116,7 +116,7 @@ export interface ContextMenuAction {
   secureDelete: (files: FileEntry[]) => void;
   versionHistory: (file: FileEntry) => void;
   duplicateFiles: (files: FileEntry[]) => void;
-  copyName: (file: FileEntry) => void;
+  copyName: (files: FileEntry | FileEntry[]) => void;
   pinToSidebar: (file: FileEntry) => void;
   createNewTextFile: (parentPath: string) => void;
   createNewFile: (parentPath: string) => void;
@@ -134,6 +134,7 @@ export interface ContextMenuAction {
 }
 
 export interface ContextMenuConfig {
+  resolveFile?: (path: string) => FileEntry | undefined;
   showHidden?: boolean;
   enableCompression?: boolean;
   enableAdvanced?: boolean;
@@ -245,12 +246,30 @@ export class ContextMenuFactory {
   ): ContextMenuItem[] {
     // Use provided clipboard or fallback to internal clipboard
     const currentClipboard = clipboard !== undefined ? clipboard : this.clipboard;
+    // A right-click outside the selection targets that item, not an old batch.
+    selectedFiles = selectedFiles.has(file.path) ? selectedFiles : new Set([file.path]);
     const isMultiSelect = selectedFiles.size > 1;
     const selectedFilesList = Array.from(selectedFiles);
+    const resolveEntry = (path: string) =>
+      path === file.path ? file : (this.config.resolveFile?.(path) ?? entryFromPath(path));
 
     const items: ContextMenuItem[] = [];
 
     // Open actions
+    if (isMultiSelect) {
+      items.push({
+        id: 'open',
+        label: i18n.t('contextMenu.open'),
+        icon: mi(FolderOpen),
+        action: () => {
+          for (const entry of selectedFilesList.map(resolveEntry)) {
+            if (entry.is_dir) this.actions.openInNewTab(entry);
+            else this.actions.openFile(entry);
+          }
+        },
+      });
+      items.push({ id: 'sep1', label: '', separator: true });
+    }
     if (!isMultiSelect) {
       items.push({
         id: 'open',
@@ -287,7 +306,7 @@ export class ContextMenuFactory {
       icon: mi(Scissors),
       shortcut: 'Ctrl+X',
       action: () => {
-        const filesToCut = isMultiSelect ? selectedFilesList.map(entryFromPath) : [file];
+        const filesToCut = isMultiSelect ? selectedFilesList.map(resolveEntry) : [file];
         this.actions.cut(filesToCut);
         this.updateClipboard(filesToCut, 'cut');
       },
@@ -301,7 +320,7 @@ export class ContextMenuFactory {
       icon: mi(Copy),
       shortcut: 'Ctrl+C',
       action: () => {
-        const filesToCopy = isMultiSelect ? selectedFilesList.map(entryFromPath) : [file];
+        const filesToCopy = isMultiSelect ? selectedFilesList.map(resolveEntry) : [file];
         this.actions.copy(filesToCopy);
         this.updateClipboard(filesToCopy, 'copy');
       },
@@ -339,7 +358,7 @@ export class ContextMenuFactory {
       icon: mi(CopyPlus),
       shortcut: 'Ctrl+D',
       action: () => {
-        const filesToDuplicate = isMultiSelect ? selectedFilesList.map(entryFromPath) : [file];
+        const filesToDuplicate = isMultiSelect ? selectedFilesList.map(resolveEntry) : [file];
         this.actions.duplicateFiles(filesToDuplicate);
       },
     });
@@ -363,7 +382,7 @@ export class ContextMenuFactory {
         label: i18n.t('contextMenu.bulkRename', { count: selectedFiles.size }),
         icon: mi(PencilLine),
         action: () => {
-          const filesToRename = selectedFilesList.map(entryFromPath);
+          const filesToRename = selectedFilesList.map(resolveEntry);
           this.actions.bulkRename(filesToRename);
         },
       });
@@ -373,7 +392,7 @@ export class ContextMenuFactory {
         label: i18n.t('contextMenu.pasteAndRename', { count: selectedFiles.size }),
         icon: mi(ClipboardList),
         action: () => {
-          const filesToRename = selectedFilesList.map(entryFromPath);
+          const filesToRename = selectedFilesList.map(resolveEntry);
           this.actions.openPasteRename(filesToRename);
         },
       });
@@ -387,7 +406,7 @@ export class ContextMenuFactory {
       icon: mi(Trash2),
       shortcut: 'Ctrl+Backspace',
       action: () => {
-        const filesToDelete = isMultiSelect ? selectedFilesList.map(entryFromPath) : [file];
+        const filesToDelete = isMultiSelect ? selectedFilesList.map(resolveEntry) : [file];
         this.actions.delete(filesToDelete);
       },
     });
@@ -411,7 +430,7 @@ export class ContextMenuFactory {
             label: i18n.t('contextMenu.addToArchive'),
             icon: mi(Package),
             action: () => {
-              const filesToCompress = isMultiSelect ? selectedFilesList.map(entryFromPath) : [file];
+              const filesToCompress = isMultiSelect ? selectedFilesList.map(resolveEntry) : [file];
               this.actions.compressTo(filesToCompress);
             },
           });
@@ -470,7 +489,7 @@ export class ContextMenuFactory {
         : i18n.t('contextMenu.secureDelete'),
       icon: mi(ShieldAlert),
       action: () => {
-        const filesToSecureDelete = isMultiSelect ? selectedFilesList.map(entryFromPath) : [file];
+        const filesToSecureDelete = isMultiSelect ? selectedFilesList.map(resolveEntry) : [file];
         this.actions.secureDelete(filesToSecureDelete);
       },
     });
@@ -531,7 +550,7 @@ export class ContextMenuFactory {
             label: i18n.t('contextMenu.compareSelected'),
             icon: mi(Scale),
             action: () => {
-              const filesList = selectedFilesList.map(entryFromPath);
+              const filesList = selectedFilesList.map(resolveEntry);
               this.actions.compareFiles(filesList[0], filesList[1]);
             },
           });
@@ -625,6 +644,31 @@ export class ContextMenuFactory {
       }
     }
 
+    // Text clipboard actions work for every selection; paths stay one click away.
+    moreItems.push({
+      id: 'copy-name',
+      label: i18n.t('contextMenu.copyName'),
+      icon: mi(ClipboardCopy),
+      action: () =>
+        this.actions.copyName(isMultiSelect ? selectedFilesList.map(resolveEntry) : file),
+    });
+    items.push({
+      id: 'copy-path',
+      label: i18n.t('contextMenu.copyPath'),
+      icon: mi(MapPin),
+      shortcut: 'Ctrl+Alt+C',
+      action: () =>
+        this.actions.copyPath(isMultiSelect ? selectedFilesList.map(resolveEntry) : file),
+    });
+    items.push({
+      id: 'properties',
+      label: i18n.t('common.properties'),
+      icon: mi(Settings),
+      shortcut: 'Ctrl+I',
+      action: () =>
+        this.actions.properties(isMultiSelect ? selectedFilesList.map(resolveEntry) : file),
+    });
+
     // File Details submenu (single select)
     if (!isMultiSelect) {
       moreItems.push({
@@ -653,35 +697,10 @@ export class ContextMenuFactory {
         ],
       });
 
-      moreItems.push({
-        id: 'copy-name',
-        label: i18n.t('contextMenu.copyName'),
-        icon: mi(ClipboardCopy),
-        action: () => this.actions.copyName(file),
-      });
-
-      // Copy path stays top level (one click away for every file and folder),
-      // followed by the Finder-parity items collected above.
-      items.push({
-        id: 'copy-path',
-        label: i18n.t('contextMenu.copyPath'),
-        icon: mi(MapPin),
-        action: () => this.actions.copyPath(file),
-      });
-
       if (finderParityItems.length > 0) {
         items.push({ id: 'sep-finder-parity', label: '', separator: true });
         items.push(...finderParityItems);
       }
-
-      // Properties (Finder's 显示简介, ⌘I) — first level
-      items.push({
-        id: 'properties',
-        label: i18n.t('common.properties'),
-        icon: mi(Settings),
-        shortcut: 'Ctrl+I',
-        action: () => this.actions.properties(file),
-      });
 
       // Tags (Finder-style): first-level submenu toggling the file's
       // Finder-tag metadata, plus an entry to the tag editor.
@@ -865,7 +884,7 @@ export class ContextMenuFactory {
 
     // Batch Metadata (multi-select only, 2+ files)
     if (isMultiSelect && this.actions.openBatchMetadata) {
-      const batchFiles = selectedFilesList.map(entryFromPath);
+      const batchFiles = selectedFilesList.map(resolveEntry);
       moreItems.push({
         id: 'batch-metadata',
         label: i18n.t('contextMenu.editMetadata'),

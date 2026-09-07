@@ -6,6 +6,7 @@ import { isTauri } from '@/lib/transport';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { patchUiState } from '@/lib/ui-state';
 import { formatError } from '@/lib/file-operation-helpers';
+import { selectionCommands } from '@/lib/selection-commands';
 import { invertSelection } from '@/extensions/advanced-selection/selection-utils';
 import {
   getBookmarkBySlot,
@@ -218,6 +219,12 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
   }, [files, pendingSelectRef, setSelectedFile, setSelectedFiles]);
 
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
+  const selection = selectionCommands(
+    selectedFiles,
+    files ?? [],
+    fileOps.contextMenuActions,
+    _handleFileDoubleClick,
+  );
   useShortcuts(
     {
       onCopy: fileOps.copySelectedFiles,
@@ -227,14 +234,7 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
         void fileOps.pasteFilesAsMove();
       },
       onDelete: fileOps.deleteSelectedFiles,
-      onRename: () => {
-        if (selectedFiles.size === 1) {
-          const filePath = Array.from(selectedFiles)[0];
-          window.dispatchEvent(
-            new CustomEvent('start-inline-rename', { detail: { path: filePath } }),
-          );
-        }
-      },
+      onRename: selection.rename,
       onNewFolder: async () => {
         if (
           !currentPath ||
@@ -293,18 +293,16 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
           });
       },
       onSelectAll: () => {
-        if (files) setSelectedFiles(new Set(files.map((f) => f.path)));
+        setSelectedFiles(new Set(filteredFiles.map((f) => f.path)));
       },
       onClearSelection: () => {
         setSelectedFiles(new Set());
       },
       onInvertSelection: () => {
-        if (files) {
-          const inverted = invertSelection(files, selectedFiles);
-          setSelectedFiles(new Set(inverted));
-        }
+        const inverted = invertSelection(filteredFiles, selectedFiles);
+        setSelectedFiles(new Set(inverted));
       },
-      onDuplicate: async () => {
+      onDuplicate: () => {
         if (
           selectedFiles.size === 0 ||
           !currentPath ||
@@ -313,51 +311,11 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
         ) {
           return;
         }
-        const filesToDuplicate = Array.from(selectedFiles);
-        let duplicated = 0;
-        for (const filePath of filesToDuplicate) {
-          try {
-            const sep = filePath.includes('/') ? '/' : '\\';
-            const lastSepIdx = filePath.lastIndexOf(sep);
-            const parentDir = filePath.substring(0, lastSepIdx);
-            const fileName = filePath.substring(lastSepIdx + 1);
-            const dotIdx = fileName.lastIndexOf('.');
-            const baseName = dotIdx > 0 ? fileName.substring(0, dotIdx) : fileName;
-            const ext = dotIdx > 0 ? fileName.substring(dotIdx) : '';
-            const destPath = `${parentDir}${sep}${baseName} - Copy${ext}`;
-            await TauriAPI.acceleratedCopyFile(filePath, destPath);
-            duplicated++;
-          } catch (err) {
-            toast({
-              variant: 'destructive',
-              title: t('toast.duplicateFailed'),
-              description: formatError(err),
-            });
-          }
-        }
-        if (duplicated > 0) {
-          refetch();
-          toast({
-            title: t('toast.duplicated'),
-            description: t('toast.duplicatedItemsDesc', { count: duplicated }),
-          });
-        }
+        selection.duplicate();
       },
-      onCopyPath: () => {
-        const first = Array.from(selectedFiles)[0];
-        const file = first ? files?.find((f) => f.path === first) : undefined;
-        if (file) fileOps.contextMenuActions.copyPath(file);
-      },
-      onOpen: () => {
-        const first = Array.from(selectedFiles)[0];
-        const file = first ? files?.find((f) => f.path === first) : undefined;
-        if (file) _handleFileDoubleClick(file);
-      },
-      onProperties: () => {
-        const first = Array.from(selectedFiles)[0];
-        const file = first ? files?.find((f) => f.path === first) : undefined;
-        if (file) fileOps.contextMenuActions.properties(file);
-      },
+      onCopyPath: selection.copyPath,
+      onOpen: selection.open,
+      onProperties: selection.properties,
       onRefresh: () => {
         refetch();
       },

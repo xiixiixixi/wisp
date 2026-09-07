@@ -8,6 +8,8 @@ import type { EditorView } from '@codemirror/view';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
 import { useTextFileEditor } from '@/hooks/use-text-file-editor';
 import { highlightCode } from '@/lib/shiki';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 
 /** Async Shiki block; output is generated HTML (code is escaped by Shiki). */
 const ShikiBlock = ({ code, lang }: { code: string; lang: string }) => {
@@ -38,6 +40,8 @@ const ShikiBlock = ({ code, lang }: { code: string; lang: string }) => {
 const MarkdownPreview = ({ file, onError, onLoad }: PreviewProps) => {
   const { t } = useTranslation();
   const [tab, setTab] = useState<'rendered' | 'edit'>('rendered');
+  const [editorMounted, setEditorMounted] = useState(false);
+  const [draftPreview, setDraftPreview] = useState<string | null>(null);
   const editorRef = useRef<EditorView | null>(null);
   const { content, loading, error, dirty, setDirty, saving, save } = useTextFileEditor(
     file,
@@ -46,48 +50,32 @@ const MarkdownPreview = ({ file, onError, onLoad }: PreviewProps) => {
   );
 
   const handleDocChanged = useCallback(() => setDirty(true), [setDirty]);
+  useEffect(() => {
+    setDraftPreview(null);
+  }, [content, file.path]);
+  const changeTab = (value: string) => {
+    if (value === 'rendered') setDraftPreview(editorRef.current?.state.doc.toString() ?? null);
+    if (value === 'edit') setEditorMounted(true);
+    setTab(value as 'rendered' | 'edit');
+  };
 
   return (
-    <div className="flex h-full flex-col">
+    <Tabs value={tab} onValueChange={changeTab} className="flex h-full min-h-0 flex-col">
       {/* Toolbar */}
-      <div className="mb-1.5 flex flex-shrink-0 items-center gap-1.5">
-        <div className="flex overflow-hidden rounded-[2px] border border-xp-border bg-xp-bg text-xs">
-          <button
-            type="button"
-            onClick={() => setTab('rendered')}
-            className={`px-2.5 py-1 transition-colors ${
-              tab === 'rendered'
-                ? 'bg-xp-selection-bg text-xp-blue'
-                : 'text-xp-text-muted hover:text-xp-text'
-            }`}
-          >
-            {t('preview.rendered')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab('edit')}
-            className={`px-2.5 py-1 transition-colors ${
-              tab === 'edit'
-                ? 'bg-xp-selection-bg text-xp-blue'
-                : 'text-xp-text-muted hover:text-xp-text'
-            }`}
-          >
-            {t('preview.edit')}
-          </button>
-        </div>
-        <div className="flex-1" />
+      <div className="wisp-text-preview-toolbar">
+        <TabsList aria-label={t('extensionsBar.preview')}>
+          <TabsTrigger value="rendered">{t('preview.rendered')}</TabsTrigger>
+          <TabsTrigger value="edit">{t('preview.edit')}</TabsTrigger>
+        </TabsList>
         {dirty && (
-          <>
-            <span className="text-[10px] font-medium text-xp-orange">● {t('common.unsaved')}</span>
-            <button
-              type="button"
-              onClick={() => void save()}
-              disabled={saving}
-              className="rounded-[2px] border border-xp-blue/40 px-2 py-1 text-xs text-xp-blue transition-colors hover:bg-xp-selection-bg"
-            >
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-xs text-xp-text-secondary" role="status">
+              {t('common.unsaved')}
+            </span>
+            <Button variant="outline" size="sm" onClick={() => void save()} disabled={saving}>
               {saving ? t('common.saving') : t('common.save')}
-            </button>
-          </>
+            </Button>
+          </div>
         )}
       </div>
 
@@ -102,8 +90,11 @@ const MarkdownPreview = ({ file, onError, onLoad }: PreviewProps) => {
         </div>
       )}
 
-      {!loading && !error && tab === 'rendered' && (
-        <div className="md-preview min-h-0 flex-1 overflow-auto rounded-[2px] border border-xp-border bg-xp-surface p-3">
+      {!loading && !error && (
+        <TabsContent
+          value="rendered"
+          className="md-preview !mt-0 min-h-0 flex-1 overflow-auto rounded-[2px] border border-xp-border bg-xp-surface p-3"
+        >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -123,27 +114,33 @@ const MarkdownPreview = ({ file, onError, onLoad }: PreviewProps) => {
               ),
             }}
           >
-            {content}
+            {draftPreview ?? content}
           </ReactMarkdown>
-        </div>
+        </TabsContent>
       )}
 
-      {!loading && !error && tab === 'edit' && (
-        <div className="min-h-0 flex-1 overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface">
-          <WispCodeMirror
-            doc={content}
-            readOnly={false}
-            language="markdown"
-            fileName={file.name}
-            editorRef={editorRef}
-            onDocChanged={handleDocChanged}
-            onSave={() => void save()}
-            ariaLabel={file.name}
-            className="h-full"
-          />
-        </div>
+      {!loading && !error && (
+        <TabsContent
+          value="edit"
+          forceMount
+          className="!mt-0 min-h-0 flex-1 overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface"
+        >
+          {editorMounted && (
+            <WispCodeMirror
+              doc={content}
+              readOnly={false}
+              language="markdown"
+              fileName={file.name}
+              editorRef={editorRef}
+              onDocChanged={handleDocChanged}
+              onSave={() => void save()}
+              ariaLabel={file.name}
+              className="h-full"
+            />
+          )}
+        </TabsContent>
       )}
-    </div>
+    </Tabs>
   );
 };
 

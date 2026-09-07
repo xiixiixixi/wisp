@@ -305,11 +305,9 @@ const RightSidebar = ({
           role="toolbar"
           aria-label={tabTitle}
         >
-          {!isPreviewTab && (
-            <div className="min-w-0">
-              <h3 className="truncate text-sm font-semibold">{tabTitle}</h3>
-            </div>
-          )}
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-semibold">{tabTitle}</h3>
+          </div>
           <button
             onClick={() => setRightSidebarCollapsed(true)}
             className="wisp-icon-button ml-2 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[2px] text-xp-text-secondary hover:bg-xp-surface-light"

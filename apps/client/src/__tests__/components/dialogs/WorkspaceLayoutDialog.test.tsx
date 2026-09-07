@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import WorkspaceLayoutDialog from '@/components/dialogs/WorkspaceLayoutDialog';
 import type { SplitLayoutState } from '@/types/split-view';
+import { formatKeyComboForDisplay } from '@/lib/shortcut-utils';
 
 const mockGetLayouts = vi.fn();
 const mockSaveLayout = vi.fn();
@@ -201,12 +202,14 @@ describe('WorkspaceLayoutDialog', () => {
   describe('Footer', () => {
     it('shows Esc key hint', () => {
       render(<WorkspaceLayoutDialog {...defaultProps} />);
-      expect(screen.getByText('Esc')).toBeInTheDocument();
+      expect(screen.getByText('Press Esc to close')).toBeInTheDocument();
     });
 
     it('shows toggle shortcut hint', () => {
       render(<WorkspaceLayoutDialog {...defaultProps} />);
-      expect(screen.getByText('Ctrl+Shift+L to toggle')).toBeInTheDocument();
+      expect(
+        screen.getByText(`${formatKeyComboForDisplay('ctrl+shift+l')} to toggle`),
+      ).toBeInTheDocument();
     });
   });
 });

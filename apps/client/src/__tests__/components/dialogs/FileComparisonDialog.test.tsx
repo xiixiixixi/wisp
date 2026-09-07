@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import FileComparisonDialog from '@/components/dialogs/FileComparisonDialog';
 import { FileComparison } from '@/lib/file-comparison';
+import { formatFileSize } from '@/lib/utils';
 
 // Mock the file comparison class
 vi.mock('@/lib/file-comparison', () => ({
@@ -339,8 +340,12 @@ describe('FileComparisonDialog', () => {
     await waitFor(() => {
       expect(screen.getAllByText('file1.txt').length).toBeGreaterThan(0);
       expect(screen.getAllByText('file2.txt').length).toBeGreaterThan(0);
-      expect(screen.getByText('Size: 1.0 KB')).toBeInTheDocument();
-      expect(screen.getByText('Size: 2.0 KB')).toBeInTheDocument();
+      expect(
+        screen.getByText(`Size: ${formatFileSize(mockComparisonResult.file1.size)}`),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(`Size: ${formatFileSize(mockComparisonResult.file2.size)}`),
+      ).toBeInTheDocument();
     });
   });
 

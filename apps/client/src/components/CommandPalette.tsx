@@ -101,9 +101,18 @@ const CommandPaletteInner = ({
     return () => {
       cancelAnimationFrame(focusFrame);
       const previous = previouslyFocusedElementRef.current;
-      const trigger = document.querySelector<HTMLElement>('[data-command-palette-trigger]');
-      const focusTarget = trigger ?? (previous?.isConnected ? previous : null);
-      requestAnimationFrame(() => focusTarget?.focus());
+      requestAnimationFrame(() => {
+        // The titlebar has separate wide and compact search triggers. Restore
+        // the opener when possible, never a trigger hidden by a breakpoint.
+        const isVisible = (element: HTMLElement) =>
+          element.isConnected && element.getClientRects().length > 0;
+        const trigger = Array.from(
+          document.querySelectorAll<HTMLElement>('[data-command-palette-trigger]'),
+        ).find(isVisible);
+        const focusTarget =
+          previous && previous !== document.body && isVisible(previous) ? previous : trigger;
+        focusTarget?.focus();
+      });
     };
   }, [isOpen]);
 
@@ -681,7 +690,7 @@ const CommandPaletteInner = ({
               onClick={() => switchMode(mode)}
               className={`flex items-center gap-1.5 rounded-[2px] px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
                 activeMode === mode
-                  ? 'bg-xp-purple/15 text-xp-purple ring-1 ring-inset ring-xp-purple/20'
+                  ? 'bg-xp-blue/15 text-xp-blue ring-1 ring-inset ring-xp-blue/20'
                   : 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
               }`}
             >

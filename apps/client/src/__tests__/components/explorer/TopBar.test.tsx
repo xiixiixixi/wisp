@@ -7,6 +7,7 @@ const weatherMocks = vi.hoisted(() => ({
   useWeather: vi.fn(),
   geocodeWeatherCity: vi.fn(),
   setWeatherLocation: vi.fn(),
+  isWeatherSyncEnabled: vi.fn(() => true),
 }));
 
 vi.mock('@/hooks/use-weather', () => ({
@@ -19,6 +20,7 @@ vi.mock('@/lib/weather-geocoding', () => ({
 
 vi.mock('@/lib/weather-location', () => ({
   setWeatherLocation: weatherMocks.setWeatherLocation,
+  isWeatherSyncEnabled: weatherMocks.isWeatherSyncEnabled,
 }));
 
 vi.mock('@tauri-apps/api/window', () => ({
@@ -48,6 +50,7 @@ describe('TopBar', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    weatherMocks.isWeatherSyncEnabled.mockReturnValue(true);
     weatherMocks.useWeather.mockReturnValue({
       report: {
         latitude: 31.2304,
@@ -91,6 +94,16 @@ describe('TopBar', () => {
   });
 
   describe('Weather City', () => {
+    it('hides and restores weather when the display preference changes', () => {
+      render(<TopBar {...mockProps} />);
+      weatherMocks.isWeatherSyncEnabled.mockReturnValue(false);
+      fireEvent(window, new CustomEvent('wisp-settings-changed'));
+      expect(screen.queryByText('21°')).not.toBeInTheDocument();
+      weatherMocks.isWeatherSyncEnabled.mockReturnValue(true);
+      fireEvent(window, new CustomEvent('wisp-settings-changed'));
+      expect(screen.getByText('21°')).toBeInTheDocument();
+    });
+
     it('renders weather as plain titlebar text and opens the inline editor', () => {
       render(<TopBar {...mockProps} />);
 

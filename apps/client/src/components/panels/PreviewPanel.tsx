@@ -5,7 +5,9 @@ import { getFileIcon } from '@/lib/utils';
 import { defaultPreviewFactory, PreviewProps, PreviewType } from '@/lib/preview-factory';
 import { extensionHost } from '@/lib/extension-host';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
-import { FileText } from 'lucide-react';
+import { FileText, FileWarning, RotateCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
 
 // Module-level cache for preview components by file type, avoiding redundant dynamic imports
 const previewComponentCache = new Map<PreviewType, React.ComponentType<PreviewProps>>();
@@ -28,6 +30,8 @@ const EnhancedFilePreview: React.FC<{
   category: PreviewType;
   currentPath?: string;
 }> = ({ file, category: _category, currentPath }) => {
+  const { t } = useTranslation();
+  const [retry, setRetry] = useState(0);
   const [PreviewComponent, setPreviewComponent] =
     useState<React.ComponentType<PreviewProps> | null>(null);
   const [extensionPreviewElement, setExtensionPreviewElement] = useState<React.ReactElement | null>(
@@ -156,7 +160,7 @@ const EnhancedFilePreview: React.FC<{
     };
     // file.path and file.name are sufficient to determine preview type
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [file.path, file.name, currentPath]);
+  }, [file.path, file.name, currentPath, retry]);
 
   const handlePreviewError = (error: Error) => {
     console.error('Preview error:', error);
@@ -173,27 +177,15 @@ const EnhancedFilePreview: React.FC<{
 
   if (error) {
     return (
-      <div className="mt-4">
-        <h4 className="mb-2 text-xs font-semibold text-xp-text">Preview Error</h4>
-        <div
-          className="rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-xp-text-secondary"
-          role="alert"
-        >
-          <svg
-            className="mx-auto mb-2 h-8 w-8"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <p className="text-xs">Preview failed</p>
-          <p className="mt-1 text-xs opacity-70">{error}</p>
-        </div>
+      <div className="wisp-preview-error text-xp-text-secondary" role="alert">
+        <FileWarning size={36} strokeWidth={1.25} aria-hidden="true" />
+        <h4 className="text-sm font-semibold text-xp-text">{t('previewPanel.failedLoad')}</h4>
+        <p className="text-xs leading-relaxed">{t('previewPanel.retryDescription')}</p>
+        <p className="text-xs">{error}</p>
+        <Button variant="outline" size="sm" onClick={() => setRetry((value) => value + 1)}>
+          <RotateCw size={14} aria-hidden="true" />
+          {t('previewPanel.retry')}
+        </Button>
       </div>
     );
   }
@@ -405,7 +397,7 @@ const PreviewPanel = ({
     >
       {/* Main Preview Area - Takes most of the space */}
       <div
-        className="min-h-0 flex-1 overflow-auto"
+        className="wisp-preview-content min-h-0 flex-1 overflow-auto"
         aria-label={`${selectedFile.is_dir ? i18n.t('common.folder') : i18n.t('common.file')} preview: ${selectedFile.name}`}
       >
         {(() => {
@@ -448,9 +440,9 @@ const PreviewPanel = ({
           aria-expanded={showProperties}
           aria-label={`${showProperties ? 'Hide' : 'Show'} file properties`}
         >
-          <div className="flex items-center">
-            <div className="mr-2 text-lg">{getFileIcon(selectedFile)}</div>
-            <div>
+          <div className="flex min-w-0 items-center">
+            <div className="mr-2 shrink-0 text-lg">{getFileIcon(selectedFile)}</div>
+            <div className="min-w-0">
               <h3 className="truncate text-sm font-medium" title={selectedFile.name}>
                 {selectedFile.name}
               </h3>

@@ -20,10 +20,10 @@ export function useTextFileEditor(
   const [error, setError] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const loadedPathRef = useRef<string | null>(null);
   const dirtyRef = useRef(false);
   dirtyRef.current = dirty;
-  const contentRef = useRef('');
-  contentRef.current = content;
   const callbacksRef = useRef(callbacks);
   callbacksRef.current = callbacks;
 
@@ -31,7 +31,7 @@ export function useTextFileEditor(
     let cancelled = false;
     const load = async () => {
       try {
-        if (dirtyRef.current && contentRef.current) {
+        if (dirtyRef.current) {
           // Switching files would discard unsaved edits — ask first; refusing
           // keeps the current buffer so the user can save or discard.
           if (!window.confirm(t('preview.unsavedChanges'))) {
@@ -42,8 +42,10 @@ export function useTextFileEditor(
         setLoading(true);
         setError(null);
         setDirty(false);
+        loadedPathRef.current = null;
         const text = await TauriAPI.readTextFile(file.path);
         if (cancelled) return;
+        loadedPathRef.current = file.path;
         setContent(text);
         callbacksRef.current?.onLoad?.();
       } catch (err) {
@@ -64,21 +66,30 @@ export function useTextFileEditor(
 
   const save = useCallback(async () => {
     const view = editorRef.current;
-    if (!view || saving) return;
+    const path = loadedPathRef.current;
+    if (!view || !path || savingRef.current) return;
     try {
+      savingRef.current = true;
       setSaving(true);
       const doc = view.state.doc.toString();
-      await TauriAPI.saveTextFile(file.path, doc);
-      setDirty(false);
-      setContent(doc);
+      await TauriAPI.saveTextFile(path, doc);
+      // An in-flight save must not overwrite newer keystrokes or another file's buffer.
+      if (
+        editorRef.current === view &&
+        loadedPathRef.current === path &&
+        view.state.doc.toString() === doc
+      ) {
+        setDirty(false);
+        setContent(doc);
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       window.alert(t('preview.saveFailed', { message }));
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [file.path, saving, editorRef]);
+  }, [editorRef, t]);
 
   return { content, loading, error, dirty, setDirty, saving, save };
 }

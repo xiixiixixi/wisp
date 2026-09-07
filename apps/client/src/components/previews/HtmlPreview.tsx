@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PreviewProps } from '@/lib/preview-factory';
 import { WispCodeMirror } from '@/lib/codemirror';
@@ -14,6 +14,8 @@ import { useTextFileEditor } from '@/hooks/use-text-file-editor';
 const HtmlPreview = ({ file, onError, onLoad }: PreviewProps) => {
   const { t } = useTranslation();
   const [tab, setTab] = useState<'rendered' | 'edit'>('rendered');
+  const [editorMounted, setEditorMounted] = useState(false);
+  const [draftPreview, setDraftPreview] = useState<string | null>(null);
   const editorRef = useRef<EditorView | null>(null);
   const { content, loading, error, dirty, setDirty, saving, save } = useTextFileEditor(
     file,
@@ -22,6 +24,9 @@ const HtmlPreview = ({ file, onError, onLoad }: PreviewProps) => {
   );
 
   const handleDocChanged = useCallback(() => setDirty(true), [setDirty]);
+  useEffect(() => {
+    setDraftPreview(null);
+  }, [content, file.path]);
 
   return (
     <div className="flex h-full flex-col">
@@ -30,7 +35,10 @@ const HtmlPreview = ({ file, onError, onLoad }: PreviewProps) => {
         <div className="flex overflow-hidden rounded-[2px] border border-xp-border bg-xp-bg text-xs">
           <button
             type="button"
-            onClick={() => setTab('rendered')}
+            onClick={() => {
+              setDraftPreview(editorRef.current?.state.doc.toString() ?? null);
+              setTab('rendered');
+            }}
             className={`px-2.5 py-1 transition-colors ${
               tab === 'rendered'
                 ? 'bg-xp-selection-bg text-xp-blue'
@@ -41,7 +49,10 @@ const HtmlPreview = ({ file, onError, onLoad }: PreviewProps) => {
           </button>
           <button
             type="button"
-            onClick={() => setTab('edit')}
+            onClick={() => {
+              setEditorMounted(true);
+              setTab('edit');
+            }}
             className={`px-2.5 py-1 transition-colors ${
               tab === 'edit'
                 ? 'bg-xp-selection-bg text-xp-blue'
@@ -83,14 +94,18 @@ const HtmlPreview = ({ file, onError, onLoad }: PreviewProps) => {
           <iframe
             title={t('preview.htmlPreview')}
             sandbox="allow-scripts"
-            srcDoc={content}
+            srcDoc={draftPreview ?? content}
             className="h-full w-full border-0"
           />
         </div>
       )}
 
-      {!loading && !error && tab === 'edit' && (
-        <div className="min-h-0 flex-1 overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface">
+      {!loading && !error && editorMounted && (
+        <div
+          hidden={tab !== 'edit'}
+          style={{ display: tab === 'edit' ? undefined : 'none' }}
+          className="min-h-0 flex-1 overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface"
+        >
           <WispCodeMirror
             doc={content}
             readOnly={false}

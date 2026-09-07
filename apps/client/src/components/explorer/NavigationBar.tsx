@@ -1,21 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import {
-  ChevronRight,
-  ChevronUp,
-  RefreshCw,
-  Pencil,
-  HardDrive,
-  Home,
-  Trash2,
-  Cloud,
-  Folder,
-  Tag,
-} from 'lucide-react';
+import { ChevronUp, RefreshCw, Home, Trash2, Cloud, Folder, Tag } from 'lucide-react';
 import { PATH_SEPARATOR, isWindows } from '@/lib/constants';
 import { TauriAPI } from '@/lib/tauri-api';
 import { getCollection } from '@/lib/collections';
 import { renderIcon } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import PathBreadcrumbs from './PathBreadcrumbs';
 
 interface NavigationBarProps {
   currentPath: string;
@@ -705,70 +695,12 @@ const NavigationBar = ({
             );
           }
           return (
-            <nav
-              aria-label={t('navigation.breadcrumb')}
-              className="scrollbar-none flex h-full min-w-0 flex-1 cursor-text items-center gap-0.5 overflow-x-auto"
-            >
-              {segments.map((seg, i) => {
-                const segContent = (() => {
-                  if (i === 0 && /^[A-Za-z]:$/.test(seg.name)) {
-                    return (
-                      <span className="flex items-center gap-1">
-                        <HardDrive size={12} className="flex-shrink-0" />
-                        {seg.name}
-                      </span>
-                    );
-                  }
-                  if (i === 0 && seg.name === '/') {
-                    return (
-                      <span className="flex items-center gap-1">
-                        <HardDrive size={12} className="flex-shrink-0" />/
-                      </span>
-                    );
-                  }
-                  return seg.name;
-                })();
-                return (
-                  <React.Fragment key={seg.fullPath}>
-                    {i > 0 && (
-                      <ChevronRight
-                        size={12}
-                        className="flex-shrink-0 text-xp-text-muted opacity-60"
-                      />
-                    )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigateToPath?.(seg.fullPath);
-                      }}
-                      data-drop-target={i === segments.length - 1 ? undefined : seg.fullPath}
-                      data-is-folder={i === segments.length - 1 ? undefined : 'true'}
-                      className={`wisp-breadcrumb max-w-[160px] flex-shrink-0 truncate rounded-[2px] px-1.5 py-0.5 text-sm transition-colors ${
-                        i === segments.length - 1
-                          ? 'font-semibold text-xp-text'
-                          : 'text-xp-text-muted hover:text-xp-text'
-                      }`}
-                      title={seg.fullPath}
-                      aria-current={i === segments.length - 1 ? 'location' : undefined}
-                      aria-label={t('navigation.navigateTo', { name: seg.name })}
-                    >
-                      {segContent}
-                    </button>
-                  </React.Fragment>
-                );
-              })}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsEditingPath(true);
-                }}
-                className="wisp-breadcrumb-edit ml-1 flex-shrink-0 rounded-[2px] p-0.5 text-xp-text-muted opacity-60 transition-all hover:text-xp-text hover:opacity-100"
-                title={t('navigation.editPath')}
-                aria-label={t('navigation.editPath')}
-              >
-                <Pencil size={13} />
-              </button>
-            </nav>
+            <PathBreadcrumbs
+              segments={segments}
+              currentPath={currentPath}
+              navigateToPath={navigateToPath}
+              onEdit={() => setIsEditingPath(true)}
+            />
           );
         })()}
       </div>

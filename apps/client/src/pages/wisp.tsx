@@ -146,6 +146,7 @@ const ExplorerUnified = () => {
 
   // ── File operations ───────────────────────────────────────────────────────
   const fileOps = useFileOperations({
+    visibleFiles: filteredFiles,
     currentPath,
     selectedFiles,
     setSelectedFiles,

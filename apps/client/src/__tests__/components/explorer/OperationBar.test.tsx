@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import OperationBar from '@/components/explorer/OperationBar';
@@ -87,6 +87,31 @@ describe('OperationBar', () => {
     fireEvent.click(screen.getByText('Large Icons'));
 
     expect(mockProps.setViewMode).toHaveBeenCalledWith('large');
+  });
+
+  it.each(['Enter', ' '])('opens the menu with %s and continues native tab order', async (key) => {
+    const user = userEvent.setup();
+    const rects = vi
+      .spyOn(HTMLElement.prototype, 'getClientRects')
+      .mockReturnValue([{}] as unknown as DOMRectList);
+    render(<OperationBar {...mockProps} />);
+    const sortTrigger = screen.getByRole('button', { name: /Sort by/ });
+    const viewTrigger = screen.getByRole('button', { name: /View mode/ });
+    sortTrigger.focus();
+    await user.keyboard(key === 'Enter' ? '{Enter}' : ' ');
+    await waitFor(() => expect(screen.getByRole('menuitemradio', { name: 'Name' })).toHaveFocus());
+    await user.tab();
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(viewTrigger).toHaveFocus();
+
+    await user.keyboard(key === 'Enter' ? '{Enter}' : ' ');
+    await waitFor(() =>
+      expect(screen.getByRole('menuitemradio', { name: /Small Icons/ })).toHaveFocus(),
+    );
+    await user.tab({ shift: true });
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(sortTrigger).toHaveFocus();
+    rects.mockRestore();
   });
 
   it('activates sort and view options through real pointer interaction', async () => {
@@ -205,7 +230,7 @@ describe('OperationBar', () => {
     expect(screen.queryByTitle('Preview selected file')).not.toBeInTheDocument();
   });
 
-  it('surfaces compress for multi-select and properties for a single item', () => {
+  it('surfaces compress for multi-select and properties for both selection sizes', () => {
     const onCompress = vi.fn();
     const onProperties = vi.fn();
     const { rerender } = render(
@@ -219,7 +244,8 @@ describe('OperationBar', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Compress' }));
     expect(onCompress).toHaveBeenCalledTimes(1);
-    expect(screen.queryByRole('button', { name: 'Properties' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Properties' }));
+    expect(onProperties).toHaveBeenCalledTimes(1);
 
     rerender(
       <OperationBar
@@ -230,7 +256,7 @@ describe('OperationBar', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Properties' }));
-    expect(onProperties).toHaveBeenCalledTimes(1);
+    expect(onProperties).toHaveBeenCalledTimes(2);
     expect(screen.queryByRole('button', { name: 'Compress' })).not.toBeInTheDocument();
   });
 

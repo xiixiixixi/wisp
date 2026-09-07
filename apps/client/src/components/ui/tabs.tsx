@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { createContext, useContext, useId, useState } from 'react';
 
 interface TabsProps {
   value?: string;
@@ -8,117 +8,140 @@ interface TabsProps {
   children: React.ReactNode;
 }
 
+const TabsContext = createContext<{
+  value: string;
+  select: (value: string) => void;
+  id: string;
+} | null>(null);
+
+const useTabs = () => {
+  const context = useContext(TabsContext);
+  if (!context) throw new Error('Tabs components must be rendered within Tabs');
+  return context;
+};
+
 export const Tabs = ({
   value,
-  defaultValue,
+  defaultValue = '',
   onValueChange,
   className = '',
   children,
 }: TabsProps) => {
-  const [internalValue, setInternalValue] = useState(defaultValue || '');
-  const currentValue = value !== undefined ? value : internalValue;
-
-  const handleValueChange = (newValue: string) => {
-    if (value === undefined) {
-      setInternalValue(newValue);
-    }
-    onValueChange?.(newValue);
+  const [internalValue, setInternalValue] = useState(defaultValue);
+  const id = useId();
+  const currentValue = value ?? internalValue;
+  const select = (next: string) => {
+    if (value === undefined) setInternalValue(next);
+    onValueChange?.(next);
   };
-
   return (
-    <div className={`${className}`} data-tabs-value={currentValue}>
-      {React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-          return React.cloneElement(child, {
-            ...(child.props as Record<string, unknown>),
-            currentValue,
-            onValueChange: handleValueChange,
-          } as Record<string, unknown>);
-        }
-        return child;
-      })}
-    </div>
+    <TabsContext.Provider value={{ value: currentValue, select, id }}>
+      <div className={className} data-tabs-value={currentValue}>
+        {children}
+      </div>
+    </TabsContext.Provider>
   );
 };
 
-interface TabsListProps {
-  className?: string;
-  children: React.ReactNode;
-  currentValue?: string;
-  onValueChange?: (value: string) => void;
-}
-
-/** Apple-style segmented glass control. */
 export const TabsList = ({
   className = '',
   children,
-  currentValue,
-  onValueChange,
-}: TabsListProps) => {
-  return (
-    <div
-      className={`segmented-control inline-flex h-9 items-center justify-start gap-0.5 ${className}`}
-    >
-      {React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-          return React.cloneElement(child, {
-            ...(child.props as Record<string, unknown>),
-            currentValue,
-            onValueChange,
-          } as Record<string, unknown>);
-        }
-        return child;
-      })}
-    </div>
-  );
-};
+  onKeyDown,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    {...props}
+    role="tablist"
+    aria-orientation="horizontal"
+    className={`segmented-control inline-flex min-h-9 items-center justify-start gap-0.5 ${className}`}
+    onKeyDown={(event) => {
+      onKeyDown?.(event);
+      if (
+        event.defaultPrevented ||
+        !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)
+      ) {
+        return;
+      }
+      const items = Array.from(
+        event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]:not(:disabled)'),
+      );
+      const index = items.indexOf(document.activeElement as HTMLButtonElement);
+      if (index < 0 || items.length === 0) return;
+      event.preventDefault();
+      const rtl = getComputedStyle(event.currentTarget).direction === 'rtl';
+      const forward = event.key === (rtl ? 'ArrowLeft' : 'ArrowRight');
+      let next = (index + (forward ? 1 : -1) + items.length) % items.length;
+      if (event.key === 'Home') next = 0;
+      if (event.key === 'End') next = items.length - 1;
+      items[next].focus();
+      items[next].click();
+    }}
+  >
+    {children}
+  </div>
+);
 
-interface TabsTriggerProps {
+interface TabsTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   value: string;
-  className?: string;
-  children: React.ReactNode;
-  currentValue?: string;
-  onValueChange?: (value: string) => void;
 }
 
 export const TabsTrigger = ({
   value,
   className = '',
   children,
-  currentValue,
-  onValueChange,
+  onClick,
+  ...props
 }: TabsTriggerProps) => {
-  const isActive = currentValue === value;
-
+  const tabs = useTabs();
+  const active = tabs.value === value;
   return (
     <button
+      {...props}
+      type="button"
+      id={`${tabs.id}-tab-${value}`}
       role="tab"
-      aria-selected={isActive}
-      data-active={isActive ? 'true' : 'false'}
-      className={`segmented-control-item relative inline-flex items-center justify-center whitespace-nowrap px-3 text-sm transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40 ${
-        isActive ? 'font-medium text-xp-text' : 'text-xp-text-muted hover:text-xp-text'
-      } ${className}`}
-      onClick={() => onValueChange?.(value)}
+      aria-selected={active}
+      aria-controls={`${tabs.id}-panel-${value}`}
+      tabIndex={active ? 0 : -1}
+      data-active={active}
+      className={`segmented-control-item relative inline-flex items-center justify-center whitespace-nowrap px-3 text-sm transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40 ${active ? 'font-medium text-xp-text' : 'text-xp-text-muted hover:text-xp-text'} ${className}`}
+      onClick={(event) => {
+        onClick?.(event);
+        if (!event.defaultPrevented) tabs.select(value);
+      }}
     >
       {children}
     </button>
   );
 };
 
-interface TabsContentProps {
+interface TabsContentProps extends React.HTMLAttributes<HTMLDivElement> {
   value: string;
-  className?: string;
-  children: React.ReactNode;
-  currentValue?: string;
+  /** Preserve live editor buffers and undo history while another tab is visible. */
+  forceMount?: boolean;
 }
 
 export const TabsContent = ({
   value,
+  forceMount = false,
   className = '',
   children,
-  currentValue,
+  style,
+  ...props
 }: TabsContentProps) => {
-  if (currentValue !== value) return null;
-
-  return <div className={`mt-3 focus-visible:outline-none ${className}`}>{children}</div>;
+  const tabs = useTabs();
+  return (
+    <div
+      {...props}
+      role="tabpanel"
+      id={`${tabs.id}-panel-${value}`}
+      aria-labelledby={`${tabs.id}-tab-${value}`}
+      hidden={tabs.value !== value}
+      style={{ ...style, display: tabs.value === value ? style?.display : 'none' }}
+      tabIndex={0}
+      className={`mt-3 focus-visible:outline-none ${className}`}
+    >
+      {forceMount || tabs.value === value ? children : null}
+    </div>
+  );
 };

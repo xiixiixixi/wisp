@@ -359,7 +359,7 @@ html .rounded-full {
 
 :is(.theme-light, .theme-rolex) button:not(:disabled):active,
 :is(.theme-light, .theme-rolex) [role="button"]:not([aria-disabled="true"]):active {
-  transform: scale(0.97);
+  scale: 0.97;
 }
 
 /* App shell: ambient background + stable central content */
@@ -1358,12 +1358,14 @@ html.high-contrast {
 
   :is(button, [role="button"]):active,
   .glass-card:hover {
+    scale: 1 !important;
     transform: none !important;
   }
 }
 
 html.reduce-motion :is(button, [role="button"]):active,
 html.reduce-motion .glass-card:hover {
+  scale: 1 !important;
   transform: none !important;
 }
 

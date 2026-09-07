@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FileEntry } from '@/lib/tauri-api';
 import { SUBMENU_CLOSE_DELAY_MS } from '@/lib/constants';
+import { formatKeyComboForDisplay, isMacPlatform } from '@/lib/shortcut-utils';
 
 export interface ContextMenuItem {
   id: string;
@@ -217,7 +218,13 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
                   />
                 </svg>
               )}
-              {item.shortcut && <span className="text-xs text-xp-text-muted">{item.shortcut}</span>}
+              {item.shortcut && (
+                <span className="text-xs text-xp-text-muted">
+                  {isMacPlatform()
+                    ? formatKeyComboForDisplay(item.shortcut.toLowerCase())
+                    : item.shortcut}
+                </span>
+              )}
               {hasSubmenu && (
                 <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                   <path

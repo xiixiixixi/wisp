@@ -339,6 +339,17 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
         return;
       }
 
+      // Native controls own unmodified activation/navigation keys. In capture
+      // phase, file Open/Quick Look must not swallow a button's Enter/Space or
+      // a menu's Escape before the control can handle them.
+      if (!event.metaKey && !event.ctrlKey && !event.altKey) {
+        const inComposite = target.closest('[role="menu"], [role="tablist"], select');
+        const activatingControl =
+          (event.key === 'Enter' || event.key === ' ') &&
+          target.closest('button, a[href], [role="button"], [role="tab"], [role="switch"]');
+        if (inComposite || activatingControl) return;
+      }
+
       // The integrated terminal's xterm textarea grabs focus the moment the
       // panel opens — a blanket input exemption here would kill EVERY app
       // shortcut while the panel is visible. Inside xterm, modifier combos

@@ -4,7 +4,7 @@
  * Uses inline styles with CSS variables (--xp-*) to match the rest of the app.
  */
 
-import i18n from '@/i18n';
+import { useTranslation } from 'react-i18next';
 import { formatKeyComboForDisplay } from '@/lib/shortcut-utils';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
@@ -378,6 +378,7 @@ const WorkspaceLayoutDialog = ({
   currentUiState,
   onApplyLayout,
 }: WorkspaceLayoutDialogProps) => {
+  const { t } = useTranslation();
   const [layouts, setLayouts] = useState<WorkspaceLayout[]>([]);
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
@@ -493,24 +494,27 @@ const WorkspaceLayoutDialog = ({
   return (
     <div
       ref={overlayRef}
+      className="wisp-dialog-backdrop"
       style={s.overlay}
       onClick={handleOverlayClick}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Workspace Layouts"
     >
-      <div style={s.dialog}>
+      <div
+        style={s.dialog}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('dialogs.workspaceLayoutDetails.title')}
+      >
         {/* Header */}
         <div style={s.header}>
           <div style={s.titleRow}>
             <IconLayout />
-            <h2 style={s.title}>Workspace Layouts</h2>
+            <h2 style={s.title}>{t('dialogs.workspaceLayoutDetails.title')}</h2>
             <span style={s.badge}>{layouts.length} / 10</span>
           </div>
           <button
             onClick={onClose}
             style={s.closeBtn}
-            aria-label="Close"
+            aria-label={t('common.close')}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'var(--xp-surface-light)';
               e.currentTarget.style.color = 'var(--xp-text)';
@@ -539,7 +543,7 @@ const WorkspaceLayoutDialog = ({
                 type="text"
                 value={saveInput}
                 onChange={(e) => setSaveInput(e.target.value)}
-                placeholder={i18n.t('dialogs.workspaceLayout.namePlaceholder')}
+                placeholder={t('dialogs.workspaceLayoutDetails.namePlaceholder')}
                 style={{ ...s.nameInput, flex: 1 }}
                 maxLength={50}
               />
@@ -548,10 +552,10 @@ const WorkspaceLayoutDialog = ({
                 style={{ ...s.primaryBtn, opacity: saveInput.trim() ? 1 : 0.5 }}
                 disabled={!saveInput.trim()}
               >
-                Save
+                {t('common.save')}
               </button>
               <button type="button" style={s.ghostBtn} onClick={() => setSavingName(false)}>
-                Cancel
+                {t('common.cancel')}
               </button>
             </form>
           ) : (
@@ -569,9 +573,9 @@ const WorkspaceLayoutDialog = ({
                   e.currentTarget.style.opacity = '1';
                 }}
                 disabled={layouts.length >= 10}
-                title={layouts.length >= 10 ? 'Maximum 10 layouts reached' : undefined}
+                title={layouts.length >= 10 ? t('dialogs.workspaceLayoutDetails.limit') : undefined}
               >
-                <IconSave /> Save Current
+                <IconSave /> {t('dialogs.workspaceLayoutDetails.saveCurrent')}
               </button>
               <button
                 style={s.ghostBtn}
@@ -585,7 +589,7 @@ const WorkspaceLayoutDialog = ({
                   e.currentTarget.style.color = 'var(--xp-text-secondary)';
                 }}
               >
-                <IconReset /> Default Layout
+                <IconReset /> {t('dialogs.workspaceLayoutDetails.defaultLayout')}
               </button>
             </>
           )}
@@ -595,9 +599,9 @@ const WorkspaceLayoutDialog = ({
         <div style={s.body}>
           {layouts.length === 0 ? (
             <div style={s.emptyState}>
-              {i18n.t('dialogs.workspaceLayout.noSavedLayouts')}
+              {t('dialogs.workspaceLayoutDetails.noSavedLayouts')}
               <br />
-              {i18n.t('dialogs.workspaceLayout.noSavedLayoutsHint')}
+              {t('dialogs.workspaceLayoutDetails.noSavedLayoutsHint')}
             </div>
           ) : (
             layouts.map((wl) => {
@@ -651,12 +655,17 @@ const WorkspaceLayoutDialog = ({
 
                   {/* Action buttons (visible on hover) */}
                   {!isRenaming && (
-                    <div style={{ ...s.rowActions, opacity: isHovered ? 1 : 0 }}>
+                    <div
+                      className="wisp-layout-row-actions"
+                      style={{ ...s.rowActions, opacity: isHovered ? 1 : 0 }}
+                    >
                       {/* Load */}
                       <button
                         style={s.iconBtn}
-                        title={i18n.t('dialogs.workspaceLayout.loadLayout')}
-                        aria-label={i18n.t('dialogs.workspaceLayout.loadAria', { name: wl.name })}
+                        title={t('dialogs.workspaceLayoutDetails.loadLayout')}
+                        aria-label={t('dialogs.workspaceLayoutDetails.loadAria', {
+                          name: wl.name,
+                        })}
                         onClick={() => handleLoad(wl)}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = 'var(--xp-surface-light)';
@@ -716,24 +725,12 @@ const WorkspaceLayoutDialog = ({
 
         {/* Footer */}
         <div style={s.footer}>
+          <span>{t('dialogs.workspaceLayoutDetails.closeHint')}</span>
           <span>
-            Press{' '}
-            <span
-              style={{
-                fontFamily: 'ui-monospace, monospace',
-                fontSize: '10px',
-                padding: '1px 5px',
-                backgroundColor: 'var(--xp-surface-light)',
-                border: '1px solid var(--xp-border)',
-                borderRadius: '4px',
-                boxShadow: '0 1px 0 var(--xp-border)',
-              }}
-            >
-              Esc
-            </span>{' '}
-            to close
+            {t('dialogs.workspaceLayoutDetails.toggleHint', {
+              shortcut: formatKeyComboForDisplay('ctrl+shift+l'),
+            })}
           </span>
-          <span>{formatKeyComboForDisplay('ctrl+shift+l')} to toggle</span>
         </div>
       </div>
     </div>

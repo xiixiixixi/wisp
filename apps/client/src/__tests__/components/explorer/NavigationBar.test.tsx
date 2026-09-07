@@ -9,6 +9,7 @@ vi.mock('lucide-react', () => ({
   ChevronUp: () => <span data-testid="chevron-up" />,
   RefreshCw: () => <span data-testid="refresh-icon" />,
   Pencil: () => <span data-testid="pencil-icon" />,
+  MoreHorizontal: () => <span />,
   HardDrive: () => <span data-testid="hard-drive-icon" />,
   Home: () => <span data-testid="home-icon" />,
   Trash2: () => <span data-testid="trash-icon" />,
@@ -86,16 +87,17 @@ describe('NavigationBar', () => {
     it('renders breadcrumb segments for a Windows path', () => {
       render(<NavigationBar {...defaultProps} />);
 
-      expect(screen.getByText('C:')).toBeInTheDocument();
-      expect(screen.getByText('Users')).toBeInTheDocument();
-      expect(screen.getByText('Test')).toBeInTheDocument();
-      expect(screen.getByText('Documents')).toBeInTheDocument();
+      for (const name of ['C:', 'Users', 'Test', 'Documents']) {
+        expect(screen.getByRole('button', { name: `Navigate to ${name}` })).toBeInTheDocument();
+      }
     });
 
     it('renders chevron separators between segments', () => {
       render(<NavigationBar {...defaultProps} />);
 
-      const chevrons = screen.getAllByTestId('chevron-right');
+      const chevrons = screen
+        .getAllByTestId('chevron-right')
+        .filter((node) => !node.closest('[inert]'));
       // Between 4 segments there should be 3 separators
       expect(chevrons).toHaveLength(3);
     });
@@ -107,7 +109,7 @@ describe('NavigationBar', () => {
 
     it('last segment has current location aria attribute', () => {
       render(<NavigationBar {...defaultProps} />);
-      const lastSegment = screen.getByText('Documents');
+      const lastSegment = screen.getByRole('button', { name: 'Navigate to Documents' });
       expect(lastSegment.closest('button')).toHaveAttribute('aria-current', 'location');
     });
   });
@@ -133,14 +135,14 @@ describe('NavigationBar', () => {
     it('calls navigateToPath when clicking a breadcrumb segment', () => {
       render(<NavigationBar {...defaultProps} />);
 
-      fireEvent.click(screen.getByText('Users'));
+      fireEvent.click(screen.getByRole('button', { name: 'Navigate to Users' }));
       expect(mockNavigateToPath).toHaveBeenCalledWith(expect.stringContaining('Users'));
     });
 
     it('navigates to root drive when clicking drive segment', () => {
       render(<NavigationBar {...defaultProps} />);
 
-      fireEvent.click(screen.getByText('C:'));
+      fireEvent.click(screen.getByRole('button', { name: 'Navigate to C:' }));
       expect(mockNavigateToPath).toHaveBeenCalledWith(expect.stringContaining('C:'));
     });
   });
@@ -185,7 +187,7 @@ describe('NavigationBar', () => {
 
       // Should return to breadcrumb mode
       expect(screen.queryByLabelText('File path')).not.toBeInTheDocument();
-      expect(screen.getByText('Documents')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Navigate to Documents' })).toBeInTheDocument();
     });
 
     it('submits path on Enter', async () => {
@@ -229,7 +231,9 @@ describe('NavigationBar', () => {
   describe('Drive letter display', () => {
     it('shows hard drive icon for root drive segment', () => {
       render(<NavigationBar {...defaultProps} />);
-      expect(screen.getByTestId('hard-drive-icon')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Navigate to C:' })).toContainElement(
+        screen.getAllByTestId('hard-drive-icon').find((node) => !node.closest('[inert]'))!,
+      );
     });
   });
 

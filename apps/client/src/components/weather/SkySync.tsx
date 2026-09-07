@@ -10,17 +10,22 @@ const syncAccessibilityClasses = () => {
   try {
     const settings = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}') as {
       reducedMotion?: boolean;
+      enableAnimations?: boolean;
       reduceTransparency?: boolean;
       enhancedFocus?: boolean;
       highContrast?: boolean;
       fluidGlass?: boolean;
     };
-    root.classList.toggle('reduce-motion', settings.reducedMotion === true);
+    root.classList.toggle(
+      'reduce-motion',
+      settings.reducedMotion === true || settings.enableAnimations === false,
+    );
     root.classList.toggle('reduce-transparency', settings.reduceTransparency === true);
     root.classList.toggle('enhanced-focus', settings.enhancedFocus === true);
     root.classList.toggle('high-contrast', settings.highContrast === true);
     root.classList.toggle('theme-fluid', settings.fluidGlass !== false);
   } catch {
+    root.classList.add('theme-fluid');
     root.classList.remove(
       'reduce-motion',
       'reduce-transparency',

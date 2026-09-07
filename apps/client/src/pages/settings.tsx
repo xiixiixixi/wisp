@@ -533,6 +533,8 @@ const Settings = () => {
                 return (
                   <button
                     key={tab.id}
+                    type="button"
+                    aria-current={isActive ? 'page' : undefined}
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex min-h-12 w-full items-center gap-3 rounded-[2px] px-3 py-2.5 text-left transition-all ${
                       isActive
@@ -547,7 +549,7 @@ const Settings = () => {
                       >
                         {tab.label}
                       </div>
-                      <div className="text-xp-text-secondary/60 truncate text-[10px]">
+                      <div className="wisp-settings-nav-description truncate text-xs text-xp-text-secondary">
                         {tab.description}
                       </div>
                     </div>

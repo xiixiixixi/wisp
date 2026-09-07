@@ -398,14 +398,18 @@ const TemplatePickerDialog = ({
 
   return (
     <div
+      className="wisp-dialog-backdrop"
       style={s.overlay}
       onClick={onClose}
       onKeyDown={handleKeyDown}
-      role="dialog"
-      aria-modal="true"
-      aria-label="New from Template"
     >
-      <div style={s.dialog} onClick={(e) => e.stopPropagation()}>
+      <div
+        style={s.dialog}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="New from Template"
+      >
         {/* Header */}
         <div style={s.header}>
           <h2 style={s.title}>New from Template</h2>

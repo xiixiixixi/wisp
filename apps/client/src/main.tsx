@@ -4,7 +4,6 @@ import { createRoot } from 'react-dom/client';
 import './i18n';
 import { migrateFolderColorsToFinderTags } from '@/lib/folder-colors';
 import { ensureTagPalette } from '@/lib/file-tags-cache';
-import { installAutoScrollbars } from '@/lib/auto-scrollbars';
 import App from './App';
 import SkySync from '@/components/weather/SkySync';
 import './index.css';
@@ -14,9 +13,6 @@ import { migrateLegacyDefaultView } from './lib/view-default';
 
 // One-time rewrite of stored legacy view defaults ('grid'/'medium') to details
 migrateLegacyDefaultView();
-
-// Finder-style scrollbars: only visible while actually scrolling
-installAutoScrollbars();
 
 // Expose React on window so extensions loaded via new Function() can access it
 (window as unknown as Record<string, unknown>).React = React;

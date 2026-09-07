@@ -366,12 +366,12 @@
       "onboardingTourDesc": "Replay the interactive guided tour of the app",
       "replayTour": "Replay Tour",
       "weatherCity": "Weather city",
-      "weatherCityDesc": "The home weather card and the whole app ambience follow live conditions (rain, snow, clouds, moon phase)",
+      "weatherCityDesc": "Choose the city shown in the title bar weather",
       "weatherCityPlaceholder": "City name, e.g. Shanghai",
-      "weatherSync": "Weather ambience",
-      "weatherSyncDesc": "Let live weather drive the whole palette: sunny days go light, nights go dark (with moon phase), overcast dims, rain and snow fall",
+      "weatherSync": "Show weather",
+      "weatherSyncDesc": "Show the current city weather in the title bar while keeping the appearance consistent",
       "fluidGlass": "Fluid Glass",
-      "fluidGlassDesc": "Panels become one continuous fluid-glass surface: edge refraction, specular highlights, weather tinting"
+      "fluidGlassDesc": "Translucent navigation, toolbars and controls with clear content. Reduce transparency and motion in Accessibility."
     },
     "explorer": {
       "display": "Display",
@@ -972,6 +972,8 @@
     "googleDrive": "Google Drive",
     "collection": "Collection",
     "editPath": "Edit path",
+    "showFullPath": "Show full path",
+    "showParentFolders": "Show parent folders",
     "pathPlaceholder": "Enter path... (~ for home)",
     "filePath": "File path",
     "pathExists": "Path exists",
@@ -1077,6 +1079,19 @@
     "decrypt": "Decrypt File",
     "keyboardShortcuts": "Keyboard Shortcuts",
     "workspaceLayout": "Workspace Layout",
+    "workspaceLayoutDetails": {
+      "title": "Workspace Layouts",
+      "namePlaceholder": "Layout name...",
+      "limit": "Maximum 10 layouts reached",
+      "saveCurrent": "Save Current",
+      "defaultLayout": "Default Layout",
+      "noSavedLayouts": "No saved layouts yet.",
+      "noSavedLayoutsHint": "Save the current arrangement to restore it later.",
+      "loadLayout": "Load layout",
+      "loadAria": "Load {{name}}",
+      "closeHint": "Press Esc to close",
+      "toggleHint": "{{shortcut}} to toggle"
+    },
     "compareFiles": {
       "title": "Compare Files",
       "firstFile": "First File",
@@ -1638,11 +1653,20 @@
     "agents": "Agents",
     "events": "Events"
   },
+  "selectionProperties": {
+    "title": "Properties of {{count}} items",
+    "summary": "{{files}} files, {{folders}} folders",
+    "fileBytes": "File size (excluding folder contents)",
+    "items": "Selected items",
+    "copyPaths": "Copy all paths"
+  },
   "previewPanel": {
     "noFileSelectedShort": "No file selected",
     "closePreview": "Close Preview",
     "emptyDescription": "Choose an item from the file list to see its contents and details here.",
     "failedLoad": "Failed to load preview",
+    "retryDescription": "This file could not be read. Try again, or double-click the file to open it in its default app.",
+    "retry": "Try again",
     "tooLarge": "File is too large for preview",
     "notSupported": "This file type is not supported for preview",
     "copyPath": "Copy path",
@@ -1804,6 +1828,11 @@
     "selectionInvertedDesc": "Now selecting {{selected}} of {{total}} items",
     "pathCopied": "Path Copied",
     "pathCopiedDesc": "File path copied to clipboard",
+    "pathsCopiedDesc": "Copied {{count}} paths, one per line",
+    "duplicateStarted": "Creating duplicates",
+    "duplicateStartedDesc": "Started {{count}} items. Check transfer progress for the result.",
+    "namesCopiedDesc": "Copied {{count}} names, one per line",
+    "clipboardWriteFailed": "Could not write to clipboard",
     "terminalOpened": "Terminal Opened",
     "terminalOpenedDesc": "Terminal opened at {{path}}",
     "recycleBinOpened": "Recycle Bin Opened",

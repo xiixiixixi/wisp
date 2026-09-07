@@ -316,7 +316,7 @@ const PreviewNavigationBar = ({
   const historyItems = recentOpen ? getHistory() : [];
 
   return (
-    <div style={barStyle}>
+    <div className="wisp-preview-navigation" style={barStyle}>
       {/* Top row: arrows + position + recent + compare */}
       <div style={topRowStyle}>
         <button

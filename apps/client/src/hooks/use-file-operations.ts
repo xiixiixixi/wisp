@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
+import { copyEntryText } from '@/lib/copy-entry-text';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { TauriAPI, type FileEntry, type ConflictFileInfo } from '@/lib/tauri-api';
@@ -72,6 +73,7 @@ interface UseFileOperationsDeps {
   selectedFiles: Set<string>;
   setSelectedFiles: React.Dispatch<React.SetStateAction<Set<string>>>;
   files: FileEntry[];
+  visibleFiles?: FileEntry[];
   refetch: () => void;
   toast: (opts: {
     title?: string;
@@ -182,6 +184,8 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
   confirmExtensionChangeRef.current = confirmExtensionChange;
   const filesRef = useRef(files);
   filesRef.current = files;
+  const visibleFilesRef = useRef(deps.visibleFiles ?? files);
+  visibleFilesRef.current = deps.visibleFiles ?? files;
   const splitLayoutRef = useRef(splitLayout);
   splitLayoutRef.current = splitLayout;
   const activeGroupIdRef = useRef(activeGroupId);
@@ -232,6 +236,8 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
   );
 
   const [clipboard, setClipboard] = useState<ClipboardState | null>(null);
+  const [selectionPropertiesFiles, setSelectionPropertiesFiles] = useState<FileEntry[]>([]);
+  const closeSelectionProperties = useCallback(() => setSelectionPropertiesFiles([]), []);
   const clipboardRef = useRef<ClipboardState | null>(null);
   const setClipboardBoth = useCallback((val: ClipboardState | null) => {
     clipboardRef.current = val;
@@ -524,7 +530,14 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
       },
 
       // ── Simple dialog / action delegates ───────────────────────────────
-      properties: (file: FileEntry) => {
+      properties: (input: FileEntry | FileEntry[]) => {
+        const entries = Array.isArray(input) ? input : [input];
+        if (entries.length > 1) {
+          setSelectionPropertiesFiles(entries);
+          return;
+        }
+        const file = entries[0];
+        if (!file) return;
         dialogsRef.current.openPropertiesDialog(file.path);
         setBottomPanelCollapsedRef.current(false);
         setBottomPanelTabRef.current('properties');
@@ -537,34 +550,28 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
         });
       },
       selectAll: () => {
-        const allFilePaths = new Set(filesRef.current.map((f) => f.path));
+        const allFilePaths = new Set(visibleFilesRef.current.map((f) => f.path));
         setSelectedFilesRef.current(allFilePaths);
         toastRef.current({
           title: tRef.current('toast.selectedAll'),
-          description: tRef.current('common.selected', { count: filesRef.current.length }),
+          description: tRef.current('common.selected', { count: visibleFilesRef.current.length }),
         });
       },
       invertSelection: () => {
-        const inverted = invertSelection(filesRef.current, selectedFilesRef.current);
+        const inverted = invertSelection(visibleFilesRef.current, selectedFilesRef.current);
         setSelectedFilesRef.current(new Set(inverted));
         toastRef.current({
           title: tRef.current('toast.selectionInverted'),
           description: tRef.current('toast.selectionInvertedDesc', {
             selected: inverted.length,
-            total: filesRef.current.length,
+            total: visibleFilesRef.current.length,
           }),
         });
       },
       openAdvancedSelection: () => {
         dialogsRef.current.setShowAdvancedSelect(true);
       },
-      copyPath: (file: FileEntry) => {
-        navigator.clipboard.writeText(file.path);
-        toastRef.current({
-          title: tRef.current('toast.pathCopied'),
-          description: tRef.current('toast.pathCopiedDesc'),
-        });
-      },
+      copyPath: (entries) => copyEntryText(entries, 'path', toastRef.current),
       openInTerminal: (path: string) => {
         // Always open the built-in terminal panel immediately
         setBottomPanelCollapsedRef.current(false);
@@ -647,13 +654,14 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
             const lastSepIdx = file.path.lastIndexOf(sep);
             const parentDir = file.path.substring(0, lastSepIdx);
             const dest = await findCopyName(parentDir, file.name, sep);
-            await TauriAPI.acceleratedCopyFile(file.path, dest);
-            emitFileActivityRef.current('create', dest);
+            // This command supports directories too and rejects an existing
+            // destination. Its return value is a task id, not completion.
+            await TauriAPI.copyWithProgress(file.path, dest, false);
             duplicated++;
           } catch (error) {
             toastRef.current({
-              title: 'Duplicate failed',
-              description: `Failed to duplicate "${file.name}": ${formatError(error)}`,
+              title: tRef.current('toast.duplicateFailed'),
+              description: `${file.name}: ${formatError(error)}`,
               variant: 'destructive',
             });
           }
@@ -661,18 +669,12 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
         if (duplicated > 0) {
           emitFilesChangedRef.current();
           toastRef.current({
-            title: 'Duplicated',
-            description: `Duplicated ${duplicated} item${duplicated > 1 ? 's' : ''}`,
+            title: tRef.current('toast.duplicateStarted'),
+            description: tRef.current('toast.duplicateStartedDesc', { count: duplicated }),
           });
         }
       },
-      copyName: (file: FileEntry) => {
-        navigator.clipboard.writeText(file.name);
-        toastRef.current({
-          title: tRef.current('toast.nameCopied'),
-          description: tRef.current('toast.nameCopiedDesc', { name: file.name }),
-        });
-      },
+      copyName: (entries) => copyEntryText(entries, 'name', toastRef.current),
       pinToSidebar: async (file: FileEntry) => {
         try {
           await TauriAPI.addBookmark(file.path, file.name);
@@ -835,6 +837,7 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
   const contextMenuFactory = useMemo(
     () =>
       new ContextMenuFactory(contextMenuActions, {
+        resolveFile: (path) => filesRef.current.find((file) => file.path === path),
         showHidden: false,
         enableCompression: true,
         enableAdvanced: true,
@@ -1071,6 +1074,8 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
 
   return {
     clipboard,
+    selectionPropertiesFiles,
+    closeSelectionProperties,
     setClipboard,
     contextMenuActions,
     contextMenuFactory,

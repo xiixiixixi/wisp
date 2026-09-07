@@ -204,6 +204,52 @@ describe('File Operations Integration', () => {
     vi.restoreAllMocks();
   });
 
+  describe('Batch selection contracts', () => {
+    it('submits files and folders as non-overwriting copy tasks, not completed copies', async () => {
+      const entries = createTestFiles();
+      const deps = createDeps({ files: entries });
+      const { result } = renderHook(() => useFileOperations(deps));
+      await act(async () => {
+        await result.current.contextMenuActions.duplicateFiles(entries);
+      });
+      expect(mockCopy).toHaveBeenCalledTimes(entries.length);
+      for (const entry of entries) {
+        expect(mockCopy).toHaveBeenCalledWith(entry.path, expect.any(String), false);
+      }
+      expect(deps.toast).toHaveBeenCalledWith(
+        expect.objectContaining({ title: expect.stringMatching(/duplicate|副本/i) }),
+      );
+    });
+    it('reserves a new copy name when an earlier duplicate already exists', async () => {
+      mockFileExists.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+      const entries = createTestFiles();
+      const { result } = renderHook(() => useFileOperations(createDeps({ files: entries })));
+      await act(async () => {
+        await result.current.contextMenuActions.duplicateFiles([entries[0]]);
+      });
+      expect(mockCopy).toHaveBeenCalledWith(
+        entries[0].path,
+        expect.stringContaining('Copy 2'),
+        false,
+      );
+    });
+    it('selects and inverts only visible entries', () => {
+      const entries = createTestFiles();
+      const deps = createDeps({
+        files: entries,
+        visibleFiles: entries.slice(0, 2),
+        selectedFiles: new Set([entries[0].path]),
+      });
+      const { result } = renderHook(() => useFileOperations(deps));
+      act(() => result.current.contextMenuActions.selectAll());
+      expect(deps.setSelectedFiles).toHaveBeenLastCalledWith(
+        new Set(entries.slice(0, 2).map((file) => file.path)),
+      );
+      act(() => result.current.contextMenuActions.invertSelection());
+      expect(deps.setSelectedFiles).toHaveBeenLastCalledWith(new Set([entries[1].path]));
+    });
+  });
+
   describe('Copy Operation Flow', () => {
     it('copies files to clipboard and pastes them to the current directory', async () => {
       const deps = createDeps();

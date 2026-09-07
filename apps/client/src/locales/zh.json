@@ -366,12 +366,12 @@
       "onboardingTourDesc": "重新播放应用交互式引导教程",
       "replayTour": "重新播放",
       "weatherCity": "天气城市",
-      "weatherCityDesc": "主页天气卡片与全局氛围效果随实际天气变化（雨、雪、阴晴、月相）",
+      "weatherCityDesc": "设置标题栏显示天气的城市",
       "weatherCityPlaceholder": "城市名，如 上海",
-      "weatherSync": "天气氛围",
-      "weatherSyncDesc": "跟随实际天气自动切换整套配色：晴天亮色、夜晚暗色（含月相）、阴天压灰、雨雪有雨雪",
+      "weatherSync": "显示天气",
+      "weatherSyncDesc": "在标题栏显示当前城市的天气，界面外观保持不变",
       "fluidGlass": "流体玻璃",
-      "fluidGlassDesc": "面板化为连续的流体玻璃：边缘轻折射、顶部镜面高光、随天气染色"
+      "fluidGlassDesc": "导航、工具栏和组件使用通透玻璃材质，内容保持清晰；可在无障碍中减少透明度与动态效果"
     },
     "explorer": {
       "display": "显示",
@@ -972,6 +972,8 @@
     "googleDrive": "Google 云端硬盘",
     "collection": "集合",
     "editPath": "编辑路径",
+    "showFullPath": "显示完整路径",
+    "showParentFolders": "显示上级目录",
     "pathPlaceholder": "输入路径...（~ 表示主页）",
     "filePath": "文件路径",
     "pathExists": "路径存在",
@@ -1139,6 +1141,19 @@
     },
     "keyboardShortcuts": "键盘快捷键",
     "workspaceLayout": "工作区布局",
+    "workspaceLayoutDetails": {
+      "title": "工作区布局",
+      "namePlaceholder": "布局名称…",
+      "limit": "最多保存 10 个布局",
+      "saveCurrent": "保存当前布局",
+      "defaultLayout": "默认布局",
+      "noSavedLayouts": "还没有保存的布局",
+      "noSavedLayoutsHint": "保存当前窗口排列，便于以后恢复。",
+      "loadLayout": "加载布局",
+      "loadAria": "加载 {{name}}",
+      "closeHint": "按 Esc 关闭",
+      "toggleHint": "{{shortcut}} 切换布局弹窗"
+    },
     "compareFiles": {
       "title": "比较文件",
       "firstFile": "第一个文件",
@@ -1638,11 +1653,20 @@
     "agents": "代理",
     "events": "动态"
   },
+  "selectionProperties": {
+    "title": "{{count}} 个项目的属性",
+    "summary": "{{files}} 个文件，{{folders}} 个文件夹",
+    "fileBytes": "文件大小（不含文件夹内容）",
+    "items": "选中的项目",
+    "copyPaths": "复制全部路径"
+  },
   "previewPanel": {
     "noFileSelectedShort": "未选择文件",
     "closePreview": "关闭预览",
     "emptyDescription": "从中间的文件列表中选择一个项目，即可在这里查看内容与详细信息。",
     "failedLoad": "预览加载失败",
+    "retryDescription": "暂时无法读取此文件。可以重试，或双击文件使用默认应用打开。",
+    "retry": "重试",
     "tooLarge": "文件过大，无法预览",
     "notSupported": "暂不支持预览此文件类型",
     "copyPath": "复制路径",
@@ -1804,6 +1828,11 @@
     "selectionInvertedDesc": "正在选择 {{total}} 个项目中的 {{selected}} 个",
     "pathCopied": "路径已复制",
     "pathCopiedDesc": "文件路径已复制到剪贴板",
+    "pathsCopiedDesc": "已复制 {{count}} 个路径，每行一个",
+    "duplicateStarted": "已开始创建副本",
+    "duplicateStartedDesc": "已提交 {{count}} 个项目，请在传输进度中查看结果",
+    "namesCopiedDesc": "已复制 {{count}} 个名称，每行一个",
+    "clipboardWriteFailed": "无法写入剪贴板",
     "terminalOpened": "终端已打开",
     "terminalOpenedDesc": "终端已在 {{path}} 打开",
     "recycleBinOpened": "回收站已打开",

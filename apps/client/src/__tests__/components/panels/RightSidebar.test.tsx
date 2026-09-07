@@ -124,8 +124,9 @@ describe('RightSidebar', () => {
         name: i18n.t('previewPanel.closePreview'),
       });
 
-      expect(within(header).queryByRole('heading')).not.toBeInTheDocument();
-      expect(within(header).queryByText(i18n.t('extensionsBar.preview'))).not.toBeInTheDocument();
+      expect(within(header).getByRole('heading')).toHaveTextContent(
+        i18n.t('extensionsBar.preview'),
+      );
       expect(
         within(header).queryByText(i18n.t('previewPanel.noFileSelectedShort')),
       ).not.toBeInTheDocument();
@@ -188,6 +189,8 @@ describe('RightSidebar', () => {
         <RightSidebar {...defaultProps} rightPanelTab="preview" selectedFile={file} />,
       );
       expect(await screen.findByText('Preview: test.txt')).toBeInTheDocument();
+      expect(screen.queryByText('test.txt', { exact: true })).not.toBeInTheDocument();
+      expect(document.querySelector('.wisp-inspector-context')).not.toBeInTheDocument();
     });
   });
 

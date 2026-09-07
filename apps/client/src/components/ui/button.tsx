@@ -13,6 +13,7 @@ export const Button = ({
   size = 'default',
   className = '',
   children,
+  type = 'button',
   ...props
 }: ButtonProps) => {
   const baseClasses =
@@ -34,6 +35,7 @@ export const Button = ({
 
   return (
     <button
+      type={type}
       data-variant={variant}
       className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       {...props}

@@ -41,7 +41,7 @@ export interface SharedPaneActions {
   handleCreateFile: (currentPath: string) => void;
   handleCompress: (files: FileEntry[]) => void;
   handleExtract: (file: FileEntry) => void;
-  handleProperties: (file: FileEntry) => void;
+  handleProperties: (file: FileEntry | FileEntry[]) => void;
 
   // Theme
   theme: string;
@@ -782,7 +782,7 @@ const EditorGroupPane = ({
             ? () => handleExtract(singleSelectedEntry)
             : undefined
         }
-        onProperties={singleSelectedEntry ? () => handleProperties(singleSelectedEntry) : undefined}
+        onProperties={selectedEntries.length ? () => handleProperties(selectedEntries) : undefined}
       />
     );
   };

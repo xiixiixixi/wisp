@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Cpu, HardDrive, MemoryStick } from 'lucide-react';
-import { TauriAPI, type TopProcess } from '@/lib/tauri-api';
+import { TauriAPI } from '@/lib/tauri-api';
+import type { TopProcess } from '@/lib/tauri-api/system';
 import { isBrowserDemoMode } from '@/lib/browser-demo-files';
 import { formatFileSize } from '@/lib/utils';
 

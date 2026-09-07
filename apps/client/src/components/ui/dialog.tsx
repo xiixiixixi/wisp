@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useCallback, useId } from 'react';
+import { createPortal } from 'react-dom';
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -13,6 +14,8 @@ interface DialogProps {
   preventClose?: boolean;
   /** Whether clicking the backdrop closes the dialog. Default true. */
   closeOnBackdropClick?: boolean;
+  /** Width belongs to the actual modal, not an inner content wrapper. */
+  maxWidth?: React.CSSProperties['maxWidth'];
 }
 
 // React context so DialogTitle can read the resolved titleId without extra props.
@@ -25,6 +28,7 @@ export const Dialog = ({
   titleId: titleIdProp,
   preventClose = false,
   closeOnBackdropClick = true,
+  maxWidth,
 }: DialogProps) => {
   const autoId = useId();
   const titleId = titleIdProp ?? `dialog-title-${autoId}`;
@@ -65,23 +69,22 @@ export const Dialog = ({
       }
     });
 
-    return () => cancelAnimationFrame(raf);
-  }, [open]);
-
-  // ---- restore focus on close ----
-  useEffect(() => {
-    if (open) return;
-    // When the dialog just closed, restore focus to the previously-focused element.
-    const prev = previousFocusRef.current;
-    if (prev && prev instanceof HTMLElement) {
-      prev.focus();
+    return () => {
+      cancelAnimationFrame(raf);
+      // Cleanup also runs when the owner conditionally unmounts the dialog.
+      const previous = previousFocusRef.current;
+      if (previous instanceof HTMLElement && previous.isConnected) {
+        previous.focus({ preventScroll: true });
+      }
       previousFocusRef.current = null;
-    }
+    };
   }, [open]);
 
   // ---- keyboard handling (Escape + Tab trap) ----
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
+      // A nested portal (for example Select) owns its own Escape/Tab events.
+      if (e.defaultPrevented) return;
       if (e.key === 'Escape') {
         e.stopPropagation();
         requestClose();
@@ -92,14 +95,23 @@ export const Dialog = ({
         const container = dialogRef.current;
         if (!container) return;
 
-        const focusable = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
-        if (focusable.length === 0) return;
+        const focusable = Array.from(
+          container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+        ).filter(
+          (element) =>
+            element.tabIndex >= 0 && !element.closest('[hidden], [inert], [aria-hidden="true"]'),
+        );
+        if (focusable.length === 0) {
+          e.preventDefault();
+          container.focus();
+          return;
+        }
 
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
 
         if (e.shiftKey) {
-          if (document.activeElement === first) {
+          if (document.activeElement === first || document.activeElement === container) {
             e.preventDefault();
             last.focus();
           }
@@ -122,10 +134,10 @@ export const Dialog = ({
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <DialogContext.Provider value={{ titleId }}>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/35"
+        className="wisp-dialog-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/35"
         onClick={handleBackdropClick}
       >
         <div
@@ -134,15 +146,16 @@ export const Dialog = ({
           aria-modal="true"
           aria-labelledby={titleId}
           tabIndex={-1}
-          className="elevated-glass mx-4 max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-2xl border border-xp-border bg-xp-popover shadow-[var(--xp-shadow-popover)]"
-          style={{ outline: 'none' }}
+          className="elevated-glass mx-4 max-h-[min(90dvh,calc(100dvh-40px))] w-full max-w-4xl overflow-y-auto overscroll-contain rounded-2xl border border-xp-border bg-xp-popover shadow-[var(--xp-shadow-popover)]"
+          style={{ outline: 'none', maxWidth }}
           onClick={(e) => e.stopPropagation()}
           onKeyDown={handleKeyDown}
         >
           {children}
         </div>
       </div>
-    </DialogContext.Provider>
+    </DialogContext.Provider>,
+    document.body,
   );
 };
 

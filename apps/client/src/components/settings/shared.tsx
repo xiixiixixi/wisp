@@ -105,7 +105,7 @@ export const SettingRow = ({
   description?: string;
   children: React.ReactNode;
 }) => (
-  <div className="group flex items-center justify-between gap-4 rounded-[2px] px-4 py-2 transition-colors hover:bg-xp-surface-light/50">
+  <div className="wisp-setting-row group flex items-center justify-between gap-4 rounded-[2px] px-4 py-2">
     <div className="flex min-w-0 items-center gap-3">
       {Icon && <Icon size={17} className="shrink-0 text-xp-text-secondary" />}
       <div className="min-w-0">

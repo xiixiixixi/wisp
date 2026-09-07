@@ -391,7 +391,7 @@ describe('TemplatePickerDialog', () => {
 
     it('calls onClose when clicking the overlay background', () => {
       render(<TemplatePickerDialog {...defaultProps} />);
-      const overlay = screen.getByRole('dialog');
+      const overlay = screen.getByRole('dialog').parentElement!;
       fireEvent.click(overlay);
       expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
     });

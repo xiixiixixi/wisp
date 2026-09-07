@@ -250,8 +250,8 @@ const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
   };
 
   return (
-    <div className="relative flex h-full flex-col overflow-auto bg-xp-bg text-xp-text">
-      <div className="mx-auto grid min-h-0 w-full max-w-6xl flex-1 grid-cols-1 gap-y-5 px-6 py-6 lg:grid-cols-12 lg:gap-x-5 lg:px-8">
+    <div className="wisp-home relative flex h-full flex-col overflow-auto bg-xp-bg text-xp-text">
+      <div className="wisp-home-layout mx-auto grid min-h-0 w-full max-w-6xl flex-1 grid-cols-1 gap-y-5 px-6 py-6 lg:grid-cols-12 lg:gap-x-5 lg:px-8">
         {/* Compact header */}
         <div className="order-0 lg:col-span-12">
           <Clock />

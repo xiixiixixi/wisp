@@ -24,6 +24,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import BottomPanel from '@/components/panels/BottomPanel';
 import ContextMenu, { type ContextMenuItem } from '@/components/ui/ContextMenu';
 import DialogsOverlay from '@/components/explorer/DialogsOverlay';
+import SelectionPropertiesDialog from '@/components/dialogs/SelectionPropertiesDialog';
 import ResizeHandle from '@/components/ui/ResizeHandle';
 import StatusBar from '@/components/StatusBar';
 import SplitContainer from '@/components/split-view/SplitContainer';
@@ -540,7 +541,7 @@ const MainLayout = (props: MainLayoutProps) => {
 
           {/* Global Status Bar */}
           <StatusBar
-            files={files}
+            files={filteredFiles}
             selectedFiles={selectedFiles}
             currentPath={currentPath}
             activeTab={activeTabObj}
@@ -565,6 +566,13 @@ const MainLayout = (props: MainLayoutProps) => {
           )}
 
           {/* All dialogs, toasts, and overlays */}
+          <SelectionPropertiesDialog
+            files={fileOps.selectionPropertiesFiles}
+            onClose={fileOps.closeSelectionProperties}
+            onCopyPaths={() =>
+              fileOps.contextMenuActions.copyPath(fileOps.selectionPropertiesFiles)
+            }
+          />
           <DialogsOverlay
             dialogManager={dialogManager}
             fileComparison={fileComparison}

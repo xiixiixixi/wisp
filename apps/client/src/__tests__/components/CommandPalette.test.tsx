@@ -288,10 +288,11 @@ describe('CommandPalette', () => {
     expect(onFileSelect).not.toHaveBeenCalled();
   });
 
-  it('restores focus to the command palette trigger when the overlay unmounts', async () => {
+  it('restores focus to the opener when the overlay unmounts', async () => {
     const previous = document.createElement('button');
     const trigger = document.createElement('button');
     trigger.dataset.commandPaletteTrigger = '';
+    vi.spyOn(previous, 'getClientRects').mockReturnValue([{}] as unknown as DOMRectList);
     document.body.append(previous, trigger);
     previous.focus();
 
@@ -303,9 +304,33 @@ describe('CommandPalette', () => {
     );
 
     unmount();
-    await waitFor(() => expect(trigger).toHaveFocus());
+    await waitFor(() => expect(previous).toHaveFocus());
     previous.remove();
     trigger.remove();
+  });
+
+  it('falls back to the visible compact trigger after the opener is removed', async () => {
+    const previous = document.createElement('button');
+    const hiddenTrigger = document.createElement('button');
+    const compactTrigger = document.createElement('button');
+    hiddenTrigger.dataset.commandPaletteTrigger = '';
+    compactTrigger.dataset.commandPaletteTrigger = '';
+    vi.spyOn(compactTrigger, 'getClientRects').mockReturnValue([{}] as unknown as DOMRectList);
+    document.body.append(previous, hiddenTrigger, compactTrigger);
+    previous.focus();
+
+    const { unmount } = render(
+      <CommandPalette isOpen onClose={vi.fn()} currentPath="/Users/test/Documents" />,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: 'Search files and folders...' })).toHaveFocus(),
+    );
+    previous.remove();
+    unmount();
+
+    await waitFor(() => expect(compactTrigger).toHaveFocus());
+    hiddenTrigger.remove();
+    compactTrigger.remove();
   });
 
   it('uses recent-file metadata for dotted folders and extensionless files', async () => {

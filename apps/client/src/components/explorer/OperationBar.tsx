@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { SortField } from '@/lib/utils';
+import { AnchoredMenu } from '@/components/ui/AnchoredMenu';
 
 interface ViewMode {
   id: string;
@@ -132,6 +133,15 @@ const OperationBar = ({
     if (restoreFocus && menu) requestAnimationFrame(() => triggerFor(menu)?.focus());
   };
 
+  const toggleMenu = (menu: OperationMenu) => {
+    if (openMenu === menu) {
+      setOpenMenu(null);
+    } else {
+      setOpenMenu(menu);
+      requestAnimationFrame(() => focusMenuItem(menu, 'first'));
+    }
+  };
+
   const menuItems = (menu: OperationMenu) =>
     Array.from(
       menuFor(menu)?.querySelectorAll<HTMLElement>(
@@ -157,6 +167,7 @@ const OperationBar = ({
     menu: OperationMenu,
     event: React.KeyboardEvent<HTMLButtonElement>,
   ) => {
+    // Enter/Space use the button's native click, which shares pointer behavior.
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
     event.preventDefault();
     setOpenMenu(menu);
@@ -185,6 +196,29 @@ const OperationBar = ({
         event.preventDefault();
         closeMenu(true);
         break;
+      case 'Tab': {
+        // A portal sits at the end of body, not beside its toolbar trigger.
+        // Continue from the trigger's document position in either direction.
+        event.preventDefault();
+        const trigger = triggerFor(menu);
+        const tabbable = Array.from(
+          document.querySelectorAll<HTMLElement>(
+            'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]',
+          ),
+        ).filter(
+          (element) =>
+            element.tabIndex >= 0 &&
+            element.getClientRects().length > 0 &&
+            getComputedStyle(element).visibility !== 'hidden' &&
+            !element.closest('[inert], [hidden], [aria-hidden="true"]') &&
+            !menuFor(menu)?.contains(element),
+        );
+        const index = trigger ? tabbable.indexOf(trigger) : -1;
+        const next = tabbable[index + (event.shiftKey ? -1 : 1)];
+        (next ?? trigger)?.focus();
+        setOpenMenu(null);
+        break;
+      }
     }
   };
 
@@ -195,7 +229,14 @@ const OperationBar = ({
     // The click fallback also covers synthetic accessibility presses that
     // never dispatch pointer events.
     const onPointerDown = (e: PointerEvent) => {
-      if (barRef.current && !barRef.current.contains(e.target as Node)) setOpenMenu(null);
+      const target = e.target as Node;
+      if (
+        !barRef.current?.contains(target) &&
+        !sortMenuRef.current?.contains(target) &&
+        !viewMenuRef.current?.contains(target)
+      ) {
+        setOpenMenu(null);
+      }
     };
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -208,7 +249,14 @@ const OperationBar = ({
       }
     };
     const onClick = (e: MouseEvent) => {
-      if (barRef.current && !barRef.current.contains(e.target as Node)) setOpenMenu(null);
+      const target = e.target as Node;
+      if (
+        !barRef.current?.contains(target) &&
+        !sortMenuRef.current?.contains(target) &&
+        !viewMenuRef.current?.contains(target)
+      ) {
+        setOpenMenu(null);
+      }
     };
     document.addEventListener('pointerdown', onPointerDown, true);
     document.addEventListener('keydown', onKeyDown, true);
@@ -238,12 +286,12 @@ const OperationBar = ({
     return (
       <div
         ref={barRef}
-        className="wisp-operationbar border-b border-xp-blue/30 bg-xp-blue/5 px-3 py-1.5"
+        className="wisp-operationbar wisp-selection-toolbar border-b border-xp-blue/30 bg-xp-blue/5 px-3 py-1.5"
         role="toolbar"
         aria-label={t('operationBar.selectionActions')}
       >
         <div className="flex min-h-8 items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2.5">
+          <div className="wisp-selection-summary flex min-w-0 items-center gap-2.5">
             <span
               className="flex h-5 min-w-5 items-center justify-center rounded-[2px] bg-xp-lime px-1.5 text-[11px] font-medium text-xp-on-accent"
               aria-hidden="true"
@@ -267,7 +315,7 @@ const OperationBar = ({
             )}
           </div>
 
-          <div className="flex flex-shrink-0 items-center gap-1">
+          <div className="wisp-selection-actions flex flex-shrink-0 items-center gap-1">
             {selectedFiles.size === 1 && onPreview && (
               <button
                 type="button"
@@ -328,7 +376,7 @@ const OperationBar = ({
                 <span className="hidden xl:inline">{t('operationBar.extract')}</span>
               </button>
             )}
-            {onProperties && selectedFiles.size === 1 && (
+            {onProperties && (
               <button
                 type="button"
                 onClick={onProperties}
@@ -369,7 +417,7 @@ const OperationBar = ({
             <button
               ref={sortTriggerRef}
               type="button"
-              onClick={() => setOpenMenu((current) => (current === 'sort' ? null : 'sort'))}
+              onClick={() => toggleMenu('sort')}
               onKeyDown={(event) => handleMenuTriggerKeyDown('sort', event)}
               className="wisp-control flex items-center gap-1 rounded-[2px] px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:text-xp-text"
               aria-label={t('operationBar.sortBy', {
@@ -384,15 +432,16 @@ const OperationBar = ({
             </button>
 
             {openMenu === 'sort' && sortOptions && (
-              <div
-                ref={sortMenuRef}
+              <AnchoredMenu
+                menuRef={sortMenuRef}
+                anchorRef={sortTriggerRef}
                 role="menu"
                 aria-label={t('operationBar.sortBy', {
                   name: currentSortLabel,
                   order: currentSortOrder,
                 })}
                 onKeyDown={(event) => handleMenuKeyDown('sort', event)}
-                className="wisp-popover-menu border-xp-border/60 absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-[2px] border bg-xp-popover py-1 shadow-xl"
+                className="wisp-popover-menu border-xp-border/60 min-w-[180px] rounded-xl border bg-xp-popover py-1 shadow-xl"
               >
                 {Object.values(sortOptions).map((option) => (
                   <button
@@ -407,7 +456,7 @@ const OperationBar = ({
                       } else {
                         setSortBy(option.id);
                       }
-                      setOpenMenu(null);
+                      closeMenu(true);
                     }}
                     className={`flex w-full items-center justify-between px-3 py-1.5 text-left transition-colors hover:bg-xp-surface-light ${
                       sortBy === option.id ? 'text-xp-blue' : ''
@@ -430,7 +479,7 @@ const OperationBar = ({
                       tabIndex={-1}
                       onClick={() => {
                         setGroupByDate(!groupByDate);
-                        setOpenMenu(null);
+                        closeMenu(true);
                       }}
                       className={`flex w-full items-center justify-between px-3 py-1.5 text-left transition-colors hover:bg-xp-surface-light ${
                         groupByDate ? 'text-xp-blue' : ''
@@ -452,7 +501,7 @@ const OperationBar = ({
                     </button>
                   </>
                 )}
-              </div>
+              </AnchoredMenu>
             )}
           </div>
 
@@ -461,7 +510,7 @@ const OperationBar = ({
             <button
               ref={viewTriggerRef}
               type="button"
-              onClick={() => setOpenMenu((current) => (current === 'view' ? null : 'view'))}
+              onClick={() => toggleMenu('view')}
               onKeyDown={(event) => handleMenuTriggerKeyDown('view', event)}
               className="wisp-control flex items-center gap-1 rounded-[2px] px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:text-xp-text"
               aria-label={t('operationBar.viewMode', {
@@ -476,12 +525,13 @@ const OperationBar = ({
             </button>
 
             {openMenu === 'view' && (
-              <div
-                ref={viewMenuRef}
+              <AnchoredMenu
+                menuRef={viewMenuRef}
+                anchorRef={viewTriggerRef}
                 role="menu"
                 aria-label={t('operationBar.viewMode', { name: currentViewLabel })}
                 onKeyDown={(event) => handleMenuKeyDown('view', event)}
-                className="wisp-popover-menu border-xp-border/60 absolute left-0 top-full z-50 mt-1 min-w-[170px] rounded-[2px] border bg-xp-popover py-1 shadow-xl"
+                className="wisp-popover-menu border-xp-border/60 min-w-[180px] rounded-xl border bg-xp-popover py-1 shadow-xl"
               >
                 {Object.values(viewModes).map((mode) => (
                   <button
@@ -492,7 +542,7 @@ const OperationBar = ({
                     tabIndex={-1}
                     onClick={() => {
                       setViewMode(mode.id);
-                      setOpenMenu(null);
+                      closeMenu(true);
                     }}
                     className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left transition-colors hover:bg-xp-surface-light ${
                       viewMode === mode.id ? 'text-xp-blue' : ''
@@ -502,7 +552,7 @@ const OperationBar = ({
                     <span className="text-xs">{getViewLabel(mode.id)}</span>
                   </button>
                 ))}
-              </div>
+              </AnchoredMenu>
             )}
           </div>
           {/* Selection actions appear contextually instead of filling every empty state. */}

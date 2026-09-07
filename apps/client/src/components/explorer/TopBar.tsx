@@ -4,7 +4,7 @@ import { Minus, Square, Copy, X, Columns, Rows, Search, CloudSun } from 'lucide-
 import { useTranslation } from 'react-i18next';
 import WeatherGlyph from '@/components/weather/WeatherGlyph';
 import { useWeather } from '@/hooks/use-weather';
-import { setWeatherLocation } from '@/lib/weather-location';
+import { isWeatherSyncEnabled, setWeatherLocation } from '@/lib/weather-location';
 import { geocodeWeatherCity } from '@/lib/weather-geocoding';
 import { describeWeatherCode } from '@/lib/weather';
 import wispLogo from '../../../../src-tauri/icons/icon.png';
@@ -63,6 +63,12 @@ const TopBar = React.memo(
       > | null>(null);
       const isMac = navigator.platform.toUpperCase().includes('MAC');
       const { report, city, loading: weatherLoading } = useWeather();
+      const [weatherEnabled, setWeatherEnabled] = useState(isWeatherSyncEnabled);
+      useEffect(() => {
+        const sync = () => setWeatherEnabled(isWeatherSyncEnabled());
+        window.addEventListener('wisp-settings-changed', sync);
+        return () => window.removeEventListener('wisp-settings-changed', sync);
+      }, []);
       const descriptor = report ? describeWeatherCode(report.weather_code) : null;
       let weatherSummary = city;
       if (descriptor) weatherSummary = `${t(descriptor.labelKey)} · ${city}`;
@@ -234,6 +240,7 @@ const TopBar = React.memo(
                   onClick={() => setLeftSidebarCollapsed(!leftSidebarCollapsed)}
                   className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-[2px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                   aria-label={t('topBar.toggleSidebar')}
+                  aria-expanded={!leftSidebarCollapsed}
                   title={t('topBar.toggleSidebarShortcut')}
                 >
                   <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -250,95 +257,96 @@ const TopBar = React.memo(
                 </div>
               </div>
 
-              {isEditingWeatherCity ? (
-                <div className="flex min-w-0 items-center gap-1.5 text-xs text-xp-text-secondary">
-                  {report ? (
-                    <WeatherGlyph
-                      code={report.weather_code}
-                      isDay={report.is_day}
-                      size={14}
-                      className="shrink-0"
-                    />
-                  ) : (
-                    <CloudSun size={14} className="shrink-0" aria-hidden="true" />
-                  )}
-                  <input
-                    ref={weatherCityInputRef}
-                    value={weatherCityDraft}
-                    onChange={(event) => {
-                      setWeatherCityDraft(event.target.value);
-                      if (weatherCityStatus !== 'saving') setWeatherCityStatus('idle');
-                    }}
-                    onBlur={() => void saveWeatherCity()}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        event.preventDefault();
-                        void saveWeatherCity();
-                      } else if (event.key === 'Escape') {
-                        event.preventDefault();
-                        cancelEditingWeatherCity();
+              {weatherEnabled &&
+                (isEditingWeatherCity ? (
+                  <div className="wisp-weather-editor flex min-w-0 items-center gap-1.5 text-xs text-xp-text-secondary">
+                    {report ? (
+                      <WeatherGlyph
+                        code={report.weather_code}
+                        isDay={report.is_day}
+                        size={14}
+                        className="shrink-0"
+                      />
+                    ) : (
+                      <CloudSun size={14} className="shrink-0" aria-hidden="true" />
+                    )}
+                    <input
+                      ref={weatherCityInputRef}
+                      value={weatherCityDraft}
+                      onChange={(event) => {
+                        setWeatherCityDraft(event.target.value);
+                        if (weatherCityStatus !== 'saving') setWeatherCityStatus('idle');
+                      }}
+                      onBlur={() => void saveWeatherCity()}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault();
+                          void saveWeatherCity();
+                        } else if (event.key === 'Escape') {
+                          event.preventDefault();
+                          cancelEditingWeatherCity();
+                        }
+                      }}
+                      maxLength={80}
+                      disabled={weatherCityStatus === 'saving'}
+                      aria-label={t('topBar.weatherCityInput')}
+                      aria-describedby={
+                        weatherCityStatus === 'not-found' || weatherCityStatus === 'error'
+                          ? 'topbar-weather-city-error'
+                          : undefined
                       }
-                    }}
-                    maxLength={80}
-                    disabled={weatherCityStatus === 'saving'}
-                    aria-label={t('topBar.weatherCityInput')}
-                    aria-describedby={
-                      weatherCityStatus === 'not-found' || weatherCityStatus === 'error'
-                        ? 'topbar-weather-city-error'
-                        : undefined
-                    }
-                    className="h-7 w-28 border-0 border-b border-xp-border bg-transparent px-0.5 text-xs text-xp-text outline-none transition-colors placeholder:text-xp-text-muted focus:border-primary disabled:cursor-wait disabled:opacity-60"
-                    placeholder={t('settings.general.weatherCityPlaceholder')}
-                  />
-                  {weatherCityStatus === 'saving' && (
-                    <span
-                      className="whitespace-nowrap text-[11px] text-xp-text-muted"
-                      role="status"
-                    >
-                      {t('common.saving')}
-                    </span>
-                  )}
-                  {(weatherCityStatus === 'not-found' || weatherCityStatus === 'error') && (
-                    <span
-                      id="topbar-weather-city-error"
-                      className="max-w-32 truncate text-[11px] text-xp-red"
-                      role="alert"
-                    >
-                      {t(
-                        weatherCityStatus === 'not-found'
-                          ? 'topBar.weatherCityNotFound'
-                          : 'topBar.weatherCitySaveFailed',
-                      )}
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <button
-                  ref={weatherCityTriggerRef}
-                  type="button"
-                  onClick={startEditingWeatherCity}
-                  className="flex min-w-0 flex-shrink items-center gap-1.5 border-0 bg-transparent p-0 text-left text-xs text-xp-text-secondary transition-colors hover:text-xp-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-                  aria-label={t('topBar.editWeatherCity', { city })}
-                  title={t('topBar.editWeatherCity', { city })}
-                >
-                  {report ? (
-                    <WeatherGlyph
-                      code={report.weather_code}
-                      isDay={report.is_day}
-                      size={14}
-                      className="shrink-0"
+                      className="h-7 w-28 border-0 border-b border-xp-border bg-transparent px-0.5 text-xs text-xp-text outline-none transition-colors placeholder:text-xp-text-muted focus:border-primary disabled:cursor-wait disabled:opacity-60"
+                      placeholder={t('settings.general.weatherCityPlaceholder')}
                     />
-                  ) : (
-                    <CloudSun size={14} className="shrink-0" aria-hidden="true" />
-                  )}
-                  {report && (
-                    <span className="font-medium text-xp-text">
-                      {Math.round(report.temperature)}°
-                    </span>
-                  )}
-                  <span className="max-w-40 truncate text-[11px]">{weatherSummary}</span>
-                </button>
-              )}
+                    {weatherCityStatus === 'saving' && (
+                      <span
+                        className="whitespace-nowrap text-[11px] text-xp-text-muted"
+                        role="status"
+                      >
+                        {t('common.saving')}
+                      </span>
+                    )}
+                    {(weatherCityStatus === 'not-found' || weatherCityStatus === 'error') && (
+                      <span
+                        id="topbar-weather-city-error"
+                        className="max-w-32 truncate text-[11px] text-xp-red"
+                        role="alert"
+                      >
+                        {t(
+                          weatherCityStatus === 'not-found'
+                            ? 'topBar.weatherCityNotFound'
+                            : 'topBar.weatherCitySaveFailed',
+                        )}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    ref={weatherCityTriggerRef}
+                    type="button"
+                    onClick={startEditingWeatherCity}
+                    className="wisp-weather-summary flex min-w-0 flex-shrink items-center gap-1.5 border-0 bg-transparent p-0 text-left text-xs text-xp-text-secondary transition-colors hover:text-xp-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+                    aria-label={t('topBar.editWeatherCity', { city })}
+                    title={t('topBar.editWeatherCity', { city })}
+                  >
+                    {report ? (
+                      <WeatherGlyph
+                        code={report.weather_code}
+                        isDay={report.is_day}
+                        size={14}
+                        className="shrink-0"
+                      />
+                    ) : (
+                      <CloudSun size={14} className="shrink-0" aria-hidden="true" />
+                    )}
+                    {report && (
+                      <span className="font-medium text-xp-text">
+                        {Math.round(report.temperature)}°
+                      </span>
+                    )}
+                    <span className="max-w-40 truncate text-[11px]">{weatherSummary}</span>
+                  </button>
+                ))}
             </div>
 
             {/* One global entry point for files, commands, and actions. */}
@@ -358,6 +366,17 @@ const TopBar = React.memo(
             </button>
 
             <div className="flex-1" />
+
+            <button
+              type="button"
+              data-command-palette-trigger
+              onClick={() => window.dispatchEvent(new CustomEvent('wisp-open-command-palette'))}
+              className="wisp-icon-button mr-2 flex h-9 w-9 shrink-0 items-center justify-center text-xp-text-secondary min-[820px]:hidden"
+              aria-label={t('commandPalette.trigger')}
+              title={t('commandPalette.trigger')}
+            >
+              <Search size={17} aria-hidden="true" />
+            </button>
 
             {rightActions}
 
