@@ -17,7 +17,7 @@ const PerformanceDashboard = React.memo(
     const [metricsExpanded, setMetricsExpanded] = useState(true);
     const [organizerExpanded, setOrganizerExpanded] = useState(true);
 
-    const { recentOps, suggestions, isLoading, refreshStats } = usePerformanceStats(
+    const { suggestions, isLoading, refreshStats } = usePerformanceStats(
       currentPath,
       allFiles,
       true,
@@ -84,7 +84,6 @@ const PerformanceDashboard = React.memo(
 
             {metricsExpanded && (
               <MetricCards
-                recentOps={recentOps}
                 suggestions={suggestions}
                 allFiles={allFiles}
                 isLoading={isLoading}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import React from 'react';
 import type { ChatMessage as ChatMessageType } from '@/lib/ai-service';
@@ -127,14 +128,17 @@ export const summarizeToolInput = (name: string, input: Record<string, unknown>)
 // ── ThinkingBlock ──────────────────────────────────────────────────────────
 
 const ThinkingBlock = ({ content }: { content: string }) => {
+  const { t: tUi } = useTranslation();
   return (
     <details className="mb-2 overflow-hidden rounded-[2px] border border-xp-border">
       <summary className="flex cursor-pointer select-none items-center gap-1.5 px-3 py-1.5 text-xs text-xp-text-muted hover:bg-xp-surface-light">
         <svg className="h-3 w-3 flex-shrink-0 text-xp-cyan" fill="currentColor" viewBox="0 0 20 20">
           <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM4 11a1 1 0 100-2H3a1 1 0 000 2h1zM10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 110-12 6 6 0 010 12z" />
         </svg>
-        <span>Thinking</span>
-        <span className="opacity-50">({Math.ceil(content.length / 4)} tokens)</span>
+        <span>{tUi('interface.thinking')}</span>
+        <span className="opacity-50">
+          ({tUi('messages.tokenCount', { count: Math.ceil(content.length / 4) })})
+        </span>
       </summary>
       <div className="max-h-60 overflow-y-auto whitespace-pre-wrap border-t border-xp-border bg-xp-surface px-3 py-2 text-xs text-xp-text-muted">
         {content}
@@ -191,12 +195,13 @@ interface ToolCallItemProps {
 }
 
 export const ToolCallItem = React.memo(({ toolCall: tc, onToggleExpand }: ToolCallItemProps) => {
+  const { t: tUi } = useTranslation();
   return (
     <div className="overflow-hidden rounded-[2px] border border-xp-border bg-xp-bg">
       <button
         onClick={() => onToggleExpand(tc.id)}
         className="flex w-full min-w-0 items-center space-x-2 px-3 py-2 text-xs transition-colors hover:bg-xp-surface-light"
-        aria-label={`${tc.expanded ? 'Collapse' : 'Expand'} tool call: ${tc.name}`}
+        aria-label={`${tc.expanded ? tUi('chat.collapse') : tUi('interface.expand')} tool call: ${tc.name}`}
         aria-expanded={tc.expanded}
       >
         <div className={`h-2 w-2 flex-shrink-0 rounded-full ${getToolStatusColor(tc.status)}`} />
@@ -220,14 +225,14 @@ export const ToolCallItem = React.memo(({ toolCall: tc, onToggleExpand }: ToolCa
       {tc.expanded && (
         <div className="min-w-0 overflow-hidden border-t border-xp-border px-3 pb-2">
           <div className="mt-2 text-xs">
-            <div className="mb-1 text-xp-text-muted">Input:</div>
+            <div className="mb-1 text-xp-text-muted">{tUi('interface.inputLabel')}</div>
             <pre className="max-h-24 overflow-x-auto overflow-y-auto rounded-[2px] bg-xp-surface p-2 text-xs">
               {JSON.stringify(tc.input, null, 2)}
             </pre>
           </div>
           {tc.result && (
             <div className="mt-2 text-xs">
-              <div className="mb-1 text-xp-text-muted">Result:</div>
+              <div className="mb-1 text-xp-text-muted">{tUi('interface.resultLabel')}</div>
               <pre className="max-h-32 overflow-x-auto overflow-y-auto rounded-[2px] bg-xp-surface p-2 text-xs">
                 {tc.result.length > 2000 ? `${tc.result.substring(0, 2000)}...` : tc.result}
               </pre>
@@ -270,6 +275,7 @@ interface ActivePlanDisplayProps {
 }
 
 export const ActivePlanDisplay = ({ plan }: ActivePlanDisplayProps) => {
+  const { t: tUi } = useTranslation();
   const planStatusClass = (() => {
     if (plan.status === 'completed') return 'bg-xp-green text-xp-on-accent';
     if (plan.status === 'failed') return 'bg-xp-red text-xp-on-accent';
@@ -315,12 +321,13 @@ export const ActivePlanDisplay = ({ plan }: ActivePlanDisplayProps) => {
       </div>
       {plan.status === 'completed' && (
         <div className="border-t border-xp-border px-3 py-1.5 text-xs text-xp-green">
-          {'\u2713'} All {plan.total_steps} steps completed
+          {'\u2713'} {tUi('messages.allStepsCompleted', { count: plan.total_steps })}
         </div>
       )}
       {plan.status === 'failed' && (
         <div className="border-t border-xp-border px-3 py-1.5 text-xs text-xp-red">
-          {'\u2717'} Failed at step {plan.completed_steps + 1} of {plan.total_steps}
+          {'\u2717'}{' '}
+          {tUi('messages.stepFailed', { step: plan.completed_steps + 1, total: plan.total_steps })}
         </div>
       )}
     </div>
@@ -340,6 +347,7 @@ export const PendingApprovalCard = ({
   activePlan,
   onApproval,
 }: PendingApprovalCardProps) => {
+  const { t: tUi } = useTranslation();
   return (
     <div className="rounded-[2px] border border-xp-yellow bg-xp-yellow/10 p-3">
       <div className="mb-2 flex items-center space-x-2">
@@ -350,12 +358,14 @@ export const PendingApprovalCard = ({
             clipRule="evenodd"
           />
         </svg>
-        <span className="text-sm font-medium text-xp-yellow">Permission Required</span>
+        <span className="text-sm font-medium text-xp-yellow">
+          {tUi('interface.permissionRequired')}
+        </span>
       </div>
 
       <div className="mb-3 space-y-1 text-xs">
         <div>
-          <span className="text-xp-text-muted">Action: </span>
+          <span className="text-xp-text-muted">{tUi('interface.actionLabel')} </span>
           <span className="font-medium">
             {getToolIcon(tc.name)} {tc.name}
           </span>
@@ -363,11 +373,11 @@ export const PendingApprovalCard = ({
         {tc.name === 'write_file' && (
           <>
             <div>
-              <span className="text-xp-text-muted">Path: </span>
+              <span className="text-xp-text-muted">{tUi('interface.pathLabel')} </span>
               {String((tc.input as ToolCallInput).path || '')}
             </div>
             <div className="mt-1">
-              <span className="text-xp-text-muted">Content preview:</span>
+              <span className="text-xp-text-muted">{tUi('interface.contentPreviewLabel')}</span>
               <pre className="mt-1 max-h-20 overflow-y-auto rounded-[2px] bg-xp-surface p-2 text-xs">
                 {String((tc.input as ToolCallInput).content || '').substring(0, 500)}
               </pre>
@@ -376,7 +386,7 @@ export const PendingApprovalCard = ({
         )}
         {tc.name === 'execute_command' && (
           <div>
-            <span className="text-xp-text-muted">Command: </span>
+            <span className="text-xp-text-muted">{tUi('interface.commandLabel')} </span>
             <code className="rounded-[2px] bg-xp-surface px-1">
               {String((tc.input as ToolCallInput).command || '')}
             </code>
@@ -384,13 +394,18 @@ export const PendingApprovalCard = ({
         )}
         {tc.name === 'delete' && (
           <div className="text-xp-red">
-            <span className="text-xp-text-muted">Delete: </span>
+            <span className="text-xp-text-muted">{tUi('interface.deleteLabel')} </span>
             {String((tc.input as ToolCallInput).path || '')}
           </div>
         )}
         {(tc.name === 'rename' || tc.name === 'move_file' || tc.name === 'copy_file') && (
           <div>
-            <span className="text-xp-text-muted">{tc.name === 'rename' ? 'From' : 'Source'}: </span>
+            <span className="text-xp-text-muted">
+              {tc.name === 'rename'
+                ? tUi('advancedSelection.dialog.from')
+                : tUi('interface.source')}
+              :{' '}
+            </span>
             {String(
               (tc.input as ToolCallInput)[tc.name === 'rename' ? 'old_path' : 'source'] || '',
             )}
@@ -405,15 +420,17 @@ export const PendingApprovalCard = ({
         )}
         {tc.name === 'create_directory' && (
           <div>
-            <span className="text-xp-text-muted">Path: </span>
+            <span className="text-xp-text-muted">{tUi('interface.pathLabel')} </span>
             {String((tc.input as ToolCallInput).path || '')}
           </div>
         )}
         {tc.name === 'execute_plan' && activePlan && (
           <div>
-            <span className="text-xp-text-muted">Plan: </span>
+            <span className="text-xp-text-muted">{tUi('interface.planLabel')} </span>
             <span className="font-medium">{activePlan.title}</span>
-            <span className="ml-1 text-xp-text-muted">({activePlan.total_steps} steps)</span>
+            <span className="ml-1 text-xp-text-muted">
+              ({tUi('messages.stepsCount', { count: activePlan.total_steps })})
+            </span>
           </div>
         )}
       </div>
@@ -433,7 +450,7 @@ export const PendingApprovalCard = ({
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
-          This Time
+          {tUi('home.thisTime')}
         </button>
         <button
           onClick={() => onApproval(tc.id, 'allow_always')}
@@ -453,7 +470,7 @@ export const PendingApprovalCard = ({
               d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
             />
           </svg>
-          Always
+          {tUi('home.always')}
         </button>
         <button
           onClick={() => onApproval(tc.id, 'deny_always')}
@@ -469,7 +486,7 @@ export const PendingApprovalCard = ({
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
-          Never
+          {tUi('agentManager.schedule.never')}
         </button>
       </div>
     </div>
@@ -483,6 +500,7 @@ interface StreamingMessageProps {
 }
 
 export const StreamingMessage = ({ text }: StreamingMessageProps) => {
+  const { t: tUi } = useTranslation();
   if (!text) return null;
 
   return (
@@ -491,7 +509,7 @@ export const StreamingMessage = ({ text }: StreamingMessageProps) => {
         <MarkdownRenderer content={text} />
         <div className="mt-1 flex items-center space-x-1">
           <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-xp-purple" />
-          <span className="text-xs text-xp-text-muted">Agent is responding...</span>
+          <span className="text-xs text-xp-text-muted">{tUi('interface.agentIsResponding')}</span>
         </div>
       </div>
     </div>
@@ -513,6 +531,7 @@ export const AgentStreamView = ({
   onToggleExpand,
   isStreaming,
 }: AgentStreamViewProps) => {
+  const { t: tUi } = useTranslation();
   return (
     <div className="space-y-2">
       {streamItems.map((item, index) => {
@@ -536,7 +555,7 @@ export const AgentStreamView = ({
       {isStreaming && (
         <div className="flex items-center space-x-1 px-1">
           <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-xp-purple" />
-          <span className="text-xs text-xp-text-muted">Agent is working...</span>
+          <span className="text-xs text-xp-text-muted">{tUi('interface.agentIsWorking')}</span>
         </div>
       )}
     </div>
@@ -546,6 +565,7 @@ export const AgentStreamView = ({
 // ── LoadingIndicator ────────────────────────────────────────────────────────
 
 export const LoadingIndicator = () => {
+  const { t: tUi } = useTranslation();
   return (
     <div className="flex justify-start">
       <div className="rounded-[2px] border border-xp-border bg-xp-bg p-3">
@@ -559,7 +579,9 @@ export const LoadingIndicator = () => {
             className="h-2 w-2 animate-pulse rounded-full bg-xp-blue"
             style={{ animationDelay: '0.4s' }}
           />
-          <span className="text-xs text-xp-text-muted">Thinking...</span>
+          <span className="text-xs text-xp-text-muted">
+            {tUi('agentManager.conversation.thinking')}
+          </span>
         </div>
       </div>
     </div>
@@ -573,6 +595,7 @@ interface EmptyStateProps {
 }
 
 export const EmptyState = ({ agentEnabled }: EmptyStateProps) => {
+  const { t: tUi } = useTranslation();
   return (
     <div className="py-8 text-center text-xp-text-muted">
       <svg className="mx-auto mb-3 h-12 w-12 opacity-50" fill="currentColor" viewBox="0 0 20 20">
@@ -582,7 +605,9 @@ export const EmptyState = ({ agentEnabled }: EmptyStateProps) => {
           clipRule="evenodd"
         />
       </svg>
-      <p className="font-medium">{agentEnabled ? 'Wisp Agent' : 'Copilot Assistant'}</p>
+      <p className="font-medium">
+        {agentEnabled ? tUi('chat.wispAgent') : tUi('interface.copilotAssistant')}
+      </p>
       <p className="mt-1 text-xs">
         {agentEnabled ? i18n.t('chat.askManageFiles') : i18n.t('chat.askPlaceholder')}
       </p>

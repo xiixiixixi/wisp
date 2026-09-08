@@ -146,7 +146,7 @@ describe('PasteRenameDialog', () => {
         target: { value: 'only-one.jpg' },
       });
 
-      expect(screen.getByText(/Count mismatch/)).toBeInTheDocument();
+      expect(screen.getByText(/Pasted names: 1; selected files: 3/)).toBeInTheDocument();
     });
   });
 

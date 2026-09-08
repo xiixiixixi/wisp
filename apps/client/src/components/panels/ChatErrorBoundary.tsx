@@ -5,6 +5,7 @@
  * so that a single broken component doesn't crash the entire chat.
  */
 import React from 'react';
+import i18n from '@/i18n';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -34,6 +35,16 @@ interface ChatErrorBoundaryState {
  *   </ChatErrorBoundary>
  */
 class ChatErrorBoundary extends React.Component<ChatErrorBoundaryProps, ChatErrorBoundaryState> {
+  private refreshLanguage = () => this.forceUpdate();
+
+  componentDidMount() {
+    i18n.on('languageChanged', this.refreshLanguage);
+  }
+
+  componentWillUnmount() {
+    i18n.off('languageChanged', this.refreshLanguage);
+  }
+
   constructor(props: ChatErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -72,11 +83,11 @@ class ChatErrorBoundary extends React.Component<ChatErrorBoundaryProps, ChatErro
           <span style={{ flexShrink: 0 }}>&#x26A0;</span>
           <span style={{ flex: 1, minWidth: 0 }}>
             {this.props.label ? `${this.props.label}: ` : ''}
-            Failed to render
+            {i18n.t('interface.failedToRender')}
           </span>
           <button
             onClick={() => this.setState({ hasError: false, error: null })}
-            aria-label="Retry rendering"
+            aria-label={i18n.t('interface.retryRendering')}
             style={{
               background: 'none',
               border: '1px solid var(--xp-border)',
@@ -88,7 +99,7 @@ class ChatErrorBoundary extends React.Component<ChatErrorBoundaryProps, ChatErro
               flexShrink: 0,
             }}
           >
-            Retry
+            {i18n.t('common.retry')}
           </button>
         </div>
       );

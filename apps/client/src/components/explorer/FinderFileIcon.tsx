@@ -32,6 +32,7 @@ interface ScheduledRequest {
 
 interface VisualCacheEntry {
   promise: Promise<string | null>;
+  url: string | null;
   subscribers: number;
   settled: boolean;
   cancelQueued: () => boolean;
@@ -148,6 +149,7 @@ const cacheVisual = (key: string, loader: () => ScheduledRequest): VisualRequest
 
   const entry: VisualCacheEntry = {
     promise: scheduled.promise,
+    url: null,
     subscribers: 0,
     settled: false,
     cancelQueued: scheduled.cancel,
@@ -155,6 +157,7 @@ const cacheVisual = (key: string, loader: () => ScheduledRequest): VisualRequest
   visualCache.set(key, entry);
   entry.promise.then((url) => {
     entry.settled = true;
+    entry.url = url;
     // Cancellation and transient Quick Look failures should be retryable the
     // next time the item approaches the viewport.
     if (!url && visualCache.get(key) === entry) visualCache.delete(key);
@@ -173,6 +176,7 @@ const resolvedVisual = (key: string, url: string): VisualRequest => {
 
   const entry: VisualCacheEntry = {
     promise: Promise.resolve(url),
+    url,
     subscribers: 0,
     settled: true,
     cancelQueued: () => false,
@@ -187,11 +191,17 @@ const emptyVisualRequest = (): VisualRequest => ({
   release: () => undefined,
 });
 
+const visualCacheKey = (file: FileEntry): string =>
+  !file.is_dir &&
+  (WEB_IMAGE_EXTENSIONS.has(extensionOf(file)) || VIDEO_EXTENSIONS.has(extensionOf(file)))
+    ? `${file.path}\u0000${file.modified}\u0000${file.size}\u0000${NATIVE_THUMBNAIL_SIZE}`
+    : `icon\u0000${file.path}`;
+
 const loadFinderVisual = (file: FileEntry): VisualRequest => {
   if (!isTauri() || isRemotePath(file.path)) return emptyVisualRequest();
 
   const extension = extensionOf(file);
-  const cacheKey = `${file.path}\u0000${file.modified}\u0000${file.size}\u0000${NATIVE_THUMBNAIL_SIZE}`;
+  const cacheKey = visualCacheKey(file);
   // Browser-native formats are already the highest-fidelity thumbnail: the
   // file itself.
   if (!file.is_dir && WEB_IMAGE_EXTENSIONS.has(extension)) {
@@ -212,7 +222,7 @@ const loadFinderVisual = (file: FileEntry): VisualRequest => {
   // content previews are wrong here: a wall of near-identical page thumbnails
   // destroys at-a-glance type recognition. NSWorkspace icons resolve instantly
   // (no per-file Quick Look subprocess) and the command caches on disk.
-  return cacheVisual(`icon\u0000${file.path}`, () =>
+  return cacheVisual(cacheKey, () =>
     scheduleNativeRequest(async () => convertAssetUrl(await TauriAPI.getFileIconPng(file.path))),
   );
 };
@@ -429,6 +439,7 @@ const FinderFileIcon = ({ file, fallback }: FinderFileIconProps) => {
     () => typeof IntersectionObserver === 'undefined',
   );
   const [resolved, setResolved] = useState<{ key: string; url: string } | null>(null);
+  const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
   const [failedKey, setFailedKey] = useState<string | null>(null);
   const demoMode = isBrowserDemoMode();
   const nativeMode = isTauri() && !isRemotePath(file.path);
@@ -469,35 +480,39 @@ const FinderFileIcon = ({ file, fallback }: FinderFileIconProps) => {
     };
   }, [demoMode, failedKey, file, nativeMode, nearViewport, visualKey]);
 
-  const visualUrl = resolved?.key === visualKey ? resolved.url : null;
+  // A warm cache is available during render, before viewport observation or
+  // an effect round-trip. Never make scrolling back wait on another IPC call.
+  const cachedUrl = nativeMode && !demoMode ? visualCache.get(visualCacheKey(file))?.url : null;
+  let visualUrl = resolved?.key === visualKey ? resolved.url : cachedUrl;
+  if (failedKey === visualKey) visualUrl = null;
   let visual: React.ReactNode = fallback;
   if (demoMode) {
     visual = <DemoFinderVisual file={file} />;
   } else if (visualUrl) {
     visual = (
-      <img
-        src={visualUrl}
-        alt=""
-        draggable={false}
-        className="h-full w-full object-contain"
-        onError={() => {
-          setFailedKey(visualKey);
-          setResolved(null);
-        }}
-      />
+      <>
+        {loadedUrl !== visualUrl && fallback}
+        <img
+          key={visualUrl}
+          src={visualUrl}
+          alt=""
+          draggable={false}
+          className="absolute inset-0 h-full w-full object-contain"
+          style={{ visibility: loadedUrl === visualUrl ? 'visible' : 'hidden' }}
+          onLoad={() => setLoadedUrl(visualUrl)}
+          onError={() => {
+            setFailedKey(visualKey);
+            setResolved(null);
+          }}
+        />
+      </>
     );
-  } else if (nativeMode && !failedKey) {
-    // Native icon still resolving: show NOTHING rather than the generic
-    // fallback — flashing a placeholder and then swapping to the real
-    // icon read as "two icon sets". Keep the space reserved so rows
-    // don't shift; the disk cache makes this a one-frame blank at most.
-    visual = <span className="opacity-0">{fallback}</span>;
   }
 
   return (
     <span
       ref={containerRef}
-      className="inline-flex shrink-0 items-center justify-center align-[-0.125em]"
+      className="relative inline-flex shrink-0 items-center justify-center align-[-0.125em]"
       style={{ width: '1em', height: '1em', lineHeight: 1 }}
       aria-hidden="true"
       data-finder-file-icon={file.path}

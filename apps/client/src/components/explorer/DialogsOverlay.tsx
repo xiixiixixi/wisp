@@ -29,7 +29,6 @@ const WorkspaceLayoutDialog = React.lazy(
   () => import('@/components/dialogs/WorkspaceLayoutDialog'),
 );
 const CommandPalette = React.lazy(() => import('@/components/CommandPalette'));
-const TourOverlay = React.lazy(() => import('@/components/tour/TourOverlay'));
 const FileOperationProgressDialog = React.lazy(
   () => import('@/components/dialogs/FileOperationProgressDialog'),
 );
@@ -80,9 +79,6 @@ export interface DialogsOverlayProps {
     secureDeleteDialogOpen: boolean;
     secureDeleteDialogFiles: FileEntry[];
     closeSecureDeleteDialog: () => void;
-    versionHistoryDialogOpen: boolean;
-    versionHistoryDialogFile: string;
-    closeVersionHistoryDialog: () => void;
     showAdvancedSelect: boolean;
     setShowAdvancedSelect: (open: boolean) => void;
     handleComparisonFromDialog: (file1: string, file2: string) => void;
@@ -361,9 +357,6 @@ const DialogsOverlay = ({
 
         {/* Extension Permission Consent Dialog */}
         <ExtensionPermissionDialog />
-
-        {/* Onboarding Tour */}
-        <TourOverlay />
 
         {/* File Operation Progress Overlay */}
         <FileOperationProgressDialog />

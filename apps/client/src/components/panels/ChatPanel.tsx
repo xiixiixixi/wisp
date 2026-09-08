@@ -1,3 +1,5 @@
+import { getAppLocale } from '@/lib/locale';
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { FolderOpen, FolderClosed, FileText, X, Settings, ChevronDown } from 'lucide-react';
 import { AIService, type ChatMessage, type FileContext } from '@/lib/ai-service';
@@ -61,6 +63,7 @@ const ChatPanel = ({
   onDeleteSession,
   onClearHistory,
 }: ChatPanelProps) => {
+  const { t: tUi } = useTranslation();
   const {
     state,
     setAvailableModels,
@@ -448,7 +451,7 @@ const ChatPanel = ({
       if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
       if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
       if (diff < 604800000) return `${Math.floor(diff / 86400000)}d ago`;
-      return d.toLocaleDateString();
+      return d.toLocaleDateString(getAppLocale());
     } catch {
       return '';
     }
@@ -476,13 +479,15 @@ const ChatPanel = ({
         overflow: 'hidden',
       }}
       role="region"
-      aria-label={state.agentEnabled ? 'Wisp Agent chat' : 'Copilot Assistant chat'}
+      aria-label={
+        state.agentEnabled ? tUi('interface.wispAgentChat') : tUi('interface.copilotAssistantChat')
+      }
     >
       {/* Header */}
       <div className="flex-shrink-0 border-b border-xp-border px-3 py-3">
         <div className="mb-2 flex items-center justify-between gap-2">
           <h3 className="truncate text-sm font-medium">
-            {state.agentEnabled ? 'Wisp Agent' : 'Copilot Assistant'}
+            {state.agentEnabled ? tUi('chat.wispAgent') : tUi('interface.copilotAssistant')}
           </h3>
           <div className="flex flex-shrink-0 items-center gap-1.5">
             {onNewSession && (
@@ -492,8 +497,8 @@ const ChatPanel = ({
                   setShowHistory(false);
                 }}
                 className="rounded-[2px] p-1 text-xs transition-colors hover:bg-xp-surface-light"
-                title="New chat"
-                aria-label="Start new chat session"
+                title={tUi('aiChat.input.newChat')}
+                aria-label={tUi('interface.startNewChatSession')}
               >
                 <svg
                   className="h-3.5 w-3.5"
@@ -510,8 +515,8 @@ const ChatPanel = ({
               <button
                 onClick={() => setShowHistory(!showHistory)}
                 className={`rounded-[2px] p-1 text-xs transition-colors ${showHistory ? 'bg-xp-blue text-xp-on-accent' : 'hover:bg-xp-surface-light'}`}
-                title="Chat history"
-                aria-label="Toggle chat history"
+                title={tUi('chat.chatHistory')}
+                aria-label={tUi('interface.toggleChatHistory')}
               >
                 <svg
                   className="h-3.5 w-3.5"
@@ -531,9 +536,15 @@ const ChatPanel = ({
             <button
               onClick={() => setIsSettingsMinimized(!state.isSettingsMinimized)}
               className="rounded-[2px] p-1 text-xs transition-colors hover:bg-xp-surface-light"
-              title={state.isSettingsMinimized ? 'Expand settings' : 'Minimize settings'}
+              title={
+                state.isSettingsMinimized
+                  ? tUi('chat.expandSettings')
+                  : tUi('interface.minimizeSettings')
+              }
               aria-label={
-                state.isSettingsMinimized ? 'Expand chat settings' : 'Minimize chat settings'
+                state.isSettingsMinimized
+                  ? tUi('chat.expandChatSettings')
+                  : tUi('interface.minimizeChatSettings')
               }
               aria-expanded={!state.isSettingsMinimized}
             >
@@ -560,14 +571,16 @@ const ChatPanel = ({
           <div className="space-y-3">
             {/* Model Display (configured in Settings > AI) */}
             <div className="flex items-center justify-between rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 text-xs">
-              <span className="text-xp-text-muted">Model:</span>
+              <span className="text-xp-text-muted">{tUi('interface.modelLabel')}</span>
               <span className="truncate">{state.selectedModel}</span>
             </div>
-            <p className="text-[10px] text-xp-text-muted">Change model in Settings &gt; AI</p>
+            <p className="text-[10px] text-xp-text-muted">
+              {tUi('interface.changeModelInSettingsAi')}
+            </p>
 
             {/* Agent Mode Toggle */}
             <div className="flex items-center justify-between">
-              <span className="text-xs text-xp-text-muted">Agent Mode:</span>
+              <span className="text-xs text-xp-text-muted">{tUi('interface.agentModeLabel')}</span>
               <button
                 onClick={() => setAgentEnabled(!state.agentEnabled)}
                 className={`rounded-[2px] px-3 py-1 text-xs transition-colors ${
@@ -575,10 +588,10 @@ const ChatPanel = ({
                     ? 'bg-xp-purple text-xp-on-accent hover:opacity-80'
                     : 'bg-xp-border text-xp-text hover:bg-xp-surface-light'
                 }`}
-                aria-label={`Agent mode: ${state.agentEnabled ? 'enabled' : 'disabled'}`}
+                aria-label={`Agent mode: ${state.agentEnabled ? tUi('interface.enabled') : tUi('interface.disabled')}`}
                 aria-pressed={state.agentEnabled}
               >
-                {state.agentEnabled ? 'ON' : 'OFF'}
+                {state.agentEnabled ? tUi('common.on') : tUi('common.off')}
               </button>
             </div>
 
@@ -586,11 +599,11 @@ const ChatPanel = ({
             {state.agentEnabled && (
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <span className="text-xs text-xp-text-muted">Auto-Approve</span>
+                  <span className="text-xs text-xp-text-muted">{tUi('interface.autoApprove')}</span>
                   <p className="truncate text-[10px] text-xp-text-muted">
                     {state.autoApprove
-                      ? 'All actions run automatically'
-                      : 'Asks before writes/deletes'}
+                      ? tUi('interface.allActionsRunAutomatically')
+                      : tUi('interface.asksBeforeWritesDeletes')}
                   </p>
                 </div>
                 <button
@@ -610,10 +623,10 @@ const ChatPanel = ({
                       ? 'bg-xp-orange text-xp-on-accent hover:opacity-80'
                       : 'bg-xp-border text-xp-text hover:bg-xp-surface-light'
                   }`}
-                  aria-label={`Auto-approve: ${state.autoApprove ? 'enabled' : 'disabled'}`}
+                  aria-label={`Auto-approve: ${state.autoApprove ? tUi('interface.enabled') : tUi('interface.disabled')}`}
                   aria-pressed={state.autoApprove}
                 >
-                  {state.autoApprove ? 'ON' : 'OFF'}
+                  {state.autoApprove ? tUi('common.on') : tUi('common.off')}
                 </button>
               </div>
             )}
@@ -622,9 +635,11 @@ const ChatPanel = ({
             {state.agentEnabled && (
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <span className="text-xs text-xp-text-muted">Thinking</span>
+                  <span className="text-xs text-xp-text-muted">{tUi('interface.thinking')}</span>
                   <p className="truncate text-[10px] text-xp-text-muted">
-                    {state.thinkingEnabled ? 'Extended reasoning enabled' : 'Standard responses'}
+                    {state.thinkingEnabled
+                      ? tUi('interface.extendedReasoningEnabled')
+                      : tUi('chat.standardResponses')}
                   </p>
                 </div>
                 <button
@@ -644,10 +659,10 @@ const ChatPanel = ({
                       ? 'bg-xp-cyan text-xp-on-accent hover:opacity-80'
                       : 'bg-xp-border text-xp-text hover:bg-xp-surface-light'
                   }`}
-                  aria-label={`Thinking mode: ${state.thinkingEnabled ? 'enabled' : 'disabled'}`}
+                  aria-label={`Thinking mode: ${state.thinkingEnabled ? tUi('interface.enabled') : tUi('interface.disabled')}`}
                   aria-pressed={state.thinkingEnabled}
                 >
-                  {state.thinkingEnabled ? 'ON' : 'OFF'}
+                  {state.thinkingEnabled ? tUi('common.on') : tUi('common.off')}
                 </button>
               </div>
             )}
@@ -658,21 +673,22 @@ const ChatPanel = ({
         {state.isSettingsMinimized && (
           <div className="flex items-center justify-between gap-2 text-xs">
             <span className="truncate text-xp-text-muted">
-              Model: {state.selectedModel.replace('claude-', '').substring(0, 14)}
+              {tUi('interface.modelLabel')}{' '}
+              {state.selectedModel.replace('claude-', '').substring(0, 14)}
             </span>
             {state.agentEnabled && (
               <div className="flex flex-shrink-0 items-center gap-1">
                 <span className="rounded-[2px] bg-xp-purple px-1.5 py-0.5 text-[11px] text-xp-on-accent">
-                  Agent
+                  {tUi('agentManager.conversation.roleAgent')}
                 </span>
                 {state.autoApprove && (
                   <span className="rounded-[2px] bg-xp-orange px-1.5 py-0.5 text-[11px] text-xp-on-accent">
-                    Auto
+                    {tUi('operationBar.auto')}
                   </span>
                 )}
                 {state.thinkingEnabled && (
                   <span className="rounded-[2px] bg-xp-cyan px-1.5 py-0.5 text-[11px] text-xp-on-accent">
-                    Think
+                    {tUi('interface.think')}
                   </span>
                 )}
               </div>
@@ -684,7 +700,7 @@ const ChatPanel = ({
         <div className="mt-2">
           <div className="mb-1 flex items-center justify-between">
             <span className="text-xs text-xp-text-muted">
-              Context
+              {tUi('interface.context')}
               {(() => {
                 if (state.contextFiles.length > 0) {
                   return ` (${state.contextFiles.length + (state.includeCurrentFolder ? 1 : 0)})`;
@@ -699,7 +715,7 @@ const ChatPanel = ({
                 onClick={resetContext}
                 className="text-xs text-xp-text-muted transition-colors hover:text-xp-text"
               >
-                Reset
+                {tUi('toast.tokenizerReset')}
               </button>
             )}
           </div>
@@ -712,12 +728,14 @@ const ChatPanel = ({
                   <span className="truncate text-xp-text">
                     {currentPath.split(/[/\\]/).pop() || currentPath}
                   </span>
-                  <span className="shrink-0 text-[10px] text-xp-text-muted">current folder</span>
+                  <span className="shrink-0 text-[10px] text-xp-text-muted">
+                    {tUi('interface.currentFolder')}
+                  </span>
                 </span>
                 <button
                   onClick={() => setIncludeCurrentFolder(false)}
                   className="ml-1.5 shrink-0 text-xp-text-muted transition-colors hover:text-xp-text"
-                  title="Remove current folder from context"
+                  title={tUi('interface.removeCurrentFolderFromContext')}
                 >
                   {'\u00D7'}
                 </button>
@@ -728,7 +746,7 @@ const ChatPanel = ({
                 className="flex w-full items-center gap-1.5 rounded-[2px] p-1.5 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               >
                 <span>+</span>
-                <span>Re-add current folder</span>
+                <span>{tUi('interface.reAddCurrentFolder')}</span>
               </button>
             )}
             {/* Additional context files */}
@@ -752,21 +770,21 @@ const ChatPanel = ({
             <button
               onClick={() => setIsContextDropdownOpen(!state.isContextDropdownOpen)}
               className="flex w-full items-center gap-2 rounded-[2px] border border-xp-border bg-xp-bg px-3 py-1.5 text-xs transition-colors hover:bg-xp-surface-light"
-              aria-label="Add context files"
+              aria-label={tUi('interface.addContextFiles')}
               aria-expanded={state.isContextDropdownOpen}
             >
-              <span>+ Add context files</span>
+              <span>{tUi('interface.addContextFilesWithPlus')}</span>
             </button>
             {state.isContextDropdownOpen && (
               <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 rounded-[2px] border border-xp-border bg-xp-popover">
                 <div className="border-b border-xp-border p-2">
                   <input
                     type="text"
-                    placeholder="Search files..."
+                    placeholder={tUi('interface.searchFiles')}
                     value={state.contextSearchQuery}
                     onChange={(e) => setContextSearchQuery(e.target.value)}
                     className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-2 py-1 text-xs"
-                    aria-label="Search context files"
+                    aria-label={tUi('interface.searchContextFiles')}
                   />
                 </div>
                 <div className="max-h-48 overflow-y-auto">
@@ -790,7 +808,9 @@ const ChatPanel = ({
                       </button>
                     ))
                   ) : (
-                    <div className="px-3 py-2 text-xs text-xp-text-muted">No files available</div>
+                    <div className="px-3 py-2 text-xs text-xp-text-muted">
+                      {tUi('interface.noFilesAvailable')}
+                    </div>
                   )}
                 </div>
               </div>
@@ -810,7 +830,9 @@ const ChatPanel = ({
           }}
         >
           <div className="flex items-center justify-between border-b border-xp-border px-3 py-2">
-            <span className="text-xs font-medium">Chat History ({sessions.length})</span>
+            <span className="text-xs font-medium">
+              {tUi('messages.chatHistoryCount', { count: sessions.length })}
+            </span>
             {onClearHistory && sessions.length > 0 && (
               <button
                 onClick={() => {
@@ -819,13 +841,15 @@ const ChatPanel = ({
                 }}
                 className="text-[10px] text-xp-red hover:underline"
               >
-                Clear all
+                {tUi('eventsPanel.clearAll')}
               </button>
             )}
           </div>
           <div className="space-y-0.5">
             {sessions.length === 0 ? (
-              <div className="px-3 py-6 text-center text-xs text-xp-text-muted">No saved chats</div>
+              <div className="px-3 py-6 text-center text-xs text-xp-text-muted">
+                {tUi('interface.noSavedChats')}
+              </div>
             ) : (
               [...sessions]
                 .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
@@ -845,7 +869,7 @@ const ChatPanel = ({
                     <div className="min-w-0 flex-1">
                       <div className="truncate font-medium">{session.title}</div>
                       <div className="flex items-center gap-2 text-[10px] text-xp-text-muted">
-                        <span>{session.message_count} messages</span>
+                        <span>{tUi('counts.messages', { count: session.message_count })}</span>
                         <span>{formatSessionDate(session.updated_at)}</span>
                       </div>
                     </div>
@@ -856,7 +880,7 @@ const ChatPanel = ({
                           onDeleteSession(session.id);
                         }}
                         className="p-1 text-xp-text-muted opacity-0 transition-all hover:text-xp-red group-hover:opacity-100"
-                        title="Delete session"
+                        title={tUi('chat.deleteSession')}
                       >
                         <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                           <path
@@ -884,7 +908,7 @@ const ChatPanel = ({
           }}
           className="space-y-3 px-3 py-3"
           aria-live="polite"
-          aria-label="Chat messages"
+          aria-label={tUi('interface.chatMessages')}
           role="log"
         >
           {chatMessages.length === 0 && !state.isAgentRunning ? (
@@ -923,7 +947,7 @@ const ChatPanel = ({
               >
                 <summary className="flex cursor-pointer select-none items-center gap-1.5 px-3 py-1.5 text-xs text-xp-text-muted hover:bg-xp-surface-light">
                   <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-xp-cyan" />
-                  <span>Thinking...</span>
+                  <span>{tUi('agentManager.conversation.thinking')}</span>
                 </summary>
                 <div className="max-h-48 overflow-y-auto whitespace-pre-wrap border-t border-xp-border px-3 py-2 text-xs text-xp-text-muted">
                   {state.streamingThinking}
@@ -954,8 +978,8 @@ const ChatPanel = ({
               <button
                 onClick={() => setIncludeCurrentFolder(false)}
                 className="ml-0.5 transition-colors hover:text-xp-red"
-                title="Remove current folder from context"
-                aria-label="Remove current folder from context"
+                title={tUi('interface.removeCurrentFolderFromContext')}
+                aria-label={tUi('interface.removeCurrentFolderFromContext')}
               >
                 <X size={10} />
               </button>

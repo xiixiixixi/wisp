@@ -5,30 +5,78 @@ import { useTranslation } from 'react-i18next';
 // ── Permission descriptions ──────────────────────────────────────────────────
 
 const PERMISSION_DESCRIPTIONS: Record<string, string> = {
-  'file:read': i18n.t('dialogs.permissions.permDesc.file_read'),
-  'file:write': i18n.t('dialogs.permissions.permDesc.file_write'),
-  'file:delete': i18n.t('dialogs.permissions.permDesc.file_delete'),
-  'file:execute': i18n.t('dialogs.permissions.permDesc.file_execute'),
-  'system:exec': i18n.t('dialogs.permissions.permDesc.system_exec'),
-  'system:commands': i18n.t('dialogs.permissions.permDesc.system_commands'),
-  'system:network': i18n.t('dialogs.permissions.permDesc.system_network'),
-  fetch: i18n.t('dialogs.permissions.permDesc.fetch'),
-  network: i18n.t('dialogs.permissions.permDesc.network'),
-  'native:invoke': i18n.t('dialogs.permissions.permDesc.native_invoke'),
-  clipboard: i18n.t('dialogs.permissions.permDesc.clipboard'),
-  'ui:clipboard': i18n.t('dialogs.permissions.permDesc.ui_clipboard'),
-  storage: i18n.t('dialogs.permissions.permDesc.storage'),
-  'ui:notification': i18n.t('dialogs.permissions.permDesc.ui_notification'),
-  'ui:notifications': i18n.t('dialogs.permissions.permDesc.ui_notifications'),
-  'ui:panels': i18n.t('dialogs.permissions.permDesc.ui_panels'),
-  'ui:modify': i18n.t('dialogs.permissions.permDesc.ui_modify'),
-  'directory:list': i18n.t('dialogs.permissions.permDesc.directory_list'),
-  'directory:create': i18n.t('dialogs.permissions.permDesc.directory_create'),
-  'directory:delete': i18n.t('dialogs.permissions.permDesc.directory_delete'),
-  'wisp:settings': i18n.t('dialogs.permissions.permDesc.wisp_settings'),
-  'wisp:extensions': i18n.t('dialogs.permissions.permDesc.wisp_extensions'),
-  'wisp:themes': i18n.t('dialogs.permissions.permDesc.wisp_themes'),
-  'wisp:history': i18n.t('dialogs.permissions.permDesc.wisp_history'),
+  get 'file:read'() {
+    return i18n.t('dialogs.permissions.permDesc.file_read');
+  },
+  get 'file:write'() {
+    return i18n.t('dialogs.permissions.permDesc.file_write');
+  },
+  get 'file:delete'() {
+    return i18n.t('dialogs.permissions.permDesc.file_delete');
+  },
+  get 'file:execute'() {
+    return i18n.t('dialogs.permissions.permDesc.file_execute');
+  },
+  get 'system:exec'() {
+    return i18n.t('dialogs.permissions.permDesc.system_exec');
+  },
+  get 'system:commands'() {
+    return i18n.t('dialogs.permissions.permDesc.system_commands');
+  },
+  get 'system:network'() {
+    return i18n.t('dialogs.permissions.permDesc.system_network');
+  },
+  get fetch() {
+    return i18n.t('dialogs.permissions.permDesc.fetch');
+  },
+  get network() {
+    return i18n.t('dialogs.permissions.permDesc.network');
+  },
+  get 'native:invoke'() {
+    return i18n.t('dialogs.permissions.permDesc.native_invoke');
+  },
+  get clipboard() {
+    return i18n.t('dialogs.permissions.permDesc.clipboard');
+  },
+  get 'ui:clipboard'() {
+    return i18n.t('dialogs.permissions.permDesc.ui_clipboard');
+  },
+  get storage() {
+    return i18n.t('dialogs.permissions.permDesc.storage');
+  },
+  get 'ui:notification'() {
+    return i18n.t('dialogs.permissions.permDesc.ui_notification');
+  },
+  get 'ui:notifications'() {
+    return i18n.t('dialogs.permissions.permDesc.ui_notifications');
+  },
+  get 'ui:panels'() {
+    return i18n.t('dialogs.permissions.permDesc.ui_panels');
+  },
+  get 'ui:modify'() {
+    return i18n.t('dialogs.permissions.permDesc.ui_modify');
+  },
+  get 'directory:list'() {
+    return i18n.t('dialogs.permissions.permDesc.directory_list');
+  },
+  get 'directory:create'() {
+    return i18n.t('dialogs.permissions.permDesc.directory_create');
+  },
+  get 'directory:delete'() {
+    return i18n.t('dialogs.permissions.permDesc.directory_delete');
+  },
+  get 'wisp:settings'() {
+    return i18n.t('dialogs.permissions.permDesc.wisp_settings');
+  },
+  get 'wisp:extensions'() {
+    return i18n.t('dialogs.permissions.permDesc.wisp_extensions');
+  },
+  get 'wisp:themes'() {
+    return i18n.t('dialogs.permissions.permDesc.wisp_themes');
+  },
+  get 'wisp:history'() {
+    return i18n.t('dialogs.permissions.permDesc.wisp_history');
+  },
 };
 
 /** Permissions considered dangerous -- highlighted with orange/red */

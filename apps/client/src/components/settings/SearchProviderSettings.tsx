@@ -45,7 +45,10 @@ const SearchProviderSettings = ({ settings, updateSetting }: SearchProviderSetti
             value={provider}
             onValueChange={(value) => updateSetting('aiSearchProvider', value)}
           >
-            <SelectTrigger className="h-9 min-w-[160px]" aria-label="AI Search Provider">
+            <SelectTrigger
+              className="h-9 min-w-[160px]"
+              aria-label={t('interface.aiSearchProvider')}
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

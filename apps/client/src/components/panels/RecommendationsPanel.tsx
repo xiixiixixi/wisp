@@ -345,7 +345,7 @@ const DuplicatesTab = ({ currentPath }: { currentPath: string }) => {
               className="w-16 rounded-[2px] border border-xp-border bg-xp-surface px-1 py-0.5 text-[10px] focus:border-xp-blue focus:outline-none"
               disabled={isScanning}
             />
-            <span>B</span>
+            <span>{t('panels.duplicateFinder.bytesUnit')}</span>
           </label>
           <span className="flex-1" />
           {isScanning ? (

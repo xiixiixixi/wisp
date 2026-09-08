@@ -104,7 +104,6 @@ interface UseFileOperationsDeps {
     openFileDetailsDialog: (path: string, tab?: 'notes' | 'annotations' | 'metadata') => void;
     openEncryptionDialog: (filePath: string, mode: 'encrypt' | 'decrypt') => void;
     openSecureDeleteDialog: (files: FileEntry[]) => void;
-    openVersionHistoryDialog: (path: string) => void;
     openSymlinkDialog: (targetPath: string) => void;
     openPasteRenameDialog: (files: FileEntry[]) => void;
     openTemplatePicker: () => void;
@@ -642,9 +641,6 @@ export const useFileOperations = (deps: UseFileOperationsDeps) => {
       },
       secureDelete: (filesToDelete: FileEntry[]) => {
         dialogsRef.current.openSecureDeleteDialog(filesToDelete);
-      },
-      versionHistory: (file: FileEntry) => {
-        dialogsRef.current.openVersionHistoryDialog(file.path);
       },
       duplicateFiles: async (filesToDuplicate: FileEntry[]) => {
         let duplicated = 0;

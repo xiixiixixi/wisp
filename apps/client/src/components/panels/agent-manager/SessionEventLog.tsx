@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Inline event log for an agent session. Shows tool calls, results, text
  * deltas, approvals, and errors as they stream in — so users can see what
@@ -49,6 +50,7 @@ const renderToolInput = (input?: Record<string, unknown>): string => {
 };
 
 const SessionEventLog = ({ sessionId }: SessionEventLogProps) => {
+  const { t: tUi } = useTranslation();
   const events = useSessionEvents(sessionId);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -70,7 +72,7 @@ const SessionEventLog = ({ sessionId }: SessionEventLogProps) => {
           fontStyle: 'italic',
         }}
       >
-        Waiting for output…
+        {tUi('interface.waitingForOutput')}
       </div>
     );
   }
@@ -171,7 +173,8 @@ const SessionEventLog = ({ sessionId }: SessionEventLogProps) => {
             >
               {eventIcon(event)}
               <span>
-                Awaiting approval{event.message ? `: ${truncate(event.message, 80)}` : '…'}
+                {tUi('interface.awaitingApproval')}
+                {event.message ? `: ${truncate(event.message, 80)}` : '…'}
               </span>
             </div>
           );

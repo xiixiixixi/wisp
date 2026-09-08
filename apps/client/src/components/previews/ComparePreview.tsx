@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
@@ -338,7 +339,7 @@ const TextCompare = React.memo(
             padding: 16,
           }}
         >
-          <div style={{ textAlign: 'center', fontSize: 12 }}>{error}</div>
+          <div style={{ textAlign: 'center', fontSize: 12 }}>{previewErrorText(error, t)}</div>
         </div>
       );
     }
@@ -750,8 +751,8 @@ const MetadataCompare = React.memo(
         },
         {
           label: t('previews.compare.metaSizeBytes'),
-          left: leftFile.size.toLocaleString(),
-          right: rightFile.size.toLocaleString(),
+          left: leftFile.size.toLocaleString(getAppLocale()),
+          right: rightFile.size.toLocaleString(getAppLocale()),
         },
         {
           label: t('previews.compare.metaModified'),
@@ -937,3 +938,4 @@ const ComparePreview = ({
 };
 
 export default React.memo(ComparePreview);
+import { previewErrorText } from '@/lib/preview-error';

@@ -6,10 +6,7 @@ import type {
   ShortcutAction,
   ShortcutBinding,
   ShortcutSettings,
-  FileVersion,
-  VersioningConfig,
   BackupManifest,
-  AuditLogQuery,
   DockerContainerInfo,
   DockerImageInfo,
   BookmarkEntry,
@@ -203,22 +200,6 @@ export const deleteBackup = async (
   name: string,
 ): Promise<void> => await transport('delete_backup', { backupId, backupDir, name });
 
-// ── Audit log operations ────────────────────────────────────────────────────
-
-export const getAuditLog = async (
-  limit?: number,
-  offset?: number,
-  operationFilter?: string,
-  dateFrom?: string,
-  dateTo?: string,
-): Promise<AuditLogQuery> =>
-  await transport('get_audit_log', { limit, offset, operationFilter, dateFrom, dateTo });
-
-export const clearAuditLog = async (): Promise<void> => await transport('clear_audit_log');
-
-export const exportAuditLog = async (outputPath: string): Promise<void> =>
-  await transport('export_audit_log', { outputPath });
-
 // ── Docker operations ───────────────────────────────────────────────────────
 
 export const dockerIsAvailable = async (): Promise<boolean> =>
@@ -244,46 +225,6 @@ export const dockerRemoveImage = async (id: string, force: boolean): Promise<voi
 
 export const dockerContainerLogs = async (id: string, lines: number): Promise<string> =>
   await transport('docker_container_logs', { id, lines });
-
-// ── File versioning operations ──────────────────────────────────────────────
-
-export const enableVersioning = async (directory: string): Promise<void> =>
-  await transport('enable_versioning', { directory });
-
-export const disableVersioning = async (directory: string): Promise<void> =>
-  await transport('disable_versioning', { directory });
-
-export const createVersion = async (filePath: string): Promise<FileVersion> =>
-  await transport('create_version', { filePath });
-
-export const listVersions = async (filePath: string): Promise<FileVersion[]> =>
-  await transport('list_versions', { filePath });
-
-export const restoreVersion = async (filePath: string, versionNumber: number): Promise<void> =>
-  await transport('restore_version', { filePath, versionNumber });
-
-export const deleteVersion = async (filePath: string, versionNumber: number): Promise<void> =>
-  await transport('delete_version', { filePath, versionNumber });
-
-export const getVersioningConfig = async (): Promise<VersioningConfig> =>
-  await transport('get_versioning_config');
-
-export const updateVersioningConfig = async (config: VersioningConfig): Promise<void> =>
-  await transport('update_versioning_config', { config });
-
-export const isVersioningEnabled = async (filePath: string): Promise<boolean> =>
-  await transport('is_versioning_enabled', { filePath });
-
-export const getVersionCount = async (filePath: string): Promise<number> =>
-  await transport('get_version_count', { filePath });
-
-export const deleteAllVersions = async (filePath: string): Promise<number> =>
-  await transport('delete_all_versions', { filePath });
-
-export const readVersionContent = async (
-  filePath: string,
-  versionNumber: number,
-): Promise<string> => await transport('read_version_content', { filePath, versionNumber });
 
 // ── Cloud Sync operations ───────────────────────────────────────────────────
 

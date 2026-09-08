@@ -40,24 +40,6 @@ vi.mock('@/hooks/use-performance-stats', () => ({
       tokenLastUpdated: 0,
       isTokenizerIndexing: false,
     },
-    recentOps: [
-      {
-        id: 'op-1',
-        operation: 'Copy',
-        success: true,
-        timestamp: new Date().toISOString(),
-        paths: ['file1.txt', 'file2.txt'],
-        details: 'Copied 2 files',
-      },
-      {
-        id: 'op-2',
-        operation: 'Delete',
-        success: true,
-        timestamp: new Date(Date.now() - 60000).toISOString(),
-        paths: ['old.txt'],
-        details: 'Deleted 1 file',
-      },
-    ],
     suggestions: [
       {
         id: 'trash',
@@ -172,23 +154,11 @@ describe('PerformanceDashboard', () => {
     });
   });
 
-  describe('Recent Operations card', () => {
-    it('shows Recent Operations section', () => {
-      render(<PerformanceDashboard {...defaultProps} />);
-      expect(screen.getByText('Recent Operations')).toBeInTheDocument();
-    });
-
-    it('shows operation names', () => {
-      render(<PerformanceDashboard {...defaultProps} />);
-      expect(screen.getByText('Copy')).toBeInTheDocument();
-      expect(screen.getByText('Delete')).toBeInTheDocument();
-    });
-
-    it('shows file counts for operations', () => {
-      render(<PerformanceDashboard {...defaultProps} />);
-      expect(screen.getByText('2 files')).toBeInTheDocument();
-      expect(screen.getByText('1 file')).toBeInTheDocument();
-    });
+  it('does not render a retired audit activity feed', () => {
+    render(<PerformanceDashboard {...defaultProps} />);
+    expect(screen.queryByText('Copy')).not.toBeInTheDocument();
+    expect(screen.queryByText('Delete')).not.toBeInTheDocument();
+    expect(screen.queryByText('Recent Operations')).not.toBeInTheDocument();
   });
 
   describe('Cleanup Suggestions card', () => {

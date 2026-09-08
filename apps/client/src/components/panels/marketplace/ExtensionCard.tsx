@@ -1,3 +1,5 @@
+import { getAppLocale } from '@/lib/locale';
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Download, Star, Loader2, Trash2 } from 'lucide-react';
 import { renderIcon } from '@/lib/utils';
@@ -38,6 +40,7 @@ const ExtensionCard = React.memo(
     onUninstall,
     onSelect,
   }: ExtensionCardProps) => {
+    const { t: tUi } = useTranslation();
     return (
       <div
         className="border-xp-border/50 cursor-pointer border-b px-3 py-2.5 transition-colors hover:bg-xp-surface-light/50"
@@ -67,7 +70,7 @@ const ExtensionCard = React.memo(
               <div className="flex-shrink-0">
                 {isDev ? (
                   <span className="rounded-[2px] border border-xp-green/30 bg-xp-green/10 px-2 py-0.5 text-[10px] font-medium text-xp-green">
-                    Dev Mode
+                    {tUi('interface.devMode')}
                   </span>
                 ) : isInstalled ? (
                   <button
@@ -77,7 +80,7 @@ const ExtensionCard = React.memo(
                     }}
                     disabled={isInstalling}
                     className="flex items-center rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-red/10 hover:text-xp-red disabled:opacity-50"
-                    title="Uninstall"
+                    title={tUi('interface.uninstall')}
                   >
                     {isInstalling ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -97,7 +100,7 @@ const ExtensionCard = React.memo(
                     {isInstalling ? (
                       <>
                         <Loader2 className="h-3 w-3 animate-spin" />
-                        Installing
+                        {tUi('interface.installing')}
                       </>
                     ) : (
                       'Install'
@@ -116,7 +119,7 @@ const ExtensionCard = React.memo(
             <div className="mt-1.5 flex items-center gap-3">
               <span className="flex items-center gap-0.5 text-[11px] text-xp-text-muted">
                 <Download className="h-3 w-3 flex-shrink-0" />
-                {extension.downloadCount.toLocaleString()}
+                {extension.downloadCount.toLocaleString(getAppLocale())}
               </span>
               <span className="flex items-center gap-0.5 text-[11px] text-xp-text-muted">
                 {renderStars(extension.averageRating)}

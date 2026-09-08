@@ -1,3 +1,5 @@
+import { getAppLocale } from '@/lib/locale';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useRef } from 'react';
 import { AlertTriangle, FileIcon, FolderClosed, Replace, Copy, X, ArrowRight } from 'lucide-react';
 import type { ConflictFileInfo } from '@/lib/tauri-api';
@@ -27,7 +29,7 @@ const formatSize = (bytes: number): string => {
 const formatDate = (epoch: number): string => {
   if (!epoch) return 'Unknown';
   const d = new Date(epoch * 1000);
-  return d.toLocaleDateString(undefined, {
+  return d.toLocaleDateString(getAppLocale(), {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -75,6 +77,7 @@ export const FileConflictDialog = ({
   destInfo,
   onResolve,
 }: FileConflictDialogProps) => {
+  const { t: tUi } = useTranslation();
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -118,10 +121,10 @@ export const FileConflictDialog = ({
           <AlertTriangle className="mt-0.5 h-6 w-6 flex-shrink-0 text-xp-yellow" />
           <div>
             <h3 id="conflict-title" className="text-base font-semibold text-xp-text">
-              File Conflict
+              {tUi('dialogs.fileConflict')}
             </h3>
             <p className="mt-1 text-sm text-xp-text-muted">
-              The destination already has a {isDir ? 'folder' : 'file'} named:
+              {tUi(isDir ? 'messages.conflictFolder' : 'messages.conflictFile')}
             </p>
           </div>
         </div>
@@ -141,18 +144,18 @@ export const FileConflictDialog = ({
           <div className="mb-4 space-y-1.5 rounded-[2px] border border-xp-border bg-xp-surface-light px-3 py-2.5">
             <div className="mb-1 grid grid-cols-[80px_1fr_20px_1fr] items-center gap-1 text-xs font-medium text-xp-text-muted">
               <span />
-              <span>Source</span>
+              <span>{tUi('interface.source')}</span>
               <span />
-              <span>Existing</span>
+              <span>{tUi('interface.existing')}</span>
             </div>
             <MetadataRow
-              label="Size"
+              label={tUi('sort.size')}
               sourceVal={formatSize(sourceInfo.size)}
               destVal={formatSize(destInfo.size)}
               highlight={sizeHighlight}
             />
             <MetadataRow
-              label="Modified"
+              label={tUi('searchFilter.modifiedLabel')}
               sourceVal={formatDate(sourceInfo.modified)}
               destVal={formatDate(destInfo.modified)}
               highlight={dateHighlight}
@@ -165,13 +168,15 @@ export const FileConflictDialog = ({
           <button
             onClick={() => onResolve('replace', false)}
             className="flex w-full items-center gap-3 rounded-[2px] border border-xp-border bg-xp-surface-light px-4 py-2.5 text-left text-sm transition-colors hover:border-xp-red/40 hover:bg-xp-red/15"
-            aria-label="Replace existing file"
+            aria-label={tUi('interface.replaceExistingFile')}
           >
             <Replace className="h-4 w-4 flex-shrink-0 text-xp-red" />
             <div>
-              <div className="font-medium text-xp-text">Replace</div>
+              <div className="font-medium text-xp-text">
+                {tUi('dialogs.batchMetadata.noteModeReplace')}
+              </div>
               <div className="text-xs text-xp-text-muted">
-                Overwrite the existing {isDir ? 'folder' : 'file'}
+                {tUi(isDir ? 'messages.overwriteFolder' : 'messages.overwriteFile')}
               </div>
             </div>
           </button>
@@ -179,13 +184,13 @@ export const FileConflictDialog = ({
           <button
             onClick={() => onResolve('keep-both', false)}
             className="flex w-full items-center gap-3 rounded-[2px] border border-xp-border bg-xp-surface-light px-4 py-2.5 text-left text-sm transition-colors hover:border-xp-blue/40 hover:bg-xp-blue/15"
-            aria-label="Keep both files"
+            aria-label={tUi('interface.keepBothFiles')}
           >
             <Copy className="h-4 w-4 flex-shrink-0 text-xp-blue" />
             <div>
-              <div className="font-medium text-xp-text">Keep Both</div>
+              <div className="font-medium text-xp-text">{tUi('interface.keepBoth')}</div>
               <div className="text-xs text-xp-text-muted">
-                Save with a renamed copy (e.g. &quot;{getKeepBothName(fileName)}&quot;)
+                {tUi('messages.keepRenamedCopy', { name: getKeepBothName(fileName) })}
               </div>
             </div>
           </button>
@@ -193,13 +198,13 @@ export const FileConflictDialog = ({
           <button
             onClick={() => onResolve('skip', false)}
             className="flex w-full items-center gap-3 rounded-[2px] border border-xp-border bg-xp-surface-light px-4 py-2.5 text-left text-sm transition-colors hover:bg-xp-surface"
-            aria-label="Skip this file"
+            aria-label={tUi('interface.skipThisFile')}
           >
             <X className="h-4 w-4 flex-shrink-0 text-xp-text-muted" />
             <div>
-              <div className="font-medium text-xp-text">Skip</div>
+              <div className="font-medium text-xp-text">{tUi('aiChat.feedback.skip')}</div>
               <div className="text-xs text-xp-text-muted">
-                Don&apos;t paste this {isDir ? 'folder' : 'file'}
+                {tUi(isDir ? 'messages.skipFolder' : 'messages.skipFile')}
               </div>
             </div>
           </button>
@@ -209,26 +214,26 @@ export const FileConflictDialog = ({
         {remaining > 0 && (
           <div className="mt-4 border-t border-xp-border pt-3">
             <p className="mb-2 text-xs text-xp-text-muted">
-              {remaining} more conflict{remaining > 1 ? 's' : ''} remaining
+              {tUi('messages.remainingConflicts', { count: remaining })}
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => onResolve('replace', true)}
                 className="flex-1 rounded-[2px] border border-xp-border px-3 py-1.5 text-xs text-xp-text transition-colors hover:border-xp-red/40 hover:bg-xp-red/15"
               >
-                Replace All
+                {tUi('interface.replaceAll')}
               </button>
               <button
                 onClick={() => onResolve('keep-both', true)}
                 className="flex-1 rounded-[2px] border border-xp-border px-3 py-1.5 text-xs text-xp-text transition-colors hover:border-xp-blue/40 hover:bg-xp-blue/15"
               >
-                Rename All
+                {tUi('dialogs.batchConfirm.confirmRename')}
               </button>
               <button
                 onClick={() => onResolve('skip', true)}
                 className="flex-1 rounded-[2px] border border-xp-border px-3 py-1.5 text-xs text-xp-text transition-colors hover:bg-xp-surface"
               >
-                Skip All
+                {tUi('interface.skipAll')}
               </button>
             </div>
           </div>

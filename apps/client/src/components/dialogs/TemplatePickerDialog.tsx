@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import i18n from '@/i18n';
 import {
@@ -316,6 +317,7 @@ const TemplatePickerDialog = ({
   onCreateFile,
   currentPath,
 }: TemplatePickerDialogProps) => {
+  const { t: tUi } = useTranslation();
   const [activeCategory, setActiveCategory] = useState<TemplateCategory | 'all'>('all');
   const [selectedTemplate, setSelectedTemplate] = useState<FileTemplate | null>(null);
   const [filename, setFilename] = useState('');
@@ -408,12 +410,16 @@ const TemplatePickerDialog = ({
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label="New from Template"
+        aria-label={tUi('interface.newFromTemplate')}
       >
         {/* Header */}
         <div style={s.header}>
-          <h2 style={s.title}>New from Template</h2>
-          <button style={s.closeBtn} onClick={onClose} aria-label="Close">
+          <h2 style={s.title}>{tUi('interface.newFromTemplate')}</h2>
+          <button
+            style={s.closeBtn}
+            onClick={onClose}
+            aria-label={tUi('agentManager.workspace.close')}
+          >
             <svg
               width="18"
               height="18"
@@ -459,7 +465,7 @@ const TemplatePickerDialog = ({
           {/* Template grid */}
           <div style={s.mainPanel}>
             {filteredTemplates.length === 0 ? (
-              <div style={s.emptyState}>No templates in this category.</div>
+              <div style={s.emptyState}>{tUi('interface.noTemplatesInThisCategory')}</div>
             ) : (
               <div style={s.templateGrid}>
                 {filteredTemplates.map((template) => (
@@ -493,8 +499,8 @@ const TemplatePickerDialog = ({
                         <button
                           style={s.deleteBtn}
                           onClick={(e) => handleDeleteCustom(e, template.id)}
-                          title={i18n.t('dialogs.templatePicker.deleteCustom')}
-                          aria-label={i18n.t('dialogs.templatePicker.deleteAria', {
+                          title={i18n.t('templatePicker.deleteCustom')}
+                          aria-label={i18n.t('templatePicker.deleteAria', {
                             name: template.name,
                           })}
                         >
@@ -527,7 +533,7 @@ const TemplatePickerDialog = ({
                 <div style={s.configRow}>
                   {/* Filename input */}
                   <div style={s.fieldGroup}>
-                    <label style={s.label}>Filename</label>
+                    <label style={s.label}>{tUi('interface.filename')}</label>
                     <input
                       style={s.input}
                       value={filename}
@@ -552,7 +558,7 @@ const TemplatePickerDialog = ({
 
                 {/* Live preview */}
                 <div>
-                  <span style={s.label}>Preview</span>
+                  <span style={s.label}>{tUi('bulkRename.preview')}</span>
                   <div style={s.preview}>{renderedContent}</div>
                 </div>
               </div>
@@ -565,14 +571,14 @@ const TemplatePickerDialog = ({
           <div>{/* Placeholder for future "Manage Custom Templates" link */}</div>
           <div style={s.footerActions}>
             <button style={s.btnCancel} onClick={onClose}>
-              Cancel
+              {tUi('conflict.cancel')}
             </button>
             <button
               style={s.btnCreate(!selectedTemplate || !filename.trim())}
               onClick={handleCreate}
               disabled={!selectedTemplate || !filename.trim()}
             >
-              Create
+              {tUi('agentManager.recentActions.actionCreate')}
             </button>
           </div>
         </div>

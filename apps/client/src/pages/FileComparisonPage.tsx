@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { convertAssetUrl } from '@/lib/transport';
 import {
@@ -20,6 +21,7 @@ import { SideBySideView, UnifiedView } from '@/components/comparison/ComparisonV
 
 // ─── Main component ────────────────────────────────────────────────────────
 const FileComparisonPage = ({ file1Path, file2Path, onError }: FileComparisonPageProps) => {
+  const { t: tUi } = useTranslation();
   const [result, setResult] = useState<FileComparisonResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('side-by-side');
@@ -184,7 +186,9 @@ const FileComparisonPage = ({ file1Path, file2Path, onError }: FileComparisonPag
               animation: 'spin 1s linear infinite',
             }}
           />
-          <div style={{ fontSize: 13, color: 'var(--xp-text)' }}>Comparing files...</div>
+          <div style={{ fontSize: 13, color: 'var(--xp-text)' }}>
+            {tUi('interface.comparingFiles')}
+          </div>
         </div>
       </div>
     );
@@ -212,7 +216,7 @@ const FileComparisonPage = ({ file1Path, file2Path, onError }: FileComparisonPag
             }}
           />
           <div style={{ fontSize: 13, color: 'var(--xp-text)', marginBottom: 12 }}>
-            Comparison failed
+            {tUi('dialogs.fileComparison.failed')}
           </div>
           <button
             onClick={runComparison}
@@ -226,7 +230,7 @@ const FileComparisonPage = ({ file1Path, file2Path, onError }: FileComparisonPag
               cursor: 'pointer',
             }}
           >
-            Try Again
+            {tUi('pages.gdrive.tryAgain')}
           </button>
         </div>
       </div>
@@ -426,11 +430,12 @@ const FileComparisonPage = ({ file1Path, file2Path, onError }: FileComparisonPag
         <span style={{ color: 'var(--xp-green)' }}>+{metadata.linesAdded}</span>
         <span style={{ color: 'var(--xp-red)' }}>-{metadata.linesRemoved}</span>
         <span>
-          {metadata.totalLines1} / {metadata.totalLines2} lines
+          {tUi('messages.comparisonLines', {
+            first: metadata.totalLines1,
+            second: metadata.totalLines2,
+          })}
         </span>
-        <span>
-          {hunks.length} change{hunks.length !== 1 ? 's' : ''}
-        </span>
+        <span>{tUi('counts.changes', { count: hunks.length })}</span>
         <span style={{ marginLeft: 'auto' }}>{metadata.processingTime}ms</span>
       </div>
     </div>

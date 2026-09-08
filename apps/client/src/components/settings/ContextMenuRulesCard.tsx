@@ -278,7 +278,7 @@ RuleRow.displayName = 'RuleRow';
 
 // ── Main Component ─────────────────────────────────────────────────
 
-const ContextMenuRulesCard = () => {
+const ContextMenuRulesCard = ({ embedded = false }: { embedded?: boolean }) => {
   const { t } = useTranslation();
   const [rules, setRules] = useState<ContextMenuRule[]>(() => getContextMenuRules());
   const [showForm, setShowForm] = useState(false);
@@ -355,10 +355,16 @@ const ContextMenuRulesCard = () => {
 
   return (
     <div className="space-y-4">
-      <SectionTitle
-        title={t('settings.contextMenuRules.title')}
-        description={t('settings.contextMenuRules.description')}
-      />
+      {embedded ? (
+        <p className="px-4 text-xs text-xp-text-secondary">
+          {t('settings.contextMenuRules.description')}
+        </p>
+      ) : (
+        <SectionTitle
+          title={t('settings.contextMenuRules.title')}
+          description={t('settings.contextMenuRules.description')}
+        />
+      )}
 
       {/* Existing rules */}
       {rules.length > 0 ? (

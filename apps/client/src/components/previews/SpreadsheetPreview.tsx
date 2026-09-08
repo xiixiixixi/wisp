@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { PreviewProps } from '@/lib/preview-factory';
 import { TauriAPI } from '@/lib/tauri-api';
@@ -11,6 +12,7 @@ const MAX_ROWS = 50;
  * are materialised for the panel.
  */
 const SpreadsheetPreview = ({ file, onError, onLoad }: PreviewProps) => {
+  const { t: tUi } = useTranslation();
   const [sheets, setSheets] = useState<{ name: string; rows: (string | number | boolean)[][] }[]>(
     [],
   );
@@ -70,8 +72,8 @@ const SpreadsheetPreview = ({ file, onError, onLoad }: PreviewProps) => {
       {!loading && error && (
         <div className="flex flex-1 items-center justify-center rounded-[2px] border border-xp-border bg-xp-surface">
           <div className="text-center text-xp-text-muted">
-            <p className="text-sm">Cannot preview spreadsheet</p>
-            <p className="mt-1 text-xs opacity-70">{error}</p>
+            <p className="text-sm">{tUi('interface.cannotPreviewSpreadsheet')}</p>
+            <p className="mt-1 text-xs opacity-70">{previewErrorText(error, tUi)}</p>
           </div>
         </div>
       )}
@@ -121,7 +123,7 @@ const SpreadsheetPreview = ({ file, onError, onLoad }: PreviewProps) => {
 
           {currentSheet && currentSheet.rows.length >= MAX_ROWS && (
             <p className="mt-1.5 flex-shrink-0 text-center text-[10px] text-xp-text-muted">
-              Showing first {MAX_ROWS} rows
+              {tUi('messages.rowsShown', { count: MAX_ROWS })}
             </p>
           )}
         </div>
@@ -131,3 +133,4 @@ const SpreadsheetPreview = ({ file, onError, onLoad }: PreviewProps) => {
 };
 
 export default SpreadsheetPreview;
+import { previewErrorText } from '@/lib/preview-error';

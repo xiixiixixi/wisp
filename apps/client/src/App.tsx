@@ -30,11 +30,12 @@ const AppNavigationBridge = () => {
 };
 
 const Router = () => {
+  const { t: tUi } = useTranslation();
   return (
     <React.Suspense
       fallback={
         <div className="flex h-screen items-center justify-center bg-xp-bg text-sm text-xp-text">
-          Loading...
+          {tUi('panels.notes.loading')}
         </div>
       }
     >

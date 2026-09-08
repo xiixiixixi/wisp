@@ -361,7 +361,7 @@ const AgentLauncher = ({
         <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px 8px 0 0' }}>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('agentManager.workspace.close')}
             style={{
               background: 'none',
               border: 'none',

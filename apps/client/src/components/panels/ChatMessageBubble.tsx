@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Single chat message bubble with file action cards.
  * Extracted from StandaloneChatPanel to keep it under the 1000-line limit.
@@ -53,6 +54,7 @@ const ImageThumbnailStrip = ({
 }: {
   images: Array<{ name: string; path: string; dataUrl: string }>;
 }) => {
+  const { t: tUi } = useTranslation();
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const closeLightbox = useCallback(() => setLightboxUrl(null), []);
@@ -116,7 +118,7 @@ const ImageThumbnailStrip = ({
       {lightboxUrl && (
         <div
           role="dialog"
-          aria-label="Image preview"
+          aria-label={tUi('interface.imagePreview')}
           onClick={closeLightbox}
           onKeyDown={(e) => {
             if (e.key === 'Escape') closeLightbox();

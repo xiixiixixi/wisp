@@ -1,4 +1,4 @@
-import i18n from '@/i18n';
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import {
   Image as ImageIcon,
@@ -140,38 +140,6 @@ export const ProgressBar = React.memo(
 );
 ProgressBar.displayName = 'ProgressBar';
 
-// ── Operation color mapping ─────────────────────────────────────────────────
-
-export const opColor = (op: string, success: boolean): string => {
-  if (!success) return 'var(--xp-red)';
-  const lower = op.toLowerCase();
-  if (lower.includes('copy')) return 'var(--xp-blue)';
-  if (lower.includes('move')) return 'var(--xp-purple)';
-  if (lower.includes('delete') || lower.includes('trash')) return 'var(--xp-red)';
-  if (lower.includes('rename')) return 'var(--xp-yellow)';
-  if (lower.includes('create') || lower.includes('mkdir')) return 'var(--xp-green)';
-  if (lower.includes('compress') || lower.includes('extract')) return 'var(--xp-cyan)';
-  return 'var(--xp-text-muted)';
-};
-
-export const formatRelativeTime = (timestamp: string): string => {
-  try {
-    const date = new Date(timestamp);
-    const now = Date.now();
-    const diff = now - date.getTime();
-    if (diff < 60_000) return i18n.t('performanceDashboard.justNow');
-    if (diff < 3_600_000) {
-      return i18n.t('performanceDashboard.minutesAgo', { count: Math.floor(diff / 60_000) });
-    }
-    if (diff < 86_400_000) {
-      return i18n.t('performanceDashboard.hoursAgo', { count: Math.floor(diff / 3_600_000) });
-    }
-    return i18n.t('performanceDashboard.daysAgo', { count: Math.floor(diff / 86_400_000) });
-  } catch {
-    return timestamp;
-  }
-};
-
 // ── Category constants for Organizer tab ────────────────────────────────────
 
 export const CATEGORY_COLORS: Record<string, string> = {
@@ -256,6 +224,7 @@ export const OrganizerSuggestionItem = ({
   selected: boolean;
   onToggle: () => void;
 }) => {
+  const { t: tUi } = useTranslation();
   const categoryTag = (() => {
     if (suggestion.category === 'type') return <FolderOpen size={12} className="inline-block" />;
     if (suggestion.category === 'date') return <CalendarDays size={12} className="inline-block" />;
@@ -297,7 +266,7 @@ export const OrganizerSuggestionItem = ({
               {suggestion.suggested_name}/
             </span>
             <span style={{ fontSize: 11, color: 'var(--xp-text-secondary)', flexShrink: 0 }}>
-              ({suggestion.files_to_move.length} files)
+              ({tUi('counts.files', { count: suggestion.files_to_move.length })})
             </span>
           </div>
           <div

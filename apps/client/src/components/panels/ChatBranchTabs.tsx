@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Branch tab bar for conversation branching.
  * Renders tabs for main thread + any active branches,
@@ -25,6 +26,7 @@ const ChatBranchTabs = ({
   onDeleteBranch,
   onRenameBranch,
 }: ChatBranchTabsProps) => {
+  const { t: tUi } = useTranslation();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState('');
 
@@ -58,7 +60,7 @@ const ChatBranchTabs = ({
         fontSize: '11px',
       }}
       role="tablist"
-      aria-label="Conversation branches"
+      aria-label={tUi('interface.conversationBranches')}
     >
       <GitBranch
         size={12}
@@ -69,7 +71,7 @@ const ChatBranchTabs = ({
       <button
         role="tab"
         aria-selected={isMainActive}
-        aria-label="Main conversation thread"
+        aria-label={tUi('interface.mainConversationThread')}
         onClick={() => onSwitchBranch(null)}
         style={{
           display: 'inline-flex',
@@ -87,7 +89,7 @@ const ChatBranchTabs = ({
         }}
       >
         <MessageSquare size={10} />
-        Main
+        {tUi('interface.main')}
       </button>
 
       {/* Branch tabs */}
@@ -250,7 +252,7 @@ const ChatBranchTabs = ({
           opacity: 0.6,
         }}
       >
-        {branchState.branches.length} branch{branchState.branches.length !== 1 ? 'es' : ''}
+        {tUi('counts.branches', { count: branchState.branches.length })}
       </span>
     </div>
   );
@@ -267,60 +269,63 @@ interface BranchForkIndicatorProps {
   onBranch: () => void;
 }
 
-export const BranchForkIndicator = ({ branchCount, onBranch }: BranchForkIndicatorProps) => (
-  <div
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '4px',
-      marginTop: '4px',
-    }}
-  >
-    <button
-      onClick={onBranch}
-      title="Branch from this message"
-      aria-label="Create a conversation branch from this message"
+export const BranchForkIndicator = ({ branchCount, onBranch }: BranchForkIndicatorProps) => {
+  const { t: tUi } = useTranslation();
+  return (
+    <div
       style={{
-        display: 'inline-flex',
+        display: 'flex',
         alignItems: 'center',
         gap: '4px',
-        padding: '2px 8px',
-        borderRadius: '4px',
-        border: '1px solid var(--xp-border)',
-        background: 'transparent',
-        color: 'var(--xp-text-muted)',
-        cursor: 'pointer',
-        fontSize: '10px',
-        opacity: 0.6,
-        transition: 'opacity 0.15s, border-color 0.15s',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.opacity = '1';
-        e.currentTarget.style.borderColor = 'var(--xp-purple)';
-        e.currentTarget.style.color = 'var(--xp-purple)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.opacity = '0.6';
-        e.currentTarget.style.borderColor = 'var(--xp-border)';
-        e.currentTarget.style.color = 'var(--xp-text-muted)';
+        marginTop: '4px',
       }}
     >
-      <GitBranch size={10} />
-      Branch from here
-    </button>
-    {branchCount > 0 && (
-      <span
+      <button
+        onClick={onBranch}
+        title={tUi('interface.branchFromThisMessage')}
+        aria-label={tUi('interface.createAConversationBranchFromThisMessage')}
         style={{
-          fontSize: '10px',
-          color: 'var(--xp-purple)',
           display: 'inline-flex',
           alignItems: 'center',
-          gap: '2px',
+          gap: '4px',
+          padding: '2px 8px',
+          borderRadius: '4px',
+          border: '1px solid var(--xp-border)',
+          background: 'transparent',
+          color: 'var(--xp-text-muted)',
+          cursor: 'pointer',
+          fontSize: '10px',
+          opacity: 0.6,
+          transition: 'opacity 0.15s, border-color 0.15s',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.opacity = '1';
+          e.currentTarget.style.borderColor = 'var(--xp-purple)';
+          e.currentTarget.style.color = 'var(--xp-purple)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.opacity = '0.6';
+          e.currentTarget.style.borderColor = 'var(--xp-border)';
+          e.currentTarget.style.color = 'var(--xp-text-muted)';
         }}
       >
-        <GitBranch size={9} />
-        {branchCount}
-      </span>
-    )}
-  </div>
-);
+        <GitBranch size={10} />
+        {tUi('interface.branchFromHere')}
+      </button>
+      {branchCount > 0 && (
+        <span
+          style={{
+            fontSize: '10px',
+            color: 'var(--xp-purple)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '2px',
+          }}
+        >
+          <GitBranch size={9} />
+          {branchCount}
+        </span>
+      )}
+    </div>
+  );
+};

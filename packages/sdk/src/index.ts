@@ -32,6 +32,4 @@ export * as Sync from './services/sync';
 export * as Database from './services/database';
 export * as Images from './services/images';
 export * as Backup from './services/backup';
-export * as Audit from './services/audit';
 export * as Docker from './services/docker';
-export * as Versions from './services/versions';

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useCallback } from 'react';
 import {
   Loader2,
@@ -100,6 +101,7 @@ const kv: React.CSSProperties = {
 };
 
 const ArchitectPanel = ({ currentPath }: ArchitectPanelProps) => {
+  const { t: tUi } = useTranslation();
   const [data, setData] = useState<ArchData | null>(
     cachedAnalysis?.path === currentPath ? cachedAnalysis.data : null,
   );
@@ -190,7 +192,7 @@ Return this exact JSON structure:
           }}
         >
           <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--xp-text)' }}>
-            Architecture
+            {tUi('interface.architecture')}
           </div>
           <div style={{ fontSize: '10px', color: 'var(--xp-text-muted)' }}>{folderName}</div>
         </div>
@@ -216,15 +218,16 @@ Return this exact JSON structure:
         >
           {isLoading ? (
             <>
-              <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Analyzing...
+              <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />{' '}
+              {tUi('interface.analyzing')}
             </>
           ) : data ? (
             <>
-              <RefreshCw size={12} /> Regenerate
+              <RefreshCw size={12} /> {tUi('interface.regenerate')}
             </>
           ) : (
             <>
-              <Sparkles size={12} /> Analyze with AI
+              <Sparkles size={12} /> {tUi('interface.analyzeWithAi')}
             </>
           )}
         </button>
@@ -254,8 +257,8 @@ Return this exact JSON structure:
         {!data && !isLoading && !error && (
           <div style={{ textAlign: 'center', color: 'var(--xp-text-muted)', paddingTop: '40px' }}>
             <Sparkles size={24} style={{ margin: '0 auto 8px', opacity: 0.3 }} />
-            <div style={{ fontSize: '12px' }}>Analyze this project</div>
-            <div style={{ fontSize: '10px', marginTop: '2px' }}>with AI</div>
+            <div style={{ fontSize: '12px' }}>{tUi('interface.analyzeThisProject')}</div>
+            <div style={{ fontSize: '10px', marginTop: '2px' }}>{tUi('interface.withAi')}</div>
           </div>
         )}
 
@@ -277,7 +280,7 @@ Return this exact JSON structure:
             {/* Tech stack tags */}
             <div style={card}>
               <div style={sectionTitle}>
-                <Puzzle size={11} /> Tech Stack
+                <Puzzle size={11} /> {tUi('interface.techStack')}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap' as const }}>
                 {data.techStack.map((t) => (
@@ -291,7 +294,7 @@ Return this exact JSON structure:
             {/* Frontend */}
             <div style={card}>
               <div style={sectionTitle}>
-                <Palette size={11} /> Frontend
+                <Palette size={11} /> {tUi('interface.frontend')}
               </div>
               {Object.entries(data.frontend)
                 .filter(([, v]) => v && v !== 'none' && v !== 'N/A')
@@ -313,7 +316,7 @@ Return this exact JSON structure:
             {/* Backend */}
             <div style={card}>
               <div style={sectionTitle}>
-                <Server size={11} /> Backend
+                <Server size={11} /> {tUi('interface.backend')}
               </div>
               {Object.entries(data.backend)
                 .filter(([, v]) => v && v !== 'none' && v !== 'N/A')
@@ -335,7 +338,7 @@ Return this exact JSON structure:
             {/* Patterns */}
             <div style={card}>
               <div style={sectionTitle}>
-                <Layers size={11} /> Architecture Patterns
+                <Layers size={11} /> {tUi('interface.architecturePatterns')}
               </div>
               {data.patterns.map((p, i) => (
                 <div
@@ -360,7 +363,7 @@ Return this exact JSON structure:
             {/* Entry points */}
             <div style={card}>
               <div style={sectionTitle}>
-                <FileCode size={11} /> Entry Points
+                <FileCode size={11} /> {tUi('interface.entryPoints')}
               </div>
               {data.entryPoints.map((ep, i) => (
                 <div

@@ -165,7 +165,6 @@ const createDeps = (overrides: Record<string, unknown> = {}) => {
       openFileDetailsDialog: vi.fn(),
       openEncryptionDialog: vi.fn(),
       openSecureDeleteDialog: vi.fn(),
-      openVersionHistoryDialog: vi.fn(),
       openSymlinkDialog: vi.fn(),
       openPasteRenameDialog: vi.fn(),
       openTemplatePicker: vi.fn(),

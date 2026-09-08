@@ -122,7 +122,7 @@ export const PasswordPromptDialog = ({
             onClick={handleClose}
             disabled={isLoading}
             className="text-xp-text-muted transition-colors hover:text-xp-text disabled:opacity-50"
-            aria-label="Close"
+            aria-label={t('agentManager.workspace.close')}
           >
             ✕
           </button>
@@ -133,10 +133,10 @@ export const PasswordPromptDialog = ({
           {connectionName && username && host && (
             <div className="mb-3 text-sm text-xp-text-muted">
               <p>
-                <strong>Connection:</strong> {connectionName}
+                <strong>{t('interface.connectionLabel')}</strong> {connectionName}
               </p>
               <p>
-                <strong>Server:</strong> {username}@{host}
+                <strong>{t('interface.serverLabel')}</strong> {username}@{host}
               </p>
             </div>
           )}
@@ -145,10 +145,14 @@ export const PasswordPromptDialog = ({
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4" aria-label="password form">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4"
+          aria-label={t('interface.passwordForm')}
+        >
           <div>
             <label htmlFor="password-input" className="mb-1 block text-sm font-medium">
-              Password
+              {t('dialogs.encryption.passwordLabel')}
             </label>
             <div className="relative">
               <input
@@ -173,7 +177,11 @@ export const PasswordPromptDialog = ({
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 transform text-xp-text-muted transition-colors hover:text-xp-text"
                 disabled={isLoading}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={
+                  showPassword
+                    ? t('dialogs.encryption.hidePassword')
+                    : t('dialogs.encryption.showPassword')
+                }
               >
                 {showPassword ? (
                   <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -209,7 +217,7 @@ export const PasswordPromptDialog = ({
                 disabled={isLoading}
               />
               <label htmlFor="remember" className="text-sm text-xp-text-muted">
-                Remember password for this session
+                {t('interface.rememberPasswordForThisSession')}
               </label>
             </div>
           )}
@@ -229,10 +237,11 @@ export const PasswordPromptDialog = ({
                 />
               </svg>
               <div className="text-sm">
-                <p className="font-medium text-xp-yellow">Security Notice</p>
+                <p className="font-medium text-xp-yellow">{t('interface.securityNotice')}</p>
                 <p className="mt-1 text-xs text-xp-yellow">
-                  Passwords are stored securely in memory and are not saved to disk unless you
-                  explicitly save the connection with a password.
+                  {t(
+                    'interface.passwordsAreStoredSecurelyInMemoryAndAreNotSavedToDiskUnlessYouExplicitlySaveTheConnectionWithAPassword',
+                  )}
                 </p>
               </div>
             </div>
@@ -244,9 +253,9 @@ export const PasswordPromptDialog = ({
               onClick={handleClose}
               disabled={isLoading}
               className="rounded-[2px] border border-xp-border px-4 py-2 text-sm transition-colors hover:bg-xp-surface-light disabled:opacity-50"
-              aria-label="Cancel authentication"
+              aria-label={t('interface.cancelAuthentication')}
             >
-              Cancel
+              {t('conflict.cancel')}
             </button>
             <button
               type="submit"

@@ -33,7 +33,10 @@ describe('FileReferenceBadge', () => {
       </FileReferenceBadge>,
     );
 
-    expect(screen.getByRole('img')).toHaveAttribute('aria-label', 'symlinkTo');
+    expect(screen.getByRole('img')).toHaveAttribute(
+      'aria-label',
+      'Symbolic link to ../original.txt',
+    );
     expect(screen.getByTestId('icon-Link2')).toBeInTheDocument();
   });
 
@@ -44,7 +47,7 @@ describe('FileReferenceBadge', () => {
       </FileReferenceBadge>,
     );
 
-    expect(screen.getByRole('img')).toHaveAttribute('aria-label', 'alias');
+    expect(screen.getByRole('img')).toHaveAttribute('aria-label', 'Alias');
     expect(screen.getByTestId('icon-CornerUpRight')).toBeInTheDocument();
   });
 });

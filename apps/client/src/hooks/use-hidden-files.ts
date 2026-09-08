@@ -14,9 +14,9 @@ const readShowHidden = (): boolean => {
 };
 
 /**
- * Hidden-file visibility (Finder's ⌘⇧.). Shared with the settings page via
- * localStorage + the 'wisp-settings-changed' event so every pane — including
- * split panes — stays in sync with the ⇧⌘. toggle.
+ * Hidden-file visibility (Finder's ⌘⇧.). Shared by the title bar and every pane
+ * via localStorage + the 'wisp-settings-changed' event, so toolbar clicks and
+ * keyboard shortcuts stay in sync across split panes.
  */
 export const useHiddenFiles = () => {
   const [showHiddenFiles, setShowHiddenFiles] = useState<boolean>(readShowHidden);

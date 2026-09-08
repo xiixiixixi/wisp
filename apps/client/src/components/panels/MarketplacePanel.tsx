@@ -119,11 +119,12 @@ const ExtensionsContent = ({
   setSelectedExtension,
   setShowDetail,
 }: ExtensionsContentProps) => {
+  const { t: tUi } = useTranslation();
   if (isLoading) {
     return (
       <div className="flex h-32 flex-col items-center justify-center gap-2">
         <Loader2 className="h-6 w-6 animate-spin text-xp-blue" />
-        <span className="text-xs text-xp-text-muted">Loading extensions...</span>
+        <span className="text-xs text-xp-text-muted">{tUi('interface.loadingExtensions')}</span>
       </div>
     );
   }
@@ -132,13 +133,15 @@ const ExtensionsContent = ({
     return (
       <div className="flex h-32 flex-col items-center justify-center gap-2 px-4">
         <AlertCircle className="h-6 w-6 text-xp-red" />
-        <span className="text-center text-xs text-xp-text-muted">Failed to load extensions</span>
+        <span className="text-center text-xs text-xp-text-muted">
+          {tUi('interface.failedToLoadExtensions')}
+        </span>
         <span className="break-all text-center text-xs text-xp-red">{error}</span>
         <button
           onClick={() => loadExtensions(1)}
           className="mt-1 rounded-[2px] border border-xp-border bg-xp-surface px-3 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
         >
-          Retry
+          {tUi('panels.properties.retry')}
         </button>
       </div>
     );
@@ -148,7 +151,7 @@ const ExtensionsContent = ({
     return (
       <div className="flex h-32 flex-col items-center justify-center gap-2">
         <Inbox className="h-6 w-6 text-xp-text-muted" />
-        <span className="text-xs text-xp-text-muted">No extensions found</span>
+        <span className="text-xs text-xp-text-muted">{tUi('interface.noExtensionsFound')}</span>
         {(debouncedSearch || selectedCategory) && (
           <button
             onClick={() => {
@@ -157,7 +160,7 @@ const ExtensionsContent = ({
             }}
             className="text-xs text-xp-blue hover:underline"
           >
-            Clear filters
+            {tUi('interface.clearFilters')}
           </button>
         )}
       </div>
@@ -551,14 +554,14 @@ const MarketplacePanel = () => {
       <div className="flex items-center justify-between border-b border-xp-border px-3 py-2">
         <h3 className="flex items-center gap-2 text-sm font-semibold">
           <Package className="h-4 w-4 text-xp-blue" />
-          Extension Marketplace
+          {t('interface.extensionMarketplace')}
         </h3>
         <div className="flex items-center gap-1">
           <button
             onClick={handleInstallFromFile}
             disabled={!!installingId}
             className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-            title="Install from .xtension file"
+            title={t('interface.installFromXtensionFile')}
           >
             <FolderOpen className="h-3.5 w-3.5" />
           </button>
@@ -566,7 +569,7 @@ const MarketplacePanel = () => {
             onClick={() => loadExtensions(pagination.page)}
             disabled={isLoading}
             className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-            title="Refresh"
+            title={t('performanceDashboard.refresh')}
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
@@ -769,7 +772,7 @@ const MarketplacePanel = () => {
           onClick={() => TauriAPI.openUrl('https://xplorer.space/publish')}
           className="w-full text-center text-xs text-xp-blue transition-colors hover:text-xp-blue/80"
         >
-          Publish Your Extension
+          {t('interface.publishYourExtension')}
         </button>
       </div>
 

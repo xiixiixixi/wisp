@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * File action permission cards for the AI chat panel.
  * Extracted from chat-file-actions.tsx to stay under the 1000-line limit.
@@ -47,18 +48,36 @@ import { scanContentForSecrets, type ScanResult } from './chat-content-scanner';
 // ---------------------------------------------------------------------------
 
 const ACTION_LABELS: Record<FileActionType, string> = {
-  create_file: i18n.t('chat.createFile'),
-  edit_file: i18n.t('chat.editFile'),
-  delete_file: i18n.t('chat.deleteFile'),
+  get create_file() {
+    return i18n.t('chat.createFile');
+  },
+  get edit_file() {
+    return i18n.t('chat.editFile');
+  },
+  get delete_file() {
+    return i18n.t('chat.deleteFile');
+  },
   rename_file: 'Rename',
   move_file: 'Move',
   copy_file: 'Copy',
-  create_directory: i18n.t('chat.createDirectory'),
-  list_directory: i18n.t('chat.listDirectory'),
-  search_files: i18n.t('chat.searchFiles'),
-  open_file: i18n.t('chat.openFile'),
-  open_extension: i18n.t('chat.openExtension'),
-  run_command: i18n.t('chat.runCommand'),
+  get create_directory() {
+    return i18n.t('chat.createDirectory');
+  },
+  get list_directory() {
+    return i18n.t('chat.listDirectory');
+  },
+  get search_files() {
+    return i18n.t('chat.searchFiles');
+  },
+  get open_file() {
+    return i18n.t('chat.openFile');
+  },
+  get open_extension() {
+    return i18n.t('chat.openExtension');
+  },
+  get run_command() {
+    return i18n.t('chat.runCommand');
+  },
 };
 
 const ActionIcon = ({ action }: { action: FileActionType }) => {
@@ -141,6 +160,7 @@ export const FileActionCard = ({
   onAlwaysAllow,
   onUndo,
 }: FileActionCardProps) => {
+  const { t: tUi } = useTranslation();
   const { action, status } = pendingAction;
   const fileName = basename(action.path);
   const dirName = dirname(action.path);
@@ -276,7 +296,7 @@ export const FileActionCard = ({
             title={i18n.t('chat.undoAction')}
           >
             <Undo2 size={10} />
-            {undoing ? '...' : 'Undo'}
+            {undoing ? '...' : tUi('chat.undo')}
           </button>
         )}
         <ChevronDown size={12} style={{ flexShrink: 0, color: 'var(--xp-text-muted)' }} />
@@ -329,7 +349,7 @@ export const FileActionCard = ({
               marginLeft: 'auto',
             }}
           >
-            auto
+            {tUi('aiChat.actions.auto')}
           </span>
         )}
         {isCompleted && (
@@ -400,7 +420,7 @@ export const FileActionCard = ({
               style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--xp-text-muted)' }}
               title={dirname(action.destination!)}
             >
-              in {dirname(action.destination!)}
+              {tUi('agentManager.costTracker.tokensIn')} {dirname(action.destination!)}
             </span>
           </div>
         )}
@@ -442,7 +462,7 @@ export const FileActionCard = ({
             }}
           >
             <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />
-            Loading diff...
+            {tUi('aiChat.actions.loadingDiff')}
           </div>
         )}
 
@@ -452,7 +472,7 @@ export const FileActionCard = ({
             <div style={{ fontSize: '11px', color: 'var(--xp-text-muted)', marginBottom: '4px' }}>
               {action.action === 'edit_file' && existingContent === null
                 ? i18n.t('chat.newFileContent')
-                : 'Content:'}
+                : tUi('aiChat.actions.content')}
             </div>
             <pre
               style={{
@@ -503,7 +523,7 @@ export const FileActionCard = ({
               }}
             >
               <AlertTriangle size={13} />
-              This content may contain secrets
+              {tUi('aiChat.actions.secretsWarning')}
             </div>
             {secretScan.warnings.map((w) => (
               <div
@@ -533,7 +553,7 @@ export const FileActionCard = ({
               fontSize: '11px',
             }}
           >
-            This file will be moved to Trash (recoverable).
+            {tUi('aiChat.actions.deleteWarning')}
           </div>
         )}
 
@@ -590,11 +610,11 @@ export const FileActionCard = ({
                 fontSize: '12px',
               }}
             >
-              Reject
+              {tUi('aiChat.actions.reject')}
             </button>
             <button
               onClick={onAlwaysAllow}
-              aria-label="Always allow AI file operations"
+              aria-label={tUi('interface.alwaysAllowAiFileOperations')}
               style={{
                 padding: '5px 12px',
                 borderRadius: '4px',
@@ -605,7 +625,7 @@ export const FileActionCard = ({
                 fontSize: '12px',
               }}
             >
-              Always Allow
+              {tUi('aiChat.actions.alwaysAllow')}
             </button>
             <button
               onClick={onAllow}
@@ -621,7 +641,7 @@ export const FileActionCard = ({
                 fontWeight: 600,
               }}
             >
-              Allow
+              {tUi('aiChat.actions.allow')}
             </button>
           </>
         )}
@@ -636,10 +656,10 @@ export const FileActionCard = ({
               fontSize: '12px',
             }}
             role="status"
-            aria-label="Executing action"
+            aria-label={tUi('interface.executingAction')}
           >
             <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
-            Executing...
+            {tUi('aiChat.actions.executing')}
           </div>
         )}
 
@@ -665,7 +685,7 @@ export const FileActionCard = ({
                 }}
               >
                 <Undo2 size={12} />
-                Undone
+                {tUi('aiChat.actions.undone')}
               </span>
             ) : (
               <>
@@ -701,7 +721,7 @@ export const FileActionCard = ({
                       gap: '4px',
                       opacity: undoing ? 0.5 : 1,
                     }}
-                    title="Undo this action"
+                    title={tUi('aiChat.actions.undoAction')}
                   >
                     <Undo2 size={11} />
                     {undoing ? i18n.t('chat.undoing') : i18n.t('chat.undo')}
@@ -724,7 +744,7 @@ export const FileActionCard = ({
             role="status"
           >
             <XCircle size={14} />
-            Rejected by user
+            {tUi('aiChat.actions.rejectedByUser')}
           </div>
         )}
 
@@ -765,6 +785,7 @@ export const BatchActionCard = ({
   onRejectAll,
   onAlwaysAllow,
 }: BatchActionCardProps) => {
+  const { t: tUi } = useTranslation();
   const pendingMutating = actions.filter(
     (a) => a.status === 'pending' && !isReadOnlyAction(a.action.action),
   );
@@ -797,8 +818,7 @@ export const BatchActionCard = ({
         }}
       >
         <span style={{ fontWeight: 600, color: 'var(--xp-text)' }}>
-          AI wants to perform {pendingMutating.length} action
-          {pendingMutating.length !== 1 ? 's' : ''}
+          {tUi('messages.pendingActions', { count: pendingMutating.length })}
         </span>
       </div>
 
@@ -806,7 +826,7 @@ export const BatchActionCard = ({
       <div
         style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: '4px' }}
         role="list"
-        aria-label="Pending file actions"
+        aria-label={tUi('aiChat.actions.pendingActions')}
       >
         {pendingMutating.map((pa, i) => (
           <div
@@ -867,11 +887,11 @@ export const BatchActionCard = ({
             fontSize: '12px',
           }}
         >
-          Reject All
+          {tUi('aiChat.actions.rejectAll')}
         </button>
         <button
           onClick={onAlwaysAllow}
-          aria-label="Always allow AI file operations"
+          aria-label={tUi('interface.alwaysAllowAiFileOperations')}
           style={{
             padding: '5px 12px',
             borderRadius: '4px',
@@ -882,7 +902,7 @@ export const BatchActionCard = ({
             fontSize: '12px',
           }}
         >
-          Always Allow
+          {tUi('aiChat.actions.alwaysAllow')}
         </button>
         <button
           onClick={onAllowAll}
@@ -898,7 +918,7 @@ export const BatchActionCard = ({
             fontWeight: 600,
           }}
         >
-          Allow All
+          {tUi('aiChat.actions.allowAll')}
         </button>
       </div>
     </div>

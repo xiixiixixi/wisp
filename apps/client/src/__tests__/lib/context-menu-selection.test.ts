@@ -39,6 +39,14 @@ const findItem = (items: ContextMenuItem[], id: string): ContextMenuItem | undef
   items.flatMap((item) => item.submenu ?? []).find((item) => item.id === id);
 
 describe('context menu selection scope', () => {
+  it('does not offer retired file snapshots for files or folders', () => {
+    const factory = new ContextMenuFactory({} as ContextMenuAction);
+    for (const file of files) {
+      expect(
+        findItem(factory.getFileContextMenu(file, new Set()), 'version-history'),
+      ).toBeUndefined();
+    }
+  });
   it.each([
     ['copy-path', 'copyPath'],
     ['copy-name', 'copyName'],

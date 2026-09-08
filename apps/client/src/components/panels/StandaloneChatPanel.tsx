@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import { useState, useRef, useCallback, useEffect, useMemo, lazy, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
@@ -93,6 +94,7 @@ type ChatMessage = RuntimeChatMessage;
 // ---------------------------------------------------------------------------
 
 const StandaloneChatPanel = () => {
+  const { t: tUi } = useTranslation();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -809,7 +811,7 @@ const StandaloneChatPanel = () => {
       <div
         ref={scrollRef}
         role="log"
-        aria-label="Chat messages"
+        aria-label={tUi('interface.chatMessages')}
         aria-live="polite"
         style={{ flex: 1, overflowY: 'auto', padding: '8px' }}
         onScroll={useVirtualScroll ? handleMessagesScroll : undefined}
@@ -928,7 +930,7 @@ const StandaloneChatPanel = () => {
             <button
               onClick={stopAgent}
               title={i18n.t('chat.stopAgent')}
-              aria-label="Stop AI agent"
+              aria-label={tUi('interface.stopAiAgent')}
               style={{
                 marginLeft: 'auto',
                 background: 'none',
@@ -940,7 +942,7 @@ const StandaloneChatPanel = () => {
                 fontSize: '11px',
               }}
             >
-              Stop
+              {tUi('agentManager.workspace.stop')}
             </button>
           </div>
         )}
@@ -956,7 +958,7 @@ const StandaloneChatPanel = () => {
           >
             <button
               onClick={skipStreaming}
-              aria-label="Skip text animation and show all"
+              aria-label={tUi('interface.skipTextAnimationAndShowAll')}
               style={{
                 background: 'none',
                 border: '1px solid var(--xp-border)',
@@ -967,7 +969,7 @@ const StandaloneChatPanel = () => {
                 fontSize: '11px',
               }}
             >
-              Show all
+              {tUi('interface.showAll')}
             </button>
           </div>
         )}

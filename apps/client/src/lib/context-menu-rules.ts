@@ -62,7 +62,6 @@ const KNOWN_MENU_ITEMS: { id: string; label: string; i18nKey: string }[] = [
   { id: 'manage-tags', label: 'Tags...', i18nKey: 'contextMenu.tags' },
   { id: 'copy-path', label: 'Copy Path', i18nKey: 'contextMenu.copyPath' },
   { id: 'copy-name', label: 'Copy Name', i18nKey: 'contextMenu.copyName' },
-  { id: 'version-history', label: 'Version History', i18nKey: 'contextMenu.versionHistory' },
   { id: 'pin-to-sidebar', label: 'Pin to Sidebar', i18nKey: 'contextMenu.pinToSidebar' },
   { id: 'add-bookmark', label: 'Add to Bookmarks', i18nKey: 'contextMenu.addToBookmarks' },
   { id: 'properties', label: 'Properties', i18nKey: 'common.properties' },

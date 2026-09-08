@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import React, { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TauriAPI, type OrganizationAnalysis, type OrganizationPlan } from '@/lib/tauri-api';
@@ -395,7 +396,7 @@ const CategoriesSection = ({
                           marginTop: 4,
                         }}
                       >
-                        ...and {cat.file_count - 5} more
+                        {t('messages.moreItems', { count: cat.file_count - 5 })}
                       </div>
                     )}
                   </div>
@@ -435,8 +436,9 @@ const ProjectNotice = ({ projectType }: { projectType?: string }) => {
         </span>
       </div>
       <p style={{ fontSize: 11, color: 'var(--xp-text-secondary)', lineHeight: 1.5 }}>
-        This is a project directory. File organization is skipped to avoid breaking the project
-        structure.
+        {t(
+          'interface.thisIsAProjectDirectoryFileOrganizationIsSkippedToAvoidBreakingTheProjectStructure',
+        )}
       </p>
     </div>
   );
@@ -510,7 +512,7 @@ const SuggestionsSection = ({
                     opacity: selectedSuggestions.size === 0 ? 0.4 : 1,
                   }}
                 >
-                  Preview
+                  {t('bulkRename.preview')}
                 </button>
                 <button
                   onClick={() => {
@@ -562,7 +564,8 @@ const SuggestionsSection = ({
                         marginBottom: 4,
                       }}
                     >
-                      Will create: {preview.creates.map((p) => truncatePath(p)).join(', ')}
+                      {t('interface.willCreateLabel')}{' '}
+                      {preview.creates.map((p) => truncatePath(p)).join(', ')}
                     </div>
                   )}
                   <div style={{ maxHeight: 160, overflowY: 'auto' }}>
@@ -612,7 +615,7 @@ const SuggestionsSection = ({
                       }}
                       style={{ ...smallBtnStyle, flex: 1, textAlign: 'center' }}
                     >
-                      Cancel
+                      {t('conflict.cancel')}
                     </button>
                     <button
                       onClick={handleOrganize}
@@ -678,12 +681,12 @@ const DuplicatesSection = ({
               >
                 <div style={{ fontSize: 12 }}>
                   <span style={{ color: 'var(--xp-red)', fontWeight: 500 }}>
-                    {analysis.duplicate_summary.groups.length} group
-                    {analysis.duplicate_summary.groups.length !== 1 ? 's' : ''}
+                    {t('counts.groups', { count: analysis.duplicate_summary.groups.length })}
                   </span>
                   <span style={{ color: 'var(--xp-text-secondary)' }}> &middot; </span>
                   <span style={{ color: 'var(--xp-yellow)', fontWeight: 500 }}>
-                    {formatFileSize(analysis.duplicate_summary.total_wasted_space)} wasted
+                    {formatFileSize(analysis.duplicate_summary.total_wasted_space)}{' '}
+                    {t('panels.recommendations.wasted')}
                   </span>
                 </div>
               </div>
@@ -698,7 +701,10 @@ const DuplicatesSection = ({
                       marginBottom: 4,
                     }}
                   >
-                    {group.files.length} copies &middot; {formatFileSize(group.size)} each
+                    {t('messages.fileCopies', {
+                      count: group.files.length,
+                      size: formatFileSize(group.size),
+                    })}
                   </div>
                   <div style={{ maxHeight: 80, overflowY: 'auto' }}>
                     {group.files.map((file, j) => (
@@ -955,8 +961,8 @@ const InsightsSection = ({
                   </span>
                   <span style={{ fontSize: 11, color: 'var(--xp-text-secondary)', flexShrink: 0 }}>
                     {file.modified > 0
-                      ? new Date(file.modified * 1000).toLocaleDateString()
-                      : 'Unknown'}
+                      ? new Date(file.modified * 1000).toLocaleDateString(getAppLocale())
+                      : t('organizer.Unknown')}
                   </span>
                 </div>
               ))}

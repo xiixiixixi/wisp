@@ -58,9 +58,6 @@ export const DROPDOWN_BLUR_DELAY_MS = 200;
 /** Debounce delay for window resize events (ms) */
 export const RESIZE_DEBOUNCE_MS = 150;
 
-/** Delay before auto-starting onboarding tour (ms) */
-export const TOUR_START_DELAY_MS = 800;
-
 /** Clock update interval on home page (ms) */
 export const CLOCK_UPDATE_INTERVAL_MS = 1_000;
 

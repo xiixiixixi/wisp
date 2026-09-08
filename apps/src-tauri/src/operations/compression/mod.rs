@@ -10,7 +10,6 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 use tauri::{command, AppHandle, Emitter};
 
-use crate::audit_log::log_operation;
 use crate::operations::progress::generate_operation_id;
 use crate::operations::types::{FileOperationProgress, OperationStatus};
 use crate::operations::validate_file_path;
@@ -208,15 +207,6 @@ pub async fn compress_files(
         },
     );
 
-    let mut audit_paths = file_paths.clone();
-    audit_paths.push(output_path);
-    log_operation(
-        "compress",
-        audit_paths,
-        result.as_ref().err().cloned(),
-        result.is_ok(),
-    );
-
     result
 }
 
@@ -344,13 +334,6 @@ pub async fn extract_archive(
             copy_strategy: None,
             hardware_acceleration: false,
         },
-    );
-
-    log_operation(
-        "extract",
-        vec![archive_path, options.output_directory],
-        result.as_ref().err().cloned(),
-        result.is_ok(),
     );
 
     result

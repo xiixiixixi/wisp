@@ -1,4 +1,3 @@
-use crate::audit_log::log_operation;
 use crate::operations::progress::{generate_operation_id, ProgressManager};
 use crate::operations::undo_redo::{record_operation, FileOperation};
 use crate::operations::validate_file_path;
@@ -66,15 +65,6 @@ pub async fn copy_with_progress(
                     if dst.exists() {
                         let _ = fs::remove_dir_all(dst);
                     }
-                    log_operation(
-                        "copy",
-                        vec![
-                            src.to_string_lossy().to_string(),
-                            dst.to_string_lossy().to_string(),
-                        ],
-                        Some("Cancelled by user".to_string()),
-                        false,
-                    );
                     progress_manager.cancel_operation(&operation_id_clone);
                 } else {
                     let s = src.to_string_lossy().to_string();
@@ -83,7 +73,6 @@ pub async fn copy_with_progress(
                         src: s.clone(),
                         dest: d.clone(),
                     });
-                    log_operation("copy", vec![s, d], None, true);
                     progress_manager.complete_operation(&operation_id_clone);
                 }
             }
@@ -99,15 +88,6 @@ pub async fn copy_with_progress(
                     }
                     progress_manager.cancel_operation(&operation_id_clone);
                 } else {
-                    log_operation(
-                        "copy",
-                        vec![
-                            src.to_string_lossy().to_string(),
-                            dst.to_string_lossy().to_string(),
-                        ],
-                        Some(e.clone()),
-                        false,
-                    );
                     progress_manager.fail_operation(&operation_id_clone, e);
                 }
             }
@@ -165,15 +145,6 @@ pub async fn move_with_progress(
                             let _ = fs::remove_file(dst);
                         }
                     }
-                    log_operation(
-                        "move",
-                        vec![
-                            src.to_string_lossy().to_string(),
-                            dst.to_string_lossy().to_string(),
-                        ],
-                        Some("Cancelled by user".to_string()),
-                        false,
-                    );
                     progress_manager.cancel_operation(&operation_id_clone);
                 } else {
                     let s = src.to_string_lossy().to_string();
@@ -182,7 +153,6 @@ pub async fn move_with_progress(
                         src: s.clone(),
                         dest: d.clone(),
                     });
-                    log_operation("move", vec![s, d], None, true);
                     progress_manager.complete_operation(&operation_id_clone);
                 }
             }
@@ -197,15 +167,6 @@ pub async fn move_with_progress(
                     }
                     progress_manager.cancel_operation(&operation_id_clone);
                 } else {
-                    log_operation(
-                        "move",
-                        vec![
-                            src.to_string_lossy().to_string(),
-                            dst.to_string_lossy().to_string(),
-                        ],
-                        Some(e.clone()),
-                        false,
-                    );
                     progress_manager.fail_operation(&operation_id_clone, e);
                 }
             }
@@ -252,8 +213,13 @@ pub async fn same_volume(a: String, b: String) -> Result<bool, String> {
 /// Remove an existing path (file or directory) so a transfer can replace it.
 fn remove_existing(path: &Path) -> Result<(), String> {
     if path.is_dir() {
-        fs::remove_dir_all(path)
-            .map_err(|e| format!("Failed to remove existing directory {}: {}", path.display(), e))
+        fs::remove_dir_all(path).map_err(|e| {
+            format!(
+                "Failed to remove existing directory {}: {}",
+                path.display(),
+                e
+            )
+        })
     } else {
         fs::remove_file(path)
             .map_err(|e| format!("Failed to remove existing file {}: {}", path.display(), e))
@@ -550,7 +516,6 @@ pub async fn copy(source: String, destination: String) -> Result<(), String> {
             src: source.clone(),
             dest: destination.clone(),
         });
-        log_operation("copy", vec![source, destination], None, true);
 
         Ok(())
     })
@@ -650,7 +615,6 @@ pub async fn move_file(source: String, destination: String) -> Result<(), String
             src: source.clone(),
             dest: destination.clone(),
         });
-        log_operation("move", vec![source, destination], None, true);
 
         Ok(())
     })
@@ -681,7 +645,6 @@ pub async fn rename(old_path: String, new_path: String) -> Result<(), String> {
             old_path: old_path.clone(),
             new_path: new_path.clone(),
         });
-        log_operation("rename", vec![old_path, new_path], None, true);
 
         Ok(())
     })

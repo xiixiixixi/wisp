@@ -208,7 +208,7 @@ export const SelectBySizeDialog = ({
                   onChange={(e) => setMinUnit(e.target.value as SizeUnit)}
                   className="rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 text-sm"
                 >
-                  <option value="B">B</option>
+                  <option value="B">{t('panels.duplicateFinder.bytesUnit')}</option>
                   <option value="KB">KB</option>
                   <option value="MB">MB</option>
                   <option value="GB">GB</option>
@@ -239,7 +239,7 @@ export const SelectBySizeDialog = ({
                   disabled={includeUnlimited}
                   className="rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 text-sm disabled:opacity-50"
                 >
-                  <option value="B">B</option>
+                  <option value="B">{t('panels.duplicateFinder.bytesUnit')}</option>
                   <option value="KB">KB</option>
                   <option value="MB">MB</option>
                   <option value="GB">GB</option>

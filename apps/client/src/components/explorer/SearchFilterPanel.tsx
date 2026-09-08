@@ -548,7 +548,7 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
                 value={filters.customDateAfter || ''}
                 onChange={(e) => onChange({ ...filters, customDateAfter: e.target.value })}
                 className="flex-1 rounded-[2px] border border-xp-border bg-xp-bg px-2 py-1 text-xs focus:outline-none"
-                placeholder="From"
+                placeholder={t('advancedSelection.dialog.from')}
               />
               <span className="text-xs text-xp-text-muted">{t('explorer.searchFilter.to')}</span>
               <input
@@ -556,7 +556,7 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
                 value={filters.customDateBefore || ''}
                 onChange={(e) => onChange({ ...filters, customDateBefore: e.target.value })}
                 className="flex-1 rounded-[2px] border border-xp-border bg-xp-bg px-2 py-1 text-xs focus:outline-none"
-                placeholder="To"
+                placeholder={t('chat.to')}
               />
             </div>
           )}
@@ -597,7 +597,7 @@ const SearchFilterPanel = ({ filters, onChange, onClose }: SearchFilterPanelProp
             type="text"
             value={filters.extensions}
             onChange={(e) => setExtensions(e.target.value)}
-            placeholder="e.g. .ts, .tsx, .json"
+            placeholder={t('messages.extensionExample')}
             className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-2 py-1.5 text-xs placeholder-xp-text-muted focus:outline-none"
           />
           {filters.extensions.trim() && (

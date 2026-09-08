@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { FileChangeSet, FileChange } from '@/hooks/use-focus-change-tracker';
@@ -12,10 +13,10 @@ interface ChangeReviewPanelProps {
 const formatTimestamp = (ts: number): string => {
   if (!ts) return '';
   const d = new Date(ts * 1000);
-  return `${d.toLocaleTimeString(undefined, {
+  return `${d.toLocaleTimeString(getAppLocale(), {
     hour: '2-digit',
     minute: '2-digit',
-  })} ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+  })} ${d.toLocaleDateString(getAppLocale(), { month: 'short', day: 'numeric' })}`;
 };
 
 const sectionHeaderStyle = (color: string): React.CSSProperties => ({

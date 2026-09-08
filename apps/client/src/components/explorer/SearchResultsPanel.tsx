@@ -310,11 +310,11 @@ const SearchResultsPanel = React.forwardRef<SearchResultsPanelHandle, SearchResu
                 <span>{t('search.aiThinking')}</span>
               </>
             ) : noResults ? (
-              <span>No results for &apos;{query}&apos;</span>
+              <span>{t('messages.noResultsFor', { query })}</span>
             ) : aiResults.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 <span>
-                  {aiResults.length} result{aiResults.length !== 1 ? 's' : ''}
+                  {t('counts.searchResults', { count: aiResults.length })}
                   {aiProvider && aiProvider !== 'fallback' && aiProvider !== 'cancelled' && (
                     <span
                       style={{
@@ -514,7 +514,9 @@ const SearchResultsPanel = React.forwardRef<SearchResultsPanelHandle, SearchResu
                         }}
                         className="hover:bg-xp-surface-light"
                       >
-                        Show more... ({localTotalResultCount - localResultCount} remaining)
+                        {t('messages.showMoreResults', {
+                          count: localTotalResultCount - localResultCount,
+                        })}
                       </button>
                     </div>
                   );
@@ -1066,6 +1068,7 @@ const ContentSearchResults = ({
   query: string;
   onFileSelect: (filePath: string) => void;
 }) => {
+  const { t: tUi } = useTranslation();
   // Group results by file
   const grouped = useMemo(() => {
     const groups = new Map<string, GrepSearchMatch[]>();
@@ -1122,7 +1125,7 @@ const ContentSearchResults = ({
           background: 'rgb(var(--xp-blue-rgb) / 0.05)',
         }}
       >
-        Content matches ({results.length})
+        {tUi('messages.contentMatches', { count: results.length })}
       </div>
       {grouped.map(([filePath, matches]) => (
         <div key={filePath}>

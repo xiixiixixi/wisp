@@ -319,7 +319,7 @@ describe('FileComparisonDialog', () => {
     await waitFor(() => {
       expect(screen.getByText('Files differ')).toBeInTheDocument();
       expect(screen.getByText('85.0% similar')).toBeInTheDocument();
-      expect(screen.getByText('text comparison')).toBeInTheDocument();
+      expect(screen.getByText('Text comparison')).toBeInTheDocument();
     });
   });
 

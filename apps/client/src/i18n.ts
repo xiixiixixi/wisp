@@ -4,10 +4,8 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 import en from './locales/en.json';
 import zh from './locales/zh.json';
-import ja from './locales/ja.json';
-import id from './locales/id.json';
 import { STORAGE_KEYS } from './lib/storage-keys';
-import { DEFAULT_LANGUAGE, normalizeLanguage } from './lib/language-settings';
+import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES, normalizeLanguage } from './lib/language-settings';
 
 const SETTINGS_KEY = STORAGE_KEYS.SETTINGS;
 
@@ -40,6 +38,11 @@ const wispSettingsDetector = {
 const languageDetector = new LanguageDetector();
 languageDetector.addDetector(wispSettingsDetector);
 
+const syncDocumentLanguage = (language: string) => {
+  document.documentElement.lang = normalizeLanguage(language);
+};
+i18n.on('languageChanged', syncDocumentLanguage);
+
 i18n
   .use(languageDetector)
   .use(initReactI18next)
@@ -47,10 +50,10 @@ i18n
     resources: {
       en: { translation: en },
       zh: { translation: zh },
-      ja: { translation: ja },
-      id: { translation: id },
     },
     fallbackLng: DEFAULT_LANGUAGE,
+    supportedLngs: [...SUPPORTED_LANGUAGES],
+    load: 'languageOnly',
     detection: {
       order: ['wispSettings', 'navigator'],
       caches: ['wispSettings'],
@@ -59,5 +62,7 @@ i18n
       escapeValue: false,
     },
   });
+
+syncDocumentLanguage(i18n.resolvedLanguage || DEFAULT_LANGUAGE);
 
 export default i18n;

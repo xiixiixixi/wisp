@@ -385,7 +385,6 @@ const MainLayout = (props: MainLayoutProps) => {
   const topBarRightActions = React.useMemo(
     () => (
       <VerticalExtensionsBar
-        data-tour="extensions-bar"
         orientation="horizontal"
         rightPanelTab={rightPanelTab}
         setRightPanelTab={setRightPanelTab}
@@ -414,7 +413,6 @@ const MainLayout = (props: MainLayoutProps) => {
         >
           {/* Top Bar */}
           <TopBar
-            data-tour="top-bar"
             ref={topBarRef}
             leftSidebarCollapsed={leftSidebarCollapsed}
             setLeftSidebarCollapsed={setLeftSidebarCollapsed}
@@ -438,7 +436,6 @@ const MainLayout = (props: MainLayoutProps) => {
               <>
                 <LeftSidebar
                   ref={leftSidebarRef}
-                  data-tour="sidebar"
                   width={leftSidebarWidth}
                   currentPath={currentPath}
                   navigateToPath={navigateToPath}
@@ -456,7 +453,6 @@ const MainLayout = (props: MainLayoutProps) => {
             <div
               className="wisp-content-canvas flex flex-1 flex-col overflow-hidden"
               style={{ minHeight: 0, position: 'relative' }}
-              data-tour="file-grid"
             >
               <ErrorBoundary>
                 <ExplorerProvider value={explorerContextValue}>

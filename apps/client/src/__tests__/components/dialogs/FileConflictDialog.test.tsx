@@ -92,7 +92,7 @@ describe('FileConflictDialog', () => {
     it('shows Keep Both button', () => {
       render(<FileConflictDialog {...defaultProps} />);
       expect(screen.getByText('Keep Both')).toBeInTheDocument();
-      expect(screen.getByText(/Save with a renamed copy/)).toBeInTheDocument();
+      expect(screen.getByText(/Save a renamed copy/)).toBeInTheDocument();
     });
 
     it('shows Skip button', () => {
@@ -147,12 +147,12 @@ describe('FileConflictDialog', () => {
 
     it('shows remaining count', () => {
       render(<FileConflictDialog {...defaultProps} remaining={5} />);
-      expect(screen.getByText(/5 more conflicts remaining/)).toBeInTheDocument();
+      expect(screen.getByText('Remaining conflicts: 5')).toBeInTheDocument();
     });
 
     it('shows singular remaining text for 1 conflict', () => {
       render(<FileConflictDialog {...defaultProps} remaining={1} />);
-      expect(screen.getByText(/1 more conflict remaining/)).toBeInTheDocument();
+      expect(screen.getByText('Remaining conflicts: 1')).toBeInTheDocument();
     });
 
     it('calls onResolve with applyToAll=true when Replace All clicked', () => {

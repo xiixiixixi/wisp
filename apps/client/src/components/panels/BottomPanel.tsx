@@ -166,7 +166,7 @@ const BottomPanel = ({
       <div
         className="wisp-bottom-tabbar wisp-no-select flex items-center border-b border-xp-border"
         role="tablist"
-        aria-label="Bottom panel tabs"
+        aria-label={t('interface.bottomPanelTabs')}
       >
         {/* Core tabs */}
         {CORE_TABS.map((tab) => (
@@ -270,7 +270,7 @@ const BottomPanel = ({
             bottomPanelTab === 'events' ? '' : 'ml-auto'
           }`}
           title={`Close (${formatKeyComboForDisplay('ctrl+j')})`}
-          aria-label="Close bottom panel"
+          aria-label={t('interface.closeBottomPanel')}
         >
           <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
             <path
@@ -311,7 +311,7 @@ const BottomPanel = ({
             <React.Suspense
               fallback={
                 <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
-                  Loading...
+                  {t('panels.notes.loading')}
                 </div>
               }
             >
@@ -337,7 +337,7 @@ const BottomPanel = ({
               <React.Suspense
                 fallback={
                   <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
-                    Loading...
+                    {t('panels.notes.loading')}
                   </div>
                 }
               >

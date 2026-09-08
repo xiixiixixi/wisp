@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * AI-powered action buttons for the code preview panel.
  *
@@ -237,6 +238,7 @@ const searchReferences = async (
 // ---------------------------------------------------------------------------
 
 const CodeAIActions: React.FC<CodeAIActionsProps> = ({ filePath, language, content, fileName }) => {
+  const { t: tUi } = useTranslation();
   const [loading, setLoading] = useState<string | null>(null);
   const [references, setReferences] = useState<ReferenceResult[] | null>(null);
   const [showReferences, setShowReferences] = useState(false);
@@ -340,30 +342,30 @@ const CodeAIActions: React.FC<CodeAIActionsProps> = ({ filePath, language, conte
           onClick={handleExplain}
           disabled={loading !== null}
           className="inline-flex items-center gap-1 rounded-[2px] border border-transparent border-xp-border px-2 py-1 text-[11px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-50"
-          title="Send this code to AI Chat for explanation"
+          title={tUi('interface.sendThisCodeToAiChatForExplanation')}
         >
           <ExplainIcon />
-          Explain
+          {tUi('interface.explain')}
         </button>
 
         <button
           onClick={handleFindReferences}
           disabled={loading !== null}
           className="inline-flex items-center gap-1 rounded-[2px] border border-transparent border-xp-border px-2 py-1 text-[11px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-50"
-          title="Search the workspace for references to functions/classes in this file"
+          title={tUi('interface.searchTheWorkspaceForReferencesToFunctionsClassesInThisFile')}
         >
           {loading === 'references' ? <SpinnerIcon /> : <SearchIcon />}
-          Find References
+          {tUi('interface.findReferences')}
         </button>
 
         <button
           onClick={handleSuggestImprovements}
           disabled={loading !== null}
           className="inline-flex items-center gap-1 rounded-[2px] border border-transparent border-xp-border px-2 py-1 text-[11px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-50"
-          title="Ask AI to review this code and suggest improvements"
+          title={tUi('interface.askAiToReviewThisCodeAndSuggestImprovements')}
         >
           <ImprovementIcon />
-          Suggest Improvements
+          {tUi('interface.suggestImprovements')}
         </button>
 
         {feedbackText && (
@@ -376,21 +378,21 @@ const CodeAIActions: React.FC<CodeAIActionsProps> = ({ filePath, language, conte
         <div className="border-t border-xp-border px-2 py-1.5">
           <div className="mb-1 flex items-center justify-between">
             <span className="text-[10px] font-medium text-xp-text-muted">
-              {references.length} reference{references.length !== 1 ? 's' : ''} found
+              {tUi('counts.referencesFound', { count: references.length })}
             </span>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSendReferencesToChat}
                 className="text-[10px] text-xp-blue hover:underline"
-                title="Send references to AI Chat for analysis"
+                title={tUi('interface.sendReferencesToAiChatForAnalysis')}
               >
-                Analyze in Chat
+                {tUi('interface.analyzeInChat')}
               </button>
               <button
                 onClick={() => setShowReferences(false)}
                 className="text-[10px] text-xp-text-muted hover:underline"
               >
-                Close
+                {tUi('agentManager.workspace.close')}
               </button>
             </div>
           </div>

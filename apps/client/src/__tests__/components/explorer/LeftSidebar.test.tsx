@@ -400,11 +400,11 @@ describe('LeftSidebar', () => {
       expect(sidebar.style.width).toBe('300px');
     });
 
-    it('forwards data-tour attribute', () => {
-      const { container } = render(<LeftSidebar {...mockProps} data-tour="sidebar-tour" />);
+    it('does not retain onboarding markers', () => {
+      const { container } = render(<LeftSidebar {...mockProps} />);
 
       const sidebar = container.firstChild as HTMLElement;
-      expect(sidebar.getAttribute('data-tour')).toBe('sidebar-tour');
+      expect(sidebar).not.toHaveAttribute('data-tour');
     });
 
     it('prevents navigation labels from being selected during drag gestures', () => {

@@ -14,7 +14,6 @@ import {
   getFolderName,
 } from '@/lib/path-bookmarks';
 import { extensionHost } from '@/lib/extension-host';
-import { startTour, isTourCompleted } from '@/hooks/use-tour';
 import { useShortcuts } from '@/hooks/use-shortcuts';
 import { useVimMode, isVimModeEnabled, type VimModeActions } from '@/hooks/use-vim-mode';
 import {
@@ -539,18 +538,6 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
       }),
     );
   }, [currentPath]);
-
-  // Auto-start onboarding tour only on truly first launch (never seen the app before)
-  useEffect(() => {
-    // If any setting exists in localStorage, user has used the app before — skip tour
-    const hasUsedApp =
-      localStorage.getItem('wisp:settings') !== null ||
-      localStorage.getItem('wisp:tour-completed') === 'true';
-    if (!hasUsedApp && !isTourCompleted()) {
-      const timer = setTimeout(() => startTour(), 800);
-      return () => clearTimeout(timer);
-    }
-  }, []);
 
   // ── Sync selectedFiles to extension state ─────────────────────────────────
   useEffect(() => {

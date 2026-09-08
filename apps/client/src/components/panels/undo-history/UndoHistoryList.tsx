@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useCallback } from 'react';
 import {
   operationIcon,
@@ -33,47 +34,50 @@ ChevronIcon.displayName = 'ChevronIcon';
 
 // ── Undo Position Marker ────────────────────────────────────────────────────
 
-const UndoPositionMarker = React.forwardRef<HTMLDivElement>((_props, ref) => (
-  <div
-    ref={ref}
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '6px',
-      padding: '2px 10px',
-      backgroundColor: 'var(--xp-selection-bg)',
-    }}
-  >
+const UndoPositionMarker = React.forwardRef<HTMLDivElement>((_props, ref) => {
+  const { t: tUi } = useTranslation();
+  return (
     <div
+      ref={ref}
       style={{
-        flex: 1,
-        height: '2px',
-        background: 'var(--xp-border)',
-        borderRadius: '1px',
-      }}
-    />
-    <span
-      style={{
-        fontSize: '9px',
-        fontWeight: 600,
-        color: 'var(--xp-blue)',
-        textTransform: 'uppercase',
-        letterSpacing: '0.5px',
-        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '2px 10px',
+        backgroundColor: 'var(--xp-selection-bg)',
       }}
     >
-      Current Position
-    </span>
-    <div
-      style={{
-        flex: 1,
-        height: '2px',
-        background: 'var(--xp-border)',
-        borderRadius: '1px',
-      }}
-    />
-  </div>
-));
+      <div
+        style={{
+          flex: 1,
+          height: '2px',
+          background: 'var(--xp-border)',
+          borderRadius: '1px',
+        }}
+      />
+      <span
+        style={{
+          fontSize: '9px',
+          fontWeight: 600,
+          color: 'var(--xp-blue)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
+          flexShrink: 0,
+        }}
+      >
+        {tUi('interface.currentPosition')}
+      </span>
+      <div
+        style={{
+          flex: 1,
+          height: '2px',
+          background: 'var(--xp-border)',
+          borderRadius: '1px',
+        }}
+      />
+    </div>
+  );
+});
 UndoPositionMarker.displayName = 'UndoPositionMarker';
 
 // ── Props ───────────────────────────────────────────────────────────────────
@@ -99,6 +103,7 @@ const UndoHistoryList = ({
   onContextMenu,
   onToggleGroup,
 }: UndoHistoryListProps) => {
+  const { t: tUi } = useTranslation();
   const renderEntry = useCallback(
     (entry: UndoHistoryEntry, inGroup: boolean) => {
       const isCurrentDivider = entry.index === undoCount - 1;
@@ -171,12 +176,12 @@ const UndoHistoryList = ({
               fontWeight: 500,
             }}
           >
-            {entry.undoable ? 'undo' : 'redo'}
+            {entry.undoable ? tUi('dialogs.batchMetadata.undo') : tUi('interface.redo')}
           </span>
         </div>
       );
     },
-    [undoCount, onContextMenu],
+    [undoCount, onContextMenu, tUi],
   );
 
   const renderGroupHeader = useCallback(
@@ -331,7 +336,7 @@ const UndoHistoryList = ({
             <circle cx="12" cy="12" r="10" />
             <path d="M12 6v6l4 2" />
           </svg>
-          No operations in history
+          {tUi('interface.noOperationsInHistory')}
         </div>
       ) : (
         renderItemsWithMarker()

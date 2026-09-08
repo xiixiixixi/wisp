@@ -252,7 +252,7 @@ const DiffReviewWorkflow = ({
           </div>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('agentManager.workspace.close')}
             style={{
               background: 'none',
               border: 'none',

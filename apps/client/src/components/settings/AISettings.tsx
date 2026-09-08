@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -243,7 +244,10 @@ const AISettings = ({
               description={t('settings.ai.serviceModeDesc')}
             >
               <Select value="custom" onValueChange={(v) => updateSetting('aiServiceMode', v)}>
-                <SelectTrigger className="h-9 min-w-[180px]" aria-label="AI Service Mode">
+                <SelectTrigger
+                  className="h-9 min-w-[180px]"
+                  aria-label={t('interface.aiServiceMode')}
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -265,7 +269,10 @@ const AISettings = ({
                     value={settings.aiCustomProvider || 'ollama'}
                     onValueChange={(v) => updateSetting('aiCustomProvider', v)}
                   >
-                    <SelectTrigger className="h-9 min-w-[160px]" aria-label="Custom AI Provider">
+                    <SelectTrigger
+                      className="h-9 min-w-[160px]"
+                      aria-label={t('interface.customAiProvider')}
+                    >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -329,7 +336,7 @@ const AISettings = ({
                         >
                           <SelectTrigger
                             className="h-9 w-full"
-                            aria-label="Custom endpoint protocol"
+                            aria-label={t('interface.customEndpointProtocol')}
                           >
                             <SelectValue />
                           </SelectTrigger>
@@ -495,7 +502,7 @@ const AISettings = ({
                 value={agentSettings.model}
                 onValueChange={(v) => updateAgentSetting('model', v)}
               >
-                <SelectTrigger className="h-9 min-w-[180px]" aria-label="AI Model">
+                <SelectTrigger className="h-9 min-w-[180px]" aria-label={t('interface.aiModel')}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -545,7 +552,9 @@ const AISettings = ({
                   <SelectSeparator />
                   <SelectGroup>
                     <SelectLabel>{t('settings.ai.modelGroupLocalOllama')}</SelectLabel>
-                    <SelectItem value="ollama:custom">Custom Ollama Model</SelectItem>
+                    <SelectItem value="ollama:custom">
+                      {t('interface.customOllamaModel')}
+                    </SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -596,7 +605,10 @@ const AISettings = ({
                 value={settings.aiSearchProvider || 'auto'}
                 onValueChange={(v) => updateSetting('aiSearchProvider', v)}
               >
-                <SelectTrigger className="h-9 min-w-[160px]" aria-label="AI Search Provider">
+                <SelectTrigger
+                  className="h-9 min-w-[160px]"
+                  aria-label={t('interface.aiSearchProvider')}
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -755,7 +767,7 @@ const AISettings = ({
                     </div>
                   </div>
                   <span className="text-sm font-medium tabular-nums text-xp-accent">
-                    {agentSettings.thinking_budget.toLocaleString()}
+                    {agentSettings.thinking_budget.toLocaleString(getAppLocale())}
                   </span>
                 </div>
                 <div className="ml-[30px] mt-2">

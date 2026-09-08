@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Context menu for chat messages.
  * Provides Pin/Unpin and Copy actions.
@@ -57,6 +58,7 @@ const ChatMessageContextMenu = ({
   onCopy,
   onClose,
 }: ChatMessageContextMenuProps) => {
+  const { t: tUi } = useTranslation();
   // Close on click/keydown outside
   useEffect(() => {
     const handleClick = () => onClose();
@@ -84,7 +86,7 @@ const ChatMessageContextMenu = ({
   return (
     <div
       role="menu"
-      aria-label="Message actions"
+      aria-label={tUi('interface.messageActions')}
       style={{
         position: 'fixed',
         top: y,
@@ -117,7 +119,7 @@ const ChatMessageContextMenu = ({
         onMouseLeave={handleMouseLeave}
       >
         <span style={{ fontSize: '14px' }}>{'\u{1F4CB}'}</span>
-        Copy message
+        {tUi('interface.copyMessage')}
       </button>
     </div>
   );

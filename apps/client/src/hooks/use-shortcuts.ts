@@ -4,6 +4,7 @@ import { listenToEvent } from '@/lib/transport';
 import { getKeyString } from '@/lib/shortcut-utils';
 import { isBrowserDemoMode } from '@/lib/browser-demo-files';
 import { DEMO_DEFAULT_SHORTCUTS } from '@/hooks/demo-default-shortcuts';
+import { hasSelectedText, isTextEditingTarget } from '@/lib/text-editing';
 
 export interface ShortcutHandlers {
   // File operations
@@ -330,10 +331,11 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
     // keys it consumes, which would hide terminal-panel ⌘J/⌘K/⌘1-4 from a
     // bubble-phase document listener. Capture runs before it.
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.isComposing) return;
       // Ignore if typing in input fields
-      const target = event.target as HTMLElement;
-      const inEditable =
-        target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const inEditable = isTextEditingTarget(target);
       // Ignore if a modal dialog or command palette is open
       if (target.closest('[role="dialog"]') || document.querySelector('[data-command-palette]')) {
         return;
@@ -366,6 +368,9 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
       // Synchronous lookup — no IPC roundtrip
       const action = resolveAction(keyString, context);
       if (action) {
+        // A selection in a preview/help panel belongs to the user, even if
+        // files remain selected in the explorer behind it.
+        if (action === 'Copy' && hasSelectedText()) return;
         if (inEditable && isTerminalOwnedAction(action)) return;
         event.preventDefault();
         event.stopPropagation();
@@ -375,6 +380,8 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
 
     // Listen for global shortcuts from the backend
     const unlistenGlobal = listenToEvent<ShortcutAction>('global_shortcut_triggered', (action) => {
+      if (isTerminalOwnedAction(action) && isTextEditingTarget(document.activeElement)) return;
+      if (action === 'Copy' && hasSelectedText()) return;
       executeAction(action);
     });
 

@@ -930,18 +930,6 @@ class ExtensionHost {
 
     // Emit event for UI to show toast notifications
     this.eventBus.emit('extensionUpdatesAvailable', updates);
-
-    // Check if auto-update is enabled
-    const autoUpdateRaw = localStorage.getItem(STORAGE_KEYS.AUTO_UPDATE_EXTENSIONS);
-    // Default to true if not explicitly set
-    const autoUpdateEnabled = autoUpdateRaw === null || autoUpdateRaw === 'true';
-
-    if (autoUpdateEnabled) {
-      // Auto-update all extensions
-      for (const update of updates) {
-        await this.applyExtensionUpdate(update.id);
-      }
-    }
   }
 
   /** Apply a pending update for a specific extension. */

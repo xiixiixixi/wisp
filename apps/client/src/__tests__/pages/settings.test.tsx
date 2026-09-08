@@ -22,7 +22,7 @@ vi.mock('@/lib/transport', () => ({
 type MockProps = Record<string, unknown> & { children?: React.ReactNode };
 type MockRef = React.Ref<HTMLElement>;
 
-// Mock the radix-ui select so we can test theme/font-size interactions
+// Mock the radix-ui select for language and file-view controls.
 vi.mock('@radix-ui/react-select', async () => {
   const React = await import('react');
   return {
@@ -123,12 +123,6 @@ vi.mock('@/hooks/use-vim-mode', () => ({
   setVimLearningModeSetting: vi.fn(),
 }));
 
-// Mock tour hooks
-vi.mock('@/hooks/use-tour', () => ({
-  startTour: vi.fn(),
-  resetTourCompleted: vi.fn(),
-}));
-
 // Mock heavy sub-components that are not the focus of this test
 vi.mock('@/components/TokenizerSettings', () => ({
   default: () => <div data-testid="tokenizer-settings">Tokenizer Settings</div>,
@@ -136,18 +130,6 @@ vi.mock('@/components/TokenizerSettings', () => ({
 
 vi.mock('@/components/KeyboardShortcutsSettings', () => ({
   default: () => <div data-testid="keyboard-shortcuts-settings">Keyboard Shortcuts Settings</div>,
-}));
-
-vi.mock('@/components/settings/BackupRestoreSettings', () => ({
-  default: () => <div data-testid="backup-restore-settings">Backup Restore Settings</div>,
-}));
-
-vi.mock('@/components/settings/AuditLogSettings', () => ({
-  default: () => <div data-testid="audit-log-settings">Audit Log Settings</div>,
-}));
-
-vi.mock('@/components/settings/VersioningSettings', () => ({
-  default: () => <div data-testid="versioning-settings">Versioning Settings</div>,
 }));
 
 vi.mock('@/components/settings/ContextMenuRulesCard', () => ({
@@ -235,16 +217,18 @@ describe('Settings Page', () => {
       await waitFor(() => {
         expect(navSection.getByText('General')).toBeInTheDocument();
         expect(navSection.getByText('File Explorer')).toBeInTheDocument();
-        expect(navSection.getByText('Context Menu')).toBeInTheDocument();
+        expect(navSection.queryByText('Context Menu')).not.toBeInTheDocument();
         expect(navSection.queryByText('AI Agent')).not.toBeInTheDocument();
         expect(navSection.queryByText('Permissions')).not.toBeInTheDocument();
         expect(navSection.getByText('Indexing')).toBeInTheDocument();
         expect(navSection.getByText('Shortcuts')).toBeInTheDocument();
-        expect(navSection.getByText('Marketplace')).toBeInTheDocument();
-        expect(navSection.getByText('Accessibility')).toBeInTheDocument();
-        expect(navSection.getByText('Backup & Restore')).toBeInTheDocument();
-        expect(navSection.getByText('Audit Log')).toBeInTheDocument();
-        expect(navSection.getByText('Versioning')).toBeInTheDocument();
+        expect(navSection.queryByText('Marketplace')).not.toBeInTheDocument();
+        expect(navSection.queryByText('Accessibility')).not.toBeInTheDocument();
+        expect(navSection.getAllByRole('button')).toHaveLength(5);
+        expect(navSection.queryByText('Backup & Restore')).not.toBeInTheDocument();
+        expect(navSection.queryByText('Audit Log')).not.toBeInTheDocument();
+        expect(navSection.queryByText('Versioning')).not.toBeInTheDocument();
+        expect(navSection.getByText('About')).toBeInTheDocument();
       });
     });
 
@@ -255,8 +239,8 @@ describe('Settings Page', () => {
       const navSection = within(nav);
 
       await waitFor(() => {
-        expect(navSection.getByText('Appearance, layout & system')).toBeInTheDocument();
-        expect(navSection.getByText('Views & file display')).toBeInTheDocument();
+        expect(navSection.getByText('Language & app preferences')).toBeInTheDocument();
+        expect(navSection.getByText('Display & file actions')).toBeInTheDocument();
         expect(navSection.queryByText('AI provider settings')).not.toBeInTheDocument();
       });
     });
@@ -289,26 +273,15 @@ describe('Settings Page', () => {
 
       await waitFor(() => {
         expect(mainSection.getByText('Default View')).toBeInTheDocument();
-        expect(mainSection.getByText('Show Hidden Files')).toBeInTheDocument();
+        expect(mainSection.queryByText('Show Hidden Files')).not.toBeInTheDocument();
       });
     });
 
-    it('switches to Accessibility tab when clicked', async () => {
+    it('removes the Accessibility category entirely', () => {
       render(<Settings />);
-
-      await waitFor(() => {
-        expect(document.querySelector('nav')).toBeInTheDocument();
-      });
-
-      clickSidebarTab('Accessibility');
-
-      const mainContent = document.querySelector('main')!;
-      const mainSection = within(mainContent);
-
-      await waitFor(() => {
-        expect(mainSection.getByText('Reduce Motion')).toBeInTheDocument();
-        expect(mainSection.getByText('Enhanced Focus Indicators')).toBeInTheDocument();
-      });
+      expect(
+        within(document.querySelector('nav')!).queryByText('Accessibility'),
+      ).not.toBeInTheDocument();
     });
 
     it('switches to Shortcuts tab when clicked', async () => {
@@ -341,201 +314,71 @@ describe('Settings Page', () => {
       });
     });
 
-    it('switches to Marketplace tab when clicked', async () => {
+    it.each([null, 'false', 'true'])('does not change extension update policy (%s)', (saved) => {
+      if (saved !== null) localStorage.setItem('wisp:auto-update-extensions', saved);
       render(<Settings />);
-
-      await waitFor(() => {
-        expect(document.querySelector('nav')).toBeInTheDocument();
-      });
-
-      clickSidebarTab('Marketplace');
-
-      await waitFor(() => {
-        expect(screen.getByText('Auto-update extensions')).toBeInTheDocument();
-      });
+      expect(localStorage.getItem('wisp:auto-update-extensions')).toBe(saved);
+      expect(screen.queryByText('Auto-update extensions')).not.toBeInTheDocument();
     });
 
-    it('switches to Context Menu tab when clicked', async () => {
+    it('puts context menu rules in a closed explorer disclosure', () => {
       render(<Settings />);
-
-      await waitFor(() => {
-        expect(document.querySelector('nav')).toBeInTheDocument();
-      });
-
-      clickSidebarTab('Context Menu');
-
-      await waitFor(() => {
-        expect(screen.getByTestId('context-menu-rules')).toBeInTheDocument();
-      });
+      clickSidebarTab('File Explorer');
+      const summary = screen.getByText('Context Menu', { selector: 'summary' });
+      expect(summary.closest('details')).not.toHaveAttribute('open');
+      expect(
+        within(document.querySelector('nav')!).queryByText('Context Menu'),
+      ).not.toBeInTheDocument();
     });
 
-    it('switches to Backup tab and shows BackupRestoreSettings', async () => {
+    it('keeps About reachable after removing the versioning category', async () => {
       render(<Settings />);
 
       await waitFor(() => {
         expect(document.querySelector('nav')).toBeInTheDocument();
       });
 
-      clickSidebarTab('Backup & Restore');
+      clickSidebarTab('About');
 
       await waitFor(() => {
-        expect(screen.getByTestId('backup-restore-settings')).toBeInTheDocument();
-      });
-    });
-
-    it('switches to Audit Log tab and shows AuditLogSettings', async () => {
-      render(<Settings />);
-
-      await waitFor(() => {
-        expect(document.querySelector('nav')).toBeInTheDocument();
-      });
-
-      clickSidebarTab('Audit Log');
-
-      await waitFor(() => {
-        expect(screen.getByTestId('audit-log-settings')).toBeInTheDocument();
-      });
-    });
-
-    it('switches to Versioning tab and shows VersioningSettings', async () => {
-      render(<Settings />);
-
-      await waitFor(() => {
-        expect(document.querySelector('nav')).toBeInTheDocument();
-      });
-
-      clickSidebarTab('Versioning');
-
-      await waitFor(() => {
-        expect(screen.getByTestId('versioning-settings')).toBeInTheDocument();
+        expect(
+          within(document.querySelector('main')!).getByRole('heading', { name: 'About' }),
+        ).toBeInTheDocument();
       });
     });
   });
 
   describe('General Tab - Settings Controls', () => {
-    it('renders the Language setting row (the theme picker is retired — one adaptive theme)', async () => {
+    it('only shows language and reset on non-Windows platforms', () => {
       render(<Settings />);
-
-      const mainContent = document.querySelector('main')!;
-      const mainSection = within(mainContent);
-
-      await waitFor(() => {
-        expect(mainSection.getByText('Language')).toBeInTheDocument();
-      });
-    });
-
-    it('renders the Font Size setting row', async () => {
-      render(<Settings />);
-
-      const mainContent = document.querySelector('main')!;
-      const mainSection = within(mainContent);
-
-      await waitFor(() => {
-        expect(mainSection.getByText('Font Size')).toBeInTheDocument();
-        expect(mainSection.getByText('Base font size across the UI')).toBeInTheDocument();
-      });
-    });
-
-    it('renders Animations toggle with correct initial state', async () => {
-      render(<Settings />);
-
-      await waitFor(() => {
-        const animToggle = document.getElementById('animations') as HTMLButtonElement;
-        expect(animToggle).toBeInTheDocument();
-        expect(animToggle.getAttribute('aria-checked')).toBe('true');
-      });
-    });
-
-    it('renders the Sidebar Width setting', async () => {
-      render(<Settings />);
-
-      const mainContent = document.querySelector('main')!;
-      const mainSection = within(mainContent);
-
-      await waitFor(() => {
-        expect(mainSection.getByText('Sidebar Width')).toBeInTheDocument();
-      });
-    });
-
-    it('renders the Notifications toggle', async () => {
-      render(<Settings />);
-
-      const mainContent = document.querySelector('main')!;
-      const mainSection = within(mainContent);
-
-      await waitFor(() => {
-        expect(mainSection.getByText('Notifications')).toBeInTheDocument();
-      });
-    });
-
-    it('renders the Auto Save toggle', async () => {
-      render(<Settings />);
-
-      const mainContent = document.querySelector('main')!;
-      const mainSection = within(mainContent);
-
-      await waitFor(() => {
-        expect(mainSection.getByText('Auto Save')).toBeInTheDocument();
-      });
-    });
-
-    it('renders the Replay Tour button', async () => {
-      render(<Settings />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Replay Tour')).toBeInTheDocument();
-      });
-    });
-
-    it('renders the Reset button', async () => {
-      render(<Settings />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Reset all settings to defaults')).toBeInTheDocument();
-      });
+      const main = within(document.querySelector('main')!);
+      expect(main.getByText('Language')).toBeInTheDocument();
+      expect(main.getByText('Reset all settings to defaults')).toBeInTheDocument();
+      for (const label of [
+        'Font Size',
+        'Animations',
+        'Sidebar Width',
+        'Notifications',
+        'Auto Save',
+        'Fluid Glass',
+        'Show weather',
+        'Weather city',
+        'System Integration',
+        'Onboarding Tour',
+      ]) {
+        expect(main.queryByText(label)).not.toBeInTheDocument();
+      }
     });
   });
 
-  describe('General Tab - Toggle Interactions', () => {
-    it('toggles Animations setting when clicked', async () => {
+  describe('Retained setting interactions', () => {
+    it('persists file-extension display changes', async () => {
       render(<Settings />);
-
-      await waitFor(() => {
-        const animToggle = document.getElementById('animations') as HTMLButtonElement;
-        expect(animToggle).toBeInTheDocument();
-      });
-
-      const animToggle = document.getElementById('animations') as HTMLButtonElement;
-      // Initially true (checked)
-      expect(animToggle.getAttribute('aria-checked')).toBe('true');
-
-      // Click to toggle off
-      fireEvent.click(animToggle);
-
-      // After click: the component re-renders with the new value
-      await waitFor(() => {
-        const updatedToggle = document.getElementById('animations') as HTMLButtonElement;
-        expect(updatedToggle.getAttribute('aria-checked')).toBe('false');
-      });
-    });
-
-    it('toggles Notifications setting when clicked', async () => {
-      render(<Settings />);
-
-      await waitFor(() => {
-        const notifToggle = document.getElementById('notifications') as HTMLButtonElement;
-        expect(notifToggle).toBeInTheDocument();
-      });
-
-      const notifToggle = document.getElementById('notifications') as HTMLButtonElement;
-      expect(notifToggle.getAttribute('aria-checked')).toBe('true');
-
-      fireEvent.click(notifToggle);
-
-      await waitFor(() => {
-        const updatedToggle = document.getElementById('notifications') as HTMLButtonElement;
-        expect(updatedToggle.getAttribute('aria-checked')).toBe('false');
-      });
+      clickSidebarTab('File Explorer');
+      fireEvent.click(screen.getByRole('switch', { name: 'File Extensions' }));
+      await waitFor(() =>
+        expect(JSON.parse(localStorage.getItem('wisp:settings')!).showFileExtensions).toBe(false),
+      );
     });
   });
 
@@ -554,14 +397,14 @@ describe('Settings Page', () => {
 
       await waitFor(() => {
         expect(mainSection.getByText('Default View')).toBeInTheDocument();
-        expect(mainSection.getByText('Show Hidden Files')).toBeInTheDocument();
+        expect(mainSection.queryByText('Show Hidden Files')).not.toBeInTheDocument();
         expect(mainSection.getByText('File Extensions')).toBeInTheDocument();
         expect(mainSection.getByText('Auto-Calculate Folder Sizes')).toBeInTheDocument();
-        expect(mainSection.getByText('Markdown Preview')).toBeInTheDocument();
+        expect(mainSection.queryByText('Markdown Preview')).not.toBeInTheDocument();
       });
     });
 
-    it('toggles Show Hidden Files', async () => {
+    it('does not duplicate the title bar hidden-files toggle', async () => {
       render(<Settings />);
 
       await waitFor(() => {
@@ -571,116 +414,45 @@ describe('Settings Page', () => {
       clickSidebarTab('File Explorer');
 
       await waitFor(() => {
-        const toggle = document.getElementById('hiddenFiles') as HTMLButtonElement;
-        expect(toggle).toBeInTheDocument();
-      });
-
-      const toggle = document.getElementById('hiddenFiles') as HTMLButtonElement;
-      expect(toggle.getAttribute('aria-checked')).toBe('false');
-
-      fireEvent.click(toggle);
-
-      await waitFor(() => {
-        const updatedToggle = document.getElementById('hiddenFiles') as HTMLButtonElement;
-        expect(updatedToggle.getAttribute('aria-checked')).toBe('true');
+        expect(screen.getByText('Default View')).toBeInTheDocument();
+        expect(document.getElementById('hiddenFiles')).not.toBeInTheDocument();
       });
     });
   });
 
-  describe('Accessibility Tab', () => {
-    it('renders accessibility settings', async () => {
+  describe('File opening preferences', () => {
+    it('keeps file associations in the explorer, collapsed by default', () => {
       render(<Settings />);
-
-      await waitFor(() => {
-        expect(document.querySelector('nav')).toBeInTheDocument();
-      });
-
-      clickSidebarTab('Accessibility');
-
-      const mainContent = document.querySelector('main')!;
-      const mainSection = within(mainContent);
-
-      await waitFor(() => {
-        expect(mainSection.getByText('Reduce Motion')).toBeInTheDocument();
-        expect(mainSection.getByText('Enhanced Focus Indicators')).toBeInTheDocument();
-      });
-    });
-
-    it('toggles Reduce Motion setting', async () => {
-      render(<Settings />);
-
-      await waitFor(() => {
-        expect(document.querySelector('nav')).toBeInTheDocument();
-      });
-
-      clickSidebarTab('Accessibility');
-
-      await waitFor(() => {
-        const toggle = document.getElementById('reducedMotion') as HTMLButtonElement;
-        expect(toggle).toBeInTheDocument();
-      });
-
-      const toggle = document.getElementById('reducedMotion') as HTMLButtonElement;
-      expect(toggle.getAttribute('aria-checked')).toBe('false');
-
-      fireEvent.click(toggle);
-
-      await waitFor(() => {
-        const updatedToggle = document.getElementById('reducedMotion') as HTMLButtonElement;
-        expect(updatedToggle.getAttribute('aria-checked')).toBe('true');
-      });
+      clickSidebarTab('File Explorer');
+      const summary = screen.getByText('File Associations', { selector: 'summary' });
+      expect(summary.closest('details')).not.toHaveAttribute('open');
+      expect(
+        within(document.querySelector('nav')!).queryByText('File Associations'),
+      ).not.toBeInTheDocument();
     });
   });
 
   describe('LocalStorage Persistence', () => {
-    it('saves settings to localStorage when changed', async () => {
-      render(<Settings />);
-
-      await waitFor(() => {
-        const animToggle = document.getElementById('animations') as HTMLButtonElement;
-        expect(animToggle).toBeInTheDocument();
-      });
-
-      const animToggle = document.getElementById('animations') as HTMLButtonElement;
-      fireEvent.click(animToggle);
-
-      // Wait for useEffect to persist
-      await waitFor(() => {
-        const saved = JSON.parse(localStorage.getItem('wisp:settings') || '{}');
-        expect(saved.enableAnimations).toBe(false);
-      });
-    });
-
-    it('loads saved settings from localStorage on mount', async () => {
+    it('migrates removed controls while preserving real preferences', async () => {
       localStorage.setItem(
         'wisp:settings',
         JSON.stringify({
-          theme: 'glass',
-          showHiddenFiles: true,
-          enableMarkdownPreview: true,
+          language: 'en',
           defaultView: 'list',
-          enableAnimations: false,
-          showFileExtensions: true,
-          enableNotifications: false,
-          autoSave: true,
+          showHiddenFiles: true,
           fontSize: 'large',
-          sidebarWidth: 'wide',
-          reducedMotion: false,
-          enhancedFocus: false,
-          autoCalculateFolderSizes: false,
+          fluidGlass: false,
+          enableAnimations: false,
+          highContrast: true,
         }),
       );
-
       render(<Settings />);
-
       await waitFor(() => {
-        // Animations should be off because we set it to false
-        const animToggle = document.getElementById('animations') as HTMLButtonElement;
-        expect(animToggle.getAttribute('aria-checked')).toBe('false');
-
-        // Notifications should be off
-        const notifToggle = document.getElementById('notifications') as HTMLButtonElement;
-        expect(notifToggle.getAttribute('aria-checked')).toBe('false');
+        const saved = JSON.parse(localStorage.getItem('wisp:settings')!);
+        expect(saved).toMatchObject({ language: 'en', defaultView: 'list', showHiddenFiles: true });
+        for (const key of ['fontSize', 'fluidGlass', 'enableAnimations', 'highContrast']) {
+          expect(saved).not.toHaveProperty(key);
+        }
       });
     });
   });

@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 /**
  * Shared Discoveries section for the Agent Manager panel.
  *
@@ -22,7 +23,7 @@ import {
 
 const formatTimestamp = (ts: number): string => {
   const d = new Date(ts);
-  return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleTimeString(getAppLocale(), { hour: '2-digit', minute: '2-digit' });
 };
 
 const typeLabel = (type: string): string =>

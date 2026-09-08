@@ -1,4 +1,3 @@
-use crate::audit_log::log_operation;
 use crate::operations::validate_file_path;
 use std::fs;
 use std::path::Path;
@@ -20,7 +19,6 @@ pub async fn remove_file(path: String) -> Result<(), String> {
         }
 
         fs::remove_file(p).map_err(|e| format!("Failed to remove file: {}", e))?;
-        log_operation("delete", vec![path], None, true);
 
         Ok(())
     })

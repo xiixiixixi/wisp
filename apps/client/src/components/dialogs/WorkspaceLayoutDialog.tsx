@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 /**
  * WorkspaceLayoutDialog -- save / load / manage workspace layouts.
  *
@@ -358,7 +359,7 @@ const formatDate = (ts: number): string => {
   if (diffHours < 24) return `${diffHours}h ago`;
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) return `${diffDays}d ago`;
-  return d.toLocaleDateString(undefined, {
+  return d.toLocaleDateString(getAppLocale(), {
     month: 'short',
     day: 'numeric',
     year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
@@ -646,8 +647,11 @@ const WorkspaceLayoutDialog = ({
                       <>
                         <div style={s.rowName}>{wl.name}</div>
                         <div style={s.rowMeta}>
-                          {paneCount} pane{paneCount !== 1 ? 's' : ''} &middot; {tabCount} tab
-                          {tabCount !== 1 ? 's' : ''} &middot; {formatDate(wl.created)}
+                          {t('messages.workspaceLayout', {
+                            panes: paneCount,
+                            tabs: tabCount,
+                            date: formatDate(wl.created),
+                          })}
                         </div>
                       </>
                     )}
@@ -681,7 +685,7 @@ const WorkspaceLayoutDialog = ({
                       {/* Rename */}
                       <button
                         style={s.iconBtn}
-                        title="Rename"
+                        title={t('performanceDashboard.ops.rename')}
                         aria-label={`Rename ${wl.name}`}
                         onClick={() => {
                           setRenamingId(wl.id);
@@ -701,7 +705,7 @@ const WorkspaceLayoutDialog = ({
                       {/* Delete */}
                       <button
                         style={s.iconBtn}
-                        title="Delete"
+                        title={t('performanceDashboard.ops.delete')}
                         aria-label={`Delete ${wl.name}`}
                         onClick={() => handleDelete(wl.id)}
                         onMouseEnter={(e) => {

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 
 interface MarkdownRendererProps {
@@ -60,6 +61,7 @@ const CodeBlockWithActions = ({
   onApplyCode,
   onSaveAsFile,
 }: CodeBlockWithActionsProps) => {
+  const { t: tUi } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -91,26 +93,26 @@ const CodeBlockWithActions = ({
         <button
           onClick={handleCopy}
           className="rounded-[2px] border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
-          title="Copy to clipboard"
+          title={tUi('permissions.desc.uiClipboard')}
         >
-          {copied ? 'Copied!' : 'Copy'}
+          {copied ? tUi('interface.copied') : tUi('dragOverlay.copy')}
         </button>
         {onSaveAsFile && (
           <button
             onClick={() => onSaveAsFile(code, language)}
             className="rounded-[2px] border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
-            title="Save as file"
+            title={tUi('interface.saveAsFile')}
           >
-            Save as file
+            {tUi('interface.saveAsFile')}
           </button>
         )}
         {onApplyCode && (
           <button
             onClick={() => onApplyCode(code)}
             className="rounded-[2px] border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
-            title="Replace selected code in editor"
+            title={tUi('interface.replaceSelectedCodeInEditor')}
           >
-            Apply
+            {tUi('dialogs.pasteRename.apply')}
           </button>
         )}
       </div>

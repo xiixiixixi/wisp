@@ -1,8 +1,11 @@
+import { getAppLocale } from '@/lib/locale';
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { TauriAPI, type TokenIndex } from '@/lib/tauri-api';
 import { TOKENIZER_STATUS_INTERVAL_MS } from '@/lib/constants';
 
 const TokenizerStatusIndicator = () => {
+  const { t: tUi } = useTranslation();
   const [stats, setStats] = useState<TokenIndex | null>(null);
 
   useEffect(() => {
@@ -24,7 +27,10 @@ const TokenizerStatusIndicator = () => {
   if (!stats || !stats.total_files) return null;
 
   return (
-    <div className="flex items-center gap-1 text-xs text-xp-text-muted" title="Search index">
+    <div
+      className="flex items-center gap-1 text-xs text-xp-text-muted"
+      title={tUi('interface.searchIndex')}
+    >
       <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
         <path
           fillRule="evenodd"
@@ -33,9 +39,9 @@ const TokenizerStatusIndicator = () => {
         />
       </svg>
       <span className="font-dot text-[11px] leading-none">
-        {stats.total_files.toLocaleString()}
+        {stats.total_files.toLocaleString(getAppLocale())}
       </span>
-      <span>indexed</span>
+      <span>{tUi('interface.indexed')}</span>
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Diff computation and preview component for the AI chat panel.
  * Used to show before/after changes when the AI proposes editing a file.
@@ -126,6 +127,7 @@ interface DiffPreviewProps {
  * Collapsed by default, showing only changed lines with context.
  */
 const ChatDiffPreview = ({ previousContent, newContent }: DiffPreviewProps) => {
+  const { t: tUi } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const diff = computeLineDiff(previousContent, newContent);
   const { additions, removals } = countChanges(diff);
@@ -159,13 +161,13 @@ const ChatDiffPreview = ({ previousContent, newContent }: DiffPreviewProps) => {
           fontSize: '11px',
         }}
       >
-        <span style={{ color: 'var(--xp-text-muted)' }}>Changes:</span>
+        <span style={{ color: 'var(--xp-text-muted)' }}>{tUi('interface.changesLabel')}</span>
         {additions > 0 && <span style={{ color: 'var(--xp-green)' }}>+{additions}</span>}
         {removals > 0 && <span style={{ color: 'var(--xp-red)' }}>-{removals}</span>}
         <button
           onClick={() => setExpanded((v) => !v)}
           aria-expanded={expanded}
-          aria-label={expanded ? 'Collapse diff' : 'Expand full diff'}
+          aria-label={expanded ? tUi('interface.collapseDiff') : tUi('interface.expandFullDiff')}
           style={{
             marginLeft: 'auto',
             background: 'none',
@@ -254,7 +256,7 @@ const ChatDiffPreview = ({ previousContent, newContent }: DiffPreviewProps) => {
               fontSize: '10px',
             }}
           >
-            {diff.length - visibleDiff.length} unchanged lines hidden
+            {tUi('messages.hiddenUnchangedLines', { count: diff.length - visibleDiff.length })}
           </div>
         )}
       </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { PreviewProps } from '@/lib/preview-factory';
 import { TauriAPI } from '@/lib/tauri-api';
@@ -5,6 +6,7 @@ import { TauriAPI } from '@/lib/tauri-api';
 type PapaModule = typeof import('papaparse');
 
 const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
+  const { t: tUi } = useTranslation();
   const [data, setData] = useState<string[][]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,10 +70,10 @@ const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
   return (
     <div className="mt-4">
       <div className="mb-2 flex items-center justify-between">
-        <h4 className="text-xs font-medium text-xp-text-muted">CSV Preview</h4>
+        <h4 className="text-xs font-medium text-xp-text-muted">{tUi('interface.csvPreview')}</h4>
         {meta && (
           <span className="text-xs text-xp-text-muted">
-            {meta.rowCount} rows • delimiter: "{meta.delimiter}"
+            {tUi('messages.csvRows', { count: meta.rowCount, delimiter: meta.delimiter })}
           </span>
         )}
       </div>
@@ -80,7 +82,7 @@ const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
         <div className="rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
           <div className="animate-pulse">
             <div className="mb-2 h-48 w-full rounded-[2px] bg-xp-bg" />
-            <p className="text-xs">Loading CSV...</p>
+            <p className="text-xs">{tUi('interface.loadingCsv')}</p>
           </div>
         </div>
       )}
@@ -94,8 +96,8 @@ const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
               clipRule="evenodd"
             />
           </svg>
-          <p className="text-xs">Cannot preview CSV</p>
-          <p className="mt-1 text-xs opacity-70">{error}</p>
+          <p className="text-xs">{tUi('interface.cannotPreviewCsv')}</p>
+          <p className="mt-1 text-xs opacity-70">{previewErrorText(error, tUi)}</p>
         </div>
       ) : null}
       {!error && data.length > 0 && (
@@ -140,14 +142,14 @@ const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
 
           {data.length >= 99 && (
             <p className="mt-2 text-center text-xs text-xp-text-muted">
-              Showing first 100 rows. Double-click to open full file.
+              {tUi('interface.showingFirst100RowsDoubleClickToOpenFullFile')}
             </p>
           )}
         </>
       )}
       {!error && data.length === 0 && (
         <div className="rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
-          <p className="text-xs">No data found in CSV file</p>
+          <p className="text-xs">{tUi('interface.noDataFoundInCsvFile')}</p>
         </div>
       )}
     </div>
@@ -155,3 +157,4 @@ const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
 };
 
 export default CsvPreview;
+import { previewErrorText } from '@/lib/preview-error';

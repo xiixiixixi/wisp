@@ -18,7 +18,6 @@ const makeFile = (name: string, size = 1024, isDir = false): FileEntry => {
 const mockAPI = TauriAPI as unknown as Record<string, ReturnType<typeof vi.fn>>;
 
 const setupDefaultMocks = () => {
-  mockAPI.getAuditLog = vi.fn().mockResolvedValue({ entries: [] });
   mockAPI.getAIIndexStatus = vi.fn().mockResolvedValue({
     enabled: false,
     total_indexed: 0,
@@ -140,12 +139,12 @@ describe('usePerformanceStats', () => {
       expect(result.current.indexingStatus.isTokenizerIndexing).toBe(false);
     });
 
-    it('has empty recent operations', () => {
+    it('does not expose a retired audit feed', () => {
       const { result } = renderHook(useHookWithProps, {
         initialProps: { path: '/test', files: EMPTY_FILES, visible: false },
       });
 
-      expect(result.current.recentOps).toEqual([]);
+      expect(result.current).not.toHaveProperty('recentOps');
     });
 
     it('has empty suggestions', () => {
@@ -175,7 +174,7 @@ describe('usePerformanceStats', () => {
         await new Promise((r) => setTimeout(r, 50));
       });
 
-      expect(TauriAPI.getAuditLog).not.toHaveBeenCalled();
+      expect(TauriAPI.getTrashItems).not.toHaveBeenCalled();
     });
 
     it('fetches stats when visible', async () => {
@@ -184,35 +183,12 @@ describe('usePerformanceStats', () => {
       });
 
       await waitFor(() => {
-        expect(TauriAPI.getAuditLog).toHaveBeenCalled();
+        expect(TauriAPI.getTrashItems).toHaveBeenCalled();
       });
     });
   });
 
   describe('Async data fetching', () => {
-    it('fetches audit log entries', async () => {
-      const mockEntries = [
-        {
-          id: 1,
-          timestamp: '2025-01-01',
-          operation: 'copy',
-          paths: ['/test/a.txt'],
-          user: 'test',
-          details: null,
-          success: true,
-        },
-      ];
-      mockAPI.getAuditLog = vi.fn().mockResolvedValue({ entries: mockEntries });
-
-      const { result } = renderHook(useHookWithProps, {
-        initialProps: { path: '/test', files: EMPTY_FILES, visible: true },
-      });
-
-      await waitFor(() => {
-        expect(result.current.recentOps).toEqual(mockEntries);
-      });
-    });
-
     it('fetches AI index status', async () => {
       mockAPI.getAIIndexStatus = vi.fn().mockResolvedValue({
         enabled: true,
@@ -262,7 +238,6 @@ describe('usePerformanceStats', () => {
     });
 
     it('handles partial API failures gracefully', async () => {
-      mockAPI.getAuditLog = vi.fn().mockRejectedValue(new Error('fail'));
       mockAPI.getAIIndexStatus = vi.fn().mockRejectedValue(new Error('fail'));
       mockAPI.getTokenizerStats = vi.fn().mockResolvedValue(null);
       mockAPI.isTokenizerIndexing = vi.fn().mockResolvedValue(false);
@@ -275,7 +250,7 @@ describe('usePerformanceStats', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.recentOps).toEqual([]);
+      expect(result.current).not.toHaveProperty('recentOps');
       expect(result.current.indexingStatus.aiIndexed).toBe(0);
     });
   });
@@ -408,10 +383,11 @@ describe('usePerformanceStats', () => {
       });
 
       await waitFor(() => {
-        expect(TauriAPI.getAuditLog).toHaveBeenCalled();
+        expect(TauriAPI.getTrashItems).toHaveBeenCalled();
       });
 
-      const callCountBefore = (TauriAPI.getAuditLog as ReturnType<typeof vi.fn>).mock.calls.length;
+      const callCountBefore = (TauriAPI.getTrashItems as ReturnType<typeof vi.fn>).mock.calls
+        .length;
 
       await act(async () => {
         result.current.refreshStats();
@@ -419,7 +395,7 @@ describe('usePerformanceStats', () => {
 
       await waitFor(() => {
         expect(
-          (TauriAPI.getAuditLog as ReturnType<typeof vi.fn>).mock.calls.length,
+          (TauriAPI.getTrashItems as ReturnType<typeof vi.fn>).mock.calls.length,
         ).toBeGreaterThan(callCountBefore);
       });
     });
@@ -432,16 +408,17 @@ describe('usePerformanceStats', () => {
       });
 
       await waitFor(() => {
-        expect(TauriAPI.getAuditLog).toHaveBeenCalled();
+        expect(TauriAPI.getTrashItems).toHaveBeenCalled();
       });
 
-      const callCountBefore = (TauriAPI.getAuditLog as ReturnType<typeof vi.fn>).mock.calls.length;
+      const callCountBefore = (TauriAPI.getTrashItems as ReturnType<typeof vi.fn>).mock.calls
+        .length;
 
       rerender({ path: '/other', files: EMPTY_FILES, visible: true });
 
       await waitFor(() => {
         expect(
-          (TauriAPI.getAuditLog as ReturnType<typeof vi.fn>).mock.calls.length,
+          (TauriAPI.getTrashItems as ReturnType<typeof vi.fn>).mock.calls.length,
         ).toBeGreaterThan(callCountBefore);
       });
     });
@@ -465,7 +442,6 @@ describe('usePerformanceStats', () => {
     });
 
     it('handles all Promise.allSettled rejections gracefully', async () => {
-      mockAPI.getAuditLog = vi.fn().mockRejectedValue(new Error('fail'));
       mockAPI.getAIIndexStatus = vi.fn().mockRejectedValue(new Error('fail'));
       mockAPI.getTokenizerStats = vi.fn().mockRejectedValue(new Error('fail'));
       mockAPI.isTokenizerIndexing = vi.fn().mockRejectedValue(new Error('fail'));
@@ -479,7 +455,7 @@ describe('usePerformanceStats', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.recentOps).toEqual([]);
+      expect(result.current).not.toHaveProperty('recentOps');
       expect(result.current.indexingStatus.aiIndexed).toBe(0);
       expect(result.current.indexingStatus.isTokenizerIndexing).toBe(false);
       expect(result.current.suggestions).toEqual([]);

@@ -421,37 +421,6 @@ export interface SqliteQueryResult {
   total_rows: number;
 }
 
-// File versioning types
-export interface FileVersion {
-  version_number: number;
-  timestamp: string;
-  size: number;
-  path: string;
-  original_name: string;
-}
-
-export interface VersioningConfig {
-  enabled_dirs: string[];
-  max_versions_per_file: number;
-  auto_version_on_save: boolean;
-}
-
-// Audit log types
-export interface AuditEntry {
-  id: number;
-  timestamp: string;
-  operation: string;
-  paths: string[];
-  user: string;
-  details: string | null;
-  success: boolean;
-}
-
-export interface AuditLogQuery {
-  entries: AuditEntry[];
-  total: number;
-}
-
 // Secure delete types
 export interface SecureDeleteResult {
   path: string;

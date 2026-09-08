@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useEffect, useRef } from 'react';
 import {
   operationIcon,
@@ -15,6 +16,7 @@ import {
 
 const DetailsPopover = React.memo(
   ({ state, onClose }: { state: DetailsPopoverState; onClose: () => void }) => {
+    const { t: tUi } = useTranslation();
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -67,7 +69,7 @@ const DetailsPopover = React.memo(
             {operationIcon(opType)}
           </span>
           <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--xp-text)' }}>
-            {opType} Details
+            {opType} {tUi('viewMode.details')}
           </span>
           <span style={{ marginLeft: 'auto', fontSize: '10px', color: 'var(--xp-text-muted)' }}>
             {formatTimestamp(timestamp)}
@@ -76,8 +78,10 @@ const DetailsPopover = React.memo(
 
         {entries.length > 1 && durationMs > 0 && (
           <div style={{ padding: '4px 12px', fontSize: '10px', color: 'var(--xp-text-muted)' }}>
-            Duration: {durationMs < 1000 ? `${durationMs}ms` : `${(durationMs / 1000).toFixed(1)}s`}{' '}
-            -- {entries.length} file{entries.length !== 1 ? 's' : ''}
+            {tUi('interface.durationLabel')}{' '}
+            {durationMs < 1000 ? `${durationMs}ms` : `${(durationMs / 1000).toFixed(1)}s`} --{' '}
+            {entries.length} {tUi('panels.notes.file_one')}
+            {entries.length !== 1 ? 's' : ''}
           </div>
         )}
 
@@ -188,6 +192,7 @@ const ContextMenu = React.memo(
     onReplayOnSelection,
     onClearAbove,
   }: ContextMenuProps) => {
+    const { t: tUi } = useTranslation();
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -271,7 +276,7 @@ const ContextMenu = React.memo(
               <polyline points="1 4 1 10 7 10" />
               <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
             </svg>
-            Undo This
+            {tUi('interface.undoThis')}
           </button>
         )}
         {isUndoable && (
@@ -299,7 +304,7 @@ const ContextMenu = React.memo(
               <line x1="9" y1="9" x2="15" y2="15" />
               <line x1="15" y1="9" x2="9" y2="15" />
             </svg>
-            Undo This + All After
+            {tUi('interface.undoThisAllAfter')}
           </button>
         )}
         {!isUndoable && (
@@ -325,7 +330,7 @@ const ContextMenu = React.memo(
               <polyline points="23 4 23 10 17 10" />
               <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
             </svg>
-            Redo This
+            {tUi('interface.redoThis')}
           </button>
         )}
         <button
@@ -351,7 +356,7 @@ const ContextMenu = React.memo(
             <path d="M12 16v-4" />
             <path d="M12 8h.01" />
           </svg>
-          Show Details
+          {tUi('interface.showDetails')}
         </button>
         <button
           style={menuItemStyle}
@@ -374,7 +379,7 @@ const ContextMenu = React.memo(
           >
             <polygon points="5 3 19 12 5 21 5 3" />
           </svg>
-          Replay on Selection
+          {tUi('interface.replayOnSelection')}
         </button>
 
         <div style={{ height: '1px', backgroundColor: 'var(--xp-border)', margin: '4px 8px' }} />
@@ -401,7 +406,7 @@ const ContextMenu = React.memo(
             <polyline points="3 6 5 6 21 6" />
             <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
           </svg>
-          Clear History Above
+          {tUi('interface.clearHistoryAbove')}
         </button>
       </div>
     );
@@ -421,6 +426,7 @@ interface ReplayDialogProps {
 
 const ReplayConfirmDialog = React.memo(
   ({ operationType, operationDescription, destPath, onConfirm, onCancel }: ReplayDialogProps) => {
+    const { t: tUi } = useTranslation();
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -460,7 +466,7 @@ const ReplayConfirmDialog = React.memo(
               {operationIcon(operationType)}
             </span>
             <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--xp-text)' }}>
-              Replay {operationType}
+              {tUi('interface.replay')} {operationType}
             </span>
           </div>
           <p
@@ -471,7 +477,7 @@ const ReplayConfirmDialog = React.memo(
               lineHeight: '1.5',
             }}
           >
-            This will apply the same operation pattern to your currently selected files:
+            {tUi('interface.thisWillApplyTheSameOperationPatternToYourCurrentlySelectedFilesLabel')}
           </p>
           <div
             style={{
@@ -484,10 +490,10 @@ const ReplayConfirmDialog = React.memo(
               border: '1px solid var(--xp-border)',
             }}
           >
-            <strong>Operation:</strong> {operationDescription}
+            <strong>{tUi('interface.operationLabel')}</strong> {operationDescription}
             {destPath && (
               <div style={{ marginTop: '4px' }}>
-                <strong>Destination:</strong> {parentDir(destPath)}
+                <strong>{tUi('interface.destinationLabel')}</strong> {parentDir(destPath)}
               </div>
             )}
           </div>
@@ -505,7 +511,7 @@ const ReplayConfirmDialog = React.memo(
                 cursor: 'pointer',
               }}
             >
-              Cancel
+              {tUi('conflict.cancel')}
             </button>
             <button
               onClick={onConfirm}
@@ -520,7 +526,7 @@ const ReplayConfirmDialog = React.memo(
                 cursor: 'pointer',
               }}
             >
-              Replay
+              {tUi('interface.replay')}
             </button>
           </div>
         </div>
@@ -556,161 +562,163 @@ const Toolbar = ({
   onRedo,
   onClear,
   onRefresh,
-}: ToolbarProps) => (
-  <div
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '6px',
-      padding: '4px 10px',
-      borderBottom: '1px solid var(--xp-border)',
-      backgroundColor: 'var(--xp-surface-light)',
-      flexShrink: 0,
-    }}
-  >
-    <button
-      onClick={onUndo}
-      disabled={!canUndo || actionInProgress}
-      title="Undo (Ctrl+Z)"
+}: ToolbarProps) => {
+  const { t: tUi } = useTranslation();
+  return (
+    <div
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '4px',
-        padding: '2px 8px',
-        fontSize: '11px',
-        fontWeight: 500,
-        borderRadius: '4px',
-        border: 'none',
-        cursor: canUndo && !actionInProgress ? 'pointer' : 'default',
-        color: canUndo ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
-        backgroundColor: canUndo ? 'var(--xp-selection-bg)' : 'transparent',
-        opacity: canUndo && !actionInProgress ? 1 : 0.5,
+        gap: '6px',
+        padding: '4px 10px',
+        borderBottom: '1px solid var(--xp-border)',
+        backgroundColor: 'var(--xp-surface-light)',
+        flexShrink: 0,
       }}
     >
-      <svg
-        width="12"
-        height="12"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      <button
+        onClick={onUndo}
+        disabled={!canUndo || actionInProgress}
+        title={tUi('interface.undoCtrlZ')}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+          padding: '2px 8px',
+          fontSize: '11px',
+          fontWeight: 500,
+          borderRadius: '4px',
+          border: 'none',
+          cursor: canUndo && !actionInProgress ? 'pointer' : 'default',
+          color: canUndo ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
+          backgroundColor: canUndo ? 'var(--xp-selection-bg)' : 'transparent',
+          opacity: canUndo && !actionInProgress ? 1 : 0.5,
+        }}
       >
-        <polyline points="1 4 1 10 7 10" />
-        <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
-      </svg>
-      Undo
-    </button>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="1 4 1 10 7 10" />
+          <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
+        </svg>
+        {tUi('chat.undo')}
+      </button>
 
-    <button
-      onClick={onRedo}
-      disabled={!canRedo || actionInProgress}
-      title="Redo (Ctrl+Y)"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '4px',
-        padding: '2px 8px',
-        fontSize: '11px',
-        fontWeight: 500,
-        borderRadius: '4px',
-        border: 'none',
-        cursor: canRedo && !actionInProgress ? 'pointer' : 'default',
-        color: canRedo ? 'var(--xp-green)' : 'var(--xp-text-muted)',
-        backgroundColor: canRedo ? 'rgb(var(--xp-green-rgb) / 0.12)' : 'transparent',
-        opacity: canRedo && !actionInProgress ? 1 : 0.5,
-      }}
-    >
-      <svg
-        width="12"
-        height="12"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      <button
+        onClick={onRedo}
+        disabled={!canRedo || actionInProgress}
+        title={tUi('interface.redoCtrlY')}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+          padding: '2px 8px',
+          fontSize: '11px',
+          fontWeight: 500,
+          borderRadius: '4px',
+          border: 'none',
+          cursor: canRedo && !actionInProgress ? 'pointer' : 'default',
+          color: canRedo ? 'var(--xp-green)' : 'var(--xp-text-muted)',
+          backgroundColor: canRedo ? 'rgb(var(--xp-green-rgb) / 0.12)' : 'transparent',
+          opacity: canRedo && !actionInProgress ? 1 : 0.5,
+        }}
       >
-        <polyline points="23 4 23 10 17 10" />
-        <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
-      </svg>
-      Redo
-    </button>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="23 4 23 10 17 10" />
+          <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
+        </svg>
+        {tUi('shortcutActions.Redo')}
+      </button>
 
-    <div style={{ flex: 1 }} />
+      <div style={{ flex: 1 }} />
 
-    <span style={{ fontSize: '10px', color: 'var(--xp-text-muted)' }}>
-      {undoCount} undo{undoCount !== 1 ? 's' : ''} / {totalEntries - undoCount} redo
-      {totalEntries - undoCount !== 1 ? 's' : ''}
-    </span>
+      <span style={{ fontSize: '10px', color: 'var(--xp-text-muted)' }}>
+        {tUi('messages.undoRedoCount', { undo: undoCount, redo: totalEntries - undoCount })}
+      </span>
 
-    <button
-      onClick={onClear}
-      disabled={totalEntries === 0 || actionInProgress}
-      title="Clear all history"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '3px',
-        padding: '2px 8px',
-        fontSize: '10px',
-        fontWeight: 500,
-        borderRadius: '4px',
-        border: 'none',
-        cursor: totalEntries > 0 && !actionInProgress ? 'pointer' : 'default',
-        color: 'var(--xp-text-muted)',
-        backgroundColor: 'transparent',
-        opacity: totalEntries > 0 && !actionInProgress ? 1 : 0.4,
-      }}
-    >
-      <svg
-        width="11"
-        height="11"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      <button
+        onClick={onClear}
+        disabled={totalEntries === 0 || actionInProgress}
+        title={tUi('interface.clearAllHistory')}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '3px',
+          padding: '2px 8px',
+          fontSize: '10px',
+          fontWeight: 500,
+          borderRadius: '4px',
+          border: 'none',
+          cursor: totalEntries > 0 && !actionInProgress ? 'pointer' : 'default',
+          color: 'var(--xp-text-muted)',
+          backgroundColor: 'transparent',
+          opacity: totalEntries > 0 && !actionInProgress ? 1 : 0.4,
+        }}
       >
-        <polyline points="3 6 5 6 21 6" />
-        <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-      </svg>
-      Clear
-    </button>
+        <svg
+          width="11"
+          height="11"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+        </svg>
+        {tUi('clipboardHistory.clear')}
+      </button>
 
-    <button
-      onClick={onRefresh}
-      disabled={loading}
-      title="Refresh"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: '2px 4px',
-        borderRadius: '4px',
-        border: 'none',
-        cursor: loading ? 'default' : 'pointer',
-        color: 'var(--xp-text-muted)',
-        backgroundColor: 'transparent',
-        opacity: loading ? 0.5 : 1,
-      }}
-    >
-      <svg
-        width="12"
-        height="12"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={loading ? { animation: 'spin 1s linear infinite' } : undefined}
+      <button
+        onClick={onRefresh}
+        disabled={loading}
+        title={tUi('performanceDashboard.refresh')}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '2px 4px',
+          borderRadius: '4px',
+          border: 'none',
+          cursor: loading ? 'default' : 'pointer',
+          color: 'var(--xp-text-muted)',
+          backgroundColor: 'transparent',
+          opacity: loading ? 0.5 : 1,
+        }}
       >
-        <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-      </svg>
-    </button>
-  </div>
-);
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={loading ? { animation: 'spin 1s linear infinite' } : undefined}
+        >
+          <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      </button>
+    </div>
+  );
+};
 
 export { DetailsPopover, ContextMenu, ReplayConfirmDialog, Toolbar };

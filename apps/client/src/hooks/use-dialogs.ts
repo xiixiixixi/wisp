@@ -72,12 +72,6 @@ export interface DialogState {
   openSecureDeleteDialog: (files: FileEntry[]) => void;
   closeSecureDeleteDialog: () => void;
 
-  // Version History
-  versionHistoryDialogOpen: boolean;
-  versionHistoryDialogFile: string;
-  openVersionHistoryDialog: (filePath: string) => void;
-  closeVersionHistoryDialog: () => void;
-
   // Batch Confirm
   batchConfirmDialogOpen: boolean;
   batchConfirmDialogFiles: FileEntry[];
@@ -282,15 +276,6 @@ export const useDialogs = (): DialogState => {
   }, []);
   const closeSecureDeleteDialog = useCallback(() => setSecureDeleteDialogOpen(false), []);
 
-  // Version History
-  const [versionHistoryDialogOpen, setVersionHistoryDialogOpen] = useState(false);
-  const [versionHistoryDialogFile, setVersionHistoryDialogFile] = useState('');
-  const openVersionHistoryDialog = useCallback((filePath: string) => {
-    setVersionHistoryDialogFile(filePath);
-    setVersionHistoryDialogOpen(true);
-  }, []);
-  const closeVersionHistoryDialog = useCallback(() => setVersionHistoryDialogOpen(false), []);
-
   // Batch Confirm
   const [batchConfirmDialogOpen, setBatchConfirmDialogOpen] = useState(false);
   const [batchConfirmDialogFiles, setBatchConfirmDialogFiles] = useState<FileEntry[]>([]);
@@ -473,10 +458,6 @@ export const useDialogs = (): DialogState => {
     secureDeleteDialogFiles,
     openSecureDeleteDialog,
     closeSecureDeleteDialog,
-    versionHistoryDialogOpen,
-    versionHistoryDialogFile,
-    openVersionHistoryDialog,
-    closeVersionHistoryDialog,
     batchConfirmDialogOpen,
     batchConfirmDialogFiles,
     batchConfirmDialogOperation,

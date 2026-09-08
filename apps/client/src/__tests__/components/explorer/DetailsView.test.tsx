@@ -119,7 +119,7 @@ describe('DetailsView', () => {
 
     it('renders file type badges', () => {
       render(<DetailsView {...defaultProps} />);
-      expect(screen.getByText('text')).toBeInTheDocument();
+      expect(screen.getByText('Text document')).toBeInTheDocument();
       expect(screen.getByText('Folder')).toBeInTheDocument();
       expect(screen.getByText('javascript')).toBeInTheDocument();
     });

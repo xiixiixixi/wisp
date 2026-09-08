@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import i18n from '@/i18n';
-import { TauriAPI, type FileEntry, type AuditEntry } from '@/lib/tauri-api';
+import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 
 export interface DirectoryStats {
   fileCount: number;
@@ -31,7 +31,6 @@ export interface CleanupSuggestion {
 
 export interface PerformanceStats {
   directoryStats: DirectoryStats;
-  recentOps: AuditEntry[];
   suggestions: CleanupSuggestion[];
   memoryUsage: number | null;
   isLoading: boolean;
@@ -45,7 +44,6 @@ export const usePerformanceStats = (
   files: FileEntry[],
   visible: boolean,
 ): PerformanceStats => {
-  const [recentOps, setRecentOps] = useState<AuditEntry[]>([]);
   const [suggestions, setSuggestions] = useState<CleanupSuggestion[]>([]);
   const [memoryUsage, setMemoryUsage] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -71,26 +69,8 @@ export const usePerformanceStats = (
     if (!visible) return;
     setIsLoading(true);
     try {
-      // Fetch all async data in parallel
-      const [auditResult, trashItems] = await Promise.allSettled([
-        TauriAPI.getAuditLog(10, 0),
-        TauriAPI.getTrashItems(),
-      ]);
-
-      // Audit log
-      if (auditResult.status === 'fulfilled') {
-        const auditData = auditResult.value;
-        // Handle both { entries: [...] } (real API) and plain array (mock/fallback)
-        let entries: AuditEntry[];
-        if (Array.isArray(auditData)) {
-          entries = auditData;
-        } else if (Array.isArray(auditData?.entries)) {
-          entries = auditData.entries;
-        } else {
-          entries = [];
-        }
-        setRecentOps(entries);
-      }
+      // Trash failures must not prevent the remaining cleanup suggestions.
+      const [trashItems] = await Promise.allSettled([TauriAPI.getTrashItems()]);
 
       // Cleanup suggestions
       const newSuggestions: CleanupSuggestion[] = [];
@@ -206,7 +186,6 @@ export const usePerformanceStats = (
 
   return {
     directoryStats,
-    recentOps,
     suggestions,
     memoryUsage,
     isLoading,

@@ -8,16 +8,9 @@ import {
   ArrowLeft,
   FolderOpen,
   Search,
-  Accessibility,
   Keyboard,
-  Store,
-  HardDrive,
-  ClipboardList,
-  History,
-  MousePointerClick,
   Settings2,
   ChevronRight,
-  FileCode,
   RefreshCw,
   Download,
   Heart,
@@ -26,42 +19,22 @@ import {
   Info,
 } from 'lucide-react';
 import TokenizerSettings from '@/components/TokenizerSettings';
-import BackupRestoreSettings from '@/components/settings/BackupRestoreSettings';
-import AuditLogSettings from '@/components/settings/AuditLogSettings';
-import VersioningSettings from '@/components/settings/VersioningSettings';
-import ContextMenuRulesCard from '@/components/settings/ContextMenuRulesCard';
 import useUpdater from '@/hooks/use-updater';
 import ShortcutsSettingsPanel from '@/components/settings/ShortcutsSettings';
 import GeneralSettings from '@/components/settings/GeneralSettings';
 import ExplorerSettings from '@/components/settings/ExplorerSettings';
 import SearchProviderSettings from '@/components/settings/SearchProviderSettings';
-import AccessibilitySettings from '@/components/settings/AccessibilitySettings';
-import FileAssociationsSettings from '@/components/settings/FileAssociationsSettings';
-import { applyTheme, loadFontSize } from '@/lib/utils';
+import { applyTheme } from '@/lib/utils';
 import { normalizeLanguage } from '@/lib/language-settings';
 import {
   AppSettings,
   DEFAULT_SETTINGS,
   SETTINGS_KEY,
-  Toggle,
-  SettingRow,
   migrateLegacyAiSettings,
 } from '@/components/settings/shared';
 import wispLogo from '../../../src-tauri/icons/icon.png';
 
-type SettingsTab =
-  | 'general'
-  | 'explorer'
-  | 'file-associations'
-  | 'context-menu'
-  | 'indexing'
-  | 'shortcuts'
-  | 'accessibility'
-  | 'marketplace'
-  | 'backup'
-  | 'audit'
-  | 'versioning'
-  | 'about';
+type SettingsTab = 'general' | 'explorer' | 'indexing' | 'shortcuts' | 'about';
 
 type TabDef = { id: SettingsTab; label: string; icon: React.ElementType; description: string };
 
@@ -79,18 +52,6 @@ const buildTabs = (t: (key: string) => string): TabDef[] => [
     description: t('settings.tabs.explorerDesc'),
   },
   {
-    id: 'file-associations',
-    label: t('settings.tabs.fileAssociations'),
-    icon: FileCode,
-    description: t('settings.tabs.fileAssociationsDesc'),
-  },
-  {
-    id: 'context-menu',
-    label: t('settings.tabs.contextMenu'),
-    icon: MousePointerClick,
-    description: t('settings.tabs.contextMenuDesc'),
-  },
-  {
     id: 'indexing',
     label: t('settings.tabs.indexing'),
     icon: Search,
@@ -103,72 +64,12 @@ const buildTabs = (t: (key: string) => string): TabDef[] => [
     description: t('settings.tabs.shortcutsDesc'),
   },
   {
-    id: 'marketplace',
-    label: t('settings.tabs.marketplace'),
-    icon: Store,
-    description: t('settings.tabs.marketplaceDesc'),
-  },
-  {
-    id: 'accessibility',
-    label: t('settings.tabs.accessibility'),
-    icon: Accessibility,
-    description: t('settings.tabs.accessibilityDesc'),
-  },
-  {
-    id: 'backup',
-    label: t('settings.tabs.backup'),
-    icon: HardDrive,
-    description: t('settings.tabs.backupDesc'),
-  },
-  {
-    id: 'audit',
-    label: t('settings.tabs.audit'),
-    icon: ClipboardList,
-    description: t('settings.tabs.auditDesc'),
-  },
-  {
-    id: 'versioning',
-    label: t('settings.tabs.versioning'),
-    icon: History,
-    description: t('settings.tabs.versioningDesc'),
-  },
-  {
     id: 'about',
     label: t('settings.tabs.about'),
     icon: Info,
     description: t('settings.tabs.aboutDesc'),
   },
 ];
-
-const MarketplaceSettings = ({
-  autoUpdateExtensions,
-  setAutoUpdateExtensions,
-  t,
-}: {
-  autoUpdateExtensions: boolean;
-  setAutoUpdateExtensions: (v: boolean) => void;
-  t: (key: string) => string;
-}) => (
-  <div className="space-y-4">
-    <div className="mb-1 px-4 pb-1 pt-2">
-      <h3 className="text-xs font-medium uppercase tracking-wider text-xp-text-secondary">
-        {t('settings.marketplace.updatesSection')}
-      </h3>
-    </div>
-    <SettingRow
-      icon={RefreshCw}
-      label={t('extensions.autoUpdate')}
-      description={t('extensions.autoUpdateDescription')}
-    >
-      <Toggle
-        id="autoUpdateExtensions"
-        label={t('extensions.autoUpdate')}
-        checked={autoUpdateExtensions}
-        onChange={setAutoUpdateExtensions}
-      />
-    </SettingRow>
-  </div>
-);
 
 // Manual update entry on the About page: shows the running version and lets
 // the user trigger the same check/install flow as the startup auto-check.
@@ -311,20 +212,6 @@ const Settings = () => {
     };
   });
 
-  const [autoUpdateExtensions, setAutoUpdateExtensions] = useState(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEYS.AUTO_UPDATE_EXTENSIONS);
-      // Default to true if not explicitly set
-      return raw === null || raw === 'true';
-    } catch {
-      return true;
-    }
-  });
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.AUTO_UPDATE_EXTENSIONS, String(autoUpdateExtensions));
-  }, [autoUpdateExtensions]);
-
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     // Let the explorer (e.g. hidden-file visibility, ⌘⇧.) follow along live
@@ -372,18 +259,6 @@ const Settings = () => {
     }
   }, [i18n, settings.language]);
 
-  useEffect(() => {
-    loadFontSize();
-    if (settings.reducedMotion) document.documentElement.classList.add('reduce-motion');
-    if (settings.reduceTransparency) {
-      document.documentElement.classList.add('reduce-transparency');
-    }
-    if (settings.enhancedFocus) document.documentElement.classList.add('enhanced-focus');
-    if (settings.highContrast) document.documentElement.classList.add('high-contrast');
-    // Mount-only: apply persisted accessibility settings on init
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const updateSetting = (key: string, value: string | boolean | number) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
@@ -400,10 +275,6 @@ const Settings = () => {
         );
       case 'explorer':
         return <ExplorerSettings settings={settings} updateSetting={updateSetting} />;
-      case 'file-associations':
-        return <FileAssociationsSettings />;
-      case 'context-menu':
-        return <ContextMenuRulesCard />;
       case 'indexing':
         return (
           <div className="space-y-4 px-4 py-2">
@@ -413,22 +284,6 @@ const Settings = () => {
         );
       case 'shortcuts':
         return <ShortcutsSettingsPanel />;
-      case 'marketplace':
-        return (
-          <MarketplaceSettings
-            autoUpdateExtensions={autoUpdateExtensions}
-            setAutoUpdateExtensions={setAutoUpdateExtensions}
-            t={t}
-          />
-        );
-      case 'accessibility':
-        return <AccessibilitySettings settings={settings} updateSetting={updateSetting} />;
-      case 'backup':
-        return <BackupRestoreSettings />;
-      case 'audit':
-        return <AuditLogSettings />;
-      case 'versioning':
-        return <VersioningSettings />;
       case 'about':
         return (
           <div className="space-y-4 px-4 py-2">
@@ -450,7 +305,7 @@ const Settings = () => {
                   className="flex w-full items-center gap-3 rounded-[2px] p-2 text-left text-xp-text transition-colors hover:bg-xp-surface-light"
                 >
                   <Github size={18} className="text-xp-text-muted" />
-                  <span className="text-sm">GitHub Repository</span>
+                  <span className="text-sm">{t('interface.githubRepository')}</span>
                   <ExternalLink size={14} className="ml-auto text-xp-text-muted" />
                 </button>
                 <button
@@ -458,7 +313,7 @@ const Settings = () => {
                   className="flex w-full items-center gap-3 rounded-[2px] p-2 text-left text-xp-text transition-colors hover:bg-xp-surface-light"
                 >
                   <Github size={18} className="text-xp-text-muted" />
-                  <span className="text-sm">Releases</span>
+                  <span className="text-sm">{t('interface.releases')}</span>
                   <ExternalLink size={14} className="ml-auto text-xp-text-muted" />
                 </button>
               </div>

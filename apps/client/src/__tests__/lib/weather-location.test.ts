@@ -10,7 +10,7 @@ describe('weather location storage', () => {
   it('merges a resolved location without replacing unrelated settings', () => {
     localStorage.setItem(
       SETTINGS_KEY,
-      JSON.stringify({ ...DEFAULT_SETTINGS, fontSize: 'large', showHiddenFiles: true }),
+      JSON.stringify({ ...DEFAULT_SETTINGS, aiCustomModel: 'my-model', showHiddenFiles: true }),
     );
     const changed = vi.fn();
     window.addEventListener('wisp-settings-changed', changed, { once: true });
@@ -19,7 +19,7 @@ describe('weather location storage', () => {
 
     const persisted = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}');
     expect(persisted).toMatchObject({
-      fontSize: 'large',
+      aiCustomModel: 'my-model',
       showHiddenFiles: true,
       weatherCity: '北京',
       weatherLat: 39.9042,

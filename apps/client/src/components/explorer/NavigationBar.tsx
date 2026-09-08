@@ -6,6 +6,7 @@ import { getCollection } from '@/lib/collections';
 import { renderIcon } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import PathBreadcrumbs from './PathBreadcrumbs';
+import { addressToWebUrl } from '@/lib/address-url';
 
 interface NavigationBarProps {
   currentPath: string;
@@ -172,6 +173,7 @@ const NavigationBar = ({
 
   // Track whether a suggestion was just selected (to skip re-fetching)
   const justSelectedRef = useRef(false);
+  const inputGeneration = useRef(0);
 
   useEffect(() => {
     if (!isEditingPath) setEditPathValue(currentPath);
@@ -203,7 +205,8 @@ const NavigationBar = ({
   // ── Fetch autocomplete suggestions ──────────────────────────────────────────
 
   const fetchSuggestions = useCallback(async (inputPath: string) => {
-    if (!inputPath || inputPath.startsWith('wisp://')) {
+    const generation = inputGeneration.current;
+    if (!inputPath || inputPath.startsWith('wisp://') || addressToWebUrl(inputPath)) {
       setSuggestions([]);
       setShowDropdown(false);
       return;
@@ -220,6 +223,7 @@ const NavigationBar = ({
       }
 
       const entries = await TauriAPI.readDirectory(parentDir);
+      if (generation !== inputGeneration.current) return;
       const dirs = entries
         .filter((e) => e.is_dir)
         .filter((e) => {
@@ -239,6 +243,7 @@ const NavigationBar = ({
       setSelectedIndex(-1);
       setShowDropdown(dirs.length > 0);
     } catch {
+      if (generation !== inputGeneration.current) return;
       setSuggestions([]);
       setShowDropdown(false);
     }
@@ -247,7 +252,8 @@ const NavigationBar = ({
   // ── Validate path existence ─────────────────────────────────────────────────
 
   const validatePath = useCallback(async (inputPath: string) => {
-    if (!inputPath || inputPath.startsWith('wisp://')) {
+    const generation = inputGeneration.current;
+    if (!inputPath || inputPath.startsWith('wisp://') || addressToWebUrl(inputPath)) {
       setValidation('idle');
       return;
     }
@@ -256,8 +262,10 @@ const NavigationBar = ({
     try {
       const expanded = await expandTilde(inputPath);
       await TauriAPI.getFileProperties(expanded);
+      if (generation !== inputGeneration.current) return;
       setValidation('valid');
     } catch {
+      if (generation !== inputGeneration.current) return;
       setValidation('invalid');
     }
   }, []);
@@ -266,7 +274,12 @@ const NavigationBar = ({
 
   const handleInputChange = useCallback(
     (value: string) => {
+      inputGeneration.current++;
       setEditPathValue(value);
+      setValidation('idle');
+      setSuggestions([]);
+      setSelectedIndex(-1);
+      setShowDropdown(false);
 
       if (justSelectedRef.current) {
         justSelectedRef.current = false;
@@ -291,6 +304,8 @@ const NavigationBar = ({
 
   const selectSuggestion = useCallback(
     (suggestion: AutocompleteSuggestion) => {
+      inputGeneration.current++;
+      if (validationTimer.current) clearTimeout(validationTimer.current);
       justSelectedRef.current = true;
       setEditPathValue(suggestion.fullPath);
       setShowDropdown(false);
@@ -311,18 +326,37 @@ const NavigationBar = ({
   // ── Submit / Cancel ─────────────────────────────────────────────────────────
 
   const handleSubmit = useCallback(async () => {
+    const generation = ++inputGeneration.current;
+    if (autocompleteTimer.current) clearTimeout(autocompleteTimer.current);
+    if (validationTimer.current) clearTimeout(validationTimer.current);
     setIsEditingPath(false);
     setShowDropdown(false);
     setSuggestions([]);
     setValidation('idle');
     const trimmed = editPathValue.trim();
     if (trimmed && trimmed !== currentPath && navigateToPath) {
-      const expanded = await expandTilde(trimmed);
-      navigateToPath(expanded);
+      const webUrl = addressToWebUrl(trimmed);
+      let destination = webUrl ?? (await expandTilde(trimmed));
+      // An existing local item named e.g. github.com wins over an implicit
+      // website. Users can still choose the website with an explicit scheme.
+      if (webUrl && !/^https?:\/\//i.test(trimmed) && /^(?:\/|[A-Za-z]:[\\/])/.test(currentPath)) {
+        const separator = currentPath.includes('\\') ? '\\' : '/';
+        const candidate = `${currentPath.replace(/[/\\]+$/, '')}${separator}${trimmed}`;
+        try {
+          const properties = await TauriAPI.getFileProperties(candidate);
+          if (typeof properties.is_dir === 'boolean') destination = candidate;
+        } catch {
+          /* No local match; use the recognized web address. */
+        }
+      }
+      if (generation === inputGeneration.current) navigateToPath(destination);
     }
   }, [editPathValue, currentPath, navigateToPath]);
 
   const handleCancel = useCallback(() => {
+    inputGeneration.current++;
+    if (autocompleteTimer.current) clearTimeout(autocompleteTimer.current);
+    if (validationTimer.current) clearTimeout(validationTimer.current);
     setIsEditingPath(false);
     setEditPathValue(currentPath);
     setShowDropdown(false);
@@ -334,6 +368,7 @@ const NavigationBar = ({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.nativeEvent.isComposing || e.keyCode === 229) return;
       if (e.key === 'Escape') {
         if (showDropdown) {
           e.preventDefault();

@@ -84,11 +84,6 @@ vi.mock('@/hooks/use-vim-mode', () => ({
   setVimLearningModeSetting: vi.fn(),
 }));
 
-vi.mock('@/hooks/use-tour', () => ({
-  startTour: vi.fn(),
-  resetTourCompleted: vi.fn(),
-}));
-
 // The global setup mocks '@/lib/utils' with a stubbed applyTheme and no
 // `themes` registry — this test needs the real implementations.
 vi.mock('@/lib/utils', async () => {

@@ -252,8 +252,6 @@ pub async fn create_symlink(target: String, link_path: String) -> Result<(), Str
             }
         }
 
-        crate::audit_log::log_operation("create_symlink", vec![link_path, target], None, true);
-
         Ok(())
     })
     .await
@@ -357,9 +355,11 @@ mod tests {
         let temp = tempdir().expect("Failed to create temp dir");
         let file_path = temp.path().join("blob.bin");
 
-        let result =
-            write_binary_file(file_path.to_string_lossy().to_string(), vec![0x89, 0x50, 0x4e, 0x47])
-                .await;
+        let result = write_binary_file(
+            file_path.to_string_lossy().to_string(),
+            vec![0x89, 0x50, 0x4e, 0x47],
+        )
+        .await;
 
         assert!(result.is_ok(), "write_binary_file should succeed");
         let bytes = fs::read(&file_path).expect("read back written file");

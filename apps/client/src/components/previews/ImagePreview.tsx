@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
 import { PreviewProps } from '@/lib/preview-factory';
 import { convertAssetUrl } from '@/lib/transport';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
 
 const ImagePreview = ({ file, onError, onLoad }: PreviewProps) => {
+  const { t: tUi } = useTranslation();
   const [imageError, setImageError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [imageSrc, setImageSrc] = useState<string>('');
@@ -55,8 +57,10 @@ const ImagePreview = ({ file, onError, onLoad }: PreviewProps) => {
                 clipRule="evenodd"
               />
             </svg>
-            <p className="text-sm">Cannot preview image</p>
-            <p className="mt-1 text-xs opacity-70">The image format may not be supported</p>
+            <p className="text-sm">{tUi('interface.cannotPreviewImage')}</p>
+            <p className="mt-1 text-xs opacity-70">
+              {tUi('interface.theImageFormatMayNotBeSupported')}
+            </p>
           </div>
         </div>
       )}

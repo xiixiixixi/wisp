@@ -335,7 +335,7 @@ const PasteRenameDialog = React.memo(
                 <path d="M12 10v8" />
               </svg>
               <span style={{ color: 'var(--xp-text)', fontSize: '14px', fontWeight: 600 }}>
-                Paste &amp; Rename — {orderedFiles.length} files
+                {t('messages.pasteRenameTitle', { count: orderedFiles.length })}
               </span>
             </div>
             <button
@@ -438,7 +438,7 @@ const PasteRenameDialog = React.memo(
                   marginBottom: '6px',
                 }}
               >
-                Paste new names (one per line):
+                {t('interface.pasteNewNamesOnePerLineLabel')}
               </label>
               <textarea
                 ref={textareaRef}
@@ -497,11 +497,16 @@ const PasteRenameDialog = React.memo(
                   <line x1="12" y1="17" x2="12.01" y2="17" />
                 </svg>
                 <span>
-                  Count mismatch: {parsedNames.length} name{parsedNames.length !== 1 ? 's' : ''}{' '}
-                  pasted for {orderedFiles.length} file{orderedFiles.length !== 1 ? 's' : ''}.
-                  {parsedNames.length > orderedFiles.length
-                    ? ` Extra ${parsedNames.length - orderedFiles.length} name(s) will be ignored.`
-                    : ` Last ${orderedFiles.length - parsedNames.length} file(s) will keep their current names.`}
+                  {t('messages.renameCountMismatch', {
+                    names: parsedNames.length,
+                    files: orderedFiles.length,
+                  })}{' '}
+                  {t(
+                    parsedNames.length > orderedFiles.length
+                      ? 'messages.extraNames'
+                      : 'messages.missingNames',
+                    { count: Math.abs(parsedNames.length - orderedFiles.length) },
+                  )}
                 </span>
               </div>
             )}
@@ -518,7 +523,9 @@ const PasteRenameDialog = React.memo(
                   color: 'var(--xp-red)',
                 }}
               >
-                <div style={{ fontWeight: 600, marginBottom: '4px' }}>Rename errors:</div>
+                <div style={{ fontWeight: 600, marginBottom: '4px' }}>
+                  {t('interface.renameErrorsLabel')}
+                </div>
                 {errors.map((err, i) => (
                   // eslint-disable-next-line react/no-array-index-key
                   <div key={i}>{err}</div>
@@ -537,7 +544,7 @@ const PasteRenameDialog = React.memo(
                     marginBottom: '8px',
                   }}
                 >
-                  Preview ({effectiveCount} rename{effectiveCount !== 1 ? 's' : ''}):
+                  {t('messages.renamePreview', { count: effectiveCount })}
                 </div>
                 <div
                   style={{
@@ -562,9 +569,9 @@ const PasteRenameDialog = React.memo(
                     }}
                   >
                     <span>#</span>
-                    <span>Current Name</span>
+                    <span>{t('interface.currentName')}</span>
                     <span />
-                    <span>New Name</span>
+                    <span>{t('interface.newName')}</span>
                   </div>
 
                   {/* Table Body */}
@@ -701,7 +708,7 @@ const PasteRenameDialog = React.memo(
                                   }}
                                   title={newName}
                                 >
-                                  {isUnchanged ? '(unchanged)' : newName}
+                                  {isUnchanged ? t('interface.unchanged') : newName}
                                 </span>
                                 {lineErrors.length > 0 && (
                                   <div style={{ marginTop: '2px' }}>
@@ -733,7 +740,7 @@ const PasteRenameDialog = React.memo(
                                   fontSize: '11px',
                                 }}
                               >
-                                (no name provided)
+                                {t('interface.noNameProvided')}
                               </span>
                             )}
                           </div>
@@ -759,7 +766,9 @@ const PasteRenameDialog = React.memo(
             <div style={{ fontSize: '11px', color: 'var(--xp-text-muted)' }}>
               {validationErrors.filter((e) => e.type !== 'extension-change').length > 0 && (
                 <span style={{ color: 'var(--xp-red)' }}>
-                  {validationErrors.filter((e) => e.type !== 'extension-change').length} error(s)
+                  {t('counts.errors', {
+                    count: validationErrors.filter((e) => e.type !== 'extension-change').length,
+                  })}
                 </span>
               )}
               {validationErrors.filter((e) => e.type === 'extension-change').length > 0 && (
@@ -772,7 +781,9 @@ const PasteRenameDialog = React.memo(
                         : undefined,
                   }}
                 >
-                  {validationErrors.filter((e) => e.type === 'extension-change').length} warning(s)
+                  {t('counts.warnings', {
+                    count: validationErrors.filter((e) => e.type === 'extension-change').length,
+                  })}
                 </span>
               )}
             </div>
@@ -798,7 +809,7 @@ const PasteRenameDialog = React.memo(
                   e.currentTarget.style.color = 'var(--xp-text-secondary)';
                 }}
               >
-                Cancel
+                {t('conflict.cancel')}
               </button>
               <button
                 onClick={handleApply}

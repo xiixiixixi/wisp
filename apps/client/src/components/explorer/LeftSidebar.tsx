@@ -27,11 +27,10 @@ interface LeftSidebarProps {
   width?: number;
   searchPanelOpen?: boolean;
   onToggleSearchPanel?: () => void;
-  'data-tour'?: string;
 }
 
 const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function LeftSidebar(
-  { currentPath, navigateToPath, handleFileRightClick, width, 'data-tour': dataTour },
+  { currentPath, navigateToPath, handleFileRightClick, width },
   ref,
 ) {
   const { t } = useTranslation();
@@ -71,7 +70,6 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
 
   return (
     <nav
-      data-tour={dataTour}
       role="navigation"
       aria-label={t('sidebar.explorerSidebar')}
       className="wisp-sidebar wisp-no-select flex flex-shrink-0 flex-col border-r border-xp-border bg-xp-surface"
@@ -93,7 +91,7 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
           if (!renderer) {
             return (
               <div className="flex flex-1 items-center justify-center p-4 text-xs text-xp-text-muted">
-                Extension tab not available
+                {t('interface.extensionTabNotAvailable')}
               </div>
             );
           }

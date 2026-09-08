@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { MARKETPLACE_API_URL } from '@/lib/constants';
 import { TauriAPI } from '@/lib/tauri-api';
 import React from 'react';
@@ -21,6 +22,7 @@ const ExtensionDetailDialog = ({
   isInstalling,
   onInstall,
 }: ExtensionDetailDialogProps) => {
+  const { t: tUi } = useTranslation();
   if (!isOpen || !extension) return null;
 
   const renderStars = (rating: number) => {
@@ -85,7 +87,7 @@ const ExtensionDetailDialog = ({
           <button
             onClick={onClose}
             className="flex-shrink-0 rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-            aria-label="Close"
+            aria-label={tUi('agentManager.workspace.close')}
           >
             <X className="h-5 w-5" />
           </button>
@@ -101,18 +103,20 @@ const ExtensionDetailDialog = ({
                 {extension.averageRating.toFixed(1)}
               </span>
               <span className="text-xs text-xp-text-muted">
-                ({extension.reviewCount} review{extension.reviewCount !== 1 ? 's' : ''})
+                ({tUi('counts.reviews', { count: extension.reviewCount })})
               </span>
             </div>
             <span className="flex items-center gap-1 text-sm text-xp-text-muted">
               <Download className="h-4 w-4" />
-              {extension.downloadCount.toLocaleString()} downloads
+              {tUi('counts.downloads', { count: extension.downloadCount })}
             </span>
           </div>
 
           {/* Description */}
           <div>
-            <h3 className="mb-1.5 text-sm font-medium text-xp-text">Description</h3>
+            <h3 className="mb-1.5 text-sm font-medium text-xp-text">
+              {tUi('interface.description')}
+            </h3>
             <p className="text-sm leading-relaxed text-xp-text-muted">{extension.description}</p>
           </div>
 
@@ -121,7 +125,7 @@ const ExtensionDetailDialog = ({
             <div>
               <h3 className="mb-1.5 flex items-center gap-1 text-sm font-medium text-xp-text">
                 <Tag className="h-3.5 w-3.5" />
-                Categories
+                {tUi('organizer.categories')}
               </h3>
               <div className="flex flex-wrap gap-1.5">
                 {extension.categories.map((cat) => (
@@ -141,7 +145,7 @@ const ExtensionDetailDialog = ({
             <div>
               <h3 className="mb-1.5 flex items-center gap-1 text-sm font-medium text-xp-text">
                 <Shield className="h-3.5 w-3.5" />
-                Permissions
+                {tUi('settings.tabs.permissions')}
               </h3>
               <div className="space-y-1">
                 {extension.permissions.map((perm) => (
@@ -168,12 +172,12 @@ const ExtensionDetailDialog = ({
             className="flex items-center gap-1.5 rounded-[2px] border border-xp-border px-3 py-1.5 text-sm text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
           >
             <ExternalLink className="h-3.5 w-3.5" />
-            View on Web
+            {tUi('interface.viewOnWeb')}
           </button>
 
           {isInstalled ? (
             <span className="rounded-[2px] border border-xp-green/30 bg-xp-green/20 px-4 py-1.5 text-sm text-xp-green">
-              Installed
+              {tUi('agentManager.cockpit.statusInstalled')}
             </span>
           ) : (
             <button
@@ -184,12 +188,12 @@ const ExtensionDetailDialog = ({
               {isInstalling ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Installing...
+                  {tUi('agentManager.skillsBrowser.installing')}
                 </>
               ) : (
                 <>
                   <Download className="h-4 w-4" />
-                  Install
+                  {tUi('agentManager.skillsBrowser.install')}
                 </>
               )}
             </button>

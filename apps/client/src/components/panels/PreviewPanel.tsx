@@ -204,13 +204,13 @@ const EnhancedFilePreview: React.FC<{
     <div className="flex h-full items-center justify-center">
       <div className="text-center">
         <div className="mb-4 text-4xl">{getFileIcon(file)}</div>
-        <p className="mb-2 text-sm text-xp-text-secondary">No preview available</p>
+        <p className="mb-2 text-sm text-xp-text-secondary">{t('interface.noPreviewAvailable')}</p>
         <p className="text-xs text-xp-text-secondary">
           {file.size > 50 * 1024 * 1024
             ? i18n.t('previewPanel.tooLarge')
             : i18n.t('previewPanel.notSupported')}
         </p>
-        <p className="mt-1 text-xs text-xp-text-secondary">Double-click to open</p>
+        <p className="mt-1 text-xs text-xp-text-secondary">{t('interface.doubleClickToOpen')}</p>
       </div>
     </div>
   );
@@ -223,6 +223,7 @@ const FolderDetails: React.FC<{
   isCalculatingSize?: (path: string) => boolean;
   formatFileSize: (bytes: number) => string;
 }> = ({ file, getFolderSize, isCalculatingSize, formatFileSize }) => {
+  const { t: tUi } = useTranslation();
   const folderSize = getFolderSize?.(file.path);
   const calculating = isCalculatingSize?.(file.path) || false;
 
@@ -230,24 +231,24 @@ const FolderDetails: React.FC<{
     <div className="flex h-full flex-col items-center justify-center">
       <div className="max-w-sm rounded-[2px] border border-xp-border bg-xp-surface p-6 text-center">
         <div className="mb-4 text-4xl">{getFileIcon(file)}</div>
-        <h4 className="mb-4 text-sm font-medium text-xp-text">Folder Contents</h4>
+        <h4 className="mb-4 text-sm font-medium text-xp-text">{tUi('interface.folderContents')}</h4>
         <div className="space-y-3 text-sm">
           {folderSize && (
             <>
               <div className="flex justify-between">
-                <span className="text-xp-text-secondary">Total Size:</span>
+                <span className="text-xp-text-secondary">{tUi('interface.totalSizeLabel')}</span>
                 <span>{formatFileSize(folderSize.total_size)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-xp-text-secondary">Files:</span>
+                <span className="text-xp-text-secondary">{tUi('dialogs.extract.files')}</span>
                 <span>{folderSize.file_count}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-xp-text-secondary">Folders:</span>
+                <span className="text-xp-text-secondary">{tUi('interface.foldersLabel')}</span>
                 <span>{folderSize.dir_count}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-xp-text-secondary">Total Items:</span>
+                <span className="text-xp-text-secondary">{tUi('interface.totalItemsLabel')}</span>
                 <span>{folderSize.file_count + folderSize.dir_count}</span>
               </div>
             </>
@@ -270,13 +271,13 @@ const FolderDetails: React.FC<{
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Calculating size...
+                {tUi('interface.calculatingSize')}
               </div>
             </div>
           )}
           {!folderSize && !calculating && (
             <div className="py-2 text-center text-xs text-xp-text-secondary">
-              Click to calculate folder size
+              {tUi('explorer.details.calculateTitle')}
             </div>
           )}
         </div>
@@ -293,6 +294,7 @@ const PreviewPanel = ({
   isCalculatingSize,
   currentPath,
 }: PreviewPanelProps) => {
+  const { t: tUi } = useTranslation();
   const [showProperties, setShowProperties] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
   const copyFeedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -438,7 +440,7 @@ const PreviewPanel = ({
           onClick={() => setShowProperties(!showProperties)}
           className="flex w-full items-center justify-between px-3 py-2 text-left transition-colors hover:bg-xp-surface-light"
           aria-expanded={showProperties}
-          aria-label={`${showProperties ? 'Hide' : 'Show'} file properties`}
+          aria-label={`${showProperties ? tUi('pages.gdrive.hideSecret') : tUi('pages.gdrive.showSecret')} file properties`}
         >
           <div className="flex min-w-0 items-center">
             <div className="mr-2 shrink-0 text-lg">{getFileIcon(selectedFile)}</div>
@@ -447,7 +449,9 @@ const PreviewPanel = ({
                 {selectedFile.name}
               </h3>
               <p className="text-xs text-xp-text-secondary">
-                {selectedFile.is_dir ? 'Folder' : formatFileSize(selectedFile.size)}
+                {selectedFile.is_dir
+                  ? tUi('commandPalette.folderType')
+                  : formatFileSize(selectedFile.size)}
               </p>
             </div>
           </div>
@@ -469,15 +473,15 @@ const PreviewPanel = ({
           <div className="px-3 pb-3">
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between">
-                <span className="text-xp-text-muted">Type:</span>
+                <span className="text-xp-text-muted">{tUi('interface.typeLabel')}</span>
                 <span className="font-medium text-xp-text">
-                  {selectedFile.is_dir ? 'Folder' : 'File'}
+                  {selectedFile.is_dir ? tUi('commandPalette.folderType') : tUi('fileType.File')}
                 </span>
               </div>
 
               {!selectedFile.is_dir && (
                 <div className="flex justify-between">
-                  <span className="text-xp-text-muted">Size:</span>
+                  <span className="text-xp-text-muted">{tUi('interface.sizeLabel')}</span>
                   <span className="font-medium tabular-nums text-xp-text">
                     {formatFileSize(selectedFile.size)}
                   </span>
@@ -485,7 +489,7 @@ const PreviewPanel = ({
               )}
 
               <div className="flex justify-between">
-                <span className="text-xp-text-muted">Modified:</span>
+                <span className="text-xp-text-muted">{tUi('interface.modifiedLabel')}</span>
                 <span className="font-medium tabular-nums text-xp-text">
                   {formatDate(selectedFile.modified)}
                 </span>
@@ -493,7 +497,7 @@ const PreviewPanel = ({
 
               {selectedFile.mime_type && (
                 <div className="flex justify-between">
-                  <span className="text-xp-text-muted">MIME Type:</span>
+                  <span className="text-xp-text-muted">{tUi('interface.mimeTypeLabel')}</span>
                   <span className="break-all text-right text-xp-text">
                     {selectedFile.mime_type}
                   </span>
@@ -501,13 +505,13 @@ const PreviewPanel = ({
               )}
 
               <div className="flex justify-between">
-                <span className="text-xp-text-muted">Category:</span>
+                <span className="text-xp-text-muted">{tUi('interface.categoryLabel')}</span>
                 <span className="font-medium capitalize text-xp-text">{category}</span>
               </div>
 
               <div className="space-y-1 pt-0.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xp-text-muted">Path:</span>
+                  <span className="text-xp-text-muted">{tUi('interface.pathLabel')}</span>
                   <button
                     onClick={handleCopyPath}
                     className={`rounded-[2px] border px-2.5 py-0.5 text-[11px] transition-colors ${

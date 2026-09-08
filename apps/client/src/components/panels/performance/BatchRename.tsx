@@ -67,7 +67,7 @@ const BatchRename = ({ files, onDone }: { files: FileEntry[]; onDone: () => void
       setPreview([]);
       onDone();
     } catch {
-      // audit log records failures; panel refresh shows state
+      // Panel refresh shows the latest file state.
     } finally {
       setRunning(false);
     }

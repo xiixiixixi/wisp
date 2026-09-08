@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import React, { useRef, useState, useMemo, useLayoutEffect, useEffect, useCallback } from 'react';
 import ExtensionPanelHost from './ExtensionPanelHost';
@@ -60,6 +61,7 @@ const RightSidebar = ({
   currentPath,
   navigateToPath,
 }: RightSidebarProps) => {
+  const { t: tUi } = useTranslation();
   const outerRef = useRef<HTMLDivElement>(null);
   const panelContentRef = useRef<HTMLDivElement>(null);
   const [measuredHeight, setMeasuredHeight] = useState<number>(0);
@@ -357,7 +359,7 @@ const RightSidebar = ({
           <React.Suspense
             fallback={
               <div className="flex flex-1 items-center justify-center text-xs text-xp-text-secondary">
-                Loading...
+                {tUi('panels.notes.loading')}
               </div>
             }
           >

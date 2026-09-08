@@ -10,6 +10,16 @@ import './index.css';
 import './styles/liquid-glass.css';
 import './styles/fluid-glass.css';
 import { migrateLegacyDefaultView } from './lib/view-default';
+import { installNativeTextEditing } from './lib/native-text-editing';
+import { installNativeMenuLanguage } from './lib/native-menu-language';
+import { migrateRetiredSettings } from './lib/retired-settings';
+
+migrateRetiredSettings();
+
+const disposeNativeTextEditing = installNativeTextEditing();
+if (import.meta.hot) import.meta.hot.dispose(disposeNativeTextEditing);
+const disposeNativeMenuLanguage = installNativeMenuLanguage();
+if (import.meta.hot) import.meta.hot.dispose(disposeNativeMenuLanguage);
 
 // One-time rewrite of stored legacy view defaults ('grid'/'medium') to details
 migrateLegacyDefaultView();

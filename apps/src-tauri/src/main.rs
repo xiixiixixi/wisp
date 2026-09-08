@@ -8,27 +8,25 @@ use tauri::{Emitter, Listener, Manager, WindowEvent};
 use wisp::agent;
 use wisp::agent_sessions;
 use wisp::ai;
-use wisp::project_memory;
 use wisp::duplicate_finder;
 use wisp::extensions;
 use wisp::file_organizer;
 use wisp::file_watcher;
-use wisp::search;
-use wisp::weather;
-use wisp::webview_tabs;
 use wisp::git;
 use wisp::google_drive;
 use wisp::mcp_host;
 use wisp::mcp_server;
 use wisp::mouse_navigation;
 use wisp::operations;
+use wisp::project_memory;
 use wisp::pty;
+use wisp::search;
 use wisp::shortcuts;
 use wisp::storage;
+use wisp::weather;
+use wisp::webview_tabs;
 // git_integration is consolidated into git module
-use wisp::audit_log;
 use wisp::backup;
-use wisp::file_versions;
 use wisp::sync;
 
 use tracing::warn;
@@ -69,45 +67,11 @@ fn main() {
             // the web UI (users fell back to Ctrl+… Windows-style). Replace it
             // with a lean menu whose only key equivalents are ones we want
             // native: ⌘, (Settings, forwarded to the web UI) and ⌘Q (Quit).
-            // Everything else reaches the webview and is handled by the
-            // Finder-aligned shortcut system in JS.
+            // Everything else reaches the webview. File shortcuts stay in JS;
+            // text-editing shortcuts explicitly call text_editing's AppKit
+            // responder bridge so input fields retain native clipboard/undo.
             #[cfg(target_os = "macos")]
-            {
-                use tauri::menu::{AboutMetadata, MenuBuilder, MenuItem, SubmenuBuilder};
-
-                let handle = app.handle();
-                let settings_item = MenuItem::with_id(
-                    handle,
-                    "open-settings",
-                    "Settings…",
-                    true,
-                    Some("CmdOrCtrl+,".to_string()),
-                )?;
-
-                let menu = MenuBuilder::new(handle)
-                    .item(
-                        &SubmenuBuilder::new(handle, "Wisp")
-                            .about(Some(AboutMetadata::default()))
-                            .separator()
-                            .item(&settings_item)
-                            .separator()
-                            .services()
-                            .hide()
-                            .hide_others()
-                            .separator()
-                            .quit()
-                            .build()?,
-                    )
-                    .item(&SubmenuBuilder::new(handle, "View").fullscreen().build()?)
-                    .item(
-                        &SubmenuBuilder::new(handle, "Window")
-                            .minimize()
-                            .maximize()
-                            .build()?,
-                    )
-                    .build()?;
-                app.set_menu(menu)?;
-            }
+            wisp::app_menu::install(app.handle(), "zh")?;
 
             app.on_menu_event(move |handle, event| {
                 if event.id() == "open-settings" {
@@ -271,11 +235,8 @@ fn main() {
                     if let Ok(exe) = std::env::current_exe() {
                         let cli_src = exe.parent().map(|p| {
                             // In .app bundle: Contents/MacOS/wisp → Contents/Resources/wisp.mjs
-                            let resources = p
-                                .parent()
-                                .unwrap_or(p)
-                                .join("Resources")
-                                .join("wisp.mjs");
+                            let resources =
+                                p.parent().unwrap_or(p).join("Resources").join("wisp.mjs");
                             if resources.exists() {
                                 resources
                             } else {
@@ -311,8 +272,12 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            wisp::text_editing::perform_native_edit_action,
+            wisp::app_menu::set_app_menu_language,
             // File system operations (modular)
             webview_tabs::web_tab_create,
+            webview_tabs::web_tab_navigate,
+            webview_tabs::web_tab_reload,
             webview_tabs::web_tab_bounds,
             webview_tabs::web_tab_visibility,
             webview_tabs::web_tab_destroy,
@@ -660,10 +625,6 @@ fn main() {
             // Git integration (consolidated into git module)
             git::status::get_git_status,
             git::status::get_git_repo_info,
-            // Audit log operations
-            audit_log::get_audit_log,
-            audit_log::clear_audit_log,
-            audit_log::export_audit_log,
             // Backup operations
             backup::create_backup,
             backup::list_backups,
@@ -683,19 +644,6 @@ fn main() {
             operations::add_context_menu_entry,
             operations::remove_context_menu_entry,
             operations::get_shell_integration_status,
-            // File versioning operations
-            file_versions::enable_versioning,
-            file_versions::disable_versioning,
-            file_versions::create_version,
-            file_versions::list_versions,
-            file_versions::restore_version,
-            file_versions::delete_version,
-            file_versions::get_versioning_config,
-            file_versions::update_versioning_config,
-            file_versions::is_versioning_enabled,
-            file_versions::get_version_count,
-            file_versions::delete_all_versions,
-            file_versions::read_version_content,
             // PTY (interactive terminal) operations
             pty::pty_spawn,
             pty::pty_write,

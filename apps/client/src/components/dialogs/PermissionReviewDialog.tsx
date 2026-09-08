@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import i18n from '@/i18n';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -30,6 +31,7 @@ const PermissionReviewDialog = ({
   onApprove,
   installing = false,
 }: PermissionReviewDialogProps) => {
+  const { t: tUi } = useTranslation();
   if (!manifest) return null;
 
   const permissions = manifest.permissions ?? [];
@@ -43,7 +45,7 @@ const PermissionReviewDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xp-text">
             <Puzzle className="h-5 w-5 text-xp-blue" />
-            Review Extension
+            {tUi('interface.reviewExtension')}
           </DialogTitle>
         </DialogHeader>
 
@@ -83,12 +85,12 @@ const PermissionReviewDialog = ({
           {verified ? (
             <>
               <ShieldCheck className="h-4 w-4" />
-              Verified — Signature matches
+              {tUi('interface.verifiedSignatureMatches')}
             </>
           ) : (
             <>
               <ShieldQuestion className="h-4 w-4" />
-              Unsigned — This extension has not been verified
+              {tUi('interface.unsignedThisExtensionHasNotBeenVerified')}
             </>
           )}
         </div>
@@ -97,19 +99,19 @@ const PermissionReviewDialog = ({
         <div>
           <div className="mb-2 flex items-center justify-between">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-xp-text">
-              Permissions ({permissions.length})
+              {tUi('messages.permissions', { count: permissions.length })}
             </h4>
             {hasDanger && (
               <span className="flex items-center gap-1 text-xs text-xp-red">
                 <ShieldAlert className="h-3 w-3" />
-                {counts.danger} dangerous
+                {counts.danger} {tUi('permissions.bulk.dangerous')}
               </span>
             )}
           </div>
 
           {permissions.length === 0 ? (
             <div className="rounded-[2px] border border-xp-border bg-xp-surface p-3 text-center text-xs text-xp-text-muted">
-              This extension requests no special permissions.
+              {tUi('interface.thisExtensionRequestsNoSpecialPermissions')}
             </div>
           ) : (
             <ScrollArea className="max-h-52">
@@ -143,7 +145,7 @@ const PermissionReviewDialog = ({
             onClick={onClose}
             className="border-xp-border text-xp-text hover:bg-xp-surface-light"
           >
-            Cancel
+            {tUi('conflict.cancel')}
           </Button>
           <Button
             size="sm"

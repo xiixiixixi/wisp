@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   FOLDER_COLORS,
@@ -23,6 +24,7 @@ interface FolderColorLegendProps {
 
 const FolderColorLegend = React.memo(
   ({ files, onFilterByColor, activeColorFilter }: FolderColorLegendProps) => {
+    const { t: tUi } = useTranslation();
     // Re-read folder colors whenever they change
     const [allColors, setAllColors] = useState<FolderColor[]>(() => getAllFolderColors());
 
@@ -85,7 +87,7 @@ const FolderColorLegend = React.memo(
           gap: 8,
           padding: '0 4px',
         }}
-        aria-label="Folder color legend"
+        aria-label={tUi('interface.folderColorLegend')}
       >
         {entries.map(({ def, count }) => {
           const isActive = activeColorFilter === def.id;
@@ -93,8 +95,11 @@ const FolderColorLegend = React.memo(
             <button
               key={def.id}
               onClick={() => handleClick(def.id)}
-              title={`${colorName(def.id)}: ${count} folder${count !== 1 ? 's' : ''}${isActive ? ' (click to clear filter)' : ''}`}
-              aria-label={`${colorName(def.id)}: ${count} folder${count !== 1 ? 's' : ''}`}
+              title={tUi(isActive ? 'messages.colorFoldersActive' : 'messages.colorFolders', {
+                color: colorName(def.id),
+                count,
+              })}
+              aria-label={tUi('messages.colorFolders', { color: colorName(def.id), count })}
               aria-pressed={isActive}
               style={{
                 display: 'inline-flex',

@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 /**
  * Agent Conversation View — dedicated message view for a single agent session.
  *
@@ -341,7 +342,7 @@ const MessageBubble = ({
             marginLeft: 'auto',
           }}
         >
-          {new Date(message.timestamp).toLocaleTimeString()}
+          {new Date(message.timestamp).toLocaleTimeString(getAppLocale())}
         </span>
       </div>
 

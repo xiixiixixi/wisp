@@ -425,7 +425,7 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
             <option value="o3">o3</option>
             <option value="o4-mini">o4-mini</option>
           </optgroup>
-          <optgroup label="Local (Ollama)">
+          <optgroup label={t('settings.ai.modelGroupLocalOllama')}>
             <option value="llama3.3">Llama 3.3</option>
             <option value="qwen3">Qwen 3</option>
             <option value="deepseek-r1">DeepSeek R1</option>

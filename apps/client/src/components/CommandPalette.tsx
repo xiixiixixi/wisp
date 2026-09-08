@@ -1,6 +1,16 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useCallback,
+  useMemo,
+  useDeferredValue,
+} from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { TauriAPI, RecentFile } from '@/lib/tauri-api';
+import { searchGlobalFiles } from '@/lib/global-file-search';
+import { isBrowserDemoMode } from '@/lib/browser-demo-files';
 import { File, Files, Folder, Search, Sparkles, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -53,12 +63,16 @@ const CommandPaletteInner = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [fileResults, setFileResults] = useState<PaletteSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchPartial, setSearchPartial] = useState(false);
+  const [searchLimited, setSearchLimited] = useState(false);
   const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchGenerationRef = useRef(0);
   const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
+  const selectedSearchPathRef = useRef<string | undefined>(undefined);
+  const leadingItemCountRef = useRef(0);
 
   // Deferred query for filtering - input stays responsive while filtering catches up
   const deferredQuery = useDeferredValue(query);
@@ -161,8 +175,14 @@ const CommandPaletteInner = ({
   }, [effectiveQuery, isAssistantMode, recentFiles, onFileSelect, t]);
 
   // Show file results only when a query is typed and there are results
-  const showFileResults = !isAssistantMode && effectiveQuery.length >= 2 && fileResults.length > 0;
+  const showFileResults = !isAssistantMode && effectiveQuery.length > 0 && fileResults.length > 0;
   const totalItems = paletteItems.length + (showFileResults ? fileResults.length : 0);
+  useLayoutEffect(() => {
+    leadingItemCountRef.current = paletteItems.length;
+    selectedSearchPathRef.current = showFileResults
+      ? fileResults[selectedIndex - paletteItems.length]?.path
+      : undefined;
+  }, [fileResults, selectedIndex, paletteItems.length, showFileResults]);
 
   // Results can shrink asynchronously. Keep aria-activedescendant and Enter
   // within the current collection instead of leaving a stale or -1 index.
@@ -237,6 +257,12 @@ const CommandPaletteInner = ({
     count: virtualRows.length,
     getScrollElement: () => listRef.current,
     estimateSize,
+    getItemKey: (index) => {
+      const row = virtualRows[index];
+      if (row?.kind === 'search-file') return `search:${row.result.path}`;
+      if (row?.kind === 'recent-file') return `recent:${row.file.path}`;
+      return `${row?.kind}:${index}`;
+    },
     overscan: 8,
   });
 
@@ -245,7 +271,7 @@ const CommandPaletteInner = ({
     setSelectedIndex(0);
   }, [effectiveQuery, isAssistantMode]);
 
-  // Search files when query has no good command matches. Every query, path,
+  // Search both global sources regardless of the active pane. Every query,
   // mode, open/close transition receives a generation so stale results and
   // stale loading completions cannot overwrite the latest request.
   useEffect(() => {
@@ -254,64 +280,39 @@ const CommandPaletteInner = ({
     const q = query.trim();
     setFileResults([]);
     setIsSearching(false);
-    if (!isOpen || !q || q.length < 2 || isAssistantMode) return;
+    setSearchPartial(false);
+    setSearchLimited(false);
+    if (!isOpen || !q || isAssistantMode) return;
+    setIsSearching(true);
 
     searchTimerRef.current = setTimeout(async () => {
       if (generation !== searchGenerationRef.current) return;
       setIsSearching(true);
       try {
-        let results: PaletteSearchResult[] = [];
-        try {
-          const enhanced = await TauriAPI.enhancedSearch(q, undefined, 10);
-          // Indexed search contains files only; directory results come from
-          // the filesystem fallback and are classified explicitly below.
-          results = enhanced.results.map((result) => ({ ...result, isDir: false }));
-        } catch {
-          try {
-            const tokenResults = await TauriAPI.searchTokens(q, 10);
-            results = tokenResults.map((result) => ({ ...result, isDir: false }));
-          } catch {
-            /* ignore */
+        await searchGlobalFiles(q, ({ results, partial, limited }) => {
+          if (generation !== searchGenerationRef.current) return;
+          // A slower source can insert results above the active row. Keep
+          // Enter attached to the same path, not its former numeric position.
+          const selectedPath = selectedSearchPathRef.current;
+          if (selectedPath) {
+            const index = results.findIndex((result) => result.path === selectedPath);
+            if (index >= 0) setSelectedIndex(leadingItemCountRef.current + index);
           }
-        }
-        if (results.length === 0 && currentPath && !currentPath.startsWith('wisp://')) {
-          try {
-            const paths = await TauriAPI.findFiles(q, currentPath);
-            const classified = await Promise.all(
-              paths.slice(0, 10).map(async (path): Promise<PaletteSearchResult | null> => {
-                try {
-                  const isDir = await TauriAPI.isDir(path);
-                  return {
-                    path,
-                    filename: path.split(/[/\\]/).pop() || path,
-                    matches: [],
-                    score: 1,
-                    relevance_type: 'filesystem',
-                    isDir,
-                  };
-                } catch {
-                  // Omit an unclassified path instead of guessing from a dot
-                  // in its display name.
-                  return null;
-                }
-              }),
-            );
-            results = classified.filter((result): result is PaletteSearchResult => result !== null);
-          } catch {
-            /* ignore */
-          }
-        }
-        if (generation === searchGenerationRef.current) setFileResults(results);
+          setFileResults(results);
+          setSearchPartial(partial);
+          setSearchLimited(limited);
+        });
       } catch {
-        if (generation === searchGenerationRef.current) setFileResults([]);
+        if (generation === searchGenerationRef.current) setSearchPartial(true);
       } finally {
         if (generation === searchGenerationRef.current) setIsSearching(false);
       }
     }, 200);
     return () => {
       if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+      searchGenerationRef.current = generation + 1;
     };
-  }, [query, currentPath, isAssistantMode, isOpen]);
+  }, [query, isAssistantMode, isOpen]);
 
   // Scroll selected item into view via virtualizer
   useEffect(() => {
@@ -438,7 +439,7 @@ const CommandPaletteInner = ({
 
   const activeMode = mode;
   const locationLabel = useMemo(() => {
-    if (!currentPath) return t('commandPalette.everywhere');
+    if (!isAssistantMode || !currentPath) return t('commandPalette.everywhere');
     if (currentPath === 'wisp://home') return t('sidebar.home');
     return (
       currentPath
@@ -446,9 +447,12 @@ const CommandPaletteInner = ({
         .split(/[/\\]/)
         .pop() || currentPath
     );
-  }, [currentPath, t]);
+  }, [currentPath, isAssistantMode, t]);
 
   if (!isOpen) return null;
+  let subtitleKey = 'commandPalette.globalScope';
+  if (isAssistantMode) subtitleKey = 'commandPalette.subtitle';
+  else if (isBrowserDemoMode()) subtitleKey = 'commandPalette.demoScope';
 
   // ── Render a single virtual row ──────────────────────────────────────────
 
@@ -485,7 +489,6 @@ const CommandPaletteInner = ({
       case 'recent-file': {
         const rf = row.file;
         const isDir = rf.file_type.trim().toLowerCase() === 'folder';
-        const parentPath = rf.path.replace(/[/\\][^/\\]+$/, '');
         const isSelected = row.itemIndex === selectedIndex;
         return (
           <button
@@ -500,7 +503,7 @@ const CommandPaletteInner = ({
             <span style={iconWrapStyle}>{isDir ? <Folder size={14} /> : <File size={14} />}</span>
             <span style={fileNameContainerStyle}>
               <span style={fileNameStyle}>{rf.name}</span>
-              <span style={filePathStyle}>{parentPath}</span>
+              <span style={filePathStyle}>{rf.path}</span>
             </span>
             <span style={timestampStyle}>{formatTimestamp(rf.accessed_at * 1000)}</span>
           </button>
@@ -510,7 +513,6 @@ const CommandPaletteInner = ({
       case 'search-file': {
         const result = row.result;
         const isDir = result.isDir;
-        const parentPath = result.path.replace(/[/\\][^/\\]+$/, '');
         const isSelected = row.itemIndex === selectedIndex;
         return (
           <button
@@ -525,7 +527,7 @@ const CommandPaletteInner = ({
             <span style={iconWrapStyle}>{isDir ? <Folder size={14} /> : <File size={14} />}</span>
             <span style={fileNameContainerStyle}>
               <span style={fileNameStyle}>{result.filename}</span>
-              <span style={filePathStyle}>{parentPath}</span>
+              <span style={filePathStyle}>{result.path}</span>
             </span>
             <span style={timestampStyle}>
               {isDir ? t('commandPalette.folderType') : t('commandPalette.fileType')}
@@ -606,7 +608,7 @@ const CommandPaletteInner = ({
       }
       return (
         <div style={emptyStateStyle} role="status" aria-live="polite">
-          {t('commandPalette.noResults')}
+          {searchPartial ? t('commandPalette.searchUnavailable') : t('commandPalette.noResults')}
         </div>
       );
     }
@@ -624,6 +626,8 @@ const CommandPaletteInner = ({
           return (
             <div
               key={virtualRow.key}
+              data-index={virtualRow.index}
+              ref={virtualizer.measureElement}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -661,9 +665,7 @@ const CommandPaletteInner = ({
               <div className="text-sm font-semibold tracking-tight text-xp-text">
                 {t('commandPalette.title')}
               </div>
-              <div className="truncate text-[11px] text-xp-text-muted">
-                {t('commandPalette.subtitle')}
-              </div>
+              <div className="text-[11px] text-xp-text-muted">{t(subtitleKey)}</div>
             </div>
           </div>
           <span className="ml-4 max-w-[180px] truncate rounded-[2px] border border-xp-border bg-xp-bg px-2.5 py-1 text-[10px] text-xp-text-muted">
@@ -750,6 +752,13 @@ const CommandPaletteInner = ({
         </div>
 
         {/* Footer hint */}
+        {!isAssistantMode && (searchPartial || searchLimited) && (
+          <p role="status" className="px-4 py-2 text-xs text-xp-text-secondary">
+            {searchPartial
+              ? t('commandPalette.partialResults')
+              : t('commandPalette.limitedResults')}
+          </p>
+        )}
         <div style={footerStyle}>
           <span>
             <kbd style={kbdStyle}>&#8593;&#8595;</kbd> {t('commandPalette.navigate')}

@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 import { formatFileSize } from '@/lib/utils';
@@ -613,10 +614,9 @@ const StatusBar = ({
         {/* Index stats — moved here from the search toolbar */}
         {indexCount > 0 && (
           <span title={t('statusBar.indexedLabel', { count: indexCount })}>
-            {t('statusBar.indexedShort', { count: indexCount.toLocaleString() } as Record<
-              string,
-              unknown
-            >)}
+            {t('statusBar.indexedShort', {
+              count: indexCount.toLocaleString(getAppLocale()),
+            } as Record<string, unknown>)}
           </span>
         )}
 
@@ -658,7 +658,6 @@ const StatusBar = ({
         {onRestoreBottomPanel && bottomPanelCollapsed && (
           <button
             type="button"
-            data-tour="bottom-panel-toggle"
             className="rounded-[2px] p-0.5 transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             style={{
               border: 'none',

@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TauriAPI, type FileNote } from '@/lib/tauri-api';
@@ -245,7 +246,7 @@ const FileNotesDialog = ({ isOpen, onClose, filePath, onSaved }: FileNotesDialog
                         </p>
                         <p className="mt-2 text-xs text-xp-text-muted">
                           {t('dialogs.notes.updated', {
-                            date: new Date(note.updated_at).toLocaleString(),
+                            date: new Date(note.updated_at).toLocaleString(getAppLocale()),
                           })}
                         </p>
                       </div>

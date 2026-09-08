@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import { useRef, useEffect } from 'react';
 import type { ChatMessage } from '@/lib/ai-service';
@@ -28,6 +29,7 @@ const ChatMessageList = ({
   toggleToolCallExpand,
   handleApproval,
 }: ChatMessageListProps) => {
+  const { t: tUi } = useTranslation();
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when messages change -- use scrollTop instead of
@@ -43,7 +45,7 @@ const ChatMessageList = ({
       style={{ flex: '1 1 0%', minHeight: 0, minWidth: 0, overflowY: 'auto', overflowX: 'hidden' }}
       className="space-y-3 px-3 py-3"
       aria-live="polite"
-      aria-label="Chat messages"
+      aria-label={tUi('interface.chatMessages')}
       role="log"
     >
       {chatMessages.length === 0 && !state.isAgentRunning ? (
@@ -86,7 +88,7 @@ const ChatMessageList = ({
           >
             <summary className="flex cursor-pointer select-none items-center gap-1.5 px-3 py-1.5 text-xs text-xp-text-muted hover:bg-xp-surface-light">
               <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-xp-cyan" />
-              <span>Thinking...</span>
+              <span>{tUi('agentManager.conversation.thinking')}</span>
             </summary>
             <div className="max-h-48 overflow-y-auto whitespace-pre-wrap border-t border-xp-border px-3 py-2 text-xs text-xp-text-muted">
               {state.streamingThinking}

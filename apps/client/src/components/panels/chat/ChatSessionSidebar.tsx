@@ -1,3 +1,5 @@
+import { getAppLocale } from '@/lib/locale';
+import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 
 interface ChatSessionSummaryItem {
@@ -26,7 +28,7 @@ const formatSessionDate = (iso: string): string => {
     if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
     if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
     if (diff < 604800000) return `${Math.floor(diff / 86400000)}d ago`;
-    return d.toLocaleDateString();
+    return d.toLocaleDateString(getAppLocale());
   } catch {
     return '';
   }
@@ -40,12 +42,15 @@ const ChatSessionSidebar = ({
   onClearHistory,
   onClose,
 }: ChatSessionSidebarProps) => {
+  const { t: tUi } = useTranslation();
   return (
     <div
       style={{ flex: '1 1 0%', minHeight: 0, minWidth: 0, overflowY: 'auto', overflowX: 'hidden' }}
     >
       <div className="flex items-center justify-between border-b border-xp-border px-3 py-2">
-        <span className="text-xs font-medium">Chat History ({sessions.length})</span>
+        <span className="text-xs font-medium">
+          {tUi('messages.chatHistoryCount', { count: sessions.length })}
+        </span>
         {onClearHistory && sessions.length > 0 && (
           <button
             onClick={() => {
@@ -54,13 +59,15 @@ const ChatSessionSidebar = ({
             }}
             className="text-[10px] text-xp-red hover:underline"
           >
-            Clear all
+            {tUi('eventsPanel.clearAll')}
           </button>
         )}
       </div>
       <div className="space-y-0.5">
         {sessions.length === 0 ? (
-          <div className="px-3 py-6 text-center text-xs text-xp-text-muted">No saved chats</div>
+          <div className="px-3 py-6 text-center text-xs text-xp-text-muted">
+            {tUi('interface.noSavedChats')}
+          </div>
         ) : (
           [...sessions]
             .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
@@ -78,7 +85,7 @@ const ChatSessionSidebar = ({
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-medium">{session.title}</div>
                   <div className="flex items-center gap-2 text-[10px] text-xp-text-muted">
-                    <span>{session.message_count} messages</span>
+                    <span>{tUi('counts.messages', { count: session.message_count })}</span>
                     <span>{formatSessionDate(session.updated_at)}</span>
                   </div>
                 </div>

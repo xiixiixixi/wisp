@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Segmented switch between the two AI sub-panels (chat / agent manager)
  * rendered at the top of the unified AI sidebar. Dumb component — labels
@@ -64,11 +65,14 @@ const tabButton = (
   </button>
 );
 
-const AiPanelSwitch = ({ active, onChange, labels }: AiPanelSwitchProps) => (
-  <div style={wrapperStyle} role="tablist" aria-label="AI panel switch">
-    {tabButton('chat', labels.chat, active === 'chat', onChange)}
-    {tabButton('agent-manager', labels.tasks, active === 'agent-manager', onChange)}
-  </div>
-);
+const AiPanelSwitch = ({ active, onChange, labels }: AiPanelSwitchProps) => {
+  const { t: tUi } = useTranslation();
+  return (
+    <div style={wrapperStyle} role="tablist" aria-label={tUi('interface.aiPanelSwitch')}>
+      {tabButton('chat', labels.chat, active === 'chat', onChange)}
+      {tabButton('agent-manager', labels.tasks, active === 'agent-manager', onChange)}
+    </div>
+  );
+};
 
 export default AiPanelSwitch;

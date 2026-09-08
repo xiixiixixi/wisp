@@ -1266,40 +1266,6 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
 }
 
 /* User and system accessibility fallbacks. */
-html.reduce-transparency {
-  --lg-content-canvas: #f4f8fd;
-  --lg-content-surface: #ffffff;
-  --lg-content-surface-strong: #ffffff;
-  --lg-glass-clear: #f3f7fc;
-  --lg-glass-regular: #edf3fa;
-  --lg-glass-strong: #f7faff;
-  --muted-foreground: #5f6f84;
-  --xp-text-muted: #5f6f84;
-}
-
-html.reduce-transparency.theme-rolex {
-  --lg-content-canvas: #101a2b;
-  --lg-content-surface: #18243a;
-  --lg-content-surface-strong: #1d2a42;
-  --lg-glass-clear: #172338;
-  --lg-glass-regular: #162238;
-  --lg-glass-strong: #1a2740;
-  --muted-foreground: #c1cada;
-  --xp-text-muted: #aebbd0;
-}
-
-html.reduce-transparency.theme-light .wisp-settings-sidebar button.bg-muted {
-  color: var(--xp-blue-dark) !important;
-}
-
-html.reduce-transparency.theme-light .text-xp-purple {
-  color: #6d35c3 !important;
-}
-
-html.reduce-transparency * {
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-}
 
 @media (prefers-reduced-transparency: reduce) {
   :root {
@@ -1338,14 +1304,6 @@ html.reduce-transparency * {
   }
 }
 
-html.high-contrast {
-  --lg-glass-stroke: color-mix(in srgb, var(--xp-text) 48%, transparent);
-  --lg-glass-stroke-strong: color-mix(in srgb, var(--xp-text) 62%, transparent);
-  --lg-divider: color-mix(in srgb, var(--xp-text) 34%, transparent);
-  --xp-text-muted: color-mix(in srgb, var(--xp-text) 76%, transparent);
-  --xp-text-secondary: color-mix(in srgb, var(--xp-text) 88%, transparent);
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -1361,12 +1319,6 @@ html.high-contrast {
     scale: 1 !important;
     transform: none !important;
   }
-}
-
-html.reduce-motion :is(button, [role="button"]):active,
-html.reduce-motion .glass-card:hover {
-  scale: 1 !important;
-  transform: none !important;
 }
 
 /* Panel sizing at narrow widths is handled by the layout's responsive

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import React, { useState } from 'react';
 import { Package, Shield, X, Download, Loader2 } from 'lucide-react';
@@ -18,12 +19,24 @@ interface XtensionInstallDialogProps {
 }
 
 const PERMISSION_LABELS: Record<string, string> = {
-  'file:read': i18n.t('dialogs.permissions.permDesc.file_read'),
-  'file:write': i18n.t('dialogs.permissions.permDesc.file_write'),
-  'ui:panels': i18n.t('dialogs.permissions.permDesc.ui_panels'),
-  'ui:notifications': i18n.t('dialogs.permissions.permDesc.ui_notifications'),
-  'native:invoke': i18n.t('dialogs.permissions.permDesc.native_invoke'),
-  'network:fetch': i18n.t('dialogs.permissions.permDesc.fetch'),
+  get 'file:read'() {
+    return i18n.t('dialogs.permissions.permDesc.file_read');
+  },
+  get 'file:write'() {
+    return i18n.t('dialogs.permissions.permDesc.file_write');
+  },
+  get 'ui:panels'() {
+    return i18n.t('dialogs.permissions.permDesc.ui_panels');
+  },
+  get 'ui:notifications'() {
+    return i18n.t('dialogs.permissions.permDesc.ui_notifications');
+  },
+  get 'native:invoke'() {
+    return i18n.t('dialogs.permissions.permDesc.native_invoke');
+  },
+  get 'network:fetch'() {
+    return i18n.t('dialogs.permissions.permDesc.fetch');
+  },
 };
 
 const XtensionInstallDialog = ({
@@ -32,6 +45,7 @@ const XtensionInstallDialog = ({
   manifest,
   onInstall,
 }: XtensionInstallDialogProps) => {
+  const { t: tUi } = useTranslation();
   const [installing, setInstalling] = useState(false);
 
   if (!isOpen || !manifest) return null;
@@ -62,8 +76,10 @@ const XtensionInstallDialog = ({
               <Package className="h-5 w-5 text-xp-blue" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-xp-text">Install Extension</h2>
-              <p className="text-xs text-xp-text-muted">.xtension package</p>
+              <h2 className="text-sm font-semibold text-xp-text">
+                {tUi('dialogs.extensionInstall')}
+              </h2>
+              <p className="text-xs text-xp-text-muted">{tUi('interface.xtensionPackage')}</p>
             </div>
           </div>
           <button
@@ -80,7 +96,10 @@ const XtensionInstallDialog = ({
           <div className="space-y-1">
             <h3 className="text-base font-medium text-xp-text">{displayName}</h3>
             <p className="text-xs text-xp-text-muted">
-              v{manifest.version} by {manifest.author}
+              {tUi('messages.extensionAuthor', {
+                version: manifest.version,
+                author: manifest.author,
+              })}
             </p>
             {manifest.description && (
               <p className="mt-2 text-sm text-xp-text-secondary">{manifest.description}</p>
@@ -92,7 +111,7 @@ const XtensionInstallDialog = ({
             <div className="space-y-2">
               <div className="flex items-center gap-1.5 text-xs font-medium text-xp-text-muted">
                 <Shield className="h-3.5 w-3.5" />
-                Requested Permissions
+                {tUi('interface.requestedPermissions')}
               </div>
               <div className="space-y-1.5 rounded-[2px] border border-xp-border bg-xp-surface p-3">
                 {permissions.map((perm) => (
@@ -113,7 +132,7 @@ const XtensionInstallDialog = ({
             disabled={installing}
             className="rounded-[2px] border border-xp-border bg-xp-surface px-4 py-2 text-sm text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
           >
-            Cancel
+            {tUi('conflict.cancel')}
           </button>
           <button
             onClick={handleInstall}
@@ -123,12 +142,12 @@ const XtensionInstallDialog = ({
             {installing ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Installing...
+                {tUi('agentManager.skillsBrowser.installing')}
               </>
             ) : (
               <>
                 <Download className="h-4 w-4" />
-                Install Extension
+                {tUi('dialogs.extensionInstall')}
               </>
             )}
           </button>

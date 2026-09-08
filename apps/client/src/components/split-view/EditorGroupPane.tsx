@@ -1,4 +1,5 @@
-import React, { useMemo, useCallback, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import React, { useMemo, useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 import { sortFiles, groupFilesByDate, type FileGroup, type SortField } from '@/lib/utils';
@@ -6,7 +7,7 @@ import { useFolderSizes } from '@/hooks/use-folder-sizes';
 import { useHiddenFiles } from '@/hooks/use-hidden-files';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { useCollectionFiles } from '@/hooks/use-collection-files';
-import WebTabView from '@/components/web/WebTabView';
+import WebTabDeck from '@/components/web/WebTabDeck';
 import type { EditorGroup } from '@/types/split-view';
 import { extensionHost } from '@/lib/extension-host';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -178,6 +179,7 @@ const EditorGroupPane = ({
   onTogglePaneSync,
   onSwitchPaneSyncMode,
 }: EditorGroupPaneProps) => {
+  const { t: tUi } = useTranslation();
   const {
     theme,
     setTheme,
@@ -202,6 +204,7 @@ const EditorGroupPane = ({
   } = sharedActions;
 
   const activeTab = group.tabs.find((t) => t.id === group.activeTabId);
+  const [webRefreshTokens, setWebRefreshTokens] = useState<Record<string, number>>({});
   const { currentPath } = group;
 
   // Per-pane, per-folder view & sort settings (persisted in localStorage)
@@ -676,7 +679,7 @@ const EditorGroupPane = ({
     }
 
     if (activeTab?.type === 'web' && activeTab.path && /^https?:\/\//i.test(activeTab.path)) {
-      return <WebTabView tabId={activeTab.id} url={activeTab.path} />;
+      return null; // The mounted deck below preserves browsing state across tab switches.
     }
 
     if (
@@ -685,7 +688,7 @@ const EditorGroupPane = ({
     ) {
       return (
         <div className="flex flex-1 items-center justify-center overflow-auto text-sm text-xp-text-muted">
-          Install the Google Drive extension
+          {tUi('interface.installTheGoogleDriveExtension')}
         </div>
       );
     }
@@ -707,7 +710,7 @@ const EditorGroupPane = ({
           <React.Suspense
             fallback={
               <div className="flex h-full items-center justify-center text-xp-text-muted">
-                Loading chat...
+                {tUi('interface.loadingChat')}
               </div>
             }
           >
@@ -732,7 +735,7 @@ const EditorGroupPane = ({
           <React.Suspense
             fallback={
               <div className="flex h-full items-center justify-center text-xp-text-muted">
-                Loading editor...
+                {tUi('interface.loadingEditor')}
               </div>
             }
           >
@@ -855,7 +858,16 @@ const EditorGroupPane = ({
         <NavigationBar
           currentPath={currentPath}
           navigateToPath={sharedActions.navigateToPath}
-          refetch={refetch}
+          refetch={
+            isWebPath && activeTab
+              ? () => {
+                  setWebRefreshTokens((tokens) => ({
+                    ...tokens,
+                    [activeTab.id]: (tokens[activeTab.id] ?? 0) + 1,
+                  }));
+                }
+              : refetch
+          }
           active={isActive}
           onNavigateBack={onNavigateBackHistory ? () => onNavigateBackHistory(group.id) : undefined}
           canNavigateBack={group.historyIndex > 0}
@@ -869,6 +881,13 @@ const EditorGroupPane = ({
       )}
 
       <div className="flex flex-1 flex-col overflow-hidden">
+        <ErrorBoundary>
+          <WebTabDeck
+            tabs={group.tabs}
+            activeTabId={group.activeTabId}
+            refreshTokens={webRefreshTokens}
+          />
+        </ErrorBoundary>
         <ErrorBoundary>{renderContent()}</ErrorBoundary>
       </div>
     </div>

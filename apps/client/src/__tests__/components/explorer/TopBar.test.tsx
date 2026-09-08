@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import TopBar from '@/components/explorer/TopBar';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 const weatherMocks = vi.hoisted(() => ({
   useWeather: vi.fn(),
   geocodeWeatherCity: vi.fn(),
   setWeatherLocation: vi.fn(),
-  isWeatherSyncEnabled: vi.fn(() => true),
 }));
 
 vi.mock('@/hooks/use-weather', () => ({
@@ -20,7 +20,6 @@ vi.mock('@/lib/weather-geocoding', () => ({
 
 vi.mock('@/lib/weather-location', () => ({
   setWeatherLocation: weatherMocks.setWeatherLocation,
-  isWeatherSyncEnabled: weatherMocks.isWeatherSyncEnabled,
 }));
 
 vi.mock('@tauri-apps/api/window', () => ({
@@ -50,7 +49,7 @@ describe('TopBar', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    weatherMocks.isWeatherSyncEnabled.mockReturnValue(true);
+    localStorage.clear();
     weatherMocks.useWeather.mockReturnValue({
       report: {
         latitude: 31.2304,
@@ -94,12 +93,9 @@ describe('TopBar', () => {
   });
 
   describe('Weather City', () => {
-    it('hides and restores weather when the display preference changes', () => {
+    it('keeps weather available even with a retired display preference', () => {
+      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({ weatherSync: false }));
       render(<TopBar {...mockProps} />);
-      weatherMocks.isWeatherSyncEnabled.mockReturnValue(false);
-      fireEvent(window, new CustomEvent('wisp-settings-changed'));
-      expect(screen.queryByText('21°')).not.toBeInTheDocument();
-      weatherMocks.isWeatherSyncEnabled.mockReturnValue(true);
       fireEvent(window, new CustomEvent('wisp-settings-changed'));
       expect(screen.getByText('21°')).toBeInTheDocument();
     });

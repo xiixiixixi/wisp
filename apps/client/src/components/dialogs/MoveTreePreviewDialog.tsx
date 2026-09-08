@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * MoveTreePreviewDialog — shows a split-panel preview of the resulting
  * directory structure before executing a move or copy operation.
@@ -361,6 +362,7 @@ interface DestNodeProps {
 
 const DestTreeNode = React.memo(
   ({ node, depth, expanded, onToggle, onResolutionChange }: DestNodeProps) => {
+    const { t: tUi } = useTranslation();
     const [hovered, setHovered] = useState(false);
     const isExpanded = expanded.has(node.path);
     const statusColor = getStatusColor(node.status);
@@ -422,7 +424,7 @@ const DestTreeNode = React.memo(
                   backgroundColor: 'rgb(var(--xp-green-rgb) / 0.12)',
                 }}
               >
-                NEW
+                {tUi('interface.new')}
               </span>
             )}
             {node.status === 'conflict' && (
@@ -435,7 +437,7 @@ const DestTreeNode = React.memo(
                   }}
                 >
                   <AlertTriangle size={10} />
-                  CONFLICT
+                  {tUi('interface.conflict')}
                 </span>
                 {/* Resolution dropdown */}
                 <select
@@ -447,10 +449,10 @@ const DestTreeNode = React.memo(
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <option value="">Resolve...</option>
-                  <option value="skip">Skip</option>
-                  <option value="overwrite">Overwrite</option>
-                  <option value="rename">Rename</option>
+                  <option value="">{tUi('interface.resolve')}</option>
+                  <option value="skip">{tUi('aiChat.feedback.skip')}</option>
+                  <option value="overwrite">{tUi('interface.overwrite')}</option>
+                  <option value="rename">{tUi('performanceDashboard.ops.rename')}</option>
                 </select>
               </>
             )}
@@ -487,6 +489,7 @@ const MoveTreePreviewDialog = ({
   onConfirm,
   onCancel,
 }: MoveTreePreviewDialogProps) => {
+  const { t: tUi } = useTranslation();
   const dialogRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
   const [treeResult, setTreeResult] = useState<MoveTreeResult | null>(null);
@@ -617,18 +620,19 @@ const MoveTreePreviewDialog = ({
             <Icon size={20} style={{ color: isCopy ? 'var(--xp-blue)' : 'var(--xp-yellow)' }} />
             <div>
               <h2 id="move-tree-preview-title" style={S.title}>
-                {verb} {data.sourceFiles.length} file{data.sourceFiles.length > 1 ? 's' : ''} to{' '}
+                {verb} {data.sourceFiles.length} {tUi('panels.notes.file_one')}
+                {data.sourceFiles.length > 1 ? 's' : ''} {tUi('explorer.searchFilter.to')}{' '}
                 {destName}
               </h2>
               <div style={S.subtitle}>
-                Preview the resulting directory structure before {verb.toLowerCase()}ing
+                {tUi(isCopy ? 'messages.previewCopyTree' : 'messages.previewMoveTree')}
               </div>
             </div>
           </div>
           <button
             style={S.closeBtn}
             onClick={onCancel}
-            aria-label="Close"
+            aria-label={tUi('agentManager.workspace.close')}
             onMouseEnter={(e) =>
               (e.currentTarget.style.backgroundColor = 'var(--xp-surface-light)')
             }
@@ -642,7 +646,9 @@ const MoveTreePreviewDialog = ({
         <div style={S.body}>
           {/* Left panel: Source tree */}
           <div style={S.panel}>
-            <div style={S.panelHeader}>Source ({data.sourceFiles.length} items)</div>
+            <div style={S.panelHeader}>
+              {tUi('messages.sourceItems', { count: data.sourceFiles.length })}
+            </div>
             <div style={S.panelContent}>
               {data.sourceFiles.map((file) => (
                 <SourceTreeNode key={file.path} file={file} />
@@ -655,7 +661,9 @@ const MoveTreePreviewDialog = ({
 
           {/* Right panel: Destination tree */}
           <div style={S.panel}>
-            <div style={S.panelHeader}>Destination: {destName}</div>
+            <div style={S.panelHeader}>
+              {tUi('interface.destinationLabel')} {destName}
+            </div>
             <div style={S.panelContent}>
               {/* eslint-disable-next-line no-nested-ternary */}
               {loading ? (
@@ -673,7 +681,7 @@ const MoveTreePreviewDialog = ({
                   >
                     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                   </svg>
-                  Loading destination contents...
+                  {tUi('interface.loadingDestinationContents')}
                 </div>
               ) : treeResult ? (
                 treeResult.tree.map((node) => (
@@ -687,7 +695,7 @@ const MoveTreePreviewDialog = ({
                   />
                 ))
               ) : (
-                <div style={S.loading}>No data available</div>
+                <div style={S.loading}>{tUi('interface.noDataAvailable')}</div>
               )}
             </div>
           </div>
@@ -699,8 +707,10 @@ const MoveTreePreviewDialog = ({
             {treeResult && (
               <>
                 <span>
-                  {verb}ing {formatFileSize(treeResult.totalIncomingSize)} into{' '}
-                  {formatFileSize(treeResult.totalExistingSize)} folder
+                  {tUi(isCopy ? 'messages.copySize' : 'messages.moveSize', {
+                    incoming: formatFileSize(treeResult.totalIncomingSize),
+                    existing: formatFileSize(treeResult.totalExistingSize),
+                  })}
                 </span>
                 {conflictsCount > 0 && (
                   <span
@@ -729,7 +739,7 @@ const MoveTreePreviewDialog = ({
               }
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
-              Cancel
+              {tUi('conflict.cancel')}
             </button>
             <button
               style={{

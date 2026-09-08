@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
@@ -263,7 +264,7 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
                     <div className="flex items-center justify-between">
                       <span className="text-xp-text-muted">{t('dialogs.compress.files')}</span>
                       <span className="font-medium text-xp-text">
-                        {compressionInfo.total_files.toLocaleString()}
+                        {compressionInfo.total_files.toLocaleString(getAppLocale())}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -271,7 +272,7 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
                         {t('dialogs.compress.directories')}
                       </span>
                       <span className="font-medium text-xp-text">
-                        {compressionInfo.total_directories.toLocaleString()}
+                        {compressionInfo.total_directories.toLocaleString(getAppLocale())}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">

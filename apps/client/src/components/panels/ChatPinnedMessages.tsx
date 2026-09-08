@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Collapsible pinned messages section for the chat panel.
  * Displayed at the top of the chat when messages are pinned.
@@ -27,6 +28,7 @@ const ChatPinnedMessages = ({
   onUnpin,
   onJumpToMessage,
 }: ChatPinnedMessagesProps) => {
+  const { t: tUi } = useTranslation();
   const [expanded, setExpanded] = useState(true);
 
   const handleToggle = useCallback(() => setExpanded((v) => !v), []);
@@ -61,7 +63,7 @@ const ChatPinnedMessages = ({
         aria-label={`Pinned messages (${pinnedMessages.length})`}
       >
         <Pin size={12} style={{ flexShrink: 0 }} />
-        <span>Pinned ({pinnedMessages.length})</span>
+        <span>{tUi('messages.pinnedMessages', { count: pinnedMessages.length })}</span>
         {expanded ? (
           <ChevronDown size={12} style={{ marginLeft: 'auto', flexShrink: 0 }} />
         ) : (
@@ -103,6 +105,7 @@ interface PinnedItemProps {
 }
 
 const PinnedItem = React.memo(({ pin, onUnpin, onJump }: PinnedItemProps) => {
+  const { t: tUi } = useTranslation();
   const isAssistant = pin.role === 'assistant';
   const preview = pin.content.length > 200 ? `${pin.content.slice(0, 197)}...` : pin.content;
 
@@ -176,7 +179,7 @@ const PinnedItem = React.memo(({ pin, onUnpin, onJump }: PinnedItemProps) => {
           onUnpin(pin.messageIndex);
         }}
         title={i18n.t('chat.unpinThis')}
-        aria-label="Unpin this message"
+        aria-label={tUi('chat.unpinThis')}
         style={{
           flexShrink: 0,
           background: 'none',

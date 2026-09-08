@@ -6,7 +6,6 @@ export const STORAGE_KEYS = {
   // Core settings & UI
   SETTINGS: 'wisp:settings',
   UI_STATE: 'wisp:ui-state',
-  FONT_SIZE: 'wisp:font-size',
   SPLIT_LAYOUT: 'wisp:split-layout',
   SMART_VIEW: 'wisp:folder-views',
   FOLDER_SETTINGS: 'wisp:folder-settings',
@@ -33,8 +32,7 @@ export const STORAGE_KEYS = {
   PATH_BOOKMARKS: 'wisp:path-bookmarks',
   FOLDER_COLORS: 'wisp:folder-colors',
 
-  // Onboarding / tour
-  TOUR_COMPLETED: 'wisp:tour-completed',
+  // First-run notice and indexing preferences
   BETA_WARNING_DISMISSED: 'wisp:beta-warning-dismissed',
   AUTO_WHITELIST_VISITED: 'wisp:auto-whitelist-visited',
 
@@ -57,7 +55,6 @@ export const STORAGE_KEYS = {
   WORKSPACE_LAYOUTS: 'wisp:workspace-layouts',
   CLIPBOARD_HISTORY: 'wisp:clipboard-history',
   NOTIFICATION_HISTORY: 'wisp-notification-history',
-  LAST_EXPORT_DATE: 'wisp:last-export-date',
 
   // Sync
   SYNC_API_URL: 'wisp-sync-api-url',
@@ -109,7 +106,6 @@ export const STORAGE_KEYS = {
   AGENT_LAUNCHER_CUSTOM_COMMAND: 'wisp:agent-launcher-custom-command',
 
   // Extension auto-update
-  AUTO_UPDATE_EXTENSIONS: 'wisp:auto-update-extensions',
 
   // Agent cost tracking (daily token/cost history)
   AGENT_COST_HISTORY: 'wisp:agent-cost-history',

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useMemo } from 'react';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
 import { useDraggable } from '@/hooks/use-draggable';
@@ -41,6 +42,7 @@ const TreeRow = ({
   handleFileRightClick,
   onQuickLook,
 }: TreeRowProps) => {
+  const { t: tUi } = useTranslation();
   const dragHandlers = useDraggable({ file, selectedFiles, allFiles });
   const expanded = file.is_dir && expandedFolders.has(file.path);
 
@@ -50,7 +52,9 @@ const TreeRow = ({
         role="treeitem"
         aria-selected={selectedFiles.has(file.path)}
         aria-expanded={file.is_dir ? expanded : undefined}
-        aria-label={`${file.name}${file.is_dir ? ', folder' : ', file'}`}
+        aria-label={tUi(file.is_dir ? 'messages.folderAria' : 'messages.fileAria', {
+          name: file.name,
+        })}
         tabIndex={0}
         data-drop-target={file.is_dir ? file.path : undefined}
         data-is-folder={file.is_dir ? 'true' : undefined}
@@ -164,7 +168,7 @@ const TreeRow = ({
                   clipRule="evenodd"
                 />
               </svg>
-              Loading...
+              {tUi('panels.notes.loading')}
             </div>
           )}
         </div>
@@ -184,6 +188,7 @@ const TreeView = ({
   handleBackgroundRightClick,
   onQuickLook,
 }: ViewComponentProps) => {
+  const { t: tUi } = useTranslation();
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [folderContents, setFolderContents] = useState<Map<string, FileEntry[]>>(new Map());
 
@@ -230,7 +235,7 @@ const TreeView = ({
     <div
       className="select-none overflow-hidden text-sm"
       role="tree"
-      aria-label="File tree"
+      aria-label={tUi('interface.fileTree')}
       onContextMenu={handleBackgroundRightClick || undefined}
     >
       {sortedFiles.map((file) => (

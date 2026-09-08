@@ -24,6 +24,7 @@
     "tauri:dev": "cd apps && tauri dev",
     "tauri:build": "cd apps && tauri build",
     "check": "tsc",
+    "i18n:check": "node scripts/audit-i18n.mjs",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",

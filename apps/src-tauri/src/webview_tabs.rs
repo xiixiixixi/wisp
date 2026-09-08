@@ -3,8 +3,24 @@
 //! X-Frame-Options). The React layer reserves layout space and streams its
 //! bounding rect down; the OS webview is layered above the main content.
 
-use tauri::webview::WebviewBuilder;
-use tauri::{LogicalPosition, LogicalSize, Manager, Rect, Webview, WebviewUrl, Window};
+use tauri::webview::{PageLoadEvent, WebviewBuilder};
+use tauri::{
+    Emitter, EventTarget, LogicalPosition, LogicalSize, Rect, Webview, WebviewUrl, Window,
+};
+
+fn parse_web_url(url: &str) -> Result<tauri::Url, String> {
+    let parsed: tauri::Url = url.parse().map_err(|e| format!("Invalid URL: {e}"))?;
+    if !matches!(parsed.scheme(), "http" | "https") || parsed.host_str().is_none() {
+        return Err("Web tabs only support HTTP and HTTPS addresses".into());
+    }
+    Ok(parsed)
+}
+
+#[derive(Clone, serde::Serialize)]
+struct WebTabLoad {
+    id: String,
+    loading: bool,
+}
 
 fn webview_label(window: &Window, id: &str) -> String {
     format!("{}::webtab-{id}", window.label())
@@ -22,7 +38,7 @@ fn bounds(x: f64, y: f64, width: f64, height: f64) -> Rect {
     }
 }
 
-/// Create (or reveal + navigate) the child webview backing a web tab.
+/// Create the child webview backing a web tab. Revealing it never reloads it.
 #[tauri::command]
 pub async fn web_tab_create(
     window: Window,
@@ -33,22 +49,54 @@ pub async fn web_tab_create(
     width: f64,
     height: f64,
 ) -> Result<(), String> {
-    let parsed: tauri::Url = url.parse().map_err(|e| format!("Invalid URL: {e}"))?;
+    let parsed = parse_web_url(&url)?;
     let label = webview_label(&window, &id);
     let rect = bounds(x, y, width, height);
 
     if let Some(webview) = find_webview(&window, &id) {
-        let _ = webview.set_bounds(rect);
-        let _ = webview.navigate(parsed);
-        let _ = webview.show();
+        webview.set_bounds(rect).map_err(|e| e.to_string())?;
+        webview.show().map_err(|e| e.to_string())?;
         return Ok(());
     }
 
-    let builder = WebviewBuilder::new(label, WebviewUrl::External(parsed));
+    let parent = window.clone();
+    let builder = WebviewBuilder::new(label, WebviewUrl::External(parsed))
+        .on_navigation(|url| matches!(url.scheme(), "http" | "https"))
+        .on_page_load(move |_webview, payload| {
+            // Only the trusted parent consumes loading state; no IPC permissions
+            // or injected bridge are granted to external website content.
+            let _ = parent.emit_to(
+                EventTarget::webview(parent.label()),
+                "web-tab-load",
+                WebTabLoad {
+                    id: id.clone(),
+                    loading: matches!(payload.event(), PageLoadEvent::Started),
+                },
+            );
+        });
     window
-        .add_child(builder, LogicalPosition::new(x, y), LogicalSize::new(width, height))
+        .add_child(
+            builder,
+            LogicalPosition::new(x, y),
+            LogicalSize::new(width, height),
+        )
         .map_err(|e| format!("Failed to create web tab: {e}"))?;
     Ok(())
+}
+
+/// Navigate within an existing webview, preserving its browser session.
+#[tauri::command]
+pub async fn web_tab_navigate(window: Window, id: String, url: String) -> Result<(), String> {
+    let parsed = parse_web_url(&url)?;
+    let webview = find_webview(&window, &id).ok_or("Web tab is not available")?;
+    webview.navigate(parsed).map_err(|e| e.to_string())
+}
+
+/// Refresh the actual page, including any navigation performed inside the website.
+#[tauri::command]
+pub async fn web_tab_reload(window: Window, id: String) -> Result<(), String> {
+    let webview = find_webview(&window, &id).ok_or("Web tab is not available")?;
+    webview.reload().map_err(|e| e.to_string())
 }
 
 /// Keep the child webview glued to the pane's layout rect.
@@ -71,11 +119,7 @@ pub async fn web_tab_bounds(
 
 /// Show/hide without tearing down browsing state (used on tab switches).
 #[tauri::command]
-pub async fn web_tab_visibility(
-    window: Window,
-    id: String,
-    visible: bool,
-) -> Result<(), String> {
+pub async fn web_tab_visibility(window: Window, id: String, visible: bool) -> Result<(), String> {
     let Some(webview) = find_webview(&window, &id) else {
         return Ok(());
     };
@@ -94,4 +138,29 @@ pub async fn web_tab_destroy(window: Window, id: String) -> Result<(), String> {
         return Ok(());
     };
     webview.close().map_err(|e| e.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn web_tabs_only_accept_web_urls() {
+        for url in [
+            "https://baidu.com/",
+            "http://localhost:5190/test",
+            "https://example.com/a?q=b",
+        ] {
+            assert!(parse_web_url(url).is_ok());
+        }
+        for url in [
+            "file:///etc/passwd",
+            "javascript:alert(1)",
+            "data:text/html,test",
+            "tauri://localhost",
+            "not a url",
+        ] {
+            assert!(parse_web_url(url).is_err());
+        }
+    }
 }

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { formatFileSize, getFileIcon } from '@/lib/utils';
 import i18n from '@/i18n';
@@ -24,7 +25,6 @@ export const highlightMatch = (text: string, query: string): React.ReactNode => 
     const isMatch = parts.some((p) => seg.toLowerCase() === p);
     if (isMatch) {
       return (
-         
         <span
           key={i}
           style={{ fontWeight: 600, background: 'var(--xp-selection-bg)', borderRadius: '2px' }}
@@ -120,28 +120,33 @@ interface AIResultRowProps {
 }
 
 export const AIResultRow = React.memo(({ result, query, onSelect }: AIResultRowProps) => {
+  const { t: tUi } = useTranslation();
   const relevanceBadge = (() => {
     switch (result.relevance_type) {
       case 'exact':
         return {
-          label: 'Exact',
+          label: tUi('search.badges.exact'),
           color: 'var(--xp-green)',
           bg: 'rgb(var(--xp-green-rgb) / 0.12)',
         };
       case 'semantic':
         return {
-          label: 'Semantic',
+          label: tUi('search.badges.semantic'),
           color: 'var(--xp-purple)',
           bg: 'rgb(var(--xp-purple-rgb) / 0.12)',
         };
       case 'fuzzy':
         return {
-          label: 'Fuzzy',
+          label: tUi('search.badges.fuzzy'),
           color: 'var(--xp-yellow)',
           bg: 'rgb(var(--xp-yellow-rgb) / 0.12)',
         };
       case 'metadata':
-        return { label: 'Meta', color: 'var(--xp-cyan)', bg: 'rgb(var(--xp-cyan-rgb) / 0.12)' };
+        return {
+          label: tUi('search.badges.metadata'),
+          color: 'var(--xp-cyan)',
+          bg: 'rgb(var(--xp-cyan-rgb) / 0.12)',
+        };
       case 'ai_description':
         return {
           label: 'AI',
@@ -150,7 +155,7 @@ export const AIResultRow = React.memo(({ result, query, onSelect }: AIResultRowP
         };
       case 'ai_reranked':
         return {
-          label: 'AI Ranked',
+          label: tUi('search.badges.aiRanked'),
           color: 'var(--xp-purple)',
           bg: 'rgb(var(--xp-purple-rgb) / 0.12)',
         };

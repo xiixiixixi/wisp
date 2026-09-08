@@ -6,18 +6,18 @@ describe('migrateLegacyAiSettings', () => {
     const legacy = { aiServiceMode: 'cloud', theme: 'glass' };
     const migrated = migrateLegacyAiSettings(legacy);
     expect(migrated.aiServiceMode).toBe('custom');
-    // untouched fields survive
-    expect(migrated.theme).toBe('glass');
+    // Appearance also resolves to the single supported theme.
+    expect(migrated.theme).toBe('auto');
   });
 
-  it('leaves custom profiles untouched (same reference)', () => {
-    const current = { aiServiceMode: 'custom', theme: 'glass' };
-    expect(migrateLegacyAiSettings(current)).toBe(current);
+  it('preserves custom provider settings without mutating the profile', () => {
+    const current = { aiServiceMode: 'custom', theme: 'auto', aiCustomModel: 'my-model' };
+    expect(migrateLegacyAiSettings(current)).toEqual(current);
   });
 
-  it('leaves profiles without the key untouched', () => {
+  it('normalizes old appearance even without an AI mode', () => {
     const bare = { theme: 'glass' };
-    expect(migrateLegacyAiSettings(bare)).toBe(bare);
+    expect(migrateLegacyAiSettings(bare)).toEqual({ theme: 'auto' });
   });
 
   it('does not mutate the input object', () => {

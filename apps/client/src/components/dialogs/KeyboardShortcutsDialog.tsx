@@ -223,8 +223,11 @@ const styles = {
 // ── Key badge renderer ────────────────────────────────────────────────────────
 
 const KeyBadge = ({ combo }: { combo: string }) => {
+  const { t: tUi } = useTranslation();
   const display = formatKeyComboForDisplay(combo);
-  if (!display) return <span style={{ ...styles.kbd, opacity: 0.4 }}>Unbound</span>;
+  if (!display) {
+    return <span style={{ ...styles.kbd, opacity: 0.4 }}>{tUi('settings.shortcuts.unbound')}</span>;
+  }
 
   const parts = display.split(' + ');
   return (
@@ -253,7 +256,7 @@ const KeyboardShortcutsDialog = ({
   onClose,
   onOpenSettings,
 }: KeyboardShortcutsDialogProps) => {
-  const { t } = useTranslation();
+  const { t, i18n: languageState } = useTranslation();
   const [shortcuts, setShortcuts] = useState<ShortcutBinding[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -372,7 +375,7 @@ const KeyboardShortcutsDialog = ({
       onClick={handleOverlayClick}
       role="dialog"
       aria-modal="true"
-      aria-label="Keyboard Shortcuts"
+      aria-label={t('shortcutActions.ToggleShortcutsDialog')}
     >
       <div style={styles.dialog}>
         {/* Header */}
@@ -400,13 +403,13 @@ const KeyboardShortcutsDialog = ({
               <path d="M16 12h.001" />
               <path d="M7 16h10" />
             </svg>
-            <h2 style={styles.title}>Keyboard Shortcuts</h2>
-            <span style={styles.badge}>{filtered.length} shortcuts</span>
+            <h2 style={styles.title}>{t('shortcutActions.ToggleShortcutsDialog')}</h2>
+            <span style={styles.badge}>{t('counts.shortcuts', { count: filtered.length })}</span>
           </div>
           <button
             onClick={onClose}
             style={styles.closeButton}
-            aria-label="Close"
+            aria-label={t('agentManager.workspace.close')}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'var(--xp-surface-light)';
               e.currentTarget.style.color = 'var(--xp-text)';
@@ -468,7 +471,7 @@ const KeyboardShortcutsDialog = ({
         <div style={styles.body}>
           {/* eslint-disable-next-line no-nested-ternary */}
           {isLoading ? (
-            <div style={styles.emptyState}>Loading shortcuts...</div>
+            <div style={styles.emptyState}>{t('interface.loadingShortcuts')}</div>
           ) : filtered.length === 0 ? (
             <div style={styles.emptyState}>
               {searchQuery
@@ -514,7 +517,18 @@ const KeyboardShortcutsDialog = ({
                         onMouseLeave={() => setHoveredRow(null)}
                       >
                         <span style={styles.shortcutLabel}>
-                          {shortcut.description || getLabelForAction(shortcut.action)}
+                          {(() => {
+                            if (languageState.language.startsWith('en') && shortcut.description) {
+                              return shortcut.description;
+                            }
+                            const action = shortcut.action;
+                            const label = getLabelForAction(action);
+                            const builtIn =
+                              typeof action === 'string'
+                                ? label !== action
+                                : 'SetViewMode' in action || 'GoToSpecial' in action;
+                            return builtIn ? label : shortcut.description || label;
+                          })()}
                         </span>
                         <KeyBadge combo={combo} />
                       </div>
@@ -529,8 +543,9 @@ const KeyboardShortcutsDialog = ({
         {/* Footer */}
         <div style={styles.footer}>
           <span style={styles.footerHint}>
-            Press <span style={{ ...styles.kbd, fontSize: '10px', padding: '1px 5px' }}>Esc</span>{' '}
-            to close
+            {t('explorer.quickLook.pressKey')}{' '}
+            <span style={{ ...styles.kbd, fontSize: '10px', padding: '1px 5px' }}>Esc</span>{' '}
+            {t('explorer.quickLook.toClose')}
           </span>
           {onOpenSettings && (
             <button
@@ -546,7 +561,7 @@ const KeyboardShortcutsDialog = ({
                 e.currentTarget.style.opacity = '1';
               }}
             >
-              Customize in Settings
+              {t('interface.customizeInSettings')}
             </button>
           )}
         </div>

@@ -1,3 +1,4 @@
+import { formatAppDuration, getAppLocale } from '@/lib/locale';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TauriAPI, TokenizerSettings, TokenIndex, IndexingProgress } from '@/lib/tauri-api';
@@ -204,12 +205,6 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
     }
   };
 
-  const formatDuration = (seconds: number): string => {
-    if (seconds < 60) return `${seconds} 秒`;
-    if (seconds < 3600) return `${Math.floor(seconds / 60)} 分钟`;
-    return `${Math.floor(seconds / 3600)} 小时 ${Math.floor((seconds % 3600) / 60)} 分钟`;
-  };
-
   if (isLoading) {
     return (
       <div className={`flex items-center justify-center p-8 ${className || ''}`}>
@@ -232,7 +227,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
             <div className="text-xs text-xp-text-muted">
               {t('settings.tokenizer.statsFilesTokens', {
                 files: stats.total_files,
-                tokens: stats.total_tokens.toLocaleString(),
+                tokens: stats.total_tokens.toLocaleString(getAppLocale()),
               })}
             </div>
           )}
@@ -332,7 +327,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
             </div>
             <div className="text-center">
               <div className="text-lg font-semibold text-xp-blue">
-                {stats.total_tokens.toLocaleString()}
+                {stats.total_tokens.toLocaleString(getAppLocale())}
               </div>
               <div className="text-xs text-xp-text-muted">
                 {t('settings.tokenizer.totalTokens')}
@@ -340,7 +335,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
             </div>
             <div className="text-center">
               <div className="text-lg font-semibold text-xp-blue">
-                {Object.keys(stats.word_to_files || {}).length.toLocaleString()}
+                {Object.keys(stats.word_to_files || {}).length.toLocaleString(getAppLocale())}
               </div>
               <div className="text-xs text-xp-text-muted">
                 {t('settings.tokenizer.uniqueWords')}
@@ -349,7 +344,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
             <div className="text-center">
               <div className="text-lg font-semibold text-xp-blue">
                 {stats.last_updated
-                  ? new Date(stats.last_updated * 1000).toLocaleDateString()
+                  ? new Date(stats.last_updated * 1000).toLocaleDateString(getAppLocale())
                   : t('settings.tokenizer.never')}
               </div>
               <div className="text-xs text-xp-text-muted">
@@ -535,7 +530,7 @@ const TokenizerSettingsComponent = ({ className }: TokenizerSettingsProps) => {
           <div>
             <label className="mb-2 block text-sm font-medium">
               {t('settings.tokenizer.updateInterval', {
-                duration: formatDuration(settings.update_interval),
+                duration: formatAppDuration(settings.update_interval),
               })}
             </label>
             <input

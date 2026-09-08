@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
+import i18n from '@/i18n';
 
 // The global setup.ts mocks @/lib/utils. We need to unmock it so we can test
 // the real implementation. We still need lucide-react mocked (done in setup.ts).
@@ -15,8 +16,6 @@ import {
   sortFiles,
   getDateGroup,
   groupFilesByDate,
-  applyFontSize,
-  loadFontSize,
   applyTheme,
   type SortField,
 } from '@/lib/utils';
@@ -25,7 +24,8 @@ import {
 
 const store: Record<string, string> = {};
 
-beforeEach(() => {
+beforeEach(async () => {
+  await i18n.changeLanguage('en');
   for (const key of Object.keys(store)) delete store[key];
   vi.stubGlobal('localStorage', {
     getItem: vi.fn((key: string) => store[key] ?? null),
@@ -160,8 +160,8 @@ describe('isAudioFile', () => {
 // ── formatFileSize ────────────────────────────────────────────────────────
 
 describe('formatFileSize', () => {
-  it('returns "Calculating..." when isCalculating is true', () => {
-    expect(formatFileSize(1000, true)).toBe('Calculating...');
+  it('returns the English size calculation label when isCalculating is true', () => {
+    expect(formatFileSize(1000, true)).toBe('Calculating size...');
   });
 
   it('returns "0 B" for 0 bytes', () => {
@@ -221,6 +221,15 @@ describe('formatFolderSize', () => {
   it('formats size with item count', () => {
     const info: FolderSizeInfo = { total_size: 2048, file_count: 3, dir_count: 1 };
     expect(formatFolderSize(info)).toBe('2 KB (4 items)');
+  });
+
+  it('follows the app language for size calculation, empty folders and item counts', async () => {
+    await i18n.changeLanguage('zh');
+    expect(formatFileSize(1000, true)).toBe('正在计算大小…');
+    expect(formatFolderSize({ total_size: 0, file_count: 0, dir_count: 0 })).toBe('空');
+    expect(formatFolderSize({ total_size: 2048, file_count: 3, dir_count: 1 })).toBe(
+      '2 KB（4 个项目）',
+    );
   });
 });
 
@@ -394,41 +403,6 @@ describe('groupFilesByDate', () => {
     const todayIdx = groupNames.indexOf('Today');
     const olderIdx = groupNames.indexOf('Older');
     expect(todayIdx).toBeLessThan(olderIdx);
-  });
-});
-
-// ── applyFontSize / loadFontSize ──────────────────────────────────────────
-
-describe('applyFontSize', () => {
-  it('removes old font classes and adds the new one', () => {
-    applyFontSize('large');
-
-    const root = document.documentElement;
-    expect(root.classList.remove).toHaveBeenCalledWith(
-      'font-small',
-      'font-medium',
-      'font-large',
-      'font-xl',
-    );
-    expect(root.classList.add).toHaveBeenCalledWith('font-large');
-  });
-
-  it('saves the font size to localStorage', () => {
-    applyFontSize('small');
-    expect(localStorage.setItem).toHaveBeenCalledWith('wisp:font-size', 'small');
-  });
-});
-
-describe('loadFontSize', () => {
-  it('loads saved font size from localStorage', () => {
-    store['wisp:font-size'] = 'xl';
-    loadFontSize();
-    expect(document.documentElement.classList.add).toHaveBeenCalledWith('font-xl');
-  });
-
-  it('defaults to medium when no saved size exists', () => {
-    loadFontSize();
-    expect(document.documentElement.classList.add).toHaveBeenCalledWith('font-medium');
   });
 });
 

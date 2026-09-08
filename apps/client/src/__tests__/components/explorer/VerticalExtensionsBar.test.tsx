@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import VerticalExtensionsBar from '@/components/explorer/VerticalExtensionsBar';
 import { extensionHost } from '@/lib/extension-host';
 import i18n from '@/i18n';
+import { useHiddenFiles } from '@/hooks/use-hidden-files';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 vi.mock('@/lib/extension-host', () => ({
   extensionHost: {
@@ -25,8 +27,75 @@ describe('VerticalExtensionsBar', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    localStorage.clear();
     vi.mocked(extensionHost.getRegisteredPanels).mockReturnValue([]);
     await i18n.changeLanguage('en');
+  });
+
+  describe('Hidden files', () => {
+    it('sits directly beside Preview and changes only its icon when toggled', () => {
+      render(<VerticalExtensionsBar {...defaultProps} />);
+      const toggle = screen.getByRole('button', { name: 'Show Hidden Files' });
+      const preview = screen.getByRole('button', { name: 'File Preview' });
+      expect(preview.nextElementSibling).toBe(toggle);
+      expect(toggle.closest('.wisp-panel-rail-horizontal')).toBe(
+        preview.closest('.wisp-panel-rail-horizontal'),
+      );
+      expect(toggle).not.toHaveClass('wisp-rail-button');
+      const neutralClass = toggle.className;
+      expect(toggle.querySelector('svg')).toHaveClass('lucide-file');
+      expect(toggle.querySelector('svg')).toHaveAttribute('stroke-dasharray', '2.5 2.5');
+      expect(toggle.querySelector('circle')).toHaveAttribute('cx', '8');
+      fireEvent.click(toggle);
+      expect(toggle).toHaveAttribute('aria-pressed', 'true');
+      expect(toggle.className).toBe(neutralClass);
+      expect(toggle.querySelector('svg')).toHaveClass('lucide-file');
+      expect(toggle.querySelector('svg')).not.toHaveAttribute('stroke-dasharray');
+      expect(toggle.querySelector('svg')).not.toHaveClass('lucide-files');
+      expect(defaultProps.setRightPanelTab).not.toHaveBeenCalled();
+    });
+
+    const PaneState = () => {
+      const { showHiddenFiles } = useHiddenFiles();
+      return <output data-testid="pane-hidden-state">{String(showHiddenFiles)}</output>;
+    };
+
+    it('toggles hidden files for all panes and persists without losing other settings', () => {
+      localStorage.setItem(
+        STORAGE_KEYS.SETTINGS,
+        JSON.stringify({ language: 'en', showHiddenFiles: false }),
+      );
+      render(
+        <>
+          <VerticalExtensionsBar {...defaultProps} />
+          <PaneState />
+          <PaneState />
+        </>,
+      );
+      const toggle = screen.getByRole('button', { name: 'Show Hidden Files' });
+      expect(toggle).toHaveAttribute('aria-pressed', 'false');
+      fireEvent.click(toggle);
+      expect(toggle).toHaveAttribute('aria-pressed', 'true');
+      expect(
+        screen.getAllByTestId('pane-hidden-state').every((el) => el.textContent === 'true'),
+      ).toBe(true);
+      expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS)!)).toEqual({
+        language: 'en',
+        showHiddenFiles: true,
+      });
+      fireEvent.click(toggle);
+      expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    });
+
+    it('restores the saved state and follows shortcut updates', () => {
+      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({ showHiddenFiles: true }));
+      render(<VerticalExtensionsBar {...defaultProps} />);
+      const toggle = screen.getByRole('button', { name: 'Show Hidden Files' });
+      expect(toggle).toHaveAttribute('aria-pressed', 'true');
+      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({ showHiddenFiles: false }));
+      fireEvent(window, new CustomEvent('wisp-settings-changed'));
+      expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    });
   });
 
   it('keeps Preview visible and progressively discloses the other built-in tools', () => {

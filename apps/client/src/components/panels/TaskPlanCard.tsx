@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * TaskPlanCard -- renders a multi-step task plan with progress tracking
  * and pause / resume / cancel controls.
@@ -114,6 +115,7 @@ interface EditableStepsProps {
 }
 
 const EditableSteps = ({ steps, onSave, onCancel }: EditableStepsProps) => {
+  const { t: tUi } = useTranslation();
   const [editSteps, setEditSteps] = useState(
     steps.map((s) => ({ description: s.description, prompt: s.prompt })),
   );
@@ -192,7 +194,7 @@ const EditableSteps = ({ steps, onSave, onCancel }: EditableStepsProps) => {
             cursor: 'pointer',
           }}
         >
-          + Add step
+          {tUi('interface.addStepWithPlus')}
         </button>
         <div style={{ flex: 1 }} />
         <button
@@ -207,7 +209,7 @@ const EditableSteps = ({ steps, onSave, onCancel }: EditableStepsProps) => {
             cursor: 'pointer',
           }}
         >
-          Cancel
+          {tUi('conflict.cancel')}
         </button>
         <button
           onClick={() => onSave(editSteps.filter((s) => s.description.trim()))}
@@ -221,7 +223,7 @@ const EditableSteps = ({ steps, onSave, onCancel }: EditableStepsProps) => {
             cursor: 'pointer',
           }}
         >
-          Save
+          {tUi('aiChat.feedback.save')}
         </button>
       </div>
     </div>
@@ -249,6 +251,7 @@ const TaskPlanCard = ({
   onPause,
   onResume,
 }: TaskPlanCardProps) => {
+  const { t: tUi } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
 
   const percent = progressPercent(plan.steps);
@@ -331,7 +334,10 @@ const TaskPlanCard = ({
         <div style={{ padding: '8px 12px 0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
             <span style={{ fontSize: '11px', color: 'var(--xp-text-muted)' }}>
-              {completedCount}/{plan.steps.length} steps
+              {tUi('messages.stepProgress', {
+                completed: completedCount,
+                total: plan.steps.length,
+              })}
             </span>
             <span style={{ fontSize: '11px', color: 'var(--xp-text-muted)' }}>{percent}%</span>
           </div>
@@ -375,9 +381,9 @@ const TaskPlanCard = ({
                 cursor: 'pointer',
                 fontWeight: 500,
               }}
-              aria-label="Execute plan"
+              aria-label={tUi('interface.executePlan')}
             >
-              Execute Plan
+              {tUi('settings.permissions.tools.executePlan')}
             </button>
             <button
               onClick={() => setIsEditing(true)}
@@ -390,9 +396,9 @@ const TaskPlanCard = ({
                 color: 'var(--xp-text)',
                 cursor: 'pointer',
               }}
-              aria-label="Edit plan"
+              aria-label={tUi('interface.editPlan')}
             >
-              Edit Plan
+              {tUi('interface.editPlan')}
             </button>
             <button
               onClick={onCancel}
@@ -405,9 +411,9 @@ const TaskPlanCard = ({
                 color: 'var(--xp-text-muted)',
                 cursor: 'pointer',
               }}
-              aria-label="Cancel plan"
+              aria-label={tUi('interface.cancelPlan')}
             >
-              Cancel
+              {tUi('conflict.cancel')}
             </button>
           </>
         )}
@@ -426,9 +432,9 @@ const TaskPlanCard = ({
                 cursor: 'pointer',
                 fontWeight: 500,
               }}
-              aria-label="Pause plan execution"
+              aria-label={tUi('interface.pausePlanExecution')}
             >
-              Pause
+              {tUi('agentManager.workspace.pause')}
             </button>
             <button
               onClick={onCancel}
@@ -441,9 +447,9 @@ const TaskPlanCard = ({
                 color: 'var(--xp-red)',
                 cursor: 'pointer',
               }}
-              aria-label="Cancel remaining steps"
+              aria-label={tUi('interface.cancelRemainingSteps')}
             >
-              Cancel
+              {tUi('conflict.cancel')}
             </button>
           </>
         )}
@@ -462,9 +468,9 @@ const TaskPlanCard = ({
                 cursor: 'pointer',
                 fontWeight: 500,
               }}
-              aria-label="Resume plan execution"
+              aria-label={tUi('interface.resumePlanExecution')}
             >
-              Resume
+              {tUi('agentManager.projectMemory.resume')}
             </button>
             <button
               onClick={onCancel}
@@ -477,9 +483,9 @@ const TaskPlanCard = ({
                 color: 'var(--xp-red)',
                 cursor: 'pointer',
               }}
-              aria-label="Cancel remaining steps"
+              aria-label={tUi('interface.cancelRemainingSteps')}
             >
-              Cancel
+              {tUi('conflict.cancel')}
             </button>
           </>
         )}

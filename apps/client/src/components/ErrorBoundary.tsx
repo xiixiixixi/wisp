@@ -13,6 +13,16 @@ interface ErrorBoundaryState {
 }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  private refreshLanguage = () => this.forceUpdate();
+
+  componentDidMount() {
+    i18n.on('languageChanged', this.refreshLanguage);
+  }
+
+  componentWillUnmount() {
+    i18n.off('languageChanged', this.refreshLanguage);
+  }
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };

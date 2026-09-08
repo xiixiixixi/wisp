@@ -105,8 +105,22 @@ const demoDirectories: Record<string, FileEntry[]> = {
   [DEMO_HOME_PATH]: homeRoot,
   [`${DEMO_HOME_PATH}/Documents`]: documents,
   [`${DEMO_HOME_PATH}/Documents/Launch`]: launch,
-  [`${DEMO_HOME_PATH}/Documents/Research`]: [],
-  [`${DEMO_HOME_PATH}/Downloads`]: [],
+  [`${DEMO_HOME_PATH}/Documents/Research`]: [
+    makeEntry(`${DEMO_HOME_PATH}/Documents/Research`, 'Q3-launch-plan.md', {
+      is_dir: false,
+      size: 2048,
+      modified: '2026-08-20T16:15:00Z',
+      file_type: 'markdown',
+    }),
+  ],
+  [`${DEMO_HOME_PATH}/Downloads`]: [
+    makeEntry(`${DEMO_HOME_PATH}/Downloads`, 'Q3-launch-plan.md', {
+      is_dir: false,
+      size: 4096,
+      modified: '2026-08-18T09:40:00Z',
+      file_type: 'markdown',
+    }),
+  ],
   [`${DEMO_HOME_PATH}/Desktop`]: [],
   [`${DEMO_HOME_PATH}/Pictures`]: [],
   [`${DEMO_HOME_PATH}/Videos`]: [],
@@ -114,6 +128,10 @@ const demoDirectories: Record<string, FileEntry[]> = {
 };
 
 const demoText: Record<string, string> = {
+  [`${DEMO_HOME_PATH}/Documents/Research/Q3-launch-plan.md`]:
+    '# Research copy\n\nResearch notes for the Q3 launch. This demo copy lives in Documents/Research.',
+  [`${DEMO_HOME_PATH}/Downloads/Q3-launch-plan.md`]:
+    '# Downloaded copy\n\nAn earlier Q3 launch plan. This demo copy lives in Downloads.',
   [`${DEMO_HOME_PATH}/Documents/Q3-launch-plan.md`]: `# Q3 launch plan
 
 ## Outcome
@@ -164,6 +182,15 @@ export const getDemoDirectory = (path: string): FileEntry[] | null => {
 };
 
 export const getDemoTextFile = (path: string): string | null => demoText[path] ?? null;
+
+export const getDemoSearchFiles = (query: string): FileEntry[] => {
+  const needle = query.trim().toLocaleLowerCase();
+  return Object.values(demoDirectories)
+    .flat()
+    .filter(
+      (entry) => !entry.name.startsWith('.') && entry.name.toLocaleLowerCase().includes(needle),
+    );
+};
 
 export const getDemoRecentFiles = (): RecentFile[] =>
   documents

@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import React from 'react';
 import i18n from '@/i18n';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
@@ -56,7 +57,6 @@ import {
   Lock,
   Unlock,
   ShieldAlert,
-  History,
   CopyPlus,
   ClipboardCopy,
   Pin,
@@ -114,7 +114,6 @@ export interface ContextMenuAction {
   encryptFile: (file: FileEntry) => void;
   decryptFile: (file: FileEntry) => void;
   secureDelete: (files: FileEntry[]) => void;
-  versionHistory: (file: FileEntry) => void;
   duplicateFiles: (files: FileEntry[]) => void;
   copyName: (files: FileEntry | FileEntry[]) => void;
   pinToSidebar: (file: FileEntry) => void;
@@ -208,7 +207,10 @@ export class ContextMenuFactory {
       if (diff < 60_000) return 'just now';
       if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
       if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
-      return new Date(ts).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      return new Date(ts).toLocaleTimeString(getAppLocale(), {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
     };
 
     const submenu: ContextMenuItem[] = recent.map((entry) => {
@@ -804,7 +806,7 @@ export class ContextMenuFactory {
                   new CustomEvent('wisp:extension-toast', {
                     detail: {
                       title: file.name,
-                      description: `${words.toLocaleString()} words · ${lines.toLocaleString()} lines · ${chars.toLocaleString()} chars`,
+                      description: `${words.toLocaleString(getAppLocale())} words · ${lines.toLocaleString(getAppLocale())} lines · ${chars.toLocaleString(getAppLocale())} chars`,
                     },
                   }),
                 );
@@ -840,15 +842,6 @@ export class ContextMenuFactory {
               console.error('Hash failed:', err);
             }
           },
-        });
-      }
-
-      if (!file.is_dir) {
-        moreItems.push({
-          id: 'version-history',
-          label: i18n.t('contextMenu.versionHistory'),
-          icon: mi(History),
-          action: () => this.actions.versionHistory(file),
         });
       }
 

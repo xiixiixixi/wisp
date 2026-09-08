@@ -174,7 +174,9 @@ const SidebarFileTree = ({
           role="treeitem"
           aria-selected={currentPath === file.path}
           aria-expanded={file.is_dir ? isExpanded : undefined}
-          aria-label={`${file.name}${file.is_dir ? ', folder' : ', file'}`}
+          aria-label={t(file.is_dir ? 'messages.folderAria' : 'messages.fileAria', {
+            name: file.name,
+          })}
           className={`flex cursor-pointer items-center rounded-[2px] px-1 py-1 text-xs transition-colors hover:bg-xp-surface-light ${currentPath === file.path ? 'wisp-sidebar-item-active' : 'text-xp-text'} `}
           style={{ paddingLeft: `${depth * 16 + 8}px` }}
           onClick={() => handleItemClick(file)}

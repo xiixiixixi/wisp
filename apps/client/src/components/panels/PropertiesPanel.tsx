@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TauriAPI } from '@/lib/tauri-api';
@@ -404,12 +405,12 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
             )}
             <PropRow
               label={t('panels.properties.labelSizeBytes')}
-              value={(properties.size ?? 0).toLocaleString()}
+              value={(properties.size ?? 0).toLocaleString(getAppLocale())}
             />
             {properties.attributes.total_size != null && (
               <PropRow
                 label={t('panels.properties.labelTotalBytes')}
-                value={properties.attributes.total_size.toLocaleString()}
+                value={properties.attributes.total_size.toLocaleString(getAppLocale())}
               />
             )}
             <PropRow

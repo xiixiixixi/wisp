@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { DEFAULT_LANGUAGE } from '@/lib/language-settings';
+import { stripRetiredSettings } from '@/lib/retired-settings';
 import { Monitor, FolderOpen, AlertTriangle } from 'lucide-react';
 import {
   Select,
@@ -162,22 +164,26 @@ export const ColorField = ({
 );
 
 /** Permission toggle button (ON/OFF). */
-export const PermToggle = ({ enabled, onChange }: { enabled: boolean; onChange: () => void }) => (
-  <button
-    type="button"
-    onClick={onChange}
-    className={`rounded-[2px] px-3 py-1 text-xs font-medium tracking-wide transition-all ${
-      enabled
-        ? 'border border-xp-green/40 bg-xp-green/10 text-xp-green hover:bg-xp-green/20'
-        : 'border border-xp-red/20 bg-xp-red/10 text-xp-red hover:bg-xp-red/20'
-    }`}
-  >
-    {enabled ? 'ON' : 'OFF'}
-  </button>
-);
+export const PermToggle = ({ enabled, onChange }: { enabled: boolean; onChange: () => void }) => {
+  const { t: tUi } = useTranslation();
+  return (
+    <button
+      type="button"
+      onClick={onChange}
+      className={`rounded-[2px] px-3 py-1 text-xs font-medium tracking-wide transition-all ${
+        enabled
+          ? 'border border-xp-green/40 bg-xp-green/10 text-xp-green hover:bg-xp-green/20'
+          : 'border border-xp-red/20 bg-xp-red/10 text-xp-red hover:bg-xp-red/20'
+      }`}
+    >
+      {enabled ? tUi('common.on') : tUi('common.off')}
+    </button>
+  );
+};
 
 /** Windows-only system integration settings (default/context-menu handler). */
 export const SystemIntegrationSettings = () => {
+  const { t: tUi } = useTranslation();
   const [isDefaultHandler, setIsDefaultHandler] = useState(false);
   const [contextMenuInstalled, setContextMenuInstalled] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -198,18 +204,22 @@ export const SystemIntegrationSettings = () => {
   }, [isWindows]);
 
   if (!isWindows) return null;
-  if (loading) return <div className="px-4 py-2 text-sm text-xp-text-muted">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="px-4 py-2 text-sm text-xp-text-muted">{tUi('panels.notes.loading')}</div>
+    );
+  }
 
   return (
     <>
       <SettingRow
         icon={Monitor}
-        label="Default File Explorer"
-        description="Double-clicking folders opens Wisp instead of Windows Explorer"
+        label={tUi('settings.general.defaultExplorer')}
+        description={tUi('settings.general.defaultExplorerDesc')}
       >
         <Toggle
           id="defaultExplorer"
-          label="Default Explorer"
+          label={tUi('settings.general.defaultExplorerToggle')}
           checked={isDefaultHandler}
           onChange={async (v) => {
             try {
@@ -226,12 +236,12 @@ export const SystemIntegrationSettings = () => {
       </SettingRow>
       <SettingRow
         icon={FolderOpen}
-        label="Folder Context Menu"
-        description="Add 'Open with Wisp' to folder right-click menu"
+        label={tUi('settings.general.folderContextMenu')}
+        description={tUi('settings.general.folderContextMenuDesc')}
       >
         <Toggle
           id="contextMenu"
-          label="Context Menu"
+          label={tUi('settings.general.contextMenuToggle')}
           checked={contextMenuInstalled}
           onChange={async (v) => {
             try {
@@ -254,7 +264,7 @@ export const SystemIntegrationSettings = () => {
       {isDefaultHandler && (
         <div className="flex items-center gap-2 px-4 py-2 text-xs text-xp-yellow">
           <AlertTriangle size={12} />
-          Folders will open in Wisp. Disable to restore Windows Explorer.
+          {tUi('settings.general.explorerWarning')}
         </div>
       )}
     </>
@@ -267,18 +277,8 @@ export interface AppSettings {
   theme: string;
   language: string;
   showHiddenFiles: boolean;
-  enableMarkdownPreview: boolean;
   defaultView: string;
-  enableAnimations: boolean;
   showFileExtensions: boolean;
-  enableNotifications: boolean;
-  autoSave: boolean;
-  fontSize: string;
-  sidebarWidth: string;
-  reducedMotion: boolean;
-  reduceTransparency: boolean;
-  enhancedFocus: boolean;
-  highContrast: boolean;
   autoCalculateFolderSizes: boolean;
   rememberViewPerFolder: boolean;
   aiSearchProvider: string;
@@ -294,8 +294,6 @@ export interface AppSettings {
   weatherCity: string;
   weatherLat: number;
   weatherLon: number;
-  weatherSync: boolean;
-  fluidGlass: boolean;
 }
 
 /**
@@ -306,7 +304,9 @@ export interface AppSettings {
 export const migrateLegacyAiSettings = <T extends { aiServiceMode?: string; theme?: string }>(
   s: T,
 ): T => {
-  const migrated = s.aiServiceMode === 'cloud' ? { ...s, aiServiceMode: 'custom' } : { ...s };
+  const migrated = stripRetiredSettings(
+    s.aiServiceMode === 'cloud' ? { ...s, aiServiceMode: 'custom' } : { ...s },
+  );
   // The three legacy themes collapsed into the single adaptive theme.
   if (migrated.theme && migrated.theme !== 'auto') {
     return { ...migrated, theme: 'auto' };
@@ -318,18 +318,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'auto',
   language: DEFAULT_LANGUAGE,
   showHiddenFiles: false,
-  enableMarkdownPreview: true,
   defaultView: 'details',
-  enableAnimations: true,
   showFileExtensions: true,
-  enableNotifications: true,
-  autoSave: true,
-  fontSize: 'medium',
-  sidebarWidth: 'medium',
-  reducedMotion: false,
-  reduceTransparency: false,
-  enhancedFocus: false,
-  highContrast: false,
   autoCalculateFolderSizes: false,
   rememberViewPerFolder: false,
   aiSearchProvider: 'auto',
@@ -345,8 +335,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   weatherCity: '上海',
   weatherLat: 31.2304,
   weatherLon: 121.4737,
-  weatherSync: true,
-  fluidGlass: true,
 };
 
 export const SETTINGS_KEY = STORAGE_KEYS.SETTINGS;

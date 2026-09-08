@@ -644,22 +644,6 @@ export interface DockerImageInfo {
   created: string;
 }
 
-// ── File versioning types ────────────────────────────────────────────────────
-
-export interface FileVersion {
-  version_number: number;
-  timestamp: string;
-  size: number;
-  path: string;
-  original_name: string;
-}
-
-export interface VersioningConfig {
-  enabled_dirs: string[];
-  max_versions_per_file: number;
-  auto_version_on_save: boolean;
-}
-
 // ── Recent file types ────────────────────────────────────────────────────────
 
 export interface RecentFile {
@@ -1242,21 +1226,4 @@ export interface BackupProgress {
   total: number;
   current_file: string;
   percentage: number;
-}
-
-// ── Audit types ──────────────────────────────────────────────────────────────
-
-export interface AuditEntry {
-  id: number;
-  timestamp: string;
-  operation: string;
-  paths: string[];
-  user: string;
-  details: string | null;
-  success: boolean;
-}
-
-export interface AuditLogQuery {
-  entries: AuditEntry[];
-  total: number;
 }

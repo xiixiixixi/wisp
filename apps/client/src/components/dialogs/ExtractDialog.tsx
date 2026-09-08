@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
@@ -327,13 +328,13 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
                     <div>
                       <span className="text-xp-text-muted">{t('dialogs.extract.files')}</span>
                       <span className="ml-2 text-xp-text">
-                        {archiveInfo.total_files.toLocaleString()}
+                        {archiveInfo.total_files.toLocaleString(getAppLocale())}
                       </span>
                     </div>
                     <div>
                       <span className="text-xp-text-muted">{t('dialogs.extract.directories')}</span>
                       <span className="ml-2 text-xp-text">
-                        {archiveInfo.total_directories.toLocaleString()}
+                        {archiveInfo.total_directories.toLocaleString(getAppLocale())}
                       </span>
                     </div>
                     <div>

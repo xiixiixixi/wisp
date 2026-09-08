@@ -1,3 +1,5 @@
+import { getAppLocale } from '@/lib/locale';
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import i18n from '@/i18n';
 import { convertAssetUrl } from '@/lib/transport';
@@ -30,6 +32,7 @@ const FileComparisonDialog = ({
   file2Path,
   onError,
 }: FileComparisonDialogProps) => {
+  const { t: tUi } = useTranslation();
   const [comparisonResult, setComparisonResult] = useState<FileComparisonResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState('summary');
@@ -72,7 +75,7 @@ const FileComparisonDialog = ({
   };
 
   const formatDate = (timestamp: number): string => {
-    return new Date(timestamp * 1000).toLocaleString();
+    return new Date(timestamp * 1000).toLocaleString(getAppLocale());
   };
 
   const renderSummaryTab = () => {
@@ -90,25 +93,29 @@ const FileComparisonDialog = ({
             {identical ? (
               <Badge variant="success" className="gap-2">
                 <Scale className="h-4 w-4" />
-                Files are identical
+                {tUi('interface.filesAreIdentical')}
               </Badge>
             ) : (
               <Badge variant="warning" className="gap-2">
                 <AlertTriangle className="h-4 w-4" />
-                Files differ
+                {tUi('interface.filesDiffer')}
               </Badge>
             )}
             <Badge variant="outline" className="ml-2">
-              {(similarity * 100).toFixed(1)}% similar
+              {tUi('messages.similarity', { percent: (similarity * 100).toFixed(1) })}
             </Badge>
-            <Badge variant="outline">{comparisonType} comparison</Badge>
+            <Badge variant="outline">
+              {tUi('messages.comparisonType', {
+                type: tUi(`comparison.types.${comparisonType}`, { defaultValue: comparisonType }),
+              })}
+            </Badge>
           </div>
         </div>
 
         {/* File Information */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-xp-text-secondary">File 1</h3>
+            <h3 className="text-sm font-medium text-xp-text-secondary">{tUi('interface.file1')}</h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <FileIcon className="h-4 w-4 text-xp-blue" />
@@ -116,8 +123,12 @@ const FileComparisonDialog = ({
                   {file1.name}
                 </span>
               </div>
-              <div className="text-xp-text-secondary">Size: {formatFileSize(file1.size)}</div>
-              <div className="text-xp-text-secondary">Modified: {formatDate(file1.modified)}</div>
+              <div className="text-xp-text-secondary">
+                {tUi('interface.sizeLabel')} {formatFileSize(file1.size)}
+              </div>
+              <div className="text-xp-text-secondary">
+                {tUi('interface.modifiedLabel')} {formatDate(file1.modified)}
+              </div>
               {file1.hash && (
                 <div className="flex items-center gap-2 text-xp-text-secondary">
                   <Hash className="h-3 w-3" />
@@ -128,7 +139,7 @@ const FileComparisonDialog = ({
           </div>
 
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-xp-text-secondary">File 2</h3>
+            <h3 className="text-sm font-medium text-xp-text-secondary">{tUi('interface.file2')}</h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <FileIcon className="h-4 w-4 text-xp-green" />
@@ -136,8 +147,12 @@ const FileComparisonDialog = ({
                   {file2.name}
                 </span>
               </div>
-              <div className="text-xp-text-secondary">Size: {formatFileSize(file2.size)}</div>
-              <div className="text-xp-text-secondary">Modified: {formatDate(file2.modified)}</div>
+              <div className="text-xp-text-secondary">
+                {tUi('interface.sizeLabel')} {formatFileSize(file2.size)}
+              </div>
+              <div className="text-xp-text-secondary">
+                {tUi('interface.modifiedLabel')} {formatDate(file2.modified)}
+              </div>
               {file2.hash && (
                 <div className="flex items-center gap-2 text-xp-text-secondary">
                   <Hash className="h-3 w-3" />
@@ -154,21 +169,21 @@ const FileComparisonDialog = ({
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="rounded-[2px] bg-xp-surface-light p-3 text-center">
             <div className="text-lg font-medium text-xp-green">{metadata.linesAdded}</div>
-            <div className="text-xs text-xp-text-secondary">Lines Added</div>
+            <div className="text-xs text-xp-text-secondary">{tUi('interface.linesAdded')}</div>
           </div>
           <div className="rounded-[2px] bg-xp-surface-light p-3 text-center">
             <div className="text-lg font-medium text-xp-red">{metadata.linesRemoved}</div>
-            <div className="text-xs text-xp-text-secondary">Lines Removed</div>
+            <div className="text-xs text-xp-text-secondary">{tUi('interface.linesRemoved')}</div>
           </div>
           <div className="rounded-[2px] bg-xp-surface-light p-3 text-center">
             <div className="text-lg font-medium text-xp-orange">{metadata.linesModified}</div>
-            <div className="text-xs text-xp-text-secondary">Lines Modified</div>
+            <div className="text-xs text-xp-text-secondary">{tUi('interface.linesModified')}</div>
           </div>
           <div className="rounded-[2px] bg-xp-surface-light p-3 text-center">
             <div className="text-lg font-medium text-xp-blue">
               {formatFileSize(metadata.bytesDifferent)}
             </div>
-            <div className="text-xs text-xp-text-secondary">Bytes Different</div>
+            <div className="text-xs text-xp-text-secondary">{tUi('interface.bytesDifferent')}</div>
           </div>
         </div>
 
@@ -176,11 +191,13 @@ const FileComparisonDialog = ({
         <div className="flex items-center gap-4 text-xs text-xp-text-muted">
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            Processed in {metadata.processingTime}ms
+            {tUi('messages.processingTime', { time: metadata.processingTime })}
           </div>
-          <div>Algorithm: {metadata.algorithm}</div>
           <div>
-            Total lines: {metadata.totalLines1} / {metadata.totalLines2}
+            {tUi('interface.algorithmLabel')} {metadata.algorithm}
+          </div>
+          <div>
+            {tUi('interface.totalLinesLabel')} {metadata.totalLines1} / {metadata.totalLines2}
           </div>
         </div>
       </div>
@@ -192,8 +209,8 @@ const FileComparisonDialog = ({
       return (
         <div className="py-8 text-center text-xp-text-muted">
           <Scale className="mx-auto mb-4 h-12 w-12 text-xp-text-secondary" />
-          <div className="text-lg font-medium">No differences found</div>
-          <div className="text-sm">The files are identical</div>
+          <div className="text-lg font-medium">{tUi('interface.noDifferencesFound')}</div>
+          <div className="text-sm">{tUi('interface.theFilesAreIdentical')}</div>
         </div>
       );
     }
@@ -228,10 +245,14 @@ const FileComparisonDialog = ({
                   {diff.diffType}
                 </Badge>
                 {diff.line1 && (
-                  <span className="text-xs text-xp-text-secondary">Line {diff.line1}</span>
+                  <span className="text-xs text-xp-text-secondary">
+                    {tUi('messages.lineNumber', { line: diff.line1 })}
+                  </span>
                 )}
                 {diff.line2 && (
-                  <span className="text-xs text-xp-text-secondary">→ Line {diff.line2}</span>
+                  <span className="text-xs text-xp-text-secondary">
+                    → {tUi('messages.lineNumber', { line: diff.line2 })}
+                  </span>
                 )}
                 <Badge variant="outline" className="text-xs">
                   {diff.severity}
@@ -254,7 +275,7 @@ const FileComparisonDialog = ({
               {diff.context && diff.context.length > 0 && (
                 <details className="mt-3">
                   <summary className="cursor-pointer text-xs text-xp-text-secondary hover:text-xp-text">
-                    Show context ({diff.context.length} lines)
+                    {tUi('messages.contextLines', { count: diff.context.length })}
                   </summary>
                   <div className="mt-2 rounded-[2px] bg-xp-surface-light p-2 font-mono text-xs">
                     {diff.context.map((line, idx) => (
@@ -342,9 +363,9 @@ const FileComparisonDialog = ({
       return (
         <div className="py-8 text-center text-xp-text-muted">
           <FileIcon className="mx-auto mb-4 h-12 w-12 text-xp-text-secondary" />
-          <div className="text-lg font-medium">Side-by-side view not available</div>
+          <div className="text-lg font-medium">{tUi('interface.sideBySideViewNotAvailable')}</div>
           <div className="text-sm">
-            This view is only available for text, image, and video files
+            {tUi('interface.thisViewIsOnlyAvailableForTextImageAndVideoFiles')}
           </div>
         </div>
       );
@@ -403,7 +424,7 @@ const FileComparisonDialog = ({
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
               <Scale className="h-5 w-5" />
-              File Comparison
+              {tUi('interface.fileComparison')}
             </DialogTitle>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
@@ -417,17 +438,19 @@ const FileComparisonDialog = ({
             <div className="flex h-64 items-center justify-center">
               <div className="flex flex-col items-center gap-4">
                 <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-xp-text-muted" />
-                <div className="text-sm text-xp-text-secondary">Comparing files...</div>
+                <div className="text-sm text-xp-text-secondary">
+                  {tUi('interface.comparingFiles')}
+                </div>
               </div>
             </div>
           ) : comparisonResult ? (
             <Tabs value={selectedTab} onValueChange={setSelectedTab} className="h-full">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="summary">Summary</TabsTrigger>
+                <TabsTrigger value="summary">{tUi('interface.summary')}</TabsTrigger>
                 <TabsTrigger value="differences">
-                  Differences ({comparisonResult.differences.length})
+                  {tUi('messages.differences', { count: comparisonResult.differences.length })}
                 </TabsTrigger>
-                <TabsTrigger value="side-by-side">Side by Side</TabsTrigger>
+                <TabsTrigger value="side-by-side">{tUi('comparison.sideBySide')}</TabsTrigger>
               </TabsList>
 
               <div className="mt-4 h-full">
@@ -445,19 +468,19 @@ const FileComparisonDialog = ({
           ) : (
             <div className="py-8 text-center text-xp-text-muted">
               <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-xp-text-secondary" />
-              <div className="text-lg font-medium">Comparison failed</div>
-              <div className="text-sm">Unable to compare the selected files</div>
+              <div className="text-lg font-medium">{tUi('dialogs.fileComparison.failed')}</div>
+              <div className="text-sm">{tUi('interface.unableToCompareTheSelectedFiles')}</div>
             </div>
           )}
         </div>
 
         <div className="flex justify-end gap-2 border-t pt-4">
           <Button variant="outline" onClick={onClose}>
-            Close
+            {tUi('agentManager.workspace.close')}
           </Button>
           {comparisonResult && (
             <Button onClick={performComparison} disabled={loading}>
-              Refresh Comparison
+              {tUi('interface.refreshComparison')}
             </Button>
           )}
         </div>

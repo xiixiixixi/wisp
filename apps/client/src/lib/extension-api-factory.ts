@@ -528,56 +528,6 @@ export const createExtensionApi = (manifest: ExtensionManifest, deps: ExtensionA
         return TauriAPI.dockerContainerLogs(id, lines);
       },
     },
-    versions: {
-      create: async (filePath: string) => {
-        if (!hasPermission(manifest, 'file:write') && !hasPermission(manifest, 'files:write')) {
-          throw new Error(`Extension "${manifest.id}" missing permission: file:write`);
-        }
-        return TauriAPI.createVersion(filePath);
-      },
-      list: async (filePath: string) => {
-        if (!hasPermission(manifest, 'file:read') && !hasPermission(manifest, 'files:read')) {
-          throw new Error(`Extension "${manifest.id}" missing permission: file:read`);
-        }
-        return TauriAPI.listVersions(filePath);
-      },
-      restore: async (filePath: string, versionNumber: number) => {
-        if (!hasPermission(manifest, 'file:write') && !hasPermission(manifest, 'files:write')) {
-          throw new Error(`Extension "${manifest.id}" missing permission: file:write`);
-        }
-        return TauriAPI.restoreVersion(filePath, versionNumber);
-      },
-      delete: async (filePath: string, versionNumber: number) => {
-        if (!hasPermission(manifest, 'file:write') && !hasPermission(manifest, 'files:write')) {
-          throw new Error(`Extension "${manifest.id}" missing permission: file:write`);
-        }
-        return TauriAPI.deleteVersion(filePath, versionNumber);
-      },
-      deleteAll: async (filePath: string) => {
-        if (!hasPermission(manifest, 'file:write') && !hasPermission(manifest, 'files:write')) {
-          throw new Error(`Extension "${manifest.id}" missing permission: file:write`);
-        }
-        return TauriAPI.deleteAllVersions(filePath);
-      },
-      getCount: async (filePath: string) => {
-        if (!hasPermission(manifest, 'file:read') && !hasPermission(manifest, 'files:read')) {
-          throw new Error(`Extension "${manifest.id}" missing permission: file:read`);
-        }
-        return TauriAPI.getVersionCount(filePath);
-      },
-      readContent: async (filePath: string, versionNumber: number) => {
-        if (!hasPermission(manifest, 'file:read') && !hasPermission(manifest, 'files:read')) {
-          throw new Error(`Extension "${manifest.id}" missing permission: file:read`);
-        }
-        return TauriAPI.readVersionContent(filePath, versionNumber);
-      },
-      isEnabled: async (filePath: string) => {
-        if (!hasPermission(manifest, 'file:read') && !hasPermission(manifest, 'files:read')) {
-          throw new Error(`Extension "${manifest.id}" missing permission: file:read`);
-        }
-        return TauriAPI.isVersioningEnabled(filePath);
-      },
-    },
     backend: {
       call: async (method: string, args?: Record<string, unknown>) => {
         return TauriAPI.extensionBackendCall(manifest.id, method, args ?? {});

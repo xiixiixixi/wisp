@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
 import { PreviewProps } from '@/lib/preview-factory';
 import { convertAssetUrl } from '@/lib/transport';
@@ -10,6 +11,7 @@ import { PreviewSkeleton } from '@/components/ui/Skeleton';
  * provides zoom, page nav, and text search.
  */
 const PdfPreview = ({ file, onError, onLoad }: PreviewProps) => {
+  const { t: tUi } = useTranslation();
   const [src, setSrc] = useState('');
   const [ready, setReady] = useState(false);
 
@@ -43,7 +45,7 @@ const PdfPreview = ({ file, onError, onLoad }: PreviewProps) => {
         )}
       </div>
       <div className="flex-shrink-0 px-1 text-[10px] text-xp-text-muted">
-        {file.name} · use the viewer's controls to zoom and page
+        {file.name} {tUi('interface.useTheViewerSControlsToZoomAndPage')}
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -44,6 +45,7 @@ const FileDetailsDialog = ({
   filePath,
   initialTab = 'notes',
 }: FileDetailsDialogProps) => {
+  const { t: tUi } = useTranslation();
   const [activeTab, setActiveTab] = useState<FileDetailsTab>(initialTab);
 
   // Reset tab when dialog opens with a new initialTab
@@ -70,7 +72,7 @@ const FileDetailsDialog = ({
               <FileText className="h-4 w-4 text-xp-blue" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-sm font-semibold text-xp-text">File Details</h2>
+              <h2 className="text-sm font-semibold text-xp-text">{tUi('dialogs.fileDetails')}</h2>
               <p className="max-w-[280px] truncate text-xs text-xp-text-muted" title={filePath}>
                 {fileName}
               </p>
@@ -128,19 +130,19 @@ const TabBar = ({
   const tabs: { id: FileDetailsTab; label: string; icon: React.ReactNode; count: number }[] = [
     {
       id: 'notes',
-      label: t('dialogs.fileDetails.notes'),
+      label: t('fileDetails.notes'),
       icon: <StickyNote className="h-3.5 w-3.5" />,
       count: counts.notes,
     },
     {
       id: 'annotations',
-      label: t('dialogs.fileDetails.annotations'),
+      label: t('fileDetails.annotations'),
       icon: <MessageSquare className="h-3.5 w-3.5" />,
       count: counts.annotations,
     },
     {
       id: 'metadata',
-      label: t('dialogs.fileDetails.metadata'),
+      label: t('fileDetails.metadata'),
       icon: <Database className="h-3.5 w-3.5" />,
       count: counts.metadata,
     },
@@ -279,9 +281,9 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
         {/* eslint-disable-next-line no-nested-ternary */}
         {loading ? (
-          <p className="text-sm text-xp-text-muted">Loading...</p>
+          <p className="text-sm text-xp-text-muted">{t('panels.notes.loading')}</p>
         ) : notes.length === 0 && !showAddForm ? (
-          <p className="text-sm italic text-xp-text-muted">No notes yet — add one below.</p>
+          <p className="text-sm italic text-xp-text-muted">{t('dialogs.notes.empty')}</p>
         ) : (
           notes.map((note) => (
             <div key={note.id} className="overflow-hidden rounded-[2px] border border-xp-border">
@@ -304,7 +306,7 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
                       startEditing(note);
                     }}
                     className="rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-blue"
-                    title="Edit"
+                    title={t('preview.edit')}
                   >
                     <Pencil className="h-3 w-3" />
                   </button>
@@ -314,7 +316,7 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
                       handleDeleteNote(note.id);
                     }}
                     className="rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-red"
-                    title="Delete"
+                    title={t('performanceDashboard.ops.delete')}
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>
@@ -330,21 +332,21 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
                         value={editTitle}
                         onChange={(e) => setEditTitle(e.target.value)}
                         className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text transition-colors focus:border-xp-blue focus:outline-none"
-                        placeholder={t('dialogs.fileDetails.noteTitlePlaceholder')}
+                        placeholder={t('fileDetails.noteTitlePlaceholder')}
                       />
                       <textarea
                         value={editContent}
                         onChange={(e) => setEditContent(e.target.value)}
                         rows={5}
                         className="w-full resize-y rounded-[2px] border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text transition-colors focus:border-xp-blue focus:outline-none"
-                        placeholder={t('dialogs.fileDetails.noteContentPlaceholder')}
+                        placeholder={t('fileDetails.noteContentPlaceholder')}
                       />
                       <div className="flex items-center justify-end space-x-2">
                         <button
                           onClick={() => setEditingNoteId(null)}
                           className="rounded-[2px] px-2.5 py-1 text-xs text-xp-text-muted transition-colors hover:text-xp-text"
                         >
-                          Cancel
+                          {t('conflict.cancel')}
                         </button>
                         <button
                           onClick={() => handleUpdateNote(note.id)}
@@ -352,7 +354,7 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
                           className="flex items-center space-x-1 rounded-[2px] bg-xp-blue px-2.5 py-1 text-xs font-medium text-xp-on-accent transition-colors hover:bg-opacity-90 disabled:opacity-40"
                         >
                           <Check className="h-3 w-3" />
-                          <span>Save</span>
+                          <span>{t('aiChat.feedback.save')}</span>
                         </button>
                       </div>
                     </div>
@@ -360,11 +362,14 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
                     <div className="pt-2">
                       <p className="whitespace-pre-wrap text-sm text-xp-text">
                         {note.content || (
-                          <span className="italic text-xp-text-muted">No content</span>
+                          <span className="italic text-xp-text-muted">
+                            {t('dialogs.notes.noContent')}
+                          </span>
                         )}
                       </p>
                       <p className="mt-2 text-xs text-xp-text-muted">
-                        Updated {new Date(note.updated_at).toLocaleString()}
+                        {t('interface.updated')}{' '}
+                        {new Date(note.updated_at).toLocaleString(getAppLocale())}
                       </p>
                     </div>
                   )}
@@ -385,7 +390,7 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
                 if (e.key === 'Escape') setShowAddForm(false);
               }}
               className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text placeholder-xp-text-muted transition-colors focus:border-xp-blue focus:outline-none"
-              placeholder={t('dialogs.fileDetails.noteTitlePlaceholder')}
+              placeholder={t('fileDetails.noteTitlePlaceholder')}
               maxLength={100}
             />
             <textarea
@@ -393,14 +398,14 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
               onChange={(e) => setNewContent(e.target.value)}
               rows={4}
               className="w-full resize-y rounded-[2px] border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text placeholder-xp-text-muted transition-colors focus:border-xp-blue focus:outline-none"
-              placeholder={t('dialogs.fileDetails.noteContentPlaceholder')}
+              placeholder={t('fileDetails.noteContentPlaceholder')}
             />
             <div className="flex items-center justify-end space-x-2">
               <button
                 onClick={() => setShowAddForm(false)}
                 className="rounded-[2px] px-2.5 py-1 text-xs text-xp-text-muted transition-colors hover:text-xp-text"
               >
-                Cancel
+                {t('conflict.cancel')}
               </button>
               <button
                 onClick={handleAddNote}
@@ -412,7 +417,7 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
                 ) : (
                   <Check className="h-3 w-3" />
                 )}
-                <span>Add Note</span>
+                <span>{t('dialogs.notes.addNote')}</span>
               </button>
             </div>
           </div>
@@ -428,7 +433,7 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
       {/* Footer */}
       <div className="flex flex-shrink-0 items-center justify-between border-t border-xp-border px-4 py-3">
         <span className="text-xs text-xp-text-muted">
-          {notes.length} note{notes.length !== 1 ? 's' : ''}
+          {t('counts.notes', { count: notes.length })}
         </span>
         {!showAddForm && (
           <button
@@ -436,7 +441,7 @@ const NotesTab = ({ filePath }: { filePath: string }) => {
             className="flex items-center space-x-1.5 rounded-[2px] bg-xp-blue px-3 py-1.5 text-sm font-medium text-xp-on-accent transition-colors hover:bg-opacity-90"
           >
             <Plus className="h-3.5 w-3.5" />
-            <span>Add Note</span>
+            <span>{t('dialogs.notes.addNote')}</span>
           </button>
         )}
       </div>
@@ -516,12 +521,12 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
     <>
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
         {(() => {
-          if (loading) return <p className="text-sm text-xp-text-muted">Loading...</p>;
+          if (loading) {
+            return <p className="text-sm text-xp-text-muted">{t('panels.notes.loading')}</p>;
+          }
           if (annotations.length === 0) {
             return (
-              <p className="text-sm italic text-xp-text-muted">
-                No annotations yet — add one below.
-              </p>
+              <p className="text-sm italic text-xp-text-muted">{t('dialogs.annotations.empty')}</p>
             );
           }
           return (
@@ -536,20 +541,21 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
                       <button
                         onClick={() => handleToggleResolved(a.id)}
                         className="mt-0.5 flex-shrink-0 text-xp-text-muted transition-colors hover:text-xp-green"
-                        title={t('dialogs.fileDetails.markResolved')}
+                        title={t('fileDetails.markResolved')}
                       >
                         <Circle className="h-4 w-4" />
                       </button>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm text-xp-text">{a.text}</p>
                         <p className="mt-0.5 text-xs text-xp-text-muted">
-                          {a.author} &middot; {new Date(a.created_at).toLocaleString()}
+                          {a.author} &middot;{' '}
+                          {new Date(a.created_at).toLocaleString(getAppLocale())}
                         </p>
                       </div>
                       <button
                         onClick={() => handleDelete(a.id)}
                         className="flex-shrink-0 rounded-[2px] p-1 text-xp-text-muted opacity-0 transition-all hover:bg-xp-surface-light hover:text-xp-red group-hover:opacity-100"
-                        title="Delete"
+                        title={t('performanceDashboard.ops.delete')}
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>
@@ -561,7 +567,7 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
               {resolvedAnnotations.length > 0 && (
                 <div className="space-y-1">
                   <p className="pt-1 text-xs font-medium uppercase tracking-wide text-xp-text-muted">
-                    Resolved ({resolvedAnnotations.length})
+                    {t('messages.resolvedAnnotations', { count: resolvedAnnotations.length })}
                   </p>
                   {resolvedAnnotations.map((a) => (
                     <div
@@ -571,20 +577,21 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
                       <button
                         onClick={() => handleToggleResolved(a.id)}
                         className="mt-0.5 flex-shrink-0 text-xp-green transition-colors hover:text-xp-text-muted"
-                        title={t('dialogs.fileDetails.unresolve')}
+                        title={t('fileDetails.unresolve')}
                       >
                         <CheckCircle className="h-4 w-4" />
                       </button>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm text-xp-text line-through">{a.text}</p>
                         <p className="mt-0.5 text-xs text-xp-text-muted">
-                          {a.author} &middot; {new Date(a.created_at).toLocaleString()}
+                          {a.author} &middot;{' '}
+                          {new Date(a.created_at).toLocaleString(getAppLocale())}
                         </p>
                       </div>
                       <button
                         onClick={() => handleDelete(a.id)}
                         className="flex-shrink-0 rounded-[2px] p-1 text-xp-text-muted opacity-0 transition-all hover:bg-xp-surface-light hover:text-xp-red group-hover:opacity-100"
-                        title="Delete"
+                        title={t('performanceDashboard.ops.delete')}
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>
@@ -620,7 +627,7 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
                 handleAdd();
               }
             }}
-            placeholder={t('dialogs.fileDetails.addAnnotation')}
+            placeholder={t('fileDetails.addAnnotation')}
             maxLength={500}
             className="flex-1 rounded-[2px] border border-xp-border bg-xp-bg px-3 py-1.5 text-sm text-xp-text placeholder-xp-text-muted transition-colors focus:border-xp-blue focus:outline-none"
           />
@@ -634,7 +641,7 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
             ) : (
               <Plus className="h-3.5 w-3.5" />
             )}
-            <span>Add</span>
+            <span>{t('advancedSelection.dialog.add')}</span>
           </button>
         </div>
       </div>
@@ -645,11 +652,11 @@ const AnnotationsTab = ({ filePath }: { filePath: string }) => {
 // ── Metadata Tab ────────────────────────────────────────────────────────────
 
 const FIELD_TYPES = [
-  { value: 'text', labelKey: 'dialogs.fileDetails.typeText' },
-  { value: 'number', labelKey: 'dialogs.fileDetails.typeNumber' },
-  { value: 'date', labelKey: 'dialogs.fileDetails.typeDate' },
-  { value: 'url', labelKey: 'dialogs.fileDetails.typeUrl' },
-  { value: 'boolean', labelKey: 'dialogs.fileDetails.typeBoolean' },
+  { value: 'text', labelKey: 'fileDetails.typeText' },
+  { value: 'number', labelKey: 'fileDetails.typeNumber' },
+  { value: 'date', labelKey: 'fileDetails.typeDate' },
+  { value: 'url', labelKey: 'fileDetails.typeUrl' },
+  { value: 'boolean', labelKey: 'fileDetails.typeBoolean' },
 ];
 
 interface EditableField extends CustomMetadataField {
@@ -737,11 +744,13 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
     <>
       <div className="flex-1 space-y-2 overflow-y-auto px-4 py-3">
         {(() => {
-          if (loading) return <p className="text-sm text-xp-text-muted">Loading...</p>;
+          if (loading) {
+            return <p className="text-sm text-xp-text-muted">{t('panels.notes.loading')}</p>;
+          }
           if (fields.length === 0) {
             return (
               <p className="text-sm italic text-xp-text-muted">
-                No metadata fields — click Add Field below.
+                {t('interface.noMetadataFieldsClickAddFieldBelow')}
               </p>
             );
           }
@@ -749,13 +758,13 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
             <>
               <div className="grid grid-cols-[1fr_1fr_90px_28px] gap-2 px-1">
                 <span className="text-xs font-medium uppercase tracking-wide text-xp-text-muted">
-                  Key
+                  {t('interface.key')}
                 </span>
                 <span className="text-xs font-medium uppercase tracking-wide text-xp-text-muted">
-                  Value
+                  {t('settings.contextMenuRules.valueLabel')}
                 </span>
                 <span className="text-xs font-medium uppercase tracking-wide text-xp-text-muted">
-                  Type
+                  {t('sort.type')}
                 </span>
                 <span />
               </div>
@@ -777,7 +786,7 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
                       onFocus={() => setShowKeySuggestions(field._localId)}
                       onBlur={() => setTimeout(() => setShowKeySuggestions(null), 150)}
                       className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-2 py-1.5 text-sm text-xp-text transition-colors focus:border-xp-blue focus:outline-none"
-                      placeholder={t('dialogs.fileDetails.metadataKey')}
+                      placeholder={t('fileDetails.metadataKey')}
                       maxLength={50}
                     />
                     {showKeySuggestions === field._localId &&
@@ -810,11 +819,11 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
                       onValueChange={(v) => handleFieldChange(field._localId, 'value', v)}
                     >
                       <SelectTrigger className="h-8 w-full">
-                        <SelectValue placeholder={t('dialogs.fileDetails.select')} />
+                        <SelectValue placeholder={t('fileDetails.select')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="true">True</SelectItem>
-                        <SelectItem value="false">False</SelectItem>
+                        <SelectItem value="true">{t('interface.true')}</SelectItem>
+                        <SelectItem value="false">{t('interface.false')}</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
@@ -830,7 +839,7 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
                       value={field.value}
                       onChange={(e) => handleFieldChange(field._localId, 'value', e.target.value)}
                       className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-2 py-1.5 text-sm text-xp-text transition-colors focus:border-xp-blue focus:outline-none"
-                      placeholder={t('dialogs.fileDetails.metadataValue')}
+                      placeholder={t('fileDetails.metadataValue')}
                     />
                   )}
 
@@ -853,7 +862,7 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
                   <button
                     onClick={() => handleRemoveField(field._localId)}
                     className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-red"
-                    title={t('dialogs.fileDetails.removeField')}
+                    title={t('fileDetails.removeField')}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -868,7 +877,7 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
           className="flex w-full items-center justify-center space-x-1.5 rounded-[2px] border border-dashed border-xp-border px-2 py-1.5 text-sm text-xp-blue transition-colors hover:bg-xp-surface-light"
         >
           <Plus className="h-3.5 w-3.5" />
-          <span>Add Field</span>
+          <span>{t('interface.addField')}</span>
         </button>
 
         {error && (
@@ -884,7 +893,7 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
           onClick={onClose}
           className="rounded-[2px] px-3 py-1.5 text-sm text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
         >
-          Cancel
+          {t('conflict.cancel')}
         </button>
         <button
           onClick={handleSave}
@@ -894,12 +903,12 @@ const MetadataTab = ({ filePath, onClose }: { filePath: string; onClose: () => v
           {saving ? (
             <>
               <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              <span>Saving...</span>
+              <span>{t('pages.editor.saving')}</span>
             </>
           ) : (
             <>
               <Check className="h-3.5 w-3.5" />
-              <span>Save</span>
+              <span>{t('aiChat.feedback.save')}</span>
             </>
           )}
         </button>

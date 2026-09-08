@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { PreviewProps } from '@/lib/preview-factory';
 import { convertAssetUrl } from '@/lib/transport';
 import { formatTime } from '@/lib/format-utils';
 
 const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
+  const { t: tUi } = useTranslation();
   const [videoError, setVideoError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [videoSrc, setVideoSrc] = useState<string>('');
@@ -95,7 +97,7 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
           <div className="text-center text-xp-text-muted">
             <div className="animate-pulse">
               <div className="mx-auto mb-2 h-16 w-16 rounded-[2px] bg-xp-bg" />
-              <p className="text-xs">Loading video...</p>
+              <p className="text-xs">{tUi('interface.loadingVideo')}</p>
             </div>
           </div>
         </div>
@@ -140,7 +142,9 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
               <div className="flex items-center justify-between">
                 <button
                   onClick={togglePlay}
-                  title={isPlaying ? 'Pause' : 'Play'}
+                  title={
+                    isPlaying ? tUi('agentManager.workspace.pause') : tUi('previews.audio.play')
+                  }
                   className="rounded-[2px] p-1.5 text-xp-text hover:bg-xp-surface-light"
                 >
                   {isPlaying ? (
@@ -203,8 +207,10 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
                 clipRule="evenodd"
               />
             </svg>
-            <p className="text-sm">Cannot preview video</p>
-            <p className="mt-1 text-xs opacity-70">The video format may not be supported</p>
+            <p className="text-sm">{tUi('interface.cannotPreviewVideo')}</p>
+            <p className="mt-1 text-xs opacity-70">
+              {tUi('interface.theVideoFormatMayNotBeSupported')}
+            </p>
           </div>
         </div>
       )}

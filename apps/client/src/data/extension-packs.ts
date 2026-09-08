@@ -1,6 +1,6 @@
 /**
  * Extension Packs — curated groups of extensions for one-click install.
- * Shown in the Marketplace and during the onboarding tour.
+ * Shown in the Marketplace.
  */
 
 export interface ExtensionPack {

@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { PreviewProps } from '@/lib/preview-factory';
 import { TauriAPI } from '@/lib/tauri-api';
 
 const JsonPreview = ({ file, onError, onLoad }: PreviewProps) => {
+  const { t: tUi } = useTranslation();
   const [jsonData, setJsonData] = useState<unknown>(null);
   const [rawContent, setRawContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -115,7 +117,7 @@ const JsonPreview = ({ file, onError, onLoad }: PreviewProps) => {
   return (
     <div className="mt-4">
       <div className="mb-2 flex items-center justify-between">
-        <h4 className="text-xs font-medium text-xp-text-muted">JSON Preview</h4>
+        <h4 className="text-xs font-medium text-xp-text-muted">{tUi('interface.jsonPreview')}</h4>
         <div className="flex space-x-1">
           <button
             onClick={() => setViewMode('formatted')}
@@ -125,7 +127,7 @@ const JsonPreview = ({ file, onError, onLoad }: PreviewProps) => {
                 : 'border border-xp-border bg-xp-bg hover:bg-xp-surface-light'
             }`}
           >
-            Formatted
+            {tUi('interface.formatted')}
           </button>
           <button
             onClick={() => setViewMode('raw')}
@@ -135,7 +137,7 @@ const JsonPreview = ({ file, onError, onLoad }: PreviewProps) => {
                 : 'border border-xp-border bg-xp-bg hover:bg-xp-surface-light'
             }`}
           >
-            Raw
+            {tUi('interface.raw')}
           </button>
         </div>
       </div>
@@ -144,7 +146,7 @@ const JsonPreview = ({ file, onError, onLoad }: PreviewProps) => {
         <div className="rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
           <div className="animate-pulse">
             <div className="mb-2 h-48 w-full rounded-[2px] bg-xp-bg" />
-            <p className="text-xs">Loading JSON...</p>
+            <p className="text-xs">{tUi('interface.loadingJson')}</p>
           </div>
         </div>
       )}
@@ -158,8 +160,8 @@ const JsonPreview = ({ file, onError, onLoad }: PreviewProps) => {
               clipRule="evenodd"
             />
           </svg>
-          <p className="text-xs">Cannot preview JSON</p>
-          <p className="mt-1 text-xs opacity-70">{error}</p>
+          <p className="text-xs">{tUi('interface.cannotPreviewJson')}</p>
+          <p className="mt-1 text-xs opacity-70">{previewErrorText(error, tUi)}</p>
         </div>
       ) : null}
       {!error && jsonData !== null && (
@@ -178,3 +180,4 @@ const JsonPreview = ({ file, onError, onLoad }: PreviewProps) => {
 };
 
 export default JsonPreview;
+import { previewErrorText } from '@/lib/preview-error';

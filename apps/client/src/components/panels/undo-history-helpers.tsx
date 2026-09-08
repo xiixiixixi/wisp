@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import React from 'react';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -158,7 +159,7 @@ export const formatTimestamp = (ms: number): string => {
   if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
   if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
   const d = new Date(ms);
-  return d.toLocaleString(undefined, {
+  return d.toLocaleString(getAppLocale(), {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',

@@ -251,7 +251,7 @@ const ChatSlashInput = forwardRef<ChatSlashInputHandle, ChatSlashInputProps>(
           {slashSuggestions.length > 0 && (
             <div
               role="listbox"
-              aria-label="Slash command suggestions"
+              aria-label={t('interface.slashCommandSuggestions')}
               style={{
                 position: 'absolute',
                 bottom: '100%',
@@ -373,7 +373,7 @@ const ChatSlashInput = forwardRef<ChatSlashInputHandle, ChatSlashInputProps>(
               title={
                 isListening
                   ? i18n.t('chat.stopListening')
-                  : `Voice input${voiceAutoSend ? ' (auto-send on)' : ''}`
+                  : `Voice input${voiceAutoSend ? t('interface.autoSendOn') : ''}`
               }
               style={{
                 padding: '8px',

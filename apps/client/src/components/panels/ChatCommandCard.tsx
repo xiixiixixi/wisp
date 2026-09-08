@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Command action card for terminal command execution in the AI chat panel.
  * Displays the command, working directory, danger warnings, and terminal-style output.
@@ -29,6 +30,7 @@ const CommandOutputBlock = ({
 }: {
   output: { stdout: string; stderr: string; exit_code: number; timed_out?: boolean };
 }) => {
+  const { t: tUi } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const isSuccess = output.exit_code === 0 && !output.timed_out;
   const fullOutput = [output.stdout, output.stderr].filter(Boolean).join('\n');
@@ -46,7 +48,7 @@ const CommandOutputBlock = ({
           fontStyle: 'italic',
         }}
       >
-        (no output)
+        {tUi('interface.noOutput')}
       </div>
     );
   }
@@ -85,8 +87,8 @@ const CommandOutputBlock = ({
         }}
       >
         <span>
-          Exit code: {output.exit_code}
-          {output.timed_out ? ' (timed out)' : ''}
+          {tUi('interface.exitCodeLabel')} {output.exit_code}
+          {output.timed_out ? tUi('interface.timedOut') : ''}
         </span>
         {isTruncated && (
           <button
@@ -107,12 +109,12 @@ const CommandOutputBlock = ({
             {expanded ? (
               <>
                 <ChevronUp size={10} />
-                Show less
+                {tUi('interface.showLess')}
               </>
             ) : (
               <>
                 <ChevronDown size={10} />
-                Show full output
+                {tUi('interface.showFullOutput')}
               </>
             )}
           </button>
@@ -152,6 +154,7 @@ const commandSummary = (pendingAction: PendingFileAction): string => {
 };
 
 export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandActionCardProps) => {
+  const { t: tUi } = useTranslation();
   const { action, status } = pendingAction;
   const command = action.command ?? '';
   const cwd = action.cwd || action.path || '';
@@ -221,7 +224,7 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
               flexShrink: 0,
             }}
           >
-            DANGEROUS
+            {tUi('interface.dangerous')}
           </span>
         )}
         {warningLevel === 'unknown' && (
@@ -236,7 +239,7 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
               flexShrink: 0,
             }}
           >
-            UNRECOGNIZED
+            {tUi('interface.unrecognized')}
           </span>
         )}
         <button
@@ -255,7 +258,7 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
             flexShrink: 0,
           }}
         >
-          Reject
+          {tUi('aiChat.actions.reject')}
         </button>
         <button
           onClick={(e) => {
@@ -395,7 +398,7 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
               fontWeight: 700,
             }}
           >
-            UNRECOGNIZED
+            {tUi('interface.unrecognized')}
           </span>
         )}
         {dangerReason && !isCompleted && (
@@ -413,7 +416,7 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
             }}
           >
             <AlertTriangle size={10} />
-            dangerous
+            {tUi('permissions.bulk.dangerous')}
           </span>
         )}
         {isCompleted && (
@@ -487,8 +490,9 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
           >
             <AlertTriangle size={12} style={{ flexShrink: 0 }} />
             <span>
-              This command is not in the recognized safe list. It may still be safe, but please
-              review carefully before running.
+              {tUi(
+                'interface.thisCommandIsNotInTheRecognizedSafeListItMayStillBeSafeButPleaseReviewCarefullyBeforeRunning',
+              )}
             </span>
           </div>
         )}
@@ -510,8 +514,8 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
           >
             <AlertTriangle size={12} style={{ flexShrink: 0 }} />
             <span>
-              <strong>Warning:</strong> {dangerReason}. Review this command carefully before
-              allowing it.
+              <strong>{tUi('interface.warningLabel')}</strong>{' '}
+              {tUi('messages.reviewCommand', { reason: dangerReason })}
             </span>
           </div>
         )}
@@ -537,7 +541,7 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
           <>
             <button
               onClick={onReject}
-              aria-label="Reject command execution"
+              aria-label={tUi('interface.rejectCommandExecution')}
               style={{
                 padding: '5px 12px',
                 borderRadius: '4px',
@@ -548,11 +552,11 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
                 fontSize: '12px',
               }}
             >
-              Reject
+              {tUi('aiChat.actions.reject')}
             </button>
             <button
               onClick={onAllow}
-              aria-label="Allow command execution"
+              aria-label={tUi('interface.allowCommandExecution')}
               style={{
                 padding: '5px 12px',
                 borderRadius: '4px',
@@ -573,7 +577,7 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
                 ? i18n.t('chat.runAnyway')
                 : warningLevel === 'unknown'
                   ? i18n.t('chat.runUnverified')
-                  : 'Run'}
+                  : tUi('chat.run')}
             </button>
           </>
         )}
@@ -588,10 +592,10 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
               fontSize: '12px',
             }}
             role="status"
-            aria-label="Executing command"
+            aria-label={tUi('interface.executingCommand')}
           >
             <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
-            Running...
+            {tUi('agentManager.chaining.running')}
           </div>
         )}
 
@@ -619,12 +623,14 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
               {pendingAction.commandOutput?.exit_code === 0 ? (
                 <>
                   <CheckCircle2 size={14} />
-                  Completed
+                  {tUi('agentManager.notifications.enableCompleted')}
                 </>
               ) : (
                 <>
                   <XCircle size={14} />
-                  Failed (exit {pendingAction.commandOutput?.exit_code})
+                  {tUi('messages.commandExitFailed', {
+                    code: pendingAction.commandOutput?.exit_code,
+                  })}
                 </>
               )}
             </span>
@@ -643,7 +649,7 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
             role="status"
           >
             <XCircle size={14} />
-            Rejected by user
+            {tUi('aiChat.actions.rejectedByUser')}
           </div>
         )}
 

@@ -29,7 +29,6 @@ const PasswordPromptDialog = React.lazy(() =>
     default: m.PasswordPromptDialog,
   })),
 );
-const VersionHistoryDialog = React.lazy(() => import('@/components/dialogs/VersionHistoryDialog'));
 const CreateSymlinkDialog = React.lazy(() => import('@/components/dialogs/CreateSymlinkDialog'));
 const PasteRenameDialog = React.lazy(() => import('@/components/dialogs/PasteRenameDialog'));
 const BatchMetadataDialog = React.lazy(() => import('@/components/dialogs/BatchMetadataDialog'));
@@ -69,9 +68,6 @@ export interface DialogLayerProps {
     secureDeleteDialogOpen: boolean;
     secureDeleteDialogFiles: FileEntry[];
     closeSecureDeleteDialog: () => void;
-    versionHistoryDialogOpen: boolean;
-    versionHistoryDialogFile: string;
-    closeVersionHistoryDialog: () => void;
     showAdvancedSelect: boolean;
     setShowAdvancedSelect: (open: boolean) => void;
     handleComparisonFromDialog: (file1: string, file2: string) => void;
@@ -325,18 +321,6 @@ const DialogLayer = ({
             onClose={dialogManager.closeSecureDeleteDialog}
             onComplete={() => refetch()}
             files={dialogManager.secureDeleteDialogFiles}
-          />
-        </React.Suspense>
-      </ErrorBoundary>
-
-      {/* Version History Dialog */}
-      <ErrorBoundary>
-        <React.Suspense fallback={null}>
-          <VersionHistoryDialog
-            isOpen={dialogManager.versionHistoryDialogOpen}
-            onClose={dialogManager.closeVersionHistoryDialog}
-            filePath={dialogManager.versionHistoryDialogFile}
-            onRefetch={() => refetch()}
           />
         </React.Suspense>
       </ErrorBoundary>

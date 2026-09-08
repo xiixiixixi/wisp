@@ -280,10 +280,12 @@ const KeyboardShortcutsSettings = () => {
                             <span className="truncate text-sm text-xp-text">
                               {(() => {
                                 const actionLabel = getLabelForAction(shortcut.action);
-                                return typeof shortcut.action === 'string' &&
-                                  actionLabel !== shortcut.action
-                                  ? actionLabel
-                                  : shortcut.description || actionLabel;
+                                const builtIn =
+                                  typeof shortcut.action === 'string'
+                                    ? actionLabel !== shortcut.action
+                                    : 'SetViewMode' in shortcut.action ||
+                                      'GoToSpecial' in shortcut.action;
+                                return builtIn ? actionLabel : shortcut.description || actionLabel;
                               })()}
                             </span>
                             {isExtension && (

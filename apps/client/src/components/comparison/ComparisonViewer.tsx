@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useMemo } from 'react';
 import { ChevronDown } from 'lucide-react';
 import type { SideBySideLine } from '@/lib/file-comparison';
@@ -370,6 +371,7 @@ const UnifiedDiffRow = ({
 
 // ─── Collapsed section ───────────────────────────────────────────────────
 const CollapsedSection = ({ count, onExpand }: { count: number; onExpand: () => void }) => {
+  const { t: tUi } = useTranslation();
   return (
     <div
       style={{
@@ -391,11 +393,11 @@ const CollapsedSection = ({ count, onExpand }: { count: number; onExpand: () => 
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLElement).style.backgroundColor = 'rgb(var(--xp-lime-rgb) / 0.06)';
       }}
-      title={`Click to expand ${count} unchanged lines`}
+      title={tUi('messages.showUnchangedLines', { count })}
     >
       <ChevronDown style={{ width: 12, height: 12, color: 'var(--xp-blue)', marginRight: 6 }} />
       <span style={{ fontSize: 11, color: 'var(--xp-blue)', userSelect: 'none' }}>
-        Show {count} unchanged line{count !== 1 ? 's' : ''}
+        {tUi('messages.showUnchangedLines', { count })}
       </span>
     </div>
   );

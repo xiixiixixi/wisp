@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TauriAPI, type FileAnnotation } from '@/lib/tauri-api';
@@ -138,7 +139,8 @@ const FileAnnotationsDialog = ({ isOpen, onClose, filePath }: FileAnnotationsDia
                       <div className="min-w-0 flex-1">
                         <p className="text-sm text-xp-text">{a.text}</p>
                         <p className="mt-0.5 text-xs text-xp-text-muted">
-                          {a.author} &middot; {new Date(a.created_at).toLocaleString()}
+                          {a.author} &middot;{' '}
+                          {new Date(a.created_at).toLocaleString(getAppLocale())}
                         </p>
                       </div>
                       <button
@@ -174,7 +176,8 @@ const FileAnnotationsDialog = ({ isOpen, onClose, filePath }: FileAnnotationsDia
                       <div className="min-w-0 flex-1">
                         <p className="text-sm text-xp-text line-through">{a.text}</p>
                         <p className="mt-0.5 text-xs text-xp-text-muted">
-                          {a.author} &middot; {new Date(a.created_at).toLocaleString()}
+                          {a.author} &middot;{' '}
+                          {new Date(a.created_at).toLocaleString(getAppLocale())}
                         </p>
                       </div>
                       <button

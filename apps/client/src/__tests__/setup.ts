@@ -53,7 +53,20 @@ vi.mock('react-i18next', async () => {
   const { default: english } = await import('@/locales/en.json');
 
   const translate = (key: string, opts?: Record<string, unknown>) => {
-    const segments = key.split('.');
+    let resolvedKey = key;
+    if (typeof opts?.count === 'number') {
+      const suffix = new Intl.PluralRules('en').select(opts.count);
+      const pluralKey = `${key}_${suffix}`;
+      let pluralValue: unknown = english;
+      for (const segment of pluralKey.split('.')) {
+        pluralValue =
+          pluralValue && typeof pluralValue === 'object'
+            ? (pluralValue as Record<string, unknown>)[segment]
+            : undefined;
+      }
+      if (typeof pluralValue === 'string') resolvedKey = pluralKey;
+    }
+    const segments = resolvedKey.split('.');
     let value: unknown = english;
     for (const segment of segments) {
       if (!value || typeof value !== 'object' || !(segment in value)) {

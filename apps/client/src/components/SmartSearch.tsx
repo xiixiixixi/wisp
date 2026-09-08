@@ -596,17 +596,17 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
     const getRelevanceBadge = (relevanceType: string): { label: string; color: string } => {
       switch (relevanceType) {
         case 'exact':
-          return { label: 'Exact', color: 'bg-xp-green/20' };
+          return { label: t('search.badges.exact'), color: 'bg-xp-green/20' };
         case 'semantic':
-          return { label: 'Semantic', color: 'bg-xp-purple/20' };
+          return { label: t('search.badges.semantic'), color: 'bg-xp-purple/20' };
         case 'fuzzy':
-          return { label: 'Fuzzy', color: 'bg-xp-yellow/20' };
+          return { label: t('search.badges.fuzzy'), color: 'bg-xp-yellow/20' };
         case 'metadata':
-          return { label: 'Metadata', color: 'bg-xp-cyan/20' };
+          return { label: t('search.badges.metadata'), color: 'bg-xp-cyan/20' };
         case 'ai_description':
           return { label: 'AI', color: 'bg-xp-purple/20' };
         case 'ai_reranked':
-          return { label: 'AI Ranked', color: 'bg-xp-purple/20' };
+          return { label: t('search.badges.aiRanked'), color: 'bg-xp-purple/20' };
         default:
           return { label: relevanceType, color: 'bg-xp-blue/20' };
       }
@@ -962,7 +962,9 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                       <div className="space-y-1">
                         {result.matches.slice(0, 2).map((match) => (
                           <div key={match.token} className="text-xs">
-                            <span className="text-xp-text-muted">Match: </span>
+                            <span className="text-xp-text-muted">
+                              {t('explorer.searchFilter.matchLabel')}{' '}
+                            </span>
                             <span className="rounded-[2px] bg-xp-yellow/20 px-1">
                               {match.token}
                             </span>
@@ -973,7 +975,7 @@ const SmartSearch = forwardRef<SmartSearchHandle, SmartSearchProps>(
                         ))}
                         {result.matches.length > 2 && (
                           <div className="text-xs text-xp-text-muted">
-                            +{result.matches.length - 2} more
+                            {t('messages.moreItems', { count: result.matches.length - 2 })}
                           </div>
                         )}
                       </div>

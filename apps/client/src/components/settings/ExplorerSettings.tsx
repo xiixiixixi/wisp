@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { LayoutGrid, Eye, FileText, FolderOpen } from 'lucide-react';
+import { LayoutGrid, FileText, FolderOpen, ChevronRight } from 'lucide-react';
+import FileAssociationsSettings from './FileAssociationsSettings';
+import ContextMenuRulesCard from './ContextMenuRulesCard';
 import { Toggle, SelectField, SettingRow, type AppSettings, SettingsSection } from './shared';
 
 interface ExplorerSettingsProps {
@@ -33,18 +35,6 @@ const ExplorerSettings = ({ settings, updateSetting }: ExplorerSettingsProps) =>
           />
         </SettingRow>
         <SettingRow
-          icon={Eye}
-          label={t('settings.explorer.showHidden')}
-          description={t('settings.explorer.showHiddenDesc')}
-        >
-          <Toggle
-            id="hiddenFiles"
-            label={t('settings.explorer.showHidden')}
-            checked={settings.showHiddenFiles}
-            onChange={(v) => updateSetting('showHiddenFiles', v)}
-          />
-        </SettingRow>
-        <SettingRow
           icon={FileText}
           label={t('settings.explorer.fileExtensions')}
           description={t('settings.explorer.fileExtensionsDesc')}
@@ -68,21 +58,33 @@ const ExplorerSettings = ({ settings, updateSetting }: ExplorerSettingsProps) =>
             onChange={(v) => updateSetting('autoCalculateFolderSizes', v)}
           />
         </SettingRow>
-      </SettingsSection>{' '}
-      <SettingsSection title={t('settings.explorer.preview')}>
-        <SettingRow
-          icon={FileText}
-          label={t('settings.explorer.markdownPreview')}
-          description={t('settings.explorer.markdownPreviewDesc')}
-        >
-          <Toggle
-            id="markdownPreview"
-            label={t('settings.explorer.markdownPreview')}
-            checked={settings.enableMarkdownPreview}
-            onChange={(v) => updateSetting('enableMarkdownPreview', v)}
-          />
-        </SettingRow>
       </SettingsSection>
+      <details className="wisp-settings-disclosure content-card group rounded-2xl">
+        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-xp-text">
+          {t('settings.tabs.fileAssociations')}
+          <ChevronRight
+            size={16}
+            className="shrink-0 transition-transform group-open:rotate-90"
+            aria-hidden="true"
+          />
+        </summary>
+        <div className="px-2 pb-4">
+          <FileAssociationsSettings embedded />
+        </div>
+      </details>
+      <details className="wisp-settings-disclosure content-card group rounded-2xl">
+        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-xp-text">
+          {t('settings.tabs.contextMenu')}
+          <ChevronRight
+            size={16}
+            className="shrink-0 transition-transform group-open:rotate-90"
+            aria-hidden="true"
+          />
+        </summary>
+        <div className="px-2 pb-4">
+          <ContextMenuRulesCard embedded />
+        </div>
+      </details>
     </div>
   );
 };

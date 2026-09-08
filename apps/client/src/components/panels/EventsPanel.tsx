@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ActivityEntry } from '@/hooks/use-activity-feed';
@@ -23,7 +24,7 @@ const relativeTime = (ts: number): string => {
   if (diff < 60_000) return `${Math.floor(diff / 1000)}s`;
   if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m`;
   if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h`;
-  return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return new Date(ts).toLocaleDateString(getAppLocale(), { month: 'short', day: 'numeric' });
 };
 
 const activityVerb: Record<ActivityEntry['type'], string> = {

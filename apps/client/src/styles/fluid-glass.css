@@ -3,6 +3,15 @@
  * Selection transforms the action rail without moving the file content.
  * Glass belongs to navigation and controls, never to individual file rows.
  */
+.wisp-settings-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+.wisp-settings-disclosure > summary:focus-visible {
+  outline: 2px solid var(--xp-blue);
+  outline-offset: -2px;
+  border-radius: inherit;
+}
+
 html.theme-fluid {
   --lg-glass-clear: rgb(255 255 255 / 26%);
   --lg-glass-regular: rgb(255 255 255 / 58%);
@@ -451,6 +460,24 @@ html.theme-fluid
   outline: 2px solid var(--xp-blue) !important;
   outline-offset: 2px !important;
 }
+/* Visibility uses a changing glyph, not the panel controls' selected lens.
+ * Keyboard focus stays visible on the glyph without drawing a button outline. */
+html .wisp-panel-rail .wisp-visibility-toggle[aria-pressed],
+html.theme-fluid
+  .wisp-panel-rail
+  button.wisp-visibility-toggle.wisp-icon-button[aria-pressed]:is(:hover, :focus, :active) {
+  color: var(--xp-text-secondary) !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html .wisp-panel-rail .wisp-visibility-toggle:focus {
+  outline: none !important;
+}
+html .wisp-panel-rail .wisp-visibility-toggle:focus-visible svg {
+  color: var(--xp-blue);
+  stroke-width: 2.5;
+}
 html.theme-fluid :is(button, input, select, textarea):disabled {
   cursor: not-allowed;
   opacity: 0.42;
@@ -729,7 +756,7 @@ html.theme-fluid .wisp-settings-content .content-card {
 .wisp-breadcrumb:hover {
   color: var(--xp-text);
 }
-.wisp-path-breadcrumbs :is(.wisp-breadcrumb-edit, .wisp-breadcrumb-ellipsis) {
+.wisp-path-breadcrumbs .wisp-breadcrumb-ellipsis {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -796,33 +823,6 @@ html.theme-fluid .wisp-home button:focus-visible {
 }
 
 /* Accessibility comes last: change opacity AND blur, including portals. */
-html.theme-fluid:is(.reduce-transparency, .high-contrast) {
-  --lg-glass-clear: #eaf0f8;
-  --lg-glass-regular: #edf2f9;
-  --lg-glass-strong: #f7f9fc;
-  --lg-content-canvas: #f5f8fc;
-  --lg-content-surface: #fff;
-  --lg-content-surface-strong: #fff;
-  --lg-control-fill: #f8fafc;
-  --lg-control-fill-hover: #fff;
-  --lg-specular: none;
-  --lg-ambient: #edf2f8;
-}
-html.theme-fluid.high-contrast {
-  --lg-control-stroke: #66758a;
-  --lg-glass-stroke: #66758a;
-  --lg-glass-stroke-strong: #66758a;
-  --lg-divider: #66758a;
-  --xp-text: #132137;
-  --xp-text-secondary: #23374e;
-  --xp-text-muted: #33465b;
-}
-html.theme-fluid:is(.reduce-transparency, .high-contrast) *,
-html.theme-fluid:is(.reduce-transparency, .high-contrast) *::before,
-html.theme-fluid:is(.reduce-transparency, .high-contrast) *::after {
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-}
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
   html.theme-fluid {
     --lg-glass-clear: #eaf0f8;
@@ -852,15 +852,6 @@ html.theme-fluid:is(.reduce-transparency, .high-contrast) *::after {
     --lg-content-surface: #fff;
     --lg-control-fill: #f8fafc;
   }
-}
-html.theme-fluid.reduce-motion *,
-html.theme-fluid.reduce-motion *::before,
-html.theme-fluid.reduce-motion *::after {
-  transition-duration: 0.001ms !important;
-  animation-duration: 0.001ms !important;
-  animation-iteration-count: 1 !important;
-  scroll-behavior: auto !important;
-  scale: 1 !important;
 }
 @media (prefers-reduced-motion: reduce) {
   html.theme-fluid *,

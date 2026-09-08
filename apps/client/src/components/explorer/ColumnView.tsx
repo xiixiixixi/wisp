@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
@@ -158,6 +159,7 @@ const VirtualizedColumnPane = ({
   handleFileDoubleClick: (file: FileEntry) => void;
   handleFileRightClick: (file: FileEntry, e: React.MouseEvent) => void;
 }) => {
+  const { t: tUi } = useTranslation();
   const columnScrollRef = useRef<HTMLDivElement>(null);
   const needsVirtualization = column.files.length >= COLUMN_VIRTUALIZATION_THRESHOLD;
 
@@ -205,7 +207,7 @@ const VirtualizedColumnPane = ({
               fontSize: '12px',
             }}
           >
-            Empty folder
+            {tUi('interface.emptyFolder')}
           </div>
         )}
       </div>
@@ -277,6 +279,7 @@ const ColumnView = ({
   formatFileSize,
   formatDate,
 }: ViewComponentProps) => {
+  const { t: tUi } = useTranslation();
   const [columns, setColumns] = useState<ColumnData[]>([
     { path: currentPath, files, selectedFile: null },
   ]);
@@ -417,22 +420,22 @@ const ColumnView = ({
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Size:</span>
+              <span>{tUi('interface.sizeLabel')}</span>
               <span>{formatFileSize(selectedFileForPreview.size)}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Modified:</span>
+              <span>{tUi('interface.modifiedLabel')}</span>
               <span>{formatDate(selectedFileForPreview.modified)}</span>
             </div>
             {selectedFileForPreview.file_type && (
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Type:</span>
+                <span>{tUi('interface.typeLabel')}</span>
                 <span>{selectedFileForPreview.file_type}</span>
               </div>
             )}
             {getExtension(selectedFileForPreview.name) && (
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Extension:</span>
+                <span>{tUi('interface.extensionLabel')}</span>
                 <span>.{getExtension(selectedFileForPreview.name)}</span>
               </div>
             )}

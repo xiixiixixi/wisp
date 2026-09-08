@@ -8,8 +8,9 @@ import React, {
 } from 'react';
 import { useLocation } from 'wouter';
 import { extensionHost } from '@/lib/extension-host';
-import { Eye, Bot, ShoppingCart, Settings, Activity, Ellipsis } from 'lucide-react';
+import { Eye, Bot, ShoppingCart, Settings, Activity, Ellipsis, File } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useHiddenFiles } from '@/hooks/use-hidden-files';
 
 interface VerticalExtensionsBarProps {
   orientation?: 'vertical' | 'horizontal';
@@ -17,7 +18,6 @@ interface VerticalExtensionsBarProps {
   setRightPanelTab: (tab: string) => void;
   rightSidebarCollapsed: boolean;
   setRightSidebarCollapsed: (collapsed: boolean) => void;
-  'data-tour'?: string;
 }
 
 /**
@@ -30,9 +30,10 @@ const VerticalExtensionsBar = ({
   setRightPanelTab,
   rightSidebarCollapsed,
   setRightSidebarCollapsed,
-  'data-tour': dataTour,
 }: VerticalExtensionsBarProps) => {
   const { t } = useTranslation();
+  const { showHiddenFiles, toggleHiddenFiles } = useHiddenFiles();
+  const isMac = navigator.platform.toUpperCase().includes('MAC');
   const [, navigate] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRootRef = useRef<HTMLDivElement>(null);
@@ -177,7 +178,6 @@ const VerticalExtensionsBar = ({
 
   return (
     <div
-      data-tour={dataTour}
       className={`wisp-panel-rail wisp-no-select flex border-xp-border bg-xp-surface ${
         orientation === 'horizontal'
           ? 'wisp-panel-rail-horizontal flex-row items-center'
@@ -198,7 +198,24 @@ const VerticalExtensionsBar = ({
         >
           <Eye size={16} />
         </button>
-
+        <button
+          type="button"
+          onClick={toggleHiddenFiles}
+          className="wisp-visibility-toggle wisp-icon-button flex h-8 w-8 shrink-0 items-center justify-center text-xp-text-secondary transition-colors"
+          aria-label={t('settings.explorer.showHidden')}
+          aria-pressed={showHiddenFiles}
+          title={`${t('settings.explorer.showHidden')} (${isMac ? '⌘⇧.' : 'Ctrl+Shift+.'})`}
+        >
+          <File
+            size={16}
+            strokeDasharray={showHiddenFiles ? undefined : '2.5 2.5'}
+            aria-hidden="true"
+          >
+            {/* A dot-prefixed filename makes this a hidden file, not a copy action. */}
+            <circle cx="8" cy="16" r="1" fill="currentColor" stroke="none" />
+            <path d="M12 16h4" strokeDasharray="none" />
+          </File>
+        </button>
         <div ref={menuRootRef} className="relative">
           <button
             ref={menuTriggerRef}

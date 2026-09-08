@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import type { FileEntry } from '@/lib/tauri-api';
 import FinderFileIcon from '@/components/explorer/FinderFileIcon';
@@ -142,7 +142,29 @@ describe('FinderFileIcon', () => {
     render(<FinderFileIcon file={file} fallback={<span data-testid="fallback">fallback</span>} />);
 
     await waitFor(() => expect(mocks.getFileIconPng).toHaveBeenCalled());
-    expect(screen.getByTestId('fallback')).toBeInTheDocument();
+    expect(screen.getByTestId('fallback')).toBeVisible();
+  });
+
+  it('shows an icon immediately while native work is pending', async () => {
+    let resolve!: (path: string) => void;
+    mocks.getFileIconPng.mockReturnValue(
+      new Promise<string>((done) => {
+        resolve = done;
+      }),
+    );
+    const { unmount } = render(
+      <FinderFileIcon
+        file={makeFile('slow-icon.pdf')}
+        fallback={<span data-testid="fallback">icon</span>}
+      />,
+    );
+    // Inspect the hiding class too: jsdom does not load Tailwind styles.
+    const hidden = screen.getByTestId('fallback').closest('.opacity-0');
+    unmount();
+    await act(async () => {
+      resolve('/cache/slow-icon.png');
+    });
+    expect(hidden).toBeNull();
   });
 
   it('deduplicates native work for multiple subscribers of the same file', async () => {
@@ -157,6 +179,38 @@ describe('FinderFileIcon', () => {
 
     await waitFor(() => expect(container.querySelectorAll('img')).toHaveLength(2));
     expect(mocks.getFileIconPng).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a visible fallback until the actual image loads, including decode errors', async () => {
+    mocks.getFileIconPng.mockResolvedValue('/cache/decode-test.png');
+    const { container } = render(
+      <FinderFileIcon
+        file={makeFile('decode-test.pdf')}
+        fallback={<span data-testid="fallback">icon</span>}
+      />,
+    );
+    await waitFor(() => expect(container.querySelector('img')).toBeInTheDocument());
+    expect(screen.getByTestId('fallback')).toBeVisible();
+    fireEvent.load(container.querySelector('img')!);
+    expect(screen.queryByTestId('fallback')).not.toBeInTheDocument();
+    expect(container.querySelector('img')).toBeVisible();
+    fireEvent.error(container.querySelector('img')!);
+    expect(screen.getByTestId('fallback')).toBeVisible();
+  });
+
+  it('reuses a warm URL on the first render without another native request', async () => {
+    const file = makeFile('warm-cache.pdf');
+    mocks.getFileIconPng.mockResolvedValue('/cache/warm-cache.png');
+    const first = render(<FinderFileIcon file={file} fallback={<span>icon</span>} />);
+    await waitFor(() => expect(first.container.querySelector('img')).toBeInTheDocument());
+    first.unmount();
+    const second = render(<FinderFileIcon file={file} fallback={<span>icon</span>} />);
+    expect(second.container.querySelector('img')).toHaveAttribute(
+      'src',
+      'asset:///cache/warm-cache.png',
+    );
+    expect(mocks.getFileIconPng).toHaveBeenCalledTimes(1);
+    second.unmount();
   });
 
   it('does not call native APIs for remote provider paths', async () => {

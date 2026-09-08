@@ -7,7 +7,6 @@ use rand::RngCore;
 use tauri::{command, AppHandle, Emitter, State};
 use walkdir::WalkDir;
 
-use crate::audit_log::log_operation;
 use crate::operations::progress::{generate_operation_id, ProgressManager};
 use crate::operations::validate_file_path;
 
@@ -137,7 +136,6 @@ pub async fn secure_delete(
 
     let pm = progress_manager.inner().clone();
     let op_id_clone = op_id.clone();
-    let paths_for_log = paths.clone();
 
     let result = tokio::task::spawn_blocking(move || {
         let mut files_processed: u64 = 0;
@@ -229,30 +227,11 @@ pub async fn secure_delete(
 
     match result {
         Ok((files_processed, errors)) => {
-            let success = errors.is_empty();
             if errors.is_empty() || files_processed > 0 {
                 progress_manager.complete_file_operation(&op_id);
             } else {
                 progress_manager.fail_file_operation(&op_id, errors.join("; "));
             }
-            let detail = if errors.is_empty() {
-                Some(format!(
-                    "{} files securely deleted ({} passes)",
-                    files_processed, passes
-                ))
-            } else {
-                Some(format!(
-                    "{} files deleted, {} errors",
-                    files_processed,
-                    errors.len()
-                ))
-            };
-            log_operation(
-                "secure_delete",
-                paths_for_log.clone(),
-                detail,
-                success || files_processed > 0,
-            );
             Ok(serde_json::json!({
                 "files_deleted": files_processed,
                 "errors": errors,
@@ -261,12 +240,6 @@ pub async fn secure_delete(
         }
         Err(e) => {
             progress_manager.fail_file_operation(&op_id, e.clone());
-            log_operation(
-                "secure_delete",
-                paths_for_log.clone(),
-                Some(e.clone()),
-                false,
-            );
             Err(e)
         }
     }
@@ -374,8 +347,7 @@ mod tests {
 
     #[test]
     fn test_calculate_total_bytes_nonexistent() {
-        let total =
-            calculate_total_bytes(&["/tmp/nonexistent_wisp_test_file_12345".to_string()]);
+        let total = calculate_total_bytes(&["/tmp/nonexistent_wisp_test_file_12345".to_string()]);
         assert_eq!(total, 0);
     }
 }

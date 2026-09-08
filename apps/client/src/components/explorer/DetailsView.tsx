@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import React, { useRef, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -185,13 +186,11 @@ const FileRow = React.memo(
         </div>
         <div className="col-span-2 text-center text-xs text-xp-text-muted" role="gridcell">
           <span className="text-xs capitalize">
-            {file.is_dir
-              ? t('common.folder')
-              : t(`fileType.${file.file_type}`, { defaultValue: file.file_type })}
+            {file.is_dir ? t('common.folder') : fileTypeLabel(file.file_type, t)}
           </span>
         </div>
         <div className="col-span-2 text-right text-xs text-xp-text-muted" role="gridcell">
-          {new Date(file.modified * 1000).toLocaleDateString(undefined, {
+          {new Date(file.modified * 1000).toLocaleDateString(getAppLocale(), {
             month: 'short',
             day: 'numeric',
           })}
@@ -433,3 +432,4 @@ const DetailsView = (props: DetailsViewProps) => {
 };
 
 export default DetailsView;
+import { fileTypeLabel } from '@/lib/file-type-label';

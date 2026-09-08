@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import type { FileEntry } from '@/lib/tauri-api';
@@ -274,6 +275,7 @@ const PreviewNavigationBar = ({
   onCompareToggle,
   showCompareToggle,
 }: PreviewNavigationBarProps) => {
+  const { t: tUi } = useTranslation();
   const tabStripRef = useRef<HTMLDivElement>(null);
   const [recentOpen, setRecentOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -324,7 +326,7 @@ const PreviewNavigationBar = ({
           onClick={handlePrev}
           disabled={!canPrev}
           title={i18n.t('previewNav.prevFile')}
-          aria-label="Previous file"
+          aria-label={tUi('previewNav.prevFile')}
           onMouseEnter={(e) => {
             if (canPrev) {
               e.currentTarget.style.background = 'var(--xp-surface-light)';
@@ -346,7 +348,7 @@ const PreviewNavigationBar = ({
           onClick={handleNext}
           disabled={!canNext}
           title={i18n.t('previewNav.nextFile')}
-          aria-label="Next file"
+          aria-label={tUi('previewNav.nextFile')}
           onMouseEnter={(e) => {
             if (canNext) {
               e.currentTarget.style.background = 'var(--xp-surface-light)';
@@ -365,7 +367,7 @@ const PreviewNavigationBar = ({
             style={compareMode ? compareToggleActiveStyle : compareToggleStyle}
             onClick={onCompareToggle}
             title={i18n.t('previewNav.comparePrev')}
-            aria-label="Compare with previous file"
+            aria-label={tUi('previewNav.comparePrev')}
             onMouseEnter={(e) => {
               if (!compareMode) {
                 e.currentTarget.style.background = 'var(--xp-surface-light)';
@@ -383,7 +385,7 @@ const PreviewNavigationBar = ({
                 clipRule="evenodd"
               />
             </svg>
-            Compare
+            {tUi('dialogs.folderCompare.compare')}
           </button>
         )}
 
@@ -393,7 +395,7 @@ const PreviewNavigationBar = ({
             style={recentDropdownBtnStyle}
             onClick={() => setRecentOpen(!recentOpen)}
             title={i18n.t('previewNav.recentPreviewed')}
-            aria-label="Recently previewed files"
+            aria-label={tUi('previewNav.recentPreviewed')}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = 'var(--xp-surface-light)';
             }}
@@ -402,7 +404,7 @@ const PreviewNavigationBar = ({
             }}
           >
             <ClockIcon />
-            Recent
+            {tUi('interface.recent')}
             <ChevronDown />
           </button>
 
@@ -417,7 +419,7 @@ const PreviewNavigationBar = ({
                     textAlign: 'center',
                   }}
                 >
-                  No recent files
+                  {tUi('sidebar.noRecent')}
                 </div>
               ) : (
                 historyItems.map((entry) => (

@@ -167,7 +167,6 @@ const ExplorerUnified = () => {
       openFileDetailsDialog: dialogManager.openFileDetailsDialog,
       openEncryptionDialog: dialogManager.openEncryptionDialog,
       openSecureDeleteDialog: dialogManager.openSecureDeleteDialog,
-      openVersionHistoryDialog: dialogManager.openVersionHistoryDialog,
       openSymlinkDialog: dialogManager.openSymlinkDialog,
       openPasteRenameDialog: dialogManager.openPasteRenameDialog,
       openTemplatePicker: () => dialogManager.setTemplatePickerOpen(true),

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useMemo } from 'react';
 import type { FileEntry } from '@/lib/tauri-api';
 
@@ -11,6 +12,7 @@ interface SizeDistributionChartProps {
  * size percentile bucket: Largest (red), Large (orange), Medium (yellow), Small (green).
  */
 export const SizeDistributionChart = React.memo(({ files }: SizeDistributionChartProps) => {
+  const { t: tUi } = useTranslation();
   const distribution = useMemo(() => {
     // Only consider non-directory files with size > 0
     const fileSizes = files
@@ -42,10 +44,10 @@ export const SizeDistributionChart = React.memo(({ files }: SizeDistributionChar
   const { largest, large, medium, small, total } = distribution;
 
   const segments = [
-    { count: small, color: 'var(--xp-green)', label: 'Small' },
-    { count: medium, color: 'var(--xp-yellow)', label: 'Medium' },
-    { count: large, color: 'var(--xp-orange)', label: 'Large' },
-    { count: largest, color: 'var(--xp-red)', label: 'Largest' },
+    { count: small, color: 'var(--xp-green)', label: tUi('settings.general.small') },
+    { count: medium, color: 'var(--xp-yellow)', label: tUi('settings.general.medium') },
+    { count: large, color: 'var(--xp-orange)', label: tUi('settings.general.large') },
+    { count: largest, color: 'var(--xp-red)', label: tUi('settings.general.extraLarge') },
   ].filter((s) => s.count > 0);
 
   const chartTitle = segments.map((s) => `${s.label}: ${s.count}`).join(', ');
@@ -65,10 +67,10 @@ export const SizeDistributionChart = React.memo(({ files }: SizeDistributionChar
           whiteSpace: 'nowrap',
         }}
       >
-        Size:
+        {tUi('interface.sizeLabel')}
       </span>
       <div
-        title={`Size Distribution — ${chartTitle}`}
+        title={`${tUi('interface.sizeDistribution')} — ${chartTitle}`}
         style={{
           display: 'flex',
           width: 80,

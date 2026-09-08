@@ -9,7 +9,7 @@ const HANDLER_LABELS: Record<OpenHandler, string> = {
   system: 'openWith.systemDefault',
 };
 
-const FileAssociationsSettings = () => {
+const FileAssociationsSettings = ({ embedded = false }: { embedded?: boolean }) => {
   const { t } = useTranslation();
   const { prefs, clearPreference, clearAll } = useOpenWithPrefs();
 
@@ -17,7 +17,7 @@ const FileAssociationsSettings = () => {
 
   return (
     <div className="space-y-4">
-      <SectionTitle title={t('settings.fileAssociations.title')} />
+      {!embedded && <SectionTitle title={t('settings.fileAssociations.title')} />}
       <p className="px-4 pb-2 text-xs text-xp-text-secondary">
         {t('settings.fileAssociations.description')}
       </p>

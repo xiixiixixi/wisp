@@ -1,5 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
-import { ChevronRight, HardDrive, MoreHorizontal, Pencil } from 'lucide-react';
+import { ChevronRight, HardDrive, MoreHorizontal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { AnchoredMenu } from '@/components/ui/AnchoredMenu';
 import { getBreadcrumbStart } from '@/lib/breadcrumb-layout';
@@ -159,18 +159,6 @@ export default function PathBreadcrumbs({
           );
         })}
       </div>
-      <button
-        type="button"
-        className="wisp-breadcrumb-edit wisp-control-icon shrink-0 text-xp-text-muted"
-        title={t('navigation.editPath')}
-        aria-label={t('navigation.editPath')}
-        onClick={(event) => {
-          event.stopPropagation();
-          onEdit();
-        }}
-      >
-        <Pencil size={13} aria-hidden="true" />
-      </button>
       {open && start > 0 && (
         <AnchoredMenu
           anchorRef={triggerRef}

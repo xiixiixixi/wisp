@@ -237,7 +237,6 @@
     "tags": "タグ...",
     "copyPath": "パスをコピー",
     "copyName": "名前をコピー",
-    "versionHistory": "バージョン履歴",
     "addToBookmarks": "ブックマークに追加",
     "editMetadata": "メタデータを編集...",
     "setFolderColor": "フォルダの色を設定",
@@ -294,16 +293,6 @@
       "indexingDesc": "ファイル検索とトークナイザー",
       "shortcuts": "ショートカット",
       "shortcutsDesc": "キーバインドとプロファイル",
-      "marketplace": "マーケットプレイス",
-      "marketplaceDesc": "拡張機能マーケットプレイスURL",
-      "accessibility": "アクセシビリティ",
-      "accessibilityDesc": "モーションとフォーカス",
-      "backup": "バックアップと復元",
-      "backupDesc": "設定のインポートとエクスポート",
-      "audit": "監査ログ",
-      "auditDesc": "ファイル操作履歴",
-      "versioning": "バージョニング",
-      "versioningDesc": "ファイルバージョン履歴",
       "about": "バージョン情報",
       "aboutDesc": "バージョン、リンク、サポート",
       "fileAssociations": "ファイルの関連付け",
@@ -318,29 +307,12 @@
       "resetAll": "すべてのファイルの関連付けをリセット"
     },
     "general": {
-      "appearance": "外観",
-      "theme": "テーマ",
-      "themeDesc": "アプリケーションの配色",
       "language": "言語",
       "languageDesc": "お好みの言語を選択",
-      "fontSize": "フォントサイズ",
-      "fontSizeDesc": "UI の基本フォントサイズ",
       "small": "小",
       "medium": "中",
       "large": "大",
       "extraLarge": "特大",
-      "animations": "アニメーション",
-      "animationsDesc": "スムーズな遷移とエフェクトを有効にする",
-      "layout": "レイアウト",
-      "sidebarWidth": "サイドバーの幅",
-      "sidebarWidthDesc": "ナビゲーションサイドバーの幅",
-      "narrow": "狭い",
-      "wide": "広い",
-      "system": "システム",
-      "notifications": "通知",
-      "notificationsDesc": "イベントのデスクトップ通知を表示",
-      "autoSave": "自動保存",
-      "autoSaveDesc": "ファイルの変更を自動保存",
       "systemIntegration": "システム統合",
       "defaultExplorer": "デフォルトファイルエクスプローラー",
       "defaultExplorerDesc": "フォルダをダブルクリックした時に Windows エクスプローラーの代わりに Wisp で開く",
@@ -349,15 +321,9 @@
       "folderContextMenuDesc": "フォルダの右クリックメニューに「Wisp で開く」を追加",
       "contextMenuToggle": "コンテキストメニュー",
       "explorerWarning": "フォルダは Wisp で開きます。Windows エクスプローラーに戻すには無効にしてください。",
-      "help": "ヘルプ",
-      "onboardingTour": "ガイドツアー",
-      "onboardingTourDesc": "アプリのインタラクティブガイドツアーを再生",
-      "replayTour": "ツアーを再生",
       "betaWarning": "ベータ警告",
       "betaWarningDesc": "早期ベータ警告ダイアログを再表示",
-      "showWarning": "警告を表示",
-      "fluidGlass": "流体ガラス",
-      "fluidGlassDesc": "ナビゲーション、ツールバー、コントロールを半透明のガラスに。内容は読みやすく、アクセシビリティで透明度と動きを調整できます。"
+      "showWarning": "警告を表示"
     },
     "explorer": {
       "display": "表示",
@@ -372,9 +338,6 @@
       "fileExtensionsDesc": "ファイル名に拡張子を表示",
       "autoFolderSizes": "フォルダサイズを自動計算",
       "autoFolderSizesDesc": "詳細ビューでフォルダサイズを自動計算して表示",
-      "preview": "プレビュー",
-      "markdownPreview": "Markdown プレビュー",
-      "markdownPreviewDesc": "Markdown ファイルを生テキストではなくレンダリング表示",
       "auto": "自動"
     },
     "ai": {
@@ -501,20 +464,6 @@
         "executePlanDesc": "承認済みプランを実行"
       }
     },
-    "accessibility": {
-      "motion": "モーション",
-      "materials": "マテリアル",
-      "reduceTransparency": "透明度を下げる",
-      "reduceTransparencyDesc": "半透明のガラスの代わりに不透明な表面を使用します",
-      "reduceMotion": "モーションを軽減",
-      "reduceMotionDesc": "アニメーションと遷移を無効にして快適に",
-      "focus": "フォーカス",
-      "enhancedFocus": "強化フォーカスインジケーター",
-      "enhancedFocusDesc": "キーボードナビゲーション用の目立つ枠線を表示",
-      "contrast": "コントラスト",
-      "highContrast": "ハイコントラストモード",
-      "highContrastDesc": "視認性向上のためボーダー・テキスト・ボタンのコントラストを強化"
-    },
     "shortcuts": {
       "inputMode": "入力モード",
       "vimMode": "Vim モード",
@@ -541,14 +490,6 @@
       "vimRepeatLast": "最後を繰り返し",
       "vimClearExit": "クリア/終了",
       "keyBindings": "キーバインド"
-    },
-    "marketplace": {
-      "connection": "接続",
-      "connectionDesc": "マーケットプレイスサーバーエンドポイントを構成",
-      "apiUrl": "マーケットプレイス API URL",
-      "apiUrlDesc": "拡張機能マーケットプレイスサーバーのベース URL",
-      "default": "デフォルト: {{url}}",
-      "updatesSection": "Updates"
     },
     "tokenizer": {
       "title": "File Tokenizer",
@@ -596,77 +537,6 @@
       "indexing": "Indexing...",
       "resetToDefaults": "Reset to Defaults"
     },
-    "backup": {
-      "categoryAppSettings": "App Settings",
-      "categoryAppearance": "Appearance & Theme",
-      "categoryAiSearch": "AI & Search",
-      "categoryExtensions": "Extensions",
-      "categorySyncCloud": "Sync & Cloud",
-      "categoryOther": "Other",
-      "exportSection": "Export",
-      "exportSectionDesc": "Download a backup of your settings as a JSON file",
-      "exportLabel": "Export Settings",
-      "exportDesc": "Save all your preferences, theme, and configuration to a file",
-      "exportButton": "Export",
-      "lastExported": "Last exported: {{date}}",
-      "importSection": "Import",
-      "importSectionDesc": "Restore settings from a previously exported backup file",
-      "importLabel": "Import Settings",
-      "importDesc": "Load settings from a .json backup file",
-      "chooseFile": "Choose File",
-      "importErrorTitle": "Import Error",
-      "dismiss": "Dismiss",
-      "importPreviewTitle": "Import Preview",
-      "previewVersion": "Version:",
-      "previewExported": "Exported:",
-      "previewTotalKeys": "Total keys:",
-      "previewKeyCount_one": "{{count}} key",
-      "previewKeyCount_other": "{{count}} keys",
-      "overwriteWarning": "This will overwrite your current settings. The page will reload to apply changes.",
-      "applyImport": "Apply Import",
-      "importSuccessTitle": "Import Successful",
-      "importSuccessDesc_one": "Restored {{count}} setting. Reloading...",
-      "importSuccessDesc_other": "Restored {{count}} settings. Reloading...",
-      "exportFailed": "Failed to export settings.",
-      "invalidBackupStructure": "Invalid backup file structure. Expected version, exportDate, and settings fields.",
-      "invalidJson": "Invalid JSON file. Please select a valid Wisp settings backup.",
-      "readFileFailed": "Failed to read file."
-    },
-    "audit": {
-      "filtersTitle": "Filters",
-      "filtersDesc": "Narrow audit log results by operation or date range",
-      "operationLabel": "Operation",
-      "fromLabel": "From",
-      "toLabel": "To",
-      "entriesTitle": "Audit Entries",
-      "entriesCount": "{{count}} total entries",
-      "entriesCountLoading": "{{count}} total entries (loading...)",
-      "colTimestamp": "Timestamp",
-      "colOperation": "Operation",
-      "colPaths": "Paths",
-      "colStatus": "Status",
-      "loading": "Loading...",
-      "noEntries": "No audit entries found",
-      "pageOf": "Page {{page}} of {{total}}",
-      "actionsTitle": "Actions",
-      "exportCsv": "Export to CSV",
-      "clearLog": "Clear Log",
-      "clearLogConfirm": "Click again to confirm",
-      "exportedTo": "Exported to {{path}}",
-      "exportFailed": "Export failed: {{error}}",
-      "operations": {
-        "all": "All Operations",
-        "copy": "Copy",
-        "move": "Move",
-        "rename": "Rename",
-        "delete": "Delete",
-        "secureDelete": "Secure Delete",
-        "compress": "Compress",
-        "extract": "Extract",
-        "encrypt": "Encrypt",
-        "decrypt": "Decrypt"
-      }
-    },
     "contextMenuRules": {
       "title": "Context Menu Rules",
       "description": "Customize which actions appear in the right-click menu based on file types",
@@ -694,24 +564,6 @@
       "addRule": "Add Rule",
       "resetDefaults": "Reset to Defaults"
     },
-    "versioning": {
-      "loadingSettings": "Loading versioning settings...",
-      "fileVersioningSection": "File Versioning",
-      "fileVersioningSectionDesc": "Automatically keep previous versions of files in tracked directories",
-      "autoVersionLabel": "Auto-version on save",
-      "autoVersionDesc": "Automatically create a version snapshot when files in tracked directories are modified",
-      "maxVersionsLabel": "Max versions per file",
-      "maxVersionsDesc": "Oldest versions are automatically deleted when this limit is exceeded",
-      "saving": "Saving...",
-      "saveChanges": "Save Changes",
-      "trackedDirsSection": "Tracked Directories",
-      "trackedDirsSectionDesc": "Only files inside these directories will have versioning enabled",
-      "dirPlaceholder": "Enter directory path...",
-      "addDir": "Add",
-      "noDirsTracked": "No directories tracked",
-      "noDirsTrackedHint": "Add a directory path above to start tracking file versions",
-      "stopTracking": "Stop tracking this directory"
-    },
     "about": {
       "description": "モダンなAI搭載ファイルエクスプローラー。ご利用は自己責任で。",
       "links": "リンク",
@@ -720,59 +572,6 @@
       "sponsorButton": "GitHub でスポンサーになる",
       "license": "AGPL-3.0 ライセンス。愛を込めて制作。"
     }
-  },
-  "tour": {
-    "welcome": {
-      "title": "Wisp へようこそ！",
-      "description": "アプリを紹介します。このクイックツアーではアプリの主要な機能を紹介します。いつでも終了でき、設定から後で再生できます。"
-    },
-    "fullDiskAccess": {
-      "title": "フルディスクアクセスを許可",
-      "description": "すべてのファイルをアクセス許可なしで閲覧するには、Wisp にフルディスクアクセスを許可してください：\n\n1. システム設定 → プライバシーとセキュリティ → フルディスクアクセスを開く\n2. Wisp をオンにする\n3. Wisp を再起動する\n\nこれを許可しないと、写真、書類、iCloud Drive などの保護されたフォルダを開くたびに macOS がアクセス許可を求めます。"
-    },
-    "sidebar": {
-      "title": "サイドバーナビゲーション",
-      "description": "ファイルツリーの閲覧、クイックアクセスフォルダへのジャンプ、ブックマークの管理がここからできます。"
-    },
-    "fileBrowser": {
-      "title": "ファイルブラウザ",
-      "description": "ファイルとフォルダがここに表示されます。上のツールバーでグリッド、リスト、詳細ビューを切り替えられます。右クリックで他の操作が表示されます。"
-    },
-    "topBar": {
-      "title": "タブ、パンくず、検索",
-      "description": "タブで複数のフォルダを開き、パンくずでナビゲートし、スマート検索バーでファイルを検索（Ctrl+F）。"
-    },
-    "extensions": {
-      "title": "拡張機能とパネル",
-      "description": "サイドバーからファイルプレビューパネル、AI チャットアシスタント、拡張機能マーケットプレイスなどにアクセスできます。"
-    },
-    "terminal": {
-      "title": "ターミナルと出力",
-      "description": "Wisp 内で統合ターミナルを開き、出力ログを確認し、Git 操作を管理できます。このボタンをクリックするか Ctrl+` を押してください。"
-    },
-    "shortcuts": {
-      "title": "キーボードショートカット",
-      "description": "Wisp はキーボード中心のワークフロー向けに設計されています。設定 > ショートカットですべてのキーバインドを表示・カスタマイズできます。"
-    },
-    "commandPalette": {
-      "title": "コマンドセンター",
-      "description": "Ctrl+Shift+P で、現在のワークスペースを離れずにファイル検索、Wisp コマンドの実行、アシスタントへの質問ができます。"
-    },
-    "extensionPacks": {
-      "title": "拡張機能パック",
-      "description": "拡張機能パックで Wisp をパワーアップ！マーケットプレイスで開発ツール、生産性、メディアなどのキュレーションコレクションを閲覧。ワンクリックでパック全体をインストール。"
-    },
-    "allSet": {
-      "title": "準備完了！",
-      "description": "ファイルを探索し、AI アシスタントを試し、設定ですべてをカスタマイズしましょう。このツアーは設定 > 一般からいつでも再生できます。"
-    },
-    "closeTour": "Close tour",
-    "skip": "Skip",
-    "back": "Back",
-    "next": "Next",
-    "getStarted": "Get Started",
-    "stepOf": "{{current}} of {{total}}",
-    "goToStep": "Go to step {{step}}"
   },
   "commandPalette": {
     "title": "Wisp 検索",
@@ -1058,35 +857,6 @@
       "toastSuccessDesc": "{{fileCount}} file(s) securely wiped with {{passes}} passes",
       "toastFailedTitle": "Secure Delete Failed",
       "toastErrorCount": "{{count}} error(s)"
-    },
-    "versionHistory": {
-      "title": "Version History",
-      "createSnapshot": "Create Snapshot",
-      "deleteAll": "Delete All",
-      "versionCount": "{{count}} version(s)",
-      "loading": "Loading versions...",
-      "tryAgain": "Try again",
-      "noVersions": "No versions saved yet",
-      "noVersionsHint": "Click \"Create Snapshot\" to save the current state of this file",
-      "versionLabel": "Version {{n}}",
-      "previewTitle": "Preview",
-      "restoreTitle": "Restore this version",
-      "deleteTitle": "Delete this version",
-      "previewLabel": "Preview - v{{n}}",
-      "truncated": "... (truncated)",
-      "toastCreatedTitle": "Version created",
-      "toastCreatedDesc": "Snapshot of \"{{fileName}}\" saved",
-      "toastCreateFailedTitle": "Failed to create version",
-      "toastRestoredTitle": "Version restored",
-      "toastRestoredDesc": "Restored version {{versionNumber}} of \"{{fileName}}\"",
-      "toastRestoreFailedTitle": "Failed to restore version",
-      "toastDeletedTitle": "Version deleted",
-      "toastDeletedDesc": "Deleted version {{versionNumber}}",
-      "toastDeleteFailedTitle": "Failed to delete version",
-      "toastDeleteAllTitle": "All versions deleted",
-      "toastDeleteAllDesc": "Removed {{count}} version(s)",
-      "toastDeleteAllFailedTitle": "Failed to delete versions",
-      "toastPreviewFailedTitle": "Failed to read version"
     },
     "keyboardShortcuts": "キーボードショートカット",
     "workspaceLayout": "ワークスペースレイアウト",
@@ -1784,8 +1554,6 @@
     "updatesFoundDesc": "{{count}} 件の拡張機能にアップデートがあります",
     "updateFailed": "更新に失敗しました",
     "updateFailedDesc": "{{name}} の更新に失敗しました：{{error}}",
-    "autoUpdate": "拡張機能の自動更新",
-    "autoUpdateDescription": "新しいバージョンが利用可能な場合、拡張機能を自動的に更新します",
     "allUpToDate": "すべての拡張機能は最新です"
   },
   "pages": {

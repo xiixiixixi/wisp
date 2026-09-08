@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 /**
  * Scheduled agent definitions and storage.
  * Lets users schedule agents to run on a recurring or one-time basis.
@@ -174,7 +175,9 @@ type Translator = (key: string, opts?: Record<string, unknown>) => string;
 export const formatFrequency = (freq: ScheduleFrequency, t: Translator): string => {
   switch (freq.type) {
     case 'once':
-      return t('agentManager.schedule.fmtOnce', { time: new Date(freq.runAt).toLocaleString() });
+      return t('agentManager.schedule.fmtOnce', {
+        time: new Date(freq.runAt).toLocaleString(getAppLocale()),
+      });
     case 'interval':
       if (freq.everyMinutes % 60 === 0) {
         return t('agentManager.schedule.fmtEveryHr', { n: freq.everyMinutes / 60 });

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * Subtle, non-intrusive card displayed at the top of the chat panel
  * when the proactive agent has a suggestion for the user.
@@ -34,6 +35,7 @@ const ProactiveSuggestionCard = ({
   proactiveEnabled,
   onToggleProactive,
 }: ProactiveSuggestionCardProps) => {
+  const { t: tUi } = useTranslation();
   const [showSettings, setShowSettings] = useState(false);
 
   return (
@@ -93,7 +95,7 @@ const ProactiveSuggestionCard = ({
         <button
           onClick={onDismiss}
           title={i18n.t('proactiveCard.dismiss')}
-          aria-label="Dismiss suggestion"
+          aria-label={tUi('proactiveCard.dismiss')}
           style={{
             background: 'none',
             border: 'none',
@@ -145,7 +147,7 @@ const ProactiveSuggestionCard = ({
             fontSize: '11px',
           }}
         >
-          Dismiss
+          {tUi('agentManager.externalAgents.dismiss')}
         </button>
 
         {/* Settings toggle */}
@@ -153,7 +155,7 @@ const ProactiveSuggestionCard = ({
           <button
             onClick={() => setShowSettings((v) => !v)}
             title={i18n.t('proactiveCard.settings')}
-            aria-label="Proactive agent settings"
+            aria-label={tUi('interface.proactiveAgentSettings')}
             style={{
               background: 'none',
               border: 'none',
@@ -198,7 +200,7 @@ const ProactiveSuggestionCard = ({
                   onChange={(e) => onToggleProactive(e.target.checked)}
                   style={{ accentColor: 'var(--xp-blue)' }}
                 />
-                Proactive suggestions
+                {tUi('interface.proactiveSuggestions')}
               </label>
             </div>
           )}

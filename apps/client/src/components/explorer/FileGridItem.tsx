@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useDraggable } from '@/hooks/use-draggable';
@@ -212,6 +213,7 @@ export const InlineRenameInput = React.memo(
     onTab: (oldPath: string, newName: string | null, direction: 1 | -1) => void;
     filePath: string;
   }) => {
+    const { t: tUi } = useTranslation();
     const [value, setValue] = useState(fileName);
     const inputRef = useRef<HTMLInputElement>(null);
     const confirmedRef = useRef(false);
@@ -317,7 +319,7 @@ export const InlineRenameInput = React.memo(
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
           title={validation.message || undefined}
-          aria-label="Rename file"
+          aria-label={tUi('panels.previewAction.renameTooltip')}
           aria-invalid={!validation.valid}
           style={{
             flex: 1,
@@ -407,6 +409,7 @@ const FileGridItem = React.memo(
     onRenameTab,
     onRenameStart,
   }: FileGridItemProps) => {
+    const { t: tUi } = useTranslation();
     // Native drag via tauri-plugin-drag (mousedown/mousemove/mouseup)
     const dragHandlers = useDraggable({ file, selectedFiles, allFiles });
 
@@ -508,7 +511,9 @@ const FileGridItem = React.memo(
         {...(isRenaming ? {} : dragHandlers)}
         role="option"
         aria-selected={isSelected}
-        aria-label={`${file.name}${file.is_dir ? ', folder' : ', file'}`}
+        aria-label={tUi(file.is_dir ? 'messages.folderAria' : 'messages.fileAria', {
+          name: file.name,
+        })}
         data-file-path={file.path}
         tabIndex={
           isSelected || (selectedFiles.size === 0 && allFiles[0]?.path === file.path) ? 0 : -1
@@ -577,7 +582,7 @@ const FileGridItem = React.memo(
           </div>
           {file.name.endsWith('.chat') && !isRenaming && (
             <span className="mt-0.5 inline-block rounded-[2px] bg-xp-purple/20 px-1.5 py-0.5 text-[9px] text-xp-purple">
-              Chat
+              {tUi('contextMenu.chat')}
             </span>
           )}
           {!isGridView && !isListView && !isRenaming && (

@@ -669,7 +669,7 @@ const FileGrid = ({
         {isCrossTabSelected && (
           <>
             <div style={crossTabOutlineStyle} />
-            <div style={crossTabBadgeStyle} title="Selected for cross-tab operation" />
+            <div style={crossTabBadgeStyle} title={t('interface.selectedForCrossTabOperation')} />
           </>
         )}
         <FileGridItem
@@ -718,7 +718,7 @@ const FileGrid = ({
         <div
           ref={bgDropRef}
           role="listbox"
-          aria-label="File list"
+          aria-label={t('explorer.details.fileListAria')}
           aria-multiselectable={true}
           className="relative"
           onContextMenu={handleBackgroundRightClick || undefined}
@@ -743,7 +743,7 @@ const FileGrid = ({
       <div
         ref={bgDropRef}
         role="listbox"
-        aria-label="File list"
+        aria-label={t('explorer.details.fileListAria')}
         aria-multiselectable={true}
         className={`${getGridLayout()} relative p-2`}
         onContextMenu={handleBackgroundRightClick || undefined}
@@ -764,7 +764,7 @@ const FileGrid = ({
         }
       }}
       role="listbox"
-      aria-label="File list"
+      aria-label={t('explorer.details.fileListAria')}
       aria-multiselectable={true}
       className="relative h-full select-none overflow-auto"
       style={{ padding: '8px' }}

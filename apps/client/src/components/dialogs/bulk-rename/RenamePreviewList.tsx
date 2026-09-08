@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import React from 'react';
 import { diffStrings, DiffText, WarningIcon, CheckIcon } from '../bulk-rename-helpers';
@@ -25,6 +26,7 @@ const RenamePreviewList = ({
   changedCount,
   results,
 }: RenamePreviewListProps) => {
+  const { t: tUi } = useTranslation();
   if (displayData.length === 0) return null;
 
   return (
@@ -66,12 +68,13 @@ const RenamePreviewList = ({
                 color: 'var(--xp-orange)',
               }}
             >
-              <WarningIcon /> {conflictSet.size} conflict
-              {conflictSet.size !== 1 ? 's' : ''}
+              <WarningIcon /> {tUi('counts.conflicts', { count: conflictSet.size })}
             </span>
           )}
-          <span>{changedCount} changed</span>
-          <span>{displayData.length - changedCount} unchanged</span>
+          <span>{tUi('messages.changedCount', { count: changedCount })}</span>
+          <span>
+            {tUi('messages.unchangedCount', { count: displayData.length - changedCount })}
+          </span>
         </div>
       </div>
       <div
@@ -104,7 +107,7 @@ const RenamePreviewList = ({
                     width: '42%',
                   }}
                 >
-                  Current Name
+                  {tUi('interface.currentName')}
                 </th>
                 <th
                   style={{
@@ -128,7 +131,7 @@ const RenamePreviewList = ({
                     width: '42%',
                   }}
                 >
-                  New Name
+                  {tUi('interface.newName')}
                 </th>
                 <th
                   style={{
@@ -141,7 +144,7 @@ const RenamePreviewList = ({
                     width: '40px',
                   }}
                 >
-                  Status
+                  {tUi('dialogs.folderCompare.colStatus')}
                 </th>
               </tr>
             </thead>
@@ -180,10 +183,7 @@ const RenamePreviewList = ({
           }}
         >
           <WarningIcon />
-          <span>
-            {conflictSet.size} naming conflict{conflictSet.size !== 1 ? 's' : ''} detected. Multiple
-            files would end up with the same name. Adjust the pattern to avoid data loss.
-          </span>
+          <span>{tUi('messages.renameConflicts', { count: conflictSet.size })}</span>
         </div>
       )}
 
@@ -223,6 +223,7 @@ interface PreviewRowProps {
 }
 
 const PreviewRow = ({ item, index, totalCount, isConflict, isResult }: PreviewRowProps) => {
+  const { t: tUi } = useTranslation();
   const nameChanged = item.original_name !== item.new_name;
   const diff = nameChanged ? diffStrings(item.original_name, item.new_name) : null;
 
@@ -236,7 +237,10 @@ const PreviewRow = ({ item, index, totalCount, isConflict, isResult }: PreviewRo
   let statusCell: React.ReactNode;
   if (isResult) {
     statusCell = item.success ? (
-      <span style={{ color: 'var(--xp-green)', fontSize: 11, fontWeight: 600 }} title="Success">
+      <span
+        style={{ color: 'var(--xp-green)', fontSize: 11, fontWeight: 600 }}
+        title={tUi('agentManager.recentActions.success')}
+      >
         OK
       </span>
     ) : (

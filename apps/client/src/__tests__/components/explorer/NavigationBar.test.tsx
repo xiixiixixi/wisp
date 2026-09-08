@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { TauriAPI } from '@/lib/tauri-api';
 import '@testing-library/jest-dom';
 import NavigationBar from '@/components/explorer/NavigationBar';
 
@@ -102,9 +103,9 @@ describe('NavigationBar', () => {
       expect(chevrons).toHaveLength(3);
     });
 
-    it('renders edit path button', () => {
+    it('omits the redundant edit path button', () => {
       render(<NavigationBar {...defaultProps} />);
-      expect(screen.getByLabelText('Edit path')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Edit path')).not.toBeInTheDocument();
     });
 
     it('last segment has current location aria attribute', () => {
@@ -153,16 +154,16 @@ describe('NavigationBar', () => {
       const addressField = container.querySelector('.wisp-address-field');
 
       expect(addressField).toBeInTheDocument();
-      fireEvent.click(screen.getByLabelText('Edit path'));
+      fireEvent.click(screen.getByRole('navigation', { name: 'Breadcrumb' }));
 
       expect(container.querySelector('.wisp-address-field')).toBe(addressField);
       expect(screen.getByLabelText('File path')).toHaveClass('wisp-address-input');
     });
 
-    it('enters editing mode when clicking the edit button', () => {
+    it('enters editing mode when clicking the address trail background', () => {
       render(<NavigationBar {...defaultProps} />);
 
-      fireEvent.click(screen.getByLabelText('Edit path'));
+      fireEvent.click(screen.getByRole('navigation', { name: 'Breadcrumb' }));
 
       const input = screen.getByLabelText('File path');
       expect(input).toBeInTheDocument();
@@ -172,15 +173,15 @@ describe('NavigationBar', () => {
     it('shows placeholder text in edit mode', () => {
       render(<NavigationBar {...defaultProps} />);
 
-      fireEvent.click(screen.getByLabelText('Edit path'));
+      fireEvent.click(screen.getByRole('navigation', { name: 'Breadcrumb' }));
 
-      expect(screen.getByPlaceholderText('Enter path... (~ for home)')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Enter a path or website...')).toBeInTheDocument();
     });
 
     it('cancels editing on Escape', () => {
       render(<NavigationBar {...defaultProps} />);
 
-      fireEvent.click(screen.getByLabelText('Edit path'));
+      fireEvent.click(screen.getByRole('navigation', { name: 'Breadcrumb' }));
       const input = screen.getByLabelText('File path');
 
       fireEvent.keyDown(input, { key: 'Escape' });
@@ -193,7 +194,7 @@ describe('NavigationBar', () => {
     it('submits path on Enter', async () => {
       render(<NavigationBar {...defaultProps} />);
 
-      fireEvent.click(screen.getByLabelText('Edit path'));
+      fireEvent.click(screen.getByRole('navigation', { name: 'Breadcrumb' }));
       const input = screen.getByLabelText('File path');
 
       fireEvent.change(input, { target: { value: 'C:\\NewPath' } });
@@ -208,7 +209,7 @@ describe('NavigationBar', () => {
     it('does not navigate when submitting same path', () => {
       render(<NavigationBar {...defaultProps} />);
 
-      fireEvent.click(screen.getByLabelText('Edit path'));
+      fireEvent.click(screen.getByRole('navigation', { name: 'Breadcrumb' }));
       const input = screen.getByLabelText('File path');
 
       // Submit without changing the value
@@ -220,11 +221,92 @@ describe('NavigationBar', () => {
     it('has correct ARIA attributes for autocomplete', () => {
       render(<NavigationBar {...defaultProps} />);
 
-      fireEvent.click(screen.getByLabelText('Edit path'));
+      fireEvent.click(screen.getByRole('navigation', { name: 'Breadcrumb' }));
       const input = screen.getByLabelText('File path');
 
       expect(input).toHaveAttribute('aria-autocomplete', 'list');
       expect(input).toHaveAttribute('spellcheck', 'false');
+    });
+  });
+
+  describe('website input', () => {
+    it.each([
+      ['github.com', 'https://github.com/'],
+      ['localhost:5190/?demo=1', 'http://localhost:5190/?demo=1'],
+      ['https://example.com/path', 'https://example.com/path'],
+      ['~/Documents', 'C:\\Users\\Test/Documents'],
+      ['report.pdf', 'report.pdf'],
+    ])('submits %s as %s', async (value, expected) => {
+      render(<NavigationBar {...defaultProps} />);
+      fireEvent.click(screen.getByRole('navigation', { name: 'Breadcrumb' }));
+      const input = screen.getByLabelText('File path');
+      fireEvent.change(input, { target: { value } });
+      fireEvent.keyDown(input, { key: 'Enter' });
+      await waitFor(() => expect(mockNavigateToPath).toHaveBeenCalledWith(expected));
+    });
+
+    it('gives an existing local folder priority over an implicit website', async () => {
+      vi.mocked(TauriAPI.getFileProperties).mockResolvedValueOnce({ is_dir: true } as never);
+      render(<NavigationBar {...defaultProps} />);
+      fireEvent.click(screen.getByRole('navigation', { name: 'Breadcrumb' }));
+      const input = screen.getByLabelText('File path');
+      fireEvent.change(input, { target: { value: 'github.com' } });
+      fireEvent.keyDown(input, { key: 'Enter' });
+      await waitFor(() =>
+        expect(mockNavigateToPath).toHaveBeenCalledWith('C:\\Users\\Test\\Documents\\github.com'),
+      );
+    });
+
+    it('does not validate a website as a file path or open it on blur', async () => {
+      vi.useFakeTimers();
+      try {
+        render(<NavigationBar {...defaultProps} />);
+        fireEvent.click(screen.getByRole('navigation', { name: 'Breadcrumb' }));
+        const input = screen.getByLabelText('File path');
+        fireEvent.change(input, { target: { value: 'github.com/xiixiixixi/wisp' } });
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(350);
+        });
+        expect(TauriAPI.readDirectory).not.toHaveBeenCalled();
+        expect(TauriAPI.getFileProperties).not.toHaveBeenCalled();
+        input.blur();
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(200);
+        });
+        expect(mockNavigateToPath).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('ignores stale folder suggestions and validation after switching to a URL', async () => {
+      let resolveEntries!: (entries: never) => void;
+      let resolveProperties!: (properties: never) => void;
+      vi.mocked(TauriAPI.readDirectory).mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveEntries = resolve;
+        }),
+      );
+      vi.mocked(TauriAPI.getFileProperties).mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveProperties = resolve;
+        }),
+      );
+      render(<NavigationBar {...defaultProps} />);
+      fireEvent.click(screen.getByRole('navigation', { name: 'Breadcrumb' }));
+      const input = screen.getByLabelText('File path');
+      fireEvent.change(input, { target: { value: '/old/folder/' } });
+      await waitFor(() => expect(TauriAPI.getFileProperties).toHaveBeenCalled());
+      fireEvent.change(input, { target: { value: 'github.com' } });
+      await act(async () => {
+        resolveEntries([{ name: 'stale', path: '/old/folder/stale', is_dir: true }] as never);
+        resolveProperties({ is_dir: true } as never);
+      });
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+      expect(screen.queryByTitle('Path exists')).not.toBeInTheDocument();
+      fireEvent.keyDown(input, { key: 'Enter', isComposing: true });
+      expect(mockNavigateToPath).not.toHaveBeenCalled();
+      fireEvent.keyDown(input, { key: 'Escape' });
     });
   });
 

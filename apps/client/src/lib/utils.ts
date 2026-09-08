@@ -1,9 +1,9 @@
+import { getAppLocale } from '@/lib/locale';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
 import React from 'react';
 import FinderFileIcon from '@/components/explorer/FinderFileIcon';
-import { STORAGE_KEYS } from '@/lib/storage-keys';
 import i18n from '@/i18n';
 import {
   FolderClosed,
@@ -378,7 +378,7 @@ export const isAudioFile = (fileName: string): boolean => {
 
 // File size formatting utility
 export const formatFileSize = (bytes: number, isCalculating?: boolean): string => {
-  if (isCalculating) return 'Calculating...';
+  if (isCalculating) return i18n.t('interface.calculatingSize');
   if (!bytes || bytes <= 0 || !isFinite(bytes)) return '0 B';
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -397,8 +397,8 @@ export const formatFolderSize = (
   const sizeStr = formatFileSize(folderSizeInfo.total_size);
   const itemCount = folderSizeInfo.file_count + folderSizeInfo.dir_count;
 
-  if (itemCount === 0) return 'Empty';
-  return `${sizeStr} (${itemCount} items)`;
+  if (itemCount === 0) return i18n.t('interface.empty');
+  return i18n.t('messages.folderSize', { size: sizeStr, count: itemCount });
 };
 
 // Date formatting utility
@@ -406,7 +406,7 @@ export const formatDate = (timestamp: number): string => {
   if (!timestamp || !isFinite(timestamp)) return '—';
   const date = new Date(timestamp * 1000);
   if (isNaN(date.getTime())) return '—';
-  return date.toLocaleString();
+  return date.toLocaleString(getAppLocale());
 };
 
 /** Compact "8月21日 17:40" — no year, for chips and info bars. */
@@ -414,8 +414,8 @@ export const formatDateTimeShort = (timestamp: number): string => {
   if (!timestamp || !isFinite(timestamp)) return '—';
   const date = new Date(timestamp * 1000);
   if (isNaN(date.getTime())) return '—';
-  return `${date.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })} ${date.toLocaleTimeString(
-    undefined,
+  return `${date.toLocaleDateString(getAppLocale(), { month: 'long', day: 'numeric' })} ${date.toLocaleTimeString(
+    getAppLocale(),
     { hour: '2-digit', minute: '2-digit', hour12: false },
   )}`;
 };
@@ -735,30 +735,11 @@ export const viewModes = {
   },
 };
 
-// Font size utility functions
-export const applyFontSize = (size: 'small' | 'medium' | 'large' | 'xl') => {
-  const root = document.documentElement;
-  root.classList.remove('font-small', 'font-medium', 'font-large', 'font-xl');
-  root.classList.add(`font-${size}`);
-  localStorage.setItem(STORAGE_KEYS.FONT_SIZE, size);
-};
-
-export const loadFontSize = () => {
-  const saved = localStorage.getItem(STORAGE_KEYS.FONT_SIZE) as
-    | 'small'
-    | 'medium'
-    | 'large'
-    | 'xl'
-    | null;
-  applyFontSize(saved || 'medium');
-};
-
 // Wisp now has one stable neutral appearance. Keep accepting historical keys
 // for settings and extension compatibility, but resolve all of them to the
 // same light material instead of letting persisted state fight SkySync.
-// theme-fluid is SkySync's live glass toggle and theme-light/theme-rolex are
-// its polarity decision — none of them may be wiped here ( wiping either
-// silently killed the fluid shell or stranded the wrong polarity).
+// SkySync owns the fixed light/glass classes. Do not clear the material when
+// the settings page or an extension reapplies a historical theme key.
 export const applyTheme = (_themeKey: string) => {
   const root = document.documentElement;
   root.classList.forEach((cls) => {

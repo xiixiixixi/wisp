@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import React from 'react';
 import type { SearchResult, RecentFile } from '@/lib/tauri-api';
 
@@ -58,7 +59,7 @@ export const formatTimestamp = (ts: number): string => {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
-  return new Date(ts).toLocaleDateString();
+  return new Date(ts).toLocaleDateString(getAppLocale());
 };
 
 // ── Fuzzy matching ──────────────────────────────────────────────────────────
@@ -212,11 +213,11 @@ export const fileNameStyle: React.CSSProperties = {
 
 export const filePathStyle: React.CSSProperties = {
   display: 'block',
-  fontSize: '10px',
+  fontSize: '12px',
+  lineHeight: '18px',
   color: 'var(--xp-text-muted, #6e6a61)',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
+  whiteSpace: 'pre-wrap',
+  overflowWrap: 'anywhere',
 };
 
 export const backdropStyle: React.CSSProperties = {

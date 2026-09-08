@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import DOMPurify from 'dompurify';
 import { PreviewProps } from '@/lib/preview-factory';
@@ -6,6 +7,7 @@ import { TauriAPI } from '@/lib/tauri-api';
 type MammothModule = typeof import('mammoth');
 
 const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
+  const { t: tUi } = useTranslation();
   const [htmlContent, setHtmlContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,13 +61,15 @@ const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
 
   return (
     <div className="mt-4">
-      <h4 className="mb-2 text-xs font-medium text-xp-text-muted">Document Preview</h4>
+      <h4 className="mb-2 text-xs font-medium text-xp-text-muted">
+        {tUi('interface.documentPreview')}
+      </h4>
 
       {loading && (
         <div className="rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
           <div className="animate-pulse">
             <div className="mb-2 h-48 w-full rounded-[2px] bg-xp-bg" />
-            <p className="text-xs">Loading document...</p>
+            <p className="text-xs">{tUi('interface.loadingDocument')}</p>
           </div>
         </div>
       )}
@@ -79,8 +83,8 @@ const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
               clipRule="evenodd"
             />
           </svg>
-          <p className="text-xs">Cannot preview document</p>
-          <p className="mt-1 text-xs opacity-70">{error}</p>
+          <p className="text-xs">{tUi('interface.cannotPreviewDocument')}</p>
+          <p className="mt-1 text-xs opacity-70">{previewErrorText(error, tUi)}</p>
         </div>
       ) : null}
       {!error && htmlContent && (
@@ -100,3 +104,4 @@ const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
 };
 
 export default DocumentPreview;
+import { previewErrorText } from '@/lib/preview-error';

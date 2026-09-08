@@ -8,7 +8,6 @@ use argon2::{Algorithm, Argon2, Params, Version};
 use rand::RngCore;
 use tauri::{command, AppHandle, State};
 
-use crate::audit_log::log_operation;
 use crate::operations::progress::{generate_operation_id, ProgressManager};
 use crate::operations::validate_file_path;
 
@@ -85,7 +84,7 @@ pub async fn encrypt_file(
 
     let pm = progress_manager.inner().clone();
     let op_id_clone = op_id.clone();
-    let path_for_log = path.clone();
+    let original_path = path.clone();
 
     let result = tokio::task::spawn_blocking(move || {
         let plaintext = fs::read(&path).map_err(|e| format!("Failed to read file: {}", e))?;
@@ -140,37 +139,25 @@ pub async fn encrypt_file(
     .map_err(|e| format!("Task failed: {}", e))?;
 
     match &result {
-        Ok(out) => {
+        Ok(_) => {
             progress_manager.complete_file_operation(&op_id);
-            log_operation(
-                "encrypt",
-                vec![path_for_log.clone(), out.clone()],
-                None,
-                true,
-            );
 
             // Securely delete original if requested
             if delete_original.unwrap_or(false) {
-                let original = Path::new(&path_for_log);
+                let original = Path::new(&original_path);
                 if original.exists() {
                     // Overwrite with zeros before deleting
-                    if let Ok(metadata) = fs::metadata(&path_for_log) {
+                    if let Ok(metadata) = fs::metadata(&original_path) {
                         let size = metadata.len() as usize;
                         let zeros = vec![0u8; size];
-                        let _ = fs::write(&path_for_log, &zeros);
+                        let _ = fs::write(&original_path, &zeros);
                     }
-                    let _ = fs::remove_file(&path_for_log);
+                    let _ = fs::remove_file(&original_path);
                 }
             }
         }
         Err(msg) => {
             progress_manager.fail_file_operation(&op_id, msg.clone());
-            log_operation(
-                "encrypt",
-                vec![path_for_log.clone()],
-                Some(msg.clone()),
-                false,
-            );
         }
     }
 
@@ -233,7 +220,6 @@ pub async fn decrypt_file(
 
     let pm = progress_manager.inner().clone();
     let op_id_clone = op_id.clone();
-    let path_for_log = path.clone();
 
     let result = tokio::task::spawn_blocking(move || {
         let data = fs::read(&path).map_err(|e| format!("Failed to read file: {}", e))?;
@@ -285,23 +271,11 @@ pub async fn decrypt_file(
     .map_err(|e| format!("Task failed: {}", e))?;
 
     match &result {
-        Ok(out) => {
+        Ok(_) => {
             progress_manager.complete_file_operation(&op_id);
-            log_operation(
-                "decrypt",
-                vec![path_for_log.clone(), out.clone()],
-                None,
-                true,
-            );
         }
         Err(msg) => {
             progress_manager.fail_file_operation(&op_id, msg.clone());
-            log_operation(
-                "decrypt",
-                vec![path_for_log.clone()],
-                Some(msg.clone()),
-                false,
-            );
         }
     }
 

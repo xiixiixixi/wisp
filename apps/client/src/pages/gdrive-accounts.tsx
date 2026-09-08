@@ -1,5 +1,6 @@
+import { getAppLocale } from '@/lib/locale';
 import React, { useState, useEffect, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { gdriveManager, type GoogleDriveAccount } from '@/lib/gdrive-plugin';
 import { TauriAPI } from '@/lib/tauri-api';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
@@ -318,7 +319,7 @@ const GoogleDriveAccountsPage = (props: GoogleDriveAccountsPageProps) => {
                     </svg>
                     <span className="text-xs">
                       {t('pages.gdrive.lastSynced', {
-                        date: new Date(account.lastSynced).toLocaleString(),
+                        date: new Date(account.lastSynced).toLocaleString(getAppLocale()),
                       })}
                     </span>
                   </div>
@@ -439,32 +440,49 @@ const GoogleDriveAccountsPage = (props: GoogleDriveAccountsPageProps) => {
                 </h3>
                 <ol className="list-inside list-decimal space-y-2 text-sm text-xp-text-muted">
                   <li>
-                    Go to the{' '}
-                    <a
-                      href="https://console.cloud.google.com/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xp-blue hover:underline"
-                    >
-                      Google Cloud Console
-                    </a>
+                    <Trans
+                      i18nKey="pages.gdrive.setupOpenConsole"
+                      t={t}
+                      components={{
+                        console: (
+                          <a
+                            href="https://console.cloud.google.com/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xp-blue hover:underline"
+                          />
+                        ),
+                      }}
+                    />
                   </li>
-                  <li>Create a new project or select an existing one</li>
+                  <li>{t('pages.gdrive.setupProject')}</li>
                   <li>
-                    Navigate to <strong className="text-xp-text">APIs &amp; Services</strong> and
-                    enable the <strong className="text-xp-text">Google Drive API</strong>
+                    <Trans
+                      i18nKey="pages.gdrive.setupEnableApi"
+                      t={t}
+                      components={{ strong: <strong className="text-xp-text" /> }}
+                    />
                   </li>
                   <li>
-                    Go to <strong className="text-xp-text">Credentials</strong> &rarr;{' '}
-                    <strong className="text-xp-text">Create Credentials</strong> &rarr;{' '}
-                    <strong className="text-xp-text">OAuth 2.0 Client ID</strong>
+                    <Trans
+                      i18nKey="pages.gdrive.setupCredentials"
+                      t={t}
+                      components={{ strong: <strong className="text-xp-text" /> }}
+                    />
                   </li>
                   <li>
-                    Set application type to <strong className="text-xp-text">Desktop app</strong>
+                    <Trans
+                      i18nKey="pages.gdrive.setupDesktopApp"
+                      t={t}
+                      components={{ strong: <strong className="text-xp-text" /> }}
+                    />
                   </li>
                   <li>
-                    Copy the <strong className="text-xp-text">Client ID</strong> and{' '}
-                    <strong className="text-xp-text">Client Secret</strong>, then paste them below
+                    <Trans
+                      i18nKey="pages.gdrive.setupPasteCredentials"
+                      t={t}
+                      components={{ strong: <strong className="text-xp-text" /> }}
+                    />
                   </li>
                 </ol>
               </div>

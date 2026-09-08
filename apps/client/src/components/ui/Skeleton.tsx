@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 
 // ─── Shared placeholder style ────────────────────────────────────────────────
@@ -96,6 +97,7 @@ interface FileGridSkeletonProps {
 }
 
 export const FileGridSkeleton = ({ count = 12, viewMode = 'medium' }: FileGridSkeletonProps) => {
+  const { t: tUi } = useTranslation();
   const isListView = viewMode === 'list';
 
   if (isListView) {
@@ -106,7 +108,7 @@ export const FileGridSkeleton = ({ count = 12, viewMode = 'medium' }: FileGridSk
   return (
     <div
       role="status"
-      aria-label="Loading files"
+      aria-label={tUi('interface.loadingFiles')}
       aria-live="polite"
       style={{
         display: 'grid',
@@ -147,10 +149,11 @@ interface FileListSkeletonProps {
 }
 
 export const FileListSkeleton = ({ count = 10 }: FileListSkeletonProps) => {
+  const { t: tUi } = useTranslation();
   return (
     <div
       role="status"
-      aria-label="Loading files"
+      aria-label={tUi('interface.loadingFiles')}
       aria-live="polite"
       style={{ padding: 8, display: 'flex', flexDirection: 'column', gap: 4 }}
     >
@@ -181,10 +184,11 @@ export const FileListSkeleton = ({ count = 10 }: FileListSkeletonProps) => {
 // Placeholder for the preview panel while content is loading.
 
 export const PreviewSkeleton = () => {
+  const { t: tUi } = useTranslation();
   return (
     <div
       role="status"
-      aria-label="Loading preview"
+      aria-label={tUi('interface.loadingPreview')}
       aria-live="polite"
       style={{
         display: 'flex',
@@ -218,10 +222,11 @@ interface SidebarSkeletonProps {
 }
 
 export const SidebarSkeleton = ({ sections = 3, itemsPerSection = 4 }: SidebarSkeletonProps) => {
+  const { t: tUi } = useTranslation();
   return (
     <div
       role="status"
-      aria-label="Loading sidebar"
+      aria-label={tUi('interface.loadingSidebar')}
       aria-live="polite"
       style={{ padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: 16 }}
     >

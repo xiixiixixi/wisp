@@ -5,17 +5,7 @@
  * without prop-drilling through the shell.
  */
 import { DEFAULT_SETTINGS, SETTINGS_KEY } from '@/components/settings/shared';
-
-export function isWeatherSyncEnabled(): boolean {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY) ?? '';
-    if (!raw) return DEFAULT_SETTINGS.weatherSync;
-    const parsed = JSON.parse(raw) as { weatherSync?: boolean };
-    return parsed.weatherSync ?? DEFAULT_SETTINGS.weatherSync;
-  } catch {
-    return DEFAULT_SETTINGS.weatherSync;
-  }
-}
+import { stripRetiredSettings } from './retired-settings';
 
 export interface WeatherLocation {
   city: string;
@@ -72,7 +62,7 @@ export function setWeatherLocation(location: WeatherLocation): void {
   localStorage.setItem(
     SETTINGS_KEY,
     JSON.stringify({
-      ...current,
+      ...stripRetiredSettings(current),
       weatherCity: city,
       weatherLat: location.latitude,
       weatherLon: location.longitude,

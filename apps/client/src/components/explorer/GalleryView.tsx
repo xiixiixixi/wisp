@@ -35,6 +35,7 @@ const GalleryStripThumb = React.memo(
     onDoubleClick: () => void;
     onRightClick: (e: React.MouseEvent) => void;
   }) => {
+    const { t: tUi } = useTranslation();
     const [thumbError, setThumbError] = useState(false);
     const [dimensions, setDimensions] = useState<{ w: number; h: number } | null>(null);
     const isImage = isImageFile(file);
@@ -61,7 +62,9 @@ const GalleryStripThumb = React.memo(
         {...dragHandlers}
         role="option"
         aria-selected={isSelected}
-        aria-label={`${file.name}${file.is_dir ? ', folder' : ', file'}`}
+        aria-label={tUi(file.is_dir ? 'messages.folderAria' : 'messages.fileAria', {
+          name: file.name,
+        })}
         data-gallery-path={file.path}
         className={`h-16 w-16 flex-shrink-0 cursor-pointer overflow-hidden rounded-[2px] border-2 transition-all ${(() => {
           if (isFocused) return 'scale-105 border-xp-blue ring-1 ring-xp-blue';
@@ -296,19 +299,21 @@ const GalleryView = ({
     <div
       ref={bgDropRef}
       className="flex h-full select-none flex-col overflow-hidden"
-      aria-label="Gallery view"
+      aria-label={t('interface.galleryView')}
       onContextMenu={handleBackgroundRightClick || undefined}
     >
       {/* -- Large preview area -- */}
       <div
         className="bg-xp-bg/50 relative flex min-h-0 flex-1 items-center justify-center overflow-hidden"
-        aria-label={displayFile ? `Preview of ${displayFile.name}` : 'No file selected'}
+        aria-label={
+          displayFile ? `Preview of ${displayFile.name}` : t('panels.properties.noFileSelected')
+        }
         onDoubleClick={() => displayFile && handleFileDoubleClick(displayFile)}
         onContextMenu={(e) => displayFile && handleFileRightClick(displayFile, e)}
       >
         {(() => {
           if (!displayFile) {
-            return <div className="text-sm text-xp-text-muted">No files</div>;
+            return <div className="text-sm text-xp-text-muted">{t('interface.noFiles')}</div>;
           }
           if (isDisplayImage && !previewError) {
             return (
@@ -383,7 +388,7 @@ const GalleryView = ({
                 return (
                   <div className="text-xp-on-accent/50 mt-1 flex items-center gap-1.5 text-xs italic">
                     <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white/70" />
-                    Generating description...
+                    {t('interface.generatingDescription')}
                   </div>
                 );
               }

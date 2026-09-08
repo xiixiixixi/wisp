@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 
@@ -37,6 +38,7 @@ const MarketplaceFilters = React.memo(
     setSortBy,
     pagination,
   }: MarketplaceFiltersProps) => {
+    const { t: tUi } = useTranslation();
     const [showSortDropdown, setShowSortDropdown] = useState(false);
     const sortRef = useRef<HTMLDivElement>(null);
 
@@ -63,7 +65,7 @@ const MarketplaceFilters = React.memo(
                   : 'border-xp-border bg-xp-surface text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
               }`}
             >
-              All
+              {tUi('eventsPanel.filterAll')}
             </button>
             {categories.map((cat) => (
               <button
@@ -83,14 +85,14 @@ const MarketplaceFilters = React.memo(
 
         <div className="flex items-center justify-between">
           <span className="text-xs text-xp-text-muted">
-            {pagination.total} extension{pagination.total !== 1 ? 's' : ''}
+            {tUi('counts.extensions', { count: pagination.total })}
           </span>
           <div className="relative" ref={sortRef}>
             <button
               onClick={() => setShowSortDropdown(!showSortDropdown)}
               className="flex items-center gap-1 rounded-[2px] border border-xp-border bg-xp-surface px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             >
-              Sort: {SORT_LABELS[sortBy]}
+              {tUi('interface.sortLabel')} {SORT_LABELS[sortBy]}
               <ChevronDown className="h-3 w-3" />
             </button>
             {showSortDropdown && (

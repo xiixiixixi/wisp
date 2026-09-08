@@ -1,3 +1,4 @@
+import { getAppLocale } from '@/lib/locale';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getHistory, clearHistory, type ClipboardEntry } from '@/hooks/use-clipboard-history';
@@ -18,7 +19,7 @@ const formatTimestamp = (ts: number, t: Translate): string => {
   if (diff < 86_400_000) {
     return t('clipboardHistory.hoursAgo', { count: Math.floor(diff / 3_600_000) });
   }
-  return new Date(ts).toLocaleDateString(undefined, {
+  return new Date(ts).toLocaleDateString(getAppLocale(), {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',

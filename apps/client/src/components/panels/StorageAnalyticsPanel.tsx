@@ -1,3 +1,5 @@
+import { getAppLocale } from '@/lib/locale';
+import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import React, { useState, useCallback, useEffect } from 'react';
 import { listenToEvent } from '@/lib/transport';
@@ -34,7 +36,7 @@ const SIZE_CAT_COLORS = [
 const formatNumber = (n: number): string => {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return n.toLocaleString();
+  return n.toLocaleString(getAppLocale());
 };
 
 const truncatePath = (p: string, maxLen: number): string => {
@@ -46,6 +48,7 @@ const truncatePath = (p: string, maxLen: number): string => {
 };
 
 const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalyticsPanelProps) => {
+  const { t: tUi } = useTranslation();
   const [analytics, setAnalytics] = useState<StorageAnalytics | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -108,14 +111,18 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
           className="loading-spinner h-8 w-8 rounded-full border-2 border-current border-t-transparent"
           style={{ borderColor: 'var(--xp-blue)', borderTopColor: 'transparent' }}
         />
-        <p className="text-sm text-xp-text-muted">Analyzing storage...</p>
+        <p className="text-sm text-xp-text-muted">{tUi('interface.analyzingStorage')}</p>
         {progress && (
           <div className="w-full space-y-1 text-xs text-xp-text-muted">
             <p>
-              {formatNumber(progress.files_processed)} files /{' '}
-              {formatNumber(progress.dirs_processed)} folders scanned
+              {tUi('messages.storageScanned', {
+                files: formatNumber(progress.files_processed),
+                folders: formatNumber(progress.dirs_processed),
+              })}
             </p>
-            <p>{formatFileSize(progress.bytes_processed)} processed</p>
+            <p>
+              {tUi('messages.storageProcessed', { size: formatFileSize(progress.bytes_processed) })}
+            </p>
             <p className="truncate opacity-60" title={progress.current_path}>
               {truncatePath(progress.current_path, 40)}
             </p>
@@ -137,14 +144,14 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
           }}
         >
           <p className="text-sm" style={{ color: 'var(--xp-red)' }}>
-            Analysis failed: {error}
+            {tUi('interface.analysisFailedLabel')} {error}
           </p>
         </div>
         <button
           onClick={runAnalysis}
           className="w-full rounded-[2px] bg-xp-surface-light px-3 py-2 text-sm text-xp-text transition-colors hover:bg-xp-blue"
         >
-          Retry
+          {tUi('panels.properties.retry')}
         </button>
       </div>
     );
@@ -167,7 +174,7 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
             onClick={runAnalysis}
             className="rounded-[2px] bg-xp-blue px-4 py-2 text-sm text-xp-on-accent transition-colors hover:opacity-90"
           >
-            Analyze Storage
+            {tUi('interface.analyzeStorage')}
           </button>
         )}
       </div>
@@ -198,7 +205,9 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-semibold text-xp-text">Storage Analytics</h3>
+          <h3 className="text-sm font-semibold text-xp-text">
+            {tUi('interface.storageAnalytics')}
+          </h3>
           <p className="truncate text-xs text-xp-text-muted" title={analyzedPath}>
             {analyzedPath}
           </p>
@@ -208,7 +217,7 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
           className="ml-2 shrink-0 rounded-[2px] border border-xp-border bg-xp-surface-light px-2 py-1 text-xs transition-colors hover:bg-xp-blue hover:text-xp-on-accent"
           title={i18n.t('storageAnalytics.refresh')}
         >
-          Refresh
+          {tUi('performanceDashboard.refresh')}
         </button>
       </div>
 
@@ -246,7 +255,7 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
             <FileText size="1em" className="inline-block" />
           </div>
           <div className="text-sm font-bold text-xp-text">{formatNumber(file_count)}</div>
-          <div className="text-[10px] text-xp-text-muted">Files</div>
+          <div className="text-[10px] text-xp-text-muted">{tUi('eventsPanel.filterFiles')}</div>
         </div>
         {/* Folders */}
         <div
@@ -260,7 +269,9 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
             <FolderClosed size="1em" className="inline-block" />
           </div>
           <div className="text-sm font-bold text-xp-text">{formatNumber(dir_count)}</div>
-          <div className="text-[10px] text-xp-text-muted">Folders</div>
+          <div className="text-[10px] text-xp-text-muted">
+            {tUi('performanceDashboard.folders')}
+          </div>
         </div>
       </div>
 
@@ -274,7 +285,7 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
           }}
         >
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-medium text-xp-text">Disk Usage</span>
+            <span className="text-xs font-medium text-xp-text">{tUi('interface.diskUsage')}</span>
             <span className="text-xs text-xp-text-muted">
               {formatFileSize(used_size)} / {formatFileSize(total_size)}
             </span>
@@ -300,9 +311,11 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
             />
           </div>
           <div className="mt-1.5 flex justify-between text-[10px] text-xp-text-muted">
-            <span>Used: {usedPercent}%</span>
             <span>
-              Free: {freePercent}% ({formatFileSize(free_size)})
+              {tUi('interface.usedLabel')} {usedPercent}%
+            </span>
+            <span>
+              {tUi('interface.freeLabel')} {freePercent}% ({formatFileSize(free_size)})
             </span>
           </div>
         </div>
@@ -317,7 +330,9 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
             backdropFilter: 'blur(16px)',
           }}
         >
-          <h4 className="mb-2 text-xs font-medium text-xp-text">File Types (Top 10 by Size)</h4>
+          <h4 className="mb-2 text-xs font-medium text-xp-text">
+            {tUi('interface.fileTypesTop10BySize')}
+          </h4>
           <div className="space-y-1.5">
             {top10Types.map((t, i) => {
               const pct = totalFilesSize > 0 ? (t.total_size / totalFilesSize) * 100 : 0;
@@ -350,7 +365,7 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
                     />
                   </div>
                   <div className="mt-0.5 text-[10px] text-xp-text-muted">
-                    {formatNumber(t.count)} files
+                    {formatNumber(t.count)} {tUi('agentManager.sessionHistory.files')}
                   </div>
                 </div>
               );
@@ -368,7 +383,9 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
             backdropFilter: 'blur(16px)',
           }}
         >
-          <h4 className="mb-2 text-xs font-medium text-xp-text">Size Distribution</h4>
+          <h4 className="mb-2 text-xs font-medium text-xp-text">
+            {tUi('interface.sizeDistribution')}
+          </h4>
           <div className="space-y-1.5">
             {size_categories.map((cat, i) => {
               const barWidth = maxCatSize > 0 ? (cat.total_size / maxCatSize) * 100 : 0;
@@ -378,7 +395,10 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
                   <div className="mb-0.5 flex items-center justify-between">
                     <span className="text-[11px] text-xp-text">{cat.label}</span>
                     <span className="text-[10px] text-xp-text-muted">
-                      {formatNumber(cat.count)} files / {formatFileSize(cat.total_size)}
+                      {tUi('messages.categorySize', {
+                        count: cat.count,
+                        size: formatFileSize(cat.total_size),
+                      })}
                     </span>
                   </div>
                   <div
@@ -407,7 +427,7 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
           }}
         >
           <h4 className="mb-2 text-xs font-medium text-xp-text">
-            Largest Files (Top {largest_files.length})
+            {tUi('messages.largestFiles', { count: largest_files.length })}
           </h4>
           <div className="max-h-64 space-y-1 overflow-y-auto">
             {largest_files.map((file, i) => (
