@@ -278,6 +278,8 @@ fn main() {
             webview_tabs::web_tab_create,
             webview_tabs::web_tab_navigate,
             webview_tabs::web_tab_reload,
+            webview_tabs::web_tab_state,
+            webview_tabs::web_tab_history,
             webview_tabs::web_tab_bounds,
             webview_tabs::web_tab_visibility,
             webview_tabs::web_tab_destroy,

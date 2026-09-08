@@ -22,6 +22,9 @@ import {
 import { useFolderViewSettings } from '@/hooks/use-folder-view-settings';
 import { getDemoDirectory, isBrowserDemoMode } from '@/lib/browser-demo-files';
 import { ancestorPaths } from '@/lib/path-ancestry';
+import { invoke } from '@tauri-apps/api/core';
+import { isTauri } from '@/lib/transport';
+import type { NativeWebPageState } from '@/lib/native-web-tab';
 
 // Re-export components needed by the pane content
 import HomePage from '@/pages/HomePage';
@@ -205,6 +208,29 @@ const EditorGroupPane = ({
 
   const activeTab = group.tabs.find((t) => t.id === group.activeTabId);
   const [webRefreshTokens, setWebRefreshTokens] = useState<Record<string, number>>({});
+  const [webPageStates, setWebPageStates] = useState<Record<string, NativeWebPageState>>({});
+  const observeWebPage = useCallback((id: string, page: NativeWebPageState) => {
+    setWebPageStates((previous) => {
+      const last = previous[id];
+      if (
+        last?.url === page.url &&
+        last.loading === page.loading &&
+        last.canGoBack === page.canGoBack &&
+        last.canGoForward === page.canGoForward
+      )
+        {return previous;}
+      return { ...previous, [id]: page };
+    });
+  }, []);
+  useEffect(() => {
+    const ids = new Set(group.tabs.map((tab) => tab.id));
+    setWebPageStates((previous) =>
+      Object.keys(previous).every((id) => ids.has(id))
+        ? previous
+        : Object.fromEntries(Object.entries(previous).filter(([id]) => ids.has(id))),
+    );
+  }, [group.tabs]);
+  const activeWebPage = activeTab ? webPageStates[activeTab.id] : undefined;
   const { currentPath } = group;
 
   // Per-pane, per-folder view & sort settings (persisted in localStorage)
@@ -222,6 +248,13 @@ const EditorGroupPane = ({
   const collectionId = isCollectionPath ? currentPath.replace('collection://', '') : null;
   // Web tabs render a live page in a native child webview — no fs querying.
   const isWebPath = /^https?:\/\//i.test(currentPath);
+  const isNativeWebPath = isWebPath && isTauri();
+  const navigateWebHistory = (direction: 'back' | 'forward') => {
+    if (!activeTab) return;
+    void invoke('web_tab_history', { id: activeTab.id, direction }).catch((error) => {
+      onError(tUi('navigation.webLoadFailed'), String(error));
+    });
+  };
 
   // Stable empty array to avoid creating a new [] reference on every render
   // when useQuery returns undefined (query disabled or data not yet loaded).
@@ -388,6 +421,7 @@ const EditorGroupPane = ({
   // showing stale contents.
   const isRealDirPath =
     activeTab?.type !== 'editor' &&
+    !isWebPath &&
     !currentPath.startsWith('wisp://') &&
     !currentPath.startsWith('gdrive://') &&
     !currentPath.startsWith('ssh://') &&
@@ -856,7 +890,7 @@ const EditorGroupPane = ({
       {/* Navigation / Address Bar */}
       {!isEditorTab && !isHomeTab && (
         <NavigationBar
-          currentPath={currentPath}
+          currentPath={isNativeWebPath ? activeWebPage?.url || currentPath : currentPath}
           navigateToPath={sharedActions.navigateToPath}
           refetch={
             isWebPath && activeTab
@@ -869,23 +903,40 @@ const EditorGroupPane = ({
               : refetch
           }
           active={isActive}
-          onNavigateBack={onNavigateBackHistory ? () => onNavigateBackHistory(group.id) : undefined}
-          canNavigateBack={group.historyIndex > 0}
-          onNavigateForward={
-            onNavigateForwardHistory ? () => onNavigateForwardHistory(group.id) : undefined
+          onNavigateBack={
+            isNativeWebPath
+              ? () => navigateWebHistory('back')
+              : onNavigateBackHistory
+                ? () => onNavigateBackHistory(group.id)
+                : undefined
           }
-          canNavigateForward={group.historyIndex < group.pathHistory.length - 1}
+          canNavigateBack={
+            isNativeWebPath ? (activeWebPage?.canGoBack ?? false) : group.historyIndex > 0
+          }
+          onNavigateForward={
+            isNativeWebPath
+              ? () => navigateWebHistory('forward')
+              : onNavigateForwardHistory
+                ? () => onNavigateForwardHistory(group.id)
+                : undefined
+          }
+          canNavigateForward={
+            isNativeWebPath
+              ? (activeWebPage?.canGoForward ?? false)
+              : group.historyIndex < group.pathHistory.length - 1
+          }
           onNavigateUp={handlePaneNavigateUp}
           canNavigateUp={canNavigateUp}
         />
       )}
 
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <ErrorBoundary>
           <WebTabDeck
             tabs={group.tabs}
             activeTabId={group.activeTabId}
             refreshTokens={webRefreshTokens}
+            onPageState={observeWebPage}
           />
         </ErrorBoundary>
         <ErrorBoundary>{renderContent()}</ErrorBoundary>

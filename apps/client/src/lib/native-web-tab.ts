@@ -2,6 +2,13 @@ type Bounds = { x: number; y: number; width: number; height: number };
 type Snapshot = { active: boolean; url: string; refresh: string; bounds: Bounds };
 type Invoke = (command: string, args: Record<string, unknown>) => Promise<unknown>;
 
+export type NativeWebPageState = {
+  url: string;
+  loading: boolean | null;
+  canGoBack: boolean;
+  canGoForward: boolean;
+};
+
 // Serialize per tab, including across unmount/remount (StrictMode or pane moves).
 // A late create must finish before its destroy and a replacement's create.
 const pending = new Map<string, Promise<void>>();
@@ -12,6 +19,10 @@ export class NativeWebTabSession {
   private visible = false;
   private previous: Snapshot | undefined;
   private revision = 0;
+
+  get ready() {
+    return this.created && !this.disposed;
+  }
 
   constructor(
     private id: string,

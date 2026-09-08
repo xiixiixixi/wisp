@@ -1,9 +1,10 @@
 import { ExternalLink, Globe, LoaderCircle, RotateCw } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isTauri } from '@/lib/transport';
 import { TauriAPI } from '@/lib/tauri-api';
 import { useNativeWebTab, type WebLoadState } from '@/hooks/use-native-web-tab';
+import type { NativeWebPageState } from '@/lib/native-web-tab';
 
 /** Keep mounted while switching tabs; only navigation, refresh or closing replaces the page. */
 const WebTabView = ({
@@ -11,11 +12,13 @@ const WebTabView = ({
   url,
   active = true,
   refreshToken = 0,
+  onPageState,
 }: {
   tabId: string;
   url: string;
   active?: boolean;
   refreshToken?: number;
+  onPageState?: (tabId: string, state: NativeWebPageState) => void;
 }) => {
   const { t } = useTranslation();
   const nativeMode = isTauri();
@@ -24,6 +27,7 @@ const WebTabView = ({
   const [state, setState] = useState<WebLoadState>('loading');
   const [slow, setSlow] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [pageUrl, setPageUrl] = useState(url);
   const refresh = `${refreshToken}:${attempt}`;
   useEffect(() => {
     if (active) setVisited(true);
@@ -31,6 +35,7 @@ const WebTabView = ({
   useEffect(() => {
     setState('loading');
   }, [url, refresh]);
+  useEffect(() => setPageUrl(url), [url]);
   useEffect(() => {
     setSlow(false);
     if (state !== 'loading' || !active) return;
@@ -38,6 +43,18 @@ const WebTabView = ({
     return () => window.clearTimeout(timer);
   }, [state, active, url, refresh]);
 
+  const observePage = useCallback(
+    (page: NativeWebPageState) => {
+      setPageUrl(page.url);
+      if (page.loading !== null) {
+        setState((current) =>
+          page.loading ? 'loading' : current === 'loading' ? 'idle' : current,
+        );
+      }
+      onPageState?.(tabId, page);
+    },
+    [tabId, onPageState],
+  );
   useNativeWebTab({
     enabled: nativeMode,
     tabId,
@@ -46,6 +63,7 @@ const WebTabView = ({
     refresh,
     contentRef,
     onState: setState,
+    onPageState: observePage,
   });
   let hostname = url;
   try {
@@ -88,7 +106,7 @@ const WebTabView = ({
           </button>
         )}
         <a
-          href={url}
+          href={pageUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="wisp-control-icon shrink-0 text-xp-text-secondary"
@@ -98,7 +116,7 @@ const WebTabView = ({
             nativeMode
               ? (event) => {
                   event.preventDefault();
-                  void TauriAPI.openUrl(url).catch(() => setState('error'));
+                  void TauriAPI.openUrl(pageUrl).catch(() => setState('error'));
                 }
               : undefined
           }

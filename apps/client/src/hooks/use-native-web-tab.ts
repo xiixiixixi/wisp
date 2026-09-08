@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { useEffect, useRef, type RefObject } from 'react';
-import { NativeWebTabSession } from '@/lib/native-web-tab';
+import { NativeWebTabSession, type NativeWebPageState } from '@/lib/native-web-tab';
 
 export type WebLoadState = 'loading' | 'idle' | 'error';
 
@@ -13,6 +13,7 @@ export function useNativeWebTab({
   refresh,
   contentRef,
   onState,
+  onPageState,
 }: {
   enabled: boolean;
   tabId: string;
@@ -21,9 +22,10 @@ export function useNativeWebTab({
   refresh: string;
   contentRef: RefObject<HTMLDivElement | null>;
   onState: (state: WebLoadState) => void;
+  onPageState?: (state: NativeWebPageState) => void;
 }) {
-  const latest = useRef({ url, active, refresh, onState });
-  latest.current = { url, active, refresh, onState };
+  const latest = useRef({ url, active, refresh, onState, onPageState });
+  latest.current = { url, active, refresh, onState, onPageState };
   const syncRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -38,33 +40,55 @@ export function useNativeWebTab({
       () => {
         if (!disposed) latest.current.onState('loading');
       },
-      () => {
+      (error) => {
+        console.warn('[web-tab] Native page operation failed', { tabId, error });
         if (!disposed) latest.current.onState('error');
       },
     );
     const sync = () => {
       const current = latest.current;
       const rect = contentRef.current?.getBoundingClientRect();
-      session.sync({
+      void session.sync({
         ...current,
         bounds: {
-          x: rect?.left ?? 0,
-          y: rect?.top ?? 0,
-          width: rect?.width ?? 0,
-          height: rect?.height ?? 0,
+          x: Math.round(rect?.left ?? 0),
+          y: Math.round(rect?.top ?? 0),
+          width: Math.round(rect?.width ?? 0),
+          height: Math.round(rect?.height ?? 0),
         },
       });
+    };
+    let polling = false;
+    const readPageState = async () => {
+      if (disposed || polling || !session.ready || !latest.current.active) return;
+      polling = true;
+      try {
+        const page = await invoke<NativeWebPageState>('web_tab_state', { id: tabId });
+        // Observations must never be fed back as navigation requests: doing so
+        // reloads redirects and creates a flashing/redirect loop.
+        if (!disposed && latest.current.active && page && /^https?:\/\//i.test(page.url)) {
+          latest.current.onPageState?.(page);
+        }
+      } catch (error) {
+        if (!disposed) console.warn('[web-tab] Could not read page state', { tabId, error });
+      } finally {
+        polling = false;
+      }
     };
     // Subscribe before creating: cached pages can finish during the create call.
     // A failed event registration must also be retryable without remounting the tab.
     const connect = () => {
       if (connecting || disposed) return;
       connecting = true;
-      void listen<{ id: string; loading: boolean }>('web-tab-load', ({ payload }) => {
-        if (!disposed && payload.id === tabId) {
-          latest.current.onState(payload.loading ? 'loading' : 'idle');
-        }
-      })
+      void listen<{ id: string; loading: boolean; error?: boolean }>(
+        'web-tab-load',
+        ({ payload }) => {
+          if (!disposed && payload.id === tabId) {
+            latest.current.onState(payload.error ? 'error' : payload.loading ? 'loading' : 'idle');
+            void readPageState();
+          }
+        },
+      )
         .then((stop) => {
           if (disposed) {
             stop();
@@ -85,6 +109,7 @@ export function useNativeWebTab({
       else connect();
     };
     connect();
+    const stateTimer = window.setInterval(() => void readPageState(), 750);
 
     const schedule = () => {
       cancelAnimationFrame(frame);
@@ -95,6 +120,7 @@ export function useNativeWebTab({
     window.addEventListener('resize', schedule);
     return () => {
       disposed = true;
+      window.clearInterval(stateTimer);
       syncRef.current = null;
       unlisten?.();
       cancelAnimationFrame(frame);

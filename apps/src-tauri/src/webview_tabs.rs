@@ -3,7 +3,7 @@
 //! X-Frame-Options). The React layer reserves layout space and streams its
 //! bounding rect down; the OS webview is layered above the main content.
 
-use tauri::webview::{PageLoadEvent, WebviewBuilder};
+use tauri::webview::{NewWindowResponse, PageLoadEvent, WebviewBuilder};
 use tauri::{
     Emitter, EventTarget, LogicalPosition, LogicalSize, Rect, Webview, WebviewUrl, Window,
 };
@@ -20,6 +20,23 @@ fn parse_web_url(url: &str) -> Result<tauri::Url, String> {
 struct WebTabLoad {
     id: String,
     loading: bool,
+    error: bool,
+}
+
+#[derive(Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WebTabState {
+    url: String,
+    loading: Option<bool>,
+    can_go_back: bool,
+    can_go_forward: bool,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum HistoryDirection {
+    Back,
+    Forward,
 }
 
 fn webview_label(window: &Window, id: &str) -> String {
@@ -60,8 +77,39 @@ pub async fn web_tab_create(
     }
 
     let parent = window.clone();
+    let popup_parent = window.clone();
+    let popup_id = id.clone();
+    tracing::debug!(tab = %id, host = ?parsed.host_str(), "web tab create");
     let builder = WebviewBuilder::new(label, WebviewUrl::External(parsed))
         .on_navigation(|url| matches!(url.scheme(), "http" | "https"))
+        .on_new_window(move |url, _features| {
+            // Search results often use target=_blank/window.open. Wisp owns the
+            // navigation: reuse the current tab and its real browser history,
+            // never create an unmanaged OS popup or grant remote content IPC.
+            if parse_web_url(url.as_str()).is_ok() {
+                let parent = popup_parent.clone();
+                let id = popup_id.clone();
+                tauri::async_runtime::spawn(async move {
+                    let Some(webview) = find_webview(&parent, &id) else {
+                        return;
+                    };
+                    tracing::debug!(tab = %id, host = ?url.host_str(), "web tab popup navigation");
+                    if let Err(error) = webview.navigate(url) {
+                        tracing::warn!(tab = %id, %error, "web tab popup failed");
+                        let _ = parent.emit_to(
+                            EventTarget::webview(parent.label()),
+                            "web-tab-load",
+                            WebTabLoad {
+                                id,
+                                loading: false,
+                                error: true,
+                            },
+                        );
+                    }
+                });
+            }
+            NewWindowResponse::Deny
+        })
         .on_page_load(move |_webview, payload| {
             // Only the trusted parent consumes loading state; no IPC permissions
             // or injected bridge are granted to external website content.
@@ -71,6 +119,7 @@ pub async fn web_tab_create(
                 WebTabLoad {
                     id: id.clone(),
                     loading: matches!(payload.event(), PageLoadEvent::Started),
+                    error: false,
                 },
             );
         });
@@ -97,6 +146,73 @@ pub async fn web_tab_navigate(window: Window, id: String, url: String) -> Result
 pub async fn web_tab_reload(window: Window, id: String) -> Result<(), String> {
     let webview = find_webview(&window, &id).ok_or("Web tab is not available")?;
     webview.reload().map_err(|e| e.to_string())
+}
+
+/// Read the native browser's state without navigating it or injecting scripts.
+/// Poll only visible tabs; this also catches redirects and same-document changes.
+#[tauri::command]
+pub async fn web_tab_state(window: Window, id: String) -> Result<WebTabState, String> {
+    let webview = find_webview(&window, &id).ok_or("Web tab is not available")?;
+    #[cfg(target_os = "macos")]
+    {
+        use objc2::{msg_send, runtime::AnyObject};
+        use objc2_foundation::NSString;
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        webview
+            .with_webview(move |platform| unsafe {
+                let view = platform.inner().cast::<AnyObject>();
+                let url: *mut AnyObject = msg_send![view, URL];
+                let url = if url.is_null() {
+                    String::new()
+                } else {
+                    let value: *mut NSString = msg_send![url, absoluteString];
+                    if value.is_null() {
+                        String::new()
+                    } else {
+                        (*value).to_string()
+                    }
+                };
+                let loading: bool = msg_send![view, isLoading];
+                let can_go_back: bool = msg_send![view, canGoBack];
+                let can_go_forward: bool = msg_send![view, canGoForward];
+                let _ = tx.send(WebTabState {
+                    url,
+                    loading: Some(loading),
+                    can_go_back,
+                    can_go_forward,
+                });
+            })
+            .map_err(|error| error.to_string())?;
+        rx.await.map_err(|error| error.to_string())
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        Ok(WebTabState {
+            url: webview
+                .url()
+                .map_err(|error| error.to_string())?
+                .to_string(),
+            loading: None,
+            can_go_back: false,
+            can_go_forward: false,
+        })
+    }
+}
+
+#[tauri::command]
+pub async fn web_tab_history(
+    window: Window,
+    id: String,
+    direction: HistoryDirection,
+) -> Result<(), String> {
+    let webview = find_webview(&window, &id).ok_or("Web tab is not available")?;
+    // Static browser navigation only; never interpolate webpage/user data into JS.
+    webview
+        .eval(match direction {
+            HistoryDirection::Back => "window.history.back()",
+            HistoryDirection::Forward => "window.history.forward()",
+        })
+        .map_err(|error| error.to_string())
 }
 
 /// Keep the child webview glued to the pane's layout rect.
@@ -161,6 +277,20 @@ mod tests {
             "not a url",
         ] {
             assert!(parse_web_url(url).is_err());
+        }
+    }
+
+    #[test]
+    fn history_actions_are_not_arbitrary_scripts() {
+        for direction in ["back", "forward"] {
+            assert!(
+                serde_json::from_value::<HistoryDirection>(serde_json::json!(direction)).is_ok()
+            );
+        }
+        for direction in ["reload", "back();alert(1)", "javascript:alert(1)"] {
+            assert!(
+                serde_json::from_value::<HistoryDirection>(serde_json::json!(direction)).is_err()
+            );
         }
     }
 }

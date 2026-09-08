@@ -108,6 +108,120 @@ describe('web tab browser preview', () => {
 });
 
 describe('native web tab integration', () => {
+  it('observes search redirects without reloading and opens the actual page externally', async () => {
+    vi.useFakeTimers();
+    mocks.native.mockReturnValue(true);
+    bounds();
+    let page = {
+      url: 'https://www.google.com/search?q=WebKit',
+      loading: false,
+      canGoBack: false,
+      canGoForward: false,
+    };
+    mocks.invoke.mockImplementation(async (command) =>
+      command === 'web_tab_state' ? page : undefined,
+    );
+    const observe = vi.fn();
+    const { rerender } = render(
+      <WebTabView tabId="search-flow" url="https://www.google.com/" onPageState={observe} />,
+    );
+    await act(async () => {});
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(750);
+    });
+    expect(observe).toHaveBeenLastCalledWith('search-flow', page);
+    page = { url: 'https://webkit.org/', loading: false, canGoBack: true, canGoForward: false };
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3_000);
+    });
+    expect(screen.getByRole('link', { name: 'Open in browser' })).toHaveAttribute(
+      'href',
+      'https://webkit.org/',
+    );
+    expect(
+      mocks.invoke.mock.calls.filter(([command]) => /create|navigate|reload|destroy/.test(command)),
+    ).toEqual([
+      [
+        'web_tab_create',
+        expect.objectContaining({ id: 'search-flow', url: 'https://www.google.com/' }),
+      ],
+    ]);
+    rerender(
+      <WebTabView
+        tabId="search-flow"
+        url="https://www.google.com/"
+        onPageState={observe}
+        active={false}
+      />,
+    );
+    await act(async () => {});
+    const count = mocks.invoke.mock.calls.filter(([command]) => command === 'web_tab_state').length;
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3_000);
+    });
+    expect(mocks.invoke.mock.calls.filter(([command]) => command === 'web_tab_state')).toHaveLength(
+      count,
+    );
+    rerender(
+      <WebTabView
+        tabId="search-flow"
+        url="https://www.google.com/"
+        onPageState={observe}
+        refreshToken={1}
+      />,
+    );
+    await act(async () => {});
+    expect(mocks.invoke).toHaveBeenCalledWith('web_tab_reload', { id: 'search-flow' });
+    expect(
+      mocks.invoke.mock.calls.filter(([command]) => command === 'web_tab_reload'),
+    ).toHaveLength(1);
+    expect(screen.getByRole('link', { name: 'Open in browser' })).toHaveAttribute(
+      'href',
+      'https://webkit.org/',
+    );
+  });
+
+  it('retains explicit native navigation errors until the user retries', async () => {
+    mocks.native.mockReturnValue(true);
+    bounds();
+    render(<WebTabView tabId="popup-error" url="https://www.google.com/" />);
+    await waitFor(() =>
+      expect(mocks.invoke).toHaveBeenCalledWith('web_tab_create', expect.any(Object)),
+    );
+    const listener = mocks.listen.mock.calls[0][1];
+    act(() => listener({ payload: { id: 'popup-error', loading: false, error: true } }));
+    expect(screen.getByRole('status')).toHaveTextContent('Could not load');
+    expect(screen.getByRole('button', { name: 'Retry loading page' })).toBeInTheDocument();
+  });
+
+  it('ignores a late page-state result after the tab is closed', async () => {
+    vi.useFakeTimers();
+    mocks.native.mockReturnValue(true);
+    bounds();
+    let finish!: (value: unknown) => void;
+    mocks.invoke.mockImplementation((command) =>
+      command === 'web_tab_state'
+        ? new Promise((resolve) => {
+            finish = resolve;
+          })
+        : Promise.resolve(),
+    );
+    const observe = vi.fn();
+    const { unmount } = render(
+      <WebTabView tabId="closed-poll" url="https://baidu.com/" onPageState={observe} />,
+    );
+    await act(async () => {});
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(750);
+    });
+    unmount();
+    await act(async () => {
+      finish({ url: 'https://baidu.com/', loading: false, canGoBack: false, canGoForward: false });
+    });
+    expect(observe).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it('can retry a failed load-event subscription', async () => {
     mocks.native.mockReturnValue(true);
     bounds();
