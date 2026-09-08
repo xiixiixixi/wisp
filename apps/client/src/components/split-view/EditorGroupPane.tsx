@@ -217,8 +217,9 @@ const EditorGroupPane = ({
         last.loading === page.loading &&
         last.canGoBack === page.canGoBack &&
         last.canGoForward === page.canGoForward
-      )
-        {return previous;}
+      ) {
+        return previous;
+      }
       return { ...previous, [id]: page };
     });
   }, []);
