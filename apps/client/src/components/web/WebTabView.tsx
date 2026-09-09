@@ -1,4 +1,4 @@
-import { ExternalLink, Globe, LoaderCircle, RotateCw } from 'lucide-react';
+import { ExternalLink, LoaderCircle, RotateCw } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isTauri } from '@/lib/transport';
@@ -78,32 +78,41 @@ const WebTabView = ({
 
   return (
     <div
-      className={`${active ? 'flex' : 'hidden'} h-full min-h-0 flex-col overflow-hidden bg-xp-bg`}
+      className={`${active ? 'flex' : 'hidden'} relative h-full min-h-0 flex-col overflow-hidden bg-xp-bg`}
       aria-hidden={!active}
     >
-      <div className="border-xp-border/40 flex min-h-9 shrink-0 items-center gap-2 border-b bg-xp-surface/60 px-3 py-1">
-        {state === 'loading' ? (
-          <LoaderCircle
-            size={13}
-            className="shrink-0 animate-spin text-xp-blue motion-reduce:animate-none"
-            aria-hidden="true"
-          />
-        ) : (
-          <Globe size={13} className="shrink-0 text-xp-text-muted" aria-hidden="true" />
+      {/* 状态+操作浮层胶囊：不再独占一行，浮在网页右上角（用户：整排压缩掉、
+          图标要垂直居中）。加载/出错时才出现文字，平时只是两枚小按钮。 */}
+      <div className="border-xp-border/60 pointer-events-none absolute right-1.5 top-1.5 z-10 flex items-center gap-1 rounded-md border bg-xp-surface/85 px-1.5 py-1 shadow-sm backdrop-blur-sm">
+        {state === 'loading' && (
+          <>
+            <LoaderCircle
+              size={12}
+              className="shrink-0 animate-spin text-xp-blue motion-reduce:animate-none"
+              aria-hidden="true"
+            />
+            <span className="text-[11px] text-xp-text-secondary" role="status">
+              {statusText}
+            </span>
+          </>
         )}
-        <span className="min-w-0 flex-1 text-xs text-xp-text-secondary" role="status">
-          {statusText}
-        </span>
         {(slow || state === 'error') && (
-          <button
-            type="button"
-            onClick={() => setAttempt((value) => value + 1)}
-            className="wisp-control-icon shrink-0"
-            title={t('navigation.webRetry')}
-            aria-label={t('navigation.webRetry')}
-          >
-            <RotateCw size={14} />
-          </button>
+          <>
+            {state !== 'loading' && (
+              <span className="px-1 text-[11px] text-xp-text-secondary" role="status">
+                {statusText}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => setAttempt((value) => value + 1)}
+              className="wisp-control-icon shrink-0"
+              title={t('navigation.webRetry')}
+              aria-label={t('navigation.webRetry')}
+            >
+              <RotateCw size={13} />
+            </button>
+          </>
         )}
         <a
           href={pageUrl}
@@ -121,7 +130,7 @@ const WebTabView = ({
               : undefined
           }
         >
-          <ExternalLink size={14} />
+          <ExternalLink size={13} />
         </a>
       </div>
       <div ref={contentRef} className="relative min-h-0 flex-1 bg-white">

@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-07T14:00:55Z",
+  "title": "Design System: Wisp",
+  "extensions": {
+    "shadows": [
+      {
+        "name": "lg-control-shadow",
+        "value": "inset 0 1px 0 var(--lg-control-highlight), inset 0 -1px 0 rgb(50 72 108 / 5%), 0 2px 4px rgb(32 54 89 / 6%), 0 5px 14px rgb(32 54 89 / 5%)",
+        "purpose": "Final fluid grouped-control depth; distinct from inherited --lg-shadow-control."
+      },
+      {
+        "name": "lg-shadow-elevated",
+        "value": "inset 0 1px 0 var(--lg-control-highlight), 0 18px 54px rgb(27 49 86 / 18%), 0 4px 12px rgb(27 49 86 / 10%)",
+        "purpose": "Strong floating presentations; --xp-shadow-popover alias."
+      },
+      {
+        "name": "workspace-pane",
+        "value": "0 2px 8px rgb(30 34 44 / 5%), 0 12px 32px rgb(30 34 44 / 4%)",
+        "purpose": "Matching lift on the white file canvas and frosted inspector; both use 20px corners."
+      },
+      {
+        "name": "settings-card",
+        "value": "0 1px 4px rgb(30 34 44 / 5%)",
+        "purpose": "White settings groups retain 16px corners within the 20px content plane."
+      }
+    ],
+    "motion": [
+      {
+        "name": "lg-motion-fast",
+        "value": "180ms",
+        "purpose": "Final fluid control state transitions."
+      },
+      {
+        "name": "lg-motion-medium",
+        "value": "220ms",
+        "purpose": "Final fluid medium-duration token; inherited consumers."
+      },
+      {
+        "name": "lg-ease",
+        "value": "cubic-bezier(0.2, 0.75, 0.25, 1)",
+        "purpose": "Inherited standard easing."
+      },
+      {
+        "name": "lg-spring",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Inherited toggle easing."
+      },
+      {
+        "name": "control-press",
+        "value": "0.97",
+        "purpose": "Scale on eligible controls only; 1 under reduced motion."
+      },
+      {
+        "name": "reduced-motion-duration",
+        "value": "0.001ms",
+        "purpose": "Class and media preference transition/animation override."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "titlebar-secondary-actions",
+        "value": "(max-width: 1100px)"
+      },
+      {
+        "name": "titlebar-compact-spacing",
+        "value": "(max-width: 920px)"
+      },
+      {
+        "name": "full-search-trigger",
+        "value": "(min-width: 820px)"
+      },
+      {
+        "name": "settings-category-strip",
+        "value": "(max-width: 700px)"
+      },
+      {
+        "name": "navigation-available-width",
+        "value": "Measured trailing breadcrumb fit; path wraps below controls when its 140px minimum does not fit"
+      },
+      {
+        "name": "file-type-column",
+        "value": "@container (max-width: 640px)"
+      },
+      {
+        "name": "file-date-column",
+        "value": "@container (max-width: 520px)"
+      },
+      {
+        "name": "toolbar-accessories",
+        "value": "@container (max-width: 390px)"
+      },
+      {
+        "name": "selection-action-rail-icons",
+        "value": "@container action-rail (max-width: 640px)"
+      },
+      {
+        "name": "selection-action-rail-compact",
+        "value": "@container action-rail (max-width: 390px)"
+      },
+      {
+        "name": "selection-labels-lg",
+        "value": "(min-width: 1024px)",
+        "purpose": "Viewport label utilities remain; the named action-rail container overrides selection labels in narrow panes."
+      },
+      {
+        "name": "selection-labels-xl",
+        "value": "(min-width: 1280px)",
+        "purpose": "Viewport label utilities remain; the named action-rail container overrides selection labels in narrow panes."
+      },
+      {
+        "name": "pane-collapse-content-width",
+        "value": "remaining content width < 560px"
+      },
+      {
+        "name": "pane-restore-content-width",
+        "value": "remaining content width >= 640px including restored pane"
+      },
+      {
+        "name": "bottom-panel-collapse",
+        "value": "viewport height < 460px"
+      },
+      {
+        "name": "bottom-panel-restore",
+        "value": "viewport height >= 540px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Shared default button: hover, press, focus, and disabled samples.",
+      "html": "<button type=\"button\" class=\"ds-primary\">保存当前布局</button> <button type=\"button\" class=\"ds-primary\" disabled>保存</button>",
+      "css": ".ds-primary{font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"SF Pro Display\",\"Segoe UI\",sans-serif;letter-spacing:-0.008em;transition:background-color var(--lg-motion-fast,180ms) var(--lg-ease,cubic-bezier(0.2,0.75,0.25,1)),color 180ms,box-shadow 180ms,scale 180ms;display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 14px;border:1px solid color-mix(in srgb,var(--xp-blue,#0866d9) 72%,black);border-radius:9px;font-size:14px;font-weight:500;background:linear-gradient(180deg,rgb(255 255 255 / 12%),transparent),var(--xp-blue,#0866d9);color:var(--xp-on-accent,#fff);box-shadow:inset 0 1px 0 rgb(255 255 255 / 25%),0 3px 8px rgb(8 102 217 / 17%);}.ds-primary:hover:not(:disabled){background:var(--xp-blue-dark,#0054b8);}.ds-primary:active:not(:disabled){scale:0.97;}.ds-primary:disabled{opacity:0.42;pointer-events:none;scale:1;}.ds-primary:focus-visible{outline:2px solid var(--xp-blue,#0866d9);outline-offset:2px;}@media(prefers-reduced-motion:reduce){.ds-primary{transition-duration:0.001ms!important;animation-duration:0.001ms!important;scale:1!important;}}:host-context(.reduce-motion) .ds-primary{transition-duration:0.001ms!important;scale:1!important;}"
+    },
+    {
+      "name": "Glass field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Inset text field with real focus, invalid, and disabled states; no field backdrop blur.",
+      "html": "<label class=\"ds-field-label\" for=\"ds-city\">天气城市</label><input id=\"ds-city\" class=\"ds-field\" value=\"上海\"><input class=\"ds-field\" aria-label=\"无效城市示例\" aria-invalid=\"true\" placeholder=\"输入城市\"><input class=\"ds-field\" aria-label=\"禁用输入示例\" disabled value=\"上海\">",
+      "css": ".ds-field-label{font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"SF Pro Display\",\"Segoe UI\",sans-serif;letter-spacing:-0.008em;display:block;font-size:12px;color:var(--xp-text-secondary,#555b66);margin-bottom:6px;}.ds-field{font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"SF Pro Display\",\"Segoe UI\",sans-serif;letter-spacing:-0.008em;transition:background-color var(--lg-motion-fast,180ms) var(--lg-ease,cubic-bezier(0.2,0.75,0.25,1)),color 180ms,box-shadow 180ms,scale 180ms;display:block;max-width:100%;margin-bottom:8px;padding:6px 12px;font-size:14px;line-height:20px;border:1px solid var(--lg-control-stroke,rgb(40 43 51 / 14%));border-radius:10px;background:var(--lg-control-fill,rgb(255 255 255 / 48%));color:var(--xp-text,#24262b);caret-color:var(--xp-blue,#0866d9);box-shadow:inset 0 1px 2px rgb(32 54 89 / 4%),0 1px 0 var(--lg-control-highlight,rgb(255 255 255 / 92%));}.ds-field::placeholder{color:var(--xp-text-muted,#616772);opacity:1;}.ds-field[aria-invalid=true]{border-color:var(--xp-red,#ba302b);}.ds-field:disabled{opacity:0.42;cursor:not-allowed;}.ds-field:focus-visible{outline:2px solid var(--xp-blue,#0866d9);outline-offset:2px;}@media(prefers-reduced-motion:reduce){.ds-field{transition-duration:0.001ms!important;animation-duration:0.001ms!important;scale:1!important;}}:host-context(.reduce-motion) .ds-field{transition-duration:0.001ms!important;scale:1!important;}@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){.ds-field{background:#f7f9fc;backdrop-filter:none;-webkit-backdrop-filter:none;}}:host-context(.reduce-transparency) .ds-field,:host-context(.high-contrast) .ds-field{background:#f7f9fc;backdrop-filter:none;-webkit-backdrop-filter:none;}@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.ds-field{background:#f7f9fc;}}"
+    },
+    {
+      "name": "Segmented navigation",
+      "kind": "nav",
+      "refersTo": "segmented-active",
+      "description": "Selected, unselected, disabled, hover, and focus appearances. Static sample; source Tabs owns arrow-key selection and panel switching.",
+      "html": "<div class=\"ds-tabs\" role=\"tablist\" aria-label=\"预览模式\"><button class=\"ds-tab\" type=\"button\" role=\"tab\" aria-selected=\"true\" aria-controls=\"ds-preview-panel\" id=\"ds-preview-tab\">预览</button><button class=\"ds-tab\" type=\"button\" role=\"tab\" aria-selected=\"false\" aria-controls=\"ds-edit-panel\" id=\"ds-edit-tab\" tabindex=\"-1\">编辑</button><button class=\"ds-tab\" type=\"button\" role=\"tab\" disabled aria-selected=\"false\" tabindex=\"-1\">不可用</button></div><div class=\"ds-panel\" role=\"tabpanel\" id=\"ds-preview-panel\" aria-labelledby=\"ds-preview-tab\" tabindex=\"0\">Q3-launch-plan.md</div><div class=\"ds-panel\" role=\"tabpanel\" id=\"ds-edit-panel\" aria-labelledby=\"ds-edit-tab\" hidden></div>",
+      "css": ".ds-tabs{display:inline-flex;gap:2px;padding:3px;min-height:34px;align-items:center;border:1px solid var(--lg-glass-stroke,rgb(255 255 255 / 72%));border-radius:12px;background:var(--lg-specular,linear-gradient(155deg,rgb(255 255 255 / 42%),transparent 48%)),var(--lg-control-fill,rgb(255 255 255 / 48%));box-shadow:var(--lg-control-shadow,inset 0 1px 0 var(--lg-control-highlight,rgb(255 255 255 / 92%)),inset 0 -1px 0 rgb(50 72 108 / 5%),0 2px 4px rgb(32 54 89 / 6%),0 5px 14px rgb(32 54 89 / 5%));backdrop-filter:blur(14px) saturate(150%);-webkit-backdrop-filter:blur(14px) saturate(150%);}.ds-tab{font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"SF Pro Display\",\"Segoe UI\",sans-serif;letter-spacing:-0.008em;transition:background-color var(--lg-motion-fast,180ms) var(--lg-ease,cubic-bezier(0.2,0.75,0.25,1)),color 180ms,box-shadow 180ms,scale 180ms;min-height:30px;padding:0 12px;border:0;border-radius:7px;background:transparent;font-size:14px;color:var(--xp-text-muted,#616772);}.ds-tab:hover:not(:disabled){background:var(--lg-control-fill-hover,rgb(255 255 255 / 78%));}.ds-tab[aria-selected=true]{background:var(--lg-specular,linear-gradient(155deg,rgb(255 255 255 / 42%),transparent 48%)),var(--lg-content-surface-strong,rgb(255 255 255 / 76%));color:var(--xp-blue,#0866d9);font-weight:500;box-shadow:var(--lg-control-shadow,inset 0 1px 0 var(--lg-control-highlight,rgb(255 255 255 / 92%)),inset 0 -1px 0 rgb(50 72 108 / 5%),0 2px 4px rgb(32 54 89 / 6%),0 5px 14px rgb(32 54 89 / 5%));}.ds-tab:disabled{opacity:0.42;cursor:not-allowed;}.ds-panel{font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"SF Pro Display\",\"Segoe UI\",sans-serif;letter-spacing:-0.008em;margin-top:12px;font-size:14px;color:var(--xp-text,#24262b);}.ds-tab:focus-visible{outline:2px solid var(--xp-blue,#0866d9);outline-offset:2px;}.ds-panel:focus-visible{outline:2px solid var(--xp-blue,#0866d9);outline-offset:2px;}@media(prefers-reduced-motion:reduce){.ds-tab{transition-duration:0.001ms!important;animation-duration:0.001ms!important;scale:1!important;}}:host-context(.reduce-motion) .ds-tab{transition-duration:0.001ms!important;scale:1!important;}@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){.ds-tabs{background:#f7f9fc;backdrop-filter:none;-webkit-backdrop-filter:none;}}:host-context(.reduce-transparency) .ds-tabs,:host-context(.high-contrast) .ds-tabs{background:#f7f9fc;backdrop-filter:none;-webkit-backdrop-filter:none;}@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.ds-tabs{background:#f7f9fc;}}"
+    },
+    {
+      "name": "Anchored sort menu",
+      "kind": "custom",
+      "refersTo": "menu",
+      "description": "Strong menu material, checked radio item, hover and keyboard focus. Static open sample; AnchoredMenu/OperationBar own positioning and dismissal.",
+      "html": "<div class=\"ds-menu\" role=\"menu\" aria-label=\"排序\"><button class=\"ds-menu-item\" role=\"menuitemradio\" aria-checked=\"true\" type=\"button\">名称 <svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"m18 15-6-6-6 6\"/><path d=\"M12 9v12\"/></svg></button><button class=\"ds-menu-item\" role=\"menuitemradio\" aria-checked=\"false\" type=\"button\">修改日期</button><div class=\"ds-separator\" role=\"separator\"></div><button class=\"ds-menu-item\" role=\"menuitemcheckbox\" aria-checked=\"false\" type=\"button\">按日期分组</button></div>",
+      "css": ".ds-menu{background:var(--lg-specular,linear-gradient(155deg,rgb(255 255 255 / 42%),transparent 48%)),var(--lg-glass-strong,rgb(252 252 253 / 94%));border:1px solid var(--lg-glass-stroke-strong,rgb(255 255 255 / 94%));box-shadow:var(--lg-shadow-elevated,inset 0 1px 0 var(--lg-control-highlight,rgb(255 255 255 / 92%)),0 18px 54px rgb(27 49 86 / 18%),0 4px 12px rgb(27 49 86 / 10%));backdrop-filter:blur(var(--lg-blur-strong,32px)) saturate(150%);-webkit-backdrop-filter:blur(var(--lg-blur-strong,32px)) saturate(150%);width:180px;max-width:calc(100vw - 16px);max-height:320px;overflow-y:auto;overscroll-behavior:contain;padding:5px;border-radius:12px;}.ds-menu-item{font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"SF Pro Display\",\"Segoe UI\",sans-serif;letter-spacing:-0.008em;transition:background-color var(--lg-motion-fast,180ms) var(--lg-ease,cubic-bezier(0.2,0.75,0.25,1)),color 180ms,box-shadow 180ms,scale 180ms;display:flex;align-items:center;justify-content:space-between;width:100%;min-height:32px;padding:6px 12px;border:0;border-radius:7px;background:transparent;color:var(--xp-text,#24262b);font-size:12px;text-align:left;}.ds-menu-item[aria-checked=true]{color:var(--xp-blue,#0866d9);}.ds-menu-item:hover,.ds-menu-item:focus{background:var(--xp-selection-bg,#dbe9fc);}.ds-separator{margin:4px 0;border-top:1px solid var(--lg-divider,rgb(40 43 51 / 10%));}.ds-menu-item:focus-visible{outline:2px solid var(--xp-blue,#0866d9);outline-offset:2px;}@media(prefers-reduced-motion:reduce){.ds-menu-item{transition-duration:0.001ms!important;animation-duration:0.001ms!important;scale:1!important;}}:host-context(.reduce-motion) .ds-menu-item{transition-duration:0.001ms!important;scale:1!important;}@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){.ds-menu{background:#f7f9fc;backdrop-filter:none;-webkit-backdrop-filter:none;}}:host-context(.reduce-transparency) .ds-menu,:host-context(.high-contrast) .ds-menu{background:#f7f9fc;backdrop-filter:none;-webkit-backdrop-filter:none;}@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.ds-menu{background:#f7f9fc;}}.ds-menu,.ds-menu *{scrollbar-width:none!important;scrollbar-gutter:auto!important;-ms-overflow-style:none!important;}.ds-menu::-webkit-scrollbar,.ds-menu *::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}"
+    },
+    {
+      "name": "Floating dialog",
+      "kind": "custom",
+      "refersTo": "dialog",
+      "description": "Readable strong presentation and primary/ghost control states. Existing 560px static illustration retained; production shared Dialog applies optional maxWidth to the actual modal and owns trapping/focus restoration. Batch properties uses a separate 32rem maximum, shown below.",
+      "html": "<section class=\"ds-dialog\" role=\"dialog\" aria-labelledby=\"ds-dialog-title\"><header class=\"ds-dialog-header\"><h2 class=\"ds-dialog-title\" id=\"ds-dialog-title\">工作区布局</h2><button class=\"ds-close\" type=\"button\" aria-label=\"关闭\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"m18 6-12 12M6 6l12 12\"/></svg></button></header><p class=\"ds-dialog-copy\">保存当前窗口排列，便于以后恢复。</p><footer class=\"ds-dialog-footer\"><button type=\"button\" class=\"ds-primary\">保存当前布局</button></footer></section>",
+      "css": ".ds-dialog{background:var(--lg-specular,linear-gradient(155deg,rgb(255 255 255 / 42%),transparent 48%)),var(--lg-glass-strong,rgb(252 252 253 / 94%));border:1px solid var(--lg-glass-stroke-strong,rgb(255 255 255 / 94%));box-shadow:var(--lg-shadow-elevated,inset 0 1px 0 var(--lg-control-highlight,rgb(255 255 255 / 92%)),0 18px 54px rgb(27 49 86 / 18%),0 4px 12px rgb(27 49 86 / 10%));backdrop-filter:blur(var(--lg-blur-strong,32px)) saturate(150%);-webkit-backdrop-filter:blur(var(--lg-blur-strong,32px)) saturate(150%);font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"SF Pro Display\",\"Segoe UI\",sans-serif;letter-spacing:-0.008em;max-width:560px;max-height:min(90dvh,calc(100dvh - 40px));overflow-y:auto;overscroll-behavior:contain;padding:20px;border-radius:var(--lg-radius-xl,22px);color:var(--xp-text,#24262b);}.ds-dialog-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--lg-divider,rgb(40 43 51 / 10%));}.ds-dialog-title{margin:0;font-size:20px;line-height:28px;font-weight:600;}.ds-dialog-copy{font-size:14px;line-height:20px;color:var(--xp-text-secondary,#555b66);margin:16px 0;}.ds-dialog-footer{display:flex;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--lg-divider,rgb(40 43 51 / 10%));}.ds-close{transition:background-color var(--lg-motion-fast,180ms) var(--lg-ease,cubic-bezier(0.2,0.75,0.25,1)),color 180ms,box-shadow 180ms,scale 180ms;display:inline-flex;align-items:center;justify-content:center;min-width:32px;min-height:32px;border:1px solid transparent;border-radius:9px;background:transparent;color:var(--xp-text-secondary,#555b66);}.ds-close:hover{background:var(--lg-control-fill-hover,rgb(255 255 255 / 78%));}.ds-close:active{scale:0.97;}.ds-close:focus-visible{outline:2px solid var(--xp-blue,#0866d9);outline-offset:2px;}@media(prefers-reduced-motion:reduce){.ds-close{transition-duration:0.001ms!important;animation-duration:0.001ms!important;scale:1!important;}}:host-context(.reduce-motion) .ds-close{transition-duration:0.001ms!important;scale:1!important;}@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){.ds-dialog{background:#f7f9fc;backdrop-filter:none;-webkit-backdrop-filter:none;}}:host-context(.reduce-transparency) .ds-dialog,:host-context(.high-contrast) .ds-dialog{background:#f7f9fc;backdrop-filter:none;-webkit-backdrop-filter:none;}@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.ds-dialog{background:#f7f9fc;}}.ds-primary{font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"SF Pro Display\",\"Segoe UI\",sans-serif;letter-spacing:-0.008em;transition:background-color var(--lg-motion-fast,180ms) var(--lg-ease,cubic-bezier(0.2,0.75,0.25,1)),color 180ms,box-shadow 180ms,scale 180ms;display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 14px;border:1px solid color-mix(in srgb,var(--xp-blue,#0866d9) 72%,black);border-radius:9px;font-size:14px;font-weight:500;background:linear-gradient(180deg,rgb(255 255 255 / 12%),transparent),var(--xp-blue,#0866d9);color:var(--xp-on-accent,#fff);box-shadow:inset 0 1px 0 rgb(255 255 255 / 25%),0 3px 8px rgb(8 102 217 / 17%);}.ds-primary:hover:not(:disabled){background:var(--xp-blue-dark,#0054b8);}.ds-primary:active:not(:disabled){scale:0.97;}.ds-primary:disabled{opacity:0.42;pointer-events:none;scale:1;}.ds-primary:focus-visible{outline:2px solid var(--xp-blue,#0866d9);outline-offset:2px;}@media(prefers-reduced-motion:reduce){.ds-primary{transition-duration:0.001ms!important;animation-duration:0.001ms!important;scale:1!important;}}:host-context(.reduce-motion) .ds-primary{transition-duration:0.001ms!important;scale:1!important;}.ds-dialog,.ds-dialog *{scrollbar-width:none!important;scrollbar-gutter:auto!important;-ms-overflow-style:none!important;}.ds-dialog::-webkit-scrollbar,.ds-dialog *::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}"
+    },
+    {
+      "name": "Batch properties",
+      "kind": "custom",
+      "refersTo": "batch-properties",
+      "description": "SelectionPropertiesDialog: actual modal maxWidth 32rem, aggregate file/folder counts and file bytes excluding folder contents, focusable list capped at 18rem with hidden scrollbars, and Copy all paths. Static eight-entry text/list sample; source entry icons and modal/clipboard behavior remain in React. The real handler writes every selected path one per line, awaits success, and reports rejection.",
+      "html": "<section class=\"ds-batch\" role=\"dialog\" aria-labelledby=\"ds-batch-title\"><header class=\"ds-batch-header\"><div class=\"ds-batch-heading\"><h2 id=\"ds-batch-title\" class=\"ds-batch-title\">8 个项目的属性</h2><button type=\"button\" class=\"ds-batch-close\" aria-label=\"关闭\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"m18 6-12 12M6 6l12 12\"/></svg></button></div><p class=\"ds-batch-summary\">6 个文件, 2 个文件夹</p></header><div class=\"ds-batch-total\"><span>文件大小（不含文件夹内容）</span><strong>9 MB</strong></div><ul class=\"ds-batch-list\" tabindex=\"0\" aria-label=\"所选项目\"><li class=\"ds-batch-item\"><div class=\"ds-batch-entry\"><p class=\"ds-batch-name\">Launch</p><p class=\"ds-batch-path\">/home/user/Documents/Launch</p></div><span class=\"ds-batch-size\">文件夹</span></li><li class=\"ds-batch-item\"><div class=\"ds-batch-entry\"><p class=\"ds-batch-name\">Research</p><p class=\"ds-batch-path\">/home/user/Documents/Research</p></div><span class=\"ds-batch-size\">文件夹</span></li><li class=\"ds-batch-item\"><div class=\"ds-batch-entry\"><p class=\"ds-batch-name\">Q3-launch-plan.md</p><p class=\"ds-batch-path\">/home/user/Documents/Q3-launch-plan.md</p></div><span class=\"ds-batch-size\">18 KB</span></li><li class=\"ds-batch-item\"><div class=\"ds-batch-entry\"><p class=\"ds-batch-name\">Customer-insights.txt</p><p class=\"ds-batch-path\">/home/user/Documents/Customer-insights.txt</p></div><span class=\"ds-batch-size\">9.5 KB</span></li><li class=\"ds-batch-item\"><div class=\"ds-batch-entry\"><p class=\"ds-batch-name\">设计方案.docx</p><p class=\"ds-batch-path\">/home/user/Documents/设计方案.docx</p></div><span class=\"ds-batch-size\">139 KB</span></li><li class=\"ds-batch-item\"><div class=\"ds-batch-entry\"><p class=\"ds-batch-name\">Budget-forecast.xlsx</p><p class=\"ds-batch-path\">/home/user/Documents/Budget-forecast.xlsx</p></div><span class=\"ds-batch-size\">278 KB</span></li><li class=\"ds-batch-item\"><div class=\"ds-batch-entry\"><p class=\"ds-batch-name\">Brand-guidelines.pdf</p><p class=\"ds-batch-path\">/home/user/Documents/Brand-guidelines.pdf</p></div><span class=\"ds-batch-size\">3.7 MB</span></li><li class=\"ds-batch-item\"><div class=\"ds-batch-entry\"><p class=\"ds-batch-name\">路演-keynote.pptx</p><p class=\"ds-batch-path\">/home/user/Documents/路演-keynote.pptx</p></div><span class=\"ds-batch-size\">4.9 MB</span></li></ul><footer class=\"ds-batch-footer\"><button type=\"button\" class=\"ds-batch-copy\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\"/><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\"/></svg>复制全部路径</button></footer></section>",
+      "css": ".ds-batch{background:var(--lg-specular,linear-gradient(155deg,rgb(255 255 255 / 42%),transparent 48%)),var(--lg-glass-strong,rgb(252 252 253 / 94%));border:1px solid var(--lg-glass-stroke-strong,rgb(255 255 255 / 94%));box-shadow:var(--lg-shadow-elevated,inset 0 1px 0 var(--lg-control-highlight,rgb(255 255 255 / 92%)),0 18px 54px rgb(27 49 86 / 18%),0 4px 12px rgb(27 49 86 / 10%));backdrop-filter:blur(var(--lg-blur-strong,32px)) saturate(150%);-webkit-backdrop-filter:blur(var(--lg-blur-strong,32px)) saturate(150%);font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"SF Pro Display\",\"Segoe UI\",sans-serif;letter-spacing:-0.008em;width:100%;max-width:32rem;max-height:min(90dvh,calc(100dvh - 40px));overflow-y:auto;overscroll-behavior:contain;padding:20px;border-radius:var(--lg-radius-xl,22px);color:var(--xp-text,#24262b);}.ds-batch-header{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--lg-divider,rgb(40 43 51 / 10%));}.ds-batch-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;}.ds-batch-title{margin:0;font-size:20px;line-height:28px;font-weight:600;}.ds-batch-summary{margin:0;font-size:14px;line-height:20px;color:var(--xp-text-secondary,#555b66);}.ds-batch-total{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:16px 0;font-size:14px;line-height:20px;color:var(--xp-text-secondary,#555b66);}.ds-batch-total strong{font-weight:600;font-variant-numeric:tabular-nums;color:var(--xp-text,#24262b);}.ds-batch-list{max-height:18rem;overflow-y:auto;margin:0;padding:0;list-style:none;}.ds-batch-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--lg-divider,rgb(40 43 51 / 10%));}.ds-batch-entry{min-width:0;flex:1;}.ds-batch-name{margin:0;font-size:14px;line-height:20px;font-weight:500;word-break:break-all;}.ds-batch-path{margin:4px 0 0;font-size:12px;line-height:16px;color:var(--xp-text-secondary,#555b66);word-break:break-all;user-select:text;}.ds-batch-size{flex-shrink:0;font-size:12px;line-height:16px;font-variant-numeric:tabular-nums;color:var(--xp-text-secondary,#555b66);}.ds-batch-footer{display:flex;justify-content:flex-end;margin-top:20px;}.ds-batch-copy,.ds-batch-close{font-family:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"SF Pro Display\",\"Segoe UI\",sans-serif;letter-spacing:-0.008em;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:500;transition:background-color var(--lg-motion-fast,180ms) var(--lg-ease,cubic-bezier(0.2,0.75,0.25,1)),color 180ms,box-shadow 180ms,scale 180ms;}.ds-batch-copy{height:36px;padding:0 14px;font-size:14px;border:1px solid var(--lg-control-stroke,rgb(40 43 51 / 14%));border-radius:10px;color:var(--xp-text,#24262b);background:var(--lg-specular,linear-gradient(155deg,rgb(255 255 255 / 42%),transparent 48%)),var(--lg-control-fill,rgb(255 255 255 / 48%));box-shadow:var(--lg-control-shadow,inset 0 1px 0 var(--lg-control-highlight,rgb(255 255 255 / 92%)),inset 0 -1px 0 rgb(50 72 108 / 5%),0 2px 4px rgb(32 54 89 / 6%),0 5px 14px rgb(32 54 89 / 5%));}.ds-batch-close{width:32px;height:32px;padding:0;border:0;border-radius:9px;background:transparent;color:var(--xp-text-secondary,#555b66);}.ds-batch-copy:hover:not(:disabled),.ds-batch-close:hover:not(:disabled){background:var(--lg-control-fill-hover,rgb(255 255 255 / 78%));box-shadow:inset 0 1px 0 var(--lg-control-highlight,rgb(255 255 255 / 92%));}.ds-batch-copy:active:not(:disabled),.ds-batch-close:active:not(:disabled){scale:0.97;}.ds-batch-copy:disabled,.ds-batch-close:disabled{opacity:0.42;pointer-events:none;scale:1;}.ds-batch-copy:focus-visible,.ds-batch-close:focus-visible{outline:2px solid var(--xp-blue,#0866d9);outline-offset:2px;}.ds-batch,.ds-batch *{scrollbar-width:none!important;scrollbar-gutter:auto!important;-ms-overflow-style:none!important;}.ds-batch::-webkit-scrollbar,.ds-batch *::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}@media(prefers-reduced-motion:reduce){.ds-batch-copy,.ds-batch-close{transition-duration:0.001ms!important;scale:1!important;}}:host-context(.reduce-motion) .ds-batch-copy,:host-context(.reduce-motion) .ds-batch-close{transition-duration:0.001ms!important;scale:1!important;}@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){.ds-batch{background:#f7f9fc;backdrop-filter:none;-webkit-backdrop-filter:none;}}:host-context(.reduce-transparency) .ds-batch,:host-context(.high-contrast) .ds-batch{background:#f7f9fc;backdrop-filter:none;-webkit-backdrop-filter:none;}@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.ds-batch{background:#f7f9fc;}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Apple-inspired Liquid Glass workspace",
+    "overview": "Wisp is an always-light file workspace with a neutral silver ambient ground, a transparent titlebar/sidebar surround, a lifted white file canvas, and a frosted inspector. The canvas and inspector have matching rounded 20px edges; the previous blue wash has been replaced while blue remains the interaction accent. This documents the implemented, user-authorized redesign. The visual sequence supports navigating, selecting, previewing, and acting; this is a CSS material approximation, not Apple's native Liquid Glass renderer.\n\nPrimary evidence is [.impeccable/refinement-verification.md](.impeccable/refinement-verification.md) and the six captures in [.impeccable/review/](.impeccable/review/): revision-user-1153.png, revision-desktop.png, revision-mobile.png, revision-batch-properties.png, revision-settings-desktop.png, and revision-settings-mobile.png. Independent finish review returned `disposition: ship` scoped to those six captures and reviewed command wiring. Final handoff verification reports passing TypeScript/build checks and 122 targeted tests (119 focused tests plus three batch-contract integration tests); older regression suites have 61 passes and two failures reproduced on baseline HEAD bcb6a90a. The subsequent nonvisual duplicate-command correction leaves all six captures valid, with no layout correction after review. [Earlier verification](.impeccable/verification.md) and its desktop.png, mobile.png, settings-desktop.png, search-mobile.png, and workspace-dialog.png captures remain historical evidence of the previous state.\n\nThe native Option+Command+C gesture and real filesystem operations were not verified; real search, extensions, and desktop packaging remain unverified. The DOCX browser demo still fails to fetch its native asset: the visible error/retry treatment is not successful DOCX preview. Scoped review does not establish user taste approval or full-suite/native success.\n",
+    "keyCharacteristics": [
+      "Neutral silver surround, white content, blue interaction accent, and system typography.",
+      "Rounded sibling panes, aligned header/action rails, grouped controls, and stronger floating presentations.",
+      "Readable content, visible keyboard focus, and opaque accessibility alternatives."
+    ],
+    "rules": [
+      {
+        "name": "The Material Precedence Rule",
+        "body": "Resolve active root aliases and the final fluid selector before borrowing a value from inherited CSS or a utility class.",
+        "section": "colors"
+      },
+      {
+        "name": "The Shared Glass Rule",
+        "body": "Give each control group one material body; keep its child controls transparent until hover or selection, and keep file rows still.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do preserve the always-light silver surround, white canvas, frosted inspector, and user-selected Liquid Glass direction.",
+      "Do reuse final fluid tokens, shared controls, keyboard focus, and saved pane preferences.",
+      "Do keep filenames, selection, previews, and current location readable at narrow widths.",
+      "Do keep the 64px header rhythm, 56px action rail, nonwrapping selection controls, 44px file rows, and 16px gutters. Wrap extremely narrow path navigation; show single-file metadata only in the inspector footer.",
+      "Do hide all scrollbars in every theme, including while scrolling, while preserving overflow and keyboard scrolling.",
+      "Do retain all 12 settings categories and controls until the user decides the pending simplification proposal.",
+      "Do act on the full selection and await clipboard success or failure before showing feedback.",
+      "Do describe duplicate requests as queued/started background tasks; a returned task ID does not mean the copy completed.",
+      "Do honor opaque materials, stronger contrast, and reduced motion."
+    ],
+    "donts": [
+      "Don't add per-row backdrop blur or press movement to file/navigation rows.",
+      "Don't revive inherited paper texture or weather-driven dark appearance.",
+      "Don't treat component previews or browser fixtures as native-runtime validation.",
+      "Don't infer native hotkey/filesystem success, successful DOCX preview, or user taste approval from the scoped ship disposition."
+    ]
+  }
+}

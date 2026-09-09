@@ -1431,3 +1431,11 @@ input[type="range"]::-moz-range-thumb {
 .home-status-compact section .grid {
   gap: 0.5rem;
 }
+
+/* 图标控件基线：所有 wisp-control-icon 必须是居中的 flex 容器
+   （a 标签默认 block，svg 会顶对齐 —— 曾在网页标签浮层里被抓包） */
+.wisp-control-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
