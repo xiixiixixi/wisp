@@ -890,11 +890,12 @@ mod tests {
     }
 
     #[test]
-    fn test_sanitize_rejects_non_whitelisted_command() {
-        // Non-allowlisted commands are now blocked to prevent execution of arbitrary binaries
-        assert!(sanitize_command("mycustomtool --version").is_err());
-        assert!(sanitize_command("cargo build").is_err());
-        assert!(sanitize_command("npm install").is_err());
+    fn test_sanitize_allows_any_binary_without_metacharacters() {
+        // The allowlist was removed — authorization happens in the frontend
+        // permission card; here only injection safety (metacharacters) applies.
+        assert!(sanitize_command("mycustomtool --version").is_ok());
+        assert!(sanitize_command("cargo build").is_ok());
+        assert!(sanitize_command("npm install").is_ok());
     }
 
     #[test]
@@ -926,8 +927,10 @@ mod tests {
         // checks. Previously, `find . -exec rm {} ; echo pwned` would pass
         // because `find` was on the allowlist and the allowlist skipped ALL
         // metacharacter checks. Now the semicolon is always caught.
-        assert!(sanitize_command("find . -name test").is_err()); // not on allowlist
-        assert!(sanitize_command("env HOME=/tmp myapp").is_err()); // not on allowlist
+        // No allowlist anymore: plain find/env pass (authorization is the
+        // frontend card's job); only the chaining forms below are blocked.
+        assert!(sanitize_command("find . -name test").is_ok());
+        assert!(sanitize_command("env HOME=/tmp myapp").is_ok());
 
         // Shell chaining via find/env is now blocked:
         assert!(sanitize_command("find . -exec rm {} ;").is_err()); // contains ';'
