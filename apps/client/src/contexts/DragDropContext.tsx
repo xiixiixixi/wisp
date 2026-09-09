@@ -284,6 +284,8 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
   // Cursor position stored in a ref (not state) — only the overlay reads it
   // via requestAnimationFrame, avoiding React re-renders on every mouse move.
   const cursorRef = useRef({ x: 0, y: 0 });
+  const hoverPaneRef = useRef<string | null>(null);
+  const paneActivateTimerRef = useRef<number | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const rafIdRef = useRef<number>(0);
 
@@ -373,6 +375,27 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
               const target = findDropTarget(x, y);
               const targetPath = target?.path ?? null;
 
+              // Cross-pane drag: hovering another pane for 300ms activates it,
+              // so keyboard/selection context follows the potential drop pane
+              // (Finder does the same with its split views).
+              if (stateRef.current.dragSource === 'internal') {
+                const paneEl = document
+                  .elementFromPoint(x, y)
+                  ?.closest('[data-group-id]') as HTMLElement | null;
+                const paneId = paneEl?.getAttribute('data-group-id') ?? null;
+                if (paneId !== hoverPaneRef.current) {
+                  clearTimeout(paneActivateTimerRef.current);
+                  hoverPaneRef.current = paneId;
+                  if (paneId) {
+                    paneActivateTimerRef.current = setTimeout(() => {
+                      window.dispatchEvent(
+                        new CustomEvent('wisp-activate-pane', { detail: { groupId: paneId } }),
+                      );
+                    }, 300);
+                  }
+                }
+              }
+
               if (targetPath !== lastHoverPathRef.current) {
                 clearHighlight();
 
@@ -452,6 +475,23 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
                 const isFolder =
                   target.element.getAttribute('data-is-folder') === 'true' ||
                   target.element.closest('[data-is-folder="true"]') !== null;
+                if (!isDropTargetValid(target.action, paths, target.path, isFolder)) {
+                  // 无效目标不再静默：告知原因（源与目标同目录是最常见的
+                  // 「跨窗格没反应」来源——两个窗格在同一目录时空白区=同目录）
+                  const sameDir = paths.some((p: string) => {
+                    const parent = p.split(/[/\\]/).slice(0, -1).join('/');
+                    return parent === target.path;
+                  });
+                  window.dispatchEvent(
+                    new CustomEvent('drag-drop-error', {
+                      detail: {
+                        message: sameDir
+                          ? '已在同一文件夹内（源目录即目标目录）'
+                          : '该位置不支持放置',
+                      },
+                    }),
+                  );
+                }
                 if (isDropTargetValid(target.action, paths, target.path, isFolder)) {
                   if (target.action === 'bookmark-add') {
                     (async () => {

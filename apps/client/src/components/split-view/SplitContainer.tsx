@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import type { SplitNode, SplitNodeBranch, EditorGroup } from '@/types/split-view';
 import EditorGroupPane from './EditorGroupPane';
 import ResizeHandle from '@/components/ui/ResizeHandle';
@@ -28,6 +28,18 @@ const SplitContainer = ({ node, groups, activeGroupId, path }: SplitContainerPro
   const { selection, viewSort, splitActions, paneSync } = useExplorerContext();
 
   const totalGroups = Object.keys(groups).length;
+
+  // Cross-pane drags dispatch this after hovering a pane for 300ms — activate
+  // the hovered pane so the drop lands with the right context (and the UI
+  // ring follows the drag, Finder-split-view style).
+  useEffect(() => {
+    const activate = (e: Event) => {
+      const groupId = (e as CustomEvent<{ groupId?: string }>).detail?.groupId;
+      if (groupId) splitActions.onSetActiveGroup(groupId);
+    };
+    window.addEventListener('wisp-activate-pane', activate);
+    return () => window.removeEventListener('wisp-activate-pane', activate);
+  }, [splitActions]);
 
   if (node.type === 'leaf') {
     const group = groups[node.groupId];

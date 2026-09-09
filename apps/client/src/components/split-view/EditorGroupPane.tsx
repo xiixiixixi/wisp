@@ -846,6 +846,7 @@ const EditorGroupPane = ({
       className={`flex h-full flex-col overflow-hidden ${isActive ? 'ring-1 ring-xp-blue/30' : ''}`}
       data-drop-target={isDroppablePath ? currentPath : undefined}
       data-is-folder={isDroppablePath ? 'true' : undefined}
+      data-group-id={group.id}
       onMouseDown={() => {
         if (!isActive) onSetActiveGroup(group.id);
       }}
