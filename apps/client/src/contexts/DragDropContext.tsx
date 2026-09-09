@@ -332,6 +332,26 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
         .onDragDropEvent((event) => {
           const payload = event.payload;
 
+          // Drag diagnostics: enable with localStorage.wispDebugDrag='1'.
+          // Cross-pane drag issues are only reproducible with a REAL mouse
+          // (synthetic CGEvents cannot drive the OS drag session), so the
+          // event stream is recorded for post-hoc reading via
+          // window.__wispDragLog.
+          try {
+            if (localStorage.getItem('wispDebugDrag') === '1') {
+              const log = (window.__wispDragLog ??= []);
+              log.push({
+                t: Date.now(),
+                type: payload.type,
+                pos: 'position' in payload ? payload.position : undefined,
+                paths: 'paths' in payload ? payload.paths?.length : undefined,
+              });
+              if (log.length > 400) log.splice(0, log.length - 400);
+            }
+          } catch {
+            /* diagnostics must never break the real path */
+          }
+
           if (payload.type === 'enter') {
             // Files entering the window (from OS or from our own startDrag)
             const paths = (payload as { type: string; paths: string[] }).paths;
