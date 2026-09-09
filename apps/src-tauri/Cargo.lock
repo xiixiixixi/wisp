@@ -7726,7 +7726,7 @@ dependencies = [
 
 [[package]]
 name = "wisp"
-version = "0.99.23"
+version = "0.99.24"
 dependencies = [
  "aes-gcm",
  "argon2",

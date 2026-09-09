@@ -870,6 +870,7 @@ mod tests {
         assert!(result.unwrap(), "paths in the same dir share a volume");
     }
 
+    #[cfg(not(target_os = "windows"))]
     #[tokio::test]
     async fn test_same_volume_rejects_missing_paths() {
         let temp = tempdir().expect("Failed to create temp dir");

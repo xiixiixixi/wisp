@@ -5,7 +5,9 @@
 //! responses to stdout.  This allows Claude Code (and other MCP
 //! clients) to connect:
 //!
-//!     claude --mcp-server "wisp --mcp-server"
+//! ```text
+//! claude --mcp-server "wisp --mcp-server"
+//! ```
 //!
 //! Supported methods:
 //!   - `initialize`  — handshake, returns server capabilities
