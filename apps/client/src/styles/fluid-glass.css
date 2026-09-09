@@ -166,12 +166,26 @@ html.theme-fluid .wisp-sidebar {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+/* 一整张连续玻璃：圆角只属于窗口两缘的外角（用户定稿：两边有倒角、
+   中间不通的部分都是直角）——侧栏左外缘、检查器右外角圆，画布与
+   底部抽屉全直角 */
 html.theme-fluid :is(.wisp-content-canvas, .wisp-inspector) {
   border: 0 !important;
-  border-radius: 20px !important;
   box-shadow:
     0 2px 8px rgb(30 34 44 / 5%),
     0 12px 32px rgb(30 34 44 / 4%) !important;
+}
+html.theme-fluid .wisp-sidebar {
+  border-radius: 20px 0 0 20px !important;
+}
+html.theme-fluid .wisp-content-canvas {
+  border-radius: 0 !important;
+}
+html.theme-fluid .wisp-bottom-panel {
+  border-radius: 0 !important;
+}
+html.theme-fluid .wisp-inspector {
+  border-radius: 0 20px 20px 0 !important;
 }
 html.theme-fluid .wisp-content-canvas {
   --wisp-content-gutter: 16px;
