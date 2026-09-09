@@ -1,7 +1,8 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
-import { ChevronRight, HardDrive, MoreHorizontal } from 'lucide-react';
+import { ChevronRight, ExternalLink, HardDrive, MoreHorizontal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { AnchoredMenu } from '@/components/ui/AnchoredMenu';
+import { TauriAPI } from '@/lib/tauri-api';
 import { getBreadcrumbStart } from '@/lib/breadcrumb-layout';
 
 interface PathSegment {
@@ -158,6 +159,24 @@ export default function PathBreadcrumbs({
             </span>
           );
         })}
+        {/* 网页标签：分享/在浏览器打开 落在面包屑尾端（用户定稿） */}
+        {/^https?:\/\//i.test(currentPath) && (
+          <a
+            href={currentPath}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="wisp-control-icon shrink-0 text-xp-text-secondary"
+            aria-label={t('navigation.openInBrowser')}
+            title={t('navigation.openInBrowser')}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              void TauriAPI.openUrl(currentPath);
+            }}
+          >
+            <ExternalLink size={13} />
+          </a>
+        )}
       </div>
       {open && start > 0 && (
         <AnchoredMenu

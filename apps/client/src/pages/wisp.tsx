@@ -280,7 +280,12 @@ const ExplorerUnified = () => {
     pendingSelectRef,
     topBarRef,
     leftSidebarRef,
-    toggleQuickLook: dialogManager.handleQuickLook,
+    // 空格 = toggle 右侧预览面板（用户定稿：不再是 Quick Look 弹窗）
+    toggleQuickLook: (_file) => {
+      const showing = !layout.rightSidebarCollapsed && layout.rightPanelTab === 'preview';
+      layout.setRightPanelTab('preview');
+      layout.setRightSidebarCollapsed(showing);
+    },
     toggleHiddenFiles,
     navigateWithHistory: actions.navigateWithHistory,
     navigateUp: actions.navigateUp,

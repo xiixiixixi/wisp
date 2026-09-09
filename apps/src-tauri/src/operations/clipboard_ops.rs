@@ -2,17 +2,29 @@ use tauri::command;
 
 /// Put file URLs on the system clipboard the same way Finder's ⌘C does, so
 /// other apps (WeChat, Mail, browsers…) accept ⌘V as file attachments.
+/// NSPasteboard must be touched on the MAIN thread — from a tokio worker the
+/// calls silently no-op (clearContents included), which is why ⌘V elsewhere
+/// pasted nothing even though the app showed 已复制.
 #[cfg(target_os = "macos")]
 #[command]
-pub async fn copy_files_to_clipboard(paths: Vec<String>) -> Result<(), String> {
-    tokio::task::spawn_blocking(move || {
-        unsafe {
+pub async fn copy_files_to_clipboard(
+    app: tauri::AppHandle,
+    paths: Vec<String>,
+) -> Result<(), String> {
+    let (tx, rx) = std::sync::mpsc::channel::<Result<(), String>>();
+    let send = std::sync::Arc::new(std::sync::Mutex::new(Some(tx)));
+    let send2 = send.clone();
+    let _ = app.run_on_main_thread(move || {
+        let result = unsafe {
             let pb = objc2_app_kit::NSPasteboard::generalPasteboard();
             write_file_urls_to_pasteboard(&pb, &paths)
+        };
+        if let Some(tx) = send2.lock().unwrap().take() {
+            let _ = tx.send(result);
         }
-    })
-    .await
-    .map_err(|e| e.to_string())?
+    });
+    rx.recv()
+        .map_err(|e| format!("main-thread pasteboard dispatch failed: {e}"))?
 }
 
 #[cfg(target_os = "macos")]
