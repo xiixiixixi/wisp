@@ -266,7 +266,11 @@
     "bookmarkFolder": "Bookmark folder ini",
     "pinToSidebar": "Sematkan ke Sidebar",
     "lockFile": "Kunci File",
-    "unlockFile": "Buka Kunci File"
+    "unlockFile": "Buka Kunci File",
+    "loadingApps": "Memuat…",
+    "openWithOther": "Lainnya…",
+    "defaultApp": "{{name}} (bawaan)",
+    "defaultTag": "bawaan"
   },
   "drives": {
     "eject": "Keluarkan",
@@ -1224,7 +1228,12 @@
     "systemDefaultDesc": "Buka dengan aplikasi default OS",
     "alwaysUse": "Selalu gunakan ini untuk file .{{ext}}",
     "open": "Buka",
-    "cancel": "Batal"
+    "cancel": "Batal",
+    "searchApps": "Cari aplikasi",
+    "recommended": "Direkomendasikan",
+    "allApps": "Semua aplikasi",
+    "alwaysOpenWith": "Selalu buka dengan aplikasi ini",
+    "openButton": "Buka"
   },
   "permissions": {
     "title": "Izin Ekstensi",
@@ -1369,7 +1378,32 @@
     "copyFilePath": "Salin jalur berkas",
     "copied": "Disalin",
     "noFileSelectedAria": "Tidak ada berkas yang dipilih untuk pratinjau",
-    "selectFileToPreview": "Pilih berkas untuk melihat pratinjau"
+    "selectFileToPreview": "Pilih berkas untuk melihat pratinjau",
+    "convertedPreview": "Pratinjau terkonversi",
+    "posterOnlyHint": "Codec ini tidak dapat diputar — menampilkan bingkai poster",
+    "docConvertFailed": "Konversi dokumen tidak tersedia",
+    "firstPageOnly": "Pratinjau halaman pertama",
+    "noEmbeddedPreview": "Tidak ada pratinjau tersemat",
+    "fontSpecimen": "Spesimen font",
+    "fontLoadFailed": "Font ini tidak dapat dimuat",
+    "archiveItems": "{{count}} item",
+    "archiveUnpacked": "Setelah diekstrak: {{size}}",
+    "archiveEncrypted": "Terenkripsi",
+    "archiveName": "Nama",
+    "archiveCompressed": "Terkompresi",
+    "archiveMore": "…dan {{count}} lagi",
+    "archiveReadFailed": "Isi arsip tidak dapat dibaca",
+    "plistReadFailed": "Property list tidak dapat dibaca",
+    "contactParseFailed": "Tidak ada kontak atau acara di file ini",
+    "allDay": "Sehari penuh",
+    "qlThumbnailFailed": "Quick Look tidak dapat merender file ini",
+    "extractedText": "Teks yang diekstrak",
+    "folderItems": "{{count}} item",
+    "epubChapter": "Bab {{index}}",
+    "epubPrevChapter": "Bab sebelumnya",
+    "epubNextChapter": "Bab berikutnya",
+    "epubChapterList": "Daftar bab",
+    "epubUnavailable": "Buku ini tidak dapat dibuka"
   },
   "home": {
     "goodMorning": "Selamat pagi",

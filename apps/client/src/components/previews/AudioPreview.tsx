@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Music, Headphones, Volume2, Mic } from 'lucide-react';
 import { PreviewProps } from '@/lib/preview-factory';
-import { convertAssetUrl } from '@/lib/transport';
+import { loadMediaSource } from '@/lib/preview-media';
 import { formatFileSize } from '@/lib/utils';
 import { formatTime } from '@/lib/format-utils';
 
@@ -56,18 +56,29 @@ const AudioPreview = ({ file, onError, onLoad }: PreviewProps) => {
     setIsPlaying(false);
     setCurrentTime(0);
     setDuration(0);
+    let cancelled = false;
+    let dispose: () => void = () => undefined;
 
-    // Convert file path to Tauri asset URL
-    const assetUrl = convertAssetUrl(file.path);
-    setAudioSrc(assetUrl);
+    // WKWebView refuses range-less asset URLs in <audio> — load the bytes as
+    // a Blob URL instead (see lib/preview-media.ts).
+    void loadMediaSource(file.path, file.name, 'audio', file.size).then((media) => {
+      if (cancelled) {
+        media.dispose();
+        return;
+      }
+      dispose = media.dispose;
+      setAudioSrc(media.url);
+    });
 
     // Cleanup previous audio context
     return () => {
+      cancelled = true;
+      dispose();
       if (animFrameRef.current) {
         cancelAnimationFrame(animFrameRef.current);
       }
     };
-  }, [file.path]);
+  }, [file.path, file.name, file.size]);
 
   const initAudioVisualization = useCallback(() => {
     const audio = audioRef.current;
@@ -145,6 +156,19 @@ const AudioPreview = ({ file, onError, onLoad }: PreviewProps) => {
     }
     setLoading(false);
     onLoad?.();
+  }, [onLoad]);
+
+  // Blob-backed audio in WKWebView can settle at readyState 1 (metadata only)
+  // while paused — loadeddata never fires, so clear the spinner here too.
+  const handleLoadedMetadata = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio && !isNaN(audio.duration)) {
+      setDuration(audio.duration);
+    }
+    setLoading((wasLoading) => {
+      if (wasLoading) onLoad?.();
+      return false;
+    });
   }, [onLoad]);
 
   const handleError = useCallback(() => {
@@ -236,10 +260,10 @@ const AudioPreview = ({ file, onError, onLoad }: PreviewProps) => {
         preload="metadata"
         style={{ display: 'none' }}
         onLoadedData={handleLoadedData}
+        onLoadedMetadata={handleLoadedMetadata}
         onError={handleError}
         onTimeUpdate={handleTimeUpdate}
         onEnded={handleEnded}
-        crossOrigin="anonymous"
       />
 
       {loading && (

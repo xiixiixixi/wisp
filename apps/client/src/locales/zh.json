@@ -280,7 +280,11 @@
     "lockFile": "锁定文件",
     "unlockFile": "解锁文件",
     "bulkRenameAction": "批量重命名",
-    "tagsEditor": "编辑标签…"
+    "tagsEditor": "编辑标签…",
+    "loadingApps": "正在读取…",
+    "openWithOther": "其他…",
+    "defaultApp": "{{name}}（默认）",
+    "defaultTag": "默认"
   },
   "drives": {
     "eject": "弹出",
@@ -1396,7 +1400,12 @@
     "systemDefaultDesc": "使用操作系统默认应用程序打开",
     "alwaysUse": "始终使用此方式打开 .{{ext}} 文件",
     "open": "打开",
-    "cancel": "取消"
+    "cancel": "取消",
+    "searchApps": "搜索应用",
+    "recommended": "推荐应用",
+    "allApps": "所有应用",
+    "alwaysOpenWith": "始终用此应用打开",
+    "openButton": "打开"
   },
   "permissions": {
     "title": "扩展权限",
@@ -1558,7 +1567,32 @@
     "copyFilePath": "复制文件路径",
     "copied": "已复制",
     "noFileSelectedAria": "未选择要预览的文件",
-    "selectFileToPreview": "选择文件以预览"
+    "selectFileToPreview": "选择文件以预览",
+    "convertedPreview": "已转换预览",
+    "posterOnlyHint": "此编码格式无法在此播放，已显示首帧画面",
+    "docConvertFailed": "无法转换此文档",
+    "firstPageOnly": "首页预览",
+    "noEmbeddedPreview": "没有可用的内嵌预览",
+    "fontSpecimen": "字体样张",
+    "fontLoadFailed": "无法加载此字体",
+    "archiveItems": "{{count}} 个项目",
+    "archiveUnpacked": "解压后：{{size}}",
+    "archiveEncrypted": "已加密",
+    "archiveName": "名称",
+    "archiveCompressed": "压缩后",
+    "archiveMore": "…还有 {{count}} 项",
+    "archiveReadFailed": "无法读取压缩包内容",
+    "plistReadFailed": "无法读取此属性列表",
+    "contactParseFailed": "此文件中没有联系人或日程",
+    "allDay": "全天",
+    "qlThumbnailFailed": "Quick Look 无法渲染此文件",
+    "extractedText": "提取的文本",
+    "folderItems": "{{count}} 个项目",
+    "epubChapter": "第 {{index}} 章",
+    "epubPrevChapter": "上一章",
+    "epubNextChapter": "下一章",
+    "epubChapterList": "章节",
+    "epubUnavailable": "无法打开此电子书"
   },
   "home": {
     "workspace": "智能工作区",

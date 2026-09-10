@@ -2,3 +2,4 @@
 export { TauriAPI } from './tauri-api/index';
 export * from './tauri-api-types';
 export type { WeatherReport, WeatherDailyEntry, GeoPlace } from './tauri-api/weather';
+export type { EpubChapter, EpubInfo } from './tauri-api/preview';

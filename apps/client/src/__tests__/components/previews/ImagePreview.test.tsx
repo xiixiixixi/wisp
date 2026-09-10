@@ -10,6 +10,7 @@ const mockConvertAssetUrl = vi.fn(
 );
 vi.mock('@/lib/transport', () => ({
   convertAssetUrl: (...args: unknown[]) => mockConvertAssetUrl(...args),
+  isTauri: () => false,
 }));
 
 describe('ImagePreview', () => {

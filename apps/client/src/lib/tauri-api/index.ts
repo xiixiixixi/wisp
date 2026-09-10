@@ -14,6 +14,7 @@ import * as storage from './storage';
 import * as system from './system';
 import * as weather from './weather';
 import * as pty from './pty';
+import * as preview from './preview';
 
 // Re-export all types so `import { FileEntry } from '@/lib/tauri-api'` keeps working
 export * from '../tauri-api-types';
@@ -30,6 +31,7 @@ export * from './system';
 export * from './weather';
 export type { WeatherReport, WeatherDailyEntry, GeoPlace } from './weather';
 export * from './pty';
+export * from './preview';
 
 // ---------------------------------------------------------------------------
 // Backward-compatible static class
@@ -364,4 +366,15 @@ export class TauriAPI {
   static gdriveGetFileContent = system.gdriveGetFileContent;
   static getGdriveSettings = system.getGdriveSettings;
   static updateGdriveSettings = system.updateGdriveSettings;
+
+  // ── Finder-parity preview bridges ──────────────────────────────────────
+  static previewConvertImage = preview.previewConvertImage;
+  static previewDocHtml = preview.previewDocHtml;
+  static previewPlistXml = preview.previewPlistXml;
+  static previewQlThumbnail = preview.previewQlThumbnail;
+  static previewIworkPdf = preview.previewIworkPdf;
+  static previewEpub = preview.previewEpub;
+  static previewRemuxMedia = preview.previewRemuxMedia;
+  static previewReadMedia = preview.previewReadMedia;
+  static previewSniffText = preview.previewSniffText;
 }

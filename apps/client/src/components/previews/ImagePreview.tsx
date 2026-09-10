@@ -1,23 +1,48 @@
 import { useTranslation } from 'react-i18next';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { PreviewProps } from '@/lib/preview-factory';
-import { convertAssetUrl } from '@/lib/transport';
+import { convertAssetUrl, isTauri } from '@/lib/transport';
+import { TauriAPI } from '@/lib/tauri-api';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
+
+// Formats WebKit renders natively. Anything else (HEIC on older WebKit, RAW,
+// PSD, …) goes through the Rust ImageIO bridge after the native attempt
+// fails — one failed <img> load, then a converted JPEG.
+const NATIVE_IMAGE_EXTS = new Set([
+  'jpg',
+  'jpeg',
+  'png',
+  'gif',
+  'bmp',
+  'webp',
+  'svg',
+  'svgz',
+  'ico',
+  'tiff',
+  'tif',
+  'avif',
+  'heic', // WebKit ≥17 renders HEIC natively; bridge covers the rest
+  'heif',
+]);
 
 const ImagePreview = ({ file, onError, onLoad }: PreviewProps) => {
   const { t: tUi } = useTranslation();
   const [imageError, setImageError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [imageSrc, setImageSrc] = useState<string>('');
+  // Native attempt failed → try the Rust conversion bridge exactly once.
+  const [bridgeAttempted, setBridgeAttempted] = useState(false);
+  const attemptRef = useRef(0);
 
   useEffect(() => {
     // Reset states when file changes
     setLoading(true);
     setImageError(false);
+    setBridgeAttempted(false);
+    attemptRef.current += 1;
 
     // Convert file path to Tauri asset URL
-    const assetUrl = convertAssetUrl(file.path);
-    setImageSrc(assetUrl);
+    setImageSrc(convertAssetUrl(file.path));
   }, [file.path]);
 
   const handleImageLoad = () => {
@@ -25,11 +50,33 @@ const ImagePreview = ({ file, onError, onLoad }: PreviewProps) => {
     onLoad?.();
   };
 
-  const handleImageError = () => {
+  const handleImageError = async () => {
+    if (bridgeAttempted || !isTauri()) {
+      setImageError(true);
+      setLoading(false);
+      onError?.(new Error('Failed to load image'));
+      return;
+    }
+    // WebKit could not decode it (RAW/PSD/exotic) — ask ImageIO for a JPEG.
+    const myAttempt = ++attemptRef.current;
+    setBridgeAttempted(true);
+    try {
+      const converted = await TauriAPI.previewConvertImage(file.path, 2048);
+      if (myAttempt !== attemptRef.current) return; // file changed meanwhile
+      if (converted) {
+        setImageSrc(convertAssetUrl(converted));
+        return; // wait for the converted <img> load/error
+      }
+    } catch {
+      // fall through to error state
+    }
     setImageError(true);
     setLoading(false);
     onError?.(new Error('Failed to load image'));
   };
+
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  const native = NATIVE_IMAGE_EXTS.has(ext) || file.mime_type?.startsWith('image/');
 
   return (
     <div className="flex h-full flex-col">
@@ -62,6 +109,11 @@ const ImagePreview = ({ file, onError, onLoad }: PreviewProps) => {
               {tUi('interface.theImageFormatMayNotBeSupported')}
             </p>
           </div>
+        </div>
+      )}
+      {!imageError && !native && (
+        <div className="flex-shrink-0 px-1 pt-1 text-[10px] text-xp-text-muted">
+          {file.name} · {tUi('previewPanel.convertedPreview')}
         </div>
       )}
     </div>

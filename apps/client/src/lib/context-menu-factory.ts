@@ -463,13 +463,23 @@ export class ContextMenuFactory {
     // Open with, Create Link and Properties/Tags sit on the first level the
     // way 打开方式/显示简介/制作替身/标签… do in Finder's context menu.
 
-    // Open with... (single file only)
+    // Open with ▸ (single file only) — Finder-style submenu. The app list is
+    // attached asynchronously by use-context-menu (get_file_associations);
+    // until it lands the submenu shows a loading row plus 其他….
     if (!isMultiSelect && !file.is_dir) {
       finderParityItems.push({
         id: 'open-with',
         label: i18n.t('contextMenu.openWith'),
         icon: mi(Wrench),
-        action: () => this.actions.openWith(file),
+        submenu: [
+          { id: 'open-with-loading', label: i18n.t('contextMenu.loadingApps'), disabled: true },
+          { id: 'open-with-sep-load', label: '', separator: true },
+          {
+            id: 'open-with-other',
+            label: i18n.t('contextMenu.openWithOther'),
+            action: () => this.actions.openWith(file),
+          },
+        ],
       });
     }
 

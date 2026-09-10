@@ -50,7 +50,7 @@ fn sb(
 /// Current built-in defaults version. Bump when defaults change so that
 /// persisted profiles are re-synced from the new table (extension bindings
 /// are preserved).
-const SCHEMA_VERSION: u32 = 2;
+const SCHEMA_VERSION: u32 = 3;
 
 impl ShortcutsManager {
     pub fn new(data_dir: &str) -> Self {
@@ -146,7 +146,11 @@ impl ShortcutsManager {
                     sb("redo", &["ctrl", "shift", "z"], ShortcutAction::Redo, ctx.clone(), &profile, "Redo undone operation", "ctrl+shift+z"),
                     // ── Navigation ──
                     sb("navigate-back", &["ctrl", "["], ShortcutAction::NavigateBack, ctx.clone(), &profile, "Go back", "ctrl+["),
+                    // Finder-parity ⌘[ / ⌘] — also what mouse drivers emit when
+                    // the side buttons are mapped to browser-style back/forward.
+                    sb("navigate-back-cmd", &["cmd", "["], ShortcutAction::NavigateBack, ctx.clone(), &profile, "Go back (Finder ⌘[)", "cmd+["),
                     sb("navigate-forward", &["ctrl", "]"], ShortcutAction::NavigateForward, ctx.clone(), &profile, "Go forward", "ctrl+]"),
+                    sb("navigate-forward-cmd", &["cmd", "]"], ShortcutAction::NavigateForward, ctx.clone(), &profile, "Go forward (Finder ⌘])", "cmd+]"),
                     sb("navigate-up", &["ctrl", "up"], ShortcutAction::NavigateUp, ctx.clone(), &profile, "Go to parent directory", "ctrl+up"),
                     sb("go-home", &["ctrl", "shift", "h"], ShortcutAction::GoHome, ctx.clone(), &profile, "Go to home directory", "ctrl+shift+h"),
                     sb("go-to-path", &["ctrl", "shift", "g"], ShortcutAction::GoToPath, ctx.clone(), &profile, "Go to folder (focus address bar)", "ctrl+shift+g"),

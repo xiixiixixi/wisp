@@ -52,7 +52,10 @@ fn main() {
         return;
     }
 
-    tauri::Builder::default()
+    let builder = wisp::operations::media_protocol::register_media_protocol(
+        tauri::Builder::default(),
+    );
+    builder
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
@@ -287,6 +290,15 @@ fn main() {
             operations::read_text_file,
             operations::write_text_file,
             operations::extract_document_text,
+            operations::preview_convert_image,
+            operations::preview_doc_html,
+            operations::preview_plist_xml,
+            operations::preview_ql_thumbnail,
+            operations::preview_iwork_pdf,
+            operations::preview_epub,
+            operations::preview_remux_media,
+            operations::preview_read_media,
+            operations::preview_sniff_text,
             operations::read_binary_file,
             weather::get_weather,
             weather::geocode_city,

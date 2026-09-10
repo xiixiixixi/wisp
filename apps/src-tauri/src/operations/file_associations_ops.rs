@@ -351,6 +351,15 @@ fn get_available_applications(
     extension: &str,
     _file_path: &str,
 ) -> Result<Vec<Application>, String> {
+    #[cfg(target_os = "macos")]
+    {
+        // Real association list from LaunchServices (what Finder shows).
+        let ls_apps = ls::apps_for_file(_file_path);
+        if !ls_apps.is_empty() {
+            return Ok(ls_apps);
+        }
+    }
+
     let mut apps = get_system_applications_sync()?;
 
     // Filter applications based on file type (this is a basic implementation)
@@ -399,11 +408,303 @@ fn get_system_applications_sync() -> Result<Vec<Application>, String> {
 
 fn get_default_application(
     _extension: &str,
-    _file_path: &str,
+    file_path: &str,
 ) -> Result<Option<Application>, String> {
-    // This would typically query the OS for the default application
-    // For now, return None (no default found)
-    Ok(None)
+    #[cfg(target_os = "macos")]
+    {
+        // LaunchServices: exactly the API Finder's 打开方式 menu consults.
+        if let Some(app) = ls::default_app_for_file(file_path) {
+            return Ok(Some(app));
+        }
+        Ok(None)
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = file_path;
+        Ok(None)
+    }
+}
+
+/// LaunchServices + UTType FFI (deprecated but fully functional public C API
+/// in CoreServices). This is the same backing store Finder uses, so writes
+/// change the system-wide default immediately.
+#[cfg(target_os = "macos")]
+mod ls {
+    use libloading::Library;
+    use std::path::Path;
+
+    const UTF8: u32 = 0x0800_0100;
+    const K_LS_ROLES_ALL: u32 = 0xFFFF_FFFF;
+    const CORE_SERVICES: &str =
+        "/System/Library/Frameworks/CoreServices.framework/CoreServices";
+    const APP_SERVICES: &str =
+        "/System/Library/Frameworks/ApplicationServices.framework/ApplicationServices";
+
+    #[allow(non_camel_case_types)]
+    type cfref = *const std::ffi::c_void;
+    type FnRelease = unsafe extern "C" fn(cfref);
+    type FnCount = unsafe extern "C" fn(cfref) -> isize;
+    type FnAt = unsafe extern "C" fn(cfref, isize) -> cfref;
+
+    fn core() -> &'static Library {
+        static INIT: std::sync::OnceLock<&'static Library> = std::sync::OnceLock::new();
+        *INIT.get_or_init(|| {
+            let lib = unsafe { Library::new(CORE_SERVICES) }
+                .or_else(|_| unsafe { Library::new(APP_SERVICES) })
+                .expect("CoreServices load");
+            Box::leak(Box::new(lib))
+        })
+    }
+
+    fn symbol<T>(name: &[u8]) -> Option<libloading::Symbol<'static, T>> {
+        // SAFETY: the Library is leaked ('static); symbols mirror the C API.
+        unsafe { core().get::<T>(name) }.ok().map(|s| unsafe {
+            std::mem::transmute::<libloading::Symbol<'_, T>, libloading::Symbol<'static, T>>(s)
+        })
+    }
+
+    fn release(cf: cfref) {
+        if let Some(f) = symbol::<FnRelease>(b"CFRelease\0") {
+            unsafe { f(cf) };
+        }
+    }
+
+    fn array_count(arr: cfref) -> isize {
+        symbol::<FnCount>(b"CFArrayGetCount\0").map(|f| unsafe { f(arr) }).unwrap_or(0)
+    }
+
+    fn array_at(arr: cfref, i: isize) -> cfref {
+        symbol::<FnAt>(b"CFArrayGetValueAtIndex\0")
+            .map(|f| unsafe { f(arr, i) })
+            .unwrap_or(std::ptr::null())
+    }
+
+    pub(crate) struct CfString(cfref);
+
+    impl CfString {
+        pub fn new(s: &str) -> CfString {
+            type FnNew = unsafe extern "C" fn(cfref, *const std::ffi::c_char, u32) -> cfref;
+            type FnLen = unsafe extern "C" fn(cfref) -> isize;
+            type FnGet = unsafe extern "C" fn(cfref, *mut std::ffi::c_char, isize, u32) -> bool;
+            let f = symbol::<FnNew>(b"CFStringCreateWithCString\0").unwrap();
+            let cs = std::ffi::CString::new(s).unwrap();
+            let this = CfString(unsafe { f(std::ptr::null(), cs.as_ptr(), UTF8) });
+            this
+        }
+
+        fn from_raw(raw: cfref) -> CfString {
+            CfString(raw)
+        }
+
+        pub fn to_rust(&self) -> Option<String> {
+            type FnLen = unsafe extern "C" fn(cfref) -> isize;
+            type FnGet = unsafe extern "C" fn(cfref, *mut std::ffi::c_char, isize, u32) -> bool;
+            let flen = symbol::<FnLen>(b"CFStringGetLength\0")?;
+            let fget = symbol::<FnGet>(b"CFStringGetCString\0")?;
+            let mut buf = vec![0i8; (unsafe { flen(self.0) } as usize) * 4 + 8];
+            if unsafe { fget(self.0, buf.as_mut_ptr(), buf.len() as isize, UTF8) } {
+                let bytes =
+                    unsafe { std::slice::from_raw_parts(buf.as_ptr() as *const u8, buf.len()) };
+                let end = bytes.iter().position(|&b| b == 0).unwrap_or(bytes.len());
+                Some(String::from_utf8_lossy(&bytes[..end]).into_owned())
+            } else {
+                None
+            }
+        }
+    }
+
+    impl Drop for CfString {
+        fn drop(&mut self) {
+            release(self.0);
+        }
+    }
+
+    /// App bundle display info via plutil (display name + bundle id).
+    fn bundle_info(app_path: &str) -> (String, String) {
+        let name = Path::new(app_path)
+            .file_stem()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_else(|| "Application".into());
+        let mut id = String::new();
+        if let Ok(out) = std::process::Command::new("/usr/bin/plutil")
+            .args([
+                "-convert",
+                "json",
+                "-o",
+                "-",
+                &format!("{app_path}/Contents/Info.plist"),
+            ])
+            .output()
+        {
+            if out.status.success() {
+                if let Ok(v) = serde_json::from_slice::<serde_json::Value>(&out.stdout) {
+                    id = v
+                        .get("CFBundleIdentifier")
+                        .and_then(|x| x.as_str())
+                        .unwrap_or("")
+                        .to_string();
+                }
+            }
+        }
+        (name, id)
+    }
+
+    fn url_to_path(url: cfref) -> Option<String> {
+        type FnRep = unsafe extern "C" fn(cfref, bool, *mut u8, isize) -> bool;
+        let f = symbol::<FnRep>(b"CFURLGetFileSystemRepresentation\0")?;
+        let mut buf = [0u8; 4096];
+        if unsafe { f(url, true, buf.as_mut_ptr(), buf.len() as isize) } {
+            let end = buf.iter().position(|&b| b == 0).unwrap_or(buf.len());
+            Some(String::from_utf8_lossy(&buf[..end]).into_owned())
+        } else {
+            None
+        }
+    }
+
+    struct FileUrl {
+        _s: CfString,
+        url: cfref,
+    }
+
+    impl FileUrl {
+        fn new(path: &str) -> Option<FileUrl> {
+            type FnUrl = unsafe extern "C" fn(cfref, cfref, isize, bool) -> cfref;
+            let f = symbol::<FnUrl>(b"CFURLCreateWithFileSystemPath\0")?;
+            let s = CfString::new(path);
+            let url = unsafe { f(std::ptr::null(), s.0, 0, Path::new(path).is_dir()) };
+            if url.is_null() {
+                None
+            } else {
+                Some(FileUrl { _s: s, url })
+            }
+        }
+    }
+
+    impl Drop for FileUrl {
+        fn drop(&mut self) {
+            release(self.url);
+        }
+    }
+
+    fn app_at(url_path: &str, is_default: bool) -> super::Application {
+        let (name, _id) = bundle_info(url_path);
+        super::Application {
+            name,
+            path: url_path.to_string(),
+            icon: None,
+            is_default,
+        }
+    }
+
+    /// The system default app for one concrete file (Finder truth).
+    pub(crate) fn default_app_for_file(path: &str) -> Option<super::Application> {
+        type FnDef = unsafe extern "C" fn(cfref, u32) -> cfref;
+        let f = symbol::<FnDef>(b"LSCopyDefaultApplicationURLForURL\0")?;
+        let fu = FileUrl::new(path)?;
+        let app_url = unsafe { f(fu.url, K_LS_ROLES_ALL) };
+        if app_url.is_null() {
+            return None;
+        }
+        let result = url_to_path(app_url).map(|p| app_at(&p, true));
+        release(app_url);
+        result
+    }
+
+    /// All apps LaunchServices declares able to open this file.
+    pub(crate) fn apps_for_file(path: &str) -> Vec<super::Application> {
+        type FnApps = unsafe extern "C" fn(cfref, u32) -> cfref;
+        let f = match symbol::<FnApps>(b"LSCopyApplicationURLsForURL\0") {
+            Some(f) => f,
+            None => return Vec::new(),
+        };
+        let fu = match FileUrl::new(path) {
+            Some(v) => v,
+            None => return Vec::new(),
+        };
+        let arr = unsafe { f(fu.url, K_LS_ROLES_ALL) };
+        if arr.is_null() {
+            return Vec::new();
+        }
+        let mut out = Vec::new();
+        for i in 0..array_count(arr) {
+            let item = array_at(arr, i);
+            if !item.is_null() {
+                if let Some(p) = url_to_path(item) {
+                    out.push(app_at(&p, false));
+                }
+            }
+        }
+        release(arr);
+        out
+    }
+
+    /// System-wide "open with" default. LSSetDefaultRoleHandlerForContentType
+    /// silently no-ops on modern macOS, so write the per-user LSHandlers
+    /// binding directly (the duti/SwiftDefaultApps technique) and bounce lsd
+    /// so Finder and every app see the change immediately.
+    pub(crate) fn set_default_for_extension(ext: &str, app_path: &str) -> Result<(), String> {
+        type FnUti = unsafe extern "C" fn(cfref, cfref, cfref) -> cfref;
+        let (_, bundle_id) = bundle_info(app_path);
+        if bundle_id.is_empty() {
+            return Err("app bundle id unreadable".into());
+        }
+        let f_uti = symbol::<FnUti>(b"UTTypeCreatePreferredIdentifierForTag\0")
+            .ok_or_else(|| "UTType FFI missing".to_string())?;
+        let tag_class = CfString::new("public.filename-extension");
+        let ext_str = CfString::new(ext);
+        let uti_raw = unsafe { f_uti(tag_class.0, ext_str.0, std::ptr::null()) };
+        if uti_raw.is_null() {
+            return Err("no UTI for extension".into());
+        }
+        let uti = CfString::from_raw(uti_raw).to_rust().ok_or("UTI decode failed")?;
+
+        let plist = format!(
+            "{}/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist",
+            std::env::var("HOME").map_err(|_| "no HOME")?
+        );
+        let existing = std::process::Command::new("/usr/bin/plutil")
+            .args(["-convert", "json", "-o", "-", &plist])
+            .output()
+            .map_err(|e| format!("plutil read failed: {e}"))?;
+        let mut doc: serde_json::Value = if existing.status.success() {
+            serde_json::from_slice(&existing.stdout).unwrap_or_else(|_| serde_json::json!({}))
+        } else {
+            serde_json::json!({})
+        };
+
+        let entry = serde_json::json!({
+            "LSHandlerContentType": uti,
+            "LSHandlerRoleAll": bundle_id,
+            "LSHandlerPreferredVersions": { "LSHandlerRoleAll": "-" },
+        });
+        let handlers = doc
+            .as_object_mut()
+            .ok_or("unexpected LSHandlers shape")?
+            .entry("LSHandlers")
+            .or_insert_with(|| serde_json::json!([]));
+        if let Some(arr) = handlers.as_array_mut() {
+            arr.retain(|h| h.get("LSHandlerContentType").and_then(|v| v.as_str()) != Some(&uti));
+            arr.push(entry);
+        }
+
+        let tmp = std::env::temp_dir().join("wisp-lshandlers.json");
+        std::fs::write(&tmp, serde_json::to_vec(&doc).map_err(|e| e.to_string())?)
+            .map_err(|e| format!("tmp write failed: {e}"))?;
+        let conv = std::process::Command::new("/usr/bin/plutil")
+            .args(["-convert", "binary1", "-o", &plist, tmp.to_string_lossy().as_ref()])
+            .output()
+            .map_err(|e| format!("plutil write failed: {e}"))?;
+        let _ = std::fs::remove_file(&tmp);
+        if !conv.status.success() {
+            return Err(format!(
+                "plutil convert failed: {}",
+                String::from_utf8_lossy(&conv.stderr)
+            ));
+        }
+        // Bounce the LaunchServices daemon so the binding is picked up.
+        let _ = std::process::Command::new("/usr/bin/killall").arg("lsd").output();
+        Ok(())
+    }
 }
 
 #[cfg(windows)]
@@ -422,8 +723,78 @@ fn set_unix_default_application(_extension: &str, _app_path: &str) -> Result<(),
 }
 
 #[cfg(target_os = "macos")]
-fn set_macos_default_application(_extension: &str, _app_path: &str) -> Result<(), String> {
-    // This would require using Launch Services on macOS
-    // For security reasons, we'll return an error for now
-    Err("Setting default applications is not supported in this version".to_string())
+fn set_macos_default_application(extension: &str, app_path: &str) -> Result<(), String> {
+    ls::set_default_for_extension(extension, app_path)
+}
+
+#[cfg(test)]
+mod ls_tests {
+    use super::ls;
+
+    #[test]
+    fn set_default_round_trips_through_launchservices() {
+        // Declared extension (txt -> public.plain-text): write the CURRENT
+        // default back so the system setting is untouched by the test, then
+        // verify the read-back agrees.
+        let probe = std::env::temp_dir().join("probe.txt");
+        std::fs::write(&probe, b"x").unwrap();
+        let current = ls::default_app_for_file(probe.to_string_lossy().as_ref())
+            .expect("txt default should resolve");
+        ls::set_default_for_extension("txt", &current.path).expect("set default should succeed");
+        let def = ls::default_app_for_file(probe.to_string_lossy().as_ref()).unwrap();
+        assert_eq!(def.path, current.path);
+        let _ = std::fs::remove_file(&probe);
+    }
+
+    // Real switch: txt -> Script Editor -> verify -> restore TextEdit.
+    // Manual/E2E only (`--ignored`) because it mutates system state briefly.
+    #[test]
+    #[ignore]
+    fn switches_default_and_restores() {
+        let probe = std::env::temp_dir().join("probe.txt");
+        std::fs::write(&probe, b"x").unwrap();
+        let p = probe.to_string_lossy().into_owned();
+        let original = ls::default_app_for_file(&p).expect("original default");
+
+        ls::set_default_for_extension("txt", "/System/Applications/Utilities/Script Editor.app")
+            .expect("switch should succeed");
+        // lsd just bounced; in-process LS clients need a moment to re-resolve.
+        let mut switched = None;
+        for _ in 0..20 {
+            std::thread::sleep(std::time::Duration::from_millis(250));
+            if let Some(def) = ls::default_app_for_file(&p) {
+                if def.path.contains("Script Editor") {
+                    switched = Some(def);
+                    break;
+                }
+                switched = Some(def);
+            }
+        }
+        let switched = switched.expect("switched default");
+        assert!(
+            switched.path.contains("Script Editor"),
+            "got {}",
+            switched.path
+        );
+
+        ls::set_default_for_extension("txt", &original.path).expect("restore should succeed");
+        let restored = ls::default_app_for_file(&p).unwrap();
+        assert_eq!(restored.path, original.path);
+        let _ = std::fs::remove_file(&probe);
+    }
+
+    #[test]
+    fn default_app_resolves_for_common_type() {
+        // Read-only LaunchServices queries on a guaranteed-existing file.
+        let home = std::env::temp_dir().join("wisp-ls-probe.txt");
+        std::fs::write(&home, b"probe").unwrap();
+        let path = home.to_string_lossy().into_owned();
+        let default = ls::default_app_for_file(&path);
+        assert!(default.is_some(), "txt default app should resolve");
+        println!("default for txt: {:?}", default.unwrap().name);
+        let apps = ls::apps_for_file(&path);
+        assert!(!apps.is_empty(), "apps-for-file should list candidates");
+        println!("apps: {:?}", apps.iter().map(|a| a.name.clone()).take(5).collect::<Vec<_>>());
+        let _ = std::fs::remove_file(&home);
+    }
 }

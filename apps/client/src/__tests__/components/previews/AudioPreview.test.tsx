@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import AudioPreview from '@/components/previews/AudioPreview';
 import { FileEntry } from '@/lib/tauri-api';
@@ -61,11 +61,15 @@ describe('AudioPreview', () => {
       expect(screen.getByText('Loading audio...')).toBeInTheDocument();
     });
 
-    it('creates audio element with correct src', () => {
+    it('creates audio element with correct src', async () => {
       render(<AudioPreview {...mockProps} />);
 
+      // Media src resolves async (blob fallback) in the current component.
+      await waitFor(() => {
+        const audioElement = document.querySelector('audio');
+        expect(audioElement.getAttribute('src')).toMatch(/media:\/\/localhost|%2F/);
+      });
       const audioElement = document.querySelector('audio');
-      expect(audioElement).toHaveAttribute('src', 'tauri://asset/C:\\Users\\Test\\test.mp3');
       expect(audioElement).toHaveAttribute('preload', 'metadata');
       expect(audioElement).toHaveStyle({ display: 'none' });
     });

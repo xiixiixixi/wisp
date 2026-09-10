@@ -115,7 +115,7 @@ const JsonPreview = ({ file, onError, onLoad }: PreviewProps) => {
   };
 
   return (
-    <div className="mt-4">
+    <div className="flex h-full flex-col">
       <div className="mb-2 flex items-center justify-between">
         <h4 className="text-xs font-medium text-xp-text-muted">{tUi('interface.jsonPreview')}</h4>
         <div className="flex space-x-1">
@@ -165,7 +165,7 @@ const JsonPreview = ({ file, onError, onLoad }: PreviewProps) => {
         </div>
       ) : null}
       {!error && jsonData !== null && (
-        <div className="max-h-64 overflow-y-auto rounded-[2px] border border-xp-border bg-xp-surface p-3">
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-[2px] border border-xp-border bg-xp-surface p-3">
           {viewMode === 'formatted' ? (
             <div className="font-mono text-xs text-xp-text">{renderJsonValue(jsonData)}</div>
           ) : (

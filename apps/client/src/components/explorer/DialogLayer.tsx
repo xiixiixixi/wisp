@@ -190,7 +190,9 @@ const DialogLayer = ({
               isOpen={dialogManager.openWithDialogOpen}
               onClose={dialogManager.closeOpenWithDialog}
               filePath={dialogManager.openWithDialogFile}
-              onChoose={dialogManager.openWithDialogOnChoose ?? (() => {})}
+              onChoose={
+                dialogManager.openWithDialogOnChoose as ((handler: unknown) => void) | undefined
+              }
             />
           </React.Suspense>
         </ErrorBoundary>

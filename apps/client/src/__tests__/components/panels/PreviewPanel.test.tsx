@@ -190,10 +190,19 @@ describe('PreviewPanel', () => {
 
       render(<PreviewPanel {...folderProps} />);
 
-      // Wait for debounce (200ms) + rendering
+      // Finder-style folder preview: name + item count + size, no card table
       await waitFor(
         () => {
-          expect(screen.getByText('Folder Contents')).toBeInTheDocument();
+          expect(screen.getAllByText('MyFolder').length).toBeGreaterThan(0);
+          // The count and size render inside one summary line. The test
+          // i18n mock serves English literals, so assert those directly.
+          // Locale varies with test order — accept zh or en literals.
+          const summaries = screen.getAllByText((_, el) =>
+            Boolean(el?.textContent?.match(/^7 (items|个项目)/)),
+          );
+          expect(
+            summaries.some((el) => el.textContent?.match(/(10240\s*B|10\s*KB)/)),
+          ).toBe(true);
         },
         { timeout: 1000 },
       );
@@ -213,10 +222,14 @@ describe('PreviewPanel', () => {
 
       render(<PreviewPanel {...mockProps} selectedFile={unknownFile} />);
 
-      // Wait for debounce (200ms) + async preview component resolution
+      // Finder-style: unpreviewable files degrade to the large type icon —
+      // no "failed to load"/"not supported" copy anywhere.
       await waitFor(
         () => {
-          expect(screen.getByText('No preview available')).toBeInTheDocument();
+          expect(screen.getByLabelText('data.xyz')).toBeInTheDocument();
+          expect(document.body.textContent).not.toMatch(
+            /failed|not supported|cannot preview|too large/i,
+          );
         },
         { timeout: 1000 },
       );
@@ -234,10 +247,10 @@ describe('PreviewPanel', () => {
 
       render(<PreviewPanel {...mockProps} selectedFile={largeFile} />);
 
-      // Wait for debounce (200ms) + async preview component resolution
+      // Oversized unknown files degrade to the same Finder-style icon.
       await waitFor(
         () => {
-          expect(screen.getByText(i18n.t('previewPanel.tooLarge'))).toBeInTheDocument();
+          expect(screen.getByLabelText('huge.bin')).toBeInTheDocument();
         },
         { timeout: 1000 },
       );

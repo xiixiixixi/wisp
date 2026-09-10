@@ -137,8 +137,27 @@ export const useLayoutState = (): LayoutState => {
   const handleLeftResize = useCallback((delta: number) => {
     setLeftSidebarWidth((w) => Math.min(480, Math.max(180, w + delta)));
   }, []);
+  // Sidebar bounds follow the WINDOW, not fixed pixels: the preview pane may
+  // take up to 60% of the window (cap 760px) and at least 240px.
+  const rightSidebarMax = () => Math.max(360, Math.min(window.innerWidth * 0.6, 760));
+
   const handleRightResize = useCallback((delta: number) => {
-    setRightSidebarWidth((w) => Math.min(560, Math.max(240, w - delta)));
+    setRightSidebarWidth((w) => Math.min(rightSidebarMax(), Math.max(240, w - delta)));
+  }, []);
+
+  // When the window shrinks, clamp stored panel sizes so the file panes keep
+  // a usable share — no fixed layout surviving a resize.
+  useEffect(() => {
+    const clampToWindow = () => {
+      setRightSidebarWidth((w) => Math.min(rightSidebarMax(), Math.max(240, w)));
+      setBottomPanelHeight((h) =>
+        Math.min(Math.max(window.innerHeight * 0.5, 160), Math.max(120, h)),
+      );
+    };
+    clampToWindow();
+    window.addEventListener('resize', clampToWindow);
+    return () => window.removeEventListener('resize', clampToWindow);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const handleBottomResize = useCallback((delta: number) => {
     setBottomPanelHeight((h) => Math.min(500, Math.max(120, h - delta)));

@@ -48,12 +48,22 @@ const ResizeHandle = ({ direction, onResize, onResizeEnd, className = '' }: Resi
   return (
     <div
       onMouseDown={handleMouseDown}
-      className={`wisp-resize-handle group flex-shrink-0 ${
+      className={`wisp-resize-handle group relative flex-shrink-0 ${
         isHorizontal
-          ? 'wisp-resize-handle-horizontal w-1 cursor-col-resize hover:bg-xp-blue/40 active:bg-xp-blue/60'
-          : 'wisp-resize-handle-vertical h-1 cursor-row-resize hover:bg-xp-blue/40 active:bg-xp-blue/60'
-      } transition-colors ${className}`}
-    />
+          ? 'wisp-resize-handle-horizontal w-3 cursor-col-resize'
+          : 'wisp-resize-handle-vertical h-3 cursor-row-resize'
+      } ${className}`}
+    >
+      {/* Visual 1px rail centered in a 12px grab zone — the tiny w-1 strip
+          was nearly impossible to hit with a real mouse. */}
+      <span
+        className={`absolute transition-colors group-hover:bg-xp-blue/70 group-active:bg-xp-blue ${
+          isHorizontal
+            ? 'top-0 bottom-0 left-1/2 w-px -translate-x-1/2'
+            : 'left-0 right-0 top-1/2 h-px -translate-y-1/2'
+        } bg-xp-border`}
+      />
+    </div>
   );
 };
 

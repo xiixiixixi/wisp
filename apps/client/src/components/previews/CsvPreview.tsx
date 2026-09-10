@@ -68,7 +68,7 @@ const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
   }, [file.path, file.size]);
 
   return (
-    <div className="mt-4">
+    <div className="flex h-full flex-col">
       <div className="mb-2 flex items-center justify-between">
         <h4 className="text-xs font-medium text-xp-text-muted">{tUi('interface.csvPreview')}</h4>
         {meta && (
@@ -103,7 +103,7 @@ const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
       {!error && data.length > 0 && (
         <>
           <div className="overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface">
-            <div className="max-h-64 overflow-auto">
+            <div className="min-h-0 flex-1 overflow-auto">
               <table className="w-full text-xs">
                 <thead className="sticky top-0 bg-xp-bg">
                   <tr>

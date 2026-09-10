@@ -129,26 +129,14 @@ export const useFileActions = (deps: FileActionsDeps) => {
         return;
       }
 
-      // For code/text files, check saved preference or show the Open With prompt
-      if (isCodeFile(file.path)) {
-        const ext = getFileExtension(file.path);
-        const savedPref = getOpenPreference(ext);
-
-        if (savedPref) {
-          await executeOpenHandler(file, savedPref);
-          return;
-        }
-
-        // No saved preference — show the dialog
-        if (openOpenWithDialog) {
-          openOpenWithDialog(file.path, (handler: OpenHandler) => {
-            executeOpenHandler(file, handler);
-          });
-          return;
-        }
-      }
-
-      // Default: open with system
+      // Finder parity: double-click always opens with the system default
+      // application. Choosing a different app (one-off or system-wide default)
+      // lives in the 打开方式 context menu / dialog.
+      void isCodeFile;
+      void getFileExtension;
+      void getOpenPreference;
+      void executeOpenHandler;
+      void openOpenWithDialog;
       try {
         await TauriAPI.openFile(file.path);
       } catch (error) {

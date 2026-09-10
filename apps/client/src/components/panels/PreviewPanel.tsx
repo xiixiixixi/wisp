@@ -1,13 +1,14 @@
 import i18n from '@/i18n';
 import React, { useState, useEffect, useRef } from 'react';
 import { FileEntry, TauriAPI, FolderSizeInfo } from '@/lib/tauri-api';
+import { isTauri } from '@/lib/transport';
 import { getFileIcon } from '@/lib/utils';
 import { defaultPreviewFactory, PreviewProps, PreviewType } from '@/lib/preview-factory';
 import { extensionHost } from '@/lib/extension-host';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
-import { FileText, FileWarning, RotateCw } from 'lucide-react';
+import { FileText } from 'lucide-react';
+import FinderFileIcon from '@/components/explorer/FinderFileIcon';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
 
 // Module-level cache for preview components by file type, avoiding redundant dynamic imports
 const previewComponentCache = new Map<PreviewType, React.ComponentType<PreviewProps>>();
@@ -31,7 +32,6 @@ const EnhancedFilePreview: React.FC<{
   currentPath?: string;
 }> = ({ file, category: _category, currentPath }) => {
   const { t } = useTranslation();
-  const [retry, setRetry] = useState(0);
   const [PreviewComponent, setPreviewComponent] =
     useState<React.ComponentType<PreviewProps> | null>(null);
   const [extensionPreviewElement, setExtensionPreviewElement] = useState<React.ReactElement | null>(
@@ -39,6 +39,9 @@ const EnhancedFilePreview: React.FC<{
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Finder-style graceful degradation: render the large type icon instead of
+  // an error panel when a preview component fails.
+  const [iconFallback, setIconFallback] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,6 +50,7 @@ const EnhancedFilePreview: React.FC<{
       try {
         setLoading(true);
         setError(null);
+        setIconFallback(false);
         setExtensionPreviewElement(null);
 
         // Check extension previews first (extension > built-in > fallback)
@@ -116,6 +120,29 @@ const EnhancedFilePreview: React.FC<{
 
         // Fall back to built-in preview factory
         if (!defaultPreviewFactory.canPreview(file)) {
+          // Finder previews ANY text file regardless of extension (Makefile,
+          // .gitignore, extensionless scripts, …) — sniff the content and
+          // route it to the text preview when the leading bytes are UTF-8.
+          if (isTauri() && file.size > 0 && file.size <= 10 * 1024 * 1024) {
+            let isText = false;
+            try {
+              isText = await TauriAPI.previewSniffText(file.path);
+            } catch {
+              // Sniffing is best-effort; fall through to the no-preview UI.
+            }
+            if (cancelled) return;
+            if (isText) {
+              const TextComponent = await import('@/components/previews/TextPreview').then(
+                (m) => m.default,
+              );
+              if (!cancelled) {
+                previewComponentCache.set('text', TextComponent);
+                setPreviewComponent(() => TextComponent);
+                setLoading(false);
+              }
+              return;
+            }
+          }
           if (!cancelled) {
             setPreviewComponent(null);
             setLoading(false);
@@ -145,7 +172,7 @@ const EnhancedFilePreview: React.FC<{
       } catch (err) {
         if (!cancelled) {
           console.error('Failed to load preview component:', err);
-          setError(err instanceof Error ? err.message : i18n.t('previewPanel.failedLoad'));
+          setIconFallback(true);
         }
       } finally {
         if (!cancelled) {
@@ -160,32 +187,32 @@ const EnhancedFilePreview: React.FC<{
     };
     // file.path and file.name are sufficient to determine preview type
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [file.path, file.name, currentPath, retry]);
+  }, [file.path, file.name, currentPath]);
 
   const handlePreviewError = (error: Error) => {
+    // Finder never surfaces a "failed to load" panel — unrenderable files
+    // quietly fall back to the large type icon. Keep the console trace.
     console.error('Preview error:', error);
-    setError(error.message);
+    setIconFallback(true);
   };
 
   const handlePreviewLoad = () => {
-    setError(null);
+    setIconFallback(false);
   };
 
   if (loading) {
     return <PreviewSkeleton />;
   }
 
-  if (error) {
+  // Finder-style degradation for unrenderable files: a large type icon and
+  // nothing else — no "failed to load" copy, no retry loop, no stack traces.
+  if (error || iconFallback || !PreviewComponent) {
     return (
-      <div className="wisp-preview-error text-xp-text-secondary" role="alert">
-        <FileWarning size={36} strokeWidth={1.25} aria-hidden="true" />
-        <h4 className="text-sm font-semibold text-xp-text">{t('previewPanel.failedLoad')}</h4>
-        <p className="text-xs leading-relaxed">{t('previewPanel.retryDescription')}</p>
-        <p className="text-xs">{error}</p>
-        <Button variant="outline" size="sm" onClick={() => setRetry((value) => value + 1)}>
-          <RotateCw size={14} aria-hidden="true" />
-          {t('previewPanel.retry')}
-        </Button>
+      <div className="flex h-full items-center justify-center" aria-label={file.name}>
+        <FinderFileIcon
+          file={file}
+          fallback={<span className="text-7xl opacity-90">{getFileIcon(file)}</span>}
+        />
       </div>
     );
   }
@@ -195,28 +222,10 @@ const EnhancedFilePreview: React.FC<{
     return extensionPreviewElement;
   }
 
-  if (PreviewComponent) {
-    return <PreviewComponent file={file} onError={handlePreviewError} onLoad={handlePreviewLoad} />;
-  }
-
-  // Fallback for unsupported file types
-  return (
-    <div className="flex h-full items-center justify-center">
-      <div className="text-center">
-        <div className="mb-4 text-4xl">{getFileIcon(file)}</div>
-        <p className="mb-2 text-sm text-xp-text-secondary">{t('interface.noPreviewAvailable')}</p>
-        <p className="text-xs text-xp-text-secondary">
-          {file.size > 50 * 1024 * 1024
-            ? i18n.t('previewPanel.tooLarge')
-            : i18n.t('previewPanel.notSupported')}
-        </p>
-        <p className="mt-1 text-xs text-xp-text-secondary">{t('interface.doubleClickToOpen')}</p>
-      </div>
-    </div>
-  );
+  return <PreviewComponent file={file} onError={handlePreviewError} onLoad={handlePreviewLoad} />;
 };
 
-// Folder details component
+// Finder-style folder preview: large folder icon + item count + size.
 const FolderDetails: React.FC<{
   file: FileEntry;
   getFolderSize?: (path: string) => FolderSizeInfo | null;
@@ -226,61 +235,32 @@ const FolderDetails: React.FC<{
   const { t: tUi } = useTranslation();
   const folderSize = getFolderSize?.(file.path);
   const calculating = isCalculatingSize?.(file.path) || false;
+  const itemCount = folderSize ? folderSize.file_count + folderSize.dir_count : null;
 
   return (
-    <div className="flex h-full flex-col items-center justify-center">
-      <div className="max-w-sm rounded-[2px] border border-xp-border bg-xp-surface p-6 text-center">
-        <div className="mb-4 text-4xl">{getFileIcon(file)}</div>
-        <h4 className="mb-4 text-sm font-medium text-xp-text">{tUi('interface.folderContents')}</h4>
-        <div className="space-y-3 text-sm">
-          {folderSize && (
+    <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+      <FinderFileIcon
+        file={file}
+        fallback={<span className="text-7xl opacity-90">{getFileIcon(file)}</span>}
+      />
+      <div>
+        <p className="max-w-[240px] truncate text-sm font-medium text-xp-text" title={file.name}>
+          {file.name}
+        </p>
+        <p className="mt-0.5 text-xs text-xp-text-secondary">
+          {itemCount !== null ? (
             <>
-              <div className="flex justify-between">
-                <span className="text-xp-text-secondary">{tUi('interface.totalSizeLabel')}</span>
-                <span>{formatFileSize(folderSize.total_size)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-xp-text-secondary">{tUi('dialogs.extract.files')}</span>
-                <span>{folderSize.file_count}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-xp-text-secondary">{tUi('interface.foldersLabel')}</span>
-                <span>{folderSize.dir_count}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-xp-text-secondary">{tUi('interface.totalItemsLabel')}</span>
-                <span>{folderSize.file_count + folderSize.dir_count}</span>
-              </div>
+              {tUi('previewPanel.folderItems', { count: itemCount })}
+              {folderSize && folderSize.total_size > 0 && (
+                <> · {formatFileSize(folderSize.total_size)}</>
+              )}
             </>
+          ) : calculating ? (
+            tUi('interface.calculatingSize')
+          ) : (
+            tUi('commandPalette.folderType')
           )}
-          {calculating && (
-            <div className="py-2 text-center">
-              <div className="inline-flex items-center text-xp-text-secondary">
-                <svg className="-ml-1 mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                {tUi('interface.calculatingSize')}
-              </div>
-            </div>
-          )}
-          {!folderSize && !calculating && (
-            <div className="py-2 text-center text-xs text-xp-text-secondary">
-              {tUi('explorer.details.calculateTitle')}
-            </div>
-          )}
-        </div>
+        </p>
       </div>
     </div>
   );

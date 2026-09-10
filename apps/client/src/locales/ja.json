@@ -266,7 +266,11 @@
     "bookmarkFolder": "このフォルダをブックマーク",
     "pinToSidebar": "サイドバーにピン留め",
     "lockFile": "ファイルをロック",
-    "unlockFile": "ファイルのロックを解除"
+    "unlockFile": "ファイルのロックを解除",
+    "loadingApps": "読み込み中…",
+    "openWithOther": "その他…",
+    "defaultApp": "{{name}}（デフォルト）",
+    "defaultTag": "デフォルト"
   },
   "drives": {
     "eject": "取り出し",
@@ -1224,7 +1228,12 @@
     "systemDefaultDesc": "OS のデフォルトアプリケーションで開く",
     "alwaysUse": ".{{ext}} ファイルに常にこれを使用する",
     "open": "開く",
-    "cancel": "キャンセル"
+    "cancel": "キャンセル",
+    "searchApps": "アプリケーションを検索",
+    "recommended": "推奨",
+    "allApps": "すべてのアプリ",
+    "alwaysOpenWith": "常にこのアプリで開く",
+    "openButton": "開く"
   },
   "permissions": {
     "title": "拡張機能の権限",
@@ -1369,7 +1378,32 @@
     "copyFilePath": "ファイルパスをコピー",
     "copied": "コピー済み",
     "noFileSelectedAria": "プレビューするファイルが選択されていません",
-    "selectFileToPreview": "ファイルを選択してプレビュー"
+    "selectFileToPreview": "ファイルを選択してプレビュー",
+    "convertedPreview": "変換プレビュー",
+    "posterOnlyHint": "このコーデックは再生できません。ポスター画像を表示しています",
+    "docConvertFailed": "このドキュメントを変換できません",
+    "firstPageOnly": "先頭ページのプレビュー",
+    "noEmbeddedPreview": "埋め込みプレビューはありません",
+    "fontSpecimen": "フォント見本",
+    "fontLoadFailed": "このフォントを読み込めませんでした",
+    "archiveItems": "{{count}} 項目",
+    "archiveUnpacked": "展開後：{{size}}",
+    "archiveEncrypted": "暗号化済み",
+    "archiveName": "名前",
+    "archiveCompressed": "圧縮後",
+    "archiveMore": "…他 {{count}} 項目",
+    "archiveReadFailed": "アーカイブの内容を読み込めません",
+    "plistReadFailed": "プロパティリストを読み込めません",
+    "contactParseFailed": "このファイルに連絡先や予定がありません",
+    "allDay": "終日",
+    "qlThumbnailFailed": "Quick Look でこのファイルを描画できません",
+    "extractedText": "抽出テキスト",
+    "folderItems": "{{count}} 項目",
+    "epubChapter": "第 {{index}} 章",
+    "epubPrevChapter": "前の章",
+    "epubNextChapter": "次の章",
+    "epubChapterList": "章一覧",
+    "epubUnavailable": "この電子書籍を開けません"
   },
   "home": {
     "goodMorning": "おはようございます",

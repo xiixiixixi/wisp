@@ -280,7 +280,11 @@
     "lockFile": "Lock File",
     "unlockFile": "Unlock File",
     "bulkRenameAction": "Bulk Rename",
-    "tagsEditor": "Edit Tags…"
+    "tagsEditor": "Edit Tags…",
+    "loadingApps": "Loading…",
+    "openWithOther": "Other…",
+    "defaultApp": "{{name}} (default)",
+    "defaultTag": "default"
   },
   "drives": {
     "eject": "Eject",
@@ -1396,7 +1400,12 @@
     "systemDefaultDesc": "Open with your OS default application",
     "alwaysUse": "Always use this for .{{ext}} files",
     "open": "Open",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "searchApps": "Search applications",
+    "recommended": "Recommended",
+    "allApps": "All applications",
+    "alwaysOpenWith": "Always open with this app",
+    "openButton": "Open"
   },
   "permissions": {
     "title": "Extension Permissions",
@@ -1558,7 +1567,32 @@
     "copyFilePath": "Copy file path",
     "copied": "Copied",
     "noFileSelectedAria": "No file selected for preview",
-    "selectFileToPreview": "Select a file to preview"
+    "selectFileToPreview": "Select a file to preview",
+    "convertedPreview": "Converted preview",
+    "posterOnlyHint": "This codec can't play here — showing the poster frame",
+    "docConvertFailed": "Document conversion is unavailable",
+    "firstPageOnly": "First page preview",
+    "noEmbeddedPreview": "No embedded preview available",
+    "fontSpecimen": "Font specimen",
+    "fontLoadFailed": "This font could not be loaded",
+    "archiveItems": "{{count}} items",
+    "archiveUnpacked": "Unpacked: {{size}}",
+    "archiveEncrypted": "Encrypted",
+    "archiveName": "Name",
+    "archiveCompressed": "Compressed",
+    "archiveMore": "…and {{count}} more",
+    "archiveReadFailed": "Archive contents could not be read",
+    "plistReadFailed": "Property list could not be read",
+    "contactParseFailed": "No contacts or events found in this file",
+    "allDay": "All day",
+    "qlThumbnailFailed": "Quick Look could not render this file",
+    "extractedText": "Extracted text",
+    "folderItems": "{{count}} items",
+    "epubChapter": "Chapter {{index}}",
+    "epubPrevChapter": "Previous chapter",
+    "epubNextChapter": "Next chapter",
+    "epubChapterList": "Chapters",
+    "epubUnavailable": "This book could not be opened"
   },
   "home": {
     "workspace": "Intelligent workspace",

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
 import { PreviewProps } from '@/lib/preview-factory';
-import { convertAssetUrl } from '@/lib/transport';
+import { mediaUrl } from '@/lib/preview-media';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
 
 /**
@@ -17,7 +17,9 @@ const PdfPreview = ({ file, onError, onLoad }: PreviewProps) => {
 
   useEffect(() => {
     setReady(false);
-    setSrc(convertAssetUrl(file.path));
+    // media:// serves ranged requests, so WKWebView's PDF viewer starts
+    // rendering immediately instead of buffering the whole file first.
+    setSrc(mediaUrl(file.path));
   }, [file.path]);
 
   return (

@@ -563,40 +563,58 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
   // handles a deleted current folder by navigating to a surviving ancestor.
 
   // ── Mouse side buttons (back/forward) ─────────────────────────────────────
-  // Desktop: the backend NSEvent monitor emits `mouse-back` / `mouse-forward`
-  // (WKWebView does not reliably surface auxiliary buttons to the DOM).
-  // Web: browsers deliver them as mouseup with button 3 / 4 directly.
+  // Two live channels, because neither alone covers every device/driver:
+  // 1. DOM mouseup with button 3/4 — verified to fire in WKWebView for real
+  //    hardware mice (drivers that map side buttons to ⌘[/⌘] are covered by
+  //    the cmd+[ / cmd+] shortcut bindings instead).
+  // 2. Backend NSEvent monitor emitting `mouse-back` / `mouse-forward` for
+  //    events the webview swallows.
+  // The listeners are installed ONCE and call through a ref: re-subscribing
+  // on every render (navigate* identities change with splitLayout) leaves an
+  // async gap where presses are dropped.
+  const navigateBackRef = useRef(navigateBackInHistory);
+  navigateBackRef.current = navigateBackInHistory;
+  const navigateForwardRef = useRef(navigateForwardInHistory);
+  navigateForwardRef.current = navigateForwardInHistory;
+
   useEffect(() => {
+    const onMouseUp = (event: MouseEvent) => {
+      if (event.button === 3) {
+        event.preventDefault();
+        navigateBackRef.current();
+      } else if (event.button === 4) {
+        event.preventDefault();
+        navigateForwardRef.current();
+      }
+    };
+    // Capture phase: auxiliary buttons are non-browsing actions, and some
+    // embedded surfaces stopPropagation() on click/mouseup in bubble phase.
+    window.addEventListener('mouseup', onMouseUp, true);
+    window.addEventListener('auxclick', onMouseUp as EventListener, true);
+
+    let disposed = false;
+    const unlisteners: Array<() => void> = [];
     if (isTauri()) {
-      let disposed = false;
-      const unlisteners: Array<() => void> = [];
       (async () => {
-        const back = await TauriAPI.listenToEvent('mouse-back', () => navigateBackInHistory());
+        const back = await TauriAPI.listenToEvent('mouse-back', () => navigateBackRef.current());
         if (disposed) return void back();
         unlisteners.push(back);
         const forward = await TauriAPI.listenToEvent('mouse-forward', () =>
-          navigateForwardInHistory(),
+          navigateForwardRef.current(),
         );
         if (disposed) return void forward();
         unlisteners.push(forward);
       })().catch(console.error);
-      return () => {
-        disposed = true;
-        unlisteners.forEach((unlisten) => unlisten());
-      };
     }
-    const onMouseUp = (event: MouseEvent) => {
-      if (event.button === 3) {
-        event.preventDefault();
-        navigateBackInHistory();
-      } else if (event.button === 4) {
-        event.preventDefault();
-        navigateForwardInHistory();
-      }
+    return () => {
+      disposed = true;
+      unlisteners.forEach((unlisten) => unlisten());
+      window.removeEventListener('mouseup', onMouseUp, true);
+      window.removeEventListener('auxclick', onMouseUp as EventListener, true);
     };
-    window.addEventListener('mouseup', onMouseUp);
-    return () => window.removeEventListener('mouseup', onMouseUp);
-  }, [navigateBackInHistory, navigateForwardInHistory]);
+    // Mounted once; latest callbacks are read through refs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Vim mode ──────────────────────────────────────────────────────────────
   const [vimEnabled, setVimEnabled] = useState(() => isVimModeEnabled());

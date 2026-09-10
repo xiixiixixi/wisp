@@ -1,186 +1,215 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FileCode, Monitor, ExternalLink, X } from 'lucide-react';
-import {
-  type OpenHandler,
-  getFileExtension,
-  isCodeFile,
-  setOpenPreference,
-} from '@/hooks/use-open-with-prefs';
+import { Search, X, Check } from 'lucide-react';
+import { TauriAPI, type Application, type FileAssociation } from '@/lib/tauri-api';
+import { isTauri } from '@/lib/transport';
+import { formatFileSize } from '@/lib/utils';
+
+/**
+ * Finder-style "choose application" dialog: recommended apps from
+ * LaunchServices (exactly what Finder's 打开方式 menu lists), searchable
+ * full app list, and 始终用此应用打开 which writes the SYSTEM-wide default
+ * (LaunchServices) — Finder picks the change up immediately.
+ */
 
 interface OpenWithDialogProps {
   isOpen: boolean;
   onClose: () => void;
   filePath: string;
-  onChoose: (handler: OpenHandler) => void;
+  /** Legacy handler callback — no longer used; kept for call-site compat. */
+  onChoose?: (handler: unknown) => void;
 }
 
-interface HandlerOption {
-  id: OpenHandler;
-  labelKey: string;
-  descriptionKey: string;
-  Icon: React.ElementType;
-}
-
-const HANDLER_OPTIONS: HandlerOption[] = [
-  {
-    id: 'wisp-editor',
-    labelKey: 'openWith.wispEditor',
-    descriptionKey: 'openWith.wispEditorDesc',
-    Icon: FileCode,
-  },
-  {
-    id: 'vscode',
-    labelKey: 'openWith.vscode',
-    descriptionKey: 'openWith.vscodeDesc',
-    Icon: ExternalLink,
-  },
-  {
-    id: 'system',
-    labelKey: 'openWith.systemDefault',
-    descriptionKey: 'openWith.systemDefaultDesc',
-    Icon: Monitor,
-  },
-];
-
-const OpenWithDialog = ({ isOpen, onClose, filePath, onChoose }: OpenWithDialogProps) => {
+const OpenWithDialog = ({ isOpen, onClose, filePath }: OpenWithDialogProps) => {
   const { t } = useTranslation();
-  const [selected, setSelected] = useState<OpenHandler>('wisp-editor');
-  const [rememberChoice, setRememberChoice] = useState(false);
+  const [assoc, setAssoc] = useState<FileAssociation | null>(null);
+  const [allApps, setAllApps] = useState<Application[]>([]);
+  const [selected, setSelected] = useState<Application | null>(null);
+  const [always, setAlways] = useState(false);
+  const [query, setQuery] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  const ext = getFileExtension(filePath);
   const fileName = filePath.split(/[/\\]/).pop() ?? '';
-  const isCode = isCodeFile(filePath);
+  const ext = fileName.includes('.') ? fileName.split('.').pop()!.toLowerCase() : '';
 
-  const handleOpen = useCallback(() => {
-    if (rememberChoice && ext) {
-      setOpenPreference(ext, selected);
+  useEffect(() => {
+    if (!isOpen || !isTauri()) return;
+    setSelected(null);
+    setAlways(false);
+    setQuery('');
+    setAssoc(null);
+    TauriAPI.getFileAssociations(filePath)
+      .then((a) => {
+        setAssoc(a);
+        if (a.default_app) setSelected(a.default_app);
+      })
+      .catch(() => setAssoc(null));
+    TauriAPI.getSystemApplications()
+      .then((apps) => {
+        const seen = new Set<string>();
+        setAllApps(apps.filter((a) => !seen.has(a.path) && seen.add(a.path)));
+      })
+      .catch(() => setAllApps([]));
+  }, [isOpen, filePath]);
+
+  const recommended = useMemo(() => {
+    if (!assoc) return [];
+    const def = assoc.default_app;
+    const rest = assoc.available_apps.filter((a) => a.path !== def?.path);
+    return def ? [def, ...rest] : rest;
+  }, [assoc]);
+
+  const filteredApps = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return allApps.slice(0, 60);
+    return allApps
+      .filter((a) => a.name.toLowerCase().includes(q))
+      .slice(0, 60);
+  }, [allApps, query]);
+
+  const recommendedPaths = useMemo(
+    () => new Set(recommended.map((a) => a.path)),
+    [recommended],
+  );
+
+  const handleOpen = useCallback(async () => {
+    if (!selected || busy) return;
+    setBusy(true);
+    try {
+      if (always && ext) {
+        await TauriAPI.setDefaultApplication(ext, selected.path).catch((err: unknown) => {
+          console.error('setDefaultApplication failed:', err);
+        });
+      }
+      await TauriAPI.openFileWithApplication(filePath, selected.path);
+      onClose();
+    } catch (err) {
+      console.error('open with application failed:', err);
+    } finally {
+      setBusy(false);
     }
-    onChoose(selected);
-    onClose();
-  }, [rememberChoice, ext, selected, onChoose, onClose]);
-
-  const handleClose = useCallback(() => {
-    setSelected('wisp-editor');
-    setRememberChoice(false);
-    onClose();
-  }, [onClose]);
+  }, [selected, busy, always, ext, filePath, onClose]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        handleClose();
-      } else if (e.key === 'Enter') {
-        handleOpen();
-      }
+      if (e.key === 'Escape') onClose();
+      else if (e.key === 'Enter') void handleOpen();
     },
-    [handleClose, handleOpen],
+    [onClose, handleOpen],
   );
 
   if (!isOpen) return null;
 
-  // For non-code files, fall through — this dialog is code-file specific.
-  // The caller should not open this for non-code files, but guard just in case.
-  const options = isCode ? HANDLER_OPTIONS : HANDLER_OPTIONS.filter((o) => o.id !== 'wisp-editor');
+  const appRow = (app: Application) => (
+    <button
+      key={app.path}
+      onClick={() => setSelected(app)}
+      onDoubleClick={() => {
+        setSelected(app);
+        void handleOpen();
+      }}
+      className={`flex w-full items-center gap-2 rounded-[2px] px-2 py-1.5 text-left text-xs transition-colors ${
+        selected?.path === app.path
+          ? 'bg-xp-surface-light text-xp-text'
+          : 'text-xp-text-secondary hover:bg-xp-surface-light/60'
+      }`}
+    >
+      <span className="min-w-0 flex-1 truncate" title={app.name}>
+        {app.name}
+      </span>
+      {app.is_default && (
+        <span className="shrink-0 text-[10px] text-xp-text-muted">
+          {t('contextMenu.defaultTag')}
+        </span>
+      )}
+      {selected?.path === app.path && <Check size={12} className="shrink-0" aria-hidden />}
+    </button>
+  );
 
   return (
     <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      onKeyDown={handleKeyDown}
       role="dialog"
       aria-modal="true"
       aria-label={t('openWith.title')}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onKeyDown={handleKeyDown}
     >
-      <div className="w-[420px] max-w-[90vw] overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface shadow-2xl">
+      <div className="flex h-[460px] w-[440px] flex-col rounded-[6px] border border-xp-border bg-xp-surface shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-xp-border px-5 py-4">
-          <div>
-            <h2 className="text-base font-semibold text-xp-text">{t('openWith.title')}</h2>
-            <p className="mt-0.5 max-w-[300px] truncate text-xs text-xp-text-secondary">
+        <div className="flex items-center justify-between border-b border-xp-border px-3 py-2">
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-medium text-xp-text">{t('openWith.title')}</h3>
+            <p className="truncate text-xs text-xp-text-muted" title={fileName}>
               {fileName}
             </p>
           </div>
           <button
-            onClick={handleClose}
-            className="rounded-[2px] p-1.5 text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-            aria-label={t('openWith.cancel')}
+            onClick={onClose}
+            className="rounded-[2px] p-1 text-xp-text-secondary hover:bg-xp-surface-light"
+            aria-label={t('common.close')}
           >
-            <X size={16} />
+            <X size={16} aria-hidden />
           </button>
         </div>
 
-        {/* Options */}
-        <div className="space-y-1.5 p-4">
-          {options.map(({ id, labelKey, descriptionKey, Icon }) => {
-            const isSelected = selected === id;
-            return (
-              <button
-                key={id}
-                onClick={() => setSelected(id)}
-                className={`flex w-full items-center gap-3 rounded-[2px] px-3 py-3 text-left transition-all ${
-                  isSelected
-                    ? 'bg-xp-accent/15 ring-1 ring-xp-accent/40'
-                    : 'hover:bg-xp-surface-light'
-                }`}
-              >
-                <div
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[2px] ${
-                    isSelected
-                      ? 'bg-xp-accent/20 text-xp-accent'
-                      : 'bg-xp-bg text-xp-text-secondary'
-                  }`}
-                >
-                  <Icon size={18} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div
-                    className={`text-sm font-medium ${isSelected ? 'text-xp-accent' : 'text-xp-text'}`}
-                  >
-                    {t(labelKey)}
-                  </div>
-                  <div className="text-xs text-xp-text-secondary">{t(descriptionKey)}</div>
-                </div>
-                <div
-                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[2px] border-2 transition-colors ${
-                    isSelected ? 'border-xp-accent bg-xp-accent' : 'border-xp-border'
-                  }`}
-                >
-                  {isSelected && <div className="h-1.5 w-1.5 rounded-[1px] bg-xp-popover" />}
-                </div>
-              </button>
-            );
-          })}
+        {/* Search */}
+        <div className="border-b border-xp-border px-3 py-2">
+          <div className="flex items-center gap-2 rounded-[2px] border border-xp-border bg-xp-bg px-2 py-1">
+            <Search size={13} className="shrink-0 text-xp-text-muted" aria-hidden />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t('openWith.searchApps')}
+              className="min-w-0 flex-1 bg-transparent text-xs text-xp-text outline-none"
+              autoFocus
+            />
+          </div>
         </div>
 
-        {/* Remember checkbox */}
-        {ext && (
-          <div className="border-t border-xp-border px-5 py-3">
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={rememberChoice}
-                onChange={(e) => setRememberChoice(e.target.checked)}
-                className="h-4 w-4 rounded-[2px] border-xp-border bg-xp-bg text-xp-accent"
-              />
-              <span className="text-sm text-xp-text">{t('openWith.alwaysUse', { ext })}</span>
-            </label>
-          </div>
-        )}
+        {/* List */}
+        <div className="min-h-0 flex-1 overflow-auto px-2 py-1">
+          {query.trim() === '' && recommended.length > 0 && (
+            <>
+              <p className="px-2 pb-1 pt-2 text-[10px] uppercase tracking-wide text-xp-text-muted">
+                {t('openWith.recommended')}
+              </p>
+              {recommended.slice(0, 8).map(appRow)}
+              <p className="px-2 pb-1 pt-2 text-[10px] uppercase tracking-wide text-xp-text-muted">
+                {t('openWith.allApps')}
+              </p>
+            </>
+          )}
+          {filteredApps
+            .filter((a) => query.trim() !== '' || !recommendedPaths.has(a.path))
+            .map(appRow)}
+        </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 border-t border-xp-border px-5 py-3">
-          <button
-            onClick={handleClose}
-            className="rounded-[2px] px-4 py-2 text-sm text-xp-text transition-colors hover:bg-xp-surface-light"
-          >
-            {t('openWith.cancel')}
-          </button>
-          <button
-            onClick={handleOpen}
-            className="rounded-[2px] bg-xp-accent px-4 py-2 text-sm font-medium text-xp-on-accent transition-colors hover:bg-xp-accent-hover"
-          >
-            {t('openWith.open')}
-          </button>
+        <div className="flex items-center justify-between gap-3 border-t border-xp-border px-3 py-2">
+          <label className="flex min-w-0 items-center gap-1.5 text-xs text-xp-text-secondary">
+            <input
+              type="checkbox"
+              checked={always}
+              onChange={(e) => setAlways(e.target.checked)}
+              disabled={!ext}
+            />
+            {t('openWith.alwaysOpenWith')}
+          </label>
+          <div className="flex shrink-0 gap-2">
+            <button
+              onClick={onClose}
+              className="rounded-[2px] border border-xp-border px-3 py-1 text-xs text-xp-text-secondary hover:bg-xp-surface-light"
+            >
+              {t('common.cancel')}
+            </button>
+            <button
+              onClick={() => void handleOpen()}
+              disabled={!selected || busy}
+              className="rounded-[2px] bg-[var(--xp-lime)] px-3 py-1 text-xs font-medium text-black disabled:opacity-40"
+            >
+              {busy ? t('common.loading') : t('openWith.openButton')}
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -14,6 +14,10 @@ import { installNativeTextEditing } from './lib/native-text-editing';
 import { installNativeMenuLanguage } from './lib/native-menu-language';
 import { migrateRetiredSettings } from './lib/retired-settings';
 
+// TEMP(debug): on-screen console capture. Delete after the user confirms
+// media previews work; it mirrors console errors into a corner overlay.
+
+
 migrateRetiredSettings();
 
 const disposeNativeTextEditing = installNativeTextEditing();

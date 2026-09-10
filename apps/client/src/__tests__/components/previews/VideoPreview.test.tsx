@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import VideoPreview from '@/components/previews/VideoPreview';
 import { FileEntry } from '@/lib/tauri-api';
@@ -70,19 +70,26 @@ describe('VideoPreview', () => {
       expect(screen.getByText('Loading video...')).toBeInTheDocument();
     });
 
-    it('creates video element with correct src', () => {
+    it('creates video element with correct src', async () => {
       render(<VideoPreview {...mockProps} />);
 
-      const videoElement = getVideoElement();
-      expect(videoElement).toBeInTheDocument();
-      expect(videoElement).toHaveAttribute('src', 'tauri://asset/C:\\Users\\Test\\test.mp4');
+      // Media src resolves async (blob fallback) in the current component.
+      const videoElement = await waitFor(() => {
+        const el = getVideoElement();
+        expect(el).toBeInTheDocument();
+        expect(el.getAttribute('src')).toMatch(/media:\/\/localhost|%2F/);
+        return el;
+      });
       expect(videoElement).toHaveAttribute('preload', 'metadata');
     });
 
-    it('converts file path using convertFileSrc', () => {
+    it('resolves a streaming media URL for the file', async () => {
       render(<VideoPreview {...mockProps} />);
 
-      expect(mockConvertFileSrc).toHaveBeenCalledWith('C:\\Users\\Test\\test.mp4');
+      await waitFor(() => {
+        const el = getVideoElement();
+        expect(el.getAttribute('src')).toMatch(/media:\/\/localhost|%2F/);
+      });
     });
   });
 
@@ -238,10 +245,15 @@ describe('VideoPreview', () => {
       expect(screen.getAllByText('1:15').length).toBeGreaterThanOrEqual(1);
     });
 
-    it('updates progress bar styling based on progress', () => {
+    it('updates progress bar styling based on progress', async () => {
       render(<VideoPreview {...mockProps} />);
 
-      const videoElement = getVideoElement();
+      const videoElement = await waitFor(() => {
+        const el = getVideoElement();
+        expect(el).toBeInTheDocument();
+        expect(el.getAttribute('src')).toMatch(/media:\/\/localhost|%2F/);
+        return el;
+      });
       Object.defineProperty(videoElement, 'duration', { value: 100 });
       Object.defineProperty(videoElement, 'currentTime', { value: 25 });
       fireEvent.loadedData(videoElement);
@@ -249,9 +261,8 @@ describe('VideoPreview', () => {
       fireEvent.timeUpdate(videoElement);
 
       const progressBar = screen.getByDisplayValue('25');
-      const expectedGradient =
-        'linear-gradient(to right, #7aa2f7 0%, #7aa2f7 25%, #1a1b26 25%, #1a1b26 100%)';
-      expect(progressBar).toHaveStyle({ background: expectedGradient });
+      // Progress colors come from CSS variables now.
+      expect(progressBar.getAttribute('style')).toContain('25%');
     });
   });
 
@@ -323,18 +334,16 @@ describe('VideoPreview', () => {
       expect(screen.getByText('Loading video...')).toBeInTheDocument();
     });
 
-    it('updates video src when file changes', () => {
-      mockConvertFileSrc.mockClear();
-
+    it('updates video src when file changes', async () => {
       const { rerender } = render(<VideoPreview {...mockProps} />);
 
       const updatedFile = { ...mockFile, path: 'C:\\Users\\Test\\updated.mp4' };
       rerender(<VideoPreview {...mockProps} file={updatedFile} />);
 
-      expect(mockConvertFileSrc).toHaveBeenCalledWith('C:\\Users\\Test\\updated.mp4');
-
-      const videoElement = getVideoElement();
-      expect(videoElement).toHaveAttribute('src', 'tauri://asset/C:\\Users\\Test\\updated.mp4');
+      await waitFor(() => {
+        const videoElement = getVideoElement();
+        expect(videoElement.getAttribute('src')).toMatch(/updated\.mp4/);
+      });
     });
   });
 

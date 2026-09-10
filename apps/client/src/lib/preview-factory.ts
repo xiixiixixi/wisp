@@ -14,7 +14,13 @@ export type PreviewType =
   | 'html'
   | 'video'
   | 'audio'
+  | 'iwork'
+  | 'epub'
+  | 'font'
   | 'archive'
+  | 'plist'
+  | 'contact'
+  | 'quicklook'
   | 'folder'
   | 'unknown';
 
@@ -44,6 +50,68 @@ export interface PreviewFactoryConfig {
   customPreviews?: Map<string, PreviewCapability>;
 }
 
+// ─── Finder-parity extension lists ─────────────────────────────────────────
+//
+// The goal: every file Finder's Quick Look can preview, Wisp can too.
+// WebKit natively decodes the common web raster/vector formats; formats only
+// ImageIO understands (HEIC/HEIF, camera RAW, PSD, …) still register here and
+// ImagePreview converts them through the Rust `sips` bridge on load failure.
+
+// WebKit cannot decode these without the Rust conversion bridge, but Finder
+// previews them, so they stay in the image list.
+const IMAGE_EXTENSIONS = [
+  'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'svgz', 'ico', 'tiff', 'tif', 'avif',
+  'heic', 'heif', // iPhone photos — WebKit ≥17 renders these; bridge covers older
+  'psd', 'psb', // Photoshop (flattened composite via ImageIO)
+  'dng', 'cr2', 'cr3', 'nef', 'nrw', 'arw', 'srf', 'sr2', 'raf', 'orf', 'rw2', 'raw',
+  'pef', 'ptx', 'dcr', 'rwl', 'mrw', 'kdc', 'erf', 'iiq', '3fr', 'fff', 'x3f', // camera RAW
+  'pict', 'pct', 'exr', 'hdr', 'tga', 'icns', 'pbm', 'pgm', 'ppm', 'pnm',
+] as const;
+
+const CODE_EXTENSIONS = [
+  'js', 'ts', 'jsx', 'tsx', 'py', 'java', 'cpp', 'cc', 'c', 'h', 'hpp', 'cs', 'php', 'rb',
+  'go', 'rs', 'css', 'scss', 'less', 'vue', 'svelte', 'sh', 'bash', 'zsh', 'fish', 'toml',
+  'sql', 'swift', 'kt', 'kts',
+  'xml', 'yml', 'yaml', 'diff', 'patch', 'bat', 'cmd', 'ps1', 'pl', 'lua', 'scala', 'dart',
+  'r', 'm', 'mm', 'gradle', 'makefile',
+] as const;
+
+const VIDEO_EXTENSIONS = [
+  'mp4', 'm4v', 'mov', 'webm', 'mkv', 'avi', 'ogv',
+  'mpg', 'mpeg', 'm1v', 'm2v', 'm4b', '3gp', '3g2',
+] as const;
+
+const AUDIO_EXTENSIONS = [
+  'mp3', 'wav', 'ogg', 'oga', 'flac', 'm4a', 'm4b', 'm4r', 'aac', 'wma', 'opus',
+  'aiff', 'aif', 'aifc', 'caf', 'mp2', 'ac3',
+] as const;
+
+// iWork bundles embed a QuickLook/Preview.pdf the Rust side extracts so the
+// native PDF viewer renders the exact document Finder shows.
+const IWORK_EXTENSIONS = [
+  'pages', 'numbers', 'key', 'pagestemplate', 'nmbtemplate', 'kth',
+] as const;
+
+const FONT_EXTENSIONS = ['ttf', 'otf', 'ttc', 'otc', 'woff', 'woff2', 'dfont'] as const;
+
+const ARCHIVE_EXTENSIONS = ['zip', 'jar', 'apk', 'ipa', 'war', 'ear'] as const;
+
+const PLIST_EXTENSIONS = ['plist', 'strings', 'mobileconfig'] as const;
+
+const CONTACT_EXTENSIONS = ['vcf', 'vcard', 'ics', 'ical', 'icalendar'] as const;
+
+// Formats with no dedicated web renderer: the Rust bridge asks Quick Look
+// itself for a first-page thumbnail (ppt/pptx, USDZ, ICC, …).
+const QUICKLOOK_EXTENSIONS = [
+  'ppt', 'pptx', 'pps', 'ppsx', 'pot', 'potx',
+  'usdz', 'usda', 'usdc', 'icc', 'icm',
+] as const;
+
+const extOf = (file: FileEntry): string => file.name.split('.').pop()?.toLowerCase() || '';
+
+const matchesExtensions = (file: FileEntry, exts: readonly string[]): boolean =>
+  exts.includes(extOf(file));
+
 // Default configuration
 const DEFAULT_CONFIG: PreviewFactoryConfig = {
   enabledTypes: [
@@ -59,8 +127,15 @@ const DEFAULT_CONFIG: PreviewFactoryConfig = {
     'html',
     'video',
     'audio',
+    'iwork',
+    'epub',
+    'font',
+    'archive',
+    'plist',
+    'contact',
+    'quicklook',
   ],
-  maxFileSize: 50 * 1024 * 1024, // 50MB
+  maxFileSize: 50 * 1024 * 1024, // 50MB — media types override with their own caps
   enableFallback: true,
   customPreviews: new Map(),
 };
@@ -68,20 +143,23 @@ const DEFAULT_CONFIG: PreviewFactoryConfig = {
 export class PreviewFactory {
   private config: PreviewFactoryConfig;
   private capabilities: Map<PreviewType, PreviewCapability>;
+  /** True when the caller explicitly set maxFileSize, overriding per-type caps. */
+  private maxFileSizeExplicit: boolean;
 
   constructor(config: Partial<PreviewFactoryConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
+    this.maxFileSizeExplicit = config.maxFileSize !== undefined;
     this.capabilities = new Map();
     this.initializeCapabilities();
   }
 
   private initializeCapabilities() {
-    // Image previews
+    // Image previews (incl. HEIC/RAW/PSD via the ImageIO conversion bridge)
     this.capabilities.set('image', {
       type: 'image',
-      extensions: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico', 'tiff'],
+      extensions: [...IMAGE_EXTENSIONS],
       mimeTypes: ['image/'],
-      maxSize: 20 * 1024 * 1024, // 20MB
+      maxSize: 200 * 1024 * 1024, // RAW files are huge; conversion handles scaling
       priority: 10,
       canPreview: (file) => this.canPreviewImage(file),
       getPreviewComponent: () =>
@@ -99,10 +177,10 @@ export class PreviewFactory {
       getPreviewComponent: () => import('@/components/previews/PdfPreview').then((m) => m.default),
     });
 
-    // Document previews (DOCX, DOC, etc.)
+    // Document previews (DOCX, DOC, RTF, ODT, webarchive — textutil → HTML bridge)
     this.capabilities.set('document', {
       type: 'document',
-      extensions: ['docx', 'doc', 'odt', 'rtf'],
+      extensions: ['docx', 'doc', 'rtf', 'rtfd', 'odt', 'webarchive'],
       mimeTypes: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
       maxSize: 50 * 1024 * 1024, // 50MB
       priority: 9,
@@ -137,32 +215,7 @@ export class PreviewFactory {
     // Code previews — CodeMirror 6 preview + edit, 100+ lazy languages
     this.capabilities.set('code', {
       type: 'code',
-      extensions: [
-        'js',
-        'ts',
-        'jsx',
-        'tsx',
-        'py',
-        'java',
-        'cpp',
-        'c',
-        'cs',
-        'php',
-        'rb',
-        'go',
-        'rs',
-        'css',
-        'scss',
-        'less',
-        'vue',
-        'svelte',
-        'sh',
-        'bash',
-        'toml',
-        'sql',
-        'swift',
-        'kt',
-      ],
+      extensions: [...CODE_EXTENSIONS],
       mimeTypes: ['text/', 'application/javascript', 'application/typescript'],
       maxSize: 10 * 1024 * 1024, // 10MB
       priority: 9,
@@ -184,7 +237,7 @@ export class PreviewFactory {
     // JSON previews
     this.capabilities.set('json', {
       type: 'json',
-      extensions: ['json', 'jsonl', 'ndjson'],
+      extensions: ['json', 'jsonl', 'ndjson', 'ipynb'],
       mimeTypes: ['application/json'],
       maxSize: 5 * 1024 * 1024, // 5MB
       priority: 9,
@@ -212,13 +265,14 @@ export class PreviewFactory {
       maxSize: 10 * 1024 * 1024, // 10MB
       priority: 10, // beats 'code' so .html files render instead of showing markup
       canPreview: (file) => this.canPreviewHtml(file),
-      getPreviewComponent: () => import('@/components/previews/HtmlPreview').then((m) => m.default),
+      getPreviewComponent: () =>
+        import('@/components/previews/HtmlPreview').then((m) => m.default),
     });
 
-    // Video previews
+    // Video previews (undecodable codecs fall back to a Quick Look poster)
     this.capabilities.set('video', {
       type: 'video',
-      extensions: ['mp4', 'webm', 'mkv', 'avi', 'mov', 'm4v', 'ogv'],
+      extensions: [...VIDEO_EXTENSIONS],
       mimeTypes: ['video/'],
       maxSize: 2 * 1024 * 1024 * 1024, // 2GB
       priority: 10,
@@ -230,13 +284,91 @@ export class PreviewFactory {
     // Audio previews
     this.capabilities.set('audio', {
       type: 'audio',
-      extensions: ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac', 'wma', 'opus', 'aiff'],
+      extensions: [...AUDIO_EXTENSIONS],
       mimeTypes: ['audio/'],
       maxSize: 500 * 1024 * 1024, // 500MB
       priority: 10,
       canPreview: (file) => this.canPreviewAudio(file),
       getPreviewComponent: () =>
         import('@/components/previews/AudioPreview').then((m) => m.default),
+    });
+
+    // iWork documents (Pages/Numbers/Keynote) — embedded QuickLook PDF
+    this.capabilities.set('iwork', {
+      type: 'iwork',
+      extensions: [...IWORK_EXTENSIONS],
+      maxSize: 200 * 1024 * 1024,
+      priority: 10,
+      canPreview: (file) => matchesExtensions(file, IWORK_EXTENSIONS),
+      getPreviewComponent: () =>
+        import('@/components/previews/IworkPreview').then((m) => m.default),
+    });
+
+    // EPUB books — unpacked by Rust, chapters rendered in a sandboxed iframe
+    this.capabilities.set('epub', {
+      type: 'epub',
+      extensions: ['epub'],
+      maxSize: 200 * 1024 * 1024,
+      priority: 10,
+      canPreview: (file) => extOf(file) === 'epub',
+      getPreviewComponent: () =>
+        import('@/components/previews/EpubPreview').then((m) => m.default),
+    });
+
+    // Font specimens (TTF/OTF/TTC/WOFF…) — @font-face rendering
+    this.capabilities.set('font', {
+      type: 'font',
+      extensions: [...FONT_EXTENSIONS],
+      maxSize: 50 * 1024 * 1024,
+      priority: 10,
+      canPreview: (file) => matchesExtensions(file, FONT_EXTENSIONS),
+      getPreviewComponent: () =>
+        import('@/components/previews/FontPreview').then((m) => m.default),
+    });
+
+    // Archive listings (zip family) — Finder shows the entry list
+    this.capabilities.set('archive', {
+      type: 'archive',
+      extensions: [...ARCHIVE_EXTENSIONS],
+      maxSize: 2 * 1024 * 1024 * 1024, // listing reads central directory only
+      priority: 10,
+      canPreview: (file) => matchesExtensions(file, ARCHIVE_EXTENSIONS),
+      getPreviewComponent: () =>
+        import('@/components/previews/ArchivePreview').then((m) => m.default),
+    });
+
+    // Property lists (XML and binary) and .strings via plutil
+    this.capabilities.set('plist', {
+      type: 'plist',
+      extensions: [...PLIST_EXTENSIONS],
+      maxSize: 20 * 1024 * 1024,
+      priority: 10,
+      canPreview: (file) => matchesExtensions(file, PLIST_EXTENSIONS),
+      getPreviewComponent: () =>
+        import('@/components/previews/PlistPreview').then((m) => m.default),
+    });
+
+    // Contact/calendar cards (vCard, iCalendar)
+    this.capabilities.set('contact', {
+      type: 'contact',
+      extensions: [...CONTACT_EXTENSIONS],
+      maxSize: 10 * 1024 * 1024,
+      priority: 10,
+      canPreview: (file) => matchesExtensions(file, CONTACT_EXTENSIONS),
+      getPreviewComponent: () =>
+        import('@/components/previews/ContactPreview').then((m) => m.default),
+    });
+
+    // Everything else Finder previews via a Quick Look generator: ask the
+    // same engine for a first-page thumbnail (pptx, USDZ, ICC, …).
+    this.capabilities.set('quicklook', {
+      type: 'quicklook',
+      extensions: [...QUICKLOOK_EXTENSIONS],
+      maxSize: 500 * 1024 * 1024,
+      priority: 10,
+      canPreview: (file) => matchesExtensions(file, QUICKLOOK_EXTENSIONS),
+      getPreviewComponent: () =>
+        import('@/components/previews/QuickLookPreview').then((m) => m.default),
     });
 
     // Add custom previews from config
@@ -273,10 +405,16 @@ export class PreviewFactory {
   // Check if file can be previewed
   public canPreview(file: FileEntry): boolean {
     if (file.is_dir) return false;
-    if (file.size > this.config.maxFileSize) return false;
 
     const fileType = this.getFileType(file);
-    return fileType !== 'unknown';
+    if (fileType === 'unknown') return false;
+
+    // Per-type caps (e.g. 2GB video, 200MB RAW) override the DEFAULT global
+    // cap so large media previews like Finder's; an explicitly configured
+    // maxFileSize still wins as the user's intent.
+    const typeMax = this.capabilities.get(fileType)?.maxSize ?? this.config.maxFileSize;
+    const max = this.maxFileSizeExplicit ? Math.min(typeMax, this.config.maxFileSize) : typeMax;
+    return file.size <= max;
   }
 
   // Get preview component for file
@@ -321,50 +459,45 @@ export class PreviewFactory {
 
   // Helper methods for determining file types
   private canPreviewImage(file: FileEntry): boolean {
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
     const capability = this.capabilities.get('image')!;
-
-    return capability.extensions.includes(ext) || (file.mime_type?.startsWith('image/') ?? false);
+    return (
+      matchesExtensions(file, capability.extensions) ||
+      (file.mime_type?.startsWith('image/') ?? false)
+    );
   }
 
   private canPreviewPdf(file: FileEntry): boolean {
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    return ext === 'pdf' || file.mime_type === 'application/pdf';
+    return extOf(file) === 'pdf' || file.mime_type === 'application/pdf';
   }
 
   private canPreviewDocument(file: FileEntry): boolean {
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
     const capability = this.capabilities.get('document')!;
-
     return (
-      capability.extensions.includes(ext) || (file.mime_type?.includes('wordprocessingml') ?? false)
+      matchesExtensions(file, capability.extensions) ||
+      (file.mime_type?.includes('wordprocessingml') ?? false)
     );
   }
 
   private canPreviewSpreadsheet(file: FileEntry): boolean {
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
     const capability = this.capabilities.get('spreadsheet')!;
-
     return (
-      capability.extensions.includes(ext) || (file.mime_type?.includes('spreadsheetml') ?? false)
+      matchesExtensions(file, capability.extensions) ||
+      (file.mime_type?.includes('spreadsheetml') ?? false)
     );
   }
 
   private canPreviewText(file: FileEntry): boolean {
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
     const capability = this.capabilities.get('text')!;
-
     return (
-      capability.extensions.includes(ext) || (file.mime_type?.startsWith('text/plain') ?? false)
+      matchesExtensions(file, capability.extensions) ||
+      (file.mime_type?.startsWith('text/plain') ?? false)
     );
   }
 
   private canPreviewCode(file: FileEntry): boolean {
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
     const capability = this.capabilities.get('code')!;
-
     return (
-      capability.extensions.includes(ext) ||
+      matchesExtensions(file, capability.extensions) ||
       (file.mime_type?.startsWith('text/') ?? false) ||
       (file.mime_type?.includes('javascript') ?? false) ||
       (file.mime_type?.includes('typescript') ?? false)
@@ -372,39 +505,43 @@ export class PreviewFactory {
   }
 
   private canPreviewCsv(file: FileEntry): boolean {
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    return ext === 'csv' || ext === 'tsv' || file.mime_type === 'text/csv';
+    return ['csv', 'tsv'].includes(extOf(file)) || file.mime_type === 'text/csv';
   }
 
   private canPreviewJson(file: FileEntry): boolean {
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
     const capability = this.capabilities.get('json')!;
-
-    return capability.extensions.includes(ext) || (file.mime_type?.includes('json') ?? false);
+    return (
+      matchesExtensions(file, capability.extensions) ||
+      (file.mime_type?.includes('json') ?? false)
+    );
   }
 
   private canPreviewMarkdown(file: FileEntry): boolean {
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
     const capability = this.capabilities.get('markdown')!;
-
-    return capability.extensions.includes(ext) || (file.mime_type?.includes('markdown') ?? false);
+    return (
+      matchesExtensions(file, capability.extensions) ||
+      (file.mime_type?.includes('markdown') ?? false)
+    );
   }
 
   private canPreviewHtml(file: FileEntry): boolean {
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    return ext === 'html' || ext === 'htm' || file.mime_type === 'text/html';
+    return ['html', 'htm'].includes(extOf(file)) || file.mime_type === 'text/html';
   }
 
   private canPreviewVideo(file: FileEntry): boolean {
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
     const capability = this.capabilities.get('video')!;
-    return capability.extensions.includes(ext) || (file.mime_type?.startsWith('video/') ?? false);
+    return (
+      matchesExtensions(file, capability.extensions) ||
+      (file.mime_type?.startsWith('video/') ?? false)
+    );
   }
 
   private canPreviewAudio(file: FileEntry): boolean {
-    const ext = file.name.split('.').pop()?.toLowerCase() || '';
     const capability = this.capabilities.get('audio')!;
-    return capability.extensions.includes(ext) || (file.mime_type?.startsWith('audio/') ?? false);
+    return (
+      matchesExtensions(file, capability.extensions) ||
+      (file.mime_type?.startsWith('audio/') ?? false)
+    );
   }
 }
 

@@ -1,14 +1,17 @@
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { PreviewProps } from '@/lib/preview-factory';
-import { convertAssetUrl } from '@/lib/transport';
+import { convertAssetUrl, isTauri } from '@/lib/transport';
+import { loadMediaSource } from '@/lib/preview-media';
 import { formatTime } from '@/lib/format-utils';
+import { TauriAPI } from '@/lib/tauri-api';
 
 const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
   const { t: tUi } = useTranslation();
   const [videoError, setVideoError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [videoSrc, setVideoSrc] = useState<string>('');
+  const [posterSrc, setPosterSrc] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -22,11 +25,25 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
     setIsPlaying(false);
     setCurrentTime(0);
     setDuration(0);
+    let cancelled = false;
+    let dispose: () => void = () => undefined;
 
-    // Convert file path to Tauri asset URL
-    const assetUrl = convertAssetUrl(file.path);
-    setVideoSrc(assetUrl);
-  }, [file.path]);
+    // WKWebView refuses range-less asset URLs in <video> — load the bytes as
+    // a Blob URL instead (see lib/preview-media.ts).
+    void loadMediaSource(file.path, file.name, 'video', file.size).then((media) => {
+      if (cancelled) {
+        media.dispose();
+        return;
+      }
+      dispose = media.dispose;
+      setVideoSrc(media.url);
+    });
+
+    return () => {
+      cancelled = true;
+      dispose();
+    };
+  }, [file.path, file.name, file.size]);
 
   const handleLoadedData = useCallback(() => {
     const video = videoRef.current;
@@ -39,11 +56,32 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
     onLoad?.();
   }, [onLoad]);
 
+  // With preload="metadata" the player settles at readyState 1 and
+  // loadeddata never fires until playback starts — clear the spinner on
+  // metadata too (same WKWebView quirk AudioPreview hit).
+  const handleLoadedMetadata = useCallback(() => {
+    const video = videoRef.current;
+    if (video && !isNaN(video.duration)) {
+      setDuration(video.duration);
+    }
+    setLoading(false);
+    onLoad?.();
+  }, [onLoad]);
+
   const handleError = useCallback(() => {
     setVideoError(true);
     setLoading(false);
     onError?.(new Error('Failed to load video'));
-  }, [onError]);
+    // WebKit lacks the codec (mkv/avi/…) — Finder still shows a frame, so ask
+    // Quick Look for a poster instead of giving up.
+    if (isTauri()) {
+      TauriAPI.previewQlThumbnail(file.path, 1024)
+        .then((thumb) => {
+          if (thumb) setPosterSrc(convertAssetUrl(thumb));
+        })
+        .catch(() => undefined);
+    }
+  }, [onError, file.path]);
 
   const handleTimeUpdate = useCallback(() => {
     const video = videoRef.current;
@@ -113,6 +151,7 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
               preload="metadata"
               className="max-h-full max-w-full object-contain"
               onLoadedData={handleLoadedData}
+              onLoadedMetadata={handleLoadedMetadata}
               onError={handleError}
               onTimeUpdate={handleTimeUpdate}
               onEnded={handleEnded}
@@ -198,18 +237,28 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
         </>
       )}
       {videoError && (
-        <div className="flex flex-1 items-center justify-center rounded-[2px] border border-xp-border bg-xp-surface">
-          <div className="text-center text-xp-text-muted">
-            <svg className="mx-auto mb-2 h-12 w-12" fill="currentColor" viewBox="0 0 20 20">
+        <div className="flex flex-1 flex-col items-center justify-center rounded-[2px] border border-xp-border bg-xp-surface">
+          {posterSrc ? (
+            <img
+              src={posterSrc}
+              alt={file.name}
+              className="max-h-[80%] max-w-full object-contain"
+            />
+          ) : (
+            <svg className="mb-2 h-12 w-12 text-xp-text-muted" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
                 clipRule="evenodd"
               />
             </svg>
+          )}
+          <div className="mt-3 text-center text-xp-text-muted">
             <p className="text-sm">{tUi('interface.cannotPreviewVideo')}</p>
             <p className="mt-1 text-xs opacity-70">
-              {tUi('interface.theVideoFormatMayNotBeSupported')}
+              {posterSrc
+                ? tUi('previewPanel.posterOnlyHint')
+                : tUi('interface.theVideoFormatMayNotBeSupported')}
             </p>
           </div>
         </div>

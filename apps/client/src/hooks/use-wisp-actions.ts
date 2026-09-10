@@ -295,33 +295,18 @@ export const useWispActions = (deps: WispActionsDeps) => {
   const sharedActions: SharedPaneActions = useMemo(
     () => ({
       handleFileOpen: async (file: FileEntry) => {
-        if (isEditableFile(file)) {
-          const sl = splitLayoutRef.current;
-          const group = sl.state.groups[sl.state.activeGroupId];
-          const existing = group?.tabs.find(
-            (t: TabItem) => t.type === 'editor' && t.path === file.path,
-          );
-          if (existing) {
-            sl.switchTab(group.id, existing.id);
-            return;
-          }
-          const editorTab: TabItem = {
-            id: `editor-${file.path}-${Date.now()}`,
-            name: file.name,
-            path: file.path,
-            type: 'editor',
-          };
-          sl.addTab(sl.state.activeGroupId, editorTab, true);
-        } else {
-          try {
-            await TauriAPI.openFile(file.path);
-          } catch (err) {
-            toastRef.current({
-              variant: 'destructive',
-              title: 'Open File Failed',
-              description: formatError(err),
-            });
-          }
+        // Finder parity: double-click opens EVERY file with the system
+        // default application (an html goes to the browser, source editing
+        // stays an explicit open-in-editor action).
+        void isEditableFile;
+        try {
+          await TauriAPI.openFile(file.path);
+        } catch (err) {
+          toastRef.current({
+            variant: 'destructive',
+            title: 'Open File Failed',
+            description: formatError(err),
+          });
         }
       },
       handleFileRightClick: (file: FileEntry, event: React.MouseEvent, _groupId: string) =>
