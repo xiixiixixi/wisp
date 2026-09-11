@@ -1,78 +1,50 @@
 ---
 id: search-and-tokenizer
-title: Search & Tokenizer
+title: Search
 sidebar_position: 4
 ---
 
-# Search & Tokenizer
+# Search
 
-Wisp includes a powerful search engine that tokenizes file contents and builds an inverted index for instant full-text search.
-
-![Smart search bar](/screenshots/search-bar.png)
+Wisp searches the filesystem through the operating system instead of maintaining an
+index of its own. Nothing is pre-built and nothing stays resident, so every query
+reflects the disk as it is right now — and Wisp spends no memory or startup time on
+an index it would have to keep in sync.
 
 ## How It Works
 
-![Search pipeline](/diagrams/search-pipeline.svg)
+- **Filename search** is delegated to the platform search provider. On macOS that is
+  Spotlight (`mdfind`), which answers name queries across indexed volumes in a fraction
+  of a second. Wisp never maintains a second copy of the file list.
+- **Content search** reads files on demand, scoped to the folder being searched. It
+  needs no background index and works in locations the system index does not cover.
 
-## Natural Language Search
+The practical consequences: no "indexing in progress" state, no rebuild after moving
+files, no stale results, and no background CPU or disk churn while you work.
 
-![Natural language search results](/screenshots/search-results.png)
+## Opening Search
 
-Wisp can parse natural language queries and extract structured filters:
+Press <kbd>⌘P</kbd> (or <kbd>⌘F</kbd>) to open the search palette. Results come from the
+system search provider across every mounted volume, and the palette shows folders
+alongside files with an explicit folder marker. Recently opened files are offered before
+you type anything.
 
-| Query                          | Interpretation                                        |
-| ------------------------------ | ----------------------------------------------------- |
-| "large videos from last month" | Filter: size > 100MB, type: video, date: last 30 days |
-| "python files in documents"    | Filter: extension: .py, path contains: documents      |
-| "photos from 2024"             | Filter: type: image, date: year 2024                  |
-| "small text files"             | Filter: size < 1MB, type: text                        |
+## Content Search
 
-The NLP parser (`enhanced_natural_language_search`) supports:
+Content search is available to the built-in agent (its `search_content` tool) and to
+extensions through the extension API. It scans the requested directory on demand rather
+than consulting an index, so it can search inside projects, temporary folders, and
+files that the system index skipped.
 
-- **Size filters**: "large", "small", "tiny", "huge"
-- **Type filters**: "images", "videos", "documents", "code", "audio"
-- **Date filters**: "today", "this week", "last month", "from 2024"
-- **Path filters**: Directory name keywords
-- **Synonym expansion**: "pics" → "images", "docs" → "documents"
+## System Requirements
 
-## AI-Enhanced Indexing
+Filename search depends on the system search index:
 
-When Ollama is available, Wisp can generate AI descriptions for files that don't contain searchable text:
+- On macOS, Spotlight indexing must be enabled for the volume you are searching
+  (`mdutil -s /` reports the current state).
+- Locations the system excludes by default — `~/Library`, hidden directories, and
+  folders marked as noise — do not appear in filename results.
+- If the index is unavailable, filename search returns nothing rather than silently
+  falling back to a full disk walk.
 
-### Image Indexing
-
-Uses vision models (LLaVA, bakllava, moondream) to:
-
-- Generate natural language descriptions of images
-- Extract tags and categories
-- These descriptions become searchable tokens
-
-### Semantic Search
-
-Uses embedding models (nomic-embed-text, all-minilm) to:
-
-- Create vector embeddings of file content
-- Find semantically similar files (not just keyword matches)
-- "Find files related to machine learning" finds relevant files even without exact keyword matches
-
-## Tokenizer Settings
-
-Configure via the Settings page or the `TokenizerSettings` API:
-
-| Setting                  | Default             | Description                  |
-| ------------------------ | ------------------- | ---------------------------- |
-| `enabled`                | `true`              | Enable/disable the tokenizer |
-| `max_file_size`          | 10 MB               | Skip files larger than this  |
-| `blacklisted_extensions` | exe, dll, bin, etc. | Skip these file types        |
-| `indexed_paths`          | []                  | Directories to index         |
-
-## Index Persistence
-
-The token index is saved to `token_index.json` in the app data directory. On startup:
-
-1. Load the existing index from disk
-2. When `rebuild_index` is called, reuse cached tokens for unchanged files
-3. Only re-extract content for new or modified files
-4. Save the updated index back to disk
-
-This means the first indexing of a large directory may take time, but subsequent re-indexes are near-instant for unchanged files.
+Content search does not depend on any of this: it reads files directly.

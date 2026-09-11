@@ -52,7 +52,11 @@ const searchSystem = async (query: string): Promise<GlobalSearchUpdate> => {
   };
 };
 
-/** Publish either source as soon as it arrives, then merge by full path. */
+/**
+ * File search is delegated entirely to the operating system: Wisp keeps no
+ * index of its own, so every query goes to the platform provider (Spotlight on
+ * macOS) and reflects the filesystem as it is right now.
+ */
 export const searchGlobalFiles = async (
   query: string,
   onUpdate: (update: GlobalSearchUpdate) => void,
@@ -73,45 +77,6 @@ export const searchGlobalFiles = async (
     });
     return;
   }
-  const indexedSearch = async (): Promise<GlobalSearchUpdate> => {
-    let results: SearchResult[];
-    try {
-      results = (await TauriAPI.enhancedSearch(query, undefined, GLOBAL_SEARCH_LIMIT)).results;
-    } catch {
-      results = await TauriAPI.searchTokens(query, GLOBAL_SEARCH_LIMIT);
-    }
-    return {
-      results: results.map((result) => ({ ...result, isDir: false })),
-      partial: false,
-      limited: results.length >= GLOBAL_SEARCH_LIMIT,
-    };
-  };
-  const sources: GlobalFileResult[][] = [[], []];
-  let partial = false;
-  let limited = false;
-  const publish = () => {
-    const merged = new Map<string, GlobalFileResult>();
-    // Filename results take priority and retain the explicit folder flag.
-    for (const result of sources.flat()) {
-      if (!merged.has(result.path)) merged.set(result.path, result);
-    }
-    onUpdate({
-      results: [...merged.values()].slice(0, GLOBAL_SEARCH_LIMIT),
-      partial,
-      limited: limited || merged.size >= GLOBAL_SEARCH_LIMIT,
-    });
-  };
-  await Promise.all(
-    [searchSystem(query), indexedSearch()].map(async (source, index) => {
-      try {
-        const update = await source;
-        sources[index] = update.results;
-        partial ||= update.partial;
-        limited ||= update.limited;
-      } catch {
-        partial = true;
-      }
-      publish();
-    }),
-  );
+  const update = await searchSystem(query);
+  onUpdate(update);
 };

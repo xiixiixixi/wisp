@@ -1,5 +1,4 @@
 import { transport } from '../transport';
-import type { AIIndexStatus, AIIndexEntry } from '../types';
 
 export const getAiModels = async (): Promise<
   { id: string; name: string; provider: string; available: boolean }[]
@@ -58,26 +57,4 @@ export const suggestFilename = async (filePath: string): Promise<string[]> => {
 
 export const autoTagFiles = async (filePaths: string[]): Promise<[string, string[]][]> => {
   return await transport('auto_tag_files', { filePaths });
-};
-
-export const getAIIndexStatus = async (): Promise<AIIndexStatus> => {
-  return await transport('get_ai_index_status');
-};
-
-export const triggerAIIndexing = async (
-  paths: string[],
-  provider?: 'ollama' | 'claude' | 'openai',
-  apiKey?: string,
-  model?: string,
-): Promise<void> => {
-  return await transport('trigger_ai_indexing', {
-    paths,
-    provider: provider || null,
-    apiKey: apiKey || null,
-    model: model || null,
-  });
-};
-
-export const getAIIndexEntry = async (path: string): Promise<AIIndexEntry | null> => {
-  return await transport('get_ai_index_entry', { path });
 };

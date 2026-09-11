@@ -1174,12 +1174,12 @@ pub async fn search_rerank_with_ai(
 /// Returns `Some((provider, api_key, model))` or `None` if nothing is available.
 pub async fn detect_best_provider() -> Option<(String, Option<String>, String)> {
     // 1. Try Ollama (local, free)
-    let client = crate::search::ollama_client::get_client();
+    let client = crate::ollama_client::get_client();
     let available = tokio::task::spawn_blocking(move || client.is_available())
         .await
         .unwrap_or(false);
     if available {
-        let client = crate::search::ollama_client::get_client();
+        let client = crate::ollama_client::get_client();
         if let Some(model) = client.detect_chat_model().await {
             return Some(("ollama".into(), None, model));
         }

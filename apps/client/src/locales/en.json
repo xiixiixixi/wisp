@@ -729,6 +729,7 @@
     "folderType": "Folder",
     "fileType": "File",
     "goToFolder": "Go to folder: {{path}}",
+    "openWebsite": "Open website: {{url}}",
     "goToCategory": "Folders"
   },
   "operationBar": {

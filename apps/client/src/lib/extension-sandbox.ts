@@ -677,18 +677,22 @@ export const createExtensionApi = (
       },
     },
     search: {
+      // Filename search through the OS provider (Spotlight on macOS).
       query: async (query: string, limit?: number) => {
         if (!hasPermission(manifest, 'search:read')) {
           throw new Error(`Extension "${manifest.id}" missing permission: search:read`);
         }
-        const result = await TauriAPI.enhancedSearch(query, undefined, limit);
-        return result.results;
-      },
-      semantic: async (query: string, limit?: number) => {
-        if (!hasPermission(manifest, 'search:read')) {
-          throw new Error(`Extension "${manifest.id}" missing permission: search:read`);
-        }
-        return TauriAPI.semanticSearch(query, limit);
+        const drives = await TauriAPI.listDrives();
+        const paths = await Promise.all(
+          drives.map((drive) => TauriAPI.findFiles(query, drive.path).catch(() => [])),
+        );
+        return [...new Set(paths.flat())].slice(0, limit ?? 50).map((path) => ({
+          path,
+          filename: path.split(/[/\\]/).pop() || path,
+          matches: [],
+          score: 1,
+          relevance_type: 'filesystem',
+        }));
       },
       findDuplicates: async (
         rootPath: string,

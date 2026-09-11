@@ -31,7 +31,7 @@ export const DOCS_SIDEBAR: SidebarEntry[] = [
       { slug: 'features/file-operations', title: 'File Operations' },
       { slug: 'features/file-previews', title: 'File Previews' },
       { slug: 'features/views', title: 'View Modes' },
-      { slug: 'features/search-and-tokenizer', title: 'Search & Tokenizer' },
+      { slug: 'features/search-and-tokenizer', title: 'Search' },
       { slug: 'features/ai-integration', title: 'AI Integration' },
       { slug: 'features/ai-agent', title: 'AI Agent' },
       { slug: 'features/git-integration', title: 'Git Integration' },

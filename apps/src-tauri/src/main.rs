@@ -20,7 +20,6 @@ use wisp::mouse_navigation;
 use wisp::operations;
 use wisp::project_memory;
 use wisp::pty;
-use wisp::search;
 use wisp::shortcuts;
 use wisp::storage;
 use wisp::weather;
@@ -86,13 +85,6 @@ fn main() {
 
             // Mouse side buttons (back/forward) → frontend navigation events
             mouse_navigation::install_mouse_navigation(app.handle().clone());
-
-            // Initialize the search engine eagerly: it loads the cached
-            // index, reconciles it against the filesystem, and starts the
-            // watcher, so search is warm before the user types anything.
-            std::thread::spawn(|| {
-                wisp::search::compat_engine::get_search_engine();
-            });
 
             // Initialize progress manager
             let progress_manager =
@@ -395,33 +387,6 @@ fn main() {
             operations::file_ops::copy_dir_merge,
             // Native plugin invoke (for extensions with native code)
             extensions::native_plugin_invoke,
-            // Search engine v2 (replaces old tokenizer commands)
-            wisp::search::compat_commands::set_tokenizer_settings,
-            wisp::search::compat_commands::get_tokenizer_settings,
-            wisp::search::compat_commands::rebuild_token_index,
-            wisp::search::compat_commands::search_tokens,
-            wisp::search::compat_commands::natural_language_search,
-            wisp::search::compat_commands::get_tokenizer_stats,
-            wisp::search::compat_commands::is_tokenizer_indexing,
-            wisp::search::compat_commands::get_file_tokens,
-            wisp::search::compat_commands::add_path_to_tokenizer,
-            wisp::search::compat_commands::get_file_recommendations,
-            wisp::search::compat_commands::parse_search_query,
-            wisp::search::compat_commands::enhanced_search,
-            // Auto-index and context-aware search
-            wisp::search::compat_commands::index_directory,
-            wisp::search::compat_commands::set_search_context,
-            wisp::search::compat_commands::add_whitelisted_path,
-            wisp::search::compat_commands::ai_search,
-            wisp::search::compat_commands::smart_search,
-            // AI indexing (new search engine v2 pipeline)
-            wisp::search::compat_commands::get_ai_index_status,
-            wisp::search::compat_commands::trigger_ai_indexing,
-            wisp::search::compat_commands::get_ai_index_entry,
-            // Semantic / hybrid search (new search engine v2 pipeline)
-            wisp::search::compat_commands::semantic_search,
-            wisp::search::compat_commands::find_similar_files,
-            wisp::search::compat_commands::hybrid_search,
             // Shortcut operations
             shortcuts::get_shortcuts,
             shortcuts::get_shortcuts_by_category,

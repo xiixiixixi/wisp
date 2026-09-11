@@ -31,8 +31,6 @@ vi.mock('@tanstack/react-virtual', () => ({
 vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {
     getRecentFiles: vi.fn().mockResolvedValue([]),
-    enhancedSearch: vi.fn().mockResolvedValue({ results: [] }),
-    searchTokens: vi.fn().mockResolvedValue([]),
     findFiles: vi.fn().mockResolvedValue([]),
     listDrives: vi.fn(),
     isDir: vi.fn().mockResolvedValue(false),
@@ -49,21 +47,11 @@ const deferred = <T,>() => {
   return { promise, resolve, reject };
 };
 
-const searchResult = (filename: string, path = `/search/${filename}`) => ({
-  path,
-  filename,
-  matches: [],
-  score: 1,
-  relevance_type: 'exact',
-});
-
 describe('CommandPalette', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.resetAllMocks();
     vi.mocked(TauriAPI.getRecentFiles).mockResolvedValue([]);
-    vi.mocked(TauriAPI.enhancedSearch).mockResolvedValue({ results: [] } as never);
-    vi.mocked(TauriAPI.searchTokens).mockResolvedValue([]);
     vi.mocked(TauriAPI.findFiles).mockResolvedValue([]);
     vi.mocked(TauriAPI.listDrives).mockResolvedValue([
       { path: '/', letter: '', label: 'Macintosh HD', total_space: 0, free_space: 0 },
@@ -103,6 +91,27 @@ describe('CommandPalette', () => {
     await waitFor(() => expect(onFileSelect).toHaveBeenCalledWith('/Users/test/Downloads', true));
   });
 
+  it('offers to open an explicit web address as a web tab', async () => {
+    const onFileSelect = vi.fn();
+    render(<CommandPalette isOpen onClose={vi.fn()} onFileSelect={onFileSelect} />);
+
+    fireEvent.change(screen.getByRole('combobox'), {
+      target: { value: 'http://127.0.0.1:3080/' },
+    });
+
+    const openSite = await screen.findByRole('option', { name: /Open website/ });
+    fireEvent.click(openSite);
+    // The web tab is created by the navigation layer, which treats http(s) as a page.
+    await waitFor(() => expect(onFileSelect).toHaveBeenCalledWith('http://127.0.0.1:3080/', true));
+  });
+
+  it('does not treat a plain search term as a web address', async () => {
+    render(<CommandPalette isOpen onClose={vi.fn()} onFileSelect={vi.fn()} />);
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'quarterly report' } });
+    await waitFor(() => expect(TauriAPI.findFiles).toHaveBeenCalled());
+    expect(screen.queryByRole('option', { name: /Open website/ })).not.toBeInTheDocument();
+  });
+
   it('sends an assistant request with the prompt and current folder context', async () => {
     const onClose = vi.fn();
     const listener = vi.fn();
@@ -129,55 +138,47 @@ describe('CommandPalette', () => {
     window.removeEventListener('wisp-ai-chat-request', listener);
   });
 
-  it('keeps stale query results and loading completions from replacing the latest search', async () => {
-    const firstSearch = deferred<{ results: ReturnType<typeof searchResult>[] }>();
-    const secondSearch = deferred<{ results: ReturnType<typeof searchResult>[] }>();
-    vi.mocked(TauriAPI.enhancedSearch)
-      .mockReturnValueOnce(firstSearch.promise as never)
-      .mockReturnValueOnce(secondSearch.promise as never);
+  it('keeps a slower system search from replacing the latest query results', async () => {
+    const firstSearch = deferred<string[]>();
+    const secondSearch = deferred<string[]>();
+    vi.mocked(TauriAPI.findFiles)
+      .mockReturnValueOnce(firstSearch.promise)
+      .mockReturnValueOnce(secondSearch.promise);
 
     render(<CommandPalette isOpen onClose={vi.fn()} currentPath="/Users/test/Documents" />);
     const input = screen.getByRole('combobox', { name: 'Search files and folders...' });
 
     fireEvent.change(input, { target: { value: 'first query' } });
-    await waitFor(() =>
-      expect(TauriAPI.enhancedSearch).toHaveBeenCalledWith('first query', undefined, 50),
-    );
+    await waitFor(() => expect(TauriAPI.findFiles).toHaveBeenCalledWith('first query', '/'));
 
     fireEvent.change(input, { target: { value: 'latest query' } });
-    await waitFor(() =>
-      expect(TauriAPI.enhancedSearch).toHaveBeenCalledWith('latest query', undefined, 50),
-    );
+    await waitFor(() => expect(TauriAPI.findFiles).toHaveBeenCalledWith('latest query', '/'));
 
     await act(async () => {
-      firstSearch.resolve({ results: [searchResult('stale-result.txt')] });
+      firstSearch.resolve(['/search/stale-result.txt']);
       await firstSearch.promise;
     });
-
     expect(screen.queryByText('stale-result.txt')).not.toBeInTheDocument();
-    expect(screen.getByText('Searching files...')).toBeInTheDocument();
 
     await act(async () => {
-      secondSearch.resolve({ results: [searchResult('latest-result.txt')] });
+      secondSearch.resolve(['/search/latest-result.txt']);
       await secondSearch.promise;
     });
-
     expect(await screen.findByText('latest-result.txt')).toBeInTheDocument();
-    expect(screen.queryByText('Searching files...')).not.toBeInTheDocument();
   });
 
   it('invalidates an in-flight file search when switching to assistant mode', async () => {
-    const fileSearch = deferred<{ results: ReturnType<typeof searchResult>[] }>();
-    vi.mocked(TauriAPI.enhancedSearch).mockReturnValueOnce(fileSearch.promise as never);
+    const fileSearch = deferred<string[]>();
+    vi.mocked(TauriAPI.findFiles).mockReturnValueOnce(fileSearch.promise);
 
     render(<CommandPalette isOpen onClose={vi.fn()} currentPath="/Users/test/Documents" />);
     const input = screen.getByRole('combobox', { name: 'Search files and folders...' });
     fireEvent.change(input, { target: { value: 'quarterly report' } });
-    await waitFor(() => expect(TauriAPI.enhancedSearch).toHaveBeenCalledOnce());
+    await waitFor(() => expect(TauriAPI.findFiles).toHaveBeenCalledOnce());
 
     fireEvent.click(screen.getByRole('tab', { name: 'Ask Wisp' }));
     await act(async () => {
-      fileSearch.resolve({ results: [searchResult('stale-report.pdf')] });
+      fileSearch.resolve(['/search/stale-report.pdf']);
       await fileSearch.promise;
     });
 
@@ -185,30 +186,7 @@ describe('CommandPalette', () => {
     expect(screen.queryByText('Searching files...')).not.toBeInTheDocument();
   });
 
-  it('keeps keyboard selection on the same path when another source inserts rows', async () => {
-    const systemSearch = deferred<string[]>();
-    vi.mocked(TauriAPI.findFiles).mockReturnValue(systemSearch.promise);
-    vi.mocked(TauriAPI.enhancedSearch).mockResolvedValue({
-      results: [searchResult('first.txt'), searchResult('chosen.txt')],
-    } as never);
-    const onFileSelect = vi.fn();
-    render(<CommandPalette isOpen onClose={vi.fn()} onFileSelect={onFileSelect} />);
-    const input = screen.getByRole('combobox');
-    fireEvent.change(input, { target: { value: 'txt' } });
-    await screen.findByText('chosen.txt');
-    fireEvent.keyDown(input, { key: 'ArrowDown' });
-    await act(async () => {
-      systemSearch.resolve(['/Downloads/new.txt']);
-    });
-    await screen.findByText('/Downloads/new.txt');
-    fireEvent.keyDown(input, { key: 'Enter' });
-    await waitFor(() => expect(onFileSelect).toHaveBeenCalledWith('/search/chosen.txt', false));
-  });
-
-  it('searches globally despite indexed matches and classifies filesystem folders explicitly', async () => {
-    vi.mocked(TauriAPI.enhancedSearch).mockResolvedValue({
-      results: [searchResult('indexed-folder-notes.txt')],
-    } as never);
+  it('searches every volume root through the OS provider and classifies folders explicitly', async () => {
     vi.mocked(TauriAPI.findFiles).mockResolvedValue(['/elsewhere/Folder.with.dot']);
     vi.mocked(TauriAPI.isDir).mockResolvedValue(true);
     const onFileSelect = vi.fn();
@@ -219,15 +197,15 @@ describe('CommandPalette', () => {
     fireEvent.change(input, { target: { value: 'folder' } });
     await waitFor(() => expect(TauriAPI.findFiles).toHaveBeenCalledWith('folder', '/'));
 
+    // Results come from the OS provider, not from the pane the palette was opened in.
     rerender(
       <CommandPalette isOpen onClose={vi.fn()} onFileSelect={onFileSelect} currentPath="/new" />,
     );
-    const newFolder = await screen.findByRole('option', { name: /Folder\.with\.dot/ });
+    const folder = await screen.findByRole('option', { name: /Folder\.with\.dot/ });
 
-    expect(screen.getByText('indexed-folder-notes.txt')).toBeInTheDocument();
     expect(TauriAPI.findFiles).toHaveBeenCalledOnce();
 
-    fireEvent.click(newFolder);
+    fireEvent.click(folder);
     await waitFor(() =>
       expect(onFileSelect).toHaveBeenCalledWith('/elsewhere/Folder.with.dot', true),
     );
@@ -255,8 +233,6 @@ describe('CommandPalette', () => {
 
   it('reports unavailable sources rather than presenting a failed search as no matches', async () => {
     vi.mocked(TauriAPI.findFiles).mockRejectedValue(new Error('unavailable'));
-    vi.mocked(TauriAPI.enhancedSearch).mockRejectedValue(new Error('unavailable'));
-    vi.mocked(TauriAPI.searchTokens).mockRejectedValue(new Error('unavailable'));
     render(<CommandPalette isOpen onClose={vi.fn()} />);
     fireEvent.change(screen.getByRole('combobox'), { target: { value: 'notes' } });
     expect(

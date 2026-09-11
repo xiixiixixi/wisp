@@ -75,11 +75,6 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
       const result = await TauriAPI.analyzeStorage(currentPath);
       setAnalytics(result);
       setAnalyzedPath(currentPath);
-
-      // Ensure the analyzed path is whitelisted for tokenizer indexing
-      TauriAPI.addPathToTokenizer(currentPath).catch(() => {
-        /* fire-and-forget */
-      });
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {

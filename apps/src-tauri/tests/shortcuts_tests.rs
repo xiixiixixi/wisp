@@ -316,9 +316,9 @@ fn test_migration_replaces_old_defaults() {
         .iter()
         .any(|s| s.id == "my.ext.toggle"));
 
-    // Version marker persisted so the migration doesn't run twice
-    assert_eq!(manager.settings.schema_version, 2);
+    // Version marker persisted so the migration doesn't run twice (current schema)
+    assert_eq!(manager.settings.schema_version, 3);
     let reread: ShortcutSettings =
         serde_json::from_str(&std::fs::read_to_string(&file).unwrap()).unwrap();
-    assert_eq!(reread.schema_version, 2);
+    assert_eq!(reread.schema_version, 3);
 }

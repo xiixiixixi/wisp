@@ -55,10 +55,6 @@ tauri-plugin-drag = "2.1.0"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 notify = "7"
-rust-stemmers = "1.2"
-rustc-hash = "2"
-fst = { version = "0.4", features = ["levenshtein"] }
-roaring = "0.10"
 notify-debouncer-full = "0.4"
 image = "0.25"
 # vendored-openssl statically links OpenSSL so the bundled app does not
@@ -69,14 +65,12 @@ keyring = { version = "3", features = ["windows-native", "apple-native", "linux-
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 thiserror = "2"
-bincode = "1.3"
 rusqlite = { version = "0.31", features = ["bundled"] }
 sevenz-rust2 = { version = "0.20", features = ["compress", "util"] }
 unrar = "0.5"
 wasmi = "0.40"
 ed25519-dalek = { version = "2.2.0", features = ["rand_core"] }
 portable-pty = "0.8"
-moka = { version = "0.12", features = ["sync"] }
 
 [dev-dependencies]
 tokio-test = "0.4"

@@ -1,6 +1,4 @@
 import { useCallback, useRef } from 'react';
-import { TauriAPI } from '@/lib/tauri-api';
-import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { PATH_SEPARATOR } from '@/lib/constants';
 import type { TabItem, EditorGroup } from '@/types/split-view';
 import type { SplitLayoutHook } from '@/hooks/use-split-layout';
@@ -81,24 +79,6 @@ export const useNavigationActions = (deps: NavigationActionsDeps) => {
         }
       } else {
         sl.navigate(ag.id, newPath, newPath.split(/[/\\]/).pop() || newPath);
-      }
-
-      if (
-        !newPath.startsWith('wisp://') &&
-        !newPath.startsWith('gdrive://') &&
-        !newPath.startsWith('comparison://') &&
-        !newPath.startsWith('collection://')
-      ) {
-        TauriAPI.setSearchContext(newPath).catch((err) =>
-          console.error('Failed to set search context:', err),
-        );
-        // Do not start indexing as a side effect of ordinary navigation. Users
-        // can explicitly opt in to content indexing from Search settings.
-        if (localStorage.getItem(STORAGE_KEYS.AUTO_WHITELIST_VISITED) === 'true') {
-          TauriAPI.addWhitelistedPath(newPath).catch((err) =>
-            console.error('Failed to whitelist path:', err),
-          );
-        }
       }
     },
     [currentPath, splitLayoutRef, activeGroupRef],

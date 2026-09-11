@@ -10,9 +10,9 @@ const FEATURES = [
   },
   {
     icon: Brain,
-    title: 'AI-Powered Search',
+    title: 'AI Agent',
     description:
-      'Natural language search powered by local Ollama models. Semantic file discovery, image description, and content-aware indexing -- all offline.',
+      'An in-app agent that reads, searches, and organizes your files for you -- running on local Ollama models or your own Claude/OpenAI key.',
     color: 'text-purple-500 bg-purple-50 dark:bg-purple-500/10',
   },
   {

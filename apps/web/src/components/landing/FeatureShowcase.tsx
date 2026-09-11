@@ -49,13 +49,13 @@ const FEATURES: Feature[] = [
   },
   {
     icon: Search,
-    label: 'Smart Search',
-    title: 'Search by meaning, not just name.',
+    label: 'Instant Search',
+    title: 'Find it the moment you ask.',
     description:
-      'Natural language queries with content indexing and semantic search. "Lecture about AI" or "PDF invoices over 1MB" — it just works.',
+      'Every query goes straight to the system search index — the same one Spotlight uses — so hits appear as you type across every mounted volume. Content search reads files on demand, with no background index to build or keep in sync.',
     iconBg: 'bg-amber-500/10 text-amber-500 dark:bg-amber-500/20 dark:text-amber-400',
     image: '/demo4.png',
-    imageAlt: 'AI-powered search finding files by natural language query',
+    imageAlt: 'Instant file search results across mounted volumes',
   },
   {
     icon: GitBranch,

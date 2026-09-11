@@ -60,8 +60,8 @@ export function Hero() {
         <p
           className={`reveal ${inView ? 'visible' : ''} reveal-delay-2 mx-auto mt-6 max-w-2xl text-center text-lg leading-relaxed text-gray-500 dark:text-gray-400 sm:text-xl`}
         >
-          AI-powered search, rich previews for 50+ formats, Git integration, SSH remote access, and
-          an extension ecosystem — all at native speed.
+          Instant system-wide search, rich previews for 50+ formats, Git integration, SSH remote
+          access, and an extension ecosystem — all at native speed.
         </p>
 
         {/* CTA Buttons */}

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { FileEntry, TauriAPI } from '@/lib/tauri-api';
+import { FileEntry } from '@/lib/tauri-api';
 import { useDraggable } from '@/hooks/use-draggable';
 import { useDroppable } from '@/hooks/use-droppable';
 import { useThumbnailCache } from '@/hooks/use-thumbnail-cache';
@@ -128,8 +128,6 @@ const GalleryView = ({
   const [previewError, setPreviewError] = useState(false);
   const [previewDimensions, setPreviewDimensions] = useState<{ w: number; h: number } | null>(null);
   const { t } = useTranslation();
-  const [aiDescription, setAiDescription] = useState<string | null>(null);
-  const [indexingStatus, setIndexingStatus] = useState<'idle' | 'indexing' | 'done'>('idle');
   const stripRef = useRef<HTMLDivElement>(null);
   const { getThumbnailUrl, preloadThumbnails } = useThumbnailCache(100);
 
@@ -165,86 +163,15 @@ const GalleryView = ({
     focusedFile ?? files.find((f) => selectedFiles.has(f.path)) ?? files[0] ?? null;
   const isDisplayImage = displayFile ? isImageFile(displayFile) : false;
 
-  // Reset preview error, fetch AI description, and auto-index current + nearby images
+  // Reset the preview when the displayed file changes
   useEffect(() => {
     setPreviewError(false);
     setPreviewDimensions(null);
-    setAiDescription(null);
-    setIndexingStatus('idle');
 
     if (!displayFile || !isImageFile(displayFile)) return;
 
-    let cancelled = false;
-    let pollTimer: ReturnType<typeof setInterval> | null = null;
-    let timeoutTimer: ReturnType<typeof setTimeout> | null = null;
-
-    (async () => {
-      // 1. Check if current image already has a description
-      const currentEntry = await TauriAPI.getAIIndexEntry(displayFile.path).catch(() => null);
-      if (cancelled) return;
-      if (currentEntry?.description) {
-        setAiDescription(currentEntry.description);
-        setIndexingStatus('done');
-      }
-
-      // 2. Collect current +/- 3 nearby image files
-      const imageFiles = files.filter(isImageFile);
-      const idx = imageFiles.findIndex((f) => f.path === displayFile.path);
-      if (idx === -1) return;
-      const start = Math.max(0, idx - 3);
-      const end = Math.min(imageFiles.length, idx + 4);
-      const nearby = imageFiles.slice(start, end);
-
-      // 3. Check which nearby images need indexing
-      const unindexed: string[] = [];
-      for (const f of nearby) {
-        if (f.path === displayFile.path && currentEntry?.description) continue;
-        const entry = await TauriAPI.getAIIndexEntry(f.path).catch(() => null);
-        if (cancelled) return;
-        if (!entry?.description) unindexed.push(f.path);
-      }
-
-      if (cancelled || unindexed.length === 0) return;
-
-      // 4. Trigger indexing for unindexed files
-      setIndexingStatus('indexing');
-      await TauriAPI.triggerAIIndexing(unindexed).catch((err) =>
-        console.warn('[GalleryView] AI indexing failed:', err),
-      );
-      if (cancelled) return;
-
-      // 5. Poll for current image's description if it was unindexed
-      if (unindexed.includes(displayFile.path)) {
-        pollTimer = setInterval(async () => {
-          if (cancelled) {
-            if (pollTimer) clearInterval(pollTimer);
-            return;
-          }
-          const entry = await TauriAPI.getAIIndexEntry(displayFile.path).catch(() => null);
-          if (entry?.description) {
-            setAiDescription(entry.description);
-            setIndexingStatus('done');
-            if (pollTimer) clearInterval(pollTimer);
-            if (timeoutTimer) clearTimeout(timeoutTimer);
-          }
-        }, 3000);
-
-        // Timeout after 90s
-        timeoutTimer = setTimeout(() => {
-          if (pollTimer) clearInterval(pollTimer);
-          if (!cancelled) setIndexingStatus('idle');
-        }, 90000);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      if (pollTimer) clearInterval(pollTimer);
-      if (timeoutTimer) clearTimeout(timeoutTimer);
-    };
-    // displayFile?.path is sufficient; we don't need the full object reference
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [displayFile?.path, files]);
+  }, [displayFile?.path]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -376,24 +303,6 @@ const GalleryView = ({
                 <> &middot; {formatDateTimeShort(displayFile.modified)}</>
               )}
             </div>
-            {(() => {
-              if (aiDescription) {
-                return (
-                  <div className="text-xp-on-accent/60 mt-1 line-clamp-2 text-xs italic">
-                    {aiDescription}
-                  </div>
-                );
-              }
-              if (indexingStatus === 'indexing' && isDisplayImage) {
-                return (
-                  <div className="text-xp-on-accent/50 mt-1 flex items-center gap-1.5 text-xs italic">
-                    <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white/70" />
-                    {t('interface.generatingDescription')}
-                  </div>
-                );
-              }
-              return null;
-            })()}
           </div>
         )}
       </div>

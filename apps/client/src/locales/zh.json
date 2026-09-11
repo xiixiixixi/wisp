@@ -729,6 +729,7 @@
     "folderType": "文件夹",
     "fileType": "文件",
     "goToFolder": "前往文件夹 {{path}}",
+    "openWebsite": "打开网页：{{url}}",
     "goToCategory": "文件夹"
   },
   "operationBar": {

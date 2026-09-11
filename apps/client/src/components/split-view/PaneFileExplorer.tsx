@@ -13,7 +13,6 @@ import {
 import OperationBar from '@/components/explorer/OperationBar';
 import { useClipboardContext } from '@/contexts/ExplorerContext';
 import FileGrid from '@/components/explorer/FileGrid';
-import TokenizerStatusIndicator from '@/components/ui/TokenizerStatusIndicator';
 import { SizeDistributionChart } from '@/components/explorer/SizeDistributionChart';
 import FolderColorLegend from '@/components/explorer/FolderColorLegend';
 import { getAllFolderColors } from '@/lib/folder-colors';
@@ -267,7 +266,6 @@ const PaneFileExplorer = React.memo(
                   onFilterByColor={handleColorFilter}
                   activeColorFilter={colorFilter}
                 />
-                <TokenizerStatusIndicator />
               </div>
             }
           />

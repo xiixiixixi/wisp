@@ -142,32 +142,10 @@ export class TauriAPI {
   static getActiveWatchers = fileSystem.getActiveWatchers;
   static showOpenDialog = fileSystem.showOpenDialog;
 
-  // ── Search ──────────────────────────────────────────────────────────────
+  // ── Search (system-backed: Spotlight, or on-demand scanning) ─────────────
   static findFiles = search.findFiles;
   static searchInFiles = search.searchInFiles;
   static grepSearch = search.grepSearch;
-  static setTokenizerSettings = search.setTokenizerSettings;
-  static getTokenizerSettings = search.getTokenizerSettings;
-  static rebuildTokenIndex = search.rebuildTokenIndex;
-  static searchTokens = search.searchTokens;
-  static naturalLanguageSearch = search.naturalLanguageSearch;
-  static getTokenizerStats = search.getTokenizerStats;
-  static isTokenizerIndexing = search.isTokenizerIndexing;
-  static getFileTokens = search.getFileTokens;
-  static addPathToTokenizer = search.addPathToTokenizer;
-  static getFileRecommendations = search.getFileRecommendations;
-  static indexDirectory = search.indexDirectory;
-  static setSearchContext = search.setSearchContext;
-  static addWhitelistedPath = search.addWhitelistedPath;
-  static aiSearch = search.aiSearch;
-  static smartSearch = search.smartSearch;
-  static parseSearchQuery = search.parseSearchQuery;
-  static enhancedSearch = search.enhancedSearch;
-  static getAIIndexStatus = search.getAIIndexStatus;
-  static triggerAIIndexing = search.triggerAIIndexing;
-  static getAIIndexEntry = search.getAIIndexEntry;
-  static semanticSearch = search.semanticSearch;
-  static findSimilarFiles = search.findSimilarFiles;
 
   // ── Git ─────────────────────────────────────────────────────────────────
   static findGitRepository = git.findGitRepository;

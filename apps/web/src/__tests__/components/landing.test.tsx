@@ -32,7 +32,7 @@ describe('Hero', () => {
 
   it('renders the subtitle describing features', () => {
     render(<Hero />);
-    expect(screen.getByText(/AI-powered search/)).toBeInTheDocument();
+    expect(screen.getByText(/Instant system-wide search/)).toBeInTheDocument();
   });
 });
 
@@ -58,7 +58,7 @@ describe('FeatureShowcase', () => {
       'Navigate at the speed of thought.',
       'Preview anything. Instantly.',
       'Ask your files anything.',
-      'Search by meaning, not just name.',
+      'Find it the moment you ask.',
       'Your repo, at a glance.',
       'Make it yours.',
     ];
@@ -73,8 +73,8 @@ describe('FeatureShowcase', () => {
       'File Browsing',
       'Rich Previews',
       'AI Chat',
-      'Smart Search',
-      'GitLens',
+      'Instant Search',
+      'Git Integration',
       'Extensions',
     ];
     for (const label of featureLabels) {

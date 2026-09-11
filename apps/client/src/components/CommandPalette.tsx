@@ -11,8 +11,9 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { TauriAPI, RecentFile } from '@/lib/tauri-api';
 import { searchGlobalFiles } from '@/lib/global-file-search';
 import { isBrowserDemoMode } from '@/lib/browser-demo-files';
-import { File, Files, Folder, Search, Sparkles, X } from 'lucide-react';
+import { File, Files, Folder, Globe, Search, Sparkles, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { addressToWebUrl } from '@/lib/address-url';
 import {
   formatTimestamp,
   sectionHeaderStyle,
@@ -155,14 +156,23 @@ const CommandPaletteInner = ({
         });
       }
     } else {
-      // If the query looks like a path, offer a "Go to folder" item at the top
+      // If the query looks like a path, offer a "Go to folder" item at the top;
+      // an explicit http(s) address opens as a web tab instead.
       const trimmedQ = effectiveQuery;
       const looksLikePath =
         trimmedQ.startsWith('/') ||
         trimmedQ.startsWith('~') ||
         /^[A-Za-z]:[/\\]/.test(trimmedQ) ||
         trimmedQ.startsWith('wisp://');
-      if (looksLikePath && onFileSelect) {
+      const explicitWebAddress = /^https?:\/\//i.test(trimmedQ) ? addressToWebUrl(trimmedQ) : null;
+      if (explicitWebAddress && onFileSelect) {
+        items.push({
+          type: 'go-to-path',
+          path: explicitWebAddress,
+          isWeb: true,
+          sectionLabel: t('commandPalette.goToCategory'),
+        });
+      } else if (looksLikePath && onFileSelect) {
         items.push({
           type: 'go-to-path',
           path: trimmedQ,
@@ -203,7 +213,7 @@ const CommandPaletteInner = ({
         rows.push({ kind: 'section-header', label: item.sectionLabel });
       }
       if (item.type === 'go-to-path') {
-        rows.push({ kind: 'go-to-path', path: item.path, itemIndex });
+        rows.push({ kind: 'go-to-path', path: item.path, isWeb: item.isWeb, itemIndex });
       } else if (item.type === 'recent-file') {
         rows.push({ kind: 'recent-file', file: item.file, itemIndex });
       } else {
@@ -474,11 +484,13 @@ const CommandPaletteInner = ({
             onMouseEnter={() => setSelectedIndex(row.itemIndex)}
           >
             <span style={iconWrapStyle}>
-              <Folder size={14} />
+              {row.isWeb ? <Globe size={14} /> : <Folder size={14} />}
             </span>
             <span style={fileNameContainerStyle}>
               <span style={fileNameStyle}>
-                {t('commandPalette.goToFolder', { path: row.path })}
+                {row.isWeb
+                  ? t('commandPalette.openWebsite', { url: row.path })
+                  : t('commandPalette.goToFolder', { path: row.path })}
               </span>
             </span>
             <span style={shortcutStyle}>Enter</span>

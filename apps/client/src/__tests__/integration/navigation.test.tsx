@@ -184,17 +184,6 @@ describe('Navigation Integration', () => {
       vi.useRealTimers();
     });
 
-    it('sets the search context on navigation', () => {
-      const deps = createNavigationDeps();
-      const { result } = renderHook(() => useNavigation(deps));
-
-      act(() => {
-        result.current.navigateToPath('C:\\Users\\Test\\Downloads');
-      });
-
-      expect(mockSetSearchContext).toHaveBeenCalledWith('C:\\Users\\Test\\Downloads');
-    });
-
     it('starts a search watcher on navigation', () => {
       const deps = createNavigationDeps();
       const { result } = renderHook(() => useNavigation(deps));

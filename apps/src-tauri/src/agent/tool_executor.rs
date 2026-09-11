@@ -38,12 +38,6 @@ const SEARCH_CONTENT_MAX_DEPTH: u32 = 5;
 /// Maximum command output size (bytes) before truncation.
 const COMMAND_OUTPUT_TRUNCATE: usize = 50_000;
 
-/// Default result limit for `search_indexed`.
-const SEARCH_INDEXED_DEFAULT_LIMIT: usize = 20;
-
-/// Maximum number of results displayed by `search_indexed`.
-const SEARCH_INDEXED_DISPLAY_CAP: usize = 30;
-
 // ============================================================================
 
 use super::truncate_to_char_boundary;
@@ -506,34 +500,6 @@ pub fn execute_extract_document_text(input: &Value) -> Result<String, String> {
     serde_json::to_string_pretty(&output).map_err(|e| e.to_string())
 }
 
-pub fn execute_search_indexed(input: &Value) -> Result<String, String> {
-    let query = input["query"]
-        .as_str()
-        .ok_or("Missing 'query' parameter")?
-        .to_string();
-    let limit = input["limit"].as_u64().map(|n| n as usize);
-
-    let results = crate::search::compat::get_search_engine().natural_language_search(
-        &query,
-        None,
-        limit.unwrap_or(SEARCH_INDEXED_DEFAULT_LIMIT),
-    );
-
-    let output = json!({
-        "result_count": results.len(),
-        "note": "Results from pre-built file index. May not include very recent files.",
-        "results": results.iter().take(SEARCH_INDEXED_DISPLAY_CAP).map(|r| {
-            json!({
-                "path": r.path,
-                "filename": r.filename,
-                "score": r.score,
-                "relevance": r.relevance_type,
-            })
-        }).collect::<Vec<_>>(),
-    });
-    serde_json::to_string_pretty(&output).map_err(|e| e.to_string())
-}
-
 /// Route a tool call to its executor function.
 pub fn execute_tool(name: &str, input: &Value) -> Result<String, String> {
     match name {
@@ -549,7 +515,6 @@ pub fn execute_tool(name: &str, input: &Value) -> Result<String, String> {
         "move_file" => execute_move_file(input),
         "copy_file" => execute_copy_file(input),
         "execute_command" => execute_command(input),
-        "search_indexed" => execute_search_indexed(input),
         "extract_document_text" => execute_extract_document_text(input),
         "create_plan" => planner::execute_create_plan(input),
         "execute_plan" => planner::execute_execute_plan(input),

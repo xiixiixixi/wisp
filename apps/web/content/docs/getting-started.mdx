@@ -180,24 +180,7 @@ src/
 │   ├── planner.rs       # Multi-step task planning
 │   ├── memory.rs        # Conversation memory
 │   └── security.rs      # Path traversal guards
-├── search/              # Search engine module
-│   ├── mod.rs           # Search entry point
-│   ├── index.rs         # Inverted index construction
-│   ├── query_parser.rs  # Query parsing and structured queries
-│   ├── fuzzy.rs         # Fuzzy matching
-│   ├── stemmer.rs       # Word stemming
-│   ├── synonyms.rs      # Synonym expansion
-│   ├── hybrid.rs        # Hybrid keyword + semantic search
-│   ├── bm25f.rs         # BM25F scoring
-│   ├── fst_index.rs     # FST-based fast lookup
-│   ├── segment.rs       # Index segmentation
-│   ├── bitmap_filters.rs# Bitmap-based filtering
-│   ├── context_ranker.rs# Context-aware ranking
-│   ├── reranker.rs      # Result reranking
-│   ├── ai_pipeline.rs   # AI-augmented search pipeline
-│   ├── ollama_client.rs # Ollama embedding client
-│   ├── watcher.rs       # File system watcher for index updates
-│   └── compat.rs        # Backward compatibility layer
+├── ollama_client.rs     # Shared Ollama HTTP client (agent chat + analysis)
 ├── storage/             # Local data storage module
 │   ├── mod.rs           # Storage entry point
 │   ├── bookmarks.rs     # Bookmark/favorites management

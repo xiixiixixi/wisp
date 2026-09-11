@@ -612,7 +612,8 @@
     "assistantEmptyDescription": "現在のワークスペースにあるファイルの検索、要約、比較、整理、操作を依頼できます。",
     "everywhere": "すべての場所",
     "folderType": "フォルダ",
-    "fileType": "ファイル"
+    "fileType": "ファイル",
+    "openWebsite": "ウェブサイトを開く: {{url}}"
   },
   "operationBar": {
     "selectionActions": "選択項目の操作",

@@ -612,7 +612,8 @@
     "assistantEmptyDescription": "Minta Wisp mencari, meringkas, membandingkan, mengatur, atau menangani file di ruang kerja saat ini.",
     "everywhere": "Di mana saja",
     "folderType": "Folder",
-    "fileType": "File"
+    "fileType": "File",
+    "openWebsite": "Buka situs web: {{url}}"
   },
   "operationBar": {
     "selectionActions": "Tindakan item terpilih",

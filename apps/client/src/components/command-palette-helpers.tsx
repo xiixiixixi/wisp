@@ -21,7 +21,7 @@ export interface CommandPaletteProps {
 }
 
 export type PaletteItem =
-  | { type: 'go-to-path'; path: string; sectionLabel?: string }
+  | { type: 'go-to-path'; path: string; isWeb?: boolean; sectionLabel?: string }
   | { type: 'recent-file'; file: RecentFile; sectionLabel?: string }
   | { type: 'assistant'; prompt: string; sectionLabel?: string };
 
@@ -35,7 +35,7 @@ export type PaletteSearchResult = SearchResult & { isDir: boolean };
 
 export type VirtualRow =
   | { kind: 'section-header'; label: string }
-  | { kind: 'go-to-path'; path: string; itemIndex: number }
+  | { kind: 'go-to-path'; path: string; isWeb?: boolean; itemIndex: number }
   | { kind: 'recent-file'; file: RecentFile; itemIndex: number }
   | { kind: 'search-file'; result: PaletteSearchResult; itemIndex: number }
   | { kind: 'assistant'; prompt: string; itemIndex: number }

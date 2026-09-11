@@ -1,6 +1,4 @@
 import { useCallback } from 'react';
-import { TauriAPI } from '@/lib/tauri-api';
-import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { extensionHost } from '@/lib/extension-host';
 import { PATH_SEPARATOR } from '@/lib/constants';
 import type { TabItem } from '@/types/split-view';
@@ -59,24 +57,6 @@ export const useNavigation = ({ currentPath, splitLayout, activeGroup }: UseNavi
         }
       } else {
         splitLayout.navigate(activeGroup.id, newPath, newPath.split(/[/\\]/).pop() || newPath);
-      }
-
-      if (
-        !newPath.startsWith('wisp://') &&
-        !newPath.startsWith('comparison://') &&
-        !extensionHost.isExtensionScheme(newPath)
-      ) {
-        TauriAPI.setSearchContext(newPath).catch((err) =>
-          console.error('Failed to set search context:', err),
-        );
-        // Browsing must stay independent from indexing. Filename search uses the
-        // platform provider (Spotlight on macOS), while content indexing remains
-        // an explicit opt-in because adding a whitelist path can rebuild the index.
-        if (localStorage.getItem(STORAGE_KEYS.AUTO_WHITELIST_VISITED) === 'true') {
-          TauriAPI.addWhitelistedPath(newPath).catch((err) =>
-            console.error('Failed to whitelist path:', err),
-          );
-        }
       }
     },
     [currentPath, splitLayout, activeGroup],

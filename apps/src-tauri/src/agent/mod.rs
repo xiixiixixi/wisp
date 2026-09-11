@@ -295,10 +295,8 @@ fn is_session_cancelled(session_id: &str) -> bool {
 fn build_system_prompt(current_path: &str, filesystem_context: &Option<String>) -> String {
     let fs_context_section = if let Some(ref ctx) = filesystem_context {
         format!(
-            "\n\nFilesystem overview (from index — may not be 100% current):\n{}\n\n\
-            You have a `search_indexed` tool for instant results from the file index. \
-            Use it FIRST for fast answers. When returning index-based results, briefly note \
-            they are from the index and offer to do a live scan if the user needs fresh data.",
+            "\n\nFilesystem overview (supplied by the app for the current location):\n{}\n\n\
+            Use list_directory or search_files for live data whenever freshness matters.",
             ctx
         )
     } else {
@@ -315,7 +313,7 @@ fn build_system_prompt(current_path: &str, filesystem_context: &Option<String>) 
         Rules:\n\
         - The user's current working directory is: {}\n\
         - Use absolute paths for all file operations.\n\
-        - For read operations (read_file, list_directory, search_files, search_content, get_system_info, search_indexed, recall), \
+        - For read operations (read_file, list_directory, search_files, search_content, get_system_info, recall), \
           execute immediately without asking permission.\n\
         - For write operations (write_file, create_directory, rename, delete, move_file, copy_file, execute_command), \
           the system will ask the user for approval before executing.\n\
@@ -1117,6 +1115,5 @@ mod tests {
         let ctx = Some("files: a.txt, b.txt".to_string());
         let prompt = build_system_prompt("/tmp", &ctx);
         assert!(prompt.contains("a.txt, b.txt"));
-        assert!(prompt.contains("search_indexed"));
     }
 }

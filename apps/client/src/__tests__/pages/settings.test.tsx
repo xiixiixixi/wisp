@@ -124,10 +124,6 @@ vi.mock('@/hooks/use-vim-mode', () => ({
 }));
 
 // Mock heavy sub-components that are not the focus of this test
-vi.mock('@/components/TokenizerSettings', () => ({
-  default: () => <div data-testid="tokenizer-settings">Tokenizer Settings</div>,
-}));
-
 vi.mock('@/components/KeyboardShortcutsSettings', () => ({
   default: () => <div data-testid="keyboard-shortcuts-settings">Keyboard Shortcuts Settings</div>,
 }));
@@ -220,11 +216,10 @@ describe('Settings Page', () => {
         expect(navSection.queryByText('Context Menu')).not.toBeInTheDocument();
         expect(navSection.queryByText('AI Agent')).not.toBeInTheDocument();
         expect(navSection.queryByText('Permissions')).not.toBeInTheDocument();
-        expect(navSection.getByText('Indexing')).toBeInTheDocument();
         expect(navSection.getByText('Shortcuts')).toBeInTheDocument();
         expect(navSection.queryByText('Marketplace')).not.toBeInTheDocument();
         expect(navSection.queryByText('Accessibility')).not.toBeInTheDocument();
-        expect(navSection.getAllByRole('button')).toHaveLength(5);
+        expect(navSection.getAllByRole('button')).toHaveLength(4);
         expect(navSection.queryByText('Backup & Restore')).not.toBeInTheDocument();
         expect(navSection.queryByText('Audit Log')).not.toBeInTheDocument();
         expect(navSection.queryByText('Versioning')).not.toBeInTheDocument();
@@ -296,21 +291,6 @@ describe('Settings Page', () => {
       await waitFor(() => {
         expect(screen.getByText('Vim Mode')).toBeInTheDocument();
         expect(screen.getByTestId('keyboard-shortcuts-settings')).toBeInTheDocument();
-      });
-    });
-
-    it('switches to Indexing tab and shows TokenizerSettings', async () => {
-      render(<Settings />);
-
-      await waitFor(() => {
-        expect(document.querySelector('nav')).toBeInTheDocument();
-      });
-
-      clickSidebarTab('Indexing');
-
-      await waitFor(() => {
-        expect(screen.getByTestId('tokenizer-settings')).toBeInTheDocument();
-        expect(screen.getByTestId('search-provider-settings')).toBeInTheDocument();
       });
     });
 

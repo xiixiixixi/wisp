@@ -627,12 +627,6 @@ export const createExtensionApi = (manifest: ExtensionManifest, deps: ExtensionA
           options?.excludePaths,
         );
       },
-      semantic: async (query: string, limit?: number) => {
-        if (!hasPermission(manifest, 'file:read') && !hasPermission(manifest, 'files:read')) {
-          throw new Error(`Extension "${manifest.id}" missing permission: file:read`);
-        }
-        return TauriAPI.semanticSearch(query, limit);
-      },
     },
     dialog: {
       pickFile: async (options?: {

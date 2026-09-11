@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   FolderOpen,
-  Search,
   Keyboard,
   Settings2,
   ChevronRight,
@@ -18,12 +17,10 @@ import {
   ExternalLink,
   Info,
 } from 'lucide-react';
-import TokenizerSettings from '@/components/TokenizerSettings';
 import useUpdater from '@/hooks/use-updater';
 import ShortcutsSettingsPanel from '@/components/settings/ShortcutsSettings';
 import GeneralSettings from '@/components/settings/GeneralSettings';
 import ExplorerSettings from '@/components/settings/ExplorerSettings';
-import SearchProviderSettings from '@/components/settings/SearchProviderSettings';
 import { applyTheme } from '@/lib/utils';
 import { normalizeLanguage } from '@/lib/language-settings';
 import {
@@ -34,7 +31,7 @@ import {
 } from '@/components/settings/shared';
 import wispLogo from '../../../src-tauri/icons/icon.png';
 
-type SettingsTab = 'general' | 'explorer' | 'indexing' | 'shortcuts' | 'about';
+type SettingsTab = 'general' | 'explorer' | 'shortcuts' | 'about';
 
 type TabDef = { id: SettingsTab; label: string; icon: React.ElementType; description: string };
 
@@ -50,12 +47,6 @@ const buildTabs = (t: (key: string) => string): TabDef[] => [
     label: t('settings.tabs.explorer'),
     icon: FolderOpen,
     description: t('settings.tabs.explorerDesc'),
-  },
-  {
-    id: 'indexing',
-    label: t('settings.tabs.indexing'),
-    icon: Search,
-    description: t('settings.tabs.indexingDesc'),
   },
   {
     id: 'shortcuts',
@@ -275,13 +266,6 @@ const Settings = () => {
         );
       case 'explorer':
         return <ExplorerSettings settings={settings} updateSetting={updateSetting} />;
-      case 'indexing':
-        return (
-          <div className="space-y-4 px-4 py-2">
-            <TokenizerSettings />
-            <SearchProviderSettings settings={settings} updateSetting={updateSetting} />
-          </div>
-        );
       case 'shortcuts':
         return <ShortcutsSettingsPanel />;
       case 'about':

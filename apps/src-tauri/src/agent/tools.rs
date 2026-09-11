@@ -141,18 +141,6 @@ pub fn build_agent_tools(disabled_tools: &[String]) -> Vec<Value> {
             }
         }),
         json!({
-            "name": "search_indexed",
-            "description": "Search the pre-built file index for instant results. Supports natural language queries like 'large pdf files', 'images in downloads', 'python scripts'. Results come from the index and may not reflect very recent changes. Use this FIRST for fast answers, then optionally verify with list_directory or search_files for live data.",
-            "input_schema": {
-                "type": "object",
-                "properties": {
-                    "query": { "type": "string", "description": "Search query (natural language or keywords)" },
-                    "limit": { "type": "integer", "description": "Max results to return (default 20)" }
-                },
-                "required": ["query"]
-            }
-        }),
-        json!({
             "name": "extract_document_text",
             "description": "Extract text content from document files. Supports: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, RTF. Use this to read and understand the content of office documents and PDFs. Returns the extracted text.",
             "input_schema": {
@@ -266,7 +254,6 @@ pub fn is_read_only_tool(name: &str) -> bool {
             | "search_files"
             | "search_content"
             | "get_system_info"
-            | "search_indexed"
             | "extract_document_text"
             | "recall"
     )

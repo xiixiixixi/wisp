@@ -67,52 +67,27 @@ The largest module, handling all filesystem interactions:
 | `agent/security.rs`      | Path traversal guards and system directory blocking         |
 | `file_organizer.rs`      | AI-powered file categorization and organization suggestions |
 
-### Search & Indexing (`search/`)
+### Search (`system_ops.rs` + `ollama_client.rs`)
 
-The search engine is a full module with multiple specialized sub-components:
+Wisp keeps no index of its own. Search is delegated to the platform:
 
-| File                | Responsibility                                                                    |
-| ------------------- | --------------------------------------------------------------------------------- |
-| `mod.rs`            | Search module entry point, public API                                             |
-| `index.rs`          | Inverted index construction and management                                        |
-| `query_parser.rs`   | Query parsing, structured queries with filters (file_type, size, date, extension) |
-| `fuzzy.rs`          | Fuzzy matching for typo-tolerant search                                           |
-| `stemmer.rs`        | Word stemming for root-form matching                                              |
-| `synonyms.rs`       | Synonym expansion for broader recall                                              |
-| `hybrid.rs`         | Hybrid keyword + semantic search combining BM25F and embeddings                   |
-| `bm25f.rs`          | BM25F field-weighted scoring algorithm                                            |
-| `fst_index.rs`      | FST-based fast prefix/substring lookup                                            |
-| `segment.rs`        | Index segmentation for large datasets                                             |
-| `bitmap_filters.rs` | Bitmap-based metadata filtering (type, size, date)                                |
-| `context_ranker.rs` | Context-aware result ranking                                                      |
-| `reranker.rs`       | Result reranking with multiple signals                                            |
-| `ai_pipeline.rs`    | AI-augmented search (vision descriptions, embeddings)                             |
-| `ollama_client.rs`  | Ollama embedding API client for semantic search                                   |
-| `watcher.rs`        | File system watcher for automatic index updates                                   |
-| `compat.rs`         | Backward compatibility with legacy tokenizer API                                  |
+| File                | Responsibility                                                        |
+| ------------------- | --------------------------------------------------------------------- |
+| `system_ops.rs`     | `find_files` (system search provider), `search_in_files`, `grep_search` |
+| `ollama_client.rs`  | Shared Ollama HTTP client used by the AI agent for chat and analysis   |
 
 ```
-Search Pipeline:
-1. Parse query via query_parser (structured filters + keywords)
-2. Fuzzy match and stem keywords
-3. Expand with synonyms
-4. Look up terms in inverted index + FST index
-5. Apply bitmap filters (file type, size range, date range)
-6. Score with BM25F field-weighted algorithm
-7. Optionally run semantic search via Ollama embeddings
-8. Merge results with hybrid scoring
-9. Rerank with context_ranker and reranker
-10. Return ranked results
+Search flow:
+1. The UI asks the system search provider for a name query (mdfind on macOS)
+2. Results are returned per volume root and classified (file or folder)
+3. Content search reads files on demand, scoped to the requested directory
 ```
 
 Features:
 
-- **Incremental indexing** — Only re-indexes changed files (by timestamp + size)
-- **Document extraction** — Extracts text from PDF, DOCX, XLSX, PPTX (via `document_extractor.rs`)
-- **Natural language search** — Parses queries like "large videos from last month"
-- **AI-augmented search** — Vision-generated descriptions and embeddings are searchable
-- **Fuzzy + stemming** — Typo-tolerant and root-form matching
-- **Hybrid scoring** — Combines keyword BM25F with semantic similarity
+- **No index to build** — the app starts without scanning or pre-warming anything
+- **No residency cost** — search adds no baseline memory footprint
+- **Always current** — results reflect the disk at query time, never a stale cache
 
 ### SSH/SFTP (`ssh.rs`)
 
@@ -217,7 +192,7 @@ async fn read_directory(path: &str) -> Result<Vec<FileEntry>, String> {
 
 - **Tokio** runtime for async operations (SSH, AI API calls)
 - **Rayon** for parallel CPU-bound work (duplicate finder, directory scanning)
-- **Mutex/RwLock** for shared state (tokenizer index, SSH connection pool)
+- **Mutex/RwLock** for shared state (SSH connection pool, extension runtime)
 
 ### File Copy Strategies
 

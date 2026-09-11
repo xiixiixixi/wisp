@@ -54,16 +54,13 @@ All backend functionality is exposed as Tauri commands. These are Rust functions
 | `extract_archive`  | `archive, output, options`       | `()`          | Extract an archive   |
 | `get_archive_info` | `path: String`                   | `ArchiveInfo` | Get archive metadata |
 
-## Search & Indexing
+## Search
 
 | Command                   | Parameters     | Returns               | Description              |
 | ------------------------- | -------------- | --------------------- | ------------------------ |
-| `search_files`            | `query, limit` | `Vec<SearchResult>`   | Search the token index   |
-| `add_path_to_tokenizer`   | `path: String` | `()`                  | Add directory to index   |
-| `rebuild_tokenizer_index` | —              | `()`                  | Rebuild the full index   |
-| `get_tokenizer_stats`     | —              | `TokenizerStats`      | Index statistics         |
-| `natural_language_search` | `query, limit` | `Vec<SearchResult>`   | NLP-powered search       |
-| `semantic_search`         | `query, limit` | `Vec<SemanticResult>` | Vector similarity search |
+| `find_files`      | `pattern, searchPath` | `Vec<String>`        | Filename search through the system provider |
+| `search_in_files` | `pattern, searchPath` | `Vec<SearchMatch>`   | Scan file contents on demand |
+| `grep_search`     | `query, searchPath`   | `Vec<GrepSearchMatch>` | Content search with context lines |
 
 ## AI Integration
 

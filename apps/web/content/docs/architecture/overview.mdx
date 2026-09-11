@@ -64,13 +64,11 @@ User navigates to folder
 
 ```
 User types search query
-  → React calls TauriAPI.searchFiles(query)
-    → transport('search_files', { query, limit })
-      → tokenizer::search()
-        → Looks up query tokens in inverted index
-        → Scores and ranks matching files
-      → Returns Vec<SearchResult> as JSON
-    → React displays search results
+  → React calls TauriAPI.findFiles(query, root) for each volume root
+    → transport('find_files', { pattern, searchPath })
+      → The system search provider answers (mdfind on macOS)
+      → Returns Vec<String> as JSON
+    → React keeps the first 50 hits and displays them
 ```
 
 ### AI Chat

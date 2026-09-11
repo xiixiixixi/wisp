@@ -66,13 +66,6 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
       const props = await TauriAPI.getDetailedFileProperties(filePath);
       setProperties(props);
       setPermissionString(props.permissions.permissions_string);
-
-      const parentDir = filePath.replace(/[\\/][^\\/]+$/, '');
-      if (parentDir) {
-        TauriAPI.addPathToTokenizer(parentDir).catch((err: unknown) =>
-          console.warn('Failed to add path to tokenizer:', err),
-        );
-      }
     } catch (err) {
       setError((err as Error).message);
       toast({

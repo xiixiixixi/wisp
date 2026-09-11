@@ -416,36 +416,6 @@ export const handleRenamePatternAsync = async (
 };
 
 /**
- * Run the /find search and return a formatted report.
- * This is the async version that pre-computes results directly.
- */
-export const handleAISearchAsync = async (
-  query: string,
-  currentPath: string,
-): Promise<SpecialCommandResult> => {
-  if (!query) {
-    return {
-      type: 'handled',
-      responseText: 'Please provide a search query: `/find [query]`',
-    };
-  }
-  try {
-    const { performAISearch, formatSearchReport } = await import('./chat-search-integration');
-    const report = await performAISearch(query, currentPath);
-    return {
-      type: 'handled',
-      responseText: formatSearchReport(report),
-    };
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return {
-      type: 'handled',
-      responseText: `Search failed: ${msg}`,
-    };
-  }
-};
-
-/**
  * Run the /summarize-folder analysis and return a formatted report.
  * This is the async version that pre-computes results directly.
  */
