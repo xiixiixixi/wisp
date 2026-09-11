@@ -32,7 +32,6 @@ const WebTabView = ({
   useEffect(() => {
     setState('loading');
   }, [url, refresh]);
-  useEffect(() => setPageUrl(url), [url]);
   useEffect(() => {
     setSlow(false);
     if (state !== 'loading' || !active) return;
@@ -42,7 +41,6 @@ const WebTabView = ({
 
   const observePage = useCallback(
     (page: NativeWebPageState) => {
-      setPageUrl(page.url);
       if (page.loading !== null) {
         setState((current) =>
           page.loading ? 'loading' : current === 'loading' ? 'idle' : current,
