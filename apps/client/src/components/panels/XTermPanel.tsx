@@ -160,7 +160,10 @@ const createTab = (label?: string, attachSessionId?: string): TermTab => {
   const terminal = new Terminal({
     cursorBlink: true,
     fontSize: 13,
-    fontFamily: '"SF Mono", "Fira Code", "Cascadia Code", Menlo, monospace',
+    // CJK-capable fallbacks keep Chinese/Japanese glyphs on a monospace
+    // metric instead of a proportional system fallback.
+    fontFamily:
+      '"SF Mono", "Fira Code", "Cascadia Code", Menlo, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", monospace',
     lineHeight: 1.3,
     theme,
     allowProposedApi: true,
