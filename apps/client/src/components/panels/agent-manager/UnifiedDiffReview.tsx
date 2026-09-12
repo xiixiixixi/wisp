@@ -221,7 +221,7 @@ const FileDiffSection = ({
           <ChevronRight size={12} style={{ flexShrink: 0, color: 'var(--xp-text-muted)' }} />
         )}
 
-        <FileCode2 size={13} style={{ flexShrink: 0, color: 'var(--xp-blue)' }} />
+        <FileCode2 size={13} style={{ flexShrink: 0, color: 'var(--ds-link)' }} />
 
         <span
           style={{

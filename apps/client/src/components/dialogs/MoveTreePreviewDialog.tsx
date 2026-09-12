@@ -320,7 +320,7 @@ const SourceTreeNode = React.memo(({ file }: SourceNodeProps) => {
     <div style={{ ...S.treeRow }}>
       <div style={S.iconWrap}>
         {file.is_dir ? (
-          <FolderClosed size={15} style={{ color: 'var(--xp-blue)' }} />
+          <FolderClosed size={15} style={{ color: 'var(--ds-link)' }} />
         ) : (
           <FileIcon size={15} style={{ color: 'var(--xp-text-secondary)' }} />
         )}
@@ -399,9 +399,9 @@ const DestTreeNode = React.memo(
             {/* eslint-disable-next-line no-nested-ternary */}
             {node.isDir ? (
               isExpanded ? (
-                <FolderOpen size={15} style={{ color: 'var(--xp-blue)' }} />
+                <FolderOpen size={15} style={{ color: 'var(--ds-link)' }} />
               ) : (
-                <FolderClosed size={15} style={{ color: 'var(--xp-blue)' }} />
+                <FolderClosed size={15} style={{ color: 'var(--ds-link)' }} />
               )
             ) : (
               <FileIcon size={15} style={{ color: statusColor }} />
@@ -617,7 +617,7 @@ const MoveTreePreviewDialog = ({
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <div style={S.header}>
           <div style={S.headerLeft}>
-            <Icon size={20} style={{ color: isCopy ? 'var(--xp-blue)' : 'var(--xp-yellow)' }} />
+            <Icon size={20} style={{ color: isCopy ? 'var(--ds-link)' : 'var(--xp-yellow)' }} />
             <div>
               <h2 id="move-tree-preview-title" style={S.title}>
                 {verb} {data.sourceFiles.length} {tUi('panels.notes.file_one')}

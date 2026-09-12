@@ -49,8 +49,10 @@ const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
         // 2. mammoth fallback for .docx only.
         if (file.name.toLowerCase().endsWith('.docx')) {
           const uint8Array = await TauriAPI.readBinaryFile(file.path);
+          if (myAttempt !== attemptRef.current) return;
           const arrayBuffer = uint8Array.buffer.slice(0) as ArrayBuffer;
           const mammoth: MammothModule = await import('mammoth');
+          if (myAttempt !== attemptRef.current) return;
           const result = await mammoth.convertToHtml({ arrayBuffer });
           if (myAttempt !== attemptRef.current) return;
           setHtmlContent(
@@ -69,18 +71,23 @@ const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
           return;
         }
 
-        setError(tUi('previewPanel.docConvertFailed'));
+        const errorMessage = tUi('previewPanel.docConvertFailed');
+        setError(errorMessage);
         setLoading(false);
+        onError?.(new Error(errorMessage));
       } catch (err) {
         if (myAttempt !== attemptRef.current) return;
         const errorMessage = err instanceof Error ? err.message : 'Failed to load document';
         setError(errorMessage);
-        onError?.(err instanceof Error ? err : new Error(errorMessage));
         setLoading(false);
+        onError?.(err instanceof Error ? err : new Error(errorMessage));
       }
     };
 
-    loadDocument();
+    void loadDocument();
+    return () => {
+      attemptRef.current += 1;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file.path, file.name]);
 
@@ -94,7 +101,7 @@ const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
 
   if (error) {
     return (
-      <div className="flex h-full items-center justify-center rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center">
+      <div className="flex h-full items-center justify-center rounded-md border border-xp-border bg-xp-surface p-4 text-center">
         <div className="text-xp-text-muted">
           <p className="text-sm">{tUi('interface.cannotPreviewDocument')}</p>
           <p className="mt-1 text-xs opacity-70">{previewErrorText(error, tUi)}</p>
@@ -106,7 +113,7 @@ const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
   if (htmlPath) {
     return (
       <div className="flex h-full flex-col gap-1.5">
-        <div className="min-h-0 flex-1 overflow-hidden rounded-[2px] border border-xp-border bg-white">
+        <div className="min-h-0 flex-1 overflow-hidden rounded-md border border-xp-border bg-white">
           <iframe
             title={file.name}
             src={convertAssetUrl(htmlPath)}
@@ -121,8 +128,8 @@ const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
   }
 
   return (
-    <div className="h-full overflow-auto rounded-[2px] border border-xp-border bg-xp-surface p-4">
-      <h4 className="mb-2 text-xs font-medium text-xp-text-muted">
+    <div className="h-full overflow-auto rounded-md border border-xp-border bg-xp-surface p-4">
+      <h4 className="mb-2 text-xs font-semibold text-xp-text-muted">
         {tUi('interface.documentPreview')}
       </h4>
       <div

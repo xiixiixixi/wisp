@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import CodePreview from '@/components/previews/CodePreview';
@@ -12,6 +12,7 @@ vi.mock('@/lib/codemirror', () => ({
   WispCodeMirror: ({
     doc,
     readOnly,
+    lineWrapping,
     fileName,
     onSave,
     editorRef,
@@ -20,6 +21,7 @@ vi.mock('@/lib/codemirror', () => ({
   }: {
     doc: string;
     readOnly: boolean;
+    lineWrapping: boolean;
     fileName: string;
     onSave?: () => void;
     editorRef?: { current: unknown };
@@ -30,12 +32,20 @@ vi.mock('@/lib/codemirror', () => ({
       if (editorRef) {
         editorRef.current = { state: { doc: { toString: () => doc } } };
       }
-      const timer = setTimeout(() => onLanguageLoaded?.('JavaScript'), 0);
+      const timer = setTimeout(
+        () => onLanguageLoaded?.(fileName.endsWith('.js') ? 'JavaScript' : ''),
+        0,
+      );
       return () => clearTimeout(timer);
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     return (
-      <div data-testid="cm-editor" data-read-only={String(readOnly)} data-file-name={fileName}>
+      <div
+        data-testid="cm-editor"
+        data-read-only={String(readOnly)}
+        data-file-name={fileName}
+        data-line-wrapping={String(lineWrapping)}
+      >
         {doc}
         <button type="button" data-testid="cm-edit-trigger" onClick={onDocChanged}>
           edit
@@ -46,10 +56,6 @@ vi.mock('@/lib/codemirror', () => ({
       </div>
     );
   },
-}));
-
-vi.mock('@/components/previews/CodeAIActions', () => ({
-  default: () => <div data-testid="code-ai-actions" />,
 }));
 
 vi.mock('@/lib/tauri-api', () => ({
@@ -149,6 +155,41 @@ describe('CodePreview', () => {
       await waitFor(() => {
         expect(screen.getByText('JavaScript')).toBeInTheDocument();
       });
+    });
+
+    it('defaults to wrapping lines and lets the reader disable it', async () => {
+      render(<CodePreview {...mockProps} />);
+      const editor = await screen.findByTestId('cm-editor');
+      expect(editor).toHaveAttribute('data-line-wrapping', 'true');
+      const wrap = screen.getByRole('button', { name: 'Wrap lines' });
+      expect(wrap).toHaveAttribute('aria-pressed', 'true');
+      fireEvent.click(wrap);
+      expect(wrap).toHaveAttribute('aria-pressed', 'false');
+      expect(editor).toHaveAttribute('data-line-wrapping', 'false');
+    });
+
+    it('clears the old language and replaces the content when switching to plain text', async () => {
+      const { rerender } = render(<CodePreview {...mockProps} />);
+      await screen.findByText('JavaScript');
+      expect(screen.getByTestId('cm-editor')).toHaveTextContent('const x = 1;');
+      let finish!: (text: string) => void;
+      vi.mocked(TauriAPI.readTextFile).mockReturnValueOnce(
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+      );
+      const nextFile = { ...mockFile, name: 'notes.unknown', path: '/notes.unknown' };
+      rerender(<CodePreview {...mockProps} file={nextFile} />);
+      expect(screen.queryByText('JavaScript')).not.toBeInTheDocument();
+      expect(screen.getByText('Plain text')).toBeInTheDocument();
+      expect(screen.queryByTestId('cm-editor')).not.toBeInTheDocument();
+      await act(async () => finish('plain content'));
+      await waitFor(() =>
+        expect(screen.getByTestId('cm-editor')).toHaveTextContent('plain content'),
+      );
+      expect(screen.getByTestId('cm-editor')).toHaveAttribute('data-file-name', 'notes.unknown');
+      expect(screen.getByTestId('cm-editor')).not.toHaveTextContent('const x = 1;');
+      expect(screen.queryByText('JavaScript')).not.toBeInTheDocument();
     });
   });
 

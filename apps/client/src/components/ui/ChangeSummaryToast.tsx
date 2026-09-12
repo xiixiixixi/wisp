@@ -102,7 +102,7 @@ const ChangeSummaryToast = React.memo(
     const iconStyle: React.CSSProperties = {
       width: 18,
       height: 18,
-      color: 'var(--xp-blue)',
+      color: 'var(--ds-link)',
       flexShrink: 0,
     };
 

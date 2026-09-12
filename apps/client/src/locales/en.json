@@ -325,6 +325,11 @@
       "resetAll": "Reset all file associations"
     },
     "general": {
+      "appearance": "Appearance",
+      "appearanceDesc": "Follow your system appearance or choose a light or dark look.",
+      "appearanceSystem": "Follow system",
+      "appearanceLight": "Light",
+      "appearanceDark": "Dark",
       "language": "Language",
       "languageDesc": "Choose your preferred language",
       "small": "Small",
@@ -339,7 +344,12 @@
       "folderContextMenuDesc": "Add 'Open with Wisp' to folder right-click menu",
       "contextMenuToggle": "Context Menu",
       "explorerWarning": "Folders will open in Wisp. Disable to restore Windows Explorer.",
-      "weatherCityPlaceholder": "City name, e.g. Shanghai"
+      "weatherCityPlaceholder": "City name, e.g. Shanghai",
+      "keyboard": "Keyboard",
+      "keyboardDesc": "Shortcuts and Vim mode",
+      "keyboardNote": "Common actions follow Mac shortcut conventions. Wisp has additional shortcuts for its bottom panel, terminal, and split panes; view or customize them here.",
+      "advanced": "Advanced",
+      "advancedDesc": "Restore default preferences"
     },
     "explorer": {
       "display": "Display",
@@ -354,7 +364,10 @@
       "fileExtensionsDesc": "Show file type extensions in names",
       "autoFolderSizes": "Auto-Calculate Folder Sizes",
       "autoFolderSizesDesc": "Automatically calculate and display folder sizes in details view",
-      "auto": "Auto"
+      "auto": "Auto",
+      "advanced": "Advanced",
+      "contextMenuVisibility": "Context menu visibility",
+      "contextMenuVisibilityDesc": "Hide less-used menu items for specific file types. All actions appear by default; no setup is needed."
     },
     "ai": {
       "agent": "Agent",
@@ -626,7 +639,11 @@
       "sponsorTitle": "Support Wisp",
       "sponsorDescription": "Wisp is free and open source. If you find it useful, please consider sponsoring the project to help keep development going. Every contribution, no matter how small, makes a difference.",
       "sponsorButton": "Sponsor on GitHub",
-      "license": "Licensed under AGPL-3.0. Made with love."
+      "license": "Licensed under AGPL-3.0. Made with love.",
+      "support": "Support Wisp",
+      "openLinkFailed": "Couldn’t open the link. Try again.",
+      "installFailed": "Couldn’t install the update. Try again.",
+      "desktopUpdateHint": "Check for and install updates in the Wisp desktop app."
     },
     "gdrive": {
       "toastDownloadCompleteTitle": "Download complete",
@@ -691,12 +708,15 @@
       "uploadFailed": "Upload failed",
       "ariaRetryUpload": "Retry upload",
       "ariaCancelUpload": "Cancel upload"
-    }
+    },
+    "close": "Close settings",
+    "categories": "Settings categories",
+    "savedAutomatically": "Changes are saved automatically"
   },
   "commandPalette": {
     "title": "Wisp Search",
-    "subtitle": "Find files or ask Wisp from anywhere",
-    "trigger": "Search everywhere or ask Wisp...",
+    "subtitle": "Find files and folders by name",
+    "trigger": "Search files and folders…",
     "modeLabel": "Search mode",
     "modes": {
       "files": "Files",
@@ -721,16 +741,40 @@
     "assistantEmptyTitle": "What should Wisp help you accomplish?",
     "assistantEmptyDescription": "Ask to find, summarize, compare, organize, or act on files in your current workspace.",
     "everywhere": "Everywhere",
-    "globalScope": "System and Wisp indexes · not limited to this folder",
+    "globalScope": "Search filenames in system-searchable locations",
     "demoScope": "Demo files · search across folders",
     "searchUnavailable": "Search is unavailable. Please try again shortly.",
     "partialResults": "Some search sources are unavailable. Results may be incomplete; please try again shortly.",
-    "limitedResults": "Showing the first 50 matches. Refine the filename to narrow your results.",
+    "limitedResults": "Showing a limited set. Add more of the name to narrow the search.",
     "folderType": "Folder",
     "fileType": "File",
     "goToFolder": "Go to folder: {{path}}",
     "openWebsite": "Open website: {{url}}",
-    "goToCategory": "Folders"
+    "goToCategory": "Folders",
+    "filterAll": "All",
+    "filterFiles": "Files",
+    "filterFolders": "Folders",
+    "openPath": "Open this path",
+    "noRecentVisits": "No recent items yet",
+    "startTyping": "Type a name to find a file or folder.",
+    "searchTitle": "Search files and folders",
+    "closeSearch": "Close search",
+    "itemType": "Item type",
+    "exampleFiles": "Example files · name search",
+    "nameSearchScope": "System-searchable locations · names",
+    "recentVisits": "Recently visited",
+    "fullPath": "Full path",
+    "pathCopied": "Path copied",
+    "copyFailed": "Could not copy path",
+    "copyPath": "Copy path",
+    "reveal": "Show in folder",
+    "openFolder": "Open folder",
+    "openItem": "Open",
+    "narrowSearch": "Try a more specific name",
+    "tryAnotherName": "Try a different name.",
+    "searchBudgetReached": "This search reached its limit before finding this type of item.",
+    "systemLocations": "System-searchable locations · names",
+    "refineForMore": "Showing a limited set. Add more of the name to narrow the search."
   },
   "operationBar": {
     "selectionActions": "Selected file actions",
@@ -785,7 +829,16 @@
     "openInTerminal": "Open in Terminal",
     "copyPath": "Copy Path",
     "iconSize": "Icon size",
-    "iconSizeLabel": "Adjust icon size ({{size}}px)"
+    "iconSizeLabel": "Adjust icon size ({{size}}px)",
+    "airDrop": {
+      "open": "Open AirDrop",
+      "share": "Share selected items with AirDrop",
+      "desktopOnly": "Use Wisp for macOS to access AirDrop.",
+      "openFailed": "Could not open AirDrop",
+      "tryAgain": "Check that the selected items still exist, then try again on macOS.",
+      "invalidPaths": "Some selected items have moved or cannot be accessed. Select them again.",
+      "unavailable": "AirDrop is currently unavailable. Try again later or check AirDrop in Finder."
+    }
   },
   "fileOperations": {
     "openFailedTitle": "Couldn’t open file",
@@ -1555,9 +1608,26 @@
     "copyPaths": "Copy all paths"
   },
   "previewPanel": {
+    "showProperties": "Show file properties",
+    "hideProperties": "Hide file properties",
+    "unavailable": {
+      "unsupportedTitle": "Preview unavailable",
+      "unsupportedDescription": "Open this file in its default application, or view its details.",
+      "tooLargeTitle": "File too large for sidebar preview",
+      "tooLargeDescription": "Open the full file in its default application, or view its details.",
+      "failedTitle": "Could not load preview",
+      "failedDescription": "Try again, or open this file in its default application.",
+      "fileType": "{{extension}} file",
+      "openDefault": "Open in Default App",
+      "opening": "Opening…",
+      "showDetails": "Show Details",
+      "retry": "Retry Preview",
+      "desktopOnly": "Use Wisp for desktop to open this file in its default application.",
+      "openFailed": "Could not open this file. Check that it is still available and that a default application is installed."
+    },
     "noFileSelectedShort": "No file selected",
     "closePreview": "Close Preview",
-    "emptyDescription": "Choose an item from the file list to see its contents and details here.",
+    "emptyDescription": "View file contents and details here.",
     "failedLoad": "Failed to load preview",
     "retryDescription": "This file could not be read. Try again, or double-click the file to open it in its default app.",
     "retry": "Try again",
@@ -1643,7 +1713,12 @@
     "greetingAfternoon": "Good afternoon",
     "greetingEvening": "Good evening",
     "greetingNight": "Working late",
-    "topProcesses": "Heaviest processes"
+    "topProcesses": "Heaviest processes",
+    "memoryUsageSummary": "{{percent}}% memory used",
+    "memoryUsageDetails": "{{used}} of {{total}} used",
+    "diskUsageDetails": "{{available}} of {{total}} available",
+    "processName": "Process",
+    "processesUnavailable": "Process details are currently unavailable."
   },
   "toast": {
     "closeNotification": "Close notification",
@@ -2269,7 +2344,11 @@
     "syncModeMirrorShort": "Mirror",
     "syncModeRelativeShort": "Relative",
     "syncSwitchedToMirror": "Pane sync mode: Mirror — panes show the same folder",
-    "syncSwitchedToRelative": "Pane sync mode: Relative — panes follow keeping their relative level"
+    "syncSwitchedToRelative": "Pane sync mode: Relative — panes follow keeping their relative level",
+    "tabList": "Pane tabs",
+    "closeNamedTab": "Close {{name}}",
+    "moveTabLeft": "Move Tab Left",
+    "moveTabRight": "Move Tab Right"
   },
   "comparison": {
     "sideBySide": "Side by Side",
@@ -2301,6 +2380,8 @@
   },
   "previews": {
     "audio": {
+      "playbackPosition": "Playback position",
+      "volume": "Volume",
       "cannotPreview": "Cannot preview audio",
       "formatNotSupported": "The audio format may not be supported",
       "loading": "Loading audio...",
@@ -3269,6 +3350,11 @@
     }
   },
   "preview": {
+    "copyCode": "Copy code",
+    "wrapLines": "Wrap lines",
+    "codeCopied": "Code copied",
+    "copyCodeFailed": "Could not copy code. Try again.",
+    "plainText": "Plain text",
     "edit": "Edit",
     "doneEditing": "Done",
     "rendered": "Preview",
@@ -4095,5 +4181,41 @@
     "loadSpreadsheet": "Failed to load spreadsheet",
     "comparisonTooLarge": "One or both files exceed the 2 MB size limit for text comparison.",
     "readFiles": "Failed to read file(s)"
+  },
+  "homeEntry": {
+    "title": "Home",
+    "addPin": "Pin a folder",
+    "pinned": "Pinned locations",
+    "less": "Show less",
+    "showAll": "Show all",
+    "recent": "Recently visited",
+    "historyActions": "History actions",
+    "types": "Recent item type",
+    "all": "All",
+    "files": "Files",
+    "folders": "Folders",
+    "lastOpened": "Last opened",
+    "nameColumn": "Name",
+    "locationColumn": "Location",
+    "actionFailed": "Could not finish this action. Please try again.",
+    "openFailed": "Could not open “{{name}}”. Check that it exists and its drive is connected.",
+    "clearHistory": "Clear visit history",
+    "open": "Open",
+    "reveal": "Show in folder",
+    "copyPath": "Copy full path",
+    "unpin": "Unpin location",
+    "pin": "Pin location",
+    "itemActions": "Actions for {{name}}",
+    "loadFailed": "Could not load recent items",
+    "retry": "Retry",
+    "loading": "Loading recent items…",
+    "empty": {
+      "all": "Start with a file or folder",
+      "files": "No recently opened files",
+      "folders": "No recently visited folders"
+    },
+    "emptyHint": "Items you open in Wisp appear here.",
+    "search": "Search files and folders",
+    "limit": "Showing {{count}} recent items"
   }
 }

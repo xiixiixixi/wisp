@@ -1,0 +1,136 @@
+/* A compact settings sheet stays above the current workspace. */
+.wisp-settings-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: min(660px, calc(90dvh - 4px), calc(100dvh - 44px));
+  min-height: 0;
+}
+.wisp-settings-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 10px;
+  flex: 0 0 auto;
+}
+.wisp-settings-close {
+  width: 28px;
+  height: 28px;
+}
+.wisp-settings-tabbar {
+  display: flex;
+  align-self: flex-start;
+  flex: 0 0 auto;
+  gap: 4px;
+  padding: 4px;
+  margin: 0 24px 16px;
+  border-radius: 12px;
+  background: var(--ds-fill);
+}
+.wisp-settings-tabbar > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 5px 14px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: var(--ds-label-secondary);
+  font-size: 13px;
+  transition:
+    background 140ms ease,
+    color 140ms ease;
+}
+.wisp-settings-tabbar > button[aria-selected="true"] {
+  background: var(--ds-control);
+  color: var(--ds-label-primary);
+  border-color: var(--ds-separator);
+  box-shadow: var(--ds-shadow-control);
+}
+.wisp-settings-tabbar > button:hover {
+  color: var(--ds-label-primary);
+}
+.wisp-settings-dialog-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 0 20px 16px 24px;
+}
+.wisp-settings-dialog-footer {
+  flex: 0 0 auto;
+  padding: 10px 24px 14px;
+  color: var(--ds-label-tertiary);
+  font-size: 11px;
+}
+.wisp-settings-dialog summary::-webkit-details-marker {
+  display: none;
+}
+.wisp-settings-advanced > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 2px;
+  color: var(--ds-label-secondary);
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+}
+.wisp-settings-advanced > summary > svg {
+  transition: transform 140ms ease;
+}
+.wisp-settings-advanced[open] > summary > svg {
+  transform: rotate(90deg);
+}
+.wisp-settings-advanced-body {
+  padding: 4px 0;
+  display: grid;
+  gap: 16px;
+}
+.wisp-settings-advanced-description {
+  margin: 0 0 8px;
+  padding: 0 16px;
+  color: var(--ds-label-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+@media (max-width: 520px) {
+  .wisp-settings-dialog-header {
+    padding: 16px 16px 10px;
+  }
+  .wisp-settings-tabbar {
+    margin: 0 16px 16px;
+  }
+  .wisp-settings-dialog-body {
+    padding: 0 12px 12px 16px;
+  }
+  .wisp-settings-dialog-footer {
+    padding: 10px 16px 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wisp-settings-tabbar > button,
+  .wisp-settings-advanced > summary > svg {
+    transition: none;
+  }
+}
+
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-settings-tabbar
+  > button:focus-visible {
+  outline: 2px solid var(--ds-label-secondary) !important;
+  outline-offset: 2px !important;
+}
+
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-settings-tabbar
+  > button:focus:not(:focus-visible) {
+  outline: none !important;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-settings-dialog
+  .content-card.content-card {
+  background: var(--ds-fill) !important;
+  border: 0 !important;
+}

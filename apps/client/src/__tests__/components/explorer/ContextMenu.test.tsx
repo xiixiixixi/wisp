@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import '@testing-library/jest-dom';
 import ContextMenu, { type ContextMenuItem } from '@/components/ui/ContextMenu';
 
@@ -122,6 +124,109 @@ describe('ContextMenu', () => {
   });
 
   describe('Keyboard Navigation', () => {
+    it('moves through enabled items and activates the focused command', () => {
+      const action = vi.fn();
+      render(
+        <ContextMenu
+          {...defaultProps}
+          items={[
+            { id: 'open', label: 'Open', action: vi.fn() },
+            { id: 'disabled', label: 'Unavailable', disabled: true },
+            { id: 'copy', label: 'Copy', action },
+          ]}
+        />,
+      );
+
+      expect(screen.getByRole('menuitem', { name: 'Open' })).toHaveFocus();
+      fireEvent.keyDown(document, { key: 'ArrowDown' });
+      expect(screen.getByRole('menuitem', { name: 'Copy' })).toHaveFocus();
+      fireEvent.keyDown(document, { key: 'Home' });
+      expect(screen.getByRole('menuitem', { name: 'Open' })).toHaveFocus();
+      fireEvent.keyDown(document, { key: 'ArrowUp' });
+      expect(screen.getByRole('menuitem', { name: 'Copy' })).toHaveFocus();
+      fireEvent.keyDown(document, { key: 'Enter' });
+      expect(action).toHaveBeenCalledOnce();
+      expect(mockOnClose).toHaveBeenCalledOnce();
+    });
+
+    it('opens a submenu with arrows and returns focus to its parent', async () => {
+      render(
+        <ContextMenu
+          {...defaultProps}
+          items={[
+            {
+              id: 'sort',
+              label: 'Sort By',
+              submenu: [{ id: 'name', label: 'Name', action: vi.fn() }],
+            },
+          ]}
+        />,
+      );
+
+      fireEvent.keyDown(document, { key: 'ArrowRight' });
+      await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Name' })).toHaveFocus());
+      fireEvent.keyDown(document, { key: 'ArrowLeft' });
+      expect(screen.queryByRole('menuitem', { name: 'Name' })).not.toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Sort By' })).toHaveFocus();
+    });
+
+    it('restores focus to the invoking control when closed', () => {
+      const trigger = document.createElement('button');
+      document.body.appendChild(trigger);
+      trigger.focus();
+      const { rerender } = render(<ContextMenu {...defaultProps} />);
+      rerender(<ContextMenu {...defaultProps} isOpen={false} />);
+      expect(trigger).toHaveFocus();
+      trigger.remove();
+    });
+
+    it('closes the focused submenu level when a deeper submenu is still open', async () => {
+      render(
+        <ContextMenu
+          {...defaultProps}
+          items={[
+            {
+              id: 'sort',
+              label: 'Sort By',
+              submenu: [
+                {
+                  id: 'name',
+                  label: 'Name',
+                  submenu: [{ id: 'ascending', label: 'Ascending', action: vi.fn() }],
+                },
+              ],
+            },
+          ]}
+        />,
+      );
+      fireEvent.keyDown(document, { key: 'ArrowRight' });
+      await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Name' })).toHaveFocus());
+      fireEvent.keyDown(document, { key: 'ArrowRight' });
+      await waitFor(() =>
+        expect(screen.getByRole('menuitem', { name: 'Ascending' })).toHaveFocus(),
+      );
+
+      screen.getByRole('menuitem', { name: 'Name' }).focus();
+      fireEvent.keyDown(document, { key: 'ArrowLeft' });
+      expect(screen.getByRole('menuitem', { name: 'Sort By' })).toHaveFocus();
+      expect(screen.queryByRole('menuitem', { name: 'Name' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'Ascending' })).not.toBeInTheDocument();
+    });
+
+    it('preserves focus deliberately moved by a menu action', () => {
+      const trigger = document.createElement('button');
+      const destination = document.createElement('input');
+      document.body.appendChild(trigger);
+      document.body.appendChild(destination);
+      trigger.focus();
+      const { rerender } = render(<ContextMenu {...defaultProps} />);
+      destination.focus();
+      rerender(<ContextMenu {...defaultProps} isOpen={false} />);
+      expect(destination).toHaveFocus();
+      trigger.remove();
+      destination.remove();
+    });
+
     it('closes menu when Escape is pressed', () => {
       render(<ContextMenu {...defaultProps} />);
 
@@ -140,15 +245,30 @@ describe('ContextMenu', () => {
   });
 
   describe('Click Outside', () => {
-    it('closes menu when backdrop is clicked', () => {
-      const { container } = render(<ContextMenu {...defaultProps} />);
+    it('lets an outside input receive focus when the menu dismisses', async () => {
+      const user = userEvent.setup();
+      const MenuWithInput = () => {
+        const [open, setOpen] = useState(false);
+        return (
+          <>
+            <button onClick={() => setOpen(true)}>Show commands</button>
+            <input aria-label="Outside field" />
+            <ContextMenu {...defaultProps} isOpen={open} onClose={() => setOpen(false)} />
+          </>
+        );
+      };
+      render(<MenuWithInput />);
+      await user.click(screen.getByRole('button', { name: 'Show commands' }));
+      expect(screen.getByRole('menuitem', { name: 'Open' })).toHaveFocus();
+      await user.click(screen.getByRole('textbox', { name: 'Outside field' }));
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      expect(screen.getByRole('textbox', { name: 'Outside field' })).toHaveFocus();
+    });
 
-      // The backdrop is the first child with class "fixed inset-0 z-40"
-      const backdrop = container.querySelector('.fixed.inset-0.z-40');
-      expect(backdrop).toBeInTheDocument();
-      fireEvent.click(backdrop!);
-
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
+    it('keeps the menu open when pressing inside its panel', () => {
+      render(<ContextMenu {...defaultProps} />);
+      fireEvent.mouseDown(screen.getByRole('menu'));
+      expect(mockOnClose).not.toHaveBeenCalled();
     });
 
     it('closes menu when clicking outside via mousedown', () => {

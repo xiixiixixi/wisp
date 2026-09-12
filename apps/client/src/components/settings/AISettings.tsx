@@ -1,3 +1,4 @@
+import { Slider } from '@/components/ui/slider';
 import { getAppLocale } from '@/lib/locale';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -195,10 +196,10 @@ const AISettings = ({
         onClick={() => setBuiltInExpanded((v) => !v)}
         aria-expanded={builtInExpanded}
         data-testid="builtin-ai-toggle"
-        className="flex w-full items-center gap-2 rounded-[2px] px-2 py-2 text-left text-sm text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+        className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
       >
         {builtInExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-        <span className="font-medium">{t('settings.ai.builtInTitle')}</span>
+        <span className="font-semibold">{t('settings.ai.builtInTitle')}</span>
         <span className="text-xs text-xp-text-muted">{t('settings.ai.builtInDesc')}</span>
       </button>
 
@@ -293,7 +294,7 @@ const AISettings = ({
                 {settings.aiCustomProvider === 'openai-compatible' && (
                   <>
                     {/* One-tap presets for common OpenAI-compatible services */}
-                    <div className="rounded-[2px] px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
+                    <div className="rounded-md px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
                       <div className="mb-2 flex items-center gap-3">
                         <Zap size={18} className="shrink-0 text-xp-text-secondary" />
                         <div className="text-xs text-xp-text-secondary">
@@ -310,18 +311,18 @@ const AISettings = ({
                               updateSetting('aiCustomEndpoint', preset.endpoint);
                               updateSetting('aiCustomModel', preset.model);
                             }}
-                            className="rounded-[2px] border border-xp-border bg-xp-surface px-3 py-1 text-xs text-xp-text transition-colors hover:border-xp-accent"
+                            className="rounded-md border border-xp-border bg-xp-surface px-3 py-1 text-xs text-xp-text transition-colors hover:border-xp-accent"
                           >
                             {preset.label}
                           </button>
                         ))}
                       </div>
                     </div>
-                    <div className="rounded-[2px] px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
+                    <div className="rounded-md px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
                       <div className="mb-2 flex items-center gap-3">
                         <Workflow size={18} className="shrink-0 text-xp-text-secondary" />
                         <div>
-                          <div className="text-sm font-medium text-xp-text">
+                          <div className="text-sm font-semibold text-xp-text">
                             {t('settings.ai.customProtocolLabel')}
                           </div>
                           <div className="mt-0.5 text-xs text-xp-text-secondary">
@@ -351,11 +352,11 @@ const AISettings = ({
                         </Select>
                       </div>
                     </div>
-                    <div className="rounded-[2px] px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
+                    <div className="rounded-md px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
                       <div className="mb-2 flex items-center gap-3">
                         <Globe size={18} className="shrink-0 text-xp-text-secondary" />
                         <div>
-                          <div className="text-sm font-medium text-xp-text">
+                          <div className="text-sm font-semibold text-xp-text">
                             {t('settings.ai.customEndpointLabel')}
                           </div>
                           <div className="mt-0.5 text-xs text-xp-text-secondary">
@@ -373,7 +374,7 @@ const AISettings = ({
                               ? 'https://api.minimaxi.com/anthropic'
                               : 'https://api.minimaxi.com/v1'
                           }
-                          className="h-9 w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
+                          className="h-9 w-full rounded-md border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
                         />
                       </div>
                     </div>
@@ -381,11 +382,11 @@ const AISettings = ({
                 )}
 
                 {/* Custom model text input */}
-                <div className="rounded-[2px] px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
+                <div className="rounded-md px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
                   <div className="mb-2 flex items-center gap-3">
                     <Brain size={18} className="shrink-0 text-xp-text-secondary" />
                     <div>
-                      <div className="text-sm font-medium text-xp-text">
+                      <div className="text-sm font-semibold text-xp-text">
                         {t('settings.ai.customModel')}
                       </div>
                       <div className="mt-0.5 text-xs text-xp-text-secondary">
@@ -409,18 +410,18 @@ const AISettings = ({
                           } as Record<string, string>
                         )[settings.aiCustomProvider] || 'llama3'
                       }
-                      className="h-9 w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
+                      className="h-9 w-full rounded-md border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
                     />
                   </div>
                 </div>
 
                 {/* Custom API key — not shown for Ollama */}
                 {settings.aiCustomProvider !== 'ollama' && (
-                  <div className="rounded-[2px] px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
+                  <div className="rounded-md px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
                     <div className="mb-2 flex items-center gap-3">
                       <Key size={18} className="shrink-0 text-xp-text-secondary" />
                       <div>
-                        <div className="text-sm font-medium text-xp-text">
+                        <div className="text-sm font-semibold text-xp-text">
                           {t('settings.ai.customApiKey')}
                         </div>
                         <div className="mt-0.5 text-xs text-xp-text-secondary">
@@ -441,12 +442,12 @@ const AISettings = ({
                             } as Record<string, string>
                           )[settings.aiCustomProvider] || 'sk-...'
                         }
-                        className="h-9 w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 pr-16 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
+                        className="h-9 w-full rounded-md border border-xp-border bg-xp-bg px-3 pr-16 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => setShowApiKey(!showApiKey)}
-                        className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-[2px] px-2 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                        className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-md px-2 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                       >
                         {showApiKey ? <EyeOff size={14} /> : <Eye size={14} />}
                         {showApiKey ? t('settings.ai.hideKey') : t('settings.ai.showKey')}
@@ -459,11 +460,13 @@ const AISettings = ({
           </SettingsSection>{' '}
           <SettingsSection title={t('settings.ai.agentAdvanced')}>
             {/* Anthropic API Key */}
-            <div className="rounded-[2px] px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
+            <div className="rounded-md px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
               <div className="mb-2 flex items-center gap-3">
                 <Key size={18} className="shrink-0 text-xp-text-secondary" />
                 <div>
-                  <div className="text-sm font-medium text-xp-text">{t('settings.ai.apiKey')}</div>
+                  <div className="text-sm font-semibold text-xp-text">
+                    {t('settings.ai.apiKey')}
+                  </div>
                   <div className="mt-0.5 text-xs text-xp-text-secondary">
                     {t('settings.ai.apiKeyDesc')}
                   </div>
@@ -480,12 +483,12 @@ const AISettings = ({
                       ? `••••••••  (${t('settings.ai.keyIsSet')})`
                       : 'sk-ant-...'
                   }
-                  className="h-9 w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 pr-16 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
+                  className="h-9 w-full rounded-md border border-xp-border bg-xp-bg px-3 pr-16 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowApiKey(!showApiKey)}
-                  className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-[2px] px-2 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-md px-2 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                 >
                   {showApiKey ? <EyeOff size={14} /> : <Eye size={14} />}
                   {showApiKey ? t('settings.ai.hideKey') : t('settings.ai.showKey')}
@@ -562,11 +565,11 @@ const AISettings = ({
 
             {/* Third-party API Key — shows when a non-Anthropic model is selected */}
             {isNonAnthropicModel && (
-              <div className="rounded-[2px] px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
+              <div className="rounded-md px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
                 <div className="mb-2 flex items-center gap-3">
                   <Key size={18} className="shrink-0 text-xp-text-secondary" />
                   <div>
-                    <div className="text-sm font-medium text-xp-text">{thirdPartyKeyLabel}</div>
+                    <div className="text-sm font-semibold text-xp-text">{thirdPartyKeyLabel}</div>
                     <div className="mt-0.5 text-xs text-xp-text-secondary">{thirdPartyKeyDesc}</div>
                   </div>
                 </div>
@@ -580,12 +583,12 @@ const AISettings = ({
                         ? `••••••••  (${t('settings.ai.keyIsSet')})`
                         : 'sk-...'
                     }
-                    className="h-9 w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 pr-16 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
+                    className="h-9 w-full rounded-md border border-xp-border bg-xp-bg px-3 pr-16 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setShowOpenaiKey(!showOpenaiKey)}
-                    className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-[2px] px-2 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                    className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-md px-2 py-1 text-xs text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                   >
                     {showOpenaiKey ? <EyeOff size={14} /> : <Eye size={14} />}
                     {showOpenaiKey ? t('settings.ai.hideKey') : t('settings.ai.showKey')}
@@ -622,11 +625,11 @@ const AISettings = ({
             </SettingRow>
 
             {/* AI Search Model */}
-            <div className="rounded-[2px] px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
+            <div className="rounded-md px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
               <div className="mb-2 flex items-center gap-3">
                 <Brain size={18} className="shrink-0 text-xp-text-secondary" />
                 <div>
-                  <div className="text-sm font-medium text-xp-text">
+                  <div className="text-sm font-semibold text-xp-text">
                     {t('settings.ai.searchModel')}
                   </div>
                   <div className="mt-0.5 text-xs text-xp-text-secondary">
@@ -640,18 +643,18 @@ const AISettings = ({
                   value={settings.aiSearchModel || ''}
                   onChange={(e) => updateSetting('aiSearchModel', e.target.value)}
                   placeholder={searchModelPlaceholder}
-                  className="h-9 w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
+                  className="h-9 w-full rounded-md border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
                 />
               </div>
             </div>
 
             {/* AI Search API Key (for Claude/OpenAI) */}
             {settings.aiSearchProvider !== 'auto' && settings.aiSearchProvider !== 'ollama' && (
-              <div className="rounded-[2px] px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
+              <div className="rounded-md px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
                 <div className="mb-2 flex items-center gap-3">
                   <Key size={18} className="shrink-0 text-xp-text-secondary" />
                   <div>
-                    <div className="text-sm font-medium text-xp-text">
+                    <div className="text-sm font-semibold text-xp-text">
                       {t('settings.ai.searchApiKey')}
                     </div>
                     <div className="mt-0.5 text-xs text-xp-text-secondary">
@@ -669,18 +672,18 @@ const AISettings = ({
                         settings.aiSearchProvider
                       ] || 'sk-...'
                     }
-                    className="h-9 w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
+                    className="h-9 w-full rounded-md border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
                   />
                 </div>
               </div>
             )}
 
             {/* Ollama URL */}
-            <div className="rounded-[2px] px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
+            <div className="rounded-md px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
               <div className="mb-2 flex items-center gap-3">
                 <Cpu size={18} className="shrink-0 text-xp-text-secondary" />
                 <div>
-                  <div className="text-sm font-medium text-xp-text">
+                  <div className="text-sm font-semibold text-xp-text">
                     {t('settings.ai.ollamaEndpoint')}
                   </div>
                   <div className="mt-0.5 text-xs text-xp-text-secondary">
@@ -696,19 +699,19 @@ const AISettings = ({
                   }
                   onChange={(e) => localStorage.setItem(STORAGE_KEYS.OLLAMA_URL, e.target.value)}
                   placeholder="http://localhost:11434"
-                  className="h-9 w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
+                  className="h-9 w-full rounded-md border border-xp-border bg-xp-bg px-3 font-mono text-sm text-xp-text transition-colors hover:border-xp-text-secondary focus:border-xp-text-secondary focus:outline-none"
                 />
               </div>
             </div>
           </SettingsSection>{' '}
           <SettingsSection title={t('settings.ai.agentSection')}>
             {/* Max Turns */}
-            <div className="rounded-[2px] px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
+            <div className="rounded-md px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <SlidersHorizontal size={18} className="shrink-0 text-xp-text-secondary" />
                   <div>
-                    <div className="text-sm font-medium text-xp-text">
+                    <div className="text-sm font-semibold text-xp-text">
                       {t('settings.ai.maxTurns')}
                     </div>
                     <div className="mt-0.5 text-xs text-xp-text-secondary">
@@ -716,19 +719,19 @@ const AISettings = ({
                     </div>
                   </div>
                 </div>
-                <span className="text-sm font-medium tabular-nums text-xp-accent">
+                <span className="text-sm font-semibold tabular-nums text-xp-accent">
                   {agentSettings.max_turns}
                 </span>
               </div>
               <div className="ml-[30px] mt-2">
-                <input
+                <Slider
                   id="maxTurns"
-                  type="range"
+                  aria-label={t('settings.ai.maxTurns')}
                   min={5}
                   max={50}
                   value={agentSettings.max_turns}
                   onChange={(e) => updateAgentSetting('max_turns', Number(e.target.value))}
-                  className="h-1.5 w-full cursor-pointer appearance-none rounded-[2px] bg-xp-border accent-xp-accent"
+                  className="w-full"
                 />
                 <div className="text-xp-text-secondary/60 mt-1 flex justify-between text-[10px]">
                   <span>5</span>
@@ -753,12 +756,12 @@ const AISettings = ({
 
             {/* Thinking Budget — conditional */}
             {agentSettings.thinking_enabled && (
-              <div className="rounded-[2px] px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
+              <div className="rounded-md px-4 py-3 transition-colors hover:bg-xp-surface-light/50">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <SlidersHorizontal size={18} className="shrink-0 text-xp-text-secondary" />
                     <div>
-                      <div className="text-sm font-medium text-xp-text">
+                      <div className="text-sm font-semibold text-xp-text">
                         {t('settings.ai.thinkingBudget')}
                       </div>
                       <div className="mt-0.5 text-xs text-xp-text-secondary">
@@ -766,19 +769,19 @@ const AISettings = ({
                       </div>
                     </div>
                   </div>
-                  <span className="text-sm font-medium tabular-nums text-xp-accent">
+                  <span className="text-sm font-semibold tabular-nums text-xp-accent">
                     {agentSettings.thinking_budget.toLocaleString(getAppLocale())}
                   </span>
                 </div>
                 <div className="ml-[30px] mt-2">
-                  <input
-                    type="range"
+                  <Slider
+                    aria-label={t('settings.ai.thinkingBudget')}
                     min={5000}
                     max={50000}
                     step={5000}
                     value={agentSettings.thinking_budget}
                     onChange={(e) => updateAgentSetting('thinking_budget', Number(e.target.value))}
-                    className="h-1.5 w-full cursor-pointer appearance-none rounded-[2px] bg-xp-border accent-xp-accent"
+                    className="w-full"
                   />
                   <div className="text-xp-text-secondary/60 mt-1 flex justify-between text-[10px]">
                     <span>5K</span>
@@ -802,7 +805,7 @@ const AISettings = ({
                   thinking_budget: 10000,
                 });
               }}
-              className="flex items-center gap-2 rounded-[2px] px-3 py-2 text-sm text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             >
               <RotateCcw size={14} />
               {t('settings.ai.resetAgent')}

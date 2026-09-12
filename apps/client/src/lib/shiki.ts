@@ -1,76 +1,81 @@
 /**
  * Shiki highlighter singleton — JavaScript regex engine (no WASM startup
- * cost) with a lazily-imported core set of grammars. Code blocks outside the
- * preloaded set fall back to a plain <pre> instead of growing the bundle.
+ * cost). Only the requested grammar and its dependencies are imported.
  */
 import { createHighlighterCore, type HighlighterCore } from 'shiki/core';
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript';
+import { bundledLanguagesInfo } from 'shiki/langs';
 
 let highlighterPromise: Promise<HighlighterCore> | null = null;
+const languageLoads = new Map<string, Promise<void>>();
+const languages = new Map(
+  bundledLanguagesInfo.flatMap((language) =>
+    [language.id, ...(language.aliases ?? [])].map((id) => [id, language] as const),
+  ),
+);
+// Editor language ids aren't included in Shiki's fence aliases.
+const editorAliases: Record<string, string> = {
+  typescriptreact: 'tsx',
+  javascriptreact: 'jsx',
+};
+
+const resolveLanguage = (lang: string) => {
+  const id = lang.trim().toLowerCase();
+  return languages.get(Object.hasOwn(editorAliases, id) ? editorAliases[id] : id);
+};
+
+/** Canonical grammar id, shared by aliases and concurrent load requests. */
+export const normalizeCodeLanguage = (lang: string): string | null =>
+  resolveLanguage(lang)?.id ?? null;
+
+export const getCodeLanguageLabel = (lang: string): string | null =>
+  resolveLanguage(lang)?.name ?? null;
 
 function getHighlighter(): Promise<HighlighterCore> {
   highlighterPromise ??= createHighlighterCore({
-    themes: [import('shiki/themes/github-light.mjs'), import('shiki/themes/github-dark.mjs')],
-    langs: [
-      import('shiki/langs/typescript.mjs'),
-      import('shiki/langs/javascript.mjs'),
-      import('shiki/langs/tsx.mjs'),
-      import('shiki/langs/python.mjs'),
-      import('shiki/langs/rust.mjs'),
-      import('shiki/langs/go.mjs'),
-      import('shiki/langs/json.mjs'),
-      import('shiki/langs/shellscript.mjs'),
-      import('shiki/langs/css.mjs'),
-      import('shiki/langs/html.mjs'),
-      import('shiki/langs/markdown.mjs'),
-      import('shiki/langs/yaml.mjs'),
-      import('shiki/langs/sql.mjs'),
-      import('shiki/langs/java.mjs'),
-      import('shiki/langs/c.mjs'),
-      import('shiki/langs/cpp.mjs'),
+    themes: [
+      import('shiki/themes/github-light-default.mjs').then(({ default: theme }) => ({
+        ...theme,
+        // GitHub's light comments need slightly more ink on our pearl code surface.
+        tokenColors: [
+          ...(theme.tokenColors ?? []),
+          {
+            scope: ['comment', 'punctuation.definition.comment', 'string.comment'],
+            settings: { foreground: '#57606a' },
+          },
+        ],
+      })),
+      import('shiki/themes/github-dark-default.mjs'),
     ],
+    langs: [],
     engine: createJavaScriptRegexEngine(),
+  }).catch((error) => {
+    highlighterPromise = null;
+    throw error;
   });
   return highlighterPromise;
 }
 
-/** Shiki language ids that resolve to the loaded grammars. */
-const LOADED_LANGS = new Set([
-  'typescript',
-  'typescriptreact',
-  'javascript',
-  'javascriptreact',
-  'python',
-  'rust',
-  'go',
-  'json',
-  'shellscript',
-  'bash',
-  'sh',
-  'shell',
-  'zsh',
-  'css',
-  'html',
-  'markdown',
-  'md',
-  'yaml',
-  'yml',
-  'sql',
-  'java',
-  'c',
-  'cpp',
-]);
-
 /** Highlight to dual-theme HTML (light + dark CSS vars, switched in CSS). */
 export async function highlightCode(code: string, lang: string): Promise<string | null> {
-  const id = lang.toLowerCase();
-  if (!LOADED_LANGS.has(id)) return null;
+  const language = resolveLanguage(lang);
+  if (!language) return null;
+  const { id } = language;
   try {
     const highlighter = await getHighlighter();
-    if (!highlighter.getLoadedLanguages().includes(id)) return null;
+    if (!highlighter.getLoadedLanguages().includes(id)) {
+      let pending = languageLoads.get(id);
+      if (!pending) {
+        pending = highlighter.loadLanguage(language.import).finally(() => {
+          languageLoads.delete(id);
+        });
+        languageLoads.set(id, pending);
+      }
+      await pending;
+    }
     return highlighter.codeToHtml(code, {
       lang: id,
-      themes: { light: 'github-light', dark: 'github-dark' },
+      themes: { light: 'github-light-default', dark: 'github-dark-default' },
       defaultColor: false,
     });
   } catch {

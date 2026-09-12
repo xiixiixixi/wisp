@@ -132,7 +132,7 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
     return (
       <div className="space-y-3 p-4">
         <div
-          className="rounded-[2px] border p-3"
+          className="rounded-md border p-3"
           style={{
             borderColor: 'color-mix(in srgb, var(--xp-red) 20%, transparent)',
             backgroundColor: 'color-mix(in srgb, var(--xp-red) 7%, transparent)',
@@ -144,7 +144,7 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
         </div>
         <button
           onClick={runAnalysis}
-          className="w-full rounded-[2px] bg-xp-surface-light px-3 py-2 text-sm text-xp-text transition-colors hover:bg-xp-blue"
+          className="w-full rounded-md bg-xp-surface-light px-3 py-2 text-sm text-xp-text transition-colors hover:bg-xp-blue"
         >
           {tUi('panels.properties.retry')}
         </button>
@@ -167,7 +167,7 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
         {currentPath && (
           <button
             onClick={runAnalysis}
-            className="rounded-[2px] bg-xp-blue px-4 py-2 text-sm text-xp-on-accent transition-colors hover:opacity-90"
+            className="rounded-md bg-xp-blue px-4 py-2 text-sm text-xp-on-accent transition-colors hover:opacity-90"
           >
             {tUi('interface.analyzeStorage')}
           </button>
@@ -209,7 +209,7 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
         </div>
         <button
           onClick={runAnalysis}
-          className="ml-2 shrink-0 rounded-[2px] border border-xp-border bg-xp-surface-light px-2 py-1 text-xs transition-colors hover:bg-xp-blue hover:text-xp-on-accent"
+          className="ml-2 shrink-0 rounded-md border border-xp-border bg-xp-surface-light px-2 py-1 text-xs transition-colors hover:bg-xp-blue hover:text-xp-on-accent"
           title={i18n.t('storageAnalytics.refresh')}
         >
           {tUi('performanceDashboard.refresh')}
@@ -220,10 +220,9 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
       <div className="grid grid-cols-3 gap-2">
         {/* Total Size */}
         <div
-          className="rounded-[2px] border border-xp-border p-2.5"
+          className="rounded-md border border-xp-border p-2.5"
           style={{
-            backgroundColor: 'rgba(var(--xp-surface-rgb, 36, 40, 59), 0.5)',
-            backdropFilter: 'blur(16px)',
+            backgroundColor: 'var(--ds-canvas)',
           }}
         >
           <div className="mb-0.5 text-base">
@@ -240,10 +239,9 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
         </div>
         {/* Files */}
         <div
-          className="rounded-[2px] border border-xp-border p-2.5"
+          className="rounded-md border border-xp-border p-2.5"
           style={{
-            backgroundColor: 'rgba(var(--xp-surface-rgb, 36, 40, 59), 0.5)',
-            backdropFilter: 'blur(16px)',
+            backgroundColor: 'var(--ds-canvas)',
           }}
         >
           <div className="mb-0.5 text-base">
@@ -254,10 +252,9 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
         </div>
         {/* Folders */}
         <div
-          className="rounded-[2px] border border-xp-border p-2.5"
+          className="rounded-md border border-xp-border p-2.5"
           style={{
-            backgroundColor: 'rgba(var(--xp-surface-rgb, 36, 40, 59), 0.5)',
-            backdropFilter: 'blur(16px)',
+            backgroundColor: 'var(--ds-canvas)',
           }}
         >
           <div className="mb-0.5 text-base">
@@ -273,24 +270,23 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
       {/* Disk Usage Bar */}
       {hasDiskInfo && (
         <div
-          className="rounded-[2px] border border-xp-border p-3"
+          className="rounded-md border border-xp-border p-3"
           style={{
-            backgroundColor: 'rgba(var(--xp-surface-rgb, 36, 40, 59), 0.5)',
-            backdropFilter: 'blur(16px)',
+            backgroundColor: 'var(--ds-canvas)',
           }}
         >
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-medium text-xp-text">{tUi('interface.diskUsage')}</span>
+            <span className="text-xs font-semibold text-xp-text">{tUi('interface.diskUsage')}</span>
             <span className="text-xs text-xp-text-muted">
               {formatFileSize(used_size)} / {formatFileSize(total_size)}
             </span>
           </div>
           <div
-            className="h-3 w-full overflow-hidden rounded-[2px] border border-xp-border bg-xp-bg"
-            style={{ backgroundColor: 'rgba(var(--xp-overlay-rgb, 86, 90, 110), 0.3)' }}
+            className="h-3 w-full overflow-hidden rounded-md border border-xp-border bg-xp-bg"
+            style={{ backgroundColor: 'var(--ds-fill)' }}
           >
             <div
-              className="h-full rounded-[2px] transition-all duration-500"
+              className="h-full rounded-md transition-all duration-500"
               style={{
                 width: `${usedPercent}%`,
                 background: (() => {
@@ -319,13 +315,12 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
       {/* File Type Distribution */}
       {top10Types.length > 0 && (
         <div
-          className="rounded-[2px] border border-xp-border p-3"
+          className="rounded-md border border-xp-border p-3"
           style={{
-            backgroundColor: 'rgba(var(--xp-surface-rgb, 36, 40, 59), 0.5)',
-            backdropFilter: 'blur(16px)',
+            backgroundColor: 'var(--ds-canvas)',
           }}
         >
-          <h4 className="mb-2 text-xs font-medium text-xp-text">
+          <h4 className="mb-2 text-xs font-semibold text-xp-text">
             {tUi('interface.fileTypesTop10BySize')}
           </h4>
           <div className="space-y-1.5">
@@ -337,7 +332,7 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
                 <div key={t.extension} className="group">
                   <div className="mb-0.5 flex items-center gap-1.5">
                     <span
-                      className="inline-block h-2 w-2 shrink-0 rounded-[1px]"
+                      className="inline-block h-2 w-2 shrink-0 rounded-md"
                       style={{ backgroundColor: color }}
                     />
                     <span
@@ -351,11 +346,11 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
                     </span>
                   </div>
                   <div
-                    className="h-1.5 w-full overflow-hidden rounded-[2px] bg-xp-bg"
-                    style={{ backgroundColor: 'rgba(var(--xp-overlay-rgb, 86, 90, 110), 0.2)' }}
+                    className="h-1.5 w-full overflow-hidden rounded-md bg-xp-bg"
+                    style={{ backgroundColor: 'var(--ds-fill)' }}
                   >
                     <div
-                      className="h-full rounded-[2px] transition-all duration-300"
+                      className="h-full rounded-md transition-all duration-300"
                       style={{ width: `${barWidth}%`, backgroundColor: color }}
                     />
                   </div>
@@ -372,13 +367,12 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
       {/* Size Distribution */}
       {size_categories.length > 0 && (
         <div
-          className="rounded-[2px] border border-xp-border p-3"
+          className="rounded-md border border-xp-border p-3"
           style={{
-            backgroundColor: 'rgba(var(--xp-surface-rgb, 36, 40, 59), 0.5)',
-            backdropFilter: 'blur(16px)',
+            backgroundColor: 'var(--ds-canvas)',
           }}
         >
-          <h4 className="mb-2 text-xs font-medium text-xp-text">
+          <h4 className="mb-2 text-xs font-semibold text-xp-text">
             {tUi('interface.sizeDistribution')}
           </h4>
           <div className="space-y-1.5">
@@ -397,11 +391,11 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
                     </span>
                   </div>
                   <div
-                    className="h-1.5 w-full overflow-hidden rounded-[2px] bg-xp-bg"
-                    style={{ backgroundColor: 'rgba(var(--xp-overlay-rgb, 86, 90, 110), 0.2)' }}
+                    className="h-1.5 w-full overflow-hidden rounded-md bg-xp-bg"
+                    style={{ backgroundColor: 'var(--ds-fill)' }}
                   >
                     <div
-                      className="h-full rounded-[2px] transition-all duration-300"
+                      className="h-full rounded-md transition-all duration-300"
                       style={{ width: `${barWidth}%`, backgroundColor: color }}
                     />
                   </div>
@@ -415,20 +409,19 @@ const StorageAnalyticsPanel = ({ currentPath, navigateToPath }: StorageAnalytics
       {/* Largest Files */}
       {largest_files.length > 0 && (
         <div
-          className="rounded-[2px] border border-xp-border p-3"
+          className="rounded-md border border-xp-border p-3"
           style={{
-            backgroundColor: 'rgba(var(--xp-surface-rgb, 36, 40, 59), 0.5)',
-            backdropFilter: 'blur(16px)',
+            backgroundColor: 'var(--ds-canvas)',
           }}
         >
-          <h4 className="mb-2 text-xs font-medium text-xp-text">
+          <h4 className="mb-2 text-xs font-semibold text-xp-text">
             {tUi('messages.largestFiles', { count: largest_files.length })}
           </h4>
           <div className="max-h-64 space-y-1 overflow-y-auto">
             {largest_files.map((file, i) => (
               <div
                 key={file.path}
-                className="group flex cursor-pointer items-center gap-2 rounded-[2px] p-1.5 transition-colors hover:bg-xp-surface-light"
+                className="group flex cursor-pointer items-center gap-2 rounded-md p-1.5 transition-colors hover:bg-xp-surface-light"
                 onClick={() => handleFileClick(file.path)}
                 title={file.path}
               >

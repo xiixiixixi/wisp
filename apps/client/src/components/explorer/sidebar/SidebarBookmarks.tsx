@@ -72,7 +72,7 @@ export const SidebarBookmarkItems = ({
         return (
           <div
             key={bookmark.path}
-            className={`wisp-sidebar-item group flex w-full cursor-pointer items-center rounded-[2px] px-2 py-1.5 text-xs transition-colors ${
+            className={`wisp-sidebar-item group flex w-full cursor-pointer items-center rounded-md px-2 py-1.5 text-xs transition-colors ${
               isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
             }`}
             data-drop-target={bookmark.is_dir ? bookmark.path : undefined}
@@ -156,7 +156,7 @@ const SidebarBookmarks = ({
       data-drop-action="bookmark-add"
     >
       <button
-        className="flex w-full items-center px-3 py-1.5 text-[10px] font-medium uppercase tracking-widest text-xp-text-muted transition-colors hover:bg-xp-surface-light/50"
+        className="flex w-full items-center px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted transition-colors hover:bg-xp-surface-light/50"
         onClick={onToggleCollapsed}
         aria-expanded={!collapsed}
       >

@@ -66,7 +66,7 @@ const GalleryStripThumb = React.memo(
           name: file.name,
         })}
         data-gallery-path={file.path}
-        className={`h-16 w-16 flex-shrink-0 cursor-pointer overflow-hidden rounded-[2px] border-2 transition-all ${(() => {
+        className={`h-16 w-16 flex-shrink-0 cursor-pointer overflow-hidden rounded-md border-2 transition-all ${(() => {
           if (isFocused) return 'scale-105 border-xp-blue ring-1 ring-xp-blue';
           if (isSelected) return 'border-xp-blue';
           return 'border-transparent hover:border-xp-text-muted';
@@ -285,7 +285,7 @@ const GalleryView = ({
                   {getFileIcon(displayFile)}
                 </FileReferenceBadge>
               </span>
-              <span className="text-base font-medium">{displayFile.name}</span>
+              <span className="text-base font-semibold">{displayFile.name}</span>
               <span className="text-sm">
                 {displayFile.is_dir ? t('common.folder') : formatFileSize(displayFile.size)}
               </span>
@@ -296,7 +296,9 @@ const GalleryView = ({
         {/* File info overlay */}
         {displayFile && (
           <div className="gallery-info-bar absolute bottom-0 left-0 right-0 px-4 py-2">
-            <div className="truncate text-sm font-medium text-xp-on-accent">{displayFile.name}</div>
+            <div className="truncate text-sm font-semibold text-xp-on-accent">
+              {displayFile.name}
+            </div>
             <div className="text-xp-on-accent/70 text-xs">
               {displayFile.is_dir ? t('common.folder') : formatFileSize(displayFile.size)}
               {displayFile.modified > 0 && (

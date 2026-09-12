@@ -486,7 +486,7 @@ const ChatPanel = ({
       {/* Header */}
       <div className="flex-shrink-0 border-b border-xp-border px-3 py-3">
         <div className="mb-2 flex items-center justify-between gap-2">
-          <h3 className="truncate text-sm font-medium">
+          <h3 className="truncate text-sm font-semibold">
             {state.agentEnabled ? tUi('chat.wispAgent') : tUi('interface.copilotAssistant')}
           </h3>
           <div className="flex flex-shrink-0 items-center gap-1.5">
@@ -496,7 +496,7 @@ const ChatPanel = ({
                   onNewSession();
                   setShowHistory(false);
                 }}
-                className="rounded-[2px] p-1 text-xs transition-colors hover:bg-xp-surface-light"
+                className="rounded-md p-1 text-xs transition-colors hover:bg-xp-surface-light"
                 title={tUi('aiChat.input.newChat')}
                 aria-label={tUi('interface.startNewChatSession')}
               >
@@ -514,7 +514,7 @@ const ChatPanel = ({
             {sessions.length > 0 && (
               <button
                 onClick={() => setShowHistory(!showHistory)}
-                className={`rounded-[2px] p-1 text-xs transition-colors ${showHistory ? 'bg-xp-blue text-xp-on-accent' : 'hover:bg-xp-surface-light'}`}
+                className={`rounded-md p-1 text-xs transition-colors ${showHistory ? 'bg-xp-blue text-xp-on-accent' : 'hover:bg-xp-surface-light'}`}
                 title={tUi('chat.chatHistory')}
                 aria-label={tUi('interface.toggleChatHistory')}
               >
@@ -535,7 +535,7 @@ const ChatPanel = ({
             )}
             <button
               onClick={() => setIsSettingsMinimized(!state.isSettingsMinimized)}
-              className="rounded-[2px] p-1 text-xs transition-colors hover:bg-xp-surface-light"
+              className="rounded-md p-1 text-xs transition-colors hover:bg-xp-surface-light"
               title={
                 state.isSettingsMinimized
                   ? tUi('chat.expandSettings')
@@ -570,7 +570,7 @@ const ChatPanel = ({
         {!state.isSettingsMinimized && (
           <div className="space-y-3">
             {/* Model Display (configured in Settings > AI) */}
-            <div className="flex items-center justify-between rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 text-xs">
+            <div className="flex items-center justify-between rounded-md border border-xp-border bg-xp-bg px-3 py-2 text-xs">
               <span className="text-xp-text-muted">{tUi('interface.modelLabel')}</span>
               <span className="truncate">{state.selectedModel}</span>
             </div>
@@ -583,7 +583,7 @@ const ChatPanel = ({
               <span className="text-xs text-xp-text-muted">{tUi('interface.agentModeLabel')}</span>
               <button
                 onClick={() => setAgentEnabled(!state.agentEnabled)}
-                className={`rounded-[2px] px-3 py-1 text-xs transition-colors ${
+                className={`rounded-md px-3 py-1 text-xs transition-colors ${
                   state.agentEnabled
                     ? 'bg-xp-purple text-xp-on-accent hover:opacity-80'
                     : 'bg-xp-border text-xp-text hover:bg-xp-surface-light'
@@ -618,7 +618,7 @@ const ChatPanel = ({
                         console.warn('Failed to persist auto-approve setting:', err);
                       });
                   }}
-                  className={`rounded-[2px] px-3 py-1 text-xs transition-colors ${
+                  className={`rounded-md px-3 py-1 text-xs transition-colors ${
                     state.autoApprove
                       ? 'bg-xp-orange text-xp-on-accent hover:opacity-80'
                       : 'bg-xp-border text-xp-text hover:bg-xp-surface-light'
@@ -654,7 +654,7 @@ const ChatPanel = ({
                         console.warn('Failed to persist thinking setting:', err);
                       });
                   }}
-                  className={`rounded-[2px] px-3 py-1 text-xs transition-colors ${
+                  className={`rounded-md px-3 py-1 text-xs transition-colors ${
                     state.thinkingEnabled
                       ? 'bg-xp-cyan text-xp-on-accent hover:opacity-80'
                       : 'bg-xp-border text-xp-text hover:bg-xp-surface-light'
@@ -678,16 +678,16 @@ const ChatPanel = ({
             </span>
             {state.agentEnabled && (
               <div className="flex flex-shrink-0 items-center gap-1">
-                <span className="rounded-[2px] bg-xp-purple px-1.5 py-0.5 text-[11px] text-xp-on-accent">
+                <span className="rounded-md bg-xp-purple px-1.5 py-0.5 text-[11px] text-xp-on-accent">
                   {tUi('agentManager.conversation.roleAgent')}
                 </span>
                 {state.autoApprove && (
-                  <span className="rounded-[2px] bg-xp-orange px-1.5 py-0.5 text-[11px] text-xp-on-accent">
+                  <span className="rounded-md bg-xp-orange px-1.5 py-0.5 text-[11px] text-xp-on-accent">
                     {tUi('operationBar.auto')}
                   </span>
                 )}
                 {state.thinkingEnabled && (
-                  <span className="rounded-[2px] bg-xp-cyan px-1.5 py-0.5 text-[11px] text-xp-on-accent">
+                  <span className="rounded-md bg-xp-cyan px-1.5 py-0.5 text-[11px] text-xp-on-accent">
                     {tUi('interface.think')}
                   </span>
                 )}
@@ -722,7 +722,7 @@ const ChatPanel = ({
           <div className="max-h-24 space-y-1 overflow-y-auto">
             {/* Current folder -- always shown, removable */}
             {state.includeCurrentFolder ? (
-              <div className="flex items-center justify-between rounded-[2px] border border-xp-blue border-opacity-20 bg-xp-blue bg-opacity-10 p-1.5 text-xs">
+              <div className="flex items-center justify-between rounded-md border border-xp-blue border-opacity-20 bg-xp-blue bg-opacity-10 p-1.5 text-xs">
                 <span className="flex flex-1 items-center gap-1.5 truncate">
                   <FolderOpen size={14} className="flex-shrink-0 text-xp-blue" />
                   <span className="truncate text-xp-text">
@@ -743,7 +743,7 @@ const ChatPanel = ({
             ) : (
               <button
                 onClick={() => setIncludeCurrentFolder(true)}
-                className="flex w-full items-center gap-1.5 rounded-[2px] p-1.5 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                className="flex w-full items-center gap-1.5 rounded-md p-1.5 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
               >
                 <span>+</span>
                 <span>{tUi('interface.reAddCurrentFolder')}</span>
@@ -753,7 +753,7 @@ const ChatPanel = ({
             {state.contextFiles.map((file) => (
               <div
                 key={file.path}
-                className="flex items-center justify-between rounded-[2px] bg-xp-bg p-1.5 text-xs"
+                className="flex items-center justify-between rounded-md bg-xp-bg p-1.5 text-xs"
               >
                 <span className="flex-1 truncate">{file.name}</span>
                 <button
@@ -769,21 +769,21 @@ const ChatPanel = ({
           <div className="relative mt-1.5">
             <button
               onClick={() => setIsContextDropdownOpen(!state.isContextDropdownOpen)}
-              className="flex w-full items-center gap-2 rounded-[2px] border border-xp-border bg-xp-bg px-3 py-1.5 text-xs transition-colors hover:bg-xp-surface-light"
+              className="flex w-full items-center gap-2 rounded-md border border-xp-border bg-xp-bg px-3 py-1.5 text-xs transition-colors hover:bg-xp-surface-light"
               aria-label={tUi('interface.addContextFiles')}
               aria-expanded={state.isContextDropdownOpen}
             >
               <span>{tUi('interface.addContextFilesWithPlus')}</span>
             </button>
             {state.isContextDropdownOpen && (
-              <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 rounded-[2px] border border-xp-border bg-xp-popover">
+              <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 rounded-md border border-xp-border bg-xp-popover">
                 <div className="border-b border-xp-border p-2">
                   <input
                     type="text"
                     placeholder={tUi('interface.searchFiles')}
                     value={state.contextSearchQuery}
                     onChange={(e) => setContextSearchQuery(e.target.value)}
-                    className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-2 py-1 text-xs"
+                    className="w-full rounded-md border border-xp-border bg-xp-bg px-2 py-1 text-xs"
                     aria-label={tUi('interface.searchContextFiles')}
                   />
                 </div>
@@ -800,7 +800,7 @@ const ChatPanel = ({
                           {file.is_dir ? <FolderClosed size={14} /> : <FileText size={14} />}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <div className="truncate font-medium">{file.name}</div>
+                          <div className="truncate font-semibold">{file.name}</div>
                         </div>
                         {state.contextFiles.some((f) => f.path === file.path) && (
                           <span className="ml-1 text-xp-green">{'\u2713'}</span>
@@ -830,7 +830,7 @@ const ChatPanel = ({
           }}
         >
           <div className="flex items-center justify-between border-b border-xp-border px-3 py-2">
-            <span className="text-xs font-medium">
+            <span className="text-xs font-semibold">
               {tUi('messages.chatHistoryCount', { count: sessions.length })}
             </span>
             {onClearHistory && sessions.length > 0 && (
@@ -867,7 +867,7 @@ const ChatPanel = ({
                     }}
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium">{session.title}</div>
+                      <div className="truncate font-semibold">{session.title}</div>
                       <div className="flex items-center gap-2 text-[10px] text-xp-text-muted">
                         <span>{tUi('counts.messages', { count: session.message_count })}</span>
                         <span>{formatSessionDate(session.updated_at)}</span>
@@ -943,7 +943,7 @@ const ChatPanel = ({
             <div className="flex justify-start">
               <details
                 open
-                className="min-w-0 max-w-[85%] overflow-hidden rounded-[2px] border border-xp-border bg-xp-bg"
+                className="min-w-0 max-w-[85%] overflow-hidden rounded-md border border-xp-border bg-xp-bg"
               >
                 <summary className="flex cursor-pointer select-none items-center gap-1.5 px-3 py-1.5 text-xs text-xp-text-muted hover:bg-xp-surface-light">
                   <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-xp-cyan" />
@@ -970,7 +970,7 @@ const ChatPanel = ({
       {(state.contextFiles.length > 0 || state.includeCurrentFolder) && (
         <div className="flex flex-shrink-0 flex-wrap items-center gap-1 border-t border-xp-border px-3 py-1.5">
           {state.includeCurrentFolder && (
-            <span className="inline-flex items-center gap-1 rounded-[2px] bg-xp-blue/15 px-2 py-0.5 text-[11px] text-xp-blue">
+            <span className="inline-flex items-center gap-1 rounded-md bg-xp-blue/15 px-2 py-0.5 text-[11px] text-xp-blue">
               <FolderOpen size={10} />
               <span className="max-w-[100px] truncate">
                 {currentPath.split(/[/\\]/).pop() || currentPath}
@@ -988,7 +988,7 @@ const ChatPanel = ({
           {state.contextFiles.map((file) => (
             <span
               key={file.path}
-              className="inline-flex items-center gap-1 rounded-[2px] bg-xp-surface-light px-2 py-0.5 text-[11px] text-xp-text"
+              className="inline-flex items-center gap-1 rounded-md bg-xp-surface-light px-2 py-0.5 text-[11px] text-xp-text"
               title={file.path}
             >
               <FileText size={10} className="flex-shrink-0" />

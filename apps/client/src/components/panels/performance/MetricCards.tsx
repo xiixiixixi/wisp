@@ -40,7 +40,7 @@ const MetricCards = ({ suggestions, allFiles, isLoading, onRefresh }: MetricCard
             <button
               onClick={handleEmptyTrash}
               disabled={emptying}
-              className="flex items-center gap-1.5 rounded-[2px] border border-xp-border bg-xp-surface px-3 py-1.5 text-[11px] font-medium text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-md border border-xp-border bg-xp-surface px-3 py-1.5 text-[11px] font-semibold text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
             >
               <Trash2 size={11} aria-hidden="true" />
               {emptying ? t('performanceDashboard.refreshing') : trashSuggestion.actionLabel}

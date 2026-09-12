@@ -155,131 +155,163 @@ const BottomPanel = ({
   // must never shrink or hide the panel (user vetoed both behaviors).
   const panelHeight = bottomPanelCollapsed ? undefined : drawerHeight;
 
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+
+    const tabs = Array.from(
+      event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'),
+    );
+    const focusedTab = (event.target as HTMLElement).closest('[role="tab"]');
+    const index = tabs.findIndex((tab) => tab === focusedTab);
+    if (index < 0) return;
+
+    let nextIndex = index;
+    if (event.key === 'Home') nextIndex = 0;
+    if (event.key === 'End') nextIndex = tabs.length - 1;
+    if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+    if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+    event.preventDefault();
+    event.stopPropagation();
+    tabs[nextIndex].focus();
+    tabs[nextIndex].click();
+  };
+
   return (
     <div
       // Collapsed hides the same tree instead of unmounting it, so terminal
       // sessions (and any other panel state) survive collapse/expand.
-      className={`wisp-bottom-panel ${bottomPanelCollapsed ? 'hidden' : 'flex flex-shrink-0 flex-col border-t border-xp-border bg-xp-surface'}`}
+      className={`wisp-bottom-panel ${bottomPanelCollapsed ? 'hidden' : 'flex flex-shrink-0 flex-col'}`}
       style={{ height: panelHeight, overflow: 'hidden' }}
     >
       {/* Bottom Panel Tabs */}
-      <div
-        className="wisp-bottom-tabbar wisp-no-select flex items-center border-b border-xp-border"
-        role="tablist"
-        aria-label={t('interface.bottomPanelTabs')}
-      >
-        {/* Core tabs */}
-        {CORE_TABS.map((tab) => (
-          <button
-            key={tab}
-            role="tab"
-            aria-selected={bottomPanelTab === tab}
-            aria-controls={`bottom-panel-${tab}`}
-            id={`bottom-tab-${tab}`}
-            onClick={() => setBottomPanelTab(tab)}
-            className={`wisp-bottom-tab flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium ${
-              bottomPanelTab === tab ? 'text-xp-blue' : 'text-xp-text-secondary hover:text-xp-text'
-            }`}
-          >
-            {getTabLabel(tab)}
-            {tab === 'events' && fileChanges && fileChanges.totalCount > 0 && (
-              <span className="ml-0.5 rounded-[2px] bg-xp-yellow/20 px-1 text-[10px] font-medium text-xp-yellow">
-                {fileChanges.totalCount}
-              </span>
-            )}
-            {tab === 'events' && unreadCount > 0 && (
-              <span className="ml-0.5 rounded-[2px] bg-xp-blue/20 px-1 text-[10px] font-medium text-xp-blue">
-                {unreadCount}
-              </span>
-            )}
-          </button>
-        ))}
-
-        {/* Extension-provided bottom tabs */}
-        {extensionBottomTabs.map((extTab) => (
-          <button
-            key={extTab.id}
-            role="tab"
-            aria-selected={bottomPanelTab === extTab.id}
-            aria-controls={`bottom-panel-${extTab.id}`}
-            id={`bottom-tab-${extTab.id}`}
-            onClick={() => setBottomPanelTab(extTab.id as BottomPanelTab)}
-            className={`wisp-bottom-tab flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium ${
-              bottomPanelTab === extTab.id
-                ? 'text-xp-blue'
-                : 'text-xp-text-secondary hover:text-xp-text'
-            }`}
-          >
-            {extTab.icon && <span className="h-3.5 w-3.5">{extTab.icon}</span>}
-            {extTab.title}
-          </button>
-        ))}
-
-        {/* 动态过滤器与操作直接住在标签行里 —— 底部只有一条 32px 的栏 */}
-        {bottomPanelTab === 'events' && (
-          <div className="ml-auto flex items-center gap-1">
-            {(
-              [
-                ['all', 'eventsPanel.filterAll'],
-                ['files', 'eventsPanel.filterFiles'],
-                ['notices', 'eventsPanel.filterNotices'],
-                ['undo', 'eventsPanel.filterUndo'],
-              ] as const
-            ).map(([value, key]) => (
-              <button
-                key={value}
-                onClick={() => setEventsFilter(value)}
-                className={`rounded-[2px] px-2 py-0.5 text-[10px] font-medium ${
-                  eventsFilter === value
-                    ? 'bg-xp-blue/20 text-xp-blue'
-                    : 'text-xp-text-muted hover:bg-xp-surface-light'
-                }`}
-              >
-                {t(key)}
-              </button>
-            ))}
-            {unreadCount > 0 && (
-              <button
-                onClick={markAllAsRead}
-                title={t('eventsPanel.markAllRead')}
-                aria-label={t('eventsPanel.markAllRead')}
-                className="flex h-6 w-6 items-center justify-center rounded-[2px] text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-              >
-                <CheckCheck size={13} />
-              </button>
-            )}
-            {(entries.length > 0 || notifications.length > 0) && (
-              <button
-                onClick={() => {
-                  clearFeed();
-                  clearNotifications();
-                }}
-                title={t('eventsPanel.clearAll')}
-                aria-label={t('eventsPanel.clearAll')}
-                className="flex h-6 w-6 items-center justify-center rounded-[2px] text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-              >
-                <Trash2 size={13} />
-              </button>
-            )}
-          </div>
-        )}
-
-        <button
-          onClick={() => setBottomPanelCollapsed(true)}
-          className={`wisp-bottom-close flex h-7 w-7 items-center justify-center text-xp-text-muted hover:text-xp-text ${
-            bottomPanelTab === 'events' ? '' : 'ml-auto'
-          }`}
-          title={`Close (${formatKeyComboForDisplay('ctrl+j')})`}
-          aria-label={t('interface.closeBottomPanel')}
+      <div className="wisp-bottom-tabbar wisp-no-select flex min-w-0 items-center">
+        <div
+          className="wisp-bottom-tabs flex min-w-0 items-center"
+          role="tablist"
+          aria-label={t('interface.bottomPanelTabs')}
+          onKeyDown={handleTabKeyDown}
         >
-          <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
+          {/* Core tabs */}
+          {CORE_TABS.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              role="tab"
+              tabIndex={bottomPanelTab === tab ? 0 : -1}
+              aria-selected={bottomPanelTab === tab}
+              aria-controls={`bottom-panel-${tab}`}
+              id={`bottom-tab-${tab}`}
+              onClick={() => setBottomPanelTab(tab)}
+              className={`wisp-bottom-tab flex items-center gap-1 px-2.5 py-1 text-[13px] font-medium ${
+                bottomPanelTab === tab
+                  ? 'text-xp-blue'
+                  : 'text-xp-text-secondary hover:text-xp-text'
+              }`}
+            >
+              {getTabLabel(tab)}
+              {tab === 'events' && fileChanges && fileChanges.totalCount > 0 && (
+                <span className="ml-0.5 rounded-md bg-xp-yellow/20 px-1 text-[10px] font-semibold text-xp-yellow">
+                  {fileChanges.totalCount}
+                </span>
+              )}
+              {tab === 'events' && unreadCount > 0 && (
+                <span className="ml-0.5 rounded-md bg-xp-blue/20 px-1 text-[10px] font-semibold text-xp-blue">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          ))}
+
+          {/* Extension-provided bottom tabs */}
+          {extensionBottomTabs.map((extTab) => (
+            <button
+              key={extTab.id}
+              type="button"
+              role="tab"
+              tabIndex={bottomPanelTab === extTab.id ? 0 : -1}
+              aria-selected={bottomPanelTab === extTab.id}
+              aria-controls={`bottom-panel-${extTab.id}`}
+              id={`bottom-tab-${extTab.id}`}
+              onClick={() => setBottomPanelTab(extTab.id as BottomPanelTab)}
+              className={`wisp-bottom-tab flex items-center gap-1 px-2.5 py-1 text-[13px] font-medium ${
+                bottomPanelTab === extTab.id
+                  ? 'text-xp-blue'
+                  : 'text-xp-text-secondary hover:text-xp-text'
+              }`}
+            >
+              {extTab.icon && <span className="h-3.5 w-3.5">{extTab.icon}</span>}
+              {extTab.title}
+            </button>
+          ))}
+        </div>
+
+        <div className="wisp-bottom-tab-actions ml-auto flex flex-shrink-0 items-center gap-1">
+          {/* 动态过滤器与操作直接住在标签行里 —— 底部只有一条 32px 的栏 */}
+          {bottomPanelTab === 'events' && (
+            <div className="wisp-bottom-event-actions flex items-center gap-1">
+              {(
+                [
+                  ['all', 'eventsPanel.filterAll'],
+                  ['files', 'eventsPanel.filterFiles'],
+                  ['notices', 'eventsPanel.filterNotices'],
+                  ['undo', 'eventsPanel.filterUndo'],
+                ] as const
+              ).map(([value, key]) => (
+                <button
+                  key={value}
+                  onClick={() => setEventsFilter(value)}
+                  className={`rounded-md px-2 py-0.5 text-[10px] font-semibold ${
+                    eventsFilter === value
+                      ? 'bg-xp-blue/20 text-xp-blue'
+                      : 'text-xp-text-muted hover:bg-xp-surface-light'
+                  }`}
+                >
+                  {t(key)}
+                </button>
+              ))}
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllAsRead}
+                  title={t('eventsPanel.markAllRead')}
+                  aria-label={t('eventsPanel.markAllRead')}
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                >
+                  <CheckCheck size={13} />
+                </button>
+              )}
+              {(entries.length > 0 || notifications.length > 0) && (
+                <button
+                  onClick={() => {
+                    clearFeed();
+                    clearNotifications();
+                  }}
+                  title={t('eventsPanel.clearAll')}
+                  aria-label={t('eventsPanel.clearAll')}
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                >
+                  <Trash2 size={13} />
+                </button>
+              )}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setBottomPanelCollapsed(true)}
+            className="wisp-bottom-close flex h-7 w-7 items-center justify-center text-xp-text-muted hover:text-xp-text"
+            title={`Close (${formatKeyComboForDisplay('ctrl+j')})`}
+            aria-label={t('interface.closeBottomPanel')}
+          >
+            <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Terminal content: mounted once and only hidden, so switching bottom
@@ -289,7 +321,7 @@ const BottomPanel = ({
         id="bottom-panel-terminal"
         aria-labelledby="bottom-tab-terminal"
         aria-hidden={bottomPanelTab !== 'terminal'}
-        className="flex min-h-0 flex-1 flex-col overflow-hidden"
+        className="wisp-bottom-content flex min-h-0 flex-1 flex-col overflow-hidden"
         style={{ display: bottomPanelTab === 'terminal' ? 'flex' : 'none' }}
       >
         {isBrowserDemoMode() ? (
@@ -298,7 +330,7 @@ const BottomPanel = ({
               <TerminalIcon className="h-4 w-4" aria-hidden="true" />
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-medium text-xp-text">
+              <div className="text-xs font-semibold text-xp-text">
                 {t('bottomPanel.terminalDemoTitle')}
               </div>
               <div className="mt-0.5 text-[11px] text-xp-text-muted">
@@ -325,56 +357,64 @@ const BottomPanel = ({
       </div>
 
       {/* Bottom Panel Content (non-terminal tabs) */}
-      {bottomPanelTab !== 'terminal' && (
+      {[
+        ...CORE_TABS.filter((tab) => tab !== 'terminal'),
+        ...extensionBottomTabs.map((tab) => tab.id),
+      ].map((tab) => (
         <div
+          key={tab}
           role="tabpanel"
-          id={`bottom-panel-${bottomPanelTab}`}
-          aria-labelledby={`bottom-tab-${bottomPanelTab}`}
-          className="flex min-h-0 flex-1 flex-col overflow-hidden"
+          id={`bottom-panel-${tab}`}
+          aria-labelledby={`bottom-tab-${tab}`}
+          aria-hidden={bottomPanelTab !== tab}
+          className="wisp-bottom-content flex min-h-0 flex-1 flex-col overflow-hidden"
+          style={{ display: bottomPanelTab === tab ? 'flex' : 'none' }}
         >
-          <ErrorBoundary>
-            {!isExtensionTab && (
-              <React.Suspense
-                fallback={
-                  <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
-                    {t('panels.notes.loading')}
-                  </div>
-                }
-              >
-                {bottomPanelTab === 'events' && (
-                  <EventsPanel
-                    filter={eventsFilter}
-                    entries={entries}
-                    notifications={notifications}
-                    fileChanges={fileChanges ?? null}
-                    onDismissChanges={onDismissChanges ?? (() => {})}
-                    onNavigate={onNavigate}
-                  />
-                )}
+          {bottomPanelTab === tab && (
+            <ErrorBoundary>
+              {!isExtensionTab && (
+                <React.Suspense
+                  fallback={
+                    <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
+                      {t('panels.notes.loading')}
+                    </div>
+                  }
+                >
+                  {bottomPanelTab === 'events' && (
+                    <EventsPanel
+                      filter={eventsFilter}
+                      entries={entries}
+                      notifications={notifications}
+                      fileChanges={fileChanges ?? null}
+                      onDismissChanges={onDismissChanges ?? (() => {})}
+                      onNavigate={onNavigate}
+                    />
+                  )}
 
-                {bottomPanelTab === 'clipboard' && onPasteFromHistory && (
-                  <ClipboardHistoryPanel onPaste={onPasteFromHistory} />
-                )}
+                  {bottomPanelTab === 'clipboard' && onPasteFromHistory && (
+                    <ClipboardHistoryPanel onPaste={onPasteFromHistory} />
+                  )}
 
-                {bottomPanelTab === 'properties' && (
-                  <PropertiesPanel filePath={propertiesFilePath ?? ''} />
-                )}
-              </React.Suspense>
-            )}
+                  {bottomPanelTab === 'properties' && (
+                    <PropertiesPanel filePath={propertiesFilePath ?? ''} />
+                  )}
+                </React.Suspense>
+              )}
 
-            {/* Extension tab: sole flex child gets all available height */}
-            {isExtensionTab && (
-              <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                {(() => {
-                  const renderer = extensionHost.getBottomTabRenderer(bottomPanelTab);
-                  if (!renderer) return null;
-                  return renderer({ currentPath, isActive: true });
-                })()}
-              </div>
-            )}
-          </ErrorBoundary>
+              {/* Extension tab: sole flex child gets all available height */}
+              {isExtensionTab && (
+                <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                  {(() => {
+                    const renderer = extensionHost.getBottomTabRenderer(bottomPanelTab);
+                    if (!renderer) return null;
+                    return renderer({ currentPath, isActive: true });
+                  })()}
+                </div>
+              )}
+            </ErrorBoundary>
+          )}
         </div>
-      )}
+      ))}
     </div>
   );
 };

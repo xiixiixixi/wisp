@@ -508,7 +508,7 @@ const NavigationBar = ({
             <button
               onClick={onNavigateBack}
               disabled={!canNavigateBack}
-              className="wisp-control-icon rounded-[2px] p-1 transition-colors disabled:opacity-30"
+              className="wisp-control-icon rounded-md p-1 transition-colors disabled:opacity-30"
               title={t('topBar.goBack')}
               aria-label={t('topBar.goBack')}
             >
@@ -525,7 +525,7 @@ const NavigationBar = ({
             <button
               onClick={onNavigateForward}
               disabled={!canNavigateForward}
-              className="wisp-control-icon rounded-[2px] p-1 transition-colors disabled:opacity-30"
+              className="wisp-control-icon rounded-md p-1 transition-colors disabled:opacity-30"
               title={t('topBar.goForward')}
               aria-label={t('topBar.goForward')}
             >
@@ -542,7 +542,7 @@ const NavigationBar = ({
             <button
               onClick={onNavigateUp}
               disabled={!canNavigateUp}
-              className="wisp-control-icon rounded-[2px] p-1 transition-colors disabled:opacity-30"
+              className="wisp-control-icon rounded-md p-1 transition-colors disabled:opacity-30"
               title={t('topBar.goUp')}
               aria-label={t('topBar.goUp')}
             >
@@ -552,7 +552,7 @@ const NavigationBar = ({
           {refetch && (
             <button
               onClick={refetch}
-              className="wisp-control-icon rounded-[2px] p-1 transition-colors"
+              className="wisp-control-icon rounded-md p-1 transition-colors"
               title={t('topBar.refresh')}
               aria-label={t('topBar.refresh')}
             >
@@ -562,7 +562,7 @@ const NavigationBar = ({
         </div>
       )}
       <div
-        className="wisp-address-field wisp-control-field relative flex h-7 min-w-0 flex-1 basis-0 items-center self-center rounded-[2px] border border-xp-border bg-xp-bg px-2"
+        className="wisp-address-field wisp-control-field relative flex h-7 min-w-0 flex-1 basis-0 items-center self-center rounded-md border border-xp-border bg-xp-bg px-2"
         style={
           isEditingPath && validationBorderColor
             ? {
@@ -681,7 +681,7 @@ const NavigationBar = ({
                           size={14}
                           style={{
                             flexShrink: 0,
-                            color: 'var(--xp-accent, #646cff)',
+                            color: 'var(--ds-link)',
                             opacity: 0.8,
                           }}
                         />
@@ -710,7 +710,7 @@ const NavigationBar = ({
             return (
               <div className="flex h-full min-w-0 flex-1 cursor-text items-center gap-2 px-1">
                 <span className="text-xp-text-muted">{special.icon}</span>
-                <span className="text-sm font-medium">{special.label}</span>
+                <span className="text-sm font-semibold">{special.label}</span>
               </div>
             );
           }
@@ -718,14 +718,14 @@ const NavigationBar = ({
             return (
               <div className="flex h-full min-w-0 flex-1 cursor-text items-center gap-2 px-1">
                 <Tag size={12} className="flex-shrink-0 text-xp-text-muted" />
-                <span className="text-sm font-medium">{tagLabel}</span>
+                <span className="text-sm font-semibold">{tagLabel}</span>
               </div>
             );
           }
           if (collectionLabel) {
             return (
               <div className="flex h-full min-w-0 flex-1 cursor-text items-center gap-2 px-1">
-                <span className="text-sm font-medium">{collectionLabel}</span>
+                <span className="text-sm font-semibold">{collectionLabel}</span>
               </div>
             );
           }

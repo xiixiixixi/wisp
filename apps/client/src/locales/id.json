@@ -311,6 +311,11 @@
       "resetAll": "Reset semua asosiasi file"
     },
     "general": {
+      "appearance": "Tampilan",
+      "appearanceDesc": "Ikuti tampilan sistem atau pilih mode terang atau gelap.",
+      "appearanceSystem": "Ikuti sistem",
+      "appearanceLight": "Terang",
+      "appearanceDark": "Gelap",
       "language": "Bahasa",
       "languageDesc": "Pilih bahasa yang Anda inginkan",
       "small": "Kecil",
@@ -580,7 +585,7 @@
   "commandPalette": {
     "title": "Pencarian Wisp",
     "subtitle": "Temukan file atau tanya Wisp dari mana saja",
-    "trigger": "Cari di semua lokasi atau tanya Wisp...",
+    "trigger": "Cari file dan folder…",
     "modeLabel": "Mode pencarian",
     "modes": {
       "files": "File",
@@ -2071,6 +2076,8 @@
   },
   "previews": {
     "audio": {
+      "playbackPosition": "Posisi pemutaran",
+      "volume": "Volume",
       "cannotPreview": "Cannot preview audio",
       "formatNotSupported": "The audio format may not be supported",
       "loading": "Loading audio...",

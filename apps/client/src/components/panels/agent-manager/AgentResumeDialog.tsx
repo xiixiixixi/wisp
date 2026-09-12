@@ -241,7 +241,7 @@ const AgentResumeDialog = ({ sessions, onResume, onClose }: AgentResumeDialogPro
           }}
         >
           {allSelected ? (
-            <CheckSquare size={14} style={{ color: 'var(--xp-blue)' }} />
+            <CheckSquare size={14} style={{ color: 'var(--ds-link)' }} />
           ) : (
             <Square size={14} />
           )}
@@ -279,7 +279,7 @@ const AgentResumeDialog = ({ sessions, onResume, onClose }: AgentResumeDialogPro
                 {/* Checkbox */}
                 <div style={{ paddingTop: '2px', flexShrink: 0 }}>
                   {isSelected ? (
-                    <CheckSquare size={14} style={{ color: 'var(--xp-blue)' }} />
+                    <CheckSquare size={14} style={{ color: 'var(--ds-link)' }} />
                   ) : (
                     <Square size={14} style={{ color: 'var(--xp-text-muted)' }} />
                   )}

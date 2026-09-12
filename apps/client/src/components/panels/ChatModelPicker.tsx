@@ -194,7 +194,7 @@ const ChatModelPicker = ({ currentModel, onModelChange }: ChatModelPickerProps) 
           maxWidth: '180px',
         }}
       >
-        <Sparkles size={11} style={{ color: 'var(--xp-blue)', flexShrink: 0 }} />
+        <Sparkles size={11} style={{ color: 'var(--ds-link)', flexShrink: 0 }} />
         <span
           style={{
             overflow: 'hidden',
@@ -268,7 +268,7 @@ const ChatModelPicker = ({ currentModel, onModelChange }: ChatModelPickerProps) 
                 <Check
                   size={12}
                   style={{
-                    color: selected ? 'var(--xp-blue)' : 'transparent',
+                    color: selected ? 'var(--ds-link)' : 'transparent',
                     flexShrink: 0,
                   }}
                 />

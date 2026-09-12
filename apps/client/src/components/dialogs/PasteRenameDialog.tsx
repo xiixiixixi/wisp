@@ -400,7 +400,7 @@ const PasteRenameDialog = React.memo(
                   gap: '5px',
                   cursor: 'pointer',
                   fontSize: '12px',
-                  color: sortStrategy === value ? 'var(--xp-blue)' : 'var(--xp-text-secondary)',
+                  color: sortStrategy === value ? 'var(--ds-link)' : 'var(--xp-text-secondary)',
                 }}
               >
                 <input
@@ -668,7 +668,7 @@ const PasteRenameDialog = React.memo(
                                 if (!newName) return 'var(--xp-text-muted)';
                                 if (isUnchanged) return 'var(--xp-text-muted)';
                                 if (hasError) return 'var(--xp-red)';
-                                return 'var(--xp-blue)';
+                                return 'var(--ds-link)';
                               })(),
                             }}
                           >

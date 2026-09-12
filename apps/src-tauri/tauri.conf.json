@@ -1,6 +1,6 @@
 {
   "productName": "Wisp",
-  "version": "0.99.29",
+  "version": "0.99.30",
   "identifier": "com.wisp.app",
   "build": {
     "beforeBuildCommand": "pnpm -w frontend:build",
@@ -8,6 +8,7 @@
     "devUrl": "http://localhost:5174"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
         "title": "Wisp - File Explorer",
@@ -16,6 +17,7 @@
         "minWidth": 800,
         "minHeight": 600,
         "resizable": true,
+        "transparent": true,
         "fullscreen": false,
         "decorations": true,
         "hiddenTitle": true,

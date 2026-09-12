@@ -212,7 +212,7 @@ const FileOperationProgressDialog = () => {
                 operation: operationLabel,
                 name: fileName,
               })}
-              className="rounded-[2px] border border-xp-border bg-xp-surface p-3 shadow-xl"
+              className="rounded-md border border-xp-border bg-xp-surface p-3 shadow-xl"
             >
               {/* Header */}
               <div className="mb-1.5 flex items-center justify-between">
@@ -221,7 +221,7 @@ const FileOperationProgressDialog = () => {
                     aria-hidden="true"
                     className={`h-2 w-2 flex-shrink-0 rounded-full ${getStatusColor(op.status)} ${isActive ? 'animate-pulse' : ''}`}
                   />
-                  <span className="truncate text-xs font-medium text-xp-text">
+                  <span className="truncate text-xs font-semibold text-xp-text">
                     {operationLabel}
                   </span>
                 </div>
@@ -230,7 +230,7 @@ const FileOperationProgressDialog = () => {
                     <button
                       type="button"
                       onClick={() => cancelOperation(op.operation_id)}
-                      className="flex h-7 w-7 items-center justify-center rounded-[2px] text-xp-text-muted transition-colors hover:bg-xp-bg hover:text-xp-red focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xp-blue"
+                      className="flex h-7 w-7 items-center justify-center rounded-md text-xp-text-muted transition-colors hover:bg-xp-bg hover:text-xp-red focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xp-blue"
                       aria-label={t('dialogs.fileOp.cancelOperationFor', { name: fileName })}
                       title={t('dialogs.fileOp.cancelOperationFor', { name: fileName })}
                     >
@@ -240,7 +240,7 @@ const FileOperationProgressDialog = () => {
                   <button
                     type="button"
                     onClick={() => dismiss(op.operation_id)}
-                    className="flex h-7 w-7 items-center justify-center rounded-[2px] text-xp-text-muted transition-colors hover:bg-xp-bg hover:text-xp-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xp-blue"
+                    className="flex h-7 w-7 items-center justify-center rounded-md text-xp-text-muted transition-colors hover:bg-xp-bg hover:text-xp-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xp-blue"
                     aria-label={t('dialogs.fileOp.dismissOperation', { name: fileName })}
                     title={t('dialogs.fileOp.dismissOperation', { name: fileName })}
                   >
@@ -264,10 +264,10 @@ const FileOperationProgressDialog = () => {
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={Math.min(100, Math.max(0, Math.round(op.progress_percentage || 0)))}
-                className="mb-1.5 h-1.5 w-full overflow-hidden rounded-[2px] bg-xp-bg"
+                className="mb-1.5 h-1.5 w-full overflow-hidden rounded-md bg-xp-bg"
               >
                 <div
-                  className={`h-full w-full origin-left rounded-[2px] transition-transform duration-300 ${getStatusColor(op.status)}`}
+                  className={`h-full w-full origin-left rounded-md transition-transform duration-300 ${getStatusColor(op.status)}`}
                   style={{
                     transform: `scaleX(${Math.min(100, Math.max(0, op.progress_percentage || 0)) / 100})`,
                   }}

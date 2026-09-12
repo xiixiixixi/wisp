@@ -334,14 +334,14 @@ const CodeAIActions: React.FC<CodeAIActionsProps> = ({ filePath, language, conte
     <div className="border-b border-xp-border bg-xp-surface">
       {/* Action buttons row */}
       <div className="flex flex-wrap items-center gap-1.5 px-2 py-1.5">
-        <span className="mr-1 text-[10px] font-medium uppercase tracking-wider text-xp-text-muted">
+        <span className="mr-1 text-[10px] font-semibold uppercase tracking-wider text-xp-text-muted">
           AI
         </span>
 
         <button
           onClick={handleExplain}
           disabled={loading !== null}
-          className="inline-flex items-center gap-1 rounded-[2px] border border-transparent border-xp-border px-2 py-1 text-[11px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-md border border-transparent border-xp-border px-2 py-1 text-[11px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-50"
           title={tUi('interface.sendThisCodeToAiChatForExplanation')}
         >
           <ExplainIcon />
@@ -351,7 +351,7 @@ const CodeAIActions: React.FC<CodeAIActionsProps> = ({ filePath, language, conte
         <button
           onClick={handleFindReferences}
           disabled={loading !== null}
-          className="inline-flex items-center gap-1 rounded-[2px] border border-transparent border-xp-border px-2 py-1 text-[11px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-md border border-transparent border-xp-border px-2 py-1 text-[11px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-50"
           title={tUi('interface.searchTheWorkspaceForReferencesToFunctionsClassesInThisFile')}
         >
           {loading === 'references' ? <SpinnerIcon /> : <SearchIcon />}
@@ -361,7 +361,7 @@ const CodeAIActions: React.FC<CodeAIActionsProps> = ({ filePath, language, conte
         <button
           onClick={handleSuggestImprovements}
           disabled={loading !== null}
-          className="inline-flex items-center gap-1 rounded-[2px] border border-transparent border-xp-border px-2 py-1 text-[11px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-md border border-transparent border-xp-border px-2 py-1 text-[11px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-50"
           title={tUi('interface.askAiToReviewThisCodeAndSuggestImprovements')}
         >
           <ImprovementIcon />
@@ -377,7 +377,7 @@ const CodeAIActions: React.FC<CodeAIActionsProps> = ({ filePath, language, conte
       {showReferences && references && references.length > 0 && (
         <div className="border-t border-xp-border px-2 py-1.5">
           <div className="mb-1 flex items-center justify-between">
-            <span className="text-[10px] font-medium text-xp-text-muted">
+            <span className="text-[10px] font-semibold text-xp-text-muted">
               {tUi('counts.referencesFound', { count: references.length })}
             </span>
             <div className="flex items-center gap-2">
@@ -400,7 +400,7 @@ const CodeAIActions: React.FC<CodeAIActionsProps> = ({ filePath, language, conte
             {references.slice(0, 20).map((ref) => (
               <div
                 key={`${ref.file}-${ref.line}-${ref.text.slice(0, 40)}`}
-                className="flex items-baseline gap-2 rounded-[2px] px-1 py-0.5 text-[10px] hover:bg-xp-surface-light"
+                className="flex items-baseline gap-2 rounded-md px-1 py-0.5 text-[10px] hover:bg-xp-surface-light"
               >
                 <span className="shrink-0 font-mono text-xp-blue">
                   {ref.file}:{ref.line}

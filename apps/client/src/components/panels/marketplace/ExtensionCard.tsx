@@ -47,7 +47,7 @@ const ExtensionCard = React.memo(
         onClick={() => onSelect(extension)}
       >
         <div className="flex min-w-0 items-start gap-2">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[2px] border border-xp-border bg-xp-surface text-xp-blue">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-xp-border bg-xp-surface text-xp-blue">
             {extension.icon ? (
               extension.icon.trim().startsWith('<') ? (
                 <span
@@ -66,10 +66,12 @@ const ExtensionCard = React.memo(
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2">
-              <h4 className="truncate text-sm font-medium text-xp-text">{extension.displayName}</h4>
+              <h4 className="truncate text-sm font-semibold text-xp-text">
+                {extension.displayName}
+              </h4>
               <div className="flex-shrink-0">
                 {isDev ? (
-                  <span className="rounded-[2px] border border-xp-green/30 bg-xp-green/10 px-2 py-0.5 text-[10px] font-medium text-xp-green">
+                  <span className="rounded-md border border-xp-green/30 bg-xp-green/10 px-2 py-0.5 text-[10px] font-semibold text-xp-green">
                     {tUi('interface.devMode')}
                   </span>
                 ) : isInstalled ? (
@@ -79,7 +81,7 @@ const ExtensionCard = React.memo(
                       onUninstall(extension);
                     }}
                     disabled={isInstalling}
-                    className="flex items-center rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-red/10 hover:text-xp-red disabled:opacity-50"
+                    className="flex items-center rounded-md p-1 text-xp-text-muted transition-colors hover:bg-xp-red/10 hover:text-xp-red disabled:opacity-50"
                     title={tUi('interface.uninstall')}
                   >
                     {isInstalling ? (
@@ -95,7 +97,7 @@ const ExtensionCard = React.memo(
                       onInstall(extension);
                     }}
                     disabled={isInstalling}
-                    className="flex items-center gap-1 rounded-[2px] bg-xp-blue px-2 py-0.5 text-[11px] text-xp-on-accent transition-colors hover:bg-xp-blue/80 disabled:opacity-50"
+                    className="flex items-center gap-1 rounded-md bg-xp-blue px-2 py-0.5 text-[11px] text-xp-on-accent transition-colors hover:bg-xp-blue/80 disabled:opacity-50"
                   >
                     {isInstalling ? (
                       <>

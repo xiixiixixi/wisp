@@ -35,7 +35,7 @@ const baseTabStyle: CSSProperties = {
 const activeStyle: CSSProperties = {
   ...baseTabStyle,
   background: 'var(--xp-surface-light)',
-  color: 'var(--xp-blue)',
+  color: 'var(--ds-link)',
   borderColor: 'var(--xp-border)',
   fontWeight: 600,
 };

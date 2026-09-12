@@ -1,5 +1,6 @@
+import { Slider } from '@/components/ui/slider';
 import { getAppLocale } from '@/lib/locale';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -23,6 +24,7 @@ const FORMAT_BUTTONS: CompressionFormat[] = ['Zip', 'TarGz', 'TarBz2', 'SevenZ']
 
 const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogProps) => {
   const { t } = useTranslation();
+  const compressionLevelId = useId();
   const { toast } = useToast();
   const [compressionInfo, setCompressionInfo] = useState<CompressionInfo | null>(null);
   const [loading, setLoading] = useState(false);
@@ -202,11 +204,11 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
         if (e.target === e.currentTarget) handleClose();
       }}
     >
-      <div className="border-xp-border/60 mx-4 flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden rounded-[2px] border bg-xp-surface/95 shadow-2xl shadow-black/30 duration-150 animate-in fade-in zoom-in-95">
+      <div className="border-xp-border/60 mx-4 flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden rounded-md border bg-xp-surface/95 shadow-2xl shadow-black/30 duration-150 animate-in fade-in zoom-in-95">
         {/* Header */}
         <div className="border-xp-border/40 flex flex-shrink-0 items-center justify-between border-b px-5 py-3.5">
           <div className="flex min-w-0 items-center space-x-2.5">
-            <div className="rounded-[2px] bg-xp-blue/10 p-1.5">
+            <div className="rounded-md bg-xp-blue/10 p-1.5">
               <Archive className="h-4 w-4 text-xp-blue" />
             </div>
             <div className="min-w-0">
@@ -224,7 +226,7 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
           <button
             onClick={handleClose}
             disabled={compressing}
-            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-50"
+            className="rounded-md p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-50"
             aria-label={t('common.close')}
           >
             <X className="h-4 w-4" />
@@ -244,13 +246,13 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
           ) : error ? (
             <div className="py-10 text-center">
               <AlertTriangle className="mx-auto mb-3 h-9 w-9 text-xp-red" />
-              <h3 className="mb-1.5 text-sm font-medium text-xp-text">
+              <h3 className="mb-1.5 text-sm font-semibold text-xp-text">
                 {t('dialogs.compress.errorAnalyzingTitle')}
               </h3>
               <p className="mb-4 text-xs text-xp-text-muted">{error}</p>
               <button
                 onClick={loadCompressionInfo}
-                className="rounded-[2px] bg-xp-blue px-4 py-1.5 text-xs font-medium text-xp-on-accent transition-colors hover:bg-xp-blue-dark"
+                className="rounded-md bg-xp-blue px-4 py-1.5 text-xs font-semibold text-xp-on-accent transition-colors hover:bg-xp-blue-dark"
               >
                 {t('dialogs.compress.tryAgain')}
               </button>
@@ -259,11 +261,11 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
             <>
               {/* Files Summary */}
               {compressionInfo && (
-                <div className="border-xp-border/40 bg-xp-bg/60 rounded-[2px] border px-4 py-3">
+                <div className="border-xp-border/40 bg-xp-bg/60 rounded-md border px-4 py-3">
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-xp-text-muted">{t('dialogs.compress.files')}</span>
-                      <span className="font-medium text-xp-text">
+                      <span className="font-semibold text-xp-text">
                         {compressionInfo.total_files.toLocaleString(getAppLocale())}
                       </span>
                     </div>
@@ -271,13 +273,13 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
                       <span className="text-xp-text-muted">
                         {t('dialogs.compress.directories')}
                       </span>
-                      <span className="font-medium text-xp-text">
+                      <span className="font-semibold text-xp-text">
                         {compressionInfo.total_directories.toLocaleString(getAppLocale())}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-xp-text-muted">{t('dialogs.compress.totalSize')}</span>
-                      <span className="font-medium text-xp-text">
+                      <span className="font-semibold text-xp-text">
                         {formatFileSize(compressionInfo.total_size)}
                       </span>
                     </div>
@@ -285,7 +287,7 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
                       <span className="text-xp-text-muted">
                         {t('dialogs.compress.estimatedSize')}
                       </span>
-                      <span className="font-medium text-xp-text">
+                      <span className="font-semibold text-xp-text">
                         {formatFileSize(compressionInfo.estimated_compressed_size)}
                         <span className="ml-1 text-[11px] text-xp-green">
                           ({getSizeReduction()})
@@ -298,7 +300,7 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
 
               {/* Output Path */}
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-xp-text">
+                <label className="mb-1.5 block text-xs font-semibold text-xp-text">
                   {t('dialogs.compress.outputPath')}
                 </label>
                 <div className="flex space-x-2">
@@ -306,12 +308,12 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
                     type="text"
                     value={outputPath}
                     onChange={(e) => setOutputPath(e.target.value)}
-                    className="border-xp-border/60 bg-xp-bg/60 focus:outline-none/40 flex-1 rounded-[2px] border px-3 py-1.5 text-xs text-xp-text focus:border-xp-blue"
+                    className="border-xp-border/60 bg-xp-bg/60 focus:outline-none/40 flex-1 rounded-md border px-3 py-1.5 text-xs text-xp-text focus:border-xp-blue"
                     placeholder={t('dialogs.compress.outputPathPlaceholder')}
                   />
                   <button
                     onClick={handleBrowseOutputPath}
-                    className="border-xp-border/60 rounded-[2px] border px-2.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                    className="border-xp-border/60 rounded-md border px-2.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                     aria-label={t('dialogs.compress.browseOutputDir')}
                   >
                     <FolderOpen size={15} />
@@ -321,7 +323,7 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
 
               {/* Format Selection */}
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-xp-text">
+                <label className="mb-1.5 block text-xs font-semibold text-xp-text">
                   {t('dialogs.compress.format')}
                 </label>
                 <div className="grid grid-cols-4 gap-2">
@@ -329,7 +331,7 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
                     <button
                       key={fmt}
                       onClick={() => handleFormatChange(fmt)}
-                      className={`rounded-[2px] border px-2 py-2 text-center transition-colors ${
+                      className={`rounded-md border px-2 py-2 text-center transition-colors ${
                         format === fmt
                           ? 'border-xp-blue/60 bg-xp-blue/10 text-xp-blue'
                           : 'border-xp-border/60 text-xp-text hover:bg-xp-surface-light'
@@ -346,16 +348,19 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
 
               {/* Compression Level */}
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-xp-text">
+                <label
+                  htmlFor={compressionLevelId}
+                  className="mb-1.5 block text-xs font-semibold text-xp-text"
+                >
                   {t('dialogs.compress.level', { level: compressionLevel })}
                 </label>
-                <input
-                  type="range"
+                <Slider
+                  id={compressionLevelId}
                   min="1"
                   max="9"
                   value={compressionLevel}
                   onChange={(e) => setCompressionLevel(parseInt(e.target.value))}
-                  className="h-1.5 w-full cursor-pointer appearance-none rounded-[2px] bg-xp-surface-light accent-xp-blue"
+                  className="w-full"
                 />
                 <div className="mt-1 flex justify-between text-[10px] text-xp-text-muted">
                   <span>{t('dialogs.compress.levelFastest')}</span>
@@ -365,14 +370,14 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
 
               {/* Password Protection */}
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-xp-text">
+                <label className="mb-1.5 block text-xs font-semibold text-xp-text">
                   {t('dialogs.compress.passwordLabel')}
                 </label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="border-xp-border/60 bg-xp-bg/60 focus:outline-none/40 w-full rounded-[2px] border px-3 py-1.5 text-xs text-xp-text focus:border-xp-blue"
+                  className="border-xp-border/60 bg-xp-bg/60 focus:outline-none/40 w-full rounded-md border px-3 py-1.5 text-xs text-xp-text focus:border-xp-blue"
                   placeholder={t('dialogs.compress.passwordPlaceholder')}
                 />
                 <p className="mt-1 text-[10px] text-xp-text-muted">
@@ -382,7 +387,7 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
 
               {/* Options */}
               <div>
-                <h4 className="mb-2 text-xs font-medium text-xp-text">
+                <h4 className="mb-2 text-xs font-semibold text-xp-text">
                   {t('dialogs.compress.options')}
                 </h4>
                 <div className="space-y-2">
@@ -419,7 +424,7 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
           <button
             onClick={handleClose}
             disabled={compressing}
-            className="border-xp-border/60 rounded-[2px] px-3.5 py-1.5 text-xs text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+            className="border-xp-border/60 rounded-md px-3.5 py-1.5 text-xs text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
             aria-label={t('common.cancel')}
           >
             {t('common.cancel')}
@@ -427,7 +432,7 @@ const CompressDialog = ({ isOpen, onClose, onComplete, files }: CompressDialogPr
           <button
             onClick={handleCompress}
             disabled={compressing || loading || !outputPath.trim()}
-            className="flex items-center space-x-2 rounded-[2px] bg-xp-blue px-4 py-1.5 text-xs font-medium text-xp-on-accent transition-colors hover:bg-xp-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center space-x-2 rounded-md bg-xp-blue px-4 py-1.5 text-xs font-semibold text-xp-on-accent transition-colors hover:bg-xp-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={
               compressing ? t('dialogs.compress.compressing') : t('dialogs.compress.compress')
             }

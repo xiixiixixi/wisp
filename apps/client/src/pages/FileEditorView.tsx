@@ -179,11 +179,11 @@ const FileEditorView = ({ filePath }: FileEditorViewProps) => {
       {/* Toolbar */}
       <div className="flex flex-shrink-0 items-center justify-between border-b border-xp-border bg-xp-surface px-4 py-2">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="truncate text-sm font-medium text-xp-text" title={filePath}>
+          <span className="truncate text-sm font-semibold text-xp-text" title={filePath}>
             {fileName}
           </span>
           {isDirty && (
-            <span className="rounded-[2px] bg-xp-orange/10 px-1.5 py-0.5 text-xs font-medium text-xp-orange">
+            <span className="rounded-md bg-xp-orange/10 px-1.5 py-0.5 text-xs font-semibold text-xp-orange">
               {t('pages.editor.modified')}
             </span>
           )}
@@ -192,14 +192,14 @@ const FileEditorView = ({ filePath }: FileEditorViewProps) => {
         <div className="flex items-center gap-1">
           <button
             onClick={handleCopy}
-            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-md p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             title={t('pages.editor.titleCopyContents')}
           >
             {copied ? <Check size={15} className="text-xp-green" /> : <Copy size={15} />}
           </button>
           <button
             onClick={() => setWordWrap(!wordWrap)}
-            className={`rounded-[2px] p-1.5 transition-colors hover:bg-xp-surface-light ${
+            className={`rounded-md p-1.5 transition-colors hover:bg-xp-surface-light ${
               wordWrap ? 'text-xp-blue' : 'text-xp-text-muted hover:text-xp-text'
             }`}
             title={t('pages.editor.titleToggleWordWrap')}
@@ -209,7 +209,7 @@ const FileEditorView = ({ filePath }: FileEditorViewProps) => {
           <button
             onClick={handleRevert}
             disabled={!isDirty}
-            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-30"
+            className="rounded-md p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-30"
             title={t('pages.editor.titleRevertChanges')}
           >
             <RotateCcw size={15} />
@@ -217,7 +217,7 @@ const FileEditorView = ({ filePath }: FileEditorViewProps) => {
           <button
             onClick={handleSave}
             disabled={!isDirty || saving}
-            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-blue disabled:opacity-30"
+            className="rounded-md p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-blue disabled:opacity-30"
             title={t('pages.editor.titleSave')}
           >
             <Save size={15} />

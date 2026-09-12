@@ -1,0 +1,234 @@
+.wisp-pane-tabbar {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 42px;
+  padding: 6px 16px 4px;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  container: pane-tabs / inline-size;
+}
+
+.wisp-pane-tab-list {
+  display: flex;
+  align-items: center;
+  flex: 1 1 0%;
+  min-width: 0;
+  gap: 4px;
+  padding: 3px;
+  margin: -3px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+html .wisp-pane-tab-list::-webkit-scrollbar {
+  display: none !important;
+  height: 0 !important;
+}
+
+.wisp-pane-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-width: 80px;
+  max-width: 200px;
+  height: 30px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ds-label-secondary);
+  user-select: none;
+  transition:
+    background var(--ds-motion-fast),
+    box-shadow var(--ds-motion-fast);
+}
+
+.wisp-pane-tab:hover {
+  background: var(--ds-hover);
+}
+
+.wisp-pane-tab[data-active] {
+  background: var(--ds-control);
+  box-shadow: var(--ds-shadow-control);
+  color: var(--ds-label-primary);
+}
+
+.wisp-pane-tab[data-pinned] {
+  min-width: 64px;
+  max-width: 160px;
+}
+
+.wisp-pane-tab[data-dragging] {
+  opacity: 0.5;
+}
+
+.wisp-pane-tab[data-cross-drop] {
+  background: var(--ds-accent-tint);
+  outline: 1px dashed var(--ds-link);
+  outline-offset: -1px;
+}
+
+.wisp-pane-tab-button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  gap: 6px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.wisp-pane-tab-icon,
+.wisp-pane-tab-pin {
+  flex-shrink: 0;
+}
+
+.wisp-pane-tab-pin {
+  color: var(--ds-link);
+  transform: rotate(-45deg);
+}
+
+.wisp-pane-tab-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.wisp-pane-tab-close,
+.wisp-pane-tab-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ds-label-secondary);
+  transition:
+    background var(--ds-motion-fast),
+    color var(--ds-motion-fast),
+    opacity var(--ds-motion-fast);
+}
+
+.wisp-pane-tab-close {
+  width: 22px;
+  height: 22px;
+  margin-right: 4px;
+  border-radius: 6px;
+  opacity: 0;
+}
+
+.wisp-pane-tab[data-active] .wisp-pane-tab-close,
+.wisp-pane-tab:hover .wisp-pane-tab-close,
+.wisp-pane-tab:focus-within .wisp-pane-tab-close {
+  opacity: 1;
+}
+
+.wisp-pane-tab-close:hover,
+.wisp-pane-tab-action:hover {
+  color: var(--ds-label-primary);
+  background: var(--ds-hover);
+}
+
+.wisp-pane-tab-action[aria-pressed="true"] {
+  color: var(--ds-link);
+  background: var(--ds-accent-tint);
+}
+
+.wisp-pane-tab-action-close:hover {
+  color: var(--ds-destructive);
+}
+
+.wisp-pane-tab-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 2px;
+}
+
+.wisp-pane-tab-sync {
+  width: auto;
+  min-width: 28px;
+  gap: 4px;
+  padding-inline: 5px;
+}
+
+.wisp-pane-tab-sync-mode {
+  font-size: 10px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.wisp-pane-tab-badge {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--ds-accent);
+}
+
+.wisp-pane-tab-drop-marker {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--ds-accent);
+  pointer-events: none;
+}
+
+.wisp-pane-tab-drop-marker[data-edge="left"] {
+  left: -2px;
+}
+.wisp-pane-tab-drop-marker[data-edge="right"] {
+  right: -2px;
+}
+
+@container pane-tabs (max-width: 360px) {
+  .wisp-pane-tab-action {
+    width: 24px;
+    height: 24px;
+  }
+  .wisp-pane-tab-sync {
+    min-width: 24px;
+  }
+  .wisp-pane-tab-sync-mode {
+    display: none;
+  }
+}
+
+@media (hover: none) {
+  .wisp-pane-tab-close {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wisp-pane-tab,
+  .wisp-pane-tab-close,
+  .wisp-pane-tab-action {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .wisp-pane-tab[data-active] {
+    background: var(--ds-surface);
+    box-shadow: inset 0 0 0 1px var(--ds-separator);
+  }
+}

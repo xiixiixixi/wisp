@@ -1,5 +1,5 @@
 import { getAppLocale } from '@/lib/locale';
-import React, { useRef, useMemo, useCallback } from 'react';
+import React, { useRef, useMemo, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useDraggable } from '@/hooks/use-draggable';
@@ -124,7 +124,7 @@ const FileRow = React.memo(
         data-file-path={file.path}
         data-drop-target={file.is_dir ? file.path : undefined}
         data-is-folder={file.is_dir ? 'true' : undefined}
-        className={`wisp-file-row border-xp-border/40 grid cursor-pointer grid-cols-12 items-center gap-3 border-b px-3 transition-colors hover:bg-xp-surface-light ${
+        className={`wisp-file-row grid cursor-pointer grid-cols-12 items-center gap-3 px-3 transition-colors hover:bg-xp-surface-light ${
           selectedFiles.has(file.path) ? 'file-selected' : ''
         } text-xp-text`}
         {...(renamingPath === file.path ? {} : dragHandlers)}
@@ -160,7 +160,7 @@ const FileRow = React.memo(
             />
           ) : (
             <div
-              className={`flex min-w-0 items-center font-medium ${isHiddenFile(file) ? 'text-xp-text-muted' : ''}`}
+              className={`flex min-w-0 items-center font-normal ${isHiddenFile(file) ? 'text-xp-text-muted' : ''}`}
             >
               <span className="min-w-0 truncate">{file.name}</span>
               <TagDots tags={tags ?? []} />
@@ -239,6 +239,7 @@ const DetailsView = (props: DetailsViewProps) => {
   } = props;
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
 
   const filesByPath = useMemo(() => {
     const map = new Map<string, FileEntry>();
@@ -300,6 +301,30 @@ const DetailsView = (props: DetailsViewProps) => {
 
   const needsVirtualization = flatItems.length >= DETAILS_VIRTUALIZATION_THRESHOLD;
 
+  useEffect(() => {
+    const scrollElement = needsVirtualization
+      ? scrollRef.current
+      : scrollRef.current?.closest<HTMLElement>('.wisp-file-scroll');
+
+    if (!scrollElement) {
+      setIsHeaderScrolled(false);
+      return;
+    }
+
+    let wasScrolled: boolean | undefined;
+    const updateHeader = () => {
+      const isScrolled = scrollElement.scrollTop > 0;
+      if (isScrolled !== wasScrolled) {
+        wasScrolled = isScrolled;
+        setIsHeaderScrolled(isScrolled);
+      }
+    };
+
+    updateHeader();
+    scrollElement.addEventListener('scroll', updateHeader, { passive: true });
+    return () => scrollElement.removeEventListener('scroll', updateHeader);
+  }, [needsVirtualization, props.currentPath]);
+
   const estimateSize = useCallback(
     (index: number) => {
       const item = flatItems[index];
@@ -318,10 +343,10 @@ const DetailsView = (props: DetailsViewProps) => {
 
   const header = (
     <div
-      className="wisp-list-header border-xp-border/60 sticky top-0 z-20 border-b bg-xp-bg"
+      className={`wisp-list-header sticky top-0 z-20 ${isHeaderScrolled ? 'wisp-list-header-scrolled' : ''}`}
       role="row"
     >
-      <div className="grid h-[30px] grid-cols-12 items-center gap-3 px-3 text-xs font-medium text-xp-text-muted">
+      <div className="grid h-[30px] grid-cols-12 items-center gap-3 px-3 text-xs font-semibold text-xp-text-muted">
         <div
           className="col-span-1"
           role="columnheader"
@@ -374,13 +399,14 @@ const DetailsView = (props: DetailsViewProps) => {
   if (!needsVirtualization) {
     return (
       <div
+        ref={scrollRef}
         className="select-none text-sm"
         role="table"
         aria-label={t('explorer.details.fileListAria')}
         onContextMenu={handleBackgroundRightClick || undefined}
       >
         {header}
-        <div className="divide-y divide-xp-border divide-opacity-30" role="rowgroup">
+        <div className="wisp-file-rows" role="rowgroup">
           {flatItems.map((item) => (
             <div key={item.type === 'header' ? `group-${item.group.name}` : item.file.path}>
               {renderFlatItem(item)}

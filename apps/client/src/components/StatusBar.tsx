@@ -101,19 +101,6 @@ const Badge = ({
   );
 };
 
-// ── Separator ────────────────────────────────────────────────────────────────
-
-const separatorStyle: React.CSSProperties = {
-  width: '1px',
-  height: '12px',
-  background: 'var(--xp-border, var(--xp-border))',
-  flexShrink: 0,
-};
-
-const Separator = () => {
-  return <span style={separatorStyle} aria-hidden="true" />;
-};
-
 // ── Cursor position event type ───────────────────────────────────────────────
 
 export interface CursorPositionDetail {
@@ -453,25 +440,26 @@ const StatusBar = ({
     <div
       role="status"
       aria-live="polite"
-      className="wisp-statusbar flex flex-shrink-0 select-none items-center justify-between border-t border-xp-border bg-xp-surface px-3 text-xs text-xp-text-secondary"
-      style={{ minHeight: '24px', height: '24px' }}
+      className={`wisp-statusbar flex flex-shrink-0 select-none items-center justify-between border-t border-xp-border bg-xp-surface px-3 text-xs text-xp-text-secondary ${isEditorMode ? '' : 'wisp-statusbar-browser'}`}
     >
       {/* Left section */}
-      <div className="flex items-center gap-3" aria-label={t('statusBar.fileCount')}>
+      <div
+        className="wisp-status-summary flex items-center gap-3"
+        aria-label={t('statusBar.fileCount')}
+      >
         {/* Vim Mode Indicator */}
         {vimState && vimState.enabled && (
-          <>
-            <VimModeIndicator
-              mode={vimState.mode}
-              pendingKeys={vimState.pendingKeys}
-              learningMode={vimState.learningMode}
-            />
-            <Separator />
-          </>
+          <VimModeIndicator
+            mode={vimState.mode}
+            pendingKeys={vimState.pendingKeys}
+            learningMode={vimState.learningMode}
+          />
         )}
 
-        <span>{t('statusBar.items', { count: files.length })}</span>
-        {selectedFiles.size > 0 && (
+        {currentPath !== 'wisp://home' && (
+          <span>{t('statusBar.items', { count: files.length })}</span>
+        )}
+        {currentPath !== 'wisp://home' && selectedFiles.size > 0 && (
           <span>
             {t('statusBar.selected', { count: selectedFiles.size })}
             {selectionSize > 0 && ` (${formatFileSize(selectionSize)})`}
@@ -480,135 +468,123 @@ const StatusBar = ({
       </div>
 
       {/* Center section */}
-      <div className="flex-1 truncate px-4 text-center opacity-80" title={currentPath}>
+      <div
+        className={`wisp-status-path flex-1 truncate px-4 text-center opacity-80 ${isEditorMode ? '' : 'sr-only'}`}
+        title={currentPath}
+      >
         {displayPath}
       </div>
 
       {/* Right section */}
-      <div className="flex items-center gap-2">
+      <div className="wisp-status-actions flex items-center gap-2">
         {(undoRedoStatus.canUndo || undoRedoStatus.canRedo) && (
-          <>
-            <div
-              className="flex items-center rounded-[2px] border border-xp-border bg-muted p-0.5"
-              role="group"
-              aria-label={t('statusBar.historyActions')}
+          <div
+            className="flex items-center rounded-md border border-xp-border bg-muted p-0.5"
+            role="group"
+            aria-label={t('statusBar.historyActions')}
+          >
+            <button
+              type="button"
+              onClick={() => handleHistoryAction('undo')}
+              disabled={!undoRedoStatus.canUndo || historyAction !== null}
+              className="flex h-5 w-6 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:pointer-events-none disabled:opacity-30"
+              title={
+                undoRedoStatus.undoDescription
+                  ? t('statusBar.undoDescription', {
+                      description: undoRedoStatus.undoDescription,
+                    })
+                  : t('statusBar.undo')
+              }
+              aria-label={t('statusBar.undo')}
             >
-              <button
-                type="button"
-                onClick={() => handleHistoryAction('undo')}
-                disabled={!undoRedoStatus.canUndo || historyAction !== null}
-                className="flex h-5 w-6 items-center justify-center rounded-[2px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:pointer-events-none disabled:opacity-30"
-                title={
-                  undoRedoStatus.undoDescription
-                    ? t('statusBar.undoDescription', {
-                        description: undoRedoStatus.undoDescription,
-                      })
-                    : t('statusBar.undo')
-                }
-                aria-label={t('statusBar.undo')}
-              >
-                <Undo2 className="h-3.5 w-3.5" aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                onClick={() => handleHistoryAction('redo')}
-                disabled={!undoRedoStatus.canRedo || historyAction !== null}
-                className="flex h-5 w-6 items-center justify-center rounded-[2px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:pointer-events-none disabled:opacity-30"
-                title={
-                  undoRedoStatus.redoDescription
-                    ? t('statusBar.redoDescription', {
-                        description: undoRedoStatus.redoDescription,
-                      })
-                    : t('statusBar.redo')
-                }
-                aria-label={t('statusBar.redo')}
-              >
-                <Redo2 className="h-3.5 w-3.5" aria-hidden="true" />
-              </button>
-            </div>
-            <Separator />
-          </>
+              <Undo2 className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={() => handleHistoryAction('redo')}
+              disabled={!undoRedoStatus.canRedo || historyAction !== null}
+              className="flex h-5 w-6 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:pointer-events-none disabled:opacity-30"
+              title={
+                undoRedoStatus.redoDescription
+                  ? t('statusBar.redoDescription', {
+                      description: undoRedoStatus.redoDescription,
+                    })
+                  : t('statusBar.redo')
+              }
+              aria-label={t('statusBar.redo')}
+            >
+              <Redo2 className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          </div>
         )}
 
         {/* Cursor position (editor mode only) */}
         {isEditorMode && cursorPos && (
-          <>
-            <Badge
-              title={t('statusBar.cursorPosition')}
-              ariaLabel={t('statusBar.lineFull', { line: cursorPos.line, col: cursorPos.column })}
-            >
-              {t('statusBar.line', { line: cursorPos.line, col: cursorPos.column })}
-            </Badge>
-            <Separator />
-          </>
+          <Badge
+            title={t('statusBar.cursorPosition')}
+            ariaLabel={t('statusBar.lineFull', { line: cursorPos.line, col: cursorPos.column })}
+          >
+            {t('statusBar.line', { line: cursorPos.line, col: cursorPos.column })}
+          </Badge>
         )}
 
         {/* Encoding */}
         {encoding && encoding !== 'Binary' && (
-          <>
-            <Badge
-              title={t('statusBar.encoding', { encoding })}
-              ariaLabel={t('statusBar.encoding', { encoding })}
-            >
-              {encoding}
-            </Badge>
-            <Separator />
-          </>
+          <Badge
+            title={t('statusBar.encoding', { encoding })}
+            ariaLabel={t('statusBar.encoding', { encoding })}
+          >
+            {encoding}
+          </Badge>
         )}
 
         {/* Line endings */}
         {lineEnding && (
-          <>
-            <Badge
-              title={t('statusBar.lineEndings', { type: lineEnding })}
-              ariaLabel={t('statusBar.lineEndings', { type: lineEnding })}
-            >
-              {lineEnding}
-            </Badge>
-            <Separator />
-          </>
+          <Badge
+            title={t('statusBar.lineEndings', { type: lineEnding })}
+            ariaLabel={t('statusBar.lineEndings', { type: lineEnding })}
+          >
+            {lineEnding}
+          </Badge>
         )}
 
         {/* Git info */}
         {gitInfo && (
-          <>
-            <button
-              type="button"
-              className="flex items-center gap-1 rounded-[2px] px-1.5 py-0.5 transition-colors hover:bg-xp-surface-light active:bg-xp-border"
-              style={{
-                cursor: 'pointer',
-                border: 'none',
-                background: 'transparent',
-                color: 'inherit',
-                fontSize: 'inherit',
-                lineHeight: 'inherit',
-              }}
-              title={gitTooltip || t('statusBar.openGitPanel')}
-              aria-label={gitTooltip || t('statusBar.openGitPanel')}
-              onClick={handleGitClick}
-            >
-              <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
-              {gitInfo.branch}
-              {totalGitChanges > 0 && (
-                <span
-                  style={{
-                    marginLeft: '3px',
-                    padding: '0 4px',
-                    borderRadius: '8px',
-                    fontSize: '10px',
-                    lineHeight: '14px',
-                    fontWeight: 600,
-                    background: 'var(--xp-orange, #e8a854)',
-                    color: 'var(--xp-bg, #0a0a1a)',
-                  }}
-                  title={`${gitInfo.modifiedCount}M ${gitInfo.stagedCount}S ${gitInfo.untrackedCount}U`}
-                >
-                  {totalGitChanges}
-                </span>
-              )}
-            </button>
-            <Separator />
-          </>
+          <button
+            type="button"
+            className="flex items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-xp-surface-light active:bg-xp-border"
+            style={{
+              cursor: 'pointer',
+              border: 'none',
+              background: 'transparent',
+              color: 'inherit',
+              fontSize: 'inherit',
+              lineHeight: 'inherit',
+            }}
+            title={gitTooltip || t('statusBar.openGitPanel')}
+            aria-label={gitTooltip || t('statusBar.openGitPanel')}
+            onClick={handleGitClick}
+          >
+            <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
+            {gitInfo.branch}
+            {totalGitChanges > 0 && (
+              <span
+                style={{
+                  marginLeft: '3px',
+                  padding: '0 4px',
+                  borderRadius: '8px',
+                  fontSize: '10px',
+                  lineHeight: '14px',
+                  fontWeight: 600,
+                  background: 'var(--xp-orange, #e8a854)',
+                  color: 'var(--xp-bg, #0a0a1a)',
+                }}
+                title={`${gitInfo.modifiedCount}M ${gitInfo.stagedCount}S ${gitInfo.untrackedCount}U`}
+              >
+                {totalGitChanges}
+              </span>
+            )}
+          </button>
         )}
 
         {/* Index stats — moved here from the search toolbar */}
@@ -635,7 +611,7 @@ const StatusBar = ({
         {onRestoreRightSidebar && rightSidebarCollapsed && (
           <button
             type="button"
-            className="rounded-[2px] p-0.5 transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-md p-0.5 transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             style={{
               border: 'none',
               background: 'transparent',
@@ -658,7 +634,7 @@ const StatusBar = ({
         {onRestoreBottomPanel && bottomPanelCollapsed && (
           <button
             type="button"
-            className="rounded-[2px] p-0.5 transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-md p-0.5 transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             style={{
               border: 'none',
               background: 'transparent',

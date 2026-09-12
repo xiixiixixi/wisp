@@ -182,7 +182,7 @@ const FileComparisonPage = ({ file1Path, file2Path, onError }: FileComparisonPag
             style={{
               width: 24,
               height: 24,
-              color: 'var(--xp-blue)',
+              color: 'var(--ds-link)',
               animation: 'spin 1s linear infinite',
             }}
           />

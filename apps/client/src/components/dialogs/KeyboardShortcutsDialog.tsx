@@ -17,11 +17,11 @@ interface CategoryDef {
 }
 
 const CATEGORIES: Record<string, CategoryDef> = {
-  'file-operations': { label: 'fileOperations', color: 'var(--xp-blue)' },
+  'file-operations': { label: 'fileOperations', color: 'var(--ds-link)' },
   navigation: { label: 'navigation', color: 'var(--xp-green)' },
   selection: { label: 'selection', color: 'var(--xp-purple)' },
   search: { label: 'search', color: 'var(--xp-yellow)' },
-  view: { label: 'view', color: 'var(--xp-cyan, var(--xp-blue))' },
+  view: { label: 'view', color: 'var(--xp-cyan, var(--ds-link))' },
   application: { label: 'application', color: 'var(--xp-orange, var(--xp-yellow))' },
   terminal: { label: 'terminal', color: 'var(--xp-green)' },
   extensions: { label: 'extensions', color: 'var(--xp-purple)' },
@@ -210,7 +210,7 @@ const styles = {
   },
   settingsLink: {
     fontSize: '11px',
-    color: 'var(--xp-blue)',
+    color: 'var(--ds-link)',
     border: 'none',
     backgroundColor: 'transparent',
     cursor: 'pointer',

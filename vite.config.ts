@@ -6,20 +6,30 @@ import fs from 'fs';
 // Single source of truth for the app version is apps/src-tauri/tauri.conf.json;
 // it is inlined at dev/build time so the About page can show it synchronously.
 const tauriVersion = JSON.parse(
-  fs.readFileSync(path.resolve(import.meta.dirname, 'apps', 'src-tauri', 'tauri.conf.json'), 'utf8'),
+  fs.readFileSync(
+    path.resolve(import.meta.dirname, 'apps', 'src-tauri', 'tauri.conf.json'),
+    'utf8',
+  ),
 ).version as string;
 
 export default defineConfig(({ mode }) => ({
   plugins: [
-    react(
-      mode === 'test'
-        ? undefined
+    react({
+      // Optimized dependencies can live outside node_modules when a dev server
+      // uses a custom cacheDir. Compiling that cache changes third-party hook
+      // order (for example Wouter's router.hook call) on subsequent renders.
+      include: [
+        path.resolve(import.meta.dirname, 'apps/client/src/**/*.{js,jsx,ts,tsx}'),
+        path.resolve(import.meta.dirname, 'packages/*/src/**/*.{js,jsx,ts,tsx}'),
+      ],
+      ...(mode === 'test'
+        ? {}
         : {
             babel: {
               plugins: [['babel-plugin-react-compiler', { target: '19' }]],
             },
-          },
-    ),
+          }),
+    }),
   ],
   resolve: {
     alias: [

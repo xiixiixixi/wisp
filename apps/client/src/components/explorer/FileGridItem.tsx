@@ -518,7 +518,7 @@ const FileGridItem = React.memo(
         tabIndex={
           isSelected || (selectedFiles.size === 0 && allFiles[0]?.path === file.path) ? 0 : -1
         }
-        className={`cursor-pointer rounded-[2px] transition-colors duration-150 ${
+        className={`cursor-pointer rounded-md transition-colors duration-150 ${
           isSelected
             ? 'bg-xp-selection border border-xp-blue ring-1 ring-xp-blue'
             : 'border border-transparent hover:bg-xp-surface-light'
@@ -575,13 +575,13 @@ const FileGridItem = React.memo(
         </div>
         <div className={`${isGridView ? 'w-full min-w-0' : 'min-w-0 flex-1'} select-none`}>
           <div
-            className={`font-medium ${isHiddenFile(file) && !isRenaming ? 'text-xp-text-muted' : 'text-xp-text'} ${isRenaming ? '' : 'overflow-hidden'} ${isListView ? 'text-xs' : 'text-sm'} ${isGridView ? 'justify-center' : ''} flex items-center`}
+            className={`font-normal ${isHiddenFile(file) && !isRenaming ? 'text-xp-text-muted' : 'text-xp-text'} ${isRenaming ? '' : 'overflow-hidden'} ${isListView ? 'text-xs' : 'text-sm'} ${isGridView ? 'justify-center' : ''} flex items-center`}
             style={isRenaming ? { position: 'relative', overflow: 'visible' } : undefined}
           >
             {renderNameArea()}
           </div>
           {file.name.endsWith('.chat') && !isRenaming && (
-            <span className="mt-0.5 inline-block rounded-[2px] bg-xp-purple/20 px-1.5 py-0.5 text-[9px] text-xp-purple">
+            <span className="mt-0.5 inline-block rounded-md bg-xp-purple/20 px-1.5 py-0.5 text-[9px] text-xp-purple">
               {tUi('contextMenu.chat')}
             </span>
           )}

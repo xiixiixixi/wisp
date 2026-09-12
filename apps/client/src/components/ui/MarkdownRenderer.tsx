@@ -85,14 +85,14 @@ const CodeBlockWithActions = ({
         </div>
       )}
       <pre
-        className={`overflow-x-auto border border-xp-border bg-xp-bg p-3 text-xs ${language ? 'rounded-b-[2px]' : 'rounded-[2px]'}`}
+        className={`overflow-x-auto border border-xp-border bg-xp-bg p-3 text-xs ${language ? 'rounded-b-[2px]' : 'rounded-md'}`}
       >
         <code className="text-xp-text">{code}</code>
       </pre>
       <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
         <button
           onClick={handleCopy}
-          className="rounded-[2px] border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
+          className="rounded-md border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
           title={tUi('permissions.desc.uiClipboard')}
         >
           {copied ? tUi('interface.copied') : tUi('dragOverlay.copy')}
@@ -100,7 +100,7 @@ const CodeBlockWithActions = ({
         {onSaveAsFile && (
           <button
             onClick={() => onSaveAsFile(code, language)}
-            className="rounded-[2px] border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
+            className="rounded-md border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
             title={tUi('interface.saveAsFile')}
           >
             {tUi('interface.saveAsFile')}
@@ -109,7 +109,7 @@ const CodeBlockWithActions = ({
         {onApplyCode && (
           <button
             onClick={() => onApplyCode(code)}
-            className="rounded-[2px] border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
+            className="rounded-md border border-xp-border bg-xp-surface px-2 py-0.5 text-[10px] text-xp-text-muted hover:text-xp-text"
             title={tUi('interface.replaceSelectedCodeInEditor')}
           >
             {tUi('dialogs.pasteRename.apply')}
@@ -190,7 +190,7 @@ const parseMarkdown = (
                 {tableRows[0].map((cell, ci) => (
                   <th
                     key={`header-${ci}`} // eslint-disable-line react/no-array-index-key
-                    className="border border-xp-border px-2 py-1.5 text-left font-medium"
+                    className="border border-xp-border px-2 py-1.5 text-left font-semibold"
                     style={{ textAlign: alignments[ci] || 'left' }}
                   >
                     {renderInline(cell)}
@@ -360,7 +360,7 @@ const renderInline = (text: string): React.ReactNode => {
       parts.push(
         <code
           key={`c-${segKey++}`}
-          className="break-all rounded-[2px] bg-xp-bg px-1 py-0.5 text-xs text-xp-purple"
+          className="break-all rounded-md bg-xp-bg px-1 py-0.5 text-xs text-xp-purple"
         >
           {match[2]}
         </code>,

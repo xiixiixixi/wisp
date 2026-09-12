@@ -5,6 +5,11 @@ import PreviewPanel from '@/components/panels/PreviewPanel';
 import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
 import i18n from '@/i18n';
 
+vi.mock('@/lib/transport', () => ({
+  isTauri: () => false,
+  convertAssetUrl: (path: string) => path,
+}));
+
 // Mock preview-factory
 vi.mock('@/lib/preview-factory', () => ({
   defaultPreviewFactory: {
@@ -76,7 +81,7 @@ describe('PreviewPanel', () => {
     it('shows file icon in empty state', () => {
       const { container } = render(<PreviewPanel {...mockProps} selectedFile={null} />);
 
-      const icon = container.querySelector('svg.w-12.h-12');
+      const icon = container.querySelector('.wisp-preview-empty-visual[aria-hidden="true"] svg');
       expect(icon).toBeInTheDocument();
     });
   });
@@ -86,7 +91,9 @@ describe('PreviewPanel', () => {
       render(<PreviewPanel {...mockProps} />);
 
       // Properties section renders immediately (not debounced)
-      expect(screen.getByText('document.txt')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Show file properties' })).toHaveTextContent(
+        'document.txt',
+      );
     });
 
     it('displays file size for non-directory files', () => {
@@ -147,7 +154,7 @@ describe('PreviewPanel', () => {
       expect(screen.queryByText('Type:')).not.toBeInTheDocument();
 
       // Click the properties header to expand.
-      const headerButton = screen.getByText('document.txt').closest('button');
+      const headerButton = screen.getByRole('button', { name: 'Show file properties' });
       if (headerButton) {
         fireEvent.click(headerButton);
         expect(screen.getByText('Type:')).toBeInTheDocument();
@@ -157,7 +164,7 @@ describe('PreviewPanel', () => {
     it('toggles properties open again after collapsing', () => {
       render(<PreviewPanel {...mockProps} />);
 
-      const headerButton = screen.getByText('document.txt').closest('button');
+      const headerButton = screen.getByRole('button', { name: 'Show file properties' });
       if (headerButton) {
         // Expand
         fireEvent.click(headerButton);
@@ -200,9 +207,7 @@ describe('PreviewPanel', () => {
           const summaries = screen.getAllByText((_, el) =>
             Boolean(el?.textContent?.match(/^7 (items|个项目)/)),
           );
-          expect(
-            summaries.some((el) => el.textContent?.match(/(10240\s*B|10\s*KB)/)),
-          ).toBe(true);
+          expect(summaries.some((el) => el.textContent?.match(/(10240\s*B|10\s*KB)/))).toBe(true);
         },
         { timeout: 1000 },
       );
@@ -210,7 +215,7 @@ describe('PreviewPanel', () => {
   });
 
   describe('Unsupported File Preview', () => {
-    it('shows "No preview available" for unsupported file types', async () => {
+    it('explains that a preview is unavailable and offers useful actions', async () => {
       const unknownFile: FileEntry = {
         name: 'data.xyz',
         path: 'C:\\Users\\Test\\data.xyz',
@@ -222,20 +227,18 @@ describe('PreviewPanel', () => {
 
       render(<PreviewPanel {...mockProps} selectedFile={unknownFile} />);
 
-      // Finder-style: unpreviewable files degrade to the large type icon —
-      // no "failed to load"/"not supported" copy anywhere.
       await waitFor(
         () => {
           expect(screen.getByLabelText('data.xyz')).toBeInTheDocument();
-          expect(document.body.textContent).not.toMatch(
-            /failed|not supported|cannot preview|too large/i,
-          );
+          expect(screen.getByText('Preview unavailable')).toBeInTheDocument();
+          expect(screen.getByRole('button', { name: 'Show Details' })).toBeInTheDocument();
+          expect(screen.queryByRole('button', { name: 'Retry Preview' })).not.toBeInTheDocument();
         },
         { timeout: 1000 },
       );
     });
 
-    it('shows "File is too large for preview" for very large files', async () => {
+    it('does not invent a size-limit explanation for an unknown format', async () => {
       const largeFile: FileEntry = {
         name: 'huge.bin',
         path: 'C:\\Users\\Test\\huge.bin',
@@ -247,10 +250,11 @@ describe('PreviewPanel', () => {
 
       render(<PreviewPanel {...mockProps} selectedFile={largeFile} />);
 
-      // Oversized unknown files degrade to the same Finder-style icon.
       await waitFor(
         () => {
           expect(screen.getByLabelText('huge.bin')).toBeInTheDocument();
+          expect(screen.getByText('Preview unavailable')).toBeInTheDocument();
+          expect(screen.queryByText('File too large for sidebar preview')).not.toBeInTheDocument();
         },
         { timeout: 1000 },
       );

@@ -130,7 +130,7 @@ describe('FileGridItem', () => {
     it('dims the name of dot-prefixed files', () => {
       const hiddenFile = { ...sampleFile, name: '.config', path: 'C:\\Users\\Test\\.config' };
       render(<FileGridItem {...defaultProps} file={hiddenFile} />);
-      const nameEl = screen.getByText('.config').closest('div.font-medium');
+      const nameEl = screen.getByText('.config').closest('div');
       expect(nameEl?.className).toContain('text-xp-text-muted');
     });
 
@@ -144,7 +144,7 @@ describe('FileGridItem', () => {
 
     it('keeps normal name color for regular files', () => {
       render(<FileGridItem {...defaultProps} />);
-      const nameEl = screen.getByText('document.txt').closest('div.font-medium');
+      const nameEl = screen.getByText('document.txt').closest('div');
       expect(nameEl?.className).not.toContain('text-xp-text-muted');
       expect(nameEl?.className).toContain('text-xp-text');
     });

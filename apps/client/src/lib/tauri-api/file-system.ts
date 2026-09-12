@@ -1,5 +1,12 @@
 import { transport, listenToEvent as transportListen } from '../transport';
 import { getDemoDirectory, isBrowserDemoMode } from '../browser-demo-files';
+import {
+  readDemoRecentFiles,
+  recordDemoRecentFile,
+  removeDemoRecentFile,
+  clearDemoRecentFiles,
+  findDemoEntry,
+} from '../demo-recent-store';
 import type {
   FileEntry,
   FileProperties,
@@ -41,7 +48,45 @@ export const getFileMetaData = async (path: string): Promise<FileProperties> =>
 
 export const getDetailedFileProperties = async (
   filePath: string,
-): Promise<DetailedFileProperties> => await transport('get_detailed_file_properties', { filePath });
+): Promise<DetailedFileProperties> => {
+  if (isBrowserDemoMode()) {
+    const parent = filePath.slice(0, filePath.lastIndexOf('/')) || '/';
+    const file =
+      getDemoDirectory(parent)?.find((entry) => entry.path === filePath) ?? findDemoEntry(filePath);
+    if (!file) throw new Error(`Demo entry is unavailable: ${filePath}`);
+
+    // Demo fixtures carry one timestamp; derive the display metadata locally,
+    // including hidden entries that are intentionally absent from demo search.
+    const timestamp = new Date(file.modified * 1000).toISOString();
+    const children = file.is_dir ? getDemoDirectory(filePath) : null;
+    return {
+      path: file.path,
+      name: file.name,
+      file_type: file.file_type,
+      size: file.size,
+      size_formatted: `${file.size.toLocaleString()} B`,
+      created: file.modified,
+      modified: file.modified,
+      accessed: file.modified,
+      created_formatted: timestamp,
+      modified_formatted: timestamp,
+      accessed_formatted: timestamp,
+      permissions: {
+        readable: true,
+        writable: !file.is_readonly,
+        executable: file.is_dir,
+        permissions_string: file.is_dir ? 'rwxr-xr-x' : 'rw-r--r--',
+      },
+      is_directory: file.is_dir,
+      is_hidden: file.name.startsWith('.'),
+      is_readonly: file.is_readonly,
+      extension: file.is_dir ? undefined : file.name.split('.').slice(1).pop(),
+      mime_type: file.mime_type,
+      attributes: children ? { item_count: children.length } : {},
+    };
+  }
+  return await transport('get_detailed_file_properties', { filePath });
+};
 
 export const getDirectorySize = async (dirPath: string): Promise<number> =>
   await transport('get_directory_size', { dirPath });
@@ -404,17 +449,27 @@ export const executeOrganization = async (plan: OrganizationPlan): Promise<numbe
 // ── Recent files ────────────────────────────────────────────────────────────
 
 export const addRecentFile = async (path: string): Promise<void> => {
-  await transport('add_recent_file', { path });
+  if (isBrowserDemoMode()) recordDemoRecentFile(path);
+  else await transport('add_recent_file', { path });
   window.dispatchEvent(new CustomEvent('recent-files-changed'));
 };
 
 export const getRecentFiles = async (limit?: number): Promise<RecentFile[]> =>
-  await transport('get_recent_files', { limit: limit ?? null });
+  isBrowserDemoMode()
+    ? readDemoRecentFiles(limit)
+    : await transport('get_recent_files', { limit: limit ?? null });
 
-export const clearRecentFiles = async (): Promise<void> => await transport('clear_recent_files');
+export const clearRecentFiles = async (): Promise<void> => {
+  if (isBrowserDemoMode()) clearDemoRecentFiles();
+  else await transport('clear_recent_files');
+  window.dispatchEvent(new CustomEvent('recent-files-changed'));
+};
 
-export const removeRecentFile = async (path: string): Promise<void> =>
-  await transport('remove_recent_file', { path });
+export const removeRecentFile = async (path: string): Promise<void> => {
+  if (isBrowserDemoMode()) removeDemoRecentFile(path);
+  else await transport('remove_recent_file', { path });
+  window.dispatchEvent(new CustomEvent('recent-files-changed'));
+};
 
 // ── Image processing ────────────────────────────────────────────────────────
 

@@ -1,3 +1,4 @@
+import { Slider } from '@/components/ui/slider';
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { PreviewProps } from '@/lib/preview-factory';
@@ -131,10 +132,10 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
   return (
     <div className="flex h-full flex-col">
       {loading && (
-        <div className="flex flex-1 items-center justify-center rounded-[2px] border border-xp-border bg-xp-surface">
+        <div className="flex flex-1 items-center justify-center rounded-md border border-xp-border bg-xp-surface">
           <div className="text-center text-xp-text-muted">
             <div className="animate-pulse">
-              <div className="mx-auto mb-2 h-16 w-16 rounded-[2px] bg-xp-bg" />
+              <div className="mx-auto mb-2 h-16 w-16 rounded-md bg-xp-bg" />
               <p className="text-xs">{tUi('interface.loadingVideo')}</p>
             </div>
           </div>
@@ -163,14 +164,15 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
               {/* Progress bar */}
               <div className="flex items-center space-x-2 text-xs text-xp-text">
                 <span>{formatTime(currentTime)}</span>
-                <input
-                  type="range"
+                <Slider
+                  aria-label={tUi('previews.audio.playbackPosition')}
+                  aria-valuetext={`${formatTime(currentTime)} / ${formatTime(safeDuration)}`}
                   min="0"
                   max={String(safeDuration)}
                   step="0.1"
                   value={currentTime}
                   onChange={handleProgressChange}
-                  className="h-1 flex-1 cursor-pointer appearance-none rounded-[2px]"
+                  className="flex-1"
                   style={{
                     background: `linear-gradient(to right, var(--xp-lime) 0%, var(--xp-lime) ${progressPercent}%, var(--xp-border) ${progressPercent}%, var(--xp-border) 100%)`,
                   }}
@@ -184,7 +186,7 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
                   title={
                     isPlaying ? tUi('agentManager.workspace.pause') : tUi('previews.audio.play')
                   }
-                  className="rounded-[2px] p-1.5 text-xp-text hover:bg-xp-surface-light"
+                  className="rounded-md p-1.5 text-xp-text hover:bg-xp-surface-light"
                 >
                   {isPlaying ? (
                     <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
@@ -218,14 +220,15 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
                       <path d="M12.828 4.929a1 1 0 011.414 0A5.983 5.983 0 0116 10a5.984 5.984 0 01-1.758 4.243 1 1 0 01-1.414-1.414A3.984 3.984 0 0014 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.414z" />
                     )}
                   </svg>
-                  <input
-                    type="range"
+                  <Slider
+                    aria-label={tUi('previews.audio.volume')}
+                    aria-valuetext={`${Math.round(volume * 100)}%`}
                     min="0"
                     max="1"
                     step="0.1"
                     value={volume}
                     onChange={handleVolumeChange}
-                    className="h-1 w-20 cursor-pointer appearance-none rounded-[2px]"
+                    className="w-20"
                     style={{
                       background: `linear-gradient(to right, var(--xp-text-muted) 0%, var(--xp-text-muted) ${volume * 100}%, var(--xp-border) ${volume * 100}%, var(--xp-border) 100%)`,
                     }}
@@ -237,7 +240,7 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
         </>
       )}
       {videoError && (
-        <div className="flex flex-1 flex-col items-center justify-center rounded-[2px] border border-xp-border bg-xp-surface">
+        <div className="flex flex-1 flex-col items-center justify-center rounded-md border border-xp-border bg-xp-surface">
           {posterSrc ? (
             <img
               src={posterSrc}
@@ -245,7 +248,11 @@ const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
               className="max-h-[80%] max-w-full object-contain"
             />
           ) : (
-            <svg className="mb-2 h-12 w-12 text-xp-text-muted" fill="currentColor" viewBox="0 0 20 20">
+            <svg
+              className="mb-2 h-12 w-12 text-xp-text-muted"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
               <path
                 fillRule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"

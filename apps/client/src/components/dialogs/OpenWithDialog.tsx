@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Search, X, Check } from 'lucide-react';
 import { TauriAPI, type Application, type FileAssociation } from '@/lib/tauri-api';
 import { isTauri } from '@/lib/transport';
-import { formatFileSize } from '@/lib/utils';
 
 /**
  * Finder-style "choose application" dialog: recommended apps from
@@ -62,15 +61,10 @@ const OpenWithDialog = ({ isOpen, onClose, filePath }: OpenWithDialogProps) => {
   const filteredApps = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return allApps.slice(0, 60);
-    return allApps
-      .filter((a) => a.name.toLowerCase().includes(q))
-      .slice(0, 60);
+    return allApps.filter((a) => a.name.toLowerCase().includes(q)).slice(0, 60);
   }, [allApps, query]);
 
-  const recommendedPaths = useMemo(
-    () => new Set(recommended.map((a) => a.path)),
-    [recommended],
-  );
+  const recommendedPaths = useMemo(() => new Set(recommended.map((a) => a.path)), [recommended]);
 
   const handleOpen = useCallback(async () => {
     if (!selected || busy) return;
@@ -108,7 +102,7 @@ const OpenWithDialog = ({ isOpen, onClose, filePath }: OpenWithDialogProps) => {
         setSelected(app);
         void handleOpen();
       }}
-      className={`flex w-full items-center gap-2 rounded-[2px] px-2 py-1.5 text-left text-xs transition-colors ${
+      className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors ${
         selected?.path === app.path
           ? 'bg-xp-surface-light text-xp-text'
           : 'text-xp-text-secondary hover:bg-xp-surface-light/60'
@@ -134,18 +128,18 @@ const OpenWithDialog = ({ isOpen, onClose, filePath }: OpenWithDialogProps) => {
       aria-modal="true"
       aria-label={t('openWith.title')}
     >
-      <div className="flex h-[460px] w-[440px] flex-col rounded-[6px] border border-xp-border bg-xp-surface shadow-xl">
+      <div className="flex h-[460px] w-[440px] flex-col rounded-md border border-xp-border bg-xp-surface shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-xp-border px-3 py-2">
           <div className="min-w-0">
-            <h3 className="truncate text-sm font-medium text-xp-text">{t('openWith.title')}</h3>
+            <h3 className="truncate text-sm font-semibold text-xp-text">{t('openWith.title')}</h3>
             <p className="truncate text-xs text-xp-text-muted" title={fileName}>
               {fileName}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-[2px] p-1 text-xp-text-secondary hover:bg-xp-surface-light"
+            className="rounded-md p-1 text-xp-text-secondary hover:bg-xp-surface-light"
             aria-label={t('common.close')}
           >
             <X size={16} aria-hidden />
@@ -154,7 +148,7 @@ const OpenWithDialog = ({ isOpen, onClose, filePath }: OpenWithDialogProps) => {
 
         {/* Search */}
         <div className="border-b border-xp-border px-3 py-2">
-          <div className="flex items-center gap-2 rounded-[2px] border border-xp-border bg-xp-bg px-2 py-1">
+          <div className="flex items-center gap-2 rounded-md border border-xp-border bg-xp-bg px-2 py-1">
             <Search size={13} className="shrink-0 text-xp-text-muted" aria-hidden />
             <input
               value={query}
@@ -198,14 +192,14 @@ const OpenWithDialog = ({ isOpen, onClose, filePath }: OpenWithDialogProps) => {
           <div className="flex shrink-0 gap-2">
             <button
               onClick={onClose}
-              className="rounded-[2px] border border-xp-border px-3 py-1 text-xs text-xp-text-secondary hover:bg-xp-surface-light"
+              className="rounded-md border border-xp-border px-3 py-1 text-xs text-xp-text-secondary hover:bg-xp-surface-light"
             >
               {t('common.cancel')}
             </button>
             <button
               onClick={() => void handleOpen()}
               disabled={!selected || busy}
-              className="rounded-[2px] bg-[var(--xp-lime)] px-3 py-1 text-xs font-medium text-black disabled:opacity-40"
+              className="rounded-md bg-[var(--xp-lime)] px-3 py-1 text-xs font-semibold text-black disabled:opacity-40"
             >
               {busy ? t('common.loading') : t('openWith.openButton')}
             </button>

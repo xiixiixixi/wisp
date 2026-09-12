@@ -195,7 +195,7 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
                 ? 'var(--xp-red)'
                 : warningLevel === 'unknown'
                   ? 'var(--xp-orange)'
-                  : 'var(--xp-blue)',
+                  : 'var(--ds-link)',
             flexShrink: 0,
           }}
         />
@@ -381,7 +381,7 @@ export const CommandActionCard = ({ pendingAction, onAllow, onReject }: CommandA
                 ? 'var(--xp-red)'
                 : warningLevel === 'unknown'
                   ? 'var(--xp-orange)'
-                  : 'var(--xp-blue)',
+                  : 'var(--ds-link)',
           }}
         />
         <span style={{ fontWeight: 600, color: 'var(--xp-text)' }}>

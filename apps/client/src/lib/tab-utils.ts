@@ -1,8 +1,9 @@
-import { FolderClosed, File, FileCode, GitCompareArrows, Cloud } from 'lucide-react';
+import { FolderClosed, File, FileCode, GitCompareArrows, Cloud, House } from 'lucide-react';
 import type { TabItem } from '@/types/split-view';
 
 /** Return the appropriate lucide icon component for a given tab type. */
 export const getTabIcon = (tab: TabItem) => {
+  if (tab.path === 'wisp://home') return House;
   switch (tab.type) {
     case 'editor':
       return FileCode;

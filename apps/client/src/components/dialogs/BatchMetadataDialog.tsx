@@ -465,7 +465,7 @@ const BatchMetadataDialog = React.memo(
                       padding: '8px 12px',
                       fontSize: '12px',
                       fontWeight: activeTab === tab ? 600 : 400,
-                      color: activeTab === tab ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
+                      color: activeTab === tab ? 'var(--ds-link)' : 'var(--xp-text-muted)',
                       background: 'transparent',
                       border: 'none',
                       borderBottom:

@@ -1,3 +1,4 @@
+import { Slider } from '@/components/ui/slider';
 import { getAppLocale } from '@/lib/locale';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -563,8 +564,9 @@ const ImageCompare = React.memo(
               <span style={{ color: 'var(--xp-text-secondary)', fontSize: 11 }}>
                 {t('previews.compare.opacity')}
               </span>
-              <input
-                type="range"
+              <Slider
+                aria-label={t('previews.compare.opacity')}
+                aria-valuetext={`${opacity}%`}
                 min={0}
                 max={100}
                 value={opacity}

@@ -54,14 +54,14 @@ const ResizeHandle = ({ direction, onResize, onResizeEnd, className = '' }: Resi
           : 'wisp-resize-handle-vertical h-3 cursor-row-resize'
       } ${className}`}
     >
-      {/* Visual 1px rail centered in a 12px grab zone — the tiny w-1 strip
-          was nearly impossible to hit with a real mouse. */}
+      {/* Keep the grab zone while revealing its rail only during interaction. */}
       <span
-        className={`absolute transition-colors group-hover:bg-xp-blue/70 group-active:bg-xp-blue ${
+        aria-hidden="true"
+        className={`wisp-resize-indicator pointer-events-none absolute bg-[var(--ds-link)] opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-70 group-active:opacity-100 motion-reduce:transition-none ${
           isHorizontal
-            ? 'top-0 bottom-0 left-1/2 w-px -translate-x-1/2'
+            ? 'bottom-0 left-1/2 top-0 w-px -translate-x-1/2'
             : 'left-0 right-0 top-1/2 h-px -translate-y-1/2'
-        } bg-xp-border`}
+        }`}
       />
     </div>
   );

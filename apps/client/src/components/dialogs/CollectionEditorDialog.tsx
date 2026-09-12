@@ -167,7 +167,7 @@ const S = {
   addBtn: {
     background: 'none',
     border: '1px dashed var(--xp-border)',
-    color: 'var(--xp-blue)',
+    color: 'var(--ds-link)',
     cursor: 'pointer',
     fontSize: '12px',
     padding: '6px 14px',

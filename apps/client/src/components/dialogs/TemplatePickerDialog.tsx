@@ -219,7 +219,7 @@ const s = {
   },
   footerLink: {
     fontSize: '12px',
-    color: 'var(--xp-blue)',
+    color: 'var(--ds-link)',
     background: 'none',
     border: 'none',
     cursor: 'pointer',

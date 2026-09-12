@@ -61,7 +61,17 @@ fn main() {
         .plugin(tauri_plugin_drag::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
+        .on_page_load(|webview, _payload| {
+            #[cfg(target_os = "macos")]
+            let _ = webview
+                .app_handle()
+                .run_on_main_thread(wisp::native_material::publish_frontend_state);
+        })
         .setup(|app| {
+            #[cfg(target_os = "macos")]
+            if let Err(error) = wisp::native_material::install(app.handle()) {
+                warn!("Native window material could not be installed: {error}");
+            }
             // macOS menu bar: Tauri's DEFAULT menu ships an Edit submenu whose
             // Cut/Copy/Paste/SelectAll/Undo/Redo items claim ⌘C/⌘X/⌘V/⌘A/⌘Z as
             // native key equivalents — they are consumed by AppKit BEFORE the
@@ -214,7 +224,7 @@ fn main() {
                 });
             }
 
-            #[cfg(debug_assertions)]
+            #[cfg(all(debug_assertions, not(feature = "custom-protocol")))]
             {
                 if let Some(window) = app.get_webview_window("main") {
                     window.open_devtools();
@@ -267,6 +277,7 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            wisp::airdrop::open_airdrop,
             wisp::text_editing::perform_native_edit_action,
             wisp::app_menu::set_app_menu_language,
             // File system operations (modular)

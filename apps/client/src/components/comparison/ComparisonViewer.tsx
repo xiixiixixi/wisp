@@ -395,8 +395,8 @@ const CollapsedSection = ({ count, onExpand }: { count: number; onExpand: () => 
       }}
       title={tUi('messages.showUnchangedLines', { count })}
     >
-      <ChevronDown style={{ width: 12, height: 12, color: 'var(--xp-blue)', marginRight: 6 }} />
-      <span style={{ fontSize: 11, color: 'var(--xp-blue)', userSelect: 'none' }}>
+      <ChevronDown style={{ width: 12, height: 12, color: 'var(--ds-link)', marginRight: 6 }} />
+      <span style={{ fontSize: 11, color: 'var(--ds-link)', userSelect: 'none' }}>
         {tUi('messages.showUnchangedLines', { count })}
       </span>
     </div>

@@ -1,5 +1,5 @@
 import i18n from '@/i18n';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useId } from 'react';
 import { FileEntry, TauriAPI, FolderSizeInfo } from '@/lib/tauri-api';
 import { isTauri } from '@/lib/transport';
 import { getFileIcon } from '@/lib/utils';
@@ -7,7 +7,10 @@ import { defaultPreviewFactory, PreviewProps, PreviewType } from '@/lib/preview-
 import { extensionHost } from '@/lib/extension-host';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
 import { FileText } from 'lucide-react';
-import FinderFileIcon from '@/components/explorer/FinderFileIcon';
+import PreviewUnavailable, {
+  type PreviewUnavailableReason,
+} from '@/components/previews/PreviewUnavailable';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useTranslation } from 'react-i18next';
 
 // Module-level cache for preview components by file type, avoiding redundant dynamic imports
@@ -30,18 +33,16 @@ const EnhancedFilePreview: React.FC<{
   file: FileEntry;
   category: PreviewType;
   currentPath?: string;
-}> = ({ file, category: _category, currentPath }) => {
-  const { t } = useTranslation();
+  onShowDetails: () => void;
+}> = ({ file, category, currentPath, onShowDetails }) => {
   const [PreviewComponent, setPreviewComponent] =
     useState<React.ComponentType<PreviewProps> | null>(null);
   const [extensionPreviewElement, setExtensionPreviewElement] = useState<React.ReactElement | null>(
     null,
   );
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  // Finder-style graceful degradation: render the large type icon instead of
-  // an error panel when a preview component fails.
-  const [iconFallback, setIconFallback] = useState(false);
+  const [unavailableReason, setUnavailableReason] = useState<PreviewUnavailableReason | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,8 +50,8 @@ const EnhancedFilePreview: React.FC<{
     const loadPreviewComponent = async () => {
       try {
         setLoading(true);
-        setError(null);
-        setIconFallback(false);
+        setUnavailableReason(null);
+        setPreviewComponent(null);
         setExtensionPreviewElement(null);
 
         // Check extension previews first (extension > built-in > fallback)
@@ -120,6 +121,10 @@ const EnhancedFilePreview: React.FC<{
 
         // Fall back to built-in preview factory
         if (!defaultPreviewFactory.canPreview(file)) {
+          if (category !== 'unknown') {
+            if (!cancelled) setUnavailableReason('too-large');
+            return;
+          }
           // Finder previews ANY text file regardless of extension (Makefile,
           // .gitignore, extensionless scripts, …) — sniff the content and
           // route it to the text preview when the leading bytes are UTF-8.
@@ -127,8 +132,12 @@ const EnhancedFilePreview: React.FC<{
             let isText = false;
             try {
               isText = await TauriAPI.previewSniffText(file.path);
-            } catch {
-              // Sniffing is best-effort; fall through to the no-preview UI.
+            } catch (error) {
+              if (!cancelled) {
+                console.error('Could not read file for preview:', error);
+                setUnavailableReason('failed');
+              }
+              return;
             }
             if (cancelled) return;
             if (isText) {
@@ -144,7 +153,7 @@ const EnhancedFilePreview: React.FC<{
             }
           }
           if (!cancelled) {
-            setPreviewComponent(null);
+            setUnavailableReason('unsupported');
             setLoading(false);
           }
           return;
@@ -166,13 +175,15 @@ const EnhancedFilePreview: React.FC<{
         if (!cancelled) {
           if (component) {
             previewComponentCache.set(fileType, component);
+          } else {
+            setUnavailableReason('failed');
           }
           setPreviewComponent(() => component);
         }
       } catch (err) {
         if (!cancelled) {
           console.error('Failed to load preview component:', err);
-          setIconFallback(true);
+          setUnavailableReason('failed');
         }
       } finally {
         if (!cancelled) {
@@ -187,42 +198,59 @@ const EnhancedFilePreview: React.FC<{
     };
     // file.path and file.name are sufficient to determine preview type
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [file.path, file.name, currentPath]);
+  }, [file.path, file.name, category, currentPath, attempt]);
 
-  const handlePreviewError = (error: Error) => {
-    // Finder never surfaces a "failed to load" panel — unrenderable files
-    // quietly fall back to the large type icon. Keep the console trace.
+  const handlePreviewError = useCallback((error: Error) => {
     console.error('Preview error:', error);
-    setIconFallback(true);
-  };
+    setUnavailableReason('failed');
+  }, []);
 
-  const handlePreviewLoad = () => {
-    setIconFallback(false);
+  const handlePreviewLoad = useCallback(() => setUnavailableReason(null), []);
+
+  const retry = () => {
+    previewComponentCache.delete(category);
+    setLoading(true);
+    setAttempt((value) => value + 1);
   };
 
   if (loading) {
     return <PreviewSkeleton />;
   }
 
-  // Finder-style degradation for unrenderable files: a large type icon and
-  // nothing else — no "failed to load" copy, no retry loop, no stack traces.
-  if (error || iconFallback || !PreviewComponent) {
+  if (unavailableReason) {
     return (
-      <div className="flex h-full items-center justify-center" aria-label={file.name}>
-        <FinderFileIcon
-          file={file}
-          fallback={<span className="text-7xl opacity-90">{getFileIcon(file)}</span>}
-        />
-      </div>
+      <PreviewUnavailable
+        file={file}
+        reason={unavailableReason}
+        onShowDetails={onShowDetails}
+        onRetry={retry}
+      />
     );
   }
 
-  // Extension preview takes priority over built-in previews
-  if (extensionPreviewElement) {
-    return extensionPreviewElement;
+  // An extension can be valid even when no built-in renderer was loaded.
+  if (!extensionPreviewElement && !PreviewComponent) {
+    return <PreviewUnavailable file={file} reason="unsupported" onShowDetails={onShowDetails} />;
   }
 
-  return <PreviewComponent file={file} onError={handlePreviewError} onLoad={handlePreviewLoad} />;
+  return (
+    <ErrorBoundary
+      key={attempt}
+      fallback={
+        <PreviewUnavailable
+          file={file}
+          reason="failed"
+          onShowDetails={onShowDetails}
+          onRetry={retry}
+        />
+      }
+    >
+      {extensionPreviewElement ||
+        (PreviewComponent && (
+          <PreviewComponent file={file} onError={handlePreviewError} onLoad={handlePreviewLoad} />
+        ))}
+    </ErrorBoundary>
+  );
 };
 
 // Finder-style folder preview: large folder icon + item count + size.
@@ -239,12 +267,11 @@ const FolderDetails: React.FC<{
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-      <FinderFileIcon
-        file={file}
-        fallback={<span className="text-7xl opacity-90">{getFileIcon(file)}</span>}
-      />
+      <div className="wisp-preview-file-icon wisp-preview-folder-icon" aria-hidden="true">
+        {getFileIcon(file)}
+      </div>
       <div>
-        <p className="max-w-[240px] truncate text-sm font-medium text-xp-text" title={file.name}>
+        <p className="max-w-[240px] truncate text-sm font-semibold text-xp-text" title={file.name}>
           {file.name}
         </p>
         <p className="mt-0.5 text-xs text-xp-text-secondary">
@@ -275,9 +302,16 @@ const PreviewPanel = ({
   currentPath,
 }: PreviewPanelProps) => {
   const { t: tUi } = useTranslation();
+  const propertiesId = useId();
+  const propertiesToggleRef = useRef<HTMLButtonElement>(null);
   const [showProperties, setShowProperties] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
   const copyFeedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const revealProperties = useCallback(() => {
+    setShowProperties(true);
+    propertiesToggleRef.current?.focus();
+  }, []);
 
   // Clean up copy feedback timer on unmount
   useEffect(() => {
@@ -357,7 +391,7 @@ const PreviewPanel = ({
       >
         <div className="wisp-preview-empty-content">
           <div className="wisp-preview-empty-visual" aria-hidden="true">
-            <FileText className="h-12 w-12" size={68} strokeWidth={1.25} />
+            <FileText size={40} strokeWidth={1.25} />
           </div>
           <h4>{i18n.t('previewPanel.selectFileToPreview')}</h4>
           <p>{i18n.t('previewPanel.emptyDescription')}</p>
@@ -400,9 +434,11 @@ const PreviewPanel = ({
             return (
               <div className="h-full">
                 <EnhancedFilePreview
+                  key={previewFile.path}
                   file={previewFile}
                   category={category}
                   currentPath={currentPath}
+                  onShowDetails={revealProperties}
                 />
               </div>
             );
@@ -414,18 +450,25 @@ const PreviewPanel = ({
       {/* Quick Actions Bar */}
 
       {/* Collapsible File Properties Section */}
-      <div className="border-t border-xp-border bg-xp-surface">
+      <div className="wisp-preview-properties">
         {/* Properties Header - Always visible */}
         <button
+          ref={propertiesToggleRef}
+          type="button"
           onClick={() => setShowProperties(!showProperties)}
-          className="flex w-full items-center justify-between px-3 py-2 text-left transition-colors hover:bg-xp-surface-light"
+          className="wisp-preview-properties-toggle flex w-full items-center justify-between px-3 py-2 text-left transition-colors hover:bg-xp-surface-light"
           aria-expanded={showProperties}
-          aria-label={`${showProperties ? tUi('pages.gdrive.hideSecret') : tUi('pages.gdrive.showSecret')} file properties`}
+          aria-controls={propertiesId}
+          aria-label={
+            showProperties
+              ? tUi('previewPanel.hideProperties', { defaultValue: 'Hide file properties' })
+              : tUi('previewPanel.showProperties', { defaultValue: 'Show file properties' })
+          }
         >
           <div className="flex min-w-0 items-center">
             <div className="mr-2 shrink-0 text-lg">{getFileIcon(selectedFile)}</div>
             <div className="min-w-0">
-              <h3 className="truncate text-sm font-medium" title={selectedFile.name}>
+              <h3 className="truncate text-sm font-semibold" title={selectedFile.name}>
                 {selectedFile.name}
               </h3>
               <p className="text-xs text-xp-text-secondary">
@@ -449,12 +492,12 @@ const PreviewPanel = ({
         </button>
 
         {/* Properties Content - Collapsible */}
-        {showProperties && (
-          <div className="px-3 pb-3">
+        <div id={propertiesId} className="px-3 pb-3" hidden={!showProperties}>
+          {showProperties && (
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between">
                 <span className="text-xp-text-muted">{tUi('interface.typeLabel')}</span>
-                <span className="font-medium text-xp-text">
+                <span className="font-semibold text-xp-text">
                   {selectedFile.is_dir ? tUi('commandPalette.folderType') : tUi('fileType.File')}
                 </span>
               </div>
@@ -462,7 +505,7 @@ const PreviewPanel = ({
               {!selectedFile.is_dir && (
                 <div className="flex justify-between">
                   <span className="text-xp-text-muted">{tUi('interface.sizeLabel')}</span>
-                  <span className="font-medium tabular-nums text-xp-text">
+                  <span className="font-semibold tabular-nums text-xp-text">
                     {formatFileSize(selectedFile.size)}
                   </span>
                 </div>
@@ -470,7 +513,7 @@ const PreviewPanel = ({
 
               <div className="flex justify-between">
                 <span className="text-xp-text-muted">{tUi('interface.modifiedLabel')}</span>
-                <span className="font-medium tabular-nums text-xp-text">
+                <span className="font-semibold tabular-nums text-xp-text">
                   {formatDate(selectedFile.modified)}
                 </span>
               </div>
@@ -486,7 +529,7 @@ const PreviewPanel = ({
 
               <div className="flex justify-between">
                 <span className="text-xp-text-muted">{tUi('interface.categoryLabel')}</span>
-                <span className="font-medium capitalize text-xp-text">{category}</span>
+                <span className="font-semibold capitalize text-xp-text">{category}</span>
               </div>
 
               <div className="space-y-1 pt-0.5">
@@ -494,7 +537,7 @@ const PreviewPanel = ({
                   <span className="text-xp-text-muted">{tUi('interface.pathLabel')}</span>
                   <button
                     onClick={handleCopyPath}
-                    className={`rounded-[2px] border px-2.5 py-0.5 text-[11px] transition-colors ${
+                    className={`rounded-md border px-2.5 py-0.5 text-[11px] transition-colors ${
                       copyFeedback
                         ? 'border-xp-green/40 bg-xp-green/10 text-xp-green'
                         : 'border-xp-border/60 bg-xp-surface-light/60 text-xp-text-secondary hover:text-xp-text'
@@ -509,13 +552,13 @@ const PreviewPanel = ({
                     {copyFeedback ? i18n.t('previewPanel.copied') : i18n.t('common.copy')}
                   </button>
                 </div>
-                <div className="border-xp-border/40 bg-xp-bg/60 break-all rounded-[2px] border p-2 font-mono text-[11px] leading-relaxed text-xp-text-secondary">
+                <div className="border-xp-border/40 bg-xp-bg/60 break-all rounded-md border p-2 font-mono text-[11px] leading-relaxed text-xp-text-secondary">
                   {selectedFile.path}
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

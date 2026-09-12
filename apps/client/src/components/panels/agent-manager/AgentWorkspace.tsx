@@ -405,7 +405,7 @@ const AgentWorkspace = ({
           flexShrink: 0,
         }}
       >
-        <Bot size={18} style={{ color: 'var(--xp-blue)', flexShrink: 0 }} />
+        <Bot size={18} style={{ color: 'var(--ds-link)', flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           {selectedSession ? (
             <>

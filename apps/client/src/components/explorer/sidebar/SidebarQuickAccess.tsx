@@ -70,7 +70,7 @@ const SidebarQuickAccess = ({
       data-drop-target=""
       data-drop-action="bookmark-add"
     >
-      <div className="mb-1.5 px-2 text-[10px] font-medium uppercase tracking-widest text-xp-text-muted">
+      <div className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted">
         {t('sidebar.quickAccess')}
       </div>
       <div className="space-y-0.5">
@@ -121,7 +121,7 @@ const SidebarQuickAccess = ({
               <button
                 key={labelKey}
                 onClick={() => navigateToPath(path)}
-                className={`wisp-sidebar-item flex w-full items-center rounded-[2px] px-2.5 py-[7px] text-[13px] transition-colors ${
+                className={`wisp-sidebar-item flex w-full items-center rounded-md px-2.5 py-[7px] text-[13px] transition-colors ${
                   isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
                 }`}
                 aria-label={t('sidebar.navigateTo', { label })}
@@ -144,7 +144,7 @@ const SidebarQuickAccess = ({
               <button
                 key="icloud"
                 onClick={() => navigateToPath(iCloudPath)}
-                className={`wisp-sidebar-item flex w-full items-center rounded-[2px] px-2.5 py-[7px] text-[13px] transition-colors ${
+                className={`wisp-sidebar-item flex w-full items-center rounded-md px-2.5 py-[7px] text-[13px] transition-colors ${
                   isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
                 }`}
                 aria-label={t('sidebar.navigateTo', { label })}

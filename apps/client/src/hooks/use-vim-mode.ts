@@ -377,6 +377,16 @@ export const useVimMode = (options: UseVimModeOptions): VimModeState => {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!enabledRef.current) return;
+      // The workspace remains mounted underneath settings and other modals.
+      if (
+        document.querySelector(
+          '[role="dialog"][aria-modal="true"], [role="alertdialog"][aria-modal="true"]',
+        ) ||
+        (e.target instanceof Element && e.target.closest('[role="dialog"], [role="alertdialog"]'))
+      ) {
+        clearPending();
+        return;
+      }
 
       // Never intercept when focus is in an input, textarea, or contenteditable
       const target = e.target as HTMLElement;

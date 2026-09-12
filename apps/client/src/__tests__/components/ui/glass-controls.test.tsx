@@ -1,12 +1,47 @@
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { SettingRow, Toggle, SelectField } from '@/components/settings/shared';
 
 describe('shared glass control interactions', () => {
+  it('cycles focus through summaries while excluding controls inside closed disclosures', async () => {
+    const user = userEvent.setup();
+    render(
+      <Dialog open>
+        <DialogTitle>Preferences</DialogTitle>
+        <button>First action</button>
+        <details>
+          <summary>Advanced</summary>
+          <button data-autofocus>Hidden reset</button>
+          <details open>
+            <summary>Nested actions</summary>
+            <button>Hidden nested action</button>
+          </details>
+        </details>
+      </Dialog>,
+    );
+    const first = screen.getByRole('button', { name: 'First action' });
+    const summary = screen.getByText('Advanced');
+    await waitFor(() => expect(first).toHaveFocus());
+    await user.tab({ shift: true });
+    expect(summary).toHaveFocus();
+    await user.tab();
+    expect(first).toHaveFocus();
+
+    fireEvent.click(summary);
+    const nestedAction = screen.getByRole('button', { name: 'Hidden nested action' });
+    first.focus();
+    await user.tab({ shift: true });
+    expect(nestedAction).toHaveFocus();
+    await user.tab();
+    expect(first).toHaveFocus();
+  });
+
   it('switches wrapped tab panels with arrow keys, skips disabled tabs and links the panel', async () => {
     const user = userEvent.setup();
     render(
@@ -85,5 +120,70 @@ describe('shared glass control interactions', () => {
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Open' })).toHaveFocus();
+  });
+
+  it('names settings controls from their row and changes a switch with the keyboard', async () => {
+    const user = userEvent.setup();
+    const Example = () => {
+      const [enabled, setEnabled] = useState(false);
+      return (
+        <>
+          <SettingRow
+            label="Show hidden files"
+            description="Include files whose names begin with a dot."
+          >
+            <Toggle id="hidden-files" checked={enabled} onChange={setEnabled} />
+          </SettingRow>
+          <SettingRow label="Default view">
+            <SelectField
+              value="details"
+              onChange={vi.fn()}
+              options={[{ value: 'details', label: 'Details' }]}
+            />
+          </SettingRow>
+        </>
+      );
+    };
+    render(<Example />);
+    const toggle = screen.getByRole('switch', { name: 'Show hidden files' });
+    expect(toggle).toHaveAccessibleDescription('Include files whose names begin with a dot.');
+    expect(screen.getByRole('combobox', { name: 'Default view' })).toHaveTextContent('Details');
+    await user.tab();
+    expect(toggle).toHaveFocus();
+    await user.keyboard(' ');
+    expect(toggle).toBeChecked();
+  });
+
+  it('preserves explicit switch labels and prevents disabled switches from changing', async () => {
+    const user = userEvent.setup();
+    const change = vi.fn();
+    render(
+      <SettingRow label="File visibility">
+        <Toggle
+          id="disabled-files"
+          label="Show hidden files"
+          checked={false}
+          onChange={change}
+          disabled
+        />
+      </SettingRow>,
+    );
+    const toggle = screen.getByRole('switch', { name: 'Show hidden files' });
+    expect(toggle).toBeDisabled();
+    await user.click(toggle);
+    expect(change).not.toHaveBeenCalled();
+  });
+
+  it('exposes a mixed checkbox and moves to the checked state from the keyboard', async () => {
+    const user = userEvent.setup();
+    render(<Checkbox aria-label="Select all files" defaultChecked="indeterminate" />);
+    const checkbox = screen.getByRole('checkbox', { name: 'Select all files' });
+    expect(checkbox).toBePartiallyChecked();
+    await user.tab();
+    expect(checkbox).toHaveFocus();
+    await user.keyboard(' ');
+    expect(checkbox).toBeChecked();
+    await user.keyboard(' ');
+    expect(checkbox).not.toBeChecked();
   });
 });

@@ -1,7 +1,7 @@
 import { PreviewProps } from '@/lib/preview-factory';
 import CodeMirrorPreview from './CodeMirrorPreview';
 
-/** Code files: CodeMirror 6 preview + edit, AI actions attached. */
-const CodePreview = (props: PreviewProps) => <CodeMirrorPreview {...props} showAiActions />;
+/** Code files: CodeMirror 6 preview and editing. */
+const CodePreview = (props: PreviewProps) => <CodeMirrorPreview {...props} />;
 
 export default CodePreview;

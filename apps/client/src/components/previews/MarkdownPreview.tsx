@@ -1,36 +1,124 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { PreviewProps } from '@/lib/preview-factory';
 import { WispCodeMirror } from '@/lib/codemirror';
 import type { EditorView } from '@codemirror/view';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
 import { useTextFileEditor } from '@/hooks/use-text-file-editor';
-import { highlightCode } from '@/lib/shiki';
+import { getCodeLanguageLabel, highlightCode } from '@/lib/shiki';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Check, Copy } from 'lucide-react';
+import '@/styles/code-preview.css';
 
 /** Async Shiki block; output is generated HTML (code is escaped by Shiki). */
 const ShikiBlock = ({ code, lang }: { code: string; lang: string }) => {
-  const [html, setHtml] = useState('');
+  const { t } = useTranslation();
+  const labelId = useId();
+  const [highlighted, setHighlighted] = useState<{
+    code: string;
+    lang: string;
+    html: string;
+  } | null>(null);
+  const [copyState, setCopyState] = useState<{
+    code: string;
+    status: 'copying' | 'copied' | 'error';
+  } | null>(null);
+  const copyAttemptRef = useRef(0);
   useEffect(() => {
     let cancelled = false;
     void highlightCode(code, lang).then((result) => {
-      if (!cancelled) setHtml(result ?? '');
+      if (!cancelled) setHighlighted({ code, lang, html: result ?? '' });
     });
     return () => {
       cancelled = true;
     };
   }, [code, lang]);
-  if (!html) {
+  useEffect(
+    () => () => {
+      copyAttemptRef.current += 1;
+    },
+    [code],
+  );
+
+  const html = highlighted?.code === code && highlighted.lang === lang ? highlighted.html : '';
+  const status = copyState?.code === code ? copyState.status : null;
+  const languageLabel =
+    getCodeLanguageLabel(lang) ??
+    (/^(text|txt|plaintext|plain)?$/i.test(lang)
+      ? t('preview.plainText', { defaultValue: 'Plain text' })
+      : lang);
+  const copyCode = async () => {
+    const attempt = ++copyAttemptRef.current;
+    setCopyState({ code, status: 'copying' });
+    try {
+      await navigator.clipboard.writeText(code);
+      if (attempt === copyAttemptRef.current) setCopyState({ code, status: 'copied' });
+    } catch {
+      if (attempt === copyAttemptRef.current) setCopyState({ code, status: 'error' });
+    }
+  };
+
+  return (
+    <div className="md-code-block">
+      <div className="md-code-toolbar">
+        <span id={labelId} className="md-code-language">
+          {languageLabel}
+        </span>
+        <span className="md-code-copy-status" role="status" data-status={status}>
+          {status === 'copied' && t('preview.codeCopied', { defaultValue: 'Code copied' })}
+          {status === 'error' &&
+            t('preview.copyCodeFailed', { defaultValue: 'Could not copy code' })}
+        </span>
+        <button
+          type="button"
+          className="md-code-copy"
+          onClick={() => void copyCode()}
+          disabled={status === 'copying'}
+          aria-label={t('preview.copyCode', { defaultValue: 'Copy code' })}
+        >
+          {status === 'copied' ? (
+            <Check size={14} aria-hidden="true" />
+          ) : (
+            <Copy size={14} aria-hidden="true" />
+          )}
+          <span>{t('preview.copyCode', { defaultValue: 'Copy code' })}</span>
+        </button>
+      </div>
+      <div className="md-code-body" tabIndex={0} role="region" aria-labelledby={labelId}>
+        {html ? (
+          <div className="code-highlight md-code" dangerouslySetInnerHTML={{ __html: html }} />
+        ) : (
+          <pre className="md-code-fallback">
+            <code>{code}</code>
+          </pre>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Read fences from their <pre> parent so single-line, empty, indented and
+// punctuation-bearing language ids (c++, c#) remain distinct from inline code.
+const markdownComponents: Components = {
+  pre: ({ children }) => {
+    const child = React.Children.toArray(children)[0];
+    if (!React.isValidElement<{ className?: string; children?: React.ReactNode }>(child)) {
+      return <pre>{children}</pre>;
+    }
+    const language = /(?:^|\s)language-([^\s]+)/.exec(child.props.className ?? '')?.[1] ?? 'text';
     return (
-      <pre className="md-code-fallback">
-        <code>{code}</code>
-      </pre>
+      <ShikiBlock code={String(child.props.children ?? '').replace(/\n$/, '')} lang={language} />
     );
-  }
-  return <div className="code-highlight md-code" dangerouslySetInnerHTML={{ __html: html }} />;
+  },
+  code: ({ children }) => <code className="md-inline-code">{children}</code>,
+  a: ({ href, children }) => (
+    <a href={href} target="_blank" rel="noreferrer noopener">
+      {children}
+    </a>
+  ),
 };
 
 /**
@@ -82,7 +170,7 @@ const MarkdownPreview = ({ file, onError, onLoad }: PreviewProps) => {
       {loading && <PreviewSkeleton />}
 
       {!loading && error && (
-        <div className="flex flex-1 items-center justify-center rounded-[2px] border border-xp-border bg-xp-surface">
+        <div className="flex flex-1 items-center justify-center rounded-md border border-xp-border bg-xp-surface">
           <div className="text-center text-xp-text-muted">
             <p className="text-sm">{t('preview.cannotPreview')}</p>
             <p className="mt-1 text-xs opacity-70">{error}</p>
@@ -93,27 +181,9 @@ const MarkdownPreview = ({ file, onError, onLoad }: PreviewProps) => {
       {!loading && !error && (
         <TabsContent
           value="rendered"
-          className="md-preview !mt-0 min-h-0 flex-1 overflow-auto rounded-[2px] border border-xp-border bg-xp-surface p-3"
+          className="md-preview !mt-0 min-h-0 flex-1 overflow-auto rounded-md border border-xp-border bg-xp-surface p-3"
         >
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              pre: ({ children }) => <>{children}</>,
-              code: ({ className, children }) => {
-                const text = String(children);
-                const match = /language-([\w-]+)/.exec(className || '');
-                if (match || text.includes('\n')) {
-                  return <ShikiBlock code={text.replace(/\n$/, '')} lang={match?.[1] ?? 'text'} />;
-                }
-                return <code className="md-inline-code">{children}</code>;
-              },
-              a: ({ href, children }) => (
-                <a href={href} target="_blank" rel="noreferrer noopener">
-                  {children}
-                </a>
-              ),
-            }}
-          >
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
             {draftPreview ?? content}
           </ReactMarkdown>
         </TabsContent>
@@ -123,7 +193,7 @@ const MarkdownPreview = ({ file, onError, onLoad }: PreviewProps) => {
         <TabsContent
           value="edit"
           forceMount
-          className="!mt-0 min-h-0 flex-1 overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface"
+          className="!mt-0 min-h-0 flex-1 overflow-hidden rounded-md border border-xp-border bg-xp-surface"
         >
           {editorMounted && (
             <WispCodeMirror

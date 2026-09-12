@@ -217,7 +217,7 @@ const ChatMessageBubble = ({
                 padding: '2px 6px',
                 borderRadius: '4px',
                 background: 'rgb(var(--xp-blue-rgb) / 0.15)',
-                color: 'var(--xp-blue)',
+                color: 'var(--ds-link)',
                 fontSize: '10px',
               }}
             >

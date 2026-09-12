@@ -93,7 +93,7 @@ describe('ImagePreview', () => {
         'bg-xp-surface',
         'border',
         'border-xp-border',
-        'rounded',
+        'rounded-md',
         'overflow-hidden',
       );
     });
@@ -147,7 +147,7 @@ describe('ImagePreview', () => {
         'bg-xp-surface',
         'border',
         'border-xp-border',
-        'rounded',
+        'rounded-md',
       );
     });
   });

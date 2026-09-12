@@ -53,13 +53,13 @@ const MetadataRow = ({
     <div className="grid grid-cols-[80px_1fr_20px_1fr] items-center gap-1 text-xs">
       <span className="text-xp-text-muted">{label}</span>
       <span
-        className={`truncate ${highlight === 'source' ? 'font-medium text-xp-green' : 'text-xp-text'}`}
+        className={`truncate ${highlight === 'source' ? 'font-semibold text-xp-green' : 'text-xp-text'}`}
       >
         {sourceVal}
       </span>
       <ArrowRight className="mx-auto h-3 w-3 text-xp-text-muted" />
       <span
-        className={`truncate ${highlight === 'dest' ? 'font-medium text-xp-green' : 'text-xp-text'}`}
+        className={`truncate ${highlight === 'dest' ? 'font-semibold text-xp-green' : 'text-xp-text'}`}
       >
         {destVal}
       </span>
@@ -111,7 +111,7 @@ export const FileConflictDialog = ({
         aria-labelledby="conflict-title"
         aria-modal="true"
         tabIndex={-1}
-        className="w-[480px] max-w-[90vw] rounded-[2px] border border-xp-border bg-xp-surface p-6 outline-none"
+        className="w-[480px] max-w-[90vw] rounded-md border border-xp-border bg-xp-surface p-6 outline-none"
         onKeyDown={(e) => {
           if (e.key === 'Escape') onResolve('skip', false);
         }}
@@ -130,19 +130,19 @@ export const FileConflictDialog = ({
         </div>
 
         {/* File name */}
-        <div className="mb-3 flex items-center gap-2 rounded-[2px] border border-xp-border bg-xp-surface-light px-3 py-2.5">
+        <div className="mb-3 flex items-center gap-2 rounded-md border border-xp-border bg-xp-surface-light px-3 py-2.5">
           {isDir ? (
             <FolderClosed className="h-5 w-5 flex-shrink-0 text-xp-blue" />
           ) : (
             <FileIcon className="h-5 w-5 flex-shrink-0 text-xp-text-muted" />
           )}
-          <span className="truncate text-sm font-medium text-xp-text">{fileName}</span>
+          <span className="truncate text-sm font-semibold text-xp-text">{fileName}</span>
         </div>
 
         {/* Metadata comparison */}
         {hasMetadata && (
-          <div className="mb-4 space-y-1.5 rounded-[2px] border border-xp-border bg-xp-surface-light px-3 py-2.5">
-            <div className="mb-1 grid grid-cols-[80px_1fr_20px_1fr] items-center gap-1 text-xs font-medium text-xp-text-muted">
+          <div className="mb-4 space-y-1.5 rounded-md border border-xp-border bg-xp-surface-light px-3 py-2.5">
+            <div className="mb-1 grid grid-cols-[80px_1fr_20px_1fr] items-center gap-1 text-xs font-semibold text-xp-text-muted">
               <span />
               <span>{tUi('interface.source')}</span>
               <span />
@@ -167,12 +167,12 @@ export const FileConflictDialog = ({
         <div className="flex flex-col gap-2">
           <button
             onClick={() => onResolve('replace', false)}
-            className="flex w-full items-center gap-3 rounded-[2px] border border-xp-border bg-xp-surface-light px-4 py-2.5 text-left text-sm transition-colors hover:border-xp-red/40 hover:bg-xp-red/15"
+            className="flex w-full items-center gap-3 rounded-md border border-xp-border bg-xp-surface-light px-4 py-2.5 text-left text-sm transition-colors hover:border-xp-red/40 hover:bg-xp-red/15"
             aria-label={tUi('interface.replaceExistingFile')}
           >
             <Replace className="h-4 w-4 flex-shrink-0 text-xp-red" />
             <div>
-              <div className="font-medium text-xp-text">
+              <div className="font-semibold text-xp-text">
                 {tUi('dialogs.batchMetadata.noteModeReplace')}
               </div>
               <div className="text-xs text-xp-text-muted">
@@ -183,12 +183,12 @@ export const FileConflictDialog = ({
 
           <button
             onClick={() => onResolve('keep-both', false)}
-            className="flex w-full items-center gap-3 rounded-[2px] border border-xp-border bg-xp-surface-light px-4 py-2.5 text-left text-sm transition-colors hover:border-xp-blue/40 hover:bg-xp-blue/15"
+            className="flex w-full items-center gap-3 rounded-md border border-xp-border bg-xp-surface-light px-4 py-2.5 text-left text-sm transition-colors hover:border-xp-blue/40 hover:bg-xp-blue/15"
             aria-label={tUi('interface.keepBothFiles')}
           >
             <Copy className="h-4 w-4 flex-shrink-0 text-xp-blue" />
             <div>
-              <div className="font-medium text-xp-text">{tUi('interface.keepBoth')}</div>
+              <div className="font-semibold text-xp-text">{tUi('interface.keepBoth')}</div>
               <div className="text-xs text-xp-text-muted">
                 {tUi('messages.keepRenamedCopy', { name: getKeepBothName(fileName) })}
               </div>
@@ -197,12 +197,12 @@ export const FileConflictDialog = ({
 
           <button
             onClick={() => onResolve('skip', false)}
-            className="flex w-full items-center gap-3 rounded-[2px] border border-xp-border bg-xp-surface-light px-4 py-2.5 text-left text-sm transition-colors hover:bg-xp-surface"
+            className="flex w-full items-center gap-3 rounded-md border border-xp-border bg-xp-surface-light px-4 py-2.5 text-left text-sm transition-colors hover:bg-xp-surface"
             aria-label={tUi('interface.skipThisFile')}
           >
             <X className="h-4 w-4 flex-shrink-0 text-xp-text-muted" />
             <div>
-              <div className="font-medium text-xp-text">{tUi('aiChat.feedback.skip')}</div>
+              <div className="font-semibold text-xp-text">{tUi('aiChat.feedback.skip')}</div>
               <div className="text-xs text-xp-text-muted">
                 {tUi(isDir ? 'messages.skipFolder' : 'messages.skipFile')}
               </div>
@@ -219,19 +219,19 @@ export const FileConflictDialog = ({
             <div className="flex gap-2">
               <button
                 onClick={() => onResolve('replace', true)}
-                className="flex-1 rounded-[2px] border border-xp-border px-3 py-1.5 text-xs text-xp-text transition-colors hover:border-xp-red/40 hover:bg-xp-red/15"
+                className="flex-1 rounded-md border border-xp-border px-3 py-1.5 text-xs text-xp-text transition-colors hover:border-xp-red/40 hover:bg-xp-red/15"
               >
                 {tUi('interface.replaceAll')}
               </button>
               <button
                 onClick={() => onResolve('keep-both', true)}
-                className="flex-1 rounded-[2px] border border-xp-border px-3 py-1.5 text-xs text-xp-text transition-colors hover:border-xp-blue/40 hover:bg-xp-blue/15"
+                className="flex-1 rounded-md border border-xp-border px-3 py-1.5 text-xs text-xp-text transition-colors hover:border-xp-blue/40 hover:bg-xp-blue/15"
               >
                 {tUi('dialogs.batchConfirm.confirmRename')}
               </button>
               <button
                 onClick={() => onResolve('skip', true)}
-                className="flex-1 rounded-[2px] border border-xp-border px-3 py-1.5 text-xs text-xp-text transition-colors hover:bg-xp-surface"
+                className="flex-1 rounded-md border border-xp-border px-3 py-1.5 text-xs text-xp-text transition-colors hover:bg-xp-surface"
               >
                 {tUi('interface.skipAll')}
               </button>

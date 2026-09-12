@@ -83,7 +83,7 @@ const EpubPreview = ({ file, onError, onLoad }: PreviewProps) => {
           onClick={() => setIndex((i) => Math.max(0, i - 1))}
           disabled={index === 0}
           aria-label={tUi('previewPanel.epubPrevChapter')}
-          className="rounded-[2px] p-1 hover:bg-xp-surface-light disabled:opacity-40"
+          className="rounded-md p-1 hover:bg-xp-surface-light disabled:opacity-40"
         >
           <ChevronLeft size={14} aria-hidden />
         </button>
@@ -91,7 +91,7 @@ const EpubPreview = ({ file, onError, onLoad }: PreviewProps) => {
           value={index}
           onChange={(e) => setIndex(Number(e.target.value))}
           aria-label={tUi('previewPanel.epubChapterList')}
-          className="min-w-0 flex-1 truncate rounded-[2px] border border-xp-border bg-xp-bg px-1.5 py-1 text-xs text-xp-text"
+          className="min-w-0 flex-1 truncate rounded-md border border-xp-border bg-xp-bg px-1.5 py-1 text-xs text-xp-text"
         >
           {chapters.map((c, i) => (
             <option key={`${c.href}-${i}`} value={i}>
@@ -106,12 +106,12 @@ const EpubPreview = ({ file, onError, onLoad }: PreviewProps) => {
           onClick={() => setIndex((i) => Math.min(chapters.length - 1, i + 1))}
           disabled={index === chapters.length - 1}
           aria-label={tUi('previewPanel.epubNextChapter')}
-          className="rounded-[2px] p-1 hover:bg-xp-surface-light disabled:opacity-40"
+          className="rounded-md p-1 hover:bg-xp-surface-light disabled:opacity-40"
         >
           <ChevronRight size={14} aria-hidden />
         </button>
       </div>
-      <div className="min-h-0 flex-1 overflow-hidden rounded-[2px] border border-xp-border bg-white">
+      <div className="min-h-0 flex-1 overflow-hidden rounded-md border border-xp-border bg-white">
         <iframe
           key={chapter.href}
           title={`${file.name} — ${chapterLabel(chapter, index)}`}

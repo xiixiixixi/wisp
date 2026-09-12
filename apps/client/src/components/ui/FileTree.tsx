@@ -164,8 +164,8 @@ const TreeNodeRow = React.memo(
 
     const defaultIcon = (() => {
       if (!node.isDir) return <FileIcon size={16} style={{ color: 'var(--xp-text-secondary)' }} />;
-      if (isExpanded) return <FolderOpen size={16} style={{ color: 'var(--xp-blue)' }} />;
-      return <FolderClosed size={16} style={{ color: 'var(--xp-blue)' }} />;
+      if (isExpanded) return <FolderOpen size={16} style={{ color: 'var(--ds-link)' }} />;
+      return <FolderClosed size={16} style={{ color: 'var(--ds-link)' }} />;
     })();
 
     return (

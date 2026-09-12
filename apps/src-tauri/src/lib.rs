@@ -4,6 +4,7 @@ pub mod utils;
 pub mod agent;
 pub mod agent_sessions;
 pub mod ai;
+pub mod airdrop;
 pub mod app_menu;
 pub mod backup;
 pub mod document_extractor;
@@ -17,6 +18,8 @@ pub mod google_drive;
 pub mod mcp_host;
 pub mod mcp_server;
 pub mod mouse_navigation;
+#[cfg(target_os = "macos")]
+pub mod native_material;
 pub mod operations;
 pub mod ollama_client;
 pub mod project_memory;

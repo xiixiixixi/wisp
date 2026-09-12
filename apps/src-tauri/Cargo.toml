@@ -1,6 +1,6 @@
 [package]
 name = "wisp"
-version = "0.99.29"
+version = "0.99.30"
 description = "A modern file explorer built with Tauri"
 authors = ["Justin Maximillian Kimlim"]
 license = "AGPL-3.0"
@@ -12,7 +12,7 @@ default-run = "wisp"
 tauri-build = { version = "2.5.5", features = [] }
 
 [dependencies]
-tauri = { version = "2.10.2", features = ["protocol-asset", "unstable"] }
+tauri = { version = "2.10.2", features = ["protocol-asset", "unstable", "macos-private-api"] }
 tauri-plugin-fs = "2.4.5"
 tauri-plugin-global-shortcut = "2.3.0"
 tauri-plugin-dialog = "2.4.2"
@@ -86,8 +86,8 @@ winreg = "0.55"
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = { version = "0.6.3", default-features = false }
 block2 = "0.6"
-objc2-app-kit = { version = "0.3.2", default-features = false, features = ["NSImage", "NSImageRep", "NSBitmapImageRep", "NSWorkspace", "NSPasteboard", "NSPasteboardItem", "NSEvent", "block2"] }
-objc2-foundation = { version = "0.3.2", default-features = false, features = ["NSData", "NSDictionary", "NSString", "NSArray", "NSURL"] }
+objc2-app-kit = { version = "0.3.2", default-features = false, features = ["NSImage", "NSImageRep", "NSBitmapImageRep", "NSWorkspace", "NSPasteboard", "NSPasteboardItem", "NSEvent", "NSGlassEffectView", "NSVisualEffectView", "NSView", "NSWindow", "NSColor", "NSAccessibility", "NSResponder", "NSSharingService", "block2"] }
+objc2-foundation = { version = "0.3.2", default-features = false, features = ["NSData", "NSDictionary", "NSString", "NSArray", "NSURL", "NSNotification", "NSOperation", "block2"] }
 xattr = "1.6"
 plist = "1"
 

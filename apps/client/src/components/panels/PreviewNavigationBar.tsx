@@ -204,7 +204,7 @@ const compareToggleActiveStyle: React.CSSProperties = {
   ...compareToggleStyle,
   background: 'rgb(var(--xp-blue-rgb) / 0.15)',
   borderColor: 'var(--xp-blue)',
-  color: 'var(--xp-blue)',
+  color: 'var(--ds-link)',
 };
 
 // ─── Component ───────────────────────────────────────────────────────────────

@@ -2,17 +2,30 @@ import { TauriAPI, type SearchResult } from './tauri-api';
 import { getDemoSearchFiles, isBrowserDemoMode } from './browser-demo-files';
 
 export const GLOBAL_SEARCH_LIMIT = 50;
+// The native find_files command also returns at most 1,000 candidates per root.
+export const GLOBAL_SEARCH_CANDIDATE_LIMIT = 1_000;
+const CLASSIFICATION_CONCURRENCY = 8;
+export type GlobalSearchKind = 'all' | 'files' | 'folders';
 export type GlobalFileResult = SearchResult & { isDir: boolean };
 export interface GlobalSearchUpdate {
   results: GlobalFileResult[];
   partial: boolean;
   limited: boolean;
 }
+export interface GlobalSearchOptions {
+  kind?: GlobalSearchKind;
+  signal?: AbortSignal;
+}
 
-// Volume roots, never the active pane. On macOS '/' delegates to Spotlight
-// across indexed volumes. Nested mount points need not be searched twice.
-const searchSystem = async (query: string): Promise<GlobalSearchUpdate> => {
+export const matchesSearchKind = (isDir: boolean, kind: GlobalSearchKind): boolean =>
+  kind === 'all' || (kind === 'folders' ? isDir : !isDir);
+
+const searchSystem = async (
+  query: string,
+  { kind = 'all', signal }: GlobalSearchOptions,
+): Promise<GlobalSearchUpdate> => {
   const drives = await TauriAPI.listDrives();
+  if (signal?.aborted) return { results: [], partial: false, limited: false };
   const roots = [...new Set(drives.map((drive) => drive.path))].filter(
     (path, _, paths) =>
       !paths.some(
@@ -23,46 +36,72 @@ const searchSystem = async (query: string): Promise<GlobalSearchUpdate> => {
   );
   if (!roots.length) throw new Error('No searchable volumes');
   const searches = await Promise.allSettled(roots.map((root) => TauriAPI.findFiles(query, root)));
-  const paths = [
-    ...new Set(searches.flatMap((result) => (result.status === 'fulfilled' ? result.value : []))),
-  ];
   if (searches.every((result) => result.status === 'rejected')) {
     throw new Error('System search unavailable');
   }
-  const classified = await Promise.all(
-    paths.slice(0, GLOBAL_SEARCH_LIMIT).map(async (path) => {
-      try {
-        return {
-          path,
-          filename: path.split(/[/\\]/).pop() || path,
-          matches: [],
-          score: 1,
-          relevance_type: 'filesystem',
-          isDir: await TauriAPI.isDir(path),
-        };
-      } catch {
-        return null; // A stale or inaccessible path is not a usable result.
-      }
-    }),
+  const sources = searches.flatMap((result) =>
+    result.status === 'fulfilled' ? [result.value] : [],
   );
+  // Interleave volumes so a large first volume cannot consume the whole budget.
+  const paths = new Set<string>();
+  const longestSource = Math.max(0, ...sources.map((source) => source.length));
+  for (
+    let index = 0;
+    index < longestSource && paths.size < GLOBAL_SEARCH_CANDIDATE_LIMIT;
+    index++
+  ) {
+    for (const source of sources) {
+      if (source[index]) paths.add(source[index]);
+      if (paths.size >= GLOBAL_SEARCH_CANDIDATE_LIMIT) break;
+    }
+  }
+  const candidates = [...paths];
+  const results: GlobalFileResult[] = [];
+  let scanned = 0;
+  while (scanned < candidates.length && results.length < GLOBAL_SEARCH_LIMIT && !signal?.aborted) {
+    const batchSize = Math.min(CLASSIFICATION_CONCURRENCY, GLOBAL_SEARCH_LIMIT - results.length);
+    const batch = candidates.slice(scanned, scanned + batchSize);
+    const classified = await Promise.all(
+      batch.map(async (path): Promise<GlobalFileResult | null> => {
+        try {
+          const isDir = await TauriAPI.isDir(path);
+          if (!matchesSearchKind(isDir, kind)) return null;
+          return {
+            path,
+            filename: path.split(/[/\\]/).pop() || path,
+            matches: [],
+            score: 1,
+            relevance_type: 'filesystem',
+            isDir,
+          };
+        } catch {
+          return null; // Stale and inaccessible paths are not actionable results.
+        }
+      }),
+    );
+    results.push(...classified.filter((result): result is GlobalFileResult => result !== null));
+    scanned += batch.length;
+  }
   return {
-    results: classified.filter((result): result is NonNullable<typeof result> => result !== null),
+    results,
     partial: searches.some((result) => result.status === 'rejected'),
-    limited: paths.length >= GLOBAL_SEARCH_LIMIT,
+    limited:
+      scanned < candidates.length ||
+      candidates.length >= GLOBAL_SEARCH_CANDIDATE_LIMIT ||
+      sources.some((source) => source.length >= GLOBAL_SEARCH_CANDIDATE_LIMIT),
   };
 };
 
-/**
- * File search is delegated entirely to the operating system: Wisp keeps no
- * index of its own, so every query goes to the platform provider (Spotlight on
- * macOS) and reflects the filesystem as it is right now.
- */
+/** Search names through the OS provider, filtering type before the display limit. */
 export const searchGlobalFiles = async (
   query: string,
   onUpdate: (update: GlobalSearchUpdate) => void,
+  options: GlobalSearchOptions = {},
 ): Promise<void> => {
+  const { kind = 'all', signal } = options;
+  if (signal?.aborted) return;
   if (isBrowserDemoMode()) {
-    const files = getDemoSearchFiles(query);
+    const files = getDemoSearchFiles(query).filter((file) => matchesSearchKind(file.is_dir, kind));
     onUpdate({
       results: files.slice(0, GLOBAL_SEARCH_LIMIT).map((file) => ({
         path: file.path,
@@ -73,10 +112,10 @@ export const searchGlobalFiles = async (
         relevance_type: 'demo',
       })),
       partial: false,
-      limited: files.length >= GLOBAL_SEARCH_LIMIT,
+      limited: files.length > GLOBAL_SEARCH_LIMIT,
     });
     return;
   }
-  const update = await searchSystem(query);
-  onUpdate(update);
+  const update = await searchSystem(query, options);
+  if (!signal?.aborted) onUpdate(update);
 };

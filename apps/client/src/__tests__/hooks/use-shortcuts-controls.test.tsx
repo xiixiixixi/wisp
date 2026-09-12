@@ -1,6 +1,7 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useShortcuts, reloadShortcuts } from '@/hooks/use-shortcuts';
+import { listenToEvent } from '@/lib/transport';
 
 vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {
@@ -31,6 +32,46 @@ describe('Global shortcuts and native controls', () => {
     cleanup();
     window.getSelection()?.removeAllRanges();
   });
+
+  it.each(['dialog', 'alertdialog'])(
+    'suspends native file actions until the %s closes',
+    async (role) => {
+      const onCopy = vi.fn();
+      const onRename = vi.fn();
+      function Fixture({ open }: { open: boolean }) {
+        useShortcuts({ onCopy, onRename });
+        return open ? (
+          <div role={role} aria-modal="true">
+            <button role="tab">General</button>
+          </div>
+        ) : null;
+      }
+      const { rerender } = render(<Fixture open />);
+      await act(async () => {
+        reloadShortcuts();
+      });
+      const registration = vi
+        .mocked(listenToEvent)
+        .mock.calls.filter(([name]) => name === 'global_shortcut_triggered')
+        .at(-1);
+      expect(registration).toBeDefined();
+      const dispatchNative = registration![1];
+      screen.getByRole('tab', { name: 'General' }).focus();
+      act(() => {
+        dispatchNative('Copy');
+        dispatchNative('Rename');
+      });
+      expect(onCopy).not.toHaveBeenCalled();
+      expect(onRename).not.toHaveBeenCalled();
+      rerender(<Fixture open={false} />);
+      act(() => {
+        dispatchNative('Copy');
+        dispatchNative('Rename');
+      });
+      expect(onCopy).toHaveBeenCalledOnce();
+      expect(onRename).toHaveBeenCalledOnce();
+    },
+  );
 
   it('leaves all text edits to the focused field, not the selected files', async () => {
     const fileAction = vi.fn();

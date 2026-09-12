@@ -1,8 +1,9 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import BottomPanel from '@/components/panels/BottomPanel';
+import { extensionHost } from '@/lib/extension-host';
 
 const { mockIsBrowserDemoMode, mockUseActivityFeed } = vi.hoisted(() => ({
   mockIsBrowserDemoMode: vi.fn(() => false),
@@ -29,6 +30,9 @@ vi.mock('@/components/panels/ClipboardHistoryPanel', () => ({
   default: ({ onPaste: _onPaste }: { onPaste?: () => void }) => (
     <div data-testid="clipboard-panel">Clipboard</div>
   ),
+}));
+vi.mock('@/components/panels/PropertiesPanel', () => ({
+  default: () => <div data-testid="properties-panel">Properties</div>,
 }));
 vi.mock('@/hooks/use-notification-history', () => ({
   useNotificationHistory: () => ({
@@ -80,6 +84,8 @@ describe('BottomPanel', () => {
     vi.clearAllMocks();
     mockIsBrowserDemoMode.mockReturnValue(false);
     mockUseActivityFeed.mockReturnValue({ entries: [], clearFeed: vi.fn() });
+    vi.mocked(extensionHost.getBottomTabs).mockReturnValue([]);
+    vi.mocked(extensionHost.getBottomTabRenderer).mockReturnValue(null);
   });
 
   describe('Collapsed state', () => {
@@ -127,6 +133,63 @@ describe('BottomPanel', () => {
   });
 
   describe('Tab switching', () => {
+    it('keeps actions outside the tablist and connects every tab to its panel', async () => {
+      render(<BottomPanel {...defaultProps} bottomPanelTab="events" />);
+      expect(await screen.findByTestId('events-panel')).toBeInTheDocument();
+      const tablist = screen.getByRole('tablist');
+      const tabs = within(tablist).getAllByRole('tab');
+
+      expect(tabs).toHaveLength(4);
+      expect(within(tablist).queryByRole('button')).not.toBeInTheDocument();
+      expect(tablist).not.toContainElement(screen.getByTitle(/Close \(Ctrl \+ J\)/));
+      for (const tab of tabs) {
+        const panel = document.getElementById(tab.getAttribute('aria-controls')!);
+        expect(panel).toHaveAttribute('role', 'tabpanel');
+        expect(panel).toHaveAttribute('aria-labelledby', tab.id);
+      }
+      expect(screen.getAllByRole('tabpanel')).toHaveLength(1);
+    });
+
+    it('supports roving focus, wrapping arrows and Home/End across core and extension tabs', () => {
+      vi.mocked(extensionHost.getBottomTabs).mockReturnValue([
+        { id: 'test-inspector', title: 'Inspector', extensionId: 'test' },
+      ]);
+      const renderExtension = vi.fn(() => <div>Extension inspector</div>);
+      vi.mocked(extensionHost.getBottomTabRenderer).mockReturnValue(renderExtension);
+      const ControlledPanel = () => {
+        const [tab, setTab] =
+          React.useState<React.ComponentProps<typeof BottomPanel>['bottomPanelTab']>('terminal');
+        return <BottomPanel {...defaultProps} bottomPanelTab={tab} setBottomPanelTab={setTab} />;
+      };
+      render(<ControlledPanel />);
+
+      const terminal = screen.getByRole('tab', { name: 'Terminal' });
+      const inspector = screen.getByRole('tab', { name: 'Inspector' });
+      terminal.focus();
+      fireEvent.keyDown(terminal, { key: 'ArrowLeft' });
+      expect(inspector).toHaveFocus();
+      expect(inspector).toHaveAttribute('aria-selected', 'true');
+      expect(inspector).toHaveAttribute('tabindex', '0');
+      expect(terminal).toHaveAttribute('tabindex', '-1');
+      expect(renderExtension).toHaveBeenCalledWith({
+        currentPath: defaultProps.currentPath,
+        isActive: true,
+      });
+
+      fireEvent.keyDown(inspector, { key: 'ArrowRight' });
+      expect(terminal).toHaveFocus();
+      expect(terminal).toHaveAttribute('aria-selected', 'true');
+      fireEvent.keyDown(terminal, { key: 'End' });
+      expect(inspector).toHaveFocus();
+      fireEvent.keyDown(inspector, { key: 'Home' });
+      expect(terminal).toHaveFocus();
+      fireEvent.keyDown(terminal, { key: 'ArrowRight' });
+      const events = screen.getByRole('tab', { name: 'Events' });
+      expect(events).toHaveFocus();
+      expect(events).toHaveAttribute('aria-selected', 'true');
+      expect(screen.getAllByRole('tab').filter((tab) => tab.tabIndex === 0)).toEqual([events]);
+    });
+
     it('calls setBottomPanelTab when clicking a tab', () => {
       render(<BottomPanel {...defaultProps} />);
 
@@ -152,6 +215,20 @@ describe('BottomPanel', () => {
   });
 
   describe('Tab content', () => {
+    it('preserves the mounted terminal when switching tabs and collapsing the drawer', async () => {
+      const { rerender } = render(<BottomPanel {...defaultProps} />);
+      const terminal = await screen.findByTestId('terminal-panel');
+
+      rerender(<BottomPanel {...defaultProps} bottomPanelTab="events" />);
+      expect(await screen.findByTestId('events-panel')).toBeInTheDocument();
+      expect(screen.getByTestId('terminal-panel')).toBe(terminal);
+      expect(terminal).not.toBeVisible();
+
+      rerender(<BottomPanel {...defaultProps} bottomPanelCollapsed />);
+      expect(screen.getByTestId('terminal-panel')).toBe(terminal);
+      expect(terminal.closest('.wisp-bottom-panel')).toHaveClass('hidden');
+    });
+
     it('shows terminal panel when terminal tab is active', async () => {
       renderWithSuspense(<BottomPanel {...defaultProps} bottomPanelTab="terminal" />);
       expect(await screen.findByTestId('terminal-panel')).toBeInTheDocument();

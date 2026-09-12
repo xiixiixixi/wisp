@@ -112,7 +112,7 @@ const ChatContextHeader = ({
             background: includeSelection
               ? 'rgb(var(--xp-blue-rgb) / 0.15)'
               : 'var(--xp-surface-light)',
-            color: includeSelection ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
+            color: includeSelection ? 'var(--ds-link)' : 'var(--xp-text-muted)',
           }}
         >
           <Code2 size={11} style={{ flexShrink: 0 }} />

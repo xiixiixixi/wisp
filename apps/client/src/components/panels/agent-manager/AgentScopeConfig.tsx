@@ -66,7 +66,7 @@ const makePillStyle = (active: boolean): React.CSSProperties => ({
   borderRadius: '4px',
   border: `1px solid ${active ? 'var(--xp-blue)' : 'var(--xp-border)'}`,
   background: active ? 'rgb(var(--xp-blue-rgb) / 0.15)' : 'var(--xp-bg)',
-  color: active ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
+  color: active ? 'var(--ds-link)' : 'var(--xp-text-muted)',
   fontSize: '10px',
   cursor: 'pointer',
   transition: 'all 0.15s ease',

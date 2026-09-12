@@ -172,7 +172,7 @@ const ChatDiffPreview = ({ previousContent, newContent }: DiffPreviewProps) => {
             marginLeft: 'auto',
             background: 'none',
             border: 'none',
-            color: 'var(--xp-blue)',
+            color: 'var(--ds-link)',
             cursor: 'pointer',
             fontSize: '11px',
             display: 'inline-flex',

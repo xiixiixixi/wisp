@@ -1,17 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, renderHook } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 /**
- * End-to-end regression test for the theme-switching bug:
- * pick a theme in Settings, switch to the folder (explorer) page, and the
- * theme must NOT change. Mounts the real Settings page and the real
- * useThemeManager hook (the explorer's theme entry point) against real
- * localStorage.
+ * The root appearance owner stays mounted across Settings and the explorer.
+ * Retired theme keys can still be read by compatibility code, but must not
+ * override the appearance preference or remove its material class.
  */
-
-// Mock wouter for the Settings page
 vi.mock('wouter', async () => {
   const React = await import('react');
   return {
@@ -22,60 +18,7 @@ vi.mock('wouter', async () => {
   };
 });
 
-vi.mock('@/lib/transport', () => ({
-  isTauri: () => false,
-}));
-
-// Radix select mock that wires Item clicks through Root's onValueChange
-type MockProps = Record<string, unknown> & { children?: React.ReactNode };
-type MockRef = React.Ref<HTMLElement>;
-vi.mock('@radix-ui/react-select', async () => {
-  const React = await import('react');
-  const SelectCtx = React.createContext<{ onValueChange?: (value: string) => void }>({});
-  const SelectProvider = SelectCtx.Provider;
-  return {
-    Root: ({ children, onValueChange }: MockProps) =>
-      React.createElement(
-        SelectProvider,
-        { value: { onValueChange: onValueChange as (value: string) => void } },
-        React.createElement('div', {}, children),
-      ),
-    Trigger: React.forwardRef(({ children, ...props }: MockProps, ref: MockRef) =>
-      React.createElement('button', { ...props, ref }, children),
-    ),
-    Value: ({ children, placeholder }: MockProps) =>
-      React.createElement('span', {}, children || (placeholder as string)),
-    Content: ({ children }: MockProps) => React.createElement('div', {}, children),
-    Item: React.forwardRef(({ children, value, ...props }: MockProps, ref: MockRef) => {
-      const ctx = React.useContext(SelectCtx);
-      return React.createElement(
-        'div',
-        {
-          ...props,
-          ref,
-          role: 'option',
-          'data-value': value as string,
-          onClick: () => ctx.onValueChange?.(value as string),
-        },
-        children,
-      );
-    }),
-    Icon: ({ children }: MockProps) => React.createElement('span', {}, children),
-    Viewport: ({ children }: MockProps) => React.createElement('div', {}, children),
-    ItemIndicator: ({ children }: MockProps) => React.createElement('span', {}, children),
-    ItemText: ({ children }: MockProps) => React.createElement('span', {}, children),
-    ScrollUpButton: React.forwardRef((props: MockProps, ref: MockRef) =>
-      React.createElement('button', { ...props, ref }),
-    ),
-    ScrollDownButton: React.forwardRef((props: MockProps, ref: MockRef) =>
-      React.createElement('button', { ...props, ref }),
-    ),
-    Portal: ({ children }: MockProps) => children,
-    Group: ({ children }: MockProps) => React.createElement('div', {}, children),
-    Label: ({ children }: MockProps) => React.createElement('span', {}, children),
-    Separator: () => React.createElement('hr'),
-  };
-});
+vi.mock('@/lib/transport', () => ({ isTauri: () => false }));
 
 vi.mock('@/hooks/use-vim-mode', () => ({
   isVimModeEnabled: vi.fn(() => false),
@@ -84,96 +27,204 @@ vi.mock('@/hooks/use-vim-mode', () => ({
   setVimLearningModeSetting: vi.fn(),
 }));
 
-// The global setup mocks '@/lib/utils' with a stubbed applyTheme and no
-// `themes` registry — this test needs the real implementations.
+// Exercise the real compatibility applyTheme function, not the setup stub.
 vi.mock('@/lib/utils', async () => {
   const actual = await vi.importActual<typeof import('@/lib/utils')>('@/lib/utils');
   return { ...actual };
 });
 
 import Settings from '@/pages/settings';
+import SkySync from '@/components/weather/SkySync';
 import { useThemeManager } from '@/hooks/use-theme-manager';
+import { applyTheme } from '@/lib/utils';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 
-const getHtmlThemeClass = (): string =>
-  Array.from(document.documentElement.classList).find((c) => c.startsWith('theme-')) ?? '';
-
-const mountFolderPageTheme = async (): Promise<string> => {
-  // wisp.tsx (the folder page) initializes its theme exactly like this
-  const { result } = renderHook(() => useThemeManager());
-  await waitFor(() => {
-    expect(getHtmlThemeClass()).not.toBe('');
-  });
-  return result.current.theme;
+const FolderPage = () => {
+  useThemeManager();
+  return <main>Folder</main>;
 };
 
-describe('theme persistence across settings → folder page', () => {
+const AppearanceHarness = ({ page }: { page: 'settings' | 'folder' }) => (
+  <>
+    <SkySync />
+    {page === 'settings' ? <Settings /> : <FolderPage />}
+  </>
+);
+
+const expectSystemAppearance = (dark: boolean) => {
+  expect(document.documentElement).toHaveClass('theme-fluid', dark ? 'theme-rolex' : 'theme-light');
+  expect(document.documentElement).not.toHaveClass(dark ? 'theme-light' : 'theme-rolex');
+  expect(document.documentElement).not.toHaveClass('theme-glass');
+};
+
+describe('system appearance across Settings and the folder page', () => {
+  let dark: boolean;
+  let appearance: MediaQueryList;
+  let restoreMatchMedia: () => void;
+
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
     document.documentElement.className = '';
+    dark = false;
+    appearance = new EventTarget() as MediaQueryList;
+    Object.defineProperties(appearance, {
+      matches: { get: () => dark },
+      media: { value: '(prefers-color-scheme: dark)' },
+    });
+    const matchMedia = vi.spyOn(window, 'matchMedia').mockReturnValue(appearance);
+    restoreMatchMedia = () => matchMedia.mockRestore();
   });
 
-  it('keeps the theme picked in Settings after switching to the folder page (regression)', async () => {
-    // Fresh install: nothing stored, no legacy flags
-    render(<Settings />);
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Settings');
-    });
-
-    // User picks "Wisp Slate" (glass) in the theme dropdown
-    const slateOption = await screen.findByText('Wisp Slate');
-    fireEvent.click(slateOption);
-
-    // Settings applies it immediately…
-    await waitFor(() => expect(getHtmlThemeClass()).toBe('theme-glass'));
-    // …and persists it to the shared UI state
-    await waitFor(() => {
-      expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.UI_STATE) || '{}').theme).toBe('glass');
-    });
+  afterEach(() => {
+    cleanup();
+    restoreMatchMedia();
+    document.documentElement.className = '';
   });
 
   it.each([
-    ['Wisp Slate', 'glass'],
-    ['Wisp Paper', 'light'],
-    ['Wisp Ink', 'rolex'],
-  ])('%s picked in Settings stays active on the folder page', async (label, key) => {
-    render(<Settings />);
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Settings');
+    { legacyTheme: 'light', prefersDark: true },
+    { legacyTheme: 'rolex', prefersDark: false },
+    { legacyTheme: 'glass', prefersDark: true },
+  ])('ignores legacy $legacyTheme polarity across navigation', ({ legacyTheme, prefersDark }) => {
+    dark = prefersDark;
+    localStorage.setItem(
+      STORAGE_KEYS.SETTINGS,
+      JSON.stringify({ theme: legacyTheme, language: 'en', showHiddenFiles: true }),
+    );
+    localStorage.setItem(STORAGE_KEYS.UI_STATE, JSON.stringify({ theme: legacyTheme }));
+    document.documentElement.className = `theme-${legacyTheme}`;
+
+    const { rerender } = render(<AppearanceHarness page="settings" />);
+    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Settings' })).toBeInTheDocument();
+    expectSystemAppearance(prefersDark);
+
+    rerender(<AppearanceHarness page="folder" />);
+    expect(screen.getByRole('main')).toHaveTextContent('Folder');
+    expectSystemAppearance(prefersDark);
+
+    act(() => {
+      applyTheme(legacyTheme);
+      window.dispatchEvent(new CustomEvent('wisp-settings-changed'));
+    });
+    expectSystemAppearance(prefersDark);
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS)!)).toMatchObject({
+      showHiddenFiles: true,
+    });
+  });
+
+  it('responds to system appearance changes before and after navigation', () => {
+    const { rerender } = render(<AppearanceHarness page="settings" />);
+    expectSystemAppearance(false);
+
+    act(() => {
+      dark = true;
+      appearance.dispatchEvent(new Event('change'));
+    });
+    expectSystemAppearance(true);
+
+    rerender(<AppearanceHarness page="folder" />);
+    expectSystemAppearance(true);
+    act(() => {
+      dark = false;
+      appearance.dispatchEvent(new Event('change'));
+    });
+    expectSystemAppearance(false);
+
+    rerender(<AppearanceHarness page="settings" />);
+    expectSystemAppearance(false);
+  });
+
+  it('offers only the three appearance choices and keeps retired themes out of Settings', () => {
+    render(<AppearanceHarness page="settings" />);
+    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Settings' })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Language' })).toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: /theme|appearance/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Appearance' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Follow system' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Light' })).not.toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Dark' })).not.toBeChecked();
+    expect(screen.queryByText('Wisp Ink')).not.toBeInTheDocument();
+    expect(screen.queryByText('Wisp Slate')).not.toBeInTheDocument();
+    expect(screen.queryByText('Wisp Paper')).not.toBeInTheDocument();
+  });
+
+  it('persists explicit overrides through navigation and remount, then resumes system changes', () => {
+    const { rerender, unmount } = render(<AppearanceHarness page="settings" />);
+    fireEvent.click(screen.getByRole('radio', { name: 'Dark' }));
+    expectSystemAppearance(true);
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS)!)).toMatchObject({
+      appearance: 'dark',
     });
 
-    fireEvent.click(await screen.findByText(label));
-    await waitFor(() => expect(getHtmlThemeClass()).toBe(`theme-${key}`));
+    act(() => {
+      dark = true;
+      appearance.dispatchEvent(new Event('change'));
+      dark = false;
+      appearance.dispatchEvent(new Event('change'));
+    });
+    expectSystemAppearance(true);
 
-    // "Switch to the folder page": unmount Settings, mount the explorer theme
-    const { unmount } = renderHook(() => useThemeManager());
+    fireEvent.click(screen.getByRole('radio', { name: 'Light' }));
+    act(() => {
+      dark = true;
+      appearance.dispatchEvent(new Event('change'));
+    });
+    expectSystemAppearance(false);
+    rerender(<AppearanceHarness page="folder" />);
+    expectSystemAppearance(false);
     unmount();
     document.documentElement.className = '';
-    const folderTheme = await mountFolderPageTheme();
 
-    expect(folderTheme).toBe(key);
-    expect(getHtmlThemeClass()).toBe(`theme-${key}`);
-  });
-
-  it('offers exactly the three built-in themes in the Settings dropdown', async () => {
-    render(<Settings />);
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Settings');
+    render(<AppearanceHarness page="settings" />);
+    expect(screen.getByRole('radio', { name: 'Light' })).toBeChecked();
+    expectSystemAppearance(false);
+    fireEvent.click(screen.getByRole('radio', { name: 'Follow system' }));
+    expectSystemAppearance(true);
+    act(() => {
+      dark = false;
+      appearance.dispatchEvent(new Event('change'));
     });
-
-    expect(await screen.findByText('Wisp Ink')).toBeInTheDocument();
-    expect(screen.getByText('Wisp Slate')).toBeInTheDocument();
-    expect(screen.getByText('Wisp Paper')).toBeInTheDocument();
-    expect(screen.queryByText('Tokyo Night')).not.toBeInTheDocument();
-    expect(screen.queryByText('Dracula')).not.toBeInTheDocument();
+    expectSystemAppearance(false);
   });
 
-  it('the folder page also honors a theme stored only by an older settings write', async () => {
-    // wisp:settings without wisp:ui-state (legacy stored preference)
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({ theme: 'light' }));
-    const folderTheme = await mountFolderPageTheme();
-    expect(folderTheme).toBe('light');
-    expect(getHtmlThemeClass()).toBe('theme-light');
+  it('updates both the picker and document from another window without echoing storage writes', () => {
+    render(<AppearanceHarness page="settings" />);
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS)!);
+    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({ ...saved, appearance: 'dark' }));
+    const save = vi.spyOn(Storage.prototype, 'setItem');
+    act(() => window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEYS.SETTINGS })));
+    expectSystemAppearance(true);
+    expect(screen.getByRole('radio', { name: 'Dark' })).toBeChecked();
+    expect(save).not.toHaveBeenCalled();
+    save.mockRestore();
+
+    act(() => {
+      localStorage.removeItem(STORAGE_KEYS.SETTINGS);
+      window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEYS.SETTINGS }));
+    });
+    expect(screen.getByRole('radio', { name: 'Follow system' })).toBeChecked();
+    expectSystemAppearance(false);
+  });
+
+  it('applies a standalone Settings selection with native keyboard controls and resets to system', async () => {
+    dark = true;
+    const user = userEvent.setup();
+    render(<Settings />);
+    expectSystemAppearance(true);
+    await waitFor(() => expect(screen.getByRole('tab', { name: 'General' })).toHaveFocus());
+    act(() => screen.getByRole('radio', { name: 'Follow system' }).focus());
+    await user.keyboard('{ArrowRight}');
+    expect(screen.getByRole('radio', { name: 'Light' })).toBeChecked();
+    expectSystemAppearance(false);
+
+    await user.click(await screen.findByRole('button', { name: 'Reset all settings to defaults' }));
+    expect(screen.getByRole('radio', { name: 'Follow system' })).toBeChecked();
+    expectSystemAppearance(true);
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS)!)).toMatchObject({
+      appearance: 'system',
+    });
   });
 });

@@ -241,7 +241,7 @@ const DiffReviewWorkflow = ({
       >
         {/* Header */}
         <div style={headerStyle}>
-          <GitCommit size={16} style={{ color: 'var(--xp-blue)', flexShrink: 0 }} />
+          <GitCommit size={16} style={{ color: 'var(--ds-link)', flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--xp-text)' }}>
               {t('agentManager.diffWorkflow.title')}

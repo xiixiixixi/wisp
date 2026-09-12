@@ -82,7 +82,7 @@ const PlistPreview = ({ file, onError, onLoad }: PreviewProps) => {
 
   const doc = xml ?? raw ?? '';
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface">
+    <div className="flex h-full flex-col overflow-hidden rounded-md border border-xp-border bg-xp-surface">
       <WispCodeMirror
         doc={doc}
         readOnly

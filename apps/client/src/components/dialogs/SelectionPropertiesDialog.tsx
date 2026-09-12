@@ -59,7 +59,7 @@ export default function SelectionPropertiesDialog({
                 {getFileIcon(file)}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="break-all text-sm font-medium">{file.name}</p>
+                <p className="break-all text-sm font-semibold">{file.name}</p>
                 <p className="mt-1 select-text break-all text-xs text-xp-text-secondary">
                   {file.path}
                 </p>

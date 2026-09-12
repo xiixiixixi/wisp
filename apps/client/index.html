@@ -6,11 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </head>
   <script>
-    // Always light — the ink polarity was removed (2026-09-06). SkySync
-    // re-applies theme-light plus the fluid/accessibility classes on boot.
+    // Match SkySync's appearance resolution before React loads to avoid a flash.
+    var appearance = 'system';
     try {
-      document.documentElement.classList.add('theme-light');
+      var savedAppearance = JSON.parse(localStorage.getItem('wisp:settings'))?.appearance;
+      if (savedAppearance === 'light' || savedAppearance === 'dark') appearance = savedAppearance;
     } catch (e) {}
+    var systemDark = false;
+    try {
+      systemDark = matchMedia('(prefers-color-scheme: dark)').matches;
+    } catch (e) {}
+    var darkAppearance = appearance === 'dark' || (appearance === 'system' && systemDark);
+    document.documentElement.dataset.wispAppearance = appearance;
+    document.documentElement.classList.add(
+      darkAppearance ? 'theme-rolex' : 'theme-light',
+      'theme-fluid',
+    );
   </script>
   <body>
     <div

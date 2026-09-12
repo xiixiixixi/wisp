@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from 'react';
+import { createContext, useContext, useId, useState, useEffect } from 'react';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { DEFAULT_LANGUAGE } from '@/lib/language-settings';
 import { stripRetiredSettings } from '@/lib/retired-settings';
+import type { AppearancePreference } from '@/lib/appearance';
 import { Monitor, FolderOpen, AlertTriangle } from 'lucide-react';
 import {
   Select,
@@ -12,37 +13,53 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import { TauriAPI } from '@/lib/tauri-api';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
-/** A toggle switch matching the original settings.tsx Toggle. */
+const SettingLabelContext = createContext<{
+  labelId: string;
+  descriptionId?: string;
+} | null>(null);
+
+/** System switch with a persistent accessible label in a settings row. */
 export const Toggle = ({
   checked,
   onChange,
   id,
   label,
+  disabled = false,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
   id: string;
   label?: string;
-}) => (
-  <button
-    id={id}
-    type="button"
-    role="switch"
-    aria-checked={checked}
-    aria-label={label}
-    className={`liquid-toggle relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-transparent transition-all focus-visible:outline-none ${
-      checked ? 'bg-xp-selection' : 'bg-xp-border'
-    }`}
-    onClick={() => onChange(!checked)}
-  >
-    <span
-      className={`liquid-toggle-thumb pointer-events-none inline-block h-5 w-5 rounded-full transition-all ${
-        checked ? 'translate-x-5 bg-xp-text' : 'translate-x-0.5 bg-xp-text-muted'
+  disabled?: boolean;
+}) => {
+  const row = useContext(SettingLabelContext);
+  return (
+    <button
+      id={id}
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      aria-labelledby={label ? undefined : row?.labelId}
+      aria-describedby={row?.descriptionId}
+      disabled={disabled}
+      className={`liquid-toggle relative inline-flex h-5 w-9 shrink-0 items-center rounded-full border border-transparent transition-[background-color,box-shadow,opacity] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40 ${
+        checked ? 'bg-[var(--ds-accent)]' : 'bg-[var(--ds-fill)]'
       }`}
-    />
-  </button>
-);
+      onClick={() => onChange(!checked)}
+    >
+      <span
+        aria-hidden="true"
+        className={`liquid-toggle-thumb pointer-events-none inline-block h-4 w-4 rounded-full bg-white transition-transform motion-reduce:transition-none ${
+          checked ? 'translate-x-[17px]' : 'translate-x-px'
+        }`}
+      />
+    </button>
+  );
+};
 
 /** A select dropdown field. */
 export const SelectField = ({
@@ -55,25 +72,31 @@ export const SelectField = ({
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
   label?: string;
-}) => (
-  <Select value={value} onValueChange={onChange}>
-    <SelectTrigger className="h-8 w-44" aria-label={label}>
-      <SelectValue />
-    </SelectTrigger>
-    <SelectContent>
-      {options.map((o) => (
-        <SelectItem key={o.value} value={o.value}>
-          {o.label}
-        </SelectItem>
-      ))}
-    </SelectContent>
-  </Select>
-);
+}) => {
+  const row = useContext(SettingLabelContext);
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger
+        className="w-44 max-w-full"
+        aria-label={label}
+        aria-labelledby={label ? undefined : row?.labelId}
+        aria-describedby={row?.descriptionId}
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((o) => (
+          <SelectItem key={o.value} value={o.value}>
+            {o.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+};
 
 /**
- * A grouped settings card: glass panel with a heading, rows separated by
- * hairlines. The standard container for every settings group — rows go
- * inside as SettingRow children.
+ * A grouped settings surface with a heading and inset row separators.
  */
 export const SettingsSection = ({
   title,
@@ -84,18 +107,18 @@ export const SettingsSection = ({
   description?: string;
   children: React.ReactNode;
 }) => (
-  <section className="content-card rounded-2xl p-1">
-    <div className="px-4 pb-1 pt-2.5">
-      <h3 className="text-[13px] font-medium text-xp-text">{title}</h3>
-      {description && <p className="mt-0.5 text-xs text-xp-text-secondary">{description}</p>}
+  <section className="content-card rounded-xl p-1">
+    <div className="px-3 pb-2 pt-3">
+      <h3 className="text-[13px] font-semibold text-xp-text">{title}</h3>
+      {description && (
+        <p className="mt-1 text-xs leading-[1.4] text-xp-text-secondary">{description}</p>
+      )}
     </div>
     <div className="divide-xp-border/40 divide-y">{children}</div>
   </section>
 );
 
-/** A single setting row: icon + label/desc on the left, control on the right.
- *  R5 review: 64px rhythm — px-4 keeps 20px inset with the card, py-2 keeps
- *  rows from ballooning past 64px. */
+/** A setting label and control share a row and accessible label association. */
 export const SettingRow = ({
   icon: Icon,
   label,
@@ -106,25 +129,36 @@ export const SettingRow = ({
   label: string;
   description?: string;
   children: React.ReactNode;
-}) => (
-  <div className="wisp-setting-row group flex items-center justify-between gap-4 rounded-[2px] px-4 py-2">
-    <div className="flex min-w-0 items-center gap-3">
-      {Icon && <Icon size={17} className="shrink-0 text-xp-text-secondary" />}
-      <div className="min-w-0">
-        <div className="text-sm font-medium text-xp-text">{label}</div>
-        {description && (
-          <div className="mt-0.5 text-xs leading-relaxed text-xp-text-secondary">{description}</div>
-        )}
+}) => {
+  const id = useId();
+  const labelId = `setting-label-${id}`;
+  const descriptionId = description ? `setting-description-${id}` : undefined;
+  return (
+    <div className="wisp-setting-row group flex min-h-11 flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg px-3 py-2.5 sm:flex-nowrap">
+      <div className="flex min-w-0 items-center gap-3">
+        {Icon && <Icon size={17} className="shrink-0 text-xp-text-secondary" aria-hidden="true" />}
+        <div className="min-w-0">
+          <div id={labelId} className="text-[13px] font-normal leading-4 text-xp-text">
+            {label}
+          </div>
+          {description && (
+            <div id={descriptionId} className="mt-1 text-xs leading-[1.4] text-xp-text-secondary">
+              {description}
+            </div>
+          )}
+        </div>
       </div>
+      <SettingLabelContext.Provider value={{ labelId, descriptionId }}>
+        <div className="max-w-full shrink-0">{children}</div>
+      </SettingLabelContext.Provider>
     </div>
-    <div className="shrink-0">{children}</div>
-  </div>
-);
+  );
+};
 
 /** Section heading. */
 export const SectionTitle = ({ title, description }: { title: string; description?: string }) => (
   <div className="mb-1 px-4 pb-1 pt-2">
-    <h3 className="text-xs font-medium uppercase tracking-wider text-xp-text-secondary">{title}</h3>
+    <h3 className="text-[13px] font-semibold leading-5 text-xp-text">{title}</h3>
     {description && <p className="text-xp-text-secondary/70 mt-0.5 text-xs">{description}</p>}
   </div>
 );
@@ -146,19 +180,21 @@ export const ColorField = ({
     <span className="w-[120px] shrink-0 text-[13px] text-xp-text-secondary">{label}</span>
     <input
       type="color"
+      aria-label={label}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="h-8 w-8 shrink-0 cursor-pointer rounded-[2px] border-none bg-transparent p-0"
+      className="h-7 w-7 shrink-0 cursor-pointer rounded-md border border-xp-border bg-transparent p-0.5 focus-visible:outline-none"
       style={{ WebkitAppearance: 'none' }}
     />
-    <input
+    <Input
       type="text"
+      aria-label={`${label} (Hex)`}
       value={value}
       onChange={(e) => {
         const v = e.target.value;
         if (/^#[0-9a-fA-F]{0,6}$/.test(v) || v === '') onChange(v || '#000000');
       }}
-      className="w-[90px] rounded-[2px] border border-xp-border bg-xp-bg px-2 py-1 font-mono text-xs text-xp-text"
+      className="w-[90px] font-mono text-xs"
     />
   </div>
 );
@@ -166,18 +202,21 @@ export const ColorField = ({
 /** Permission toggle button (ON/OFF). */
 export const PermToggle = ({ enabled, onChange }: { enabled: boolean; onChange: () => void }) => {
   const { t: tUi } = useTranslation();
+  const row = useContext(SettingLabelContext);
   return (
-    <button
+    <Button
       type="button"
+      role="switch"
+      aria-checked={enabled}
+      aria-labelledby={row?.labelId}
+      aria-describedby={row?.descriptionId}
       onClick={onChange}
-      className={`rounded-[2px] px-3 py-1 text-xs font-medium tracking-wide transition-all ${
-        enabled
-          ? 'border border-xp-green/40 bg-xp-green/10 text-xp-green hover:bg-xp-green/20'
-          : 'border border-xp-red/20 bg-xp-red/10 text-xp-red hover:bg-xp-red/20'
-      }`}
+      variant={enabled ? 'default' : 'secondary'}
+      size="sm"
+      className="min-w-11"
     >
       {enabled ? tUi('common.on') : tUi('common.off')}
-    </button>
+    </Button>
   );
 };
 
@@ -275,6 +314,7 @@ export const SystemIntegrationSettings = () => {
 
 export interface AppSettings {
   theme: string;
+  appearance: AppearancePreference;
   language: string;
   showHiddenFiles: boolean;
   defaultView: string;
@@ -316,6 +356,7 @@ export const migrateLegacyAiSettings = <T extends { aiServiceMode?: string; them
 
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'auto',
+  appearance: 'system',
   language: DEFAULT_LANGUAGE,
   showHiddenFiles: false,
   defaultView: 'details',

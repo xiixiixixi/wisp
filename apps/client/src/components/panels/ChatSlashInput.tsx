@@ -297,7 +297,7 @@ const ChatSlashInput = forwardRef<ChatSlashInputHandle, ChatSlashInputProps>(
                 >
                   <code
                     style={{
-                      color: 'var(--xp-blue)',
+                      color: 'var(--ds-link)',
                       fontFamily: 'monospace',
                       fontSize: '12px',
                     }}

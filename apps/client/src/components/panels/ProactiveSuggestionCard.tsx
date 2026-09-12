@@ -126,7 +126,7 @@ const ProactiveSuggestionCard = ({
             borderRadius: '6px',
             border: '1px solid var(--xp-blue)',
             background: 'rgb(var(--xp-blue-rgb) / 0.12)',
-            color: 'var(--xp-blue)',
+            color: 'var(--ds-link)',
             cursor: 'pointer',
             fontSize: '11px',
             fontWeight: 500,

@@ -59,7 +59,7 @@ const UndoPositionMarker = React.forwardRef<HTMLDivElement>((_props, ref) => {
         style={{
           fontSize: '9px',
           fontWeight: 600,
-          color: 'var(--xp-blue)',
+          color: 'var(--ds-link)',
           textTransform: 'uppercase',
           letterSpacing: '0.5px',
           flexShrink: 0,
@@ -171,7 +171,7 @@ const UndoHistoryList = ({
           <span
             style={{
               fontSize: '9px',
-              color: entry.undoable ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
+              color: entry.undoable ? 'var(--ds-link)' : 'var(--xp-text-muted)',
               flexShrink: 0,
               fontWeight: 500,
             }}

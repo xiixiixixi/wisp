@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 import { formatError } from '@/lib/file-operation-helpers';
 import { showConfirmationToast } from '@/components/ui/Toast';
+import { openRecentEntry } from '@/lib/recent-entry-actions';
 import type { TabItem, EditorGroup } from '@/types/split-view';
 import type { SplitLayoutHook } from '@/hooks/use-split-layout';
 import type { Toast } from '@/hooks/use-toast';
@@ -121,9 +122,6 @@ export const useFileActions = (deps: FileActionsDeps) => {
 
   const handleFileDoubleClick = useCallback(
     async (file: FileEntry) => {
-      TauriAPI.addRecentFile(file.path).catch((err) =>
-        console.error('Failed to add recent file:', err),
-      );
       if (file.is_dir) {
         navigateWithHistory(file.path);
         return;
@@ -138,7 +136,7 @@ export const useFileActions = (deps: FileActionsDeps) => {
       void executeOpenHandler;
       void openOpenWithDialog;
       try {
-        await TauriAPI.openFile(file.path);
+        await openRecentEntry({ path: file.path, isDir: false }, navigateWithHistory);
       } catch (error) {
         console.error('Failed to open file:', error);
         toast({

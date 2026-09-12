@@ -32,12 +32,12 @@ const FileAssociationsSettings = ({ embedded = false }: { embedded?: boolean }) 
             {entries.map(([ext, handler]) => (
               <div
                 key={ext}
-                className="flex items-center justify-between rounded-[2px] px-3 py-2.5 transition-colors hover:bg-xp-surface-light/50"
+                className="flex items-center justify-between rounded-md px-3 py-2.5 transition-colors hover:bg-xp-surface-light/50"
               >
                 <div className="flex items-center gap-3">
                   <FileCode size={16} className="shrink-0 text-xp-text-secondary" />
                   <div>
-                    <span className="text-sm font-medium text-xp-text">.{ext}</span>
+                    <span className="text-sm font-semibold text-xp-text">.{ext}</span>
                     <span className="ml-2 text-xs text-xp-text-secondary">
                       → {t(HANDLER_LABELS[handler])}
                     </span>
@@ -45,7 +45,7 @@ const FileAssociationsSettings = ({ embedded = false }: { embedded?: boolean }) 
                 </div>
                 <button
                   onClick={() => clearPreference(ext)}
-                  className="rounded-[2px] p-1.5 text-xp-text-secondary transition-colors hover:text-xp-red"
+                  className="rounded-md p-1.5 text-xp-text-secondary transition-colors hover:text-xp-red"
                   title={t('settings.fileAssociations.reset')}
                   aria-label={t('settings.fileAssociations.resetExt', { ext })}
                 >

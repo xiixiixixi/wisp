@@ -461,7 +461,7 @@ const NewAgentForm = ({ onSubmit, onCancel, onCliLaunched }: NewAgentFormProps) 
               borderRadius: '4px',
               padding: '2px 6px',
               fontSize: '10px',
-              color: showScope ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
+              color: showScope ? 'var(--ds-link)' : 'var(--xp-text-muted)',
               cursor: 'pointer',
               flexShrink: 0,
             }}

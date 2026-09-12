@@ -180,7 +180,7 @@ const CompactMessageView = ({
                 style={{
                   fontSize: '9px',
                   fontWeight: 600,
-                  color: isUser ? 'var(--xp-blue)' : 'var(--xp-green)',
+                  color: isUser ? 'var(--ds-link)' : 'var(--xp-green)',
                   marginRight: '6px',
                 }}
               >

@@ -1,789 +1,537 @@
-import React, {
-  useState,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useCallback,
-  useMemo,
-  useDeferredValue,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { TauriAPI, RecentFile } from '@/lib/tauri-api';
-import { searchGlobalFiles } from '@/lib/global-file-search';
-import { isBrowserDemoMode } from '@/lib/browser-demo-files';
-import { File, Files, Folder, Globe, Search, Sparkles, X } from 'lucide-react';
+import { Copy, File, Folder, FolderOpen, Globe, Search, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { addressToWebUrl } from '@/lib/address-url';
+import { TauriAPI, type RecentFile } from '@/lib/tauri-api';
 import {
-  formatTimestamp,
-  sectionHeaderStyle,
-  itemBaseStyle,
-  itemSelectedStyle,
-  iconWrapStyle,
-  shortcutStyle,
-  timestampStyle,
-  kbdStyle,
-  fileNameContainerStyle,
-  fileNameStyle,
-  filePathStyle,
-  backdropStyle,
-  dialogStyle,
-  searchBarStyle,
-  searchIconStyle,
-  inputStyle,
-  clearBtnStyle,
-  clearIconStyle,
-  emptyStateStyle,
-  loadingContainerStyle,
-  loadingSpinnerStyle,
-  footerStyle,
-  COMMAND_ROW_HEIGHT,
+  matchesSearchKind,
+  searchGlobalFiles,
+  type GlobalFileResult,
+  type GlobalSearchKind,
+} from '@/lib/global-file-search';
+import { isBrowserDemoMode } from '@/lib/browser-demo-files';
+import { addressToWebUrl } from '@/lib/address-url';
+import { parentDirectory } from '@/lib/recent-entry-actions';
+import { Dialog, DialogTitle } from '@/components/ui/dialog';
+import {
   FILE_ROW_HEIGHT,
-  ASSISTANT_ROW_HEIGHT,
-  SECTION_HEADER_HEIGHT,
-  LOADING_ROW_HEIGHT,
+  RECENT_CANDIDATE_LIMIT,
+  RECENT_DISPLAY_LIMIT,
+  SEARCH_KINDS,
+  isPathQuery,
   type CommandPaletteProps,
-  type PaletteItem,
-  type PaletteSearchResult,
-  type VirtualRow,
+  type PaletteEntry,
+  type SearchSelectionIntent,
 } from './command-palette-helpers';
+import './command-palette.css';
 
-type PaletteMode = 'files' | 'assistant';
-
-// ── Main Component ──────────────────────────────────────────────────────────
-
-const CommandPaletteInner = ({
-  isOpen,
-  onClose,
-  onFileSelect,
-  currentPath,
-}: CommandPaletteProps) => {
+const CommandPaletteInner = ({ isOpen, onClose, onFileSelect }: CommandPaletteProps) => {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
-  const [mode, setMode] = useState<PaletteMode>('files');
+  const [kind, setKind] = useState<GlobalSearchKind>('all');
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [fileResults, setFileResults] = useState<PaletteSearchResult[]>([]);
+  const [fileResults, setFileResults] = useState<GlobalFileResult[]>([]);
+  const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [loadingRecent, setLoadingRecent] = useState(false);
   const [searchPartial, setSearchPartial] = useState(false);
   const [searchLimited, setSearchLimited] = useState(false);
-  const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const searchGenerationRef = useRef(0);
-  const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
-  const selectedSearchPathRef = useRef<string | undefined>(undefined);
-  const leadingItemCountRef = useRef(0);
+  const searchGeneration = useRef(0);
+  const copyGeneration = useRef(0);
+  const copyMounted = useRef(false);
+  const activePathRef = useRef<string | undefined>(undefined);
+  const effectiveQuery = query.trim();
+  const isDemo = isBrowserDemoMode();
 
-  // Deferred query for filtering - input stays responsive while filtering catches up
-  const deferredQuery = useDeferredValue(query);
+  const directEntry = useMemo((): PaletteEntry | null => {
+    if (!effectiveQuery) return null;
+    const web = /^https?:\/\//i.test(effectiveQuery) ? addressToWebUrl(effectiveQuery) : null;
+    if (web) {
+      return {
+        path: web,
+        name: t('commandPalette.openWebsite', { url: web, defaultValue: 'Open {{url}}' }),
+        isDir: true,
+        source: 'web',
+      };
+    }
+    if (!isPathQuery(effectiveQuery)) return null;
+    return {
+      path: effectiveQuery,
+      name: t('commandPalette.openPath', { defaultValue: 'Open this path' }),
+      isDir: effectiveQuery.startsWith('wisp://') ? true : undefined,
+      source: 'path',
+    };
+  }, [effectiveQuery, t]);
 
-  const isAssistantMode = mode === 'assistant';
-  const effectiveQuery = deferredQuery.trim();
-
-  // Load recent files when the palette opens, ignoring completion after this
-  // instance closes or unmounts.
   useEffect(() => {
     if (!isOpen) return;
-
     let cancelled = false;
+    let recentGeneration = 0;
     setQuery('');
-    setMode('files');
+    setKind('all');
     setSelectedIndex(0);
     setFileResults([]);
-    TauriAPI.getRecentFiles(10)
-      .then((files) => {
-        if (!cancelled) setRecentFiles(files);
-      })
-      .catch(() => {
-        if (!cancelled) setRecentFiles([]);
-      });
-
+    setRecentFiles([]);
+    const loadRecent = () => {
+      const generation = ++recentGeneration;
+      setLoadingRecent(true);
+      TauriAPI.getRecentFiles(RECENT_CANDIDATE_LIMIT)
+        .then((files) => {
+          if (!cancelled && generation === recentGeneration) setRecentFiles(files);
+        })
+        .catch(() => {
+          if (!cancelled && generation === recentGeneration) setRecentFiles([]);
+        })
+        .finally(() => {
+          if (!cancelled && generation === recentGeneration) setLoadingRecent(false);
+        });
+    };
+    loadRecent();
+    window.addEventListener('recent-files-changed', loadRecent);
     return () => {
       cancelled = true;
+      window.removeEventListener('recent-files-changed', loadRecent);
     };
   }, [isOpen]);
 
-  // DialogsOverlay conditionally mounts the palette, so focus restoration has
-  // to happen in cleanup rather than waiting for an isOpen=false render.
+  // The shared Dialog restores normal focus. A removed or now-hidden opener
+  // needs the visible titlebar trigger after a responsive layout change.
   useEffect(() => {
     if (!isOpen) return;
-
-    previouslyFocusedElementRef.current =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const focusFrame = requestAnimationFrame(() => inputRef.current?.focus());
-
+    copyMounted.current = true;
+    const previous = document.activeElement;
     return () => {
-      cancelAnimationFrame(focusFrame);
-      const previous = previouslyFocusedElementRef.current;
+      copyMounted.current = false;
       requestAnimationFrame(() => {
-        // The titlebar has separate wide and compact search triggers. Restore
-        // the opener when possible, never a trigger hidden by a breakpoint.
-        const isVisible = (element: HTMLElement) =>
+        const visible = (element: HTMLElement) =>
           element.isConnected && element.getClientRects().length > 0;
-        const trigger = Array.from(
-          document.querySelectorAll<HTMLElement>('[data-command-palette-trigger]'),
-        ).find(isVisible);
-        const focusTarget =
-          previous && previous !== document.body && isVisible(previous) ? previous : trigger;
-        focusTarget?.focus();
+        const target =
+          previous instanceof HTMLElement && previous !== document.body && visible(previous)
+            ? previous
+            : Array.from(
+                document.querySelectorAll<HTMLElement>('[data-command-palette-trigger]'),
+              ).find(visible);
+        target?.focus({ preventScroll: true });
       });
     };
   }, [isOpen]);
 
-  // Build the flat item list for keyboard navigation
-  const paletteItems = useMemo((): PaletteItem[] => {
-    const items: PaletteItem[] = [];
-    const isEmptyQuery = !effectiveQuery;
-
-    if (isAssistantMode) {
-      if (effectiveQuery) {
-        items.push({
-          type: 'assistant',
-          prompt: effectiveQuery,
-          sectionLabel: t('commandPalette.askWisp'),
-        });
-      }
-    } else if (isEmptyQuery) {
-      // Recent Files section
-      if (recentFiles.length > 0) {
-        recentFiles.forEach((file, i) => {
-          items.push({
-            type: 'recent-file',
-            file,
-            sectionLabel: i === 0 ? t('commandPalette.recentFiles') : undefined,
-          });
-        });
-      }
-    } else {
-      // If the query looks like a path, offer a "Go to folder" item at the top;
-      // an explicit http(s) address opens as a web tab instead.
-      const trimmedQ = effectiveQuery;
-      const looksLikePath =
-        trimmedQ.startsWith('/') ||
-        trimmedQ.startsWith('~') ||
-        /^[A-Za-z]:[/\\]/.test(trimmedQ) ||
-        trimmedQ.startsWith('wisp://');
-      const explicitWebAddress = /^https?:\/\//i.test(trimmedQ) ? addressToWebUrl(trimmedQ) : null;
-      if (explicitWebAddress && onFileSelect) {
-        items.push({
-          type: 'go-to-path',
-          path: explicitWebAddress,
-          isWeb: true,
-          sectionLabel: t('commandPalette.goToCategory'),
-        });
-      } else if (looksLikePath && onFileSelect) {
-        items.push({
-          type: 'go-to-path',
-          path: trimmedQ,
-          sectionLabel: t('commandPalette.goToCategory'),
-        });
-      }
-    }
-
-    return items;
-  }, [effectiveQuery, isAssistantMode, recentFiles, onFileSelect, t]);
-
-  // Show file results only when a query is typed and there are results
-  const showFileResults = !isAssistantMode && effectiveQuery.length > 0 && fileResults.length > 0;
-  const totalItems = paletteItems.length + (showFileResults ? fileResults.length : 0);
-  useLayoutEffect(() => {
-    leadingItemCountRef.current = paletteItems.length;
-    selectedSearchPathRef.current = showFileResults
-      ? fileResults[selectedIndex - paletteItems.length]?.path
-      : undefined;
-  }, [fileResults, selectedIndex, paletteItems.length, showFileResults]);
-
-  // Results can shrink asynchronously. Keep aria-activedescendant and Enter
-  // within the current collection instead of leaving a stale or -1 index.
   useEffect(() => {
-    setSelectedIndex((previous) => {
-      if (totalItems === 0) return 0;
-      return Math.min(Math.max(previous, 0), totalItems - 1);
-    });
-  }, [totalItems]);
-
-  // Build flat virtual rows for the virtualizer
-  const virtualRows = useMemo((): VirtualRow[] => {
-    const rows: VirtualRow[] = [];
-    let itemIndex = 0;
-
-    for (const item of paletteItems) {
-      if (item.sectionLabel) {
-        rows.push({ kind: 'section-header', label: item.sectionLabel });
-      }
-      if (item.type === 'go-to-path') {
-        rows.push({ kind: 'go-to-path', path: item.path, isWeb: item.isWeb, itemIndex });
-      } else if (item.type === 'recent-file') {
-        rows.push({ kind: 'recent-file', file: item.file, itemIndex });
-      } else {
-        rows.push({ kind: 'assistant', prompt: item.prompt, itemIndex });
-      }
-      itemIndex++;
-    }
-
-    if (showFileResults) {
-      rows.push({ kind: 'section-header', label: t('commandPalette.filesAndFolders') });
-      for (const result of fileResults) {
-        rows.push({ kind: 'search-file', result, itemIndex });
-        itemIndex++;
-      }
-    }
-
-    if (isSearching) {
-      rows.push({ kind: 'loading' });
-    }
-
-    return rows;
-  }, [paletteItems, showFileResults, fileResults, isSearching, t]);
-
-  // Estimate row height for virtualizer
-  const estimateSize = useCallback(
-    (index: number) => {
-      const row = virtualRows[index];
-      if (!row) return COMMAND_ROW_HEIGHT;
-      switch (row.kind) {
-        case 'section-header':
-          return SECTION_HEADER_HEIGHT;
-        case 'go-to-path':
-          return COMMAND_ROW_HEIGHT;
-        case 'recent-file':
-          return FILE_ROW_HEIGHT;
-        case 'search-file':
-          return FILE_ROW_HEIGHT;
-        case 'assistant':
-          return ASSISTANT_ROW_HEIGHT;
-        case 'loading':
-          return LOADING_ROW_HEIGHT;
-        default:
-          return COMMAND_ROW_HEIGHT;
-      }
-    },
-    [virtualRows],
-  );
-
-  // Virtualizer
-  const virtualizer = useVirtualizer({
-    count: virtualRows.length,
-    getScrollElement: () => listRef.current,
-    estimateSize,
-    getItemKey: (index) => {
-      const row = virtualRows[index];
-      if (row?.kind === 'search-file') return `search:${row.result.path}`;
-      if (row?.kind === 'recent-file') return `recent:${row.file.path}`;
-      return `${row?.kind}:${index}`;
-    },
-    overscan: 8,
-  });
-
-  // Reset selection when effective query changes
-  useEffect(() => {
+    const generation = ++searchGeneration.current;
+    const controller = new AbortController();
     setSelectedIndex(0);
-  }, [effectiveQuery, isAssistantMode]);
-
-  // Search both global sources regardless of the active pane. Every query,
-  // mode, open/close transition receives a generation so stale results and
-  // stale loading completions cannot overwrite the latest request.
-  useEffect(() => {
-    const generation = ++searchGenerationRef.current;
-    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    const q = query.trim();
     setFileResults([]);
-    setIsSearching(false);
     setSearchPartial(false);
     setSearchLimited(false);
-    if (!isOpen || !q || isAssistantMode) return;
+    setIsSearching(false);
+    if (!isOpen || !effectiveQuery || directEntry) return () => controller.abort();
     setIsSearching(true);
-
-    searchTimerRef.current = setTimeout(async () => {
-      if (generation !== searchGenerationRef.current) return;
-      setIsSearching(true);
+    const timer = setTimeout(async () => {
       try {
-        await searchGlobalFiles(q, ({ results, partial, limited }) => {
-          if (generation !== searchGenerationRef.current) return;
-          // A slower source can insert results above the active row. Keep
-          // Enter attached to the same path, not its former numeric position.
-          const selectedPath = selectedSearchPathRef.current;
-          if (selectedPath) {
-            const index = results.findIndex((result) => result.path === selectedPath);
-            if (index >= 0) setSelectedIndex(leadingItemCountRef.current + index);
-          }
-          setFileResults(results);
-          setSearchPartial(partial);
-          setSearchLimited(limited);
-        });
+        await searchGlobalFiles(
+          effectiveQuery,
+          ({ results, partial, limited }) => {
+            if (generation !== searchGeneration.current || controller.signal.aborted) return;
+            const previousPath = activePathRef.current;
+            setFileResults(results);
+            setSearchPartial(partial);
+            setSearchLimited(limited);
+            if (previousPath) {
+              const index = results.findIndex((result) => result.path === previousPath);
+              if (index >= 0) setSelectedIndex(index);
+            }
+          },
+          { kind, signal: controller.signal },
+        );
       } catch {
-        if (generation === searchGenerationRef.current) setSearchPartial(true);
+        if (generation === searchGeneration.current && !controller.signal.aborted) {
+          setSearchPartial(true);
+        }
       } finally {
-        if (generation === searchGenerationRef.current) setIsSearching(false);
+        if (generation === searchGeneration.current && !controller.signal.aborted) {
+          setIsSearching(false);
+        }
       }
     }, 200);
     return () => {
-      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-      searchGenerationRef.current = generation + 1;
+      clearTimeout(timer);
+      controller.abort();
     };
-  }, [query, isAssistantMode, isOpen]);
+  }, [effectiveQuery, kind, isOpen, directEntry]);
 
-  // Scroll selected item into view via virtualizer
+  const entries = useMemo((): PaletteEntry[] => {
+    if (directEntry) return [directEntry];
+    if (effectiveQuery) {
+      return fileResults.map((result) => ({
+        path: result.path,
+        name: result.filename,
+        isDir: result.isDir,
+        source: 'search',
+      }));
+    }
+    const seen = new Set<string>();
+    return recentFiles
+      .filter((file) => {
+        const isDir = file.file_type.trim().toLowerCase() === 'folder';
+        if (seen.has(file.path) || !matchesSearchKind(isDir, kind)) return false;
+        seen.add(file.path);
+        return true;
+      })
+      .slice(0, RECENT_DISPLAY_LIMIT)
+      .map((file) => ({
+        path: file.path,
+        name: file.name,
+        isDir: file.file_type.trim().toLowerCase() === 'folder',
+        source: 'recent',
+      }));
+  }, [directEntry, effectiveQuery, fileResults, recentFiles, kind]);
+  const safeIndex = Math.min(Math.max(selectedIndex, 0), Math.max(entries.length - 1, 0));
+  const selectedEntry = entries[safeIndex];
+
   useEffect(() => {
-    // Find the virtual row index that corresponds to the selected itemIndex
-    const rowIndex = virtualRows.findIndex(
-      (row) =>
-        row.kind !== 'section-header' && row.kind !== 'loading' && row.itemIndex === selectedIndex,
-    );
-    if (rowIndex >= 0) {
-      virtualizer.scrollToIndex(rowIndex, { align: 'auto' });
+    activePathRef.current = selectedEntry?.path;
+    copyGeneration.current++;
+    setCopyState('idle');
+  }, [selectedEntry?.path]);
+
+  const virtualizer = useVirtualizer({
+    count: entries.length,
+    getScrollElement: () => listRef.current,
+    estimateSize: () => FILE_ROW_HEIGHT,
+    getItemKey: (index) => entries[index].path,
+    overscan: 6,
+  });
+  useEffect(() => {
+    if (entries.length) virtualizer.scrollToIndex(safeIndex, { align: 'auto' });
+  }, [safeIndex, entries.length, virtualizer]);
+
+  const executeEntry = useCallback(
+    (entry: PaletteEntry | undefined, intent: SearchSelectionIntent = 'open') => {
+      if (!entry || !onFileSelect) return;
+      if (intent === 'reveal' && /^(https?:|wisp:)/i.test(entry.path)) return;
+      onClose();
+      requestAnimationFrame(() => onFileSelect(entry.path, entry.isDir, intent));
+    },
+    [onClose, onFileSelect],
+  );
+  const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.nativeEvent.isComposing) return;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      if (!entries.length) return;
+      event.preventDefault();
+      const delta = event.key === 'ArrowDown' ? 1 : -1;
+      setSelectedIndex((safeIndex + delta + entries.length) % entries.length);
+    } else if (event.key === 'Enter' && selectedEntry) {
+      event.preventDefault();
+      executeEntry(selectedEntry, event.metaKey || event.ctrlKey ? 'reveal' : 'open');
     }
-  }, [selectedIndex, virtualRows, virtualizer]);
-
-  const executeItem = useCallback(
-    (index: number) => {
-      if (!Number.isInteger(index) || index < 0 || index >= totalItems) return;
-
-      if (index < paletteItems.length) {
-        const item = paletteItems[index];
-        if (item.type === 'go-to-path') {
-          const path = item.path;
-          onClose();
-          if (onFileSelect) {
-            requestAnimationFrame(() => {
-              onFileSelect(path, true);
-            });
-          }
-        } else if (item.type === 'recent-file') {
-          onClose();
-          if (onFileSelect) {
-            const isDir = item.file.file_type.trim().toLowerCase() === 'folder';
-            requestAnimationFrame(() => {
-              onFileSelect(item.file.path, isDir);
-            });
-          }
-        } else {
-          onClose();
-          requestAnimationFrame(() => {
-            window.dispatchEvent(
-              new CustomEvent('wisp-ai-chat-request', {
-                detail: { prompt: item.prompt, currentPath },
-              }),
-            );
-          });
-        }
-      } else {
-        // It's a search file result
-        const fileIndex = index - paletteItems.length;
-        const file = fileResults[fileIndex];
-        if (file && onFileSelect) {
-          onClose();
-          requestAnimationFrame(() => {
-            onFileSelect(file.path, file.isDir);
-          });
-        }
-      }
-    },
-    [paletteItems, fileResults, onClose, onFileSelect, currentPath, totalItems],
-  );
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowDown':
-          if (totalItems === 0) break;
-          e.preventDefault();
-          setSelectedIndex((previous) => {
-            const current = Math.min(Math.max(previous, 0), totalItems - 1);
-            return current < totalItems - 1 ? current + 1 : 0;
-          });
-          break;
-        case 'ArrowUp':
-          if (totalItems === 0) break;
-          e.preventDefault();
-          setSelectedIndex((previous) => {
-            const current = Math.min(Math.max(previous, 0), totalItems - 1);
-            return current > 0 ? current - 1 : totalItems - 1;
-          });
-          break;
-        case 'Enter':
-          if (totalItems === 0 || selectedIndex < 0 || selectedIndex >= totalItems) break;
-          e.preventDefault();
-          executeItem(selectedIndex);
-          break;
-        case 'Escape':
-          e.preventDefault();
-          onClose();
-          break;
-      }
-    },
-    [totalItems, selectedIndex, executeItem, onClose],
-  );
-
-  const handleBackdropClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) {
-        onClose();
-      }
-    },
-    [onClose],
-  );
-
-  const stopPropagation = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-  }, []);
-
-  const clearQuery = useCallback(() => {
-    setQuery('');
-  }, []);
-
-  const handleQueryChange = useCallback((value: string) => {
-    if (value.startsWith('?')) {
-      setMode('assistant');
-      setQuery(value.slice(1).trimStart());
-      return;
-    }
-    setQuery(value);
-  }, []);
-
-  const switchMode = useCallback((nextMode: PaletteMode) => {
-    setMode(nextMode);
-    requestAnimationFrame(() => inputRef.current?.focus());
-  }, []);
-
-  const activeMode = mode;
-  const locationLabel = useMemo(() => {
-    if (!isAssistantMode || !currentPath) return t('commandPalette.everywhere');
-    if (currentPath === 'wisp://home') return t('sidebar.home');
-    return (
-      currentPath
-        .replace(/[/\\]+$/, '')
-        .split(/[/\\]/)
-        .pop() || currentPath
-    );
-  }, [currentPath, isAssistantMode, t]);
-
-  if (!isOpen) return null;
-  let subtitleKey = 'commandPalette.globalScope';
-  if (isAssistantMode) subtitleKey = 'commandPalette.subtitle';
-  else if (isBrowserDemoMode()) subtitleKey = 'commandPalette.demoScope';
-
-  // ── Render a single virtual row ──────────────────────────────────────────
-
-  const renderVirtualRow = (row: VirtualRow) => {
-    switch (row.kind) {
-      case 'section-header':
-        return <div style={sectionHeaderStyle}>{row.label}</div>;
-
-      case 'go-to-path': {
-        const isSelected = row.itemIndex === selectedIndex;
-        return (
-          <button
-            id={`command-palette-option-${row.itemIndex}`}
-            role="option"
-            aria-selected={isSelected}
-            data-index={row.itemIndex}
-            style={isSelected ? itemSelectedStyle : itemBaseStyle}
-            onClick={() => executeItem(row.itemIndex)}
-            onMouseEnter={() => setSelectedIndex(row.itemIndex)}
-          >
-            <span style={iconWrapStyle}>
-              {row.isWeb ? <Globe size={14} /> : <Folder size={14} />}
-            </span>
-            <span style={fileNameContainerStyle}>
-              <span style={fileNameStyle}>
-                {row.isWeb
-                  ? t('commandPalette.openWebsite', { url: row.path })
-                  : t('commandPalette.goToFolder', { path: row.path })}
-              </span>
-            </span>
-            <span style={shortcutStyle}>Enter</span>
-          </button>
-        );
-      }
-
-      case 'recent-file': {
-        const rf = row.file;
-        const isDir = rf.file_type.trim().toLowerCase() === 'folder';
-        const isSelected = row.itemIndex === selectedIndex;
-        return (
-          <button
-            id={`command-palette-option-${row.itemIndex}`}
-            role="option"
-            aria-selected={isSelected}
-            data-index={row.itemIndex}
-            style={isSelected ? itemSelectedStyle : itemBaseStyle}
-            onClick={() => executeItem(row.itemIndex)}
-            onMouseEnter={() => setSelectedIndex(row.itemIndex)}
-          >
-            <span style={iconWrapStyle}>{isDir ? <Folder size={14} /> : <File size={14} />}</span>
-            <span style={fileNameContainerStyle}>
-              <span style={fileNameStyle}>{rf.name}</span>
-              <span style={filePathStyle}>{rf.path}</span>
-            </span>
-            <span style={timestampStyle}>{formatTimestamp(rf.accessed_at * 1000)}</span>
-          </button>
-        );
-      }
-
-      case 'search-file': {
-        const result = row.result;
-        const isDir = result.isDir;
-        const isSelected = row.itemIndex === selectedIndex;
-        return (
-          <button
-            id={`command-palette-option-${row.itemIndex}`}
-            role="option"
-            aria-selected={isSelected}
-            data-index={row.itemIndex}
-            style={isSelected ? itemSelectedStyle : itemBaseStyle}
-            onClick={() => executeItem(row.itemIndex)}
-            onMouseEnter={() => setSelectedIndex(row.itemIndex)}
-          >
-            <span style={iconWrapStyle}>{isDir ? <Folder size={14} /> : <File size={14} />}</span>
-            <span style={fileNameContainerStyle}>
-              <span style={fileNameStyle}>{result.filename}</span>
-              <span style={filePathStyle}>{result.path}</span>
-            </span>
-            <span style={timestampStyle}>
-              {isDir ? t('commandPalette.folderType') : t('commandPalette.fileType')}
-            </span>
-          </button>
-        );
-      }
-
-      case 'assistant': {
-        const isSelected = row.itemIndex === selectedIndex;
-        return (
-          <button
-            id={`command-palette-option-${row.itemIndex}`}
-            role="option"
-            aria-selected={isSelected}
-            data-index={row.itemIndex}
-            style={isSelected ? itemSelectedStyle : itemBaseStyle}
-            onClick={() => executeItem(row.itemIndex)}
-            onMouseEnter={() => setSelectedIndex(row.itemIndex)}
-          >
-            <span
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[2px] bg-xp-purple/15 text-xp-purple"
-              aria-hidden="true"
-            >
-              <Sparkles size={16} />
-            </span>
-            <span style={fileNameContainerStyle}>
-              <span style={fileNameStyle}>
-                {t('commandPalette.askWispWithPrompt', { prompt: row.prompt })}
-              </span>
-              <span style={filePathStyle}>{t('commandPalette.askWispDescription')}</span>
-            </span>
-            <span style={shortcutStyle}>Enter</span>
-          </button>
-        );
-      }
-
-      case 'loading':
-        return (
-          <div style={loadingContainerStyle} role="status" aria-live="polite">
-            <div style={loadingSpinnerStyle} />
-            {t('commandPalette.searchingFiles')}
-          </div>
-        );
+  };
+  const copySelectedPath = async () => {
+    if (!selectedEntry) return;
+    const generation = ++copyGeneration.current;
+    try {
+      await navigator.clipboard.writeText(selectedEntry.path);
+      if (copyMounted.current && generation === copyGeneration.current) setCopyState('copied');
+    } catch {
+      if (copyMounted.current && generation === copyGeneration.current) setCopyState('failed');
     }
   };
 
-  const hasContent = virtualRows.length > 0;
-
-  let SearchModeIcon = Search;
-  let placeholderKey: 'commandPalette.placeholder' | 'commandPalette.assistantPlaceholder' =
-    'commandPalette.placeholder';
-  if (activeMode === 'assistant') {
-    SearchModeIcon = Sparkles;
-    placeholderKey = 'commandPalette.assistantPlaceholder';
+  const kindLabels: Record<GlobalSearchKind, string> = {
+    all: t('commandPalette.filterAll', { defaultValue: 'All' }),
+    files: t('commandPalette.filterFiles', { defaultValue: 'Files' }),
+    folders: t('commandPalette.filterFolders', { defaultValue: 'Folders' }),
+  };
+  const searching = isSearching || (!effectiveQuery && loadingRecent);
+  const canReveal = selectedEntry && !/^(https?:|wisp:)/i.test(selectedEntry.path);
+  let emptyTitle = t('commandPalette.noResults', { defaultValue: 'No matching files' });
+  let emptyDescription = t('commandPalette.tryAnotherName', {
+    defaultValue: 'Try a different name.',
+  });
+  if (!effectiveQuery) {
+    emptyTitle = t('commandPalette.noRecentVisits', { defaultValue: 'No recent items yet' });
+    emptyDescription = t('commandPalette.startTyping', {
+      defaultValue: 'Type a name to find a file or folder.',
+    });
+  } else if (searchPartial) {
+    emptyTitle = t('commandPalette.searchUnavailable', {
+      defaultValue: 'Search is unavailable. Please try again shortly.',
+    });
+    emptyDescription = '';
+  } else if (searchLimited) {
+    emptyTitle = t('commandPalette.narrowSearch', { defaultValue: 'Try a more specific name' });
+    emptyDescription = t('commandPalette.searchBudgetReached', {
+      defaultValue: 'This search reached its limit before finding this type of item.',
+    });
   }
 
-  const renderResultsContent = () => {
-    if (!hasContent && !isSearching) {
-      if (isAssistantMode && !effectiveQuery) {
-        return (
-          <div
-            className="flex flex-col items-center px-8 py-10 text-center"
-            role="status"
-            aria-live="polite"
-          >
-            <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-[2px] bg-xp-purple/15 text-xp-purple ring-1 ring-xp-purple/20">
-              <Sparkles size={20} aria-hidden="true" />
-            </span>
-            <div className="text-sm font-medium text-xp-text">
-              {t('commandPalette.assistantEmptyTitle')}
-            </div>
-            <p className="mt-1 max-w-sm text-xs leading-relaxed text-xp-text-muted">
-              {t('commandPalette.assistantEmptyDescription')}
-            </p>
-          </div>
-        );
-      }
-      return (
-        <div style={emptyStateStyle} role="status" aria-live="polite">
-          {searchPartial ? t('commandPalette.searchUnavailable') : t('commandPalette.noResults')}
-        </div>
-      );
-    }
-
-    return (
-      <div
-        style={{
-          height: `${virtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
-        }}
-      >
-        {virtualizer.getVirtualItems().map((virtualRow) => {
-          const row = virtualRows[virtualRow.index];
-          return (
-            <div
-              key={virtualRow.key}
-              data-index={virtualRow.index}
-              ref={virtualizer.measureElement}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                transform: `translateY(${virtualRow.start}px)`,
-              }}
-            >
-              {renderVirtualRow(row)}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
   return (
-    <div style={backdropStyle} onClick={handleBackdropClick} data-command-palette>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()} maxWidth="720px">
       <div
-        style={dialogStyle}
-        onClick={stopPropagation}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t('commandPalette.title')}
+        className="wisp-search-dialog"
+        data-command-palette
+        style={
+          {
+            '--wisp-search-height': `${Math.max(4, Math.min(8, entries.length)) * FILE_ROW_HEIGHT + 190}px`,
+          } as React.CSSProperties
+        }
       >
-        <div className="flex items-center justify-between border-b border-xp-border px-[18px] py-3.5">
-          <div className="flex min-w-0 items-center gap-3">
-            <span
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[2px] bg-xp-purple/15 text-xp-purple ring-1 ring-xp-purple/20"
-              aria-hidden="true"
-            >
-              <Sparkles size={17} />
-            </span>
-            <div className="min-w-0">
-              <div className="text-sm font-semibold tracking-tight text-xp-text">
-                {t('commandPalette.title')}
-              </div>
-              <div className="text-[11px] text-xp-text-muted">{t(subtitleKey)}</div>
-            </div>
-          </div>
-          <span className="ml-4 max-w-[180px] truncate rounded-[2px] border border-xp-border bg-xp-bg px-2.5 py-1 text-[10px] text-xp-text-muted">
-            {locationLabel}
-          </span>
-        </div>
-
-        <div
-          className="flex items-center gap-1 px-[18px] pt-3"
-          role="tablist"
-          aria-label={t('commandPalette.modeLabel')}
-        >
-          {(
-            [
-              ['files', Files, t('commandPalette.modes.files')],
-              ['assistant', Sparkles, t('commandPalette.modes.assistant')],
-            ] as const
-          ).map(([mode, Icon, label]) => (
-            <button
-              key={mode}
-              type="button"
-              role="tab"
-              aria-selected={activeMode === mode}
-              onClick={() => switchMode(mode)}
-              className={`flex items-center gap-1.5 rounded-[2px] px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
-                activeMode === mode
-                  ? 'bg-xp-blue/15 text-xp-blue ring-1 ring-inset ring-xp-blue/20'
-                  : 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
-              }`}
-            >
-              <Icon size={13} aria-hidden="true" />
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {/* Search Input */}
-        <div style={searchBarStyle}>
-          <SearchModeIcon style={searchIconStyle} aria-hidden="true" />
+        <DialogTitle className="sr-only">
+          {t('commandPalette.searchTitle', { defaultValue: 'Search files and folders' })}
+        </DialogTitle>
+        <div className="wisp-search-input-row">
+          <Search size={21} aria-hidden="true" />
           <input
+            id="command-palette-input"
             ref={inputRef}
+            data-autofocus
             type="text"
             role="combobox"
             value={query}
-            onChange={(e) => handleQueryChange(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={t(placeholderKey)}
-            style={inputStyle}
+            onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={handleInputKeyDown}
+            placeholder={t('commandPalette.placeholder', {
+              defaultValue: 'Search files and folders...',
+            })}
+            aria-label={t('commandPalette.placeholder', {
+              defaultValue: 'Search files and folders...',
+            })}
             autoComplete="off"
             spellCheck={false}
-            aria-label={t(placeholderKey)}
             aria-autocomplete="list"
             aria-haspopup="listbox"
             aria-expanded={isOpen}
             aria-controls="command-palette-results"
             aria-activedescendant={
-              totalItems > 0 && selectedIndex >= 0 && selectedIndex < totalItems
-                ? `command-palette-option-${selectedIndex}`
-                : undefined
+              selectedEntry ? `command-palette-option-${safeIndex}` : undefined
             }
           />
-          {effectiveQuery && (
+          {query && (
             <button
               type="button"
-              onClick={clearQuery}
-              style={clearBtnStyle}
-              aria-label={t('commandPalette.clear')}
+              className="wisp-search-icon-button"
+              aria-label={t('commandPalette.clear', { defaultValue: 'Clear search' })}
+              onClick={() => {
+                setQuery('');
+                inputRef.current?.focus();
+              }}
             >
-              <X style={clearIconStyle} aria-hidden="true" />
+              <X size={16} aria-hidden="true" />
             </button>
           )}
+          <button
+            type="button"
+            className="wisp-search-close"
+            onClick={onClose}
+            aria-label={t('commandPalette.closeSearch', { defaultValue: 'Close search' })}
+          >
+            Esc
+          </button>
         </div>
-
-        {/* Results List - Virtualized */}
+        <div className="wisp-search-filter-row">
+          <div
+            className="wisp-search-tabs"
+            role="tablist"
+            aria-label={t('commandPalette.itemType', { defaultValue: 'Item type' })}
+            onKeyDown={(event) => {
+              if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+              event.preventDefault();
+              const index = SEARCH_KINDS.indexOf(kind);
+              let next = (index + (event.key === 'ArrowRight' ? 1 : 2)) % 3;
+              if (event.key === 'Home') next = 0;
+              if (event.key === 'End') next = 2;
+              const nextKind = SEARCH_KINDS[next];
+              setKind(nextKind);
+              event.currentTarget
+                .querySelector<HTMLButtonElement>(`[data-kind="${nextKind}"]`)
+                ?.focus();
+            }}
+          >
+            {SEARCH_KINDS.map((value) => (
+              <button
+                key={value}
+                id={`command-palette-tab-${value}`}
+                type="button"
+                role="tab"
+                data-kind={value}
+                aria-selected={kind === value}
+                aria-controls="command-palette-panel"
+                tabIndex={kind === value ? 0 : -1}
+                onClick={() => setKind(value)}
+              >
+                {kindLabels[value]}
+              </button>
+            ))}
+          </div>
+          <span className="wisp-search-scope">
+            {isDemo
+              ? t('commandPalette.exampleFiles', { defaultValue: 'Example files · name search' })
+              : t('commandPalette.systemLocations', {
+                  defaultValue: 'System-searchable locations · names',
+                })}
+          </span>
+        </div>
         <div
-          ref={listRef}
-          id="command-palette-results"
-          role="listbox"
-          aria-label={t('commandPalette.results')}
-          aria-busy={isSearching}
-          style={{ flex: 1, overflowY: 'auto', padding: '4px 0' }}
+          id="command-palette-panel"
+          role="tabpanel"
+          aria-labelledby={`command-palette-tab-${kind}`}
+          className="wisp-search-results-panel"
         >
-          {renderResultsContent()}
+          <div className="wisp-search-section-label" aria-live="polite">
+            {!effectiveQuery
+              ? t('commandPalette.recentVisits', { defaultValue: 'Recently visited' })
+              : t('commandPalette.results', { defaultValue: 'Search results' })}
+            {entries.length > 0 && (
+              <span>
+                {entries.length}
+                {searchLimited ? '+' : ''}
+              </span>
+            )}
+          </div>
+          <div
+            ref={listRef}
+            id="command-palette-results"
+            role="listbox"
+            aria-label={t('commandPalette.results', { defaultValue: 'Search results' })}
+            aria-busy={searching}
+            className="wisp-search-results"
+          >
+            {entries.length > 0 ? (
+              <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+                {virtualizer.getVirtualItems().map((row) => {
+                  const entry = entries[row.index];
+                  let Icon = File;
+                  if (entry.isDir) Icon = Folder;
+                  if (entry.source === 'path') Icon = FolderOpen;
+                  if (entry.source === 'web') Icon = Globe;
+                  return (
+                    <button
+                      key={row.key}
+                      id={`command-palette-option-${row.index}`}
+                      role="option"
+                      aria-selected={row.index === safeIndex}
+                      type="button"
+                      tabIndex={-1}
+                      className="wisp-search-result"
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        transform: `translateY(${row.start}px)`,
+                      }}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onMouseEnter={() => setSelectedIndex(row.index)}
+                      onClick={() => executeEntry(entry)}
+                    >
+                      <span className={`wisp-search-result-icon ${entry.isDir ? 'is-folder' : ''}`}>
+                        <Icon size={22} aria-hidden="true" />
+                      </span>
+                      <span className="wisp-search-result-text">
+                        <span className="wisp-search-result-name">{entry.name}</span>
+                        <span className="wisp-search-result-parent" title={entry.path}>
+                          {entry.source === 'path' || entry.source === 'web'
+                            ? entry.path
+                            : parentDirectory(entry.path)}
+                        </span>
+                      </span>
+                      {row.index === safeIndex && (
+                        <span className="wisp-search-enter" aria-hidden="true">
+                          ↵
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="wisp-search-empty" role="status" aria-live="polite">
+                {searching ? (
+                  <>
+                    <span className="wisp-search-spinner" aria-hidden="true" />
+                    {t('commandPalette.searchingFiles', { defaultValue: 'Searching files...' })}
+                  </>
+                ) : (
+                  <>
+                    <Search size={28} aria-hidden="true" />
+                    <strong>{emptyTitle}</strong>
+                    {emptyDescription && <p>{emptyDescription}</p>}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-
-        {/* Footer hint */}
-        {!isAssistantMode && (searchPartial || searchLimited) && (
-          <p role="status" className="px-4 py-2 text-xs text-xp-text-secondary">
+        {selectedEntry && (
+          <div className="wisp-search-selection">
+            <div className="wisp-search-full-path" title={selectedEntry.path}>
+              <span>{t('commandPalette.fullPath', { defaultValue: 'Full path' })}</span>
+              <div>{selectedEntry.path}</div>
+            </div>
+            <div className="wisp-search-selection-actions">
+              <span role="status" className="wisp-search-copy-status">
+                {copyState === 'copied' &&
+                  t('commandPalette.pathCopied', { defaultValue: 'Path copied' })}
+                {copyState === 'failed' &&
+                  t('commandPalette.copyFailed', { defaultValue: 'Could not copy path' })}
+              </span>
+              <button
+                type="button"
+                onClick={copySelectedPath}
+                className="wisp-search-secondary-action"
+              >
+                <Copy size={14} aria-hidden="true" />
+                {t('commandPalette.copyPath', { defaultValue: 'Copy path' })}
+              </button>
+              {canReveal && (
+                <button
+                  type="button"
+                  onClick={() => executeEntry(selectedEntry, 'reveal')}
+                  className="wisp-search-secondary-action"
+                >
+                  <FolderOpen size={14} aria-hidden="true" />
+                  {t('commandPalette.reveal', { defaultValue: 'Show in folder' })}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => executeEntry(selectedEntry)}
+                className="wisp-search-primary-action"
+              >
+                {selectedEntry.isDir === true && selectedEntry.source !== 'web'
+                  ? t('commandPalette.openFolder', { defaultValue: 'Open folder' })
+                  : t('commandPalette.openItem', { defaultValue: 'Open' })}
+              </button>
+            </div>
+          </div>
+        )}
+        {(searchPartial || searchLimited) && entries.length > 0 && (
+          <p role="status" className="wisp-search-notice">
             {searchPartial
-              ? t('commandPalette.partialResults')
-              : t('commandPalette.limitedResults')}
+              ? t('commandPalette.partialResults', {
+                  defaultValue: 'Some locations could not be searched.',
+                })
+              : t('commandPalette.refineForMore', {
+                  defaultValue: 'Showing a limited set. Add more of the name to narrow the search.',
+                })}
           </p>
         )}
-        <div style={footerStyle}>
+        <div className="wisp-search-footer">
           <span>
-            <kbd style={kbdStyle}>&#8593;&#8595;</kbd> {t('commandPalette.navigate')}
+            <kbd>↑↓</kbd> {t('commandPalette.navigate', { defaultValue: 'Navigate' })}
           </span>
           <span>
-            <kbd style={kbdStyle}>Enter</kbd> {t('commandPalette.selectAction')}
+            <kbd>↵</kbd> {t('commandPalette.openItem', { defaultValue: 'Open' })}
           </span>
           <span>
-            <kbd style={kbdStyle}>Esc</kbd> {t('commandPalette.closeAction')}
+            <kbd>{navigator.platform.toUpperCase().includes('MAC') ? '⌘' : 'Ctrl'} ↵</kbd>{' '}
+            {t('commandPalette.reveal', { defaultValue: 'Show in folder' })}
           </span>
         </div>
       </div>
-    </div>
+    </Dialog>
   );
 };
 

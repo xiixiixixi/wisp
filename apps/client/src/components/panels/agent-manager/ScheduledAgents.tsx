@@ -127,7 +127,7 @@ const ScheduledAgents = () => {
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.borderColor = 'var(--xp-blue)';
-          e.currentTarget.style.color = 'var(--xp-blue)';
+          e.currentTarget.style.color = 'var(--ds-link)';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.borderColor = 'var(--xp-border)';

@@ -106,9 +106,9 @@ export const GDriveUploadDialog = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="w-96 max-w-full rounded-[2px] border border-xp-border bg-xp-surface p-6">
+      <div className="w-96 max-w-full rounded-md border border-xp-border bg-xp-surface p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-medium text-xp-text">
+          <h3 className="text-lg font-semibold text-xp-text">
             {t('settings.gdrive.uploadFileTitle')}
           </h3>
           <button
@@ -156,14 +156,14 @@ export const GDriveUploadDialog = ({
               <div className="flex justify-center space-x-2">
                 <button
                   onClick={startUpload}
-                  className="rounded-[2px] bg-xp-blue px-4 py-2 text-sm text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark focus:outline-none"
+                  className="rounded-md bg-xp-blue px-4 py-2 text-sm text-[var(--xp-bg)] transition-colors hover:bg-xp-blue-dark focus:outline-none"
                   aria-label={t('settings.gdrive.ariaRetryUpload')}
                 >
                   {t('settings.gdrive.retry')}
                 </button>
                 <button
                   onClick={handleClose}
-                  className="rounded-[2px] border border-xp-border px-4 py-2 text-sm text-xp-text transition-colors hover:bg-xp-surface-light focus:outline-none"
+                  className="rounded-md border border-xp-border px-4 py-2 text-sm text-xp-text transition-colors hover:bg-xp-surface-light focus:outline-none"
                   aria-label={t('settings.gdrive.ariaCancelUpload')}
                 >
                   {t('common.cancel')}

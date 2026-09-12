@@ -735,10 +735,9 @@ export const viewModes = {
   },
 };
 
-// Wisp now has one stable neutral appearance. Keep accepting historical keys
-// for settings and extension compatibility, but resolve all of them to the
-// same light material instead of letting persisted state fight SkySync.
-// SkySync owns the fixed light/glass classes. Do not clear the material when
+// SkySync owns the system light/dark appearance and shared material classes.
+// Keep accepting historical keys for settings and extension compatibility.
+// Do not clear the material when
 // the settings page or an extension reapplies a historical theme key.
 export const applyTheme = (_themeKey: string) => {
   const root = document.documentElement;

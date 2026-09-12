@@ -380,6 +380,13 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
 
     // Listen for global shortcuts from the backend
     const unlistenGlobal = listenToEvent<ShortcutAction>('global_shortcut_triggered', (action) => {
+      if (
+        document.querySelector(
+          '[role="dialog"][aria-modal="true"], [role="alertdialog"][aria-modal="true"]',
+        )
+      ) {
+        return;
+      }
       if (isTerminalOwnedAction(action) && isTextEditingTarget(document.activeElement)) return;
       if (action === 'Copy' && hasSelectedText()) return;
       executeAction(action);

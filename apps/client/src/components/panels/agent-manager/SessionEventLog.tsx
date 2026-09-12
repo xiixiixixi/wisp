@@ -16,7 +16,7 @@ const eventIcon = (event: SessionEvent) => {
   switch (event.type) {
     case 'tool_call':
     case 'tool_result':
-      return <Wrench size={10} style={{ color: 'var(--xp-blue)', flexShrink: 0 }} />;
+      return <Wrench size={10} style={{ color: 'var(--ds-link)', flexShrink: 0 }} />;
     case 'text_delta':
       return <MessageSquare size={10} style={{ color: 'var(--xp-text-muted)', flexShrink: 0 }} />;
     case 'approval_request':
@@ -105,7 +105,7 @@ const SessionEventLog = ({ sessionId }: SessionEventLogProps) => {
             >
               {eventIcon(event)}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ color: 'var(--xp-blue)', fontWeight: 600 }}>{event.toolName}</span>
+                <span style={{ color: 'var(--ds-link)', fontWeight: 600 }}>{event.toolName}</span>
                 {event.input && (
                   <span style={{ color: 'var(--xp-text-muted)', marginLeft: '6px' }}>
                     {truncate(renderToolInput(event.input), 80)}

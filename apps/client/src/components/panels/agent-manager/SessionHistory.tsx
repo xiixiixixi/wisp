@@ -287,7 +287,7 @@ const HistoryEntry = ({
                   borderRadius: '4px',
                   padding: '2px 8px',
                   cursor: 'pointer',
-                  color: 'var(--xp-blue)',
+                  color: 'var(--ds-link)',
                   fontSize: '10px',
                   display: 'flex',
                   alignItems: 'center',

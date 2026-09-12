@@ -47,12 +47,12 @@ const ExtensionDetailDialog = ({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="flex max-h-[80vh] w-[480px] max-w-[90vw] flex-col rounded-[2px] border border-xp-border bg-xp-surface">
+      <div className="flex max-h-[80vh] w-[480px] max-w-[90vw] flex-col rounded-md border border-xp-border bg-xp-surface">
         {/* Header */}
         <div className="flex items-start justify-between border-b border-xp-border p-5">
           <div className="flex min-w-0 items-start gap-3">
             {/* Icon */}
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[2px] border border-xp-border bg-xp-bg text-lg">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md border border-xp-border bg-xp-bg text-lg">
               {extension.icon ? (
                 extension.icon.trim().startsWith('<') ? (
                   <span
@@ -63,7 +63,7 @@ const ExtensionDetailDialog = ({
                   <span className="text-xl">{extension.icon}</span>
                 )
               ) : (
-                <span className="text-xl font-medium text-xp-blue">
+                <span className="text-xl font-semibold text-xp-blue">
                   {extension.displayName.charAt(0).toUpperCase()}
                 </span>
               )}
@@ -86,7 +86,7 @@ const ExtensionDetailDialog = ({
 
           <button
             onClick={onClose}
-            className="flex-shrink-0 rounded-[2px] p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="flex-shrink-0 rounded-md p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             aria-label={tUi('agentManager.workspace.close')}
           >
             <X className="h-5 w-5" />
@@ -114,7 +114,7 @@ const ExtensionDetailDialog = ({
 
           {/* Description */}
           <div>
-            <h3 className="mb-1.5 text-sm font-medium text-xp-text">
+            <h3 className="mb-1.5 text-sm font-semibold text-xp-text">
               {tUi('interface.description')}
             </h3>
             <p className="text-sm leading-relaxed text-xp-text-muted">{extension.description}</p>
@@ -123,7 +123,7 @@ const ExtensionDetailDialog = ({
           {/* Categories */}
           {extension.categories && extension.categories.length > 0 && (
             <div>
-              <h3 className="mb-1.5 flex items-center gap-1 text-sm font-medium text-xp-text">
+              <h3 className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-xp-text">
                 <Tag className="h-3.5 w-3.5" />
                 {tUi('organizer.categories')}
               </h3>
@@ -131,7 +131,7 @@ const ExtensionDetailDialog = ({
                 {extension.categories.map((cat) => (
                   <span
                     key={cat.slug}
-                    className="rounded-[2px] border border-xp-blue/20 bg-xp-blue/10 px-2 py-0.5 text-xs text-xp-blue"
+                    className="rounded-md border border-xp-blue/20 bg-xp-blue/10 px-2 py-0.5 text-xs text-xp-blue"
                   >
                     {cat.name}
                   </span>
@@ -143,7 +143,7 @@ const ExtensionDetailDialog = ({
           {/* Permissions */}
           {extension.permissions && extension.permissions.length > 0 && (
             <div>
-              <h3 className="mb-1.5 flex items-center gap-1 text-sm font-medium text-xp-text">
+              <h3 className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-xp-text">
                 <Shield className="h-3.5 w-3.5" />
                 {tUi('settings.tabs.permissions')}
               </h3>
@@ -151,7 +151,7 @@ const ExtensionDetailDialog = ({
                 {extension.permissions.map((perm) => (
                   <div
                     key={perm}
-                    className="flex items-center gap-2 rounded-[2px] border border-xp-border bg-xp-bg px-2.5 py-1.5 text-xs text-xp-text-muted"
+                    className="flex items-center gap-2 rounded-md border border-xp-border bg-xp-bg px-2.5 py-1.5 text-xs text-xp-text-muted"
                   >
                     <Shield className="h-3 w-3 flex-shrink-0 text-xp-yellow" />
                     {perm}
@@ -169,21 +169,21 @@ const ExtensionDetailDialog = ({
               const baseUrl = MARKETPLACE_API_URL.replace(/\/api$/, '');
               TauriAPI.openUrl(`${baseUrl}/extensions/${extension.slug || extension.id}`);
             }}
-            className="flex items-center gap-1.5 rounded-[2px] border border-xp-border px-3 py-1.5 text-sm text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="flex items-center gap-1.5 rounded-md border border-xp-border px-3 py-1.5 text-sm text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
           >
             <ExternalLink className="h-3.5 w-3.5" />
             {tUi('interface.viewOnWeb')}
           </button>
 
           {isInstalled ? (
-            <span className="rounded-[2px] border border-xp-green/30 bg-xp-green/20 px-4 py-1.5 text-sm text-xp-green">
+            <span className="rounded-md border border-xp-green/30 bg-xp-green/20 px-4 py-1.5 text-sm text-xp-green">
               {tUi('agentManager.cockpit.statusInstalled')}
             </span>
           ) : (
             <button
               onClick={() => onInstall(extension)}
               disabled={isInstalling}
-              className="flex items-center gap-1.5 rounded-[2px] bg-xp-blue px-4 py-1.5 text-sm text-xp-on-accent transition-colors hover:bg-xp-blue/80 disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-md bg-xp-blue px-4 py-1.5 text-sm text-xp-on-accent transition-colors hover:bg-xp-blue/80 disabled:opacity-50"
             >
               {isInstalling ? (
                 <>

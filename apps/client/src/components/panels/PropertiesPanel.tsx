@@ -106,10 +106,9 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
   };
 
   if (!filePath) {
-    // ChatGPT R4: the properties tab is an inspector, not a placeholder —
-    // its empty state previews the field area (top-left, not dead center).
+    // Keep the field preview readable in the compact empty drawer.
     return (
-      <div className="flex h-full flex-col items-start gap-2 px-5 pt-9">
+      <div className="flex h-full min-h-0 flex-col items-start justify-center gap-1.5 px-4 py-3">
         <svg
           className="text-xp-text-muted"
           width="22"
@@ -150,7 +149,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
         <span className="text-xp-red">{t('panels.properties.errorPrefix', { error })}</span>
         <button
           onClick={loadProperties}
-          className="rounded-[2px] bg-xp-blue px-2 py-0.5 text-[10px] text-xp-on-accent hover:bg-xp-blue-dark"
+          className="rounded-md bg-xp-blue px-2 py-0.5 text-[10px] text-xp-on-accent hover:bg-xp-blue-dark"
         >
           {t('panels.properties.retry')}
         </button>
@@ -161,14 +160,14 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
   if (!properties) return null;
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="wisp-properties-panel flex h-full flex-col">
       {/* Sub-tab bar */}
-      <div className="flex items-center gap-0.5 border-b border-xp-border bg-xp-surface-light/30 px-3 py-1">
+      <div className="wisp-properties-toolbar wisp-bottom-subtoolbar flex items-center gap-0.5 px-3 py-1">
         {(['general', 'permissions', 'details'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`rounded-[2px] px-2 py-0.5 text-[10px] font-medium capitalize ${
+            className={`rounded-md px-2 py-0.5 text-[10px] font-semibold capitalize ${
               activeTab === tab
                 ? 'bg-xp-blue/20 text-xp-blue'
                 : 'text-xp-text-muted hover:bg-xp-surface-light'
@@ -180,7 +179,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
         <div className="flex-1" />
         <button
           onClick={loadProperties}
-          className="rounded-[2px] px-2 py-0.5 text-[10px] font-medium text-xp-text-muted hover:bg-xp-surface-light"
+          className="rounded-md px-2 py-0.5 text-[10px] font-semibold text-xp-text-muted hover:bg-xp-surface-light"
           title={t('panels.properties.refreshTitle')}
         >
           <svg
@@ -218,7 +217,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
               </span>
               <div className="min-w-0">
                 <div
-                  className="max-w-[200px] truncate text-xs font-medium text-xp-text"
+                  className="max-w-[200px] truncate text-xs font-semibold text-xp-text"
                   title={properties.name}
                 >
                   {properties.name}
@@ -227,22 +226,22 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
                 {/* Attribute badges */}
                 <div className="mt-1 flex flex-wrap gap-1">
                   {properties.is_hidden && (
-                    <span className="rounded-[2px] bg-xp-yellow/20 px-1 py-0.5 text-[9px] text-xp-yellow">
+                    <span className="rounded-md bg-xp-yellow/20 px-1 py-0.5 text-[9px] text-xp-yellow">
                       {t('panels.properties.hiddenBadge')}
                     </span>
                   )}
                   {properties.is_readonly && (
-                    <span className="rounded-[2px] bg-xp-red/20 px-1 py-0.5 text-[9px] text-xp-red">
+                    <span className="rounded-md bg-xp-red/20 px-1 py-0.5 text-[9px] text-xp-red">
                       {t('panels.properties.readonlyBadge')}
                     </span>
                   )}
                   {properties.is_directory && (
-                    <span className="rounded-[2px] bg-xp-blue/20 px-1 py-0.5 text-[9px] text-xp-blue">
+                    <span className="rounded-md bg-xp-blue/20 px-1 py-0.5 text-[9px] text-xp-blue">
                       {t('panels.properties.directoryBadge')}
                     </span>
                   )}
                   {properties.attributes.symlink_target && (
-                    <span className="rounded-[2px] bg-xp-purple/20 px-1 py-0.5 text-[9px] text-xp-purple">
+                    <span className="rounded-md bg-xp-purple/20 px-1 py-0.5 text-[9px] text-xp-purple">
                       {t('panels.properties.symlinkBadge')}
                     </span>
                   )}
@@ -310,7 +309,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
               />
             </div>
             <div className="mt-2 flex items-center gap-2">
-              <span className="w-20 text-[10px] font-medium text-xp-text-muted">
+              <span className="w-20 text-[10px] font-semibold text-xp-text-muted">
                 {t('panels.properties.labelPermissions')}
               </span>
               <input
@@ -320,14 +319,14 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
                 }
                 onChange={(e) => setPermissionString(e.target.value)}
                 disabled={!editingPermissions}
-                className="flex-1 rounded-[2px] border border-xp-border bg-xp-bg px-2 py-1 text-[11px] text-xp-text disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex-1 rounded-md border border-xp-border bg-xp-bg px-2 py-1 text-[11px] text-xp-text disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder={t('panels.properties.permPlaceholder')}
               />
               {editingPermissions ? (
                 <>
                   <button
                     onClick={handleSavePermissions}
-                    className="rounded-[2px] bg-xp-blue px-2 py-1 text-[10px] text-xp-on-accent hover:bg-xp-blue-dark"
+                    className="rounded-md bg-xp-blue px-2 py-1 text-[10px] text-xp-on-accent hover:bg-xp-blue-dark"
                   >
                     {t('common.save')}
                   </button>
@@ -336,7 +335,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
                       setEditingPermissions(false);
                       setPermissionString(properties.permissions.permissions_string);
                     }}
-                    className="rounded-[2px] bg-xp-surface-light px-2 py-1 text-[10px] text-xp-text hover:bg-xp-border"
+                    className="rounded-md bg-xp-surface-light px-2 py-1 text-[10px] text-xp-text hover:bg-xp-border"
                   >
                     {t('common.cancel')}
                   </button>
@@ -344,7 +343,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
               ) : (
                 <button
                   onClick={() => setEditingPermissions(true)}
-                  className="rounded-[2px] bg-xp-surface-light px-2 py-1 text-[10px] text-xp-text hover:bg-xp-border"
+                  className="rounded-md bg-xp-surface-light px-2 py-1 text-[10px] text-xp-text hover:bg-xp-border"
                 >
                   {t('common.edit')}
                 </button>
@@ -430,7 +429,7 @@ const PropRow = ({ label, value }: { label: string; value: string }) => {
   // reads as a field grid instead of a wrapped sentence.
   return (
     <div className="flex min-h-[28px] min-w-0 items-baseline gap-2">
-      <span className="w-[88px] flex-shrink-0 text-[10px] font-medium text-xp-text-muted">
+      <span className="w-[88px] flex-shrink-0 text-[10px] font-semibold text-xp-text-muted">
         {label}
       </span>
       <span className="min-w-[180px] truncate text-[11px] text-xp-text" title={value}>
@@ -443,7 +442,7 @@ const PropRow = ({ label, value }: { label: string; value: string }) => {
 const PermBadge = ({ label, value }: { label: string; value: boolean }) => {
   return (
     <div
-      className={`flex items-center gap-1 rounded-[2px] px-2 py-1 text-[10px] font-medium ${
+      className={`flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold ${
         value ? 'bg-xp-green/10 text-xp-green' : 'bg-xp-red/10 text-xp-red'
       }`}
     >

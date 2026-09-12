@@ -187,7 +187,7 @@ const ChatFilePathCard = ({ filePath, onClick }: FilePathCardProps) => {
         e.currentTarget.style.background = 'var(--xp-surface)';
       }}
     >
-      <span style={{ flexShrink: 0, color: 'var(--xp-blue)' }}>{icon}</span>
+      <span style={{ flexShrink: 0, color: 'var(--ds-link)' }}>{icon}</span>
       <span
         style={{
           overflow: 'hidden',

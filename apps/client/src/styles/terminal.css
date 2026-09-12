@@ -1,0 +1,14 @@
+.wisp-terminal-sessions,
+.wisp-terminal-panel .xterm,
+.wisp-terminal-panel .xterm-viewport {
+  background-color: var(--wisp-terminal-bg);
+  color: var(--wisp-terminal-fg);
+}
+.wisp-terminal-sessions {
+  min-height: 0;
+  padding: 8px 12px;
+}
+.wisp-terminal-panel .xterm .composition-view {
+  background: var(--wisp-terminal-bg);
+  color: var(--wisp-terminal-fg);
+}

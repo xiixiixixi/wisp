@@ -193,7 +193,7 @@ const ChangeReviewPanel = React.memo(
             stroke="currentColor"
             strokeWidth={2}
             viewBox="0 0 24 24"
-            style={{ color: 'var(--xp-blue)', flexShrink: 0 }}
+            style={{ color: 'var(--ds-link)', flexShrink: 0 }}
           >
             <path
               strokeLinecap="round"

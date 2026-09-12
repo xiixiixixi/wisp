@@ -60,36 +60,183 @@ export interface PreviewFactoryConfig {
 // WebKit cannot decode these without the Rust conversion bridge, but Finder
 // previews them, so they stay in the image list.
 const IMAGE_EXTENSIONS = [
-  'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'svgz', 'ico', 'tiff', 'tif', 'avif',
-  'heic', 'heif', // iPhone photos — WebKit ≥17 renders these; bridge covers older
-  'psd', 'psb', // Photoshop (flattened composite via ImageIO)
-  'dng', 'cr2', 'cr3', 'nef', 'nrw', 'arw', 'srf', 'sr2', 'raf', 'orf', 'rw2', 'raw',
-  'pef', 'ptx', 'dcr', 'rwl', 'mrw', 'kdc', 'erf', 'iiq', '3fr', 'fff', 'x3f', // camera RAW
-  'pict', 'pct', 'exr', 'hdr', 'tga', 'icns', 'pbm', 'pgm', 'ppm', 'pnm',
+  'jpg',
+  'jpeg',
+  'png',
+  'gif',
+  'bmp',
+  'webp',
+  'svg',
+  'svgz',
+  'ico',
+  'tiff',
+  'tif',
+  'avif',
+  'heic',
+  'heif', // iPhone photos — WebKit ≥17 renders these; bridge covers older
+  'psd',
+  'psb', // Photoshop (flattened composite via ImageIO)
+  'dng',
+  'cr2',
+  'cr3',
+  'nef',
+  'nrw',
+  'arw',
+  'srf',
+  'sr2',
+  'raf',
+  'orf',
+  'rw2',
+  'raw',
+  'pef',
+  'ptx',
+  'dcr',
+  'rwl',
+  'mrw',
+  'kdc',
+  'erf',
+  'iiq',
+  '3fr',
+  'fff',
+  'x3f', // camera RAW
+  'pict',
+  'pct',
+  'exr',
+  'hdr',
+  'tga',
+  'icns',
+  'pbm',
+  'pgm',
+  'ppm',
+  'pnm',
 ] as const;
 
 const CODE_EXTENSIONS = [
-  'js', 'ts', 'jsx', 'tsx', 'py', 'java', 'cpp', 'cc', 'c', 'h', 'hpp', 'cs', 'php', 'rb',
-  'go', 'rs', 'css', 'scss', 'less', 'vue', 'svelte', 'sh', 'bash', 'zsh', 'fish', 'toml',
-  'sql', 'swift', 'kt', 'kts',
-  'xml', 'yml', 'yaml', 'diff', 'patch', 'bat', 'cmd', 'ps1', 'pl', 'lua', 'scala', 'dart',
-  'r', 'm', 'mm', 'gradle', 'makefile',
+  'js',
+  'mjs',
+  'cjs',
+  'ts',
+  'mts',
+  'cts',
+  'jsx',
+  'tsx',
+  'py',
+  'java',
+  'cpp',
+  'cc',
+  'c',
+  'h',
+  'hpp',
+  'cs',
+  'php',
+  'rb',
+  'go',
+  'rs',
+  'css',
+  'scss',
+  'less',
+  'vue',
+  'svelte',
+  'sh',
+  'bash',
+  'zsh',
+  'fish',
+  'toml',
+  'sql',
+  'swift',
+  'kt',
+  'kts',
+  'xml',
+  'yml',
+  'yaml',
+  'diff',
+  'patch',
+  'bat',
+  'cmd',
+  'ps1',
+  'pl',
+  'lua',
+  'scala',
+  'dart',
+  'r',
+  'm',
+  'mm',
+  'gradle',
+  'makefile',
 ] as const;
 
+const CODE_FILENAMES = new Set([
+  'makefile',
+  'gnumakefile',
+  'dockerfile',
+  'containerfile',
+  'gemfile',
+  'rakefile',
+  '.gitignore',
+  '.gitattributes',
+  '.gitconfig',
+  '.editorconfig',
+  '.env',
+  '.bashrc',
+  '.bash_profile',
+  '.zshrc',
+  '.zprofile',
+  '.profile',
+]);
+
+const isNamedCodeFile = (name: string): boolean => {
+  const baseName = name.toLowerCase();
+  return (
+    CODE_FILENAMES.has(baseName) || /^(?:dockerfile|containerfile|\.env)\.[\w.-]+$/.test(baseName)
+  );
+};
+
 const VIDEO_EXTENSIONS = [
-  'mp4', 'm4v', 'mov', 'webm', 'mkv', 'avi', 'ogv',
-  'mpg', 'mpeg', 'm1v', 'm2v', 'm4b', '3gp', '3g2',
+  'mp4',
+  'm4v',
+  'mov',
+  'webm',
+  'mkv',
+  'avi',
+  'ogv',
+  'mpg',
+  'mpeg',
+  'm1v',
+  'm2v',
+  'm4b',
+  '3gp',
+  '3g2',
 ] as const;
 
 const AUDIO_EXTENSIONS = [
-  'mp3', 'wav', 'ogg', 'oga', 'flac', 'm4a', 'm4b', 'm4r', 'aac', 'wma', 'opus',
-  'aiff', 'aif', 'aifc', 'caf', 'mp2', 'ac3',
+  'mp3',
+  'wav',
+  'ogg',
+  'oga',
+  'flac',
+  'm4a',
+  'm4b',
+  'm4r',
+  'aac',
+  'wma',
+  'opus',
+  'aiff',
+  'aif',
+  'aifc',
+  'caf',
+  'mp2',
+  'ac3',
 ] as const;
 
 // iWork bundles embed a QuickLook/Preview.pdf the Rust side extracts so the
 // native PDF viewer renders the exact document Finder shows.
 const IWORK_EXTENSIONS = [
-  'pages', 'numbers', 'key', 'pagestemplate', 'nmbtemplate', 'kth',
+  'pages',
+  'numbers',
+  'key',
+  'pagestemplate',
+  'nmbtemplate',
+  'kth',
 ] as const;
 
 const FONT_EXTENSIONS = ['ttf', 'otf', 'ttc', 'otc', 'woff', 'woff2', 'dfont'] as const;
@@ -103,8 +250,17 @@ const CONTACT_EXTENSIONS = ['vcf', 'vcard', 'ics', 'ical', 'icalendar'] as const
 // Formats with no dedicated web renderer: the Rust bridge asks Quick Look
 // itself for a first-page thumbnail (ppt/pptx, USDZ, ICC, …).
 const QUICKLOOK_EXTENSIONS = [
-  'ppt', 'pptx', 'pps', 'ppsx', 'pot', 'potx',
-  'usdz', 'usda', 'usdc', 'icc', 'icm',
+  'ppt',
+  'pptx',
+  'pps',
+  'ppsx',
+  'pot',
+  'potx',
+  'usdz',
+  'usda',
+  'usdc',
+  'icc',
+  'icm',
 ] as const;
 
 const extOf = (file: FileEntry): string => file.name.split('.').pop()?.toLowerCase() || '';
@@ -265,8 +421,7 @@ export class PreviewFactory {
       maxSize: 10 * 1024 * 1024, // 10MB
       priority: 10, // beats 'code' so .html files render instead of showing markup
       canPreview: (file) => this.canPreviewHtml(file),
-      getPreviewComponent: () =>
-        import('@/components/previews/HtmlPreview').then((m) => m.default),
+      getPreviewComponent: () => import('@/components/previews/HtmlPreview').then((m) => m.default),
     });
 
     // Video previews (undecodable codecs fall back to a Quick Look poster)
@@ -311,8 +466,7 @@ export class PreviewFactory {
       maxSize: 200 * 1024 * 1024,
       priority: 10,
       canPreview: (file) => extOf(file) === 'epub',
-      getPreviewComponent: () =>
-        import('@/components/previews/EpubPreview').then((m) => m.default),
+      getPreviewComponent: () => import('@/components/previews/EpubPreview').then((m) => m.default),
     });
 
     // Font specimens (TTF/OTF/TTC/WOFF…) — @font-face rendering
@@ -322,8 +476,7 @@ export class PreviewFactory {
       maxSize: 50 * 1024 * 1024,
       priority: 10,
       canPreview: (file) => matchesExtensions(file, FONT_EXTENSIONS),
-      getPreviewComponent: () =>
-        import('@/components/previews/FontPreview').then((m) => m.default),
+      getPreviewComponent: () => import('@/components/previews/FontPreview').then((m) => m.default),
     });
 
     // Archive listings (zip family) — Finder shows the entry list
@@ -498,6 +651,7 @@ export class PreviewFactory {
     const capability = this.capabilities.get('code')!;
     return (
       matchesExtensions(file, capability.extensions) ||
+      isNamedCodeFile(file.name) ||
       (file.mime_type?.startsWith('text/') ?? false) ||
       (file.mime_type?.includes('javascript') ?? false) ||
       (file.mime_type?.includes('typescript') ?? false)
@@ -511,8 +665,7 @@ export class PreviewFactory {
   private canPreviewJson(file: FileEntry): boolean {
     const capability = this.capabilities.get('json')!;
     return (
-      matchesExtensions(file, capability.extensions) ||
-      (file.mime_type?.includes('json') ?? false)
+      matchesExtensions(file, capability.extensions) || (file.mime_type?.includes('json') ?? false)
     );
   }
 

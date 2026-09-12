@@ -1,9 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import OperationBar from '@/components/explorer/OperationBar';
 import type { SortField } from '@/lib/utils';
+
+const { openAirDrop, isTauri, toast } = vi.hoisted(() => ({
+  openAirDrop: vi.fn<(paths: string[]) => Promise<void>>(),
+  isTauri: vi.fn(() => true),
+  toast: vi.fn(),
+}));
+
+vi.mock('@/lib/tauri-api/airdrop', () => ({ openAirDrop }));
+vi.mock('@/lib/transport', () => ({ isTauri }));
+vi.mock('@/hooks/use-toast', () => ({ toast }));
 
 describe('OperationBar', () => {
   const mockViewModes: Record<string, { id: string; name: string; icon: ReactNode }> = {
@@ -41,6 +51,8 @@ describe('OperationBar', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    openAirDrop.mockReset().mockResolvedValue(undefined);
+    isTauri.mockReturnValue(true);
   });
 
   it('shows the localized current sort and view labels', () => {
@@ -59,6 +71,93 @@ describe('OperationBar', () => {
     expect(mockProps.handleCreateFolder).toHaveBeenCalledTimes(1);
     expect(mockProps.setBottomPanelCollapsed).toHaveBeenCalledWith(false);
     expect(mockProps.setBottomPanelTab).toHaveBeenCalledWith('terminal');
+  });
+
+  describe('AirDrop', () => {
+    it('opens AirDrop with an empty selection instead of sending the current directory', async () => {
+      const user = userEvent.setup();
+      render(<OperationBar {...mockProps} currentPath="/Users/test/Documents" />);
+
+      await user.click(screen.getByRole('button', { name: 'AirDrop', exact: true }));
+
+      expect(openAirDrop).toHaveBeenCalledTimes(1);
+      expect(openAirDrop).toHaveBeenCalledWith([]);
+      expect(toast).not.toHaveBeenCalled();
+    });
+
+    it('passes the current selected file and directory paths to the native sheet', async () => {
+      const user = userEvent.setup();
+      const selection = new Set([
+        '/Users/test/Documents/notes.txt',
+        '/Users/test/Documents/Project',
+      ]);
+      render(<OperationBar {...mockProps} selectedFiles={selection} />);
+
+      await user.click(screen.getByRole('button', { name: 'AirDrop', exact: true }));
+
+      expect(openAirDrop).toHaveBeenCalledTimes(1);
+      expect(openAirDrop).toHaveBeenCalledWith([...selection]);
+      expect(toast).not.toHaveBeenCalled();
+    });
+
+    it('shows a desktop availability message in the browser without calling the native API', async () => {
+      isTauri.mockReturnValue(false);
+      const user = userEvent.setup();
+      render(<OperationBar {...mockProps} selectedFiles={new Set(['/demo/notes.txt'])} />);
+
+      await user.click(screen.getByRole('button', { name: 'AirDrop', exact: true }));
+
+      expect(openAirDrop).not.toHaveBeenCalled();
+      expect(toast).toHaveBeenCalledTimes(1);
+      expect(JSON.stringify(toast.mock.calls[0][0])).toMatch(/desktop|macOS/i);
+      expect(screen.getByRole('button', { name: 'AirDrop', exact: true })).toBeEnabled();
+    });
+
+    it('prevents duplicate launches while pending and restores the button without a transfer success claim', async () => {
+      let finish!: () => void;
+      openAirDrop.mockReturnValueOnce(
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+      );
+      const user = userEvent.setup();
+      render(<OperationBar {...mockProps} />);
+      const button = screen.getByRole('button', { name: 'AirDrop', exact: true });
+
+      await user.click(button);
+      expect(button).toBeDisabled();
+      expect(button).toHaveAttribute('aria-busy', 'true');
+      await user.click(button);
+      expect(openAirDrop).toHaveBeenCalledTimes(1);
+
+      await act(async () => finish());
+      expect(button).toBeEnabled();
+      expect(button).not.toHaveAttribute('aria-busy', 'true');
+      expect(toast).not.toHaveBeenCalled();
+    });
+
+    it('reports a native launch failure and allows retry', async () => {
+      openAirDrop.mockRejectedValueOnce(new Error('AirDrop service is unavailable'));
+      const user = userEvent.setup();
+      render(<OperationBar {...mockProps} />);
+      const button = screen.getByRole('button', { name: 'AirDrop', exact: true });
+
+      await user.click(button);
+      await waitFor(() => expect(toast).toHaveBeenCalledTimes(1));
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'destructive',
+          title: 'Could not open AirDrop',
+          description: expect.stringContaining('try again'),
+        }),
+      );
+      expect(button).toBeEnabled();
+      expect(button).not.toHaveAttribute('aria-busy', 'true');
+
+      await user.click(button);
+      expect(openAirDrop).toHaveBeenCalledTimes(2);
+      expect(toast).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('changes the sort field from the dropdown', () => {

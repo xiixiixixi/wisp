@@ -117,7 +117,7 @@ const QuickActions = ({ onAction, disabled }: QuickActionsProps) => {
           >
             <span
               style={{
-                color: 'var(--xp-blue)',
+                color: 'var(--ds-link)',
                 flexShrink: 0,
                 display: 'flex',
               }}

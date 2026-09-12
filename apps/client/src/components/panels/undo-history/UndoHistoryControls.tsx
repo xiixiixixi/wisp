@@ -590,7 +590,7 @@ const Toolbar = ({
           borderRadius: '4px',
           border: 'none',
           cursor: canUndo && !actionInProgress ? 'pointer' : 'default',
-          color: canUndo ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
+          color: canUndo ? 'var(--ds-link)' : 'var(--xp-text-muted)',
           backgroundColor: canUndo ? 'var(--xp-selection-bg)' : 'transparent',
           opacity: canUndo && !actionInProgress ? 1 : 0.5,
         }}

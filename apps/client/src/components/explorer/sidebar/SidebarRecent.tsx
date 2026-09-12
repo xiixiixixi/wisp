@@ -42,7 +42,7 @@ const SidebarRecent = ({
       data-sidebar-section="recent"
     >
       <button
-        className="flex w-full items-center px-3 py-1.5 text-[10px] font-medium uppercase tracking-widest text-xp-text-muted transition-colors hover:bg-xp-surface-light/50"
+        className="flex w-full items-center px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted transition-colors hover:bg-xp-surface-light/50"
         onClick={onToggleCollapsed}
         aria-expanded={!collapsed}
         aria-label={t('sidebar.toggleRecent')}
@@ -66,7 +66,7 @@ const SidebarRecent = ({
             recentFiles.map((rf) => (
               <div
                 key={rf.path}
-                className="flex w-full cursor-pointer items-center rounded-[2px] px-2 py-1 text-xs transition-colors hover:bg-xp-surface-light"
+                className="flex w-full cursor-pointer items-center rounded-md px-2 py-1 text-xs transition-colors hover:bg-xp-surface-light"
                 onClick={() => {
                   if (rf.file_type === 'folder') {
                     navigateToPath(rf.path);

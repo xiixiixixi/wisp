@@ -673,7 +673,7 @@ const WorkspaceLayoutDialog = ({
                         onClick={() => handleLoad(wl)}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = 'var(--xp-surface-light)';
-                          e.currentTarget.style.color = 'var(--xp-blue)';
+                          e.currentTarget.style.color = 'var(--ds-link)';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = 'transparent';

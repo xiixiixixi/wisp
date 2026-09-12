@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'outline' | 'ghost' | 'destructive' | 'secondary';
@@ -6,8 +7,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
 }
 
-/** Shared Liquid Glass control. The material and interaction states live in
- * liquid-glass.css so feature surfaces don't invent their own button chrome. */
+/** Shared macOS action. Material, emphasis and focus states use the design system. */
 export const Button = ({
   variant = 'default',
   size = 'default',
@@ -17,27 +17,29 @@ export const Button = ({
   ...props
 }: ButtonProps) => {
   const baseClasses =
-    'glass-button inline-flex items-center justify-center gap-1.5 font-medium transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40';
+    'glass-button inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[7px] font-medium leading-4 transition-[background-color,border-color,color,box-shadow,opacity] focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40 [&_svg]:shrink-0';
 
   const variantClasses = {
-    default: 'bg-xp-accent text-xp-on-accent hover:bg-xp-accent-hover',
-    outline: 'border border-xp-border bg-transparent text-xp-text',
-    ghost: 'text-xp-text-secondary hover:text-xp-text',
-    destructive: 'bg-xp-red text-xp-on-accent hover:opacity-90',
-    secondary: 'bg-xp-surface-light text-xp-text',
+    default: 'bg-[var(--ds-accent)] text-[var(--ds-on-dark)] hover:bg-[var(--ds-accent-press)]',
+    outline: 'border border-[var(--ds-separator)] bg-transparent text-[var(--ds-label-primary)]',
+    ghost:
+      'text-[var(--ds-label-secondary)] hover:bg-[var(--ds-fill)] hover:text-[var(--ds-label-primary)]',
+    destructive: 'bg-[var(--ds-destructive)] text-[var(--ds-on-dark)] hover:opacity-90',
+    secondary: 'bg-[var(--ds-fill)] text-[var(--ds-label-primary)]',
   };
 
   const sizeClasses = {
-    default: 'h-9 px-3.5 text-sm',
-    sm: 'h-7 px-2.5 text-xs',
-    lg: 'h-11 px-5 text-base',
+    default: 'h-7 px-3 text-[13px]',
+    sm: 'h-6 px-2.5 text-xs',
+    lg: 'h-9 px-4 text-[13px]',
   };
 
   return (
     <button
       type={type}
       data-variant={variant}
-      className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+      data-size={size}
+      className={cn(baseClasses, variantClasses[variant], sizeClasses[size], className)}
       {...props}
     >
       {children}

@@ -87,7 +87,7 @@ export const PasswordPromptDialog = ({
         aria-describedby="password-dialog-description"
         aria-modal="true"
         tabIndex={-1}
-        className="w-96 max-w-full rounded-[2px] border border-xp-border bg-xp-surface p-6"
+        className="w-96 max-w-full rounded-md border border-xp-border bg-xp-surface p-6"
         onKeyDown={(e) => {
           if (e.key === 'Escape' && !isLoading) {
             handleClose();
@@ -115,7 +115,7 @@ export const PasswordPromptDialog = ({
         }}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h3 id="password-dialog-title" className="text-lg font-medium">
+          <h3 id="password-dialog-title" className="text-lg font-semibold">
             {displayTitle}
           </h3>
           <button
@@ -151,7 +151,7 @@ export const PasswordPromptDialog = ({
           aria-label={t('interface.passwordForm')}
         >
           <div>
-            <label htmlFor="password-input" className="mb-1 block text-sm font-medium">
+            <label htmlFor="password-input" className="mb-1 block text-sm font-semibold">
               {t('dialogs.encryption.passwordLabel')}
             </label>
             <div className="relative">
@@ -166,7 +166,7 @@ export const PasswordPromptDialog = ({
                     onSubmit(password, remember);
                   }
                 }}
-                className="w-full rounded-[2px] border border-xp-border bg-xp-bg px-3 py-2 pr-10 text-sm focus:outline-none"
+                className="w-full rounded-md border border-xp-border bg-xp-bg px-3 py-2 pr-10 text-sm focus:outline-none"
                 placeholder={t('dialogs.passwordPrompt.passwordPlaceholder')}
                 autoFocus
                 required
@@ -213,7 +213,7 @@ export const PasswordPromptDialog = ({
                 id="remember"
                 checked={remember}
                 onChange={(e) => setRemember(e.target.checked)}
-                className="rounded-[2px]"
+                className="rounded-md"
                 disabled={isLoading}
               />
               <label htmlFor="remember" className="text-sm text-xp-text-muted">
@@ -222,7 +222,7 @@ export const PasswordPromptDialog = ({
             </div>
           )}
 
-          <div className="rounded-[2px] border border-xp-yellow/20 bg-xp-yellow/10 p-3" role="note">
+          <div className="rounded-md border border-xp-yellow/20 bg-xp-yellow/10 p-3" role="note">
             <div className="flex items-start space-x-2">
               <svg
                 className="mt-0.5 h-5 w-5 flex-shrink-0 text-xp-yellow"
@@ -237,7 +237,7 @@ export const PasswordPromptDialog = ({
                 />
               </svg>
               <div className="text-sm">
-                <p className="font-medium text-xp-yellow">{t('interface.securityNotice')}</p>
+                <p className="font-semibold text-xp-yellow">{t('interface.securityNotice')}</p>
                 <p className="mt-1 text-xs text-xp-yellow">
                   {t(
                     'interface.passwordsAreStoredSecurelyInMemoryAndAreNotSavedToDiskUnlessYouExplicitlySaveTheConnectionWithAPassword',
@@ -252,7 +252,7 @@ export const PasswordPromptDialog = ({
               type="button"
               onClick={handleClose}
               disabled={isLoading}
-              className="rounded-[2px] border border-xp-border px-4 py-2 text-sm transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+              className="rounded-md border border-xp-border px-4 py-2 text-sm transition-colors hover:bg-xp-surface-light disabled:opacity-50"
               aria-label={t('interface.cancelAuthentication')}
             >
               {t('conflict.cancel')}
@@ -260,7 +260,7 @@ export const PasswordPromptDialog = ({
             <button
               type="submit"
               disabled={isLoading || !password.trim()}
-              className="flex items-center space-x-2 rounded-[2px] bg-xp-blue px-4 py-2 text-sm text-xp-on-accent transition-colors hover:bg-xp-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center space-x-2 rounded-md bg-xp-blue px-4 py-2 text-sm text-xp-on-accent transition-colors hover:bg-xp-blue-dark disabled:cursor-not-allowed disabled:opacity-50"
               aria-label={
                 isLoading
                   ? t('dialogs.passwordPrompt.authenticating')

@@ -92,6 +92,84 @@ const launch = [
   }),
 ];
 
+// Readable source samples exercise the same preview renderers as desktop files.
+const previewSamples: Record<string, string> = {
+  'file-summary.ts': `// Keep folders separate from files in the workspace.
+type Entry = {
+  name: string;
+  size: number;
+  isDirectory: boolean;
+};
+
+export function summarize(entries: Entry[]) {
+  const files = entries.filter(entry => !entry.isDirectory);
+  const total = files.reduce((bytes, file) => bytes + file.size, 0);
+
+  return {
+    label: "最近访问",
+    count: files.length,
+    totalBytes: total,
+    ready: true,
+  };
+}
+`,
+  'WorkspaceView.swift': `import SwiftUI
+
+struct WorkspaceView: View {
+    let folders = ["Launch", "Research"]
+
+    var body: some View {
+        List(folders, id: \\.self) { folder in
+            Label(folder, systemImage: "folder")
+        }
+        .navigationTitle("Workspace")
+    }
+}
+`,
+  'preview-examples.md': [
+    '# Preview examples',
+    '',
+    'Code blocks use the language written after the opening fence.',
+    '',
+    '## TypeScript',
+    '```ts',
+    '// Only keep files that can be previewed.',
+    'const extensions = ["ts", "swift", "md"];',
+    'export const canPreview = (type: string): boolean =>',
+    '  extensions.includes(type);',
+    '```',
+    '',
+    '## Python',
+    '```py',
+    'from pathlib import Path',
+    '',
+    'def visible_files(folder: Path):',
+    '    return [p.name for p in folder.iterdir() if p.is_file()]',
+    '```',
+    '',
+    '## Shell',
+    '```sh',
+    '# Show the current folder without changing any files.',
+    'printf "Workspace: %s\\n" "$PWD"',
+    '```',
+    '',
+    '## Unrecognized language',
+    '```workspace-example',
+    'workspace = "Launch"',
+    'selection = ["brief.txt", "release-checklist.md"]',
+    '```',
+  ].join('\n'),
+};
+
+const previewSampleEntries = Object.entries(previewSamples).map(([name, content]) =>
+  makeEntry(`${DEMO_HOME_PATH}/Documents/Research`, name, {
+    is_dir: false,
+    size: new TextEncoder().encode(content).length,
+    modified: '2026-08-22T02:18:00Z',
+    file_type: name.endsWith('.md') ? 'markdown' : 'code',
+  }),
+);
+
 const homeRoot = ['Documents', 'Downloads', 'Desktop', 'Pictures', 'Videos', 'Music'].map((name) =>
   makeEntry(DEMO_HOME_PATH, name, {
     is_dir: true,
@@ -112,6 +190,19 @@ const demoDirectories: Record<string, FileEntry[]> = {
       modified: '2026-08-20T16:15:00Z',
       file_type: 'markdown',
     }),
+    ...previewSampleEntries,
+    makeEntry(`${DEMO_HOME_PATH}/Documents/Research`, 'workspace.fig', {
+      is_dir: false,
+      size: 2484224,
+      modified: '2026-08-21T09:40:00Z',
+      file_type: 'file',
+    }),
+    makeEntry(`${DEMO_HOME_PATH}/Documents/Research`, 'server-history.log', {
+      is_dir: false,
+      size: 24 * 1024 * 1024,
+      modified: '2026-08-21T09:40:00Z',
+      file_type: 'text',
+    }),
   ],
   [`${DEMO_HOME_PATH}/Downloads`]: [
     makeEntry(`${DEMO_HOME_PATH}/Downloads`, 'Q3-launch-plan.md', {
@@ -128,6 +219,12 @@ const demoDirectories: Record<string, FileEntry[]> = {
 };
 
 const demoText: Record<string, string> = {
+  ...Object.fromEntries(
+    Object.entries(previewSamples).map(([name, content]) => [
+      `${DEMO_HOME_PATH}/Documents/Research/${name}`,
+      content,
+    ]),
+  ),
   [`${DEMO_HOME_PATH}/Documents/Research/Q3-launch-plan.md`]:
     '# Research copy\n\nResearch notes for the Q3 launch. This demo copy lives in Documents/Research.',
   [`${DEMO_HOME_PATH}/Downloads/Q3-launch-plan.md`]:
@@ -194,12 +291,12 @@ export const getDemoSearchFiles = (query: string): FileEntry[] => {
 
 export const getDemoRecentFiles = (): RecentFile[] =>
   documents
-    .filter((entry) => !entry.is_dir)
-    .slice(0, 4)
-    .map((entry) => ({
+    .filter((entry) => !entry.name.startsWith('.'))
+    .slice(0, 8)
+    .map((entry, index) => ({
       path: entry.path,
       name: entry.name,
       file_type: entry.file_type,
-      accessed_at: entry.modified * 1000,
+      accessed_at: Date.now() - (index + 1) * 23 * 60_000,
       size: entry.size,
     }));

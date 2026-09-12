@@ -70,7 +70,7 @@ const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
   return (
     <div className="flex h-full flex-col">
       <div className="mb-2 flex items-center justify-between">
-        <h4 className="text-xs font-medium text-xp-text-muted">{tUi('interface.csvPreview')}</h4>
+        <h4 className="text-xs font-semibold text-xp-text-muted">{tUi('interface.csvPreview')}</h4>
         {meta && (
           <span className="text-xs text-xp-text-muted">
             {tUi('messages.csvRows', { count: meta.rowCount, delimiter: meta.delimiter })}
@@ -79,16 +79,16 @@ const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
       </div>
 
       {loading && (
-        <div className="rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
+        <div className="rounded-md border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
           <div className="animate-pulse">
-            <div className="mb-2 h-48 w-full rounded-[2px] bg-xp-bg" />
+            <div className="mb-2 h-48 w-full rounded-md bg-xp-bg" />
             <p className="text-xs">{tUi('interface.loadingCsv')}</p>
           </div>
         </div>
       )}
 
       {error ? (
-        <div className="rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
+        <div className="rounded-md border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
           <svg className="mx-auto mb-2 h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
@@ -102,7 +102,7 @@ const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
       ) : null}
       {!error && data.length > 0 && (
         <>
-          <div className="overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface">
+          <div className="overflow-hidden rounded-md border border-xp-border bg-xp-surface">
             <div className="min-h-0 flex-1 overflow-auto">
               <table className="w-full text-xs">
                 <thead className="sticky top-0 bg-xp-bg">
@@ -111,7 +111,7 @@ const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
                       <th
                         // eslint-disable-next-line react/no-array-index-key
                         key={index}
-                        className="truncate border-b border-r border-xp-border px-2 py-1 text-left font-medium text-xp-text"
+                        className="truncate border-b border-r border-xp-border px-2 py-1 text-left font-semibold text-xp-text"
                         title={header}
                       >
                         {header}
@@ -148,7 +148,7 @@ const CsvPreview = ({ file, onError, onLoad }: PreviewProps) => {
         </>
       )}
       {!error && data.length === 0 && (
-        <div className="rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
+        <div className="rounded-md border border-xp-border bg-xp-surface p-4 text-center text-xp-text-muted">
           <p className="text-xs">{tUi('interface.noDataFoundInCsvFile')}</p>
         </div>
       )}

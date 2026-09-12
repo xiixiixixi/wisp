@@ -3,6 +3,8 @@ import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useToast, toast, TOAST_AUTO_DISMISS_DELAY } from '@/hooks/use-toast';
 import { BottomRightOverlayStackItem } from '@/components/ui/BottomRightOverlayStack';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface ToastProps {
   id: string;
@@ -31,7 +33,7 @@ const ToastCloseButton = ({ onClose, presentation = 'toast' }: ToastCloseButtonP
       onClick={onClose}
       className={
         presentation === 'dialog'
-          ? 'absolute right-3 top-3 rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xp-blue'
+          ? 'absolute right-3 top-3 rounded-md p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xp-blue'
           : 'flex-shrink-0 px-3 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-xp-blue'
       }
       aria-label={closeLabel}
@@ -54,7 +56,7 @@ const Toast = ({
 }: ToastProps) => {
   const titleId = title ? `toast-${id}-title` : undefined;
   const baseClasses =
-    'relative flex w-full overflow-hidden rounded-[2px] border shadow-[var(--xp-shadow-popover)] transition-all duration-200 ease-in-out transform';
+    'wisp-notification relative flex w-full overflow-hidden rounded-xl border shadow-[var(--xp-shadow-popover)] transition-all duration-200 ease-in-out transform motion-reduce:transition-none';
   const variantClasses =
     variant === 'destructive'
       ? 'bg-xp-popover border-xp-red/50 text-xp-text'
@@ -81,21 +83,21 @@ const Toast = ({
             id={titleId}
             className={
               presentation === 'dialog'
-                ? 'mb-1.5 text-base font-medium'
-                : 'mb-1 text-sm font-medium'
+                ? 'mb-1.5 text-base font-semibold'
+                : 'mb-1 text-sm font-semibold'
             }
           >
             {title}
           </div>
         )}
-        {description && <div className="text-xs opacity-90">{description}</div>}
+        {description && <div className="text-xs text-xp-text-secondary">{description}</div>}
       </div>
 
       <ToastCloseButton onClose={onClose} presentation={presentation} />
 
       {presentation !== 'dialog' && showCountdown && (
         <div
-          className={`absolute bottom-0 left-0 h-px ${
+          className={`absolute bottom-0 left-0 h-px motion-reduce:hidden ${
             variant === 'destructive' ? 'bg-xp-red' : 'bg-xp-lime'
           }`}
           style={{ animation: `toast-countdown ${TOAST_AUTO_DISMISS_DELAY}ms linear forwards` }}
@@ -241,25 +243,17 @@ const ConfirmationToast = ({
   const { t } = useTranslation();
 
   return (
-    <div className="relative flex w-full overflow-hidden rounded-[2px] border border-xp-border bg-xp-popover text-xp-text shadow-[var(--xp-shadow-popover)]">
+    <div className="wisp-notification relative flex w-full overflow-hidden rounded-xl border border-xp-border bg-xp-popover text-xp-text shadow-[var(--xp-shadow-popover)]">
       <div className="flex-1 p-4 pr-12">
-        <div className="mb-1 text-sm font-medium">{title}</div>
-        {description && <div className="mb-3 text-xs opacity-90">{description}</div>}
+        <div className="mb-1 text-sm font-semibold">{title}</div>
+        {description && <div className="mb-3 text-xs text-xp-text-secondary">{description}</div>}
         <div className="flex space-x-2">
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="rounded-[2px] bg-xp-red px-3 py-1 text-xs text-xp-on-accent transition-opacity hover:opacity-85"
-          >
+          <Button type="button" onClick={onConfirm} variant="destructive">
             {confirmText ?? t('common.confirm')}
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-[2px] border border-xp-border bg-transparent px-3 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
-          >
+          </Button>
+          <Button type="button" onClick={onCancel} variant="secondary">
             {cancelText ?? t('common.cancel')}
-          </button>
+          </Button>
         </div>
       </div>
       <ToastCloseButton onClose={onCancel} presentation="dialog" />
@@ -307,35 +301,26 @@ const InputToast = ({
   };
 
   return (
-    <div className="relative flex w-full overflow-hidden rounded-[2px] border border-xp-border bg-xp-popover text-xp-text shadow-[var(--xp-shadow-popover)]">
+    <div className="wisp-notification relative flex w-full overflow-hidden rounded-xl border border-xp-border bg-xp-popover text-xp-text shadow-[var(--xp-shadow-popover)]">
       <div className="flex-1 p-4 pr-12">
-        <div className="mb-1 text-sm font-medium">{title}</div>
-        {description && <div className="mb-3 text-xs opacity-90">{description}</div>}
-        <input
+        <div className="mb-1 text-sm font-semibold">{title}</div>
+        {description && <div className="mb-3 text-xs text-xp-text-secondary">{description}</div>}
+        <Input
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyPress}
           placeholder={placeholder}
-          className="mb-3 w-full rounded-[2px] border border-xp-border bg-xp-surface-light px-3 py-1.5 text-sm text-xp-text placeholder:text-xp-text-muted focus:border-xp-text-secondary focus:outline-none"
+          className="mb-3"
           autoFocus
         />
         <div className="flex space-x-2">
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!value.trim()}
-            className="rounded-[2px] bg-xp-accent px-3 py-1 text-xs text-xp-on-accent transition-colors hover:bg-xp-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
-          >
+          <Button type="button" onClick={handleSubmit} disabled={!value.trim()} variant="default">
             {submitText ?? t('common.create')}
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-[2px] border border-xp-border bg-transparent px-3 py-1 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
-          >
+          </Button>
+          <Button type="button" onClick={onCancel} variant="secondary">
             {cancelText ?? t('common.cancel')}
-          </button>
+          </Button>
         </div>
       </div>
       <ToastCloseButton onClose={onCancel} presentation="dialog" />
@@ -384,7 +369,7 @@ const InputPromptContent = ({
       {description && (
         <p className="text-sm leading-relaxed text-xp-text-secondary">{description}</p>
       )}
-      <input
+      <Input
         type="text"
         value={value}
         onChange={(event) => setValue(event.target.value)}
@@ -404,7 +389,7 @@ const InputPromptContent = ({
           }
         }}
         placeholder={placeholder}
-        className="w-full rounded-[2px] border border-xp-border bg-xp-surface-light px-3 py-2 text-sm text-xp-text transition-colors placeholder:text-xp-text-muted hover:border-xp-border-light focus:border-xp-text-secondary focus:outline-none"
+        className="w-full"
         autoFocus
         autoComplete="off"
         spellCheck={false}
@@ -417,20 +402,12 @@ const InputPromptContent = ({
         </p>
       )}
       <div className="flex justify-end gap-2 pt-1">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-[2px] border border-xp-border bg-transparent px-3.5 py-2 text-xs font-medium text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-        >
+        <Button type="button" onClick={onCancel} variant="secondary">
           {cancelText ?? t('common.cancel')}
-        </button>
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className="rounded-[2px] bg-xp-accent px-4 py-2 text-xs font-medium text-xp-on-accent transition-colors hover:bg-xp-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
-        >
+        </Button>
+        <Button type="submit" disabled={!canSubmit} variant="default">
           {submitText ?? t('common.create')}
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -459,21 +436,12 @@ const ConfirmationPromptContent = ({
         <p className="text-sm leading-relaxed text-xp-text-secondary">{description}</p>
       )}
       <div className="flex justify-end gap-2 pt-1">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-[2px] border border-xp-border bg-transparent px-3.5 py-2 text-xs font-medium text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-        >
+        <Button type="button" onClick={onCancel} variant="secondary">
           {cancelText ?? t('common.cancel')}
-        </button>
-        <button
-          type="button"
-          onClick={onConfirm}
-          autoFocus
-          className="rounded-[2px] bg-xp-red px-4 py-2 text-xs font-medium text-xp-on-accent transition-opacity hover:opacity-85"
-        >
+        </Button>
+        <Button type="button" onClick={onConfirm} autoFocus variant="destructive">
           {confirmText ?? t('common.confirm')}
-        </button>
+        </Button>
       </div>
     </div>
   );

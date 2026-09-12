@@ -17,14 +17,17 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      'glass-input flex h-9 w-full items-center justify-between border border-xp-border bg-xp-surface-light px-3 py-1.5 text-sm text-xp-text transition-all focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 [&>span]:line-clamp-1',
+      'glass-input flex h-7 w-full min-w-0 items-center justify-between gap-2 rounded-[7px] border border-[var(--ds-separator)] bg-[var(--ds-fill)] px-2.5 py-1 text-[13px] font-normal leading-4 text-[var(--ds-label-primary)] transition-[background-color,border-color,box-shadow,opacity] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40 data-[placeholder]:text-[var(--ds-label-tertiary)] [&>span]:truncate',
       className,
     )}
     {...props}
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-3.5 w-3.5 text-xp-text-muted" />
+      <ChevronDown
+        className="h-3 w-3 shrink-0 text-[var(--ds-label-secondary)]"
+        aria-hidden="true"
+      />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ));
@@ -66,7 +69,7 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        'elevated-glass relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-xl border border-xp-border bg-xp-popover text-xp-text shadow-[var(--xp-shadow-popover)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+        'elevated-glass relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-xl border border-[var(--ds-separator)] bg-xp-popover text-[var(--ds-label-primary)] shadow-[var(--xp-shadow-popover)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 motion-reduce:animate-none',
         position === 'popper' &&
           'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
         className,
@@ -97,7 +100,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={cn('px-2 py-1.5 text-xs font-medium text-xp-text-muted', className)}
+    className={cn('px-2 py-1.5 text-xs font-medium text-[var(--ds-label-secondary)]', className)}
     {...props}
   />
 ));
@@ -110,14 +113,14 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      'relative flex w-full cursor-default select-none items-center rounded-md py-1.5 pl-8 pr-2 text-sm text-xp-text outline-none transition-colors focus:bg-xp-selection-bg data-[disabled]:pointer-events-none data-[disabled]:opacity-40',
+      'relative flex min-h-7 w-full cursor-default select-none items-center rounded-md py-1 pl-7 pr-2 text-[13px] leading-4 text-[var(--ds-label-primary)] outline-none transition-colors focus:bg-[var(--ds-accent)] focus:text-[var(--ds-on-dark)] data-[disabled]:pointer-events-none data-[disabled]:opacity-40',
       className,
     )}
     {...props}
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-3.5 w-3.5" />
+        <Check className="h-3 w-3" strokeWidth={2.5} aria-hidden="true" />
       </SelectPrimitive.ItemIndicator>
     </span>
 
@@ -132,7 +135,7 @@ const SelectSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Separator
     ref={ref}
-    className={cn('-mx-1 my-1 h-px bg-xp-border', className)}
+    className={cn('mx-1 my-1 h-px bg-[var(--ds-separator)]', className)}
     {...props}
   />
 ));

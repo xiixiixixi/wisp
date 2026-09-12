@@ -165,7 +165,7 @@ const CodeEditorPanel = ({ selectedFile }: CodeEditorPanelProps) => {
             {selectedFile.name}
           </span>
           {isDirty && (
-            <span className="ml-1 text-xs font-medium text-xp-orange">
+            <span className="ml-1 text-xs font-semibold text-xp-orange">
               {t('panels.codeEditor.modified')}
             </span>
           )}
@@ -173,14 +173,14 @@ const CodeEditorPanel = ({ selectedFile }: CodeEditorPanelProps) => {
         <div className="flex items-center gap-1">
           <button
             onClick={handleCopy}
-            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            className="rounded-md p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             title={t('panels.codeEditor.copyContents')}
           >
             {copied ? <Check size={14} className="text-xp-green" /> : <Copy size={14} />}
           </button>
           <button
             onClick={() => setWordWrap(!wordWrap)}
-            className={`rounded-[2px] p-1.5 transition-colors hover:bg-xp-surface-light ${
+            className={`rounded-md p-1.5 transition-colors hover:bg-xp-surface-light ${
               wordWrap ? 'text-xp-blue' : 'text-xp-text-muted hover:text-xp-text'
             }`}
             title={t('panels.codeEditor.toggleWordWrap')}
@@ -190,7 +190,7 @@ const CodeEditorPanel = ({ selectedFile }: CodeEditorPanelProps) => {
           <button
             onClick={handleRevert}
             disabled={!isDirty}
-            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-30"
+            className="rounded-md p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text disabled:opacity-30"
             title={t('panels.codeEditor.revertChanges')}
           >
             <RotateCcw size={14} />
@@ -198,7 +198,7 @@ const CodeEditorPanel = ({ selectedFile }: CodeEditorPanelProps) => {
           <button
             onClick={handleSave}
             disabled={!isDirty || saving}
-            className="rounded-[2px] p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-blue disabled:opacity-30"
+            className="rounded-md p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-blue disabled:opacity-30"
             title={t('panels.codeEditor.saveCmdS')}
           >
             <Save size={14} />

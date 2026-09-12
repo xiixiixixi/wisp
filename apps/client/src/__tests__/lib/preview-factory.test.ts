@@ -49,11 +49,32 @@ describe('PreviewFactory', () => {
   describe('getFileType', () => {
     // Image types
     it.each([
-      'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico', 'tiff',
+      'jpg',
+      'jpeg',
+      'png',
+      'gif',
+      'bmp',
+      'webp',
+      'svg',
+      'ico',
+      'tiff',
       // Finder-parity: WebKit-native newer formats
-      'avif', 'heic', 'heif', 'tif',
+      'avif',
+      'heic',
+      'heif',
+      'tif',
       // Finder-parity via the ImageIO conversion bridge
-      'psd', 'dng', 'cr2', 'cr3', 'nef', 'arw', 'rw2', 'raf', 'orf', 'exr', 'icns',
+      'psd',
+      'dng',
+      'cr2',
+      'cr3',
+      'nef',
+      'arw',
+      'rw2',
+      'raf',
+      'orf',
+      'exr',
+      'icns',
     ])('identifies .%s as image', (ext) => {
       expect(factory.getFileType(makeFile(`photo.${ext}`))).toBe('image');
     });
@@ -83,12 +104,70 @@ describe('PreviewFactory', () => {
 
     // Code types
     it.each([
-      'js', 'ts', 'jsx', 'tsx', 'py', 'java', 'cpp', 'c', 'cs', 'php', 'rb',
-      'go', 'rs', 'css', 'scss', 'less', 'vue', 'svelte',
+      'js',
+      'ts',
+      'jsx',
+      'tsx',
+      'py',
+      'java',
+      'cpp',
+      'c',
+      'cs',
+      'php',
+      'rb',
+      'go',
+      'rs',
+      'css',
+      'scss',
+      'less',
+      'vue',
+      'svelte',
       // Finder-parity additions
-      'xml', 'yml', 'yaml', 'diff', 'patch', 'ps1', 'lua', 'h', 'hpp', 'm', 'mm',
+      'xml',
+      'yml',
+      'yaml',
+      'diff',
+      'patch',
+      'ps1',
+      'lua',
+      'h',
+      'hpp',
+      'm',
+      'mm',
     ])('identifies .%s as code', (ext) => {
       expect(factory.getFileType(makeFile(`app.${ext}`))).toBe('code');
+    });
+
+    it.each([
+      'main.mjs',
+      'main.cjs',
+      'main.mts',
+      'main.cts',
+      'Makefile',
+      'GNUmakefile',
+      'Dockerfile',
+      'Dockerfile.dev',
+      'Containerfile',
+      'Containerfile.prod',
+      '.env',
+      '.env.local',
+      '.gitignore',
+      '.gitattributes',
+      '.gitconfig',
+      '.editorconfig',
+      '.bashrc',
+      '.zshrc',
+      'Gemfile',
+      'Rakefile',
+    ])('routes source or config file %s to a text-capable preview', (name) => {
+      const file = makeFile(name);
+      expect(factory.getFileType(file)).toBe('code');
+      expect(factory.canPreview(file)).toBe(true);
+    });
+
+    it('does not guess a code preview for an unknown binary format', () => {
+      expect(factory.getFileType(makeFile('workspace.fig'))).toBe('unknown');
+      expect(factory.canPreview(makeFile('workspace.fig'))).toBe(false);
     });
 
     // HTML renders in its own sandboxed preview instead of showing markup
@@ -126,8 +205,19 @@ describe('PreviewFactory', () => {
 
     // Audio types
     it.each([
-      'mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac', 'wma', 'opus', 'aiff',
-      'aif', 'caf', 'm4r', 'ac3',
+      'mp3',
+      'wav',
+      'ogg',
+      'flac',
+      'm4a',
+      'aac',
+      'wma',
+      'opus',
+      'aiff',
+      'aif',
+      'caf',
+      'm4r',
+      'ac3',
     ])('identifies .%s as audio', (ext) => {
       expect(factory.getFileType(makeFile(`song.${ext}`))).toBe('audio');
     });

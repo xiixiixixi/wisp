@@ -151,6 +151,61 @@ describe('DetailsView', () => {
     });
   });
 
+  describe('Sticky header material', () => {
+    it('protects the header only while its enclosing file pane is scrolled', () => {
+      const { container } = render(
+        <div className="wisp-file-scroll">
+          <DetailsView {...defaultProps} />
+        </div>,
+      );
+      const scrollPane = container.firstElementChild as HTMLElement;
+      const header = container.querySelector('.wisp-list-header');
+
+      expect(header).not.toHaveClass('wisp-list-header-scrolled');
+      fireEvent.scroll(scrollPane, { target: { scrollTop: 1 } });
+      expect(header).toHaveClass('wisp-list-header-scrolled');
+      fireEvent.scroll(scrollPane, { target: { scrollTop: 80 } });
+      expect(header).toHaveClass('wisp-list-header-scrolled');
+      fireEvent.scroll(scrollPane, { target: { scrollTop: 0 } });
+      expect(header).not.toHaveClass('wisp-list-header-scrolled');
+    });
+
+    it('follows the virtual list scroll container when the list grows and resets on return', () => {
+      const virtualFiles = Array.from({ length: 200 }, (_, index) => ({
+        ...sampleFiles[0],
+        name: `document-${index}.txt`,
+        path: `/fixture/document-${index}.txt`,
+      }));
+      const renderPane = (files: FileEntry[]) => (
+        <div className="wisp-file-scroll">
+          <DetailsView {...defaultProps} files={files} />
+        </div>
+      );
+      const { container, rerender } = render(renderPane(sampleFiles));
+      const scrollPane = container.firstElementChild as HTMLElement;
+      const header = () => container.querySelector('.wisp-list-header');
+
+      fireEvent.scroll(scrollPane, { target: { scrollTop: 80 } });
+      expect(header()).toHaveClass('wisp-list-header-scrolled');
+
+      rerender(renderPane(virtualFiles));
+      expect(header()).not.toHaveClass('wisp-list-header-scrolled');
+      fireEvent.scroll(scrollPane, { target: { scrollTop: 120 } });
+      expect(header()).not.toHaveClass('wisp-list-header-scrolled');
+
+      const virtualScrollPane = screen.getByRole('table');
+      fireEvent.scroll(virtualScrollPane, { target: { scrollTop: 32 } });
+      expect(header()).toHaveClass('wisp-list-header-scrolled');
+      fireEvent.scroll(virtualScrollPane, { target: { scrollTop: 0 } });
+      expect(header()).not.toHaveClass('wisp-list-header-scrolled');
+
+      rerender(renderPane(sampleFiles));
+      expect(header()).toHaveClass('wisp-list-header-scrolled');
+      fireEvent.scroll(scrollPane, { target: { scrollTop: 0 } });
+      expect(header()).not.toHaveClass('wisp-list-header-scrolled');
+    });
+  });
+
   describe('Selection highlighting', () => {
     it('applies selected styling when file is in selectedFiles', () => {
       const selectedFiles = new Set(['C:\\Users\\Test\\document.txt']);

@@ -288,6 +288,7 @@ const RightSidebar = ({
     <div
       ref={outerRef}
       className="wisp-inspector border-l border-xp-border bg-xp-surface"
+      data-panel={rightPanelTab}
       style={{ width: width ?? 320, flexShrink: 0, minHeight: 0, overflow: 'hidden' }}
     >
       {/* Inner container with explicit measured height -- bypasses WebView2 flex height bug */}
@@ -312,7 +313,7 @@ const RightSidebar = ({
           </div>
           <button
             onClick={() => setRightSidebarCollapsed(true)}
-            className="wisp-icon-button ml-2 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[2px] text-xp-text-secondary hover:bg-xp-surface-light"
+            className="wisp-icon-button ml-2 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-xp-text-secondary hover:bg-xp-surface-light"
             aria-label={
               rightPanelTab === 'preview'
                 ? i18n.t('previewPanel.closePreview')

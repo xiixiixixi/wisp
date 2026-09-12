@@ -227,7 +227,7 @@ const TopBar = React.memo(
               <div className="wisp-brand-cluster flex items-center gap-2.5">
                 <button
                   onClick={() => setLeftSidebarCollapsed(!leftSidebarCollapsed)}
-                  className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-[2px] text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                   aria-label={t('topBar.toggleSidebar')}
                   aria-expanded={!leftSidebarCollapsed}
                   title={t('topBar.toggleSidebarShortcut')}
@@ -328,7 +328,7 @@ const TopBar = React.memo(
                     <CloudSun size={14} className="shrink-0" aria-hidden="true" />
                   )}
                   {report && (
-                    <span className="font-medium text-xp-text">
+                    <span className="font-semibold text-xp-text">
                       {Math.round(report.temperature)}°
                     </span>
                   )}
@@ -342,13 +342,13 @@ const TopBar = React.memo(
               type="button"
               data-command-palette-trigger
               onClick={() => window.dispatchEvent(new CustomEvent('wisp-open-command-palette'))}
-              className="wisp-command-pill absolute left-1/2 hidden h-8 w-[min(38vw,420px)] -translate-x-1/2 items-center gap-2 rounded-[2px] border border-xp-border bg-muted px-3 text-left text-xs text-xp-text-muted shadow-sm transition-all hover:border-primary hover:bg-xp-surface-light hover:text-xp-text min-[820px]:flex"
+              className="wisp-command-pill absolute left-1/2 hidden h-8 w-[min(38vw,420px)] -translate-x-1/2 items-center gap-2 rounded-md border border-xp-border bg-muted px-3 text-left text-xs text-xp-text-muted shadow-sm transition-all hover:border-primary hover:bg-xp-surface-light hover:text-xp-text min-[820px]:flex"
               aria-label={t('commandPalette.trigger')}
               title={t('commandPalette.trigger')}
             >
               <Search size={14} className="shrink-0" />
               <span className="min-w-0 flex-1 truncate">{t('commandPalette.trigger')}</span>
-              <kbd className="wisp-keycap rounded-[2px] border border-xp-border bg-xp-surface px-1.5 py-0.5 font-sans text-[10px] text-xp-text-secondary">
+              <kbd className="wisp-keycap rounded-md border border-xp-border bg-xp-surface px-1.5 py-0.5 font-sans text-[10px] text-xp-text-secondary">
                 {isMac ? '⌘P' : 'Ctrl+P'}
               </kbd>
             </button>
@@ -373,7 +373,7 @@ const TopBar = React.memo(
               {onSplitRight && (
                 <button
                   onClick={onSplitRight}
-                  className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-[2px] text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-md text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                   title={t('topBar.splitRightShortcut')}
                   aria-label={t('topBar.splitRight')}
                 >
@@ -383,7 +383,7 @@ const TopBar = React.memo(
               {onSplitDown && (
                 <button
                   onClick={onSplitDown}
-                  className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-[2px] text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-md text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
                   title={t('topBar.splitDownShortcut')}
                   aria-label={t('topBar.splitDown')}
                 >
@@ -400,21 +400,21 @@ const TopBar = React.memo(
               >
                 <button
                   onClick={() => appWindowRef.current?.minimize()}
-                  className="rounded-[2px] p-2 transition-colors hover:bg-xp-surface-light"
+                  className="rounded-md p-2 transition-colors hover:bg-xp-surface-light"
                   aria-label={t('topBar.minimize')}
                 >
                   <Minus size={14} />
                 </button>
                 <button
                   onClick={() => appWindowRef.current?.toggleMaximize()}
-                  className="rounded-[2px] p-2 transition-colors hover:bg-xp-surface-light"
+                  className="rounded-md p-2 transition-colors hover:bg-xp-surface-light"
                   aria-label={isMaximized ? t('topBar.restore') : t('topBar.maximize')}
                 >
                   {isMaximized ? <Copy size={14} /> : <Square size={14} />}
                 </button>
                 <button
                   onClick={() => appWindowRef.current?.close()}
-                  className="xp-close-btn rounded-[2px] p-2 transition-colors"
+                  className="xp-close-btn rounded-md p-2 transition-colors"
                   aria-label={t('topBar.closeWindow')}
                 >
                   <X size={14} />
@@ -426,6 +426,7 @@ const TopBar = React.memo(
           {/* Cross-tab selection floating action bar */}
           {hasMultiTabSelection && crossTabTotalCount > 0 && (
             <div
+              className="wisp-global-selectionbar"
               style={{
                 display: 'flex',
                 alignItems: 'center',

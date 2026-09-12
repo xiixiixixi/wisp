@@ -1,5 +1,5 @@
 import { transport } from '../transport';
-import { isBrowserDemoMode } from '../browser-demo-files';
+import { getDemoDirectory, getDemoUserDirectories, isBrowserDemoMode } from '../browser-demo-files';
 import type {
   BookmarkEntry,
   FileTag,
@@ -20,16 +20,54 @@ import type {
 
 // ── Bookmark operations ─────────────────────────────────────────────────────
 
-export const getBookmarks = async (): Promise<BookmarkEntry[]> => await transport('get_bookmarks');
+let demoBookmarks: BookmarkEntry[] | null = null;
+const getDemoBookmarks = () => {
+  if (!demoBookmarks) {
+    const root = getDemoUserDirectories().documents;
+    demoBookmarks = ['Launch', 'Research'].map((name) => ({
+      path: `${root}/${name}`,
+      name,
+      is_dir: true,
+      added_at: '2026-09-12T00:00:00Z',
+    }));
+  }
+  return demoBookmarks;
+};
+const bookmarksChanged = () => window.dispatchEvent(new Event('bookmarks-changed'));
+export const getBookmarks = async (): Promise<BookmarkEntry[]> =>
+  isBrowserDemoMode()
+    ? getDemoBookmarks().map((item) => ({ ...item }))
+    : await transport('get_bookmarks');
 
-export const addBookmark = async (path: string, name: string): Promise<BookmarkEntry> =>
-  await transport('add_bookmark', { path, name });
+export const addBookmark = async (path: string, name: string): Promise<BookmarkEntry> => {
+  let bookmark: BookmarkEntry;
+  if (isBrowserDemoMode()) {
+    const existing = getDemoBookmarks().find((item) => item.path === path);
+    bookmark = existing ?? {
+      path,
+      name,
+      is_dir: getDemoDirectory(path) !== null,
+      added_at: new Date().toISOString(),
+    };
+    if (!existing) getDemoBookmarks().push(bookmark);
+  } else bookmark = await transport('add_bookmark', { path, name });
+  bookmarksChanged();
+  return bookmark;
+};
 
-export const removeBookmark = async (path: string): Promise<void> =>
-  await transport('remove_bookmark', { path });
+export const removeBookmark = async (path: string): Promise<void> => {
+  if (isBrowserDemoMode()) demoBookmarks = getDemoBookmarks().filter((item) => item.path !== path);
+  else await transport('remove_bookmark', { path });
+  bookmarksChanged();
+};
 
-export const updateBookmarkName = async (path: string, name: string): Promise<void> =>
-  await transport('update_bookmark_name', { path, name });
+export const updateBookmarkName = async (path: string, name: string): Promise<void> => {
+  if (isBrowserDemoMode()) {
+    const entry = getDemoBookmarks().find((item) => item.path === path);
+    if (entry) entry.name = name;
+  } else await transport('update_bookmark_name', { path, name });
+  bookmarksChanged();
+};
 
 // ── Storage Analytics ───────────────────────────────────────────────────────
 

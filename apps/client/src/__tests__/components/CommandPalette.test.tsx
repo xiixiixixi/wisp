@@ -59,19 +59,21 @@ describe('CommandPalette', () => {
     vi.mocked(TauriAPI.isDir).mockResolvedValue(false);
   });
 
-  // The commands mode was removed: the palette is file search + Ask Wisp only.
-  it('offers only Files and Ask Wisp modes', async () => {
+  // The palette has one purpose, with explicit file and folder filters.
+  it('offers All, Files and Folders with one focused search field', async () => {
     render(<CommandPalette isOpen onClose={vi.fn()} currentPath="/Users/test/Documents" />);
 
     expect(screen.getByRole('tab', { name: 'Files' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Ask Wisp' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'All' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: 'Folders' })).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'Ask Wisp' })).not.toBeInTheDocument();
     expect(screen.queryByRole('tab', { name: 'Commands' })).not.toBeInTheDocument();
     await waitFor(() =>
       expect(screen.getByPlaceholderText('Search files and folders...')).toHaveFocus(),
     );
   });
 
-  it('offers a go-to-folder action for path-like queries', async () => {
+  it('lets the shared open action resolve the type of a pasted path', async () => {
     const onFileSelect = vi.fn();
     render(
       <CommandPalette
@@ -86,9 +88,11 @@ describe('CommandPalette', () => {
       target: { value: '/Users/test/Downloads' },
     });
 
-    const goTo = await screen.findByRole('option', { name: /Go to folder/ });
+    const goTo = await screen.findByRole('option', { name: /Open this path/ });
     fireEvent.click(goTo);
-    await waitFor(() => expect(onFileSelect).toHaveBeenCalledWith('/Users/test/Downloads', true));
+    await waitFor(() =>
+      expect(onFileSelect).toHaveBeenCalledWith('/Users/test/Downloads', undefined, 'open'),
+    );
   });
 
   it('offers to open an explicit web address as a web tab', async () => {
@@ -102,7 +106,9 @@ describe('CommandPalette', () => {
     const openSite = await screen.findByRole('option', { name: /Open website/ });
     fireEvent.click(openSite);
     // The web tab is created by the navigation layer, which treats http(s) as a page.
-    await waitFor(() => expect(onFileSelect).toHaveBeenCalledWith('http://127.0.0.1:3080/', true));
+    await waitFor(() =>
+      expect(onFileSelect).toHaveBeenCalledWith('http://127.0.0.1:3080/', true, 'open'),
+    );
   });
 
   it('does not treat a plain search term as a web address', async () => {
@@ -112,30 +118,13 @@ describe('CommandPalette', () => {
     expect(screen.queryByRole('option', { name: /Open website/ })).not.toBeInTheDocument();
   });
 
-  it('sends an assistant request with the prompt and current folder context', async () => {
-    const onClose = vi.fn();
-    const listener = vi.fn();
-    window.addEventListener('wisp-ai-chat-request', listener);
-
-    render(<CommandPalette isOpen onClose={onClose} currentPath="/Users/test/Documents" />);
-    fireEvent.click(screen.getByRole('tab', { name: 'Ask Wisp' }));
-    const input = screen.getByPlaceholderText('Ask Wisp about your files...');
-    fireEvent.change(input, { target: { value: 'Summarize the PDFs in this folder' } });
-
-    const assistantAction = await screen.findByRole('option', {
-      name: /Ask Wisp: Summarize the PDFs in this folder/,
-    });
-    fireEvent.click(assistantAction);
-
-    expect(onClose).toHaveBeenCalledOnce();
-    await waitFor(() => expect(listener).toHaveBeenCalledOnce());
-    const event = listener.mock.calls[0][0] as CustomEvent;
-    expect(event.detail).toEqual({
-      prompt: 'Summarize the PDFs in this folder',
-      currentPath: '/Users/test/Documents',
-    });
-
-    window.removeEventListener('wisp-ai-chat-request', listener);
+  it('keeps a leading question mark as a literal file query', async () => {
+    render(<CommandPalette isOpen onClose={vi.fn()} />);
+    const input = screen.getByRole('combobox');
+    fireEvent.change(input, { target: { value: '?notes' } });
+    expect(input).toHaveValue('?notes');
+    await waitFor(() => expect(TauriAPI.findFiles).toHaveBeenCalledWith('?notes', '/'));
+    expect(screen.queryByText(/Ask Wisp/)).not.toBeInTheDocument();
   });
 
   it('keeps a slower system search from replacing the latest query results', async () => {
@@ -167,23 +156,23 @@ describe('CommandPalette', () => {
     expect(await screen.findByText('latest-result.txt')).toBeInTheDocument();
   });
 
-  it('invalidates an in-flight file search when switching to assistant mode', async () => {
+  it('invalidates an in-flight search when switching result type', async () => {
     const fileSearch = deferred<string[]>();
-    vi.mocked(TauriAPI.findFiles).mockReturnValueOnce(fileSearch.promise);
-
-    render(<CommandPalette isOpen onClose={vi.fn()} currentPath="/Users/test/Documents" />);
-    const input = screen.getByRole('combobox', { name: 'Search files and folders...' });
-    fireEvent.change(input, { target: { value: 'quarterly report' } });
+    vi.mocked(TauriAPI.findFiles)
+      .mockReturnValueOnce(fileSearch.promise)
+      .mockResolvedValueOnce(['/search/Reports']);
+    vi.mocked(TauriAPI.isDir).mockImplementation(async (path) => path === '/search/Reports');
+    render(<CommandPalette isOpen onClose={vi.fn()} />);
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'report' } });
     await waitFor(() => expect(TauriAPI.findFiles).toHaveBeenCalledOnce());
-
-    fireEvent.click(screen.getByRole('tab', { name: 'Ask Wisp' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Folders' }));
+    expect(await screen.findByRole('option', { name: /Reports/ })).toBeInTheDocument();
     await act(async () => {
       fileSearch.resolve(['/search/stale-report.pdf']);
       await fileSearch.promise;
     });
-
     expect(screen.queryByText('stale-report.pdf')).not.toBeInTheDocument();
-    expect(screen.queryByText('Searching files...')).not.toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /Reports/ })).toBeInTheDocument();
   });
 
   it('searches every volume root through the OS provider and classifies folders explicitly', async () => {
@@ -207,12 +196,12 @@ describe('CommandPalette', () => {
 
     fireEvent.click(folder);
     await waitFor(() =>
-      expect(onFileSelect).toHaveBeenCalledWith('/elsewhere/Folder.with.dot', true),
+      expect(onFileSelect).toHaveBeenCalledWith('/elsewhere/Folder.with.dot', true, 'open'),
     );
     expect(TauriAPI.isDir).toHaveBeenCalledWith('/elsewhere/Folder.with.dot');
   });
 
-  it('shows complete wrapped paths for identical names and supports one Chinese character', async () => {
+  it('distinguishes identical names by parent path and exposes the selected full path', async () => {
     const paths = [
       '/Users/test/Documents/客户/2026/设计方案.docx',
       '/Volumes/Archive/非常长的项目资料路径/历史版本/设计方案.docx',
@@ -220,14 +209,13 @@ describe('CommandPalette', () => {
     vi.mocked(TauriAPI.findFiles).mockResolvedValue(paths);
     render(<CommandPalette isOpen onClose={vi.fn()} currentPath="wisp://home" />);
     fireEvent.change(screen.getByRole('combobox'), { target: { value: '设' } });
-    for (const path of paths) {
-      expect(await screen.findByText(path)).toHaveStyle({
-        whiteSpace: 'pre-wrap',
-        overflowWrap: 'anywhere',
-      });
-    }
+    expect(await screen.findByText('/Users/test/Documents/客户/2026')).toBeInTheDocument();
+    expect(screen.getByText('/Volumes/Archive/非常长的项目资料路径/历史版本')).toBeInTheDocument();
+    expect(screen.getByText(paths[0])).toBeInTheDocument();
+    fireEvent.mouseEnter(screen.getAllByRole('option')[1]);
+    expect(screen.getByText(paths[1])).toBeInTheDocument();
     expect(screen.getAllByText('设计方案.docx')).toHaveLength(2);
-    expect(screen.getByText('Everywhere')).toBeInTheDocument();
+    expect(screen.getByText('System-searchable locations · names')).toBeInTheDocument();
     expect(TauriAPI.findFiles).toHaveBeenCalledWith('设', '/');
   });
 
@@ -241,7 +229,7 @@ describe('CommandPalette', () => {
     expect(screen.queryByText('No matching files')).not.toBeInTheDocument();
   });
 
-  it('keeps empty keyboard navigation in range and leaves Tab for normal focus movement', async () => {
+  it('keeps empty navigation inert and traps focus inside the search dialog', async () => {
     const onClose = vi.fn();
     const onFileSelect = vi.fn();
     render(
@@ -271,7 +259,8 @@ describe('CommandPalette', () => {
     });
     input.dispatchEvent(backwardsTab);
 
-    expect(backwardsTab.defaultPrevented).toBe(false);
+    expect(backwardsTab.defaultPrevented).toBe(true);
+    expect(screen.getByRole('tab', { name: 'All' })).toHaveFocus();
     expect(input).not.toHaveAttribute('aria-activedescendant');
     expect(onClose).not.toHaveBeenCalled();
     expect(onFileSelect).not.toHaveBeenCalled();
@@ -392,9 +381,110 @@ describe('CommandPalette', () => {
     );
 
     fireEvent.click(await screen.findByRole('option', { name: /Archive\.2026/ }));
-    await waitFor(() => expect(onFileSelect).toHaveBeenCalledWith('/recent/Archive.2026', true));
+    await waitFor(() =>
+      expect(onFileSelect).toHaveBeenCalledWith('/recent/Archive.2026', true, 'open'),
+    );
 
     fireEvent.click(screen.getByRole('option', { name: /LICENSE/ }));
-    await waitFor(() => expect(onFileSelect).toHaveBeenCalledWith('/recent/LICENSE', false));
+    await waitFor(() =>
+      expect(onFileSelect).toHaveBeenCalledWith('/recent/LICENSE', false, 'open'),
+    );
+  });
+  it('shows a start-typing guide before the first visit, rather than a failed search state', async () => {
+    render(<CommandPalette isOpen onClose={vi.fn()} />);
+    expect(await screen.findByText('No recent items yet')).toBeInTheDocument();
+    expect(screen.getByText('Type a name to find a file or folder.')).toBeInTheDocument();
+    expect(screen.queryByText('No matching files')).not.toBeInTheDocument();
+    expect(TauriAPI.findFiles).not.toHaveBeenCalled();
+  });
+
+  it('filters recent visits before limiting them and lets arrow keys switch type tabs', async () => {
+    vi.mocked(TauriAPI.getRecentFiles).mockResolvedValue([
+      ...Array.from({ length: 15 }, (_, n) => ({
+        path: `/recent/file-${n}.txt`,
+        name: `file-${n}.txt`,
+        file_type: 'txt',
+        accessed_at: 2,
+        size: 1,
+      })),
+      { path: '/recent/Folder', name: 'Folder', file_type: 'folder', accessed_at: 1, size: 0 },
+    ]);
+    render(<CommandPalette isOpen onClose={vi.fn()} />);
+    await screen.findByRole('option', { name: /file-0/ });
+    expect(TauriAPI.getRecentFiles).toHaveBeenCalledWith(200);
+    fireEvent.click(screen.getByRole('tab', { name: 'Folders' }));
+    expect(screen.getByRole('option', { name: /Folder/ })).toBeInTheDocument();
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+    fireEvent.keyDown(screen.getByRole('tab', { name: 'Folders' }), { key: 'ArrowLeft' });
+    expect(screen.getByRole('tab', { name: 'Files' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: 'Files' })).toHaveFocus();
+    expect(screen.getAllByRole('option')).toHaveLength(12);
+  });
+
+  it('offers separate open, reveal, and full-path copy actions for the selected item', async () => {
+    vi.mocked(TauriAPI.findFiles).mockResolvedValue(['/Documents/notes.txt']);
+    const onFileSelect = vi.fn();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const clipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    try {
+      render(<CommandPalette isOpen onClose={vi.fn()} onFileSelect={onFileSelect} />);
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'notes' } });
+      await screen.findByRole('option', { name: /notes\.txt/ });
+      fireEvent.click(screen.getByRole('button', { name: 'Copy path' }));
+      expect(await screen.findByText('Path copied')).toBeInTheDocument();
+      expect(writeText).toHaveBeenCalledWith('/Documents/notes.txt');
+      fireEvent.click(screen.getByRole('button', { name: 'Show in folder' }));
+      await waitFor(() =>
+        expect(onFileSelect).toHaveBeenLastCalledWith('/Documents/notes.txt', false, 'reveal'),
+      );
+      fireEvent.keyDown(input, { key: 'Enter' });
+      await waitFor(() =>
+        expect(onFileSelect).toHaveBeenLastCalledWith('/Documents/notes.txt', false, 'open'),
+      );
+      fireEvent.keyDown(input, { key: 'Enter', metaKey: true });
+      await waitFor(() =>
+        expect(onFileSelect).toHaveBeenLastCalledWith('/Documents/notes.txt', false, 'reveal'),
+      );
+    } finally {
+      if (clipboard) Object.defineProperty(navigator, 'clipboard', clipboard);
+      else Reflect.deleteProperty(navigator, 'clipboard');
+    }
+  });
+
+  it('closes with Escape while focus is on a filter tab', async () => {
+    const onClose = vi.fn();
+    render(<CommandPalette isOpen onClose={onClose} />);
+    await screen.findByText('No recent items yet');
+    fireEvent.keyDown(screen.getByRole('tab', { name: 'All' }), { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it('keeps the latest recent-visit update and stops refreshing after unmount', async () => {
+    const first = deferred<Awaited<ReturnType<typeof TauriAPI.getRecentFiles>>>();
+    const latest = deferred<Awaited<ReturnType<typeof TauriAPI.getRecentFiles>>>();
+    vi.mocked(TauriAPI.getRecentFiles)
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(latest.promise);
+    const { unmount } = render(<CommandPalette isOpen onClose={vi.fn()} />);
+    act(() => window.dispatchEvent(new Event('recent-files-changed')));
+    await act(async () => {
+      latest.resolve([
+        { path: '/recent/latest', name: 'latest', file_type: 'folder', accessed_at: 2, size: 0 },
+      ]);
+      await latest.promise;
+    });
+    expect(screen.getByRole('option', { name: /latest/ })).toBeInTheDocument();
+    await act(async () => {
+      first.resolve([
+        { path: '/recent/old', name: 'old', file_type: 'folder', accessed_at: 1, size: 0 },
+      ]);
+      await first.promise;
+    });
+    expect(screen.queryByRole('option', { name: /old/ })).not.toBeInTheDocument();
+    unmount();
+    window.dispatchEvent(new Event('recent-files-changed'));
+    expect(TauriAPI.getRecentFiles).toHaveBeenCalledTimes(2);
   });
 });

@@ -6,7 +6,6 @@ import React, {
   useState,
   useSyncExternalStore,
 } from 'react';
-import { useLocation } from 'wouter';
 import { extensionHost } from '@/lib/extension-host';
 import { Eye, Bot, ShoppingCart, Settings, Activity, Ellipsis, File } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -34,7 +33,6 @@ const VerticalExtensionsBar = ({
   const { t } = useTranslation();
   const { showHiddenFiles, toggleHiddenFiles } = useHiddenFiles();
   const isMac = navigator.platform.toUpperCase().includes('MAC');
-  const [, navigate] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRootRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -187,7 +185,7 @@ const VerticalExtensionsBar = ({
       <div className={`flex ${orientation === 'horizontal' ? 'flex-row' : 'flex-col py-1'}`}>
         <button
           onClick={() => handlePanelClick('preview')}
-          className={`wisp-rail-button flex h-8 w-8 items-center justify-center rounded-[2px] transition-all ${
+          className={`wisp-rail-button flex h-8 w-8 items-center justify-center rounded-md transition-all ${
             isActivePanel('preview')
               ? 'bg-xp-blue text-[var(--xp-bg)]'
               : 'text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text'
@@ -228,7 +226,7 @@ const VerticalExtensionsBar = ({
                 setMenuOpen(true);
               }
             }}
-            className={`wisp-rail-button flex h-8 w-8 items-center justify-center rounded-[2px] transition-all ${
+            className={`wisp-rail-button flex h-8 w-8 items-center justify-center rounded-md transition-all ${
               hasActiveSecondaryPanel
                 ? 'bg-xp-blue text-[var(--xp-bg)]'
                 : 'text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text'
@@ -271,7 +269,7 @@ const VerticalExtensionsBar = ({
                     onClick={() => handleSecondaryPanelClick(id, target)}
                     className={`flex w-full items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-left text-xs transition-colors ${
                       active
-                        ? 'bg-xp-blue/15 font-medium text-xp-blue'
+                        ? 'bg-xp-blue/15 font-semibold text-xp-blue'
                         : 'text-xp-text hover:bg-xp-surface-light'
                     }`}
                   >
@@ -291,7 +289,11 @@ const VerticalExtensionsBar = ({
                 tabIndex={-1}
                 onClick={() => {
                   closeMenu();
-                  navigate(`/settings${window.location.search}`);
+                  window.dispatchEvent(
+                    new CustomEvent('wisp-open-settings', {
+                      detail: { returnFocus: menuTriggerRef.current },
+                    }),
+                  );
                 }}
                 className="flex w-full items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-left text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
               >

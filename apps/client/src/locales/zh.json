@@ -325,6 +325,11 @@
       "resetAll": "重置所有文件关联"
     },
     "general": {
+      "appearance": "外观",
+      "appearanceDesc": "跟随系统外观，或选择浅色、深色模式。",
+      "appearanceSystem": "跟随系统",
+      "appearanceLight": "浅色",
+      "appearanceDark": "深色",
       "language": "语言",
       "languageDesc": "选择您的首选语言",
       "small": "小",
@@ -339,7 +344,12 @@
       "folderContextMenuDesc": "在文件夹右键菜单中添加「用 Wisp 打开」",
       "contextMenuToggle": "右键菜单",
       "explorerWarning": "文件夹将在 Wisp 中打开。禁用以恢复 Windows 资源管理器。",
-      "weatherCityPlaceholder": "城市名，如 上海"
+      "weatherCityPlaceholder": "城市名，如 上海",
+      "keyboard": "键盘",
+      "keyboardDesc": "快捷键与 Vim 模式",
+      "keyboardNote": "常用操作沿用 Mac 的快捷键习惯；Wisp 的底部面板、终端和分屏另有快捷键，可在这里查看和修改。",
+      "advanced": "高级",
+      "advancedDesc": "恢复默认偏好设置"
     },
     "explorer": {
       "display": "显示",
@@ -354,7 +364,10 @@
       "fileExtensionsDesc": "在文件名中显示扩展名",
       "autoFolderSizes": "自动计算文件夹大小",
       "autoFolderSizesDesc": "在详细视图中自动计算并显示文件夹大小",
-      "auto": "自动"
+      "auto": "自动",
+      "advanced": "高级",
+      "contextMenuVisibility": "右键菜单显示规则",
+      "contextMenuVisibilityDesc": "按文件类型隐藏不常用的菜单项。默认显示全部操作，无需配置。"
     },
     "ai": {
       "agent": "助手",
@@ -626,7 +639,11 @@
       "sponsorTitle": "支持 Wisp",
       "sponsorDescription": "Wisp 是免费开源的。如果您觉得有用，请考虑赞助该项目以帮助持续开发。每一份贡献，无论大小，都意义非凡。",
       "sponsorButton": "在 GitHub 上赞助",
-      "license": "基于 AGPL-3.0 许可证。用心制作。"
+      "license": "基于 AGPL-3.0 许可证。用心制作。",
+      "support": "支持 Wisp",
+      "openLinkFailed": "无法打开链接，请重试。",
+      "installFailed": "无法安装更新，请重试。",
+      "desktopUpdateHint": "请在 Wisp 桌面版中检查和安装更新。"
     },
     "gdrive": {
       "toastDownloadCompleteTitle": "下载完成",
@@ -691,12 +708,15 @@
       "uploadFailed": "上传失败",
       "ariaRetryUpload": "重试上传",
       "ariaCancelUpload": "取消上传"
-    }
+    },
+    "close": "关闭设置",
+    "categories": "设置分类",
+    "savedAutomatically": "更改自动保存"
   },
   "commandPalette": {
     "title": "Wisp 搜索",
-    "subtitle": "随时查找文件或询问 Wisp",
-    "trigger": "全局搜索或询问 Wisp...",
+    "subtitle": "按名称查找文件和文件夹",
+    "trigger": "搜索文件和文件夹…",
     "modeLabel": "搜索模式",
     "modes": {
       "files": "文件",
@@ -721,16 +741,40 @@
     "assistantEmptyTitle": "希望 Wisp 帮您完成什么？",
     "assistantEmptyDescription": "让 Wisp 在当前工作区中查找、总结、比较、整理或处理文件。",
     "everywhere": "所有位置",
-    "globalScope": "全局搜索系统与 Wisp 已索引的文件，不限当前文件夹",
+    "globalScope": "在系统可检索的位置按名称搜索文件和文件夹",
     "demoScope": "演示数据 · 可跨文件夹搜索",
     "searchUnavailable": "搜索暂时不可用，请稍后重试",
     "partialResults": "部分搜索来源不可用，结果可能不完整。请稍后重试。",
-    "limitedResults": "显示前 50 项，请输入更具体的文件名缩小结果范围。",
+    "limitedResults": "当前仅显示部分结果，请输入更具体的名称。",
     "folderType": "文件夹",
     "fileType": "文件",
     "goToFolder": "前往文件夹 {{path}}",
     "openWebsite": "打开网页：{{url}}",
-    "goToCategory": "文件夹"
+    "goToCategory": "文件夹",
+    "filterAll": "全部",
+    "filterFiles": "文件",
+    "filterFolders": "文件夹",
+    "openPath": "打开此路径",
+    "noRecentVisits": "还没有最近访问记录",
+    "startTyping": "输入名称，查找文件或文件夹。",
+    "searchTitle": "搜索文件和文件夹",
+    "closeSearch": "关闭搜索",
+    "itemType": "项目类型",
+    "exampleFiles": "演示文件 · 按名称搜索",
+    "nameSearchScope": "系统可检索位置 · 按名称搜索",
+    "recentVisits": "最近访问",
+    "fullPath": "完整路径",
+    "pathCopied": "路径已复制",
+    "copyFailed": "无法复制路径",
+    "copyPath": "复制路径",
+    "reveal": "在文件夹中显示",
+    "openFolder": "进入文件夹",
+    "openItem": "打开",
+    "narrowSearch": "请输入更具体的名称",
+    "tryAnotherName": "试试其他名称。",
+    "searchBudgetReached": "搜索已达上限，尚未找到此类型的项目，请缩小搜索范围。",
+    "systemLocations": "系统可检索位置 · 按名称搜索",
+    "refineForMore": "当前仅显示部分结果，请输入更具体的名称。"
   },
   "operationBar": {
     "selectionActions": "选中文件操作",
@@ -785,7 +829,16 @@
     "openInTerminal": "在终端中打开",
     "copyPath": "复制路径",
     "iconSize": "图标大小",
-    "iconSizeLabel": "调整图标大小 ({{size}}px)"
+    "iconSizeLabel": "调整图标大小 ({{size}}px)",
+    "airDrop": {
+      "open": "打开 AirDrop",
+      "share": "通过 AirDrop 共享所选项目",
+      "desktopOnly": "请在 Wisp 的 macOS 桌面版中使用 AirDrop。",
+      "openFailed": "未能打开 AirDrop",
+      "tryAgain": "请确认所选项目仍然存在，并在 macOS 上重试。",
+      "invalidPaths": "部分所选项目已移动或无法访问，请重新选择。",
+      "unavailable": "AirDrop 当前不可用，请稍后重试，或在访达中检查 AirDrop。"
+    }
   },
   "fileOperations": {
     "openFailedTitle": "无法打开文件",
@@ -1555,9 +1608,26 @@
     "copyPaths": "复制全部路径"
   },
   "previewPanel": {
+    "showProperties": "查看文件详情",
+    "hideProperties": "收起文件详情",
+    "unavailable": {
+      "unsupportedTitle": "暂不支持预览此格式",
+      "unsupportedDescription": "可以使用默认应用打开，或先查看文件详情。",
+      "tooLargeTitle": "文件较大，暂不在侧栏加载",
+      "tooLargeDescription": "可以使用默认应用打开完整内容，或先查看文件详情。",
+      "failedTitle": "预览暂时无法加载",
+      "failedDescription": "可以重新尝试，也可以使用默认应用打开文件。",
+      "fileType": "{{extension}} 文件",
+      "openDefault": "使用默认应用打开",
+      "opening": "正在打开…",
+      "showDetails": "查看详情",
+      "retry": "重新加载预览",
+      "desktopOnly": "请在 Wisp 桌面版中使用默认应用打开此文件。",
+      "openFailed": "未能打开文件。请确认文件仍然存在，并已安装可以打开它的应用。"
+    },
     "noFileSelectedShort": "未选择文件",
     "closePreview": "关闭预览",
-    "emptyDescription": "从中间的文件列表中选择一个项目，即可在这里查看内容与详细信息。",
+    "emptyDescription": "在这里查看文件内容与详细信息。",
     "failedLoad": "预览加载失败",
     "retryDescription": "暂时无法读取此文件。可以重试，或双击文件使用默认应用打开。",
     "retry": "重试",
@@ -1643,7 +1713,12 @@
     "greetingAfternoon": "下午好",
     "greetingEvening": "晚上好",
     "greetingNight": "夜深了",
-    "topProcesses": "最吃性能的进程"
+    "topProcesses": "最吃性能的进程",
+    "memoryUsageSummary": "内存使用 {{percent}}%",
+    "memoryUsageDetails": "已用 {{used}} / 共 {{total}}",
+    "diskUsageDetails": "可用 {{available}} / 共 {{total}}",
+    "processName": "进程",
+    "processesUnavailable": "暂时无法获取进程详情。"
   },
   "toast": {
     "closeNotification": "关闭通知",
@@ -2269,7 +2344,11 @@
     "syncModeMirrorShort": "镜像",
     "syncModeRelativeShort": "相对",
     "syncSwitchedToMirror": "分栏同步：镜像 — 各面板显示同一文件夹",
-    "syncSwitchedToRelative": "分栏同步：相对 — 其他面板跟随保持相对层级"
+    "syncSwitchedToRelative": "分栏同步：相对 — 其他面板跟随保持相对层级",
+    "tabList": "文件夹标签页",
+    "closeNamedTab": "关闭 {{name}}",
+    "moveTabLeft": "向左移动标签页",
+    "moveTabRight": "向右移动标签页"
   },
   "comparison": {
     "sideBySide": "并排对比",
@@ -2301,6 +2380,8 @@
   },
   "previews": {
     "audio": {
+      "playbackPosition": "播放进度",
+      "volume": "音量",
       "cannotPreview": "无法预览音频",
       "formatNotSupported": "可能不支持此音频格式",
       "loading": "正在加载音频…",
@@ -3269,6 +3350,11 @@
     }
   },
   "preview": {
+    "copyCode": "复制代码",
+    "wrapLines": "自动换行",
+    "codeCopied": "代码已复制",
+    "copyCodeFailed": "未能复制代码，请重试",
+    "plainText": "纯文本",
     "edit": "编辑",
     "doneEditing": "完成",
     "rendered": "预览",
@@ -4095,5 +4181,41 @@
     "loadSpreadsheet": "无法加载电子表格",
     "comparisonTooLarge": "一个或两个文件超过文本比较的 2 MB 大小限制。",
     "readFiles": "无法读取文件"
+  },
+  "homeEntry": {
+    "title": "主页",
+    "addPin": "固定文件夹",
+    "pinned": "固定位置",
+    "less": "收起",
+    "showAll": "查看全部",
+    "recent": "最近访问",
+    "historyActions": "访问记录操作",
+    "types": "最近访问类型",
+    "all": "全部",
+    "files": "文件",
+    "folders": "文件夹",
+    "lastOpened": "上次打开",
+    "nameColumn": "名称",
+    "locationColumn": "所在位置",
+    "actionFailed": "操作未完成，请重试",
+    "openFailed": "无法打开“{{name}}”。请检查文件是否存在，或所在磁盘是否已连接。",
+    "clearHistory": "清除访问记录",
+    "open": "打开",
+    "reveal": "在文件夹中显示",
+    "copyPath": "复制完整路径",
+    "unpin": "取消固定",
+    "pin": "固定位置",
+    "itemActions": "{{name}} 的操作",
+    "loadFailed": "暂时无法读取访问记录",
+    "retry": "重试",
+    "loading": "正在读取访问记录…",
+    "empty": {
+      "all": "从一个文件或文件夹开始",
+      "files": "还没有最近打开的文件",
+      "folders": "还没有最近访问的文件夹"
+    },
+    "emptyHint": "在 Wisp 中打开的项目会出现在这里。",
+    "search": "搜索文件和文件夹",
+    "limit": "显示最近 {{count}} 项"
   }
 }

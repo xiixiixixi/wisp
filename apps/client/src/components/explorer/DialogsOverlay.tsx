@@ -136,7 +136,11 @@ export interface DialogsOverlayProps {
   // ── Command Palette ──────────────────────────────────────────────────────
   commandPaletteOpen: boolean;
   onCloseCommandPalette: () => void;
-  onCommandPaletteFileSelect: (filePath: string, isDir: boolean) => void;
+  onCommandPaletteFileSelect: (
+    filePath: string,
+    isDir: boolean | undefined,
+    intent?: 'open' | 'reveal',
+  ) => void;
 
   // ── Change Summary Toast ─────────────────────────────────────────────────
   showChangeSummaryToast: boolean;

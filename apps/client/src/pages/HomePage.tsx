@@ -1,389 +1,505 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { TauriAPI, type RecentFile, type FileEntry } from '@/lib/tauri-api';
-import SystemDashboard from '@/components/explorer/SystemDashboard';
-import { applyTheme, getFileIcon } from '@/lib/utils';
-import { isWindows, ROOT_PATH, PATH_SEPARATOR } from '@/lib/constants';
-import { useAllThemes } from '@/lib/theme-registry';
+import { Copy, FolderOpen, MoreHorizontal, Pin, PinOff, Plus, Search, X } from 'lucide-react';
+import { TauriAPI, type BookmarkEntry, type FileEntry, type RecentFile } from '@/lib/tauri-api';
+import { getFileIcon } from '@/lib/utils';
+import { getDemoUserDirectories, isBrowserDemoMode } from '@/lib/browser-demo-files';
+import { openRecentEntry, parentDirectory } from '@/lib/recent-entry-actions';
+import { homeParentLabel } from '@/lib/home-entry-path';
+import { useWindowEvent } from '@/hooks/use-window-event';
 import { useToast } from '@/hooks/use-toast';
-import {
-  getDemoRecentFiles,
-  getDemoUserDirectories,
-  isBrowserDemoMode,
-} from '@/lib/browser-demo-files';
-import { ArrowRight, Clock3, Folder, X } from 'lucide-react';
-
-interface UserDirectories {
-  home: string;
-  documents: string;
-  downloads: string;
-  desktop: string;
-  pictures: string;
-  videos: string;
-  music: string;
-}
+import ContextMenu, { type ContextMenuItem } from '@/components/ui/ContextMenu';
+import SystemDashboard from '@/components/explorer/SystemDashboard';
+import '@/styles/home-entry.css';
 
 interface HomePageProps {
   onNavigate: (path: string) => void;
+  onQuickLook?: (file: FileEntry) => void;
+  onReveal?: (path: string) => void;
   theme: string;
   setTheme: (theme: string) => void;
 }
-
-/** Returns a human-readable relative time string using i18n. */
-const relativeTime = (
-  timestampMs: number,
-  t: (key: string, opts?: Record<string, unknown>) => string,
-): string => {
-  const now = Date.now();
-  const diff = now - timestampMs;
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (seconds < 60) return t('common.justNow');
-  if (minutes < 60) return t('common.minutesAgo', { count: minutes });
-  if (hours < 24) return t('common.hoursAgo', { count: hours });
-  if (days === 1) return t('home.yesterday');
-  if (days < 7) return t('common.daysAgo', { count: days });
-  return t('home.weeksAgo', { count: Math.floor(days / 7) });
+type EntryFilter = 'all' | 'files' | 'folders';
+type Entry = RecentFile | BookmarkEntry;
+type MenuState = {
+  x: number;
+  y: number;
+  kind: 'recent' | 'pinned' | 'history' | 'pick';
+  entry?: Entry;
 };
-
-/** The Finder-faithful icon for a recent file — same visual as the lists. */
-const recentFileEntry = (file: RecentFile): FileEntry => ({
-  name: file.name,
-  path: file.path,
-  is_dir: false,
-  size: file.size,
-  modified: Math.floor(file.accessed_at / 1000),
-  file_type: file.file_type,
+const isDirectory = (entry: Entry) =>
+  'is_dir' in entry ? entry.is_dir : entry.file_type === 'folder';
+const asFileEntry = (entry: Entry): FileEntry => ({
+  name: entry.name,
+  path: entry.path,
+  is_dir: isDirectory(entry),
+  size: 'size' in entry ? entry.size : 0,
+  modified: 'accessed_at' in entry ? Math.floor(entry.accessed_at / 1000) : 0,
+  file_type: 'file_type' in entry ? entry.file_type : 'folder',
   is_readonly: false,
 });
-
-/** Section heading with optional action button. */
-const SectionHeader = ({
-  title,
-  subtitle,
-  action,
-}: {
-  title: string;
-  subtitle: string;
-  action?: React.ReactNode;
-}) => (
-  <div className="mb-3 flex items-end justify-between gap-4">
-    <div>
-      <h2 className="text-lg font-semibold tracking-tight text-xp-text">{title}</h2>
-      <p className="mt-0.5 text-xs text-xp-text-muted">{subtitle}</p>
-    </div>
-    {action}
-  </div>
-);
-
-const Clock = () => {
+const HomePage = ({ onNavigate, onQuickLook, onReveal }: HomePageProps) => {
   const { t, i18n } = useTranslation();
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 30_000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const locale = i18n.language || 'en';
-  const hour = currentTime.getHours();
-  const greetingKey =
-    hour < 5
-      ? 'home.greetingNight'
-      : hour < 11
-        ? 'home.greetingMorning'
-        : hour < 14
-          ? 'home.greetingNoon'
-          : hour < 18
-            ? 'home.greetingAfternoon'
-            : 'home.greetingEvening';
-
-  return (
-    <div className="flex items-end justify-between gap-8">
-      <div>
-        <p className="text-3xl font-semibold leading-tight tracking-tight text-xp-text">
-          {t(greetingKey)}
-        </p>
-        <p className="mt-1 flex items-center gap-1.5 text-xs text-xp-text-muted">
-          <Clock3 size={13} aria-hidden="true" />
-          {currentTime.toLocaleDateString(locale, {
-            weekday: 'long',
-            month: 'long',
-            day: 'numeric',
-          })}
-        </p>
-      </div>
-      <div className="flex flex-col items-end gap-1.5">
-        <p className="text-4xl font-extralight tabular-nums leading-none tracking-tighter text-xp-text">
-          {currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
-        </p>
-      </div>
-    </div>
-  );
-};
-
-const HomePage = ({ onNavigate, theme: _theme, setTheme }: HomePageProps) => {
-  const { t } = useTranslation();
-  const themes = useAllThemes();
   const { toast } = useToast();
-  const [recommendedFolders, setRecommendedFolders] = useState<string[]>([]);
-  const [userDirectories, setUserDirectories] = useState<UserDirectories | null>(null);
-  // Recent files state
-  const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
-  const [recentFilesLoading, setRecentFilesLoading] = useState(true);
-  const loadRecentFiles = useCallback(async () => {
-    setRecentFilesLoading(true);
+  const id = useId();
+  const [recent, setRecent] = useState<RecentFile[]>([]);
+  const [bookmarks, setBookmarks] = useState<BookmarkEntry[]>([]);
+  const [home, setHome] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [filter, setFilter] = useState<EntryFilter>('all');
+  const [showAllPins, setShowAllPins] = useState(false);
+  const [menu, setMenu] = useState<MenuState | null>(null);
+  const [opening, setOpening] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const generation = useRef({ recent: 0, bookmarks: 0 });
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const filters: EntryFilter[] = ['all', 'files', 'folders'];
+  const loadRecent = useCallback(async () => {
+    const request = ++generation.current.recent;
     try {
-      if (isBrowserDemoMode()) {
-        setRecentFiles(getDemoRecentFiles());
-        return;
-      }
-      const files = await TauriAPI.getRecentFiles(12);
-      setRecentFiles(files);
-    } catch (err) {
-      console.error('Failed to load recent files:', err);
+      const entries = await TauriAPI.getRecentFiles(200);
+      if (request !== generation.current.recent) return;
+      setRecent([...entries].sort((a, b) => b.accessed_at - a.accessed_at));
+      setLoadError(false);
+    } catch {
+      if (request === generation.current.recent) setLoadError(true);
     } finally {
-      setRecentFilesLoading(false);
+      if (request === generation.current.recent) setLoading(false);
     }
   }, []);
-
-  const handleClearRecentFiles = async () => {
-    try {
-      if (isBrowserDemoMode()) {
-        setRecentFiles([]);
-        return;
-      }
-      await TauriAPI.clearRecentFiles();
-      setRecentFiles([]);
-    } catch (err) {
-      console.error('Failed to clear recent files:', err);
-    }
-  };
-
-  const handleRemoveRecentFile = async (e: React.MouseEvent, path: string) => {
-    e.stopPropagation();
-    try {
-      if (isBrowserDemoMode()) {
-        setRecentFiles((prev) => prev.filter((file) => file.path !== path));
-        return;
-      }
-      await TauriAPI.removeRecentFile(path);
-      setRecentFiles((prev) => prev.filter((f) => f.path !== path));
-    } catch (err) {
-      console.error('Failed to remove recent file:', err);
-    }
-  };
-
-  const handleRecentFileClick = (file: RecentFile) => {
-    if (file.file_type === 'folder') {
-      handleNavigate(file.path);
-    } else {
-      // Navigate to the parent directory
-      const sep = file.path.includes('/') ? '/' : '\\';
-      const parts = file.path.split(sep);
-      parts.pop();
-      const parentDir = parts.join(sep);
-      if (parentDir) {
-        handleNavigate(parentDir);
-      }
-    }
-  };
-
-  const loadUserData = async () => {
-    try {
-      if (isBrowserDemoMode()) {
-        const userDirs = getDemoUserDirectories();
-        setUserDirectories(userDirs);
-        setRecommendedFolders([`${userDirs.documents}/Launch`, `${userDirs.documents}/Research`]);
-        return;
-      }
-      const userDirs = await TauriAPI.getUserDirectories();
-      setUserDirectories(userDirs);
-
-      const recent = await TauriAPI.getRecentFolders();
-      setRecommendedFolders(recent.slice(0, 4));
-    } catch (error) {
-      console.error('Failed to load user data:', error);
-      const home = isWindows ? 'C:\\Users\\Public' : '/home/user';
-      setUserDirectories({
-        home,
-        documents: `${home + PATH_SEPARATOR}Documents`,
-        downloads: `${home + PATH_SEPARATOR}Downloads`,
-        desktop: `${home + PATH_SEPARATOR}Desktop`,
-        pictures: `${home + PATH_SEPARATOR}Pictures`,
-        videos: `${home + PATH_SEPARATOR}Videos`,
-        music: `${home + PATH_SEPARATOR}Music`,
-      });
-    }
-  };
-
-  // Mount: load user data, stats, recents (restored after the legacy-agent
-  // state block removal took the old effect with it).
+  const loadBookmarks = useCallback(() => {
+    const request = ++generation.current.bookmarks;
+    void TauriAPI.getBookmarks()
+      .then((entries) => {
+        if (request === generation.current.bookmarks) setBookmarks(entries);
+      })
+      .catch(() => undefined);
+  }, []);
   useEffect(() => {
-    loadUserData();
-    loadRecentFiles();
-    // Mount-only initialization
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleNavigate = (path: string) => {
-    // Persisting a recent destination is secondary and must never block navigation.
-    if (!isBrowserDemoMode()) {
-      TauriAPI.addToRecentFolders(path).catch((error) => {
-        console.warn('Failed to record recent folder:', error);
-      });
+    const requests = generation.current;
+    void loadRecent();
+    loadBookmarks();
+    if (isBrowserDemoMode()) setHome(getDemoUserDirectories().home);
+    else {
+      void TauriAPI.getUserDirectories()
+        .then((dirs) => setHome(dirs.home))
+        .catch(() => undefined);
     }
-    onNavigate(path);
+    return () => {
+      requests.recent++;
+      requests.bookmarks++;
+    };
+  }, [loadRecent, loadBookmarks]);
+  useWindowEvent('recent-files-changed', loadRecent);
+  useWindowEvent('bookmarks-changed', loadBookmarks);
+  useWindowEvent('focus', loadRecent);
+  const reportAction = (action: () => Promise<unknown>) => {
+    void action().catch(() =>
+      toast({
+        title: t('homeEntry.actionFailed', { defaultValue: '操作未完成，请重试' }),
+        variant: 'destructive',
+      }),
+    );
   };
-
-  const _handleThemeChange = (newTheme: string) => {
-    setTheme(newTheme);
-    applyTheme(newTheme);
-    const themeData = themes[newTheme as keyof typeof themes];
-    toast({
-      title: t('home.themeChanged'),
-      description: t('home.themeApplied', { theme: themeData?.name || newTheme }),
+  const openEntry = async (entry: Entry) => {
+    if (opening) return;
+    setOpening(entry.path);
+    setActionError(null);
+    try {
+      await openRecentEntry({ path: entry.path, isDir: isDirectory(entry) }, onNavigate, {
+        openDemoFile: onQuickLook,
+      });
+    } catch {
+      setActionError(
+        t('homeEntry.openFailed', {
+          name: entry.name,
+          defaultValue: '无法打开“{{name}}”。请检查文件是否存在，或所在磁盘是否已连接。',
+        }),
+      );
+    } finally {
+      setOpening(null);
+    }
+  };
+  const chooseFolder = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (isBrowserDemoMode()) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      setMenu({ x: rect.left, y: rect.bottom + 6, kind: 'pick' });
+      return;
+    }
+    reportAction(async () => {
+      const paths = await TauriAPI.showOpenDialog({ directory: true, multiple: false });
+      if (paths?.[0]) {
+        const path = paths[0];
+        await TauriAPI.addBookmark(path, path.split(/[/\\]/).filter(Boolean).pop() || path);
+      }
     });
   };
-
+  const openMenu = (
+    event: React.MouseEvent<HTMLElement>,
+    kind: MenuState['kind'],
+    entry?: Entry,
+  ) => {
+    event.preventDefault();
+    const rect = event.currentTarget.getBoundingClientRect();
+    setMenu({
+      x: event.type === 'contextmenu' ? event.clientX : rect.left,
+      y: event.type === 'contextmenu' ? event.clientY : rect.bottom + 4,
+      kind,
+      entry,
+    });
+  };
+  const pinned = bookmarks.filter((entry) => entry.is_dir);
+  const filtered = recent.filter(
+    (entry) => filter === 'all' || (entry.file_type === 'folder') === (filter === 'folders'),
+  );
+  const visible = filtered.slice(0, 30);
+  const relativeTime = (time: number) => {
+    const minutes = Math.max(0, Math.floor((Date.now() - time) / 60_000));
+    if (minutes < 1) return t('common.justNow');
+    if (minutes < 60) return t('common.minutesAgo', { count: minutes });
+    if (minutes < 1440) return t('common.hoursAgo', { count: Math.floor(minutes / 60) });
+    if (minutes < 2880) return t('home.yesterday');
+    return new Date(time).toLocaleDateString(i18n.language, { month: 'short', day: 'numeric' });
+  };
+  const menuItems: ContextMenuItem[] = [];
+  if (menu?.kind === 'pick') {
+    const dirs = getDemoUserDirectories();
+    [
+      dirs.documents,
+      `${dirs.documents}/Launch`,
+      `${dirs.documents}/Research`,
+      dirs.downloads,
+    ].forEach((path) => {
+      const name = path.split('/').pop()!;
+      menuItems.push({
+        id: path,
+        label: name,
+        icon: <FolderOpen size={15} />,
+        disabled: pinned.some((entry) => entry.path === path),
+        action: () => reportAction(() => TauriAPI.addBookmark(path, name)),
+      });
+    });
+  } else if (menu?.kind === 'history') {
+    menuItems.push({
+      id: 'clear',
+      label: t('homeEntry.clearHistory', { defaultValue: '清除访问记录' }),
+      icon: <X size={15} />,
+      disabled: !recent.length,
+      action: () => reportAction(() => TauriAPI.clearRecentFiles()),
+    });
+  } else if (menu?.entry) {
+    const entry = menu.entry;
+    const isPinned = pinned.some((item) => item.path === entry.path);
+    menuItems.push({
+      id: 'open',
+      label: t('homeEntry.open', { defaultValue: '打开' }),
+      icon: <FolderOpen size={15} />,
+      action: () => {
+        void openEntry(entry);
+      },
+    });
+    if (!isDirectory(entry)) {
+      menuItems.push({
+        id: 'reveal',
+        label: t('homeEntry.reveal', { defaultValue: '在文件夹中显示' }),
+        icon: <FolderOpen size={15} />,
+        action: () => (onReveal ? onReveal(entry.path) : onNavigate(parentDirectory(entry.path))),
+      });
+    }
+    menuItems.push({
+      id: 'copy',
+      label: t('homeEntry.copyPath', { defaultValue: '复制完整路径' }),
+      icon: <Copy size={15} />,
+      action: () => reportAction(() => navigator.clipboard.writeText(entry.path)),
+    });
+    if (isDirectory(entry)) {
+      menuItems.push({
+        id: 'pin',
+        label: isPinned
+          ? t('homeEntry.unpin', { defaultValue: '取消固定' })
+          : t('homeEntry.pin', { defaultValue: '固定位置' }),
+        icon: isPinned ? <PinOff size={15} /> : <Pin size={15} />,
+        action: () =>
+          reportAction(() =>
+            isPinned
+              ? TauriAPI.removeBookmark(entry.path)
+              : TauriAPI.addBookmark(entry.path, entry.name),
+          ),
+      });
+    }
+    if (menu.kind === 'recent') {
+      menuItems.push({
+        id: 'remove',
+        label: t('home.removeFromRecent'),
+        icon: <X size={15} />,
+        action: () => reportAction(() => TauriAPI.removeRecentFile(entry.path)),
+      });
+    }
+  }
+  const moreButton = (entry: Entry, kind: 'pinned' | 'recent') => (
+    <button
+      type="button"
+      className="wisp-entry-more"
+      aria-label={t('homeEntry.itemActions', { name: entry.name, defaultValue: '{{name}} 的操作' })}
+      aria-haspopup="menu"
+      onClick={(event) => openMenu(event, kind, entry)}
+    >
+      <MoreHorizontal size={16} />
+    </button>
+  );
+  const entryLabel = (entry: Entry) => (
+    <>
+      <span className="wisp-entry-icon" aria-hidden="true">
+        {getFileIcon(asFileEntry(entry))}
+      </span>
+      <span className="wisp-entry-name">
+        <strong>{entry.name}</strong>
+        <span title={parentDirectory(entry.path)}>{homeParentLabel(entry.path, home)}</span>
+      </span>
+    </>
+  );
   return (
-    <div className="wisp-home relative flex h-full flex-col overflow-auto bg-xp-bg text-xp-text">
-      <div className="wisp-home-layout mx-auto grid min-h-0 w-full max-w-6xl flex-1 grid-cols-1 gap-y-5 px-6 py-6 lg:grid-cols-12 lg:gap-x-5 lg:px-8">
-        {/* Compact header */}
-        <div className="order-0 lg:col-span-12">
-          <Clock />
-          {/* 系统状态紧凑卡：指标行 + 进程表，固定结构 5s 刷新（用户：换形式，别删） */}
-          <div className="mt-3">
-            <SystemDashboard />
-          </div>
-        </div>
-
-        {/* Quick access is gone on purpose — the sidebar already owns it. */}
-
-        {/* Recent folders inline */}
-        {recommendedFolders.length > 0 && (
-          <div className="order-2 lg:col-span-12">
-            <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-xp-text-muted">
-              {t('home.recentFolders')}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {recommendedFolders.map((path) => {
-                const name = path.split(/[\\/]/).pop() || path;
-                return (
+    <div className="wisp-home wisp-entry-home">
+      <div className="wisp-entry-layout">
+        <header className="wisp-entry-heading">
+          <h1>{t('homeEntry.title', { defaultValue: '主页' })}</h1>
+          <button type="button" className="wisp-entry-text-button" onClick={chooseFolder}>
+            <Plus size={15} />
+            {t('homeEntry.addPin', { defaultValue: '固定文件夹' })}
+          </button>
+        </header>
+        <div className="wisp-entry-body">
+          {pinned.length > 0 && (
+            <section className="wisp-entry-pins" aria-labelledby={`${id}-pins`}>
+              <div className="wisp-entry-section-heading">
+                <h2 id={`${id}-pins`}>{t('homeEntry.pinned', { defaultValue: '固定位置' })}</h2>
+                {pinned.length > 4 && (
                   <button
-                    key={path}
-                    onClick={() => handleNavigate(path)}
-                    className="group flex items-center gap-2 rounded-[2px] border border-xp-border bg-xp-surface px-3 py-1.5 text-xs transition-colors hover:bg-xp-surface-light"
-                    title={path}
+                    type="button"
+                    className="wisp-entry-text-button"
+                    aria-expanded={showAllPins}
+                    onClick={() => setShowAllPins(!showAllPins)}
                   >
-                    <Folder className="h-3 w-3 flex-shrink-0 text-xp-text-secondary" />
-                    <span className="max-w-[140px] truncate text-xp-text-secondary group-hover:text-xp-text">
-                      {name}
-                    </span>
+                    {showAllPins
+                      ? t('homeEntry.less', { defaultValue: '收起' })
+                      : t('homeEntry.showAll', { defaultValue: '查看全部' })}
                   </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Recent Files */}
-        {!recentFilesLoading && recentFiles.length > 0 && (
-          <div className="order-3 lg:col-span-12">
-            <SectionHeader
-              title={t('home.recentFiles')}
-              subtitle={t('home.recentFilesSubtitle')}
-              action={
-                <button
-                  onClick={handleClearRecentFiles}
-                  className="flex h-8 items-center rounded-[2px] border border-xp-border bg-xp-surface px-3.5 text-xs font-medium text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-                >
-                  {t('home.clearAll')}
-                </button>
-              }
-            />
-            <div className="flex flex-col gap-0.5">
-              {recentFiles.map((file) => {
-                return (
+                )}
+              </div>
+              <div className="wisp-entry-pin-grid">
+                {(showAllPins ? pinned : pinned.slice(0, 4)).map((entry) => (
                   <div
-                    key={`${file.path}-${file.accessed_at}`}
-                    className="group relative overflow-hidden rounded-[2px] transition-colors hover:bg-xp-surface-light"
+                    className="wisp-entry-pin"
+                    key={entry.path}
+                    onContextMenu={(event) => openMenu(event, 'pinned', entry)}
                   >
                     <button
                       type="button"
-                      onClick={() => handleRecentFileClick(file)}
-                      className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left"
-                      title={file.path}
+                      className="wisp-entry-pin-open"
+                      onClick={() => {
+                        void openEntry(entry);
+                      }}
+                      title={entry.path}
                     >
-                      <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center text-[24px] leading-none">
-                        {getFileIcon(recentFileEntry(file))}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[13px] font-medium text-xp-text">
-                          {file.name}
-                        </span>
-                        {/* Full path; rtl direction pins the ellipsis to the
-                            leading side so the meaningful tail stays visible. */}
-                        <span
-                          className="block truncate text-[11px] text-xp-text-muted"
-                          title={file.path}
-                          style={{ direction: 'rtl', textAlign: 'left' }}
-                        >
-                          {file.path}
-                        </span>
-                      </span>
-                      <span className="flex-shrink-0 text-[11px] text-xp-text-muted">
-                        {relativeTime(file.accessed_at, t)}
-                      </span>
+                      {entryLabel(entry)}
                     </button>
-                    {/* Remove button on hover */}
-                    <button
-                      type="button"
-                      onClick={(e) => handleRemoveRecentFile(e, file.path)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-[2px] bg-xp-surface p-1 text-xp-text-muted opacity-0 transition-opacity hover:text-xp-red group-hover:opacity-100"
-                      title={t('home.removeFromRecent')}
-                      aria-label={t('home.removeFromRecent')}
-                    >
-                      <X className="h-3 w-3" aria-hidden="true" />
-                    </button>
+                    {moreButton(entry, 'pinned')}
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {!recentFilesLoading && recentFiles.length === 0 && (
-          <div className="order-4 lg:col-span-12">
-            <div className="flex flex-col items-start justify-between gap-4 rounded-[2px] border border-xp-border bg-muted px-5 py-4 sm:flex-row sm:items-center">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] bg-muted text-xp-blue">
-                  <Folder className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-xp-text">{t('home.recentEmptyTitle')}</p>
-                  <p className="mt-0.5 text-xs leading-5 text-xp-text-muted">
-                    {t('home.recentEmptyDescription')}
-                  </p>
-                </div>
+                ))}
+              </div>
+            </section>
+          )}
+          <section className="wisp-entry-recents" aria-labelledby={`${id}-recents`}>
+            <div className="wisp-entry-recent-toolbar">
+              <h2 id={`${id}-recents`}>{t('homeEntry.recent', { defaultValue: '最近访问' })}</h2>
+              <div
+                className="wisp-entry-tabs"
+                role="tablist"
+                aria-label={t('homeEntry.types', { defaultValue: '最近访问类型' })}
+              >
+                {filters.map((value, index) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="tab"
+                    id={`${id}-tab-${value}`}
+                    aria-selected={filter === value}
+                    aria-controls={`${id}-list`}
+                    tabIndex={filter === value ? 0 : -1}
+                    ref={(node) => {
+                      tabRefs.current[index] = node;
+                    }}
+                    onClick={() => setFilter(value)}
+                    onKeyDown={(event) => {
+                      let next: number;
+                      if (event.key === 'ArrowRight') next = (index + 1) % filters.length;
+                      else if (event.key === 'ArrowLeft') {
+                        next = (index + filters.length - 1) % filters.length;
+                      } else if (event.key === 'Home') next = 0;
+                      else if (event.key === 'End') next = filters.length - 1;
+                      else return;
+                      event.preventDefault();
+                      setFilter(filters[next]);
+                      tabRefs.current[next]?.focus();
+                    }}
+                  >
+                    {t(`homeEntry.${value}`, {
+                      defaultValue: { all: '全部', files: '文件', folders: '文件夹' }[value],
+                    })}
+                  </button>
+                ))}
               </div>
               <button
                 type="button"
-                onClick={() => handleNavigate(userDirectories?.home || ROOT_PATH)}
-                className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[2px] border border-xp-border bg-xp-surface px-3.5 text-xs font-medium text-xp-text transition-colors hover:border-primary hover:bg-xp-surface-light"
+                className="wisp-entry-more"
+                aria-label={t('homeEntry.historyActions', { defaultValue: '访问记录操作' })}
+                aria-haspopup="menu"
+                onClick={(event) => openMenu(event, 'history')}
               >
-                {t('home.openHome')}
-                <ArrowRight size={14} />
+                <MoreHorizontal size={17} />
               </button>
             </div>
-          </div>
-        )}
+            {actionError && (
+              <div className="wisp-entry-error" role="alert">
+                <span>{actionError}</span>
+                <button
+                  type="button"
+                  className="wisp-entry-more"
+                  aria-label={t('common.close')}
+                  onClick={() => setActionError(null)}
+                >
+                  <X size={15} />
+                </button>
+              </div>
+            )}
+            <div
+              id={`${id}-list`}
+              role="tabpanel"
+              aria-labelledby={`${id}-tab-${filter}`}
+              aria-busy={loading}
+            >
+              {!loadError && !loading && visible.length > 0 && (
+                <div className="wisp-entry-column-labels" aria-hidden="true">
+                  <span className="wisp-entry-name-label">
+                    {t('homeEntry.nameColumn', { defaultValue: '名称' })}
+                  </span>
+                  <span className="wisp-entry-location-label">
+                    {t('homeEntry.locationColumn', { defaultValue: '所在位置' })}
+                  </span>
+                  <span className="wisp-entry-time-label">
+                    {t('homeEntry.lastOpened', { defaultValue: '上次打开' })}
+                  </span>
+                </div>
+              )}
+              {loadError && (
+                <div className="wisp-entry-empty" role="alert">
+                  <p>{t('homeEntry.loadFailed', { defaultValue: '暂时无法读取访问记录' })}</p>
+                  <button
+                    type="button"
+                    className="wisp-entry-text-button"
+                    onClick={() => {
+                      void loadRecent();
+                    }}
+                  >
+                    {t('homeEntry.retry', { defaultValue: '重试' })}
+                  </button>
+                </div>
+              )}
+              {!loadError && loading && (
+                <p className="wisp-entry-empty" role="status">
+                  {t('homeEntry.loading', { defaultValue: '正在读取访问记录…' })}
+                </p>
+              )}
+              {!loadError && !loading && visible.length === 0 && (
+                <div className="wisp-entry-empty">
+                  <FolderOpen size={28} aria-hidden="true" />
+                  <h3>
+                    {t(`homeEntry.empty.${filter}`, {
+                      defaultValue: {
+                        all: '从一个文件或文件夹开始',
+                        files: '还没有最近打开的文件',
+                        folders: '还没有最近访问的文件夹',
+                      }[filter],
+                    })}
+                  </h3>
+                  <p>
+                    {t('homeEntry.emptyHint', {
+                      defaultValue: '在 Wisp 中打开的项目会出现在这里。',
+                    })}
+                  </p>
+                  <button
+                    type="button"
+                    className="wisp-entry-text-button"
+                    onClick={() => window.dispatchEvent(new Event('wisp-open-command-palette'))}
+                  >
+                    <Search size={15} />
+                    {t('homeEntry.search', { defaultValue: '搜索文件和文件夹' })}
+                  </button>
+                </div>
+              )}
+              <ul className="wisp-entry-list">
+                {visible.map((entry) => (
+                  <li
+                    className="wisp-entry-row"
+                    key={entry.path}
+                    onContextMenu={(event) => openMenu(event, 'recent', entry)}
+                  >
+                    <button
+                      type="button"
+                      className="wisp-entry-row-open"
+                      onClick={() => {
+                        void openEntry(entry);
+                      }}
+                      disabled={opening === entry.path}
+                      title={entry.path}
+                    >
+                      <span className="wisp-entry-identity">
+                        <span className="wisp-entry-icon" aria-hidden="true">
+                          {getFileIcon(asFileEntry(entry))}
+                        </span>
+                        <strong>{entry.name}</strong>
+                      </span>
+                      <span className="wisp-entry-location" title={parentDirectory(entry.path)}>
+                        {homeParentLabel(entry.path, home)}
+                      </span>
+                      <time
+                        dateTime={new Date(entry.accessed_at).toISOString()}
+                        title={new Date(entry.accessed_at).toLocaleString(i18n.language)}
+                      >
+                        {relativeTime(entry.accessed_at)}
+                      </time>
+                    </button>
+                    {moreButton(entry, 'recent')}
+                  </li>
+                ))}
+              </ul>
+              {filtered.length > visible.length && (
+                <p className="wisp-entry-limit">
+                  {t('homeEntry.limit', {
+                    count: visible.length,
+                    defaultValue: '显示最近 {{count}} 项',
+                  })}
+                </p>
+              )}
+            </div>
+          </section>
+        </div>
+        <SystemDashboard />
       </div>
+      {menu &&
+        createPortal(
+          <ContextMenu
+            isOpen
+            x={menu.x}
+            y={menu.y}
+            onClose={() => setMenu(null)}
+            items={menuItems}
+          />,
+          document.body,
+        )}
     </div>
   );
 };
-
 export default HomePage;

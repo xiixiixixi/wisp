@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useId, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 interface TabsProps {
   value?: string;
@@ -53,7 +54,10 @@ export const TabsList = ({
     {...props}
     role="tablist"
     aria-orientation="horizontal"
-    className={`segmented-control inline-flex min-h-9 items-center justify-start gap-0.5 ${className}`}
+    className={cn(
+      'segmented-control inline-flex min-h-7 max-w-full items-center justify-start gap-0.5 rounded-lg p-0.5',
+      className,
+    )}
     onKeyDown={(event) => {
       onKeyDown?.(event);
       if (
@@ -104,7 +108,13 @@ export const TabsTrigger = ({
       aria-controls={`${tabs.id}-panel-${value}`}
       tabIndex={active ? 0 : -1}
       data-active={active}
-      className={`segmented-control-item relative inline-flex items-center justify-center whitespace-nowrap px-3 text-sm transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40 ${active ? 'font-medium text-xp-text' : 'text-xp-text-muted hover:text-xp-text'} ${className}`}
+      className={cn(
+        'segmented-control-item relative inline-flex min-h-6 flex-1 items-center justify-center whitespace-nowrap rounded-md px-3 text-[13px] font-medium leading-4 transition-[background-color,color,box-shadow,opacity] focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40',
+        active
+          ? 'text-[var(--ds-label-primary)]'
+          : 'text-[var(--ds-label-secondary)] hover:text-[var(--ds-label-primary)]',
+        className,
+      )}
       onClick={(event) => {
         onClick?.(event);
         if (!event.defaultPrevented) tabs.select(value);
@@ -139,7 +149,7 @@ export const TabsContent = ({
       hidden={tabs.value !== value}
       style={{ ...style, display: tabs.value === value ? style?.display : 'none' }}
       tabIndex={0}
-      className={`mt-3 focus-visible:outline-none ${className}`}
+      className={cn('mt-3 focus-visible:outline-none', className)}
     >
       {forceMount || tabs.value === value ? children : null}
     </div>

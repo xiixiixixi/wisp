@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import MarkdownPreview from '@/components/previews/MarkdownPreview';
 import HtmlPreview from '@/components/previews/HtmlPreview';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
+import { highlightCode } from '@/lib/shiki';
 
 // CodeMirror stub: rendered tab tests don't need a live editor.
 vi.mock('@/lib/codemirror', () => ({
@@ -53,9 +54,13 @@ vi.mock('@/lib/codemirror', () => ({
   },
 }));
 
-// Shiki stub: synchronous marker instead of the real highlighter.
-vi.mock('@/lib/shiki', () => ({
-  highlightCode: vi.fn((code: string) => Promise.resolve(`<pre data-testid="shiki">${code}</pre>`)),
+// Grammar behavior has real Shiki coverage; keep component tests focused on rendering and actions.
+vi.mock('@/lib/shiki', async (original) => ({
+  ...(await original<typeof import('@/lib/shiki')>()),
+  highlightCode: vi.fn((code: string) => {
+    const escaped = code.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    return Promise.resolve(`<pre data-testid="shiki"><code>${escaped}</code></pre>`);
+  }),
 }));
 
 vi.mock('@/lib/tauri-api', () => ({
@@ -74,6 +79,7 @@ describe('MarkdownPreview', () => {
     is_dir: false,
     modified: Date.now(),
     file_type: 'markdown',
+    is_readonly: false,
   };
 
   const mockProps = {
@@ -125,6 +131,77 @@ describe('MarkdownPreview', () => {
         expect(screen.getByTestId('shiki')).toBeInTheDocument();
         expect(screen.getByTestId('shiki').textContent).toContain('const x = 1;');
       });
+      expect(highlightCode).toHaveBeenCalledWith('const x = 1;', 'js');
+      expect(screen.getByRole('region', { name: 'JavaScript' })).toHaveAttribute('tabindex', '0');
+    });
+
+    it('preserves punctuation-bearing language names and leaves ordinary inline code alone', async () => {
+      vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce(
+        'An ordinary paragraph with `inline()` code.\n\n```c++\nint answer = 42;\n```',
+      );
+      render(<MarkdownPreview {...mockProps} />);
+
+      expect(await screen.findByText('inline()')).toHaveClass('md-inline-code');
+      expect(screen.getByText(/An ordinary paragraph/).tagName).toBe('P');
+      await waitFor(() => expect(highlightCode).toHaveBeenCalledWith('int answer = 42;', 'c++'));
+      expect(screen.getAllByRole('button', { name: 'Copy code' })).toHaveLength(1);
+    });
+
+    it('renders empty fences as empty plain text blocks', async () => {
+      vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce('```\n```');
+      vi.mocked(highlightCode).mockResolvedValueOnce(null);
+      render(<MarkdownPreview {...mockProps} />);
+
+      const region = await screen.findByRole('region', { name: 'Plain text' });
+      expect(region.querySelector('pre')?.textContent).toBe('');
+      await waitFor(() => expect(highlightCode).toHaveBeenCalledWith('', 'text'));
+    });
+
+    it('keeps unknown-language HTML as safe selectable text', async () => {
+      const code = '<img src=x onerror="alert(1)"><script>alert(1)</script>';
+      vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce(`\`\`\`unknown-lang\n${code}\n\`\`\``);
+      vi.mocked(highlightCode).mockResolvedValueOnce(null);
+      render(<MarkdownPreview {...mockProps} />);
+
+      const region = await screen.findByRole('region', { name: 'unknown-lang' });
+      expect(region.querySelector('pre')?.textContent).toBe(code);
+      expect(region.querySelector('script, img, [onerror]')).toBeNull();
+    });
+
+    it('copies only the code through the keyboard and announces success', async () => {
+      const user = userEvent.setup();
+      const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue();
+      const code = 'const x = 1;\nconsole.log(x);';
+      vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce(`\`\`\`ts\n${code}\n\`\`\``);
+      render(<MarkdownPreview {...mockProps} />);
+
+      const copy = await screen.findByRole('button', { name: 'Copy code' });
+      copy.focus();
+      await user.keyboard('{Enter}');
+      expect(writeText).toHaveBeenCalledWith(code);
+      expect(within(copy.closest('.md-code-toolbar')!).getByRole('status')).toHaveTextContent(
+        'Code copied',
+      );
+      expect(copy).toHaveFocus();
+      writeText.mockRestore();
+    });
+
+    it('shows copy failure without claiming success or removing the code', async () => {
+      const user = userEvent.setup();
+      const writeText = vi
+        .spyOn(navigator.clipboard, 'writeText')
+        .mockRejectedValue(new Error('Clipboard denied'));
+      vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce('```js\nconst x = 1;\n```');
+      render(<MarkdownPreview {...mockProps} />);
+
+      const copy = await screen.findByRole('button', { name: 'Copy code' });
+      await user.click(copy);
+      expect(within(copy.closest('.md-code-toolbar')!).getByRole('status')).toHaveTextContent(
+        'Could not copy code',
+      );
+      expect(screen.getByRole('region', { name: 'JavaScript' })).toHaveTextContent('const x = 1;');
+      expect(copy).toBeEnabled();
+      writeText.mockRestore();
     });
 
     it('calls onLoad after successful load', async () => {

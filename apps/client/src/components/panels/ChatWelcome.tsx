@@ -277,7 +277,7 @@ const ChatWelcome = ({
                     padding: '2px 8px',
                     borderRadius: '4px',
                     background: 'rgb(var(--xp-blue-rgb) / 0.1)',
-                    color: 'var(--xp-blue)',
+                    color: 'var(--ds-link)',
                     fontSize: '11px',
                   }}
                 >
@@ -331,7 +331,7 @@ const ChatWelcome = ({
                     e.currentTarget.style.background = 'var(--xp-surface)';
                   }}
                 >
-                  <span style={{ flexShrink: 0, color: 'var(--xp-blue)' }}>{suggestion.icon}</span>
+                  <span style={{ flexShrink: 0, color: 'var(--ds-link)' }}>{suggestion.icon}</span>
                   <span>{suggestion.label}</span>
                 </button>
               ))}

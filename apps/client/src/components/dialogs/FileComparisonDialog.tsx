@@ -87,7 +87,7 @@ const FileComparisonDialog = ({
       <div className="space-y-6">
         {/* Status Banner */}
         <div
-          className={`rounded-[2px] border p-4 ${identical ? 'border-xp-green/30 bg-xp-green/10' : 'border-xp-orange/30 bg-xp-orange/10'}`}
+          className={`rounded-md border p-4 ${identical ? 'border-xp-green/30 bg-xp-green/10' : 'border-xp-orange/30 bg-xp-orange/10'}`}
         >
           <div className="flex items-center gap-2">
             {identical ? (
@@ -115,7 +115,9 @@ const FileComparisonDialog = ({
         {/* File Information */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-xp-text-secondary">{tUi('interface.file1')}</h3>
+            <h3 className="text-sm font-semibold text-xp-text-secondary">
+              {tUi('interface.file1')}
+            </h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <FileIcon className="h-4 w-4 text-xp-blue" />
@@ -139,7 +141,9 @@ const FileComparisonDialog = ({
           </div>
 
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-xp-text-secondary">{tUi('interface.file2')}</h3>
+            <h3 className="text-sm font-semibold text-xp-text-secondary">
+              {tUi('interface.file2')}
+            </h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <FileIcon className="h-4 w-4 text-xp-green" />
@@ -167,20 +171,20 @@ const FileComparisonDialog = ({
 
         {/* Statistics */}
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <div className="rounded-[2px] bg-xp-surface-light p-3 text-center">
-            <div className="text-lg font-medium text-xp-green">{metadata.linesAdded}</div>
+          <div className="rounded-md bg-xp-surface-light p-3 text-center">
+            <div className="text-lg font-semibold text-xp-green">{metadata.linesAdded}</div>
             <div className="text-xs text-xp-text-secondary">{tUi('interface.linesAdded')}</div>
           </div>
-          <div className="rounded-[2px] bg-xp-surface-light p-3 text-center">
-            <div className="text-lg font-medium text-xp-red">{metadata.linesRemoved}</div>
+          <div className="rounded-md bg-xp-surface-light p-3 text-center">
+            <div className="text-lg font-semibold text-xp-red">{metadata.linesRemoved}</div>
             <div className="text-xs text-xp-text-secondary">{tUi('interface.linesRemoved')}</div>
           </div>
-          <div className="rounded-[2px] bg-xp-surface-light p-3 text-center">
-            <div className="text-lg font-medium text-xp-orange">{metadata.linesModified}</div>
+          <div className="rounded-md bg-xp-surface-light p-3 text-center">
+            <div className="text-lg font-semibold text-xp-orange">{metadata.linesModified}</div>
             <div className="text-xs text-xp-text-secondary">{tUi('interface.linesModified')}</div>
           </div>
-          <div className="rounded-[2px] bg-xp-surface-light p-3 text-center">
-            <div className="text-lg font-medium text-xp-blue">
+          <div className="rounded-md bg-xp-surface-light p-3 text-center">
+            <div className="text-lg font-semibold text-xp-blue">
               {formatFileSize(metadata.bytesDifferent)}
             </div>
             <div className="text-xs text-xp-text-secondary">{tUi('interface.bytesDifferent')}</div>
@@ -209,7 +213,7 @@ const FileComparisonDialog = ({
       return (
         <div className="py-8 text-center text-xp-text-muted">
           <Scale className="mx-auto mb-4 h-12 w-12 text-xp-text-secondary" />
-          <div className="text-lg font-medium">{tUi('interface.noDifferencesFound')}</div>
+          <div className="text-lg font-semibold">{tUi('interface.noDifferencesFound')}</div>
           <div className="text-sm">{tUi('interface.theFilesAreIdentical')}</div>
         </div>
       );
@@ -223,7 +227,7 @@ const FileComparisonDialog = ({
               // eslint-disable-next-line react/no-array-index-key
               key={index}
               className={(() => {
-                const base = 'rounded-[2px] border-l-4 p-4';
+                const base = 'rounded-md border-l-4 p-4';
                 if (diff.diffType === 'added') return `${base} border-xp-green bg-xp-green/10`;
                 if (diff.diffType === 'removed') return `${base} border-xp-red bg-xp-red/10`;
                 if (diff.diffType === 'modified') return `${base} border-xp-orange bg-xp-orange/10`;
@@ -261,12 +265,12 @@ const FileComparisonDialog = ({
 
               <div className="space-y-2 font-mono text-sm">
                 {diff.content1 && (
-                  <div className="rounded-[2px] border-l-2 border-xp-red/60 bg-xp-red/10 p-2">
+                  <div className="rounded-md border-l-2 border-xp-red/60 bg-xp-red/10 p-2">
                     <span className="text-xp-red">- {diff.content1}</span>
                   </div>
                 )}
                 {diff.content2 && (
-                  <div className="rounded-[2px] border-l-2 border-xp-green/60 bg-xp-green/10 p-2">
+                  <div className="rounded-md border-l-2 border-xp-green/60 bg-xp-green/10 p-2">
                     <span className="text-xp-green">+ {diff.content2}</span>
                   </div>
                 )}
@@ -277,7 +281,7 @@ const FileComparisonDialog = ({
                   <summary className="cursor-pointer text-xs text-xp-text-secondary hover:text-xp-text">
                     {tUi('messages.contextLines', { count: diff.context.length })}
                   </summary>
-                  <div className="mt-2 rounded-[2px] bg-xp-surface-light p-2 font-mono text-xs">
+                  <div className="mt-2 rounded-md bg-xp-surface-light p-2 font-mono text-xs">
                     {diff.context.map((line, idx) => (
                       // eslint-disable-next-line react/no-array-index-key
                       <div key={idx} className="text-xp-text-secondary">
@@ -302,10 +306,10 @@ const FileComparisonDialog = ({
       return (
         <div className="grid h-96 grid-cols-2 gap-4">
           {[file1, file2].map((file, i) => (
-            <div key={file.path} className="flex flex-col overflow-hidden rounded-[2px] border">
+            <div key={file.path} className="flex flex-col overflow-hidden rounded-md border">
               <div className="shrink-0 border-b bg-xp-surface-light p-2">
                 <h3
-                  className="flex items-center gap-2 truncate text-sm font-medium"
+                  className="flex items-center gap-2 truncate text-sm font-semibold"
                   title={file.path}
                 >
                   <FileIcon className={`h-4 w-4 ${i === 0 ? 'text-xp-blue' : 'text-xp-green'}`} />
@@ -319,7 +323,7 @@ const FileComparisonDialog = ({
                 <img
                   src={convertAssetUrl(file.path)}
                   alt={file.name}
-                  className="max-h-full max-w-full rounded-[2px] object-contain"
+                  className="max-h-full max-w-full rounded-md object-contain"
                   draggable={false}
                 />
               </div>
@@ -333,10 +337,10 @@ const FileComparisonDialog = ({
       return (
         <div className="grid h-96 grid-cols-2 gap-4">
           {[file1, file2].map((file, i) => (
-            <div key={file.path} className="flex flex-col overflow-hidden rounded-[2px] border">
+            <div key={file.path} className="flex flex-col overflow-hidden rounded-md border">
               <div className="shrink-0 border-b bg-xp-surface-light p-2">
                 <h3
-                  className="flex items-center gap-2 truncate text-sm font-medium"
+                  className="flex items-center gap-2 truncate text-sm font-semibold"
                   title={file.path}
                 >
                   <FileIcon className={`h-4 w-4 ${i === 0 ? 'text-xp-blue' : 'text-xp-green'}`} />
@@ -350,7 +354,7 @@ const FileComparisonDialog = ({
                 <video
                   src={convertAssetUrl(file.path)}
                   controls
-                  className="max-h-full max-w-full rounded-[2px]"
+                  className="max-h-full max-w-full rounded-md"
                 />
               </div>
             </div>
@@ -363,7 +367,7 @@ const FileComparisonDialog = ({
       return (
         <div className="py-8 text-center text-xp-text-muted">
           <FileIcon className="mx-auto mb-4 h-12 w-12 text-xp-text-secondary" />
-          <div className="text-lg font-medium">{tUi('interface.sideBySideViewNotAvailable')}</div>
+          <div className="text-lg font-semibold">{tUi('interface.sideBySideViewNotAvailable')}</div>
           <div className="text-sm">
             {tUi('interface.thisViewIsOnlyAvailableForTextImageAndVideoFiles')}
           </div>
@@ -376,9 +380,9 @@ const FileComparisonDialog = ({
 
     return (
       <div className="grid h-96 grid-cols-2 gap-4">
-        <div className="rounded-[2px] border">
+        <div className="rounded-md border">
           <div className="border-b bg-xp-surface-light p-2">
-            <h3 className="truncate text-sm font-medium" title={file1.path}>
+            <h3 className="truncate text-sm font-semibold" title={file1.path}>
               {file1.name}
             </h3>
           </div>
@@ -395,9 +399,9 @@ const FileComparisonDialog = ({
           </ScrollArea>
         </div>
 
-        <div className="rounded-[2px] border">
+        <div className="rounded-md border">
           <div className="border-b bg-xp-surface-light p-2">
-            <h3 className="truncate text-sm font-medium" title={file2.path}>
+            <h3 className="truncate text-sm font-semibold" title={file2.path}>
               {file2.name}
             </h3>
           </div>
@@ -468,7 +472,7 @@ const FileComparisonDialog = ({
           ) : (
             <div className="py-8 text-center text-xp-text-muted">
               <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-xp-text-secondary" />
-              <div className="text-lg font-medium">{tUi('dialogs.fileComparison.failed')}</div>
+              <div className="text-lg font-semibold">{tUi('dialogs.fileComparison.failed')}</div>
               <div className="text-sm">{tUi('interface.unableToCompareTheSelectedFiles')}</div>
             </div>
           )}

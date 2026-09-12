@@ -19,8 +19,8 @@
   --lg-control-fill: rgba(255, 255, 255, 0.4);
   --lg-control-fill-hover: rgba(255, 255, 255, 0.68);
   --lg-control-fill-pressed: rgba(225, 230, 238, 0.7);
-  --lg-control-well: rgba(118, 118, 128, 0.1);
-  --lg-control-stroke: rgba(60, 60, 67, 0.13);
+  --lg-control-well: color-mix(in srgb, var(--ds-fill) 100%, transparent);
+  --lg-control-stroke: color-mix(in srgb, var(--ds-separator) 13%, transparent);
   --lg-control-highlight: rgba(255, 255, 255, 0.88);
   --lg-control-shadow:
     0 1px 0 var(--lg-control-highlight) inset, 0 1px 2px rgba(38, 45, 56, 0.1),
@@ -63,9 +63,9 @@
   --file-icon-blue: #45423c;
 
   color-scheme: light;
-  --background: #eceff3;
+  --background: var(--ds-ground);
   --foreground: #1d1d1f;
-  --muted: rgba(60, 60, 67, 0.07);
+  --muted: color-mix(in srgb, var(--ds-separator) 7%, transparent);
   --muted-foreground: #6e6e73;
   --popover: var(--lg-glass-strong);
   --popover-foreground: #1d1d1f;
@@ -84,8 +84,8 @@
   --ring: #0071e3;
   --radius: var(--lg-radius-md);
 
-  --xp-bg: #eceff3;
-  --xp-bg-gradient: #eceff3;
+  --xp-bg: var(--ds-ground);
+  --xp-bg-gradient: var(--ds-ground);
   --xp-surface: var(--lg-content-surface);
   --xp-surface-light: rgba(255, 255, 255, 0.52);
   --xp-sidebar: var(--lg-glass-regular);
@@ -135,9 +135,9 @@
 html.theme-light {
   color-scheme: light;
   /* macOS 冷蓝白玻璃（2026-09-06 定稿参考图）：底 #F5F8FD、强调 #3478F6 */
-  --background: #f5f8fd;
+  --background: var(--ds-canvas);
   --foreground: #1d1d1f;
-  --muted: rgba(60, 60, 67, 0.07);
+  --muted: color-mix(in srgb, var(--ds-separator) 7%, transparent);
   --muted-foreground: #6e6e73;
   --popover: var(--lg-glass-strong);
   --popover-foreground: #1d1d1f;
@@ -155,8 +155,8 @@ html.theme-light {
   --destructive-foreground: #fff;
   --ring: #3478f6;
   --radius: var(--lg-radius-md);
-  --xp-bg: #f5f8fd;
-  --xp-bg-gradient: #f5f8fd;
+  --xp-bg: var(--ds-canvas);
+  --xp-bg-gradient: var(--ds-canvas);
   --xp-surface: var(--lg-content-surface);
   --xp-surface-light: rgba(255, 255, 255, 0.52);
   --xp-sidebar: var(--lg-glass-regular);
@@ -376,9 +376,7 @@ html .rounded-full {
   inset: 0;
   z-index: -2;
   pointer-events: none;
-  background:
-    radial-gradient(32rem 22rem at 16% 6%, rgba(255, 255, 255, 0.22), transparent 72%),
-    radial-gradient(30rem 22rem at 90% 14%, rgba(95, 156, 220, 0.06), transparent 74%);
+  background: none;
 }
 
 .wisp-workspace {
@@ -390,7 +388,7 @@ html .rounded-full {
   margin: 0;
   min-width: 0;
   container-type: inline-size;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--ds-canvas);
   border: 1px solid var(--lg-divider);
   border-radius: var(--lg-radius-md);
   box-shadow: none;
@@ -430,7 +428,7 @@ html.theme-rolex .wisp-content-canvas {
   background: var(--lg-glass-regular) !important;
   border-color: var(--lg-glass-stroke) !important;
   box-shadow: var(--lg-shadow-control) !important;
-  -webkit-backdrop-filter: saturate(var(--lg-saturate)) blur(var(--lg-blur-regular));
+  -webkit-backdrop-filter: none;
   backdrop-filter: saturate(var(--lg-saturate)) blur(var(--lg-blur-regular));
 }
 
@@ -577,7 +575,7 @@ html.theme-rolex kbd {
 }
 
 .wisp-bottom-tab[aria-selected="true"] {
-  background: rgba(255, 255, 255, 0.72) !important;
+  background: var(--ds-canvas) !important;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.76) inset,
     0 1px 3px rgba(38, 45, 56, 0.11) !important;
@@ -592,12 +590,12 @@ html.theme-rolex kbd {
 }
 
 .wisp-terminal-demo-state {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+  background: transparent;
 }
 
 .wisp-terminal-demo-icon {
   color: var(--xp-blue);
-  background: color-mix(in srgb, var(--xp-blue) 10%, rgba(255, 255, 255, 0.62));
+  background: color-mix(in srgb, var(--xp-blue) 10%, var(--ds-canvas));
   border: 1px solid color-mix(in srgb, var(--xp-blue) 16%, rgba(255, 255, 255, 0.56));
   border-radius: 9px;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.78) inset;
@@ -622,13 +620,7 @@ html.theme-rolex kbd {
   z-index: 0;
   pointer-events: none;
   border-radius: inherit;
-  background: linear-gradient(
-    135deg,
-    var(--lg-edge-light),
-    transparent 28%,
-    transparent 72%,
-    var(--lg-edge-cool)
-  ) !important;
+  background: var(--ds-accent);
   opacity: 0.2 !important;
   mix-blend-mode: soft-light !important;
 }
@@ -643,11 +635,7 @@ html.theme-rolex kbd {
 
 .wisp-sidebar-item-active,
 .sidebar-item.active {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--xp-blue) 14%, white),
-    color-mix(in srgb, var(--xp-blue) 10%, white)
-  ) !important;
+  background: var(--ds-accent);
   border-color: color-mix(in srgb, var(--xp-blue) 14%, transparent) !important;
   border-radius: 8px !important;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.62) inset !important;
@@ -661,7 +649,7 @@ html.theme-rolex kbd {
 
 .wisp-sidebar-item:hover:not(.wisp-sidebar-item-active) {
   background: var(--lg-control-fill) !important;
-  border-color: rgba(60, 60, 67, 0.07) !important;
+  border-color: color-mix(in srgb, var(--ds-separator) 7%, transparent) !important;
 }
 
 .wisp-sidebar-trash:hover {
@@ -729,8 +717,8 @@ button.glass-card:hover,
 .wisp-list-header {
   background: color-mix(in srgb, var(--lg-content-canvas) 92%, transparent) !important;
   border-bottom: 1px solid var(--lg-divider) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
-  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .wisp-file-row {
@@ -759,14 +747,10 @@ html.theme-rolex .wisp-file-row:hover {
 .wisp-rail-button,
 .wisp-sidebar-tab {
   border: 1px solid var(--lg-control-stroke) !important;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--lg-control-fill) 72%, white),
-    var(--lg-control-fill)
-  ) !important;
+  background: var(--ds-accent);
   box-shadow: var(--lg-control-shadow) !important;
-  -webkit-backdrop-filter: saturate(145%) blur(12px);
-  backdrop-filter: saturate(145%) blur(12px);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .wisp-control {
@@ -786,22 +770,14 @@ html.theme-rolex .wisp-file-row:hover {
 .wisp-control-icon:hover:not(:disabled),
 .wisp-rail-button:hover,
 .wisp-sidebar-tab:hover {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.82),
-    var(--lg-control-fill-hover)
-  ) !important;
-  border-color: rgba(60, 60, 67, 0.17) !important;
+  background: var(--ds-accent);
+  border-color: color-mix(in srgb, var(--ds-separator) 17%, transparent) !important;
 }
 
 .wisp-control[aria-pressed="true"],
 .wisp-rail-button[aria-pressed="true"],
 .wisp-sidebar-tab[aria-selected="true"] {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--xp-blue) 18%, white),
-    color-mix(in srgb, var(--xp-blue) 11%, white)
-  ) !important;
+  background: var(--ds-accent);
   border-color: color-mix(in srgb, var(--xp-blue) 34%, transparent) !important;
   color: var(--xp-blue) !important;
   box-shadow:
@@ -811,7 +787,7 @@ html.theme-rolex .wisp-file-row:hover {
 
 .wisp-control-group {
   padding: 2px;
-  border: 1px solid rgba(60, 60, 67, 0.09);
+  border: 1px solid color-mix(in srgb, var(--ds-separator) 9%, transparent);
   border-radius: 9px;
   background: var(--lg-control-well);
   box-shadow: 0 1px 2px rgba(38, 45, 56, 0.06) inset;
@@ -834,7 +810,7 @@ html.theme-rolex .wisp-file-row:hover {
   min-height: 32px;
   padding: 2px;
   gap: 1px !important;
-  border: 1px solid rgba(60, 60, 67, 0.09);
+  border: 1px solid color-mix(in srgb, var(--ds-separator) 9%, transparent);
   border-radius: 10px;
   background: var(--lg-control-well);
   box-shadow: 0 1px 2px rgba(38, 45, 56, 0.06) inset;
@@ -871,11 +847,7 @@ html.theme-rolex .wisp-file-row:hover {
 }
 
 .wisp-panel-rail .wisp-rail-button[aria-pressed="true"] {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--xp-blue) 18%, white),
-    color-mix(in srgb, var(--xp-blue) 11%, white)
-  ) !important;
+  background: var(--ds-accent);
   border: 1px solid color-mix(in srgb, var(--xp-blue) 24%, transparent) !important;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.72) inset !important;
 }
@@ -887,17 +859,17 @@ html.theme-rolex .wisp-file-row:hover {
 
 .wisp-breadcrumb:hover,
 .wisp-breadcrumb-edit:hover {
-  background: rgba(118, 118, 128, 0.1) !important;
+  background: color-mix(in srgb, var(--ds-fill) 100%, transparent) !important;
 }
 
 html .wisp-popover-menu {
   padding: 5px !important;
   border-radius: 12px !important;
-  background: rgba(248, 248, 250, 0.92) !important;
-  border-color: rgba(255, 255, 255, 0.94) !important;
+  background: var(--ds-canvas) !important;
+  border-color: var(--ds-canvas) !important;
   box-shadow: var(--lg-shadow-elevated) !important;
-  -webkit-backdrop-filter: saturate(160%) blur(30px);
-  backdrop-filter: saturate(160%) blur(30px);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 html .wisp-popover-menu > button {
@@ -937,7 +909,7 @@ button.bg-xp-blue,
 button.bg-primary {
   border-radius: 9px !important;
   border: 1px solid color-mix(in srgb, var(--xp-blue) 72%, black) !important;
-  background: linear-gradient(180deg, #1687f8 0%, #0071e3 100%) !important;
+  background: var(--ds-accent);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.28) inset,
     0 1px 2px rgba(0, 63, 126, 0.24),
@@ -952,10 +924,10 @@ button.bg-primary {
 
 .glass-button[data-variant="outline"],
 .glass-button[data-variant="secondary"] {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), var(--lg-control-fill)) !important;
+  background: var(--ds-accent);
   border-color: var(--lg-control-stroke) !important;
   box-shadow: var(--lg-control-shadow) !important;
-  -webkit-backdrop-filter: saturate(150%) blur(var(--lg-blur-clear));
+  -webkit-backdrop-filter: none;
   backdrop-filter: saturate(150%) blur(var(--lg-blur-clear));
 }
 
@@ -971,7 +943,7 @@ button.bg-primary {
 
 .glass-button[data-variant="destructive"] {
   border-color: color-mix(in srgb, var(--xp-red) 76%, black) !important;
-  background: linear-gradient(180deg, #ff5148, #e83932) !important;
+  background: var(--ds-accent);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.24) inset,
     0 3px 10px rgba(232, 57, 50, 0.2) !important;
@@ -990,7 +962,7 @@ select,
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.76) inset,
     0 1px 2px rgba(36, 62, 92, 0.08);
-  -webkit-backdrop-filter: saturate(145%) blur(var(--lg-blur-clear));
+  -webkit-backdrop-filter: none;
   backdrop-filter: saturate(145%) blur(var(--lg-blur-clear));
 }
 
@@ -1022,7 +994,7 @@ select:focus,
 
 .liquid-toggle {
   border-radius: var(--lg-radius-pill) !important;
-  background: rgba(116, 125, 140, 0.26) !important;
+  background: color-mix(in srgb, var(--ds-label-quinary) 26%, transparent) !important;
   box-shadow: 0 1px 2px rgba(20, 36, 58, 0.16) inset;
 }
 
@@ -1045,7 +1017,7 @@ select:focus,
 }
 
 .liquid-checkbox[data-state="checked"] {
-  background: linear-gradient(180deg, #1687f8, #0071e3) !important;
+  background: var(--ds-accent);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.24) inset,
     0 2px 6px rgba(0, 113, 227, 0.2) !important;
@@ -1082,7 +1054,7 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 10px !important;
   background: var(--lg-control-well) !important;
   box-shadow: 0 1px 2px rgba(38, 45, 56, 0.08) inset;
-  -webkit-backdrop-filter: saturate(150%) blur(var(--lg-blur-clear));
+  -webkit-backdrop-filter: none;
   backdrop-filter: saturate(150%) blur(var(--lg-blur-clear));
 }
 
@@ -1093,7 +1065,7 @@ input[type="range"]::-moz-range-thumb {
 
 .segmented-control-item[aria-selected="true"],
 .segmented-control-item[data-active="true"] {
-  background: rgba(255, 255, 255, 0.82) !important;
+  background: var(--ds-canvas) !important;
   color: var(--xp-text) !important;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.82) inset,
@@ -1111,7 +1083,7 @@ input[type="range"]::-moz-range-thumb {
   background: var(--lg-glass-strong) !important;
   border-color: var(--lg-glass-stroke-strong) !important;
   box-shadow: var(--lg-shadow-elevated) !important;
-  -webkit-backdrop-filter: saturate(var(--lg-saturate)) blur(var(--lg-blur-strong));
+  -webkit-backdrop-filter: none;
   backdrop-filter: saturate(var(--lg-saturate)) blur(var(--lg-blur-strong));
 }
 
@@ -1138,9 +1110,9 @@ html .context-menu-scroll,
 }
 
 .fixed.inset-0:has(> [role="dialog"]) {
-  background: rgba(10, 18, 31, 0.24) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(115%);
-  backdrop-filter: blur(8px) saturate(115%);
+  background: color-mix(in srgb, var(--ds-ink) 24%, transparent) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 /* Legacy feature dialogs predate the shared Dialog primitive. Their direct
@@ -1148,9 +1120,9 @@ html .context-menu-scroll,
 html .fixed.inset-0.z-50:has(> div),
 html .fixed.inset-0[class~="z-[9999]"]:has(> div),
 html .fixed.inset-0[class~="z-[10000]"]:has(> div) {
-  background: rgba(8, 16, 29, 0.24) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(115%);
-  backdrop-filter: blur(8px) saturate(115%);
+  background: color-mix(in srgb, var(--ds-ink) 24%, transparent) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 html .fixed.inset-0.z-50 > div,
@@ -1160,7 +1132,7 @@ html .fixed.inset-0[class~="z-[10000]"] > div {
   border-color: var(--lg-glass-stroke-strong) !important;
   border-radius: var(--lg-radius-xl) !important;
   box-shadow: var(--lg-shadow-elevated) !important;
-  -webkit-backdrop-filter: saturate(var(--lg-saturate)) blur(var(--lg-blur-strong));
+  -webkit-backdrop-filter: none;
   backdrop-filter: saturate(var(--lg-saturate)) blur(var(--lg-blur-strong));
 }
 
@@ -1246,7 +1218,7 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
 .backdrop-blur-lg,
 .backdrop-blur-xl,
 .backdrop-blur-2xl {
-  -webkit-backdrop-filter: saturate(150%) blur(var(--lg-blur-regular)) !important;
+  -webkit-backdrop-filter: none;
   backdrop-filter: saturate(150%) blur(var(--lg-blur-regular)) !important;
 }
 
@@ -1295,11 +1267,11 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
   }
 
   html.theme-light .text-xp-purple {
-    color: #6d35c3 !important;
+    color: var(--ds-label-primary) !important;
   }
 
   * {
-    -webkit-backdrop-filter: none !important;
+    -webkit-backdrop-filter: none;
     backdrop-filter: none !important;
   }
 }
@@ -1387,8 +1359,8 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
   border-radius: 0;
   background: rgba(255, 255, 255, 0.12) !important;
   box-shadow: none !important;
-  -webkit-backdrop-filter: blur(34px) saturate(150%);
-  backdrop-filter: blur(34px) saturate(150%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .wisp-shell::before {
@@ -1397,9 +1369,7 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background:
-    radial-gradient(720px 340px at 16% -8%, rgba(255, 255, 255, 0.46), transparent 64%),
-    linear-gradient(115deg, rgba(255, 255, 255, 0.18), rgba(194, 223, 250, 0.08));
+  background: none;
   pointer-events: none;
 }
 
@@ -1410,10 +1380,10 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
   border: 0 !important;
   border-bottom: 1px solid rgba(63, 91, 126, 0.16) !important;
   border-radius: 0 !important;
-  background: rgba(248, 249, 248, 0.68) !important;
+  background: var(--ds-canvas) !important;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.58) inset !important;
-  -webkit-backdrop-filter: blur(32px) saturate(145%);
-  backdrop-filter: blur(32px) saturate(145%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .wisp-titlebar > div:first-child {
@@ -1430,22 +1400,22 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
 .wisp-brand-cluster h1 {
   font-size: 15px;
   font-weight: 700;
-  color: #162033;
+  color: var(--ds-label-primary);
 }
 
 .wisp-command-pill {
   width: min(36vw, 430px) !important;
   height: 40px !important;
   padding-inline: 14px !important;
-  border: 1px solid rgba(255, 255, 255, 0.72) !important;
+  border: 1px solid var(--ds-canvas) !important;
   border-radius: 14px !important;
   background: rgba(255, 255, 255, 0.42) !important;
-  color: #6c7890 !important;
+  color: var(--ds-label-secondary) !important;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.78) inset,
     0 5px 18px rgba(43, 76, 116, 0.08) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
-  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .wisp-weather-pill {
@@ -1455,8 +1425,8 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
   border-radius: 12px !important;
   background: rgba(255, 255, 255, 0.28) !important;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.62) inset !important;
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .wisp-toolbar-group,
@@ -1464,12 +1434,12 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
 .wisp-panel-rail-horizontal {
   min-height: 38px;
   padding: 2px !important;
-  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid var(--ds-canvas) !important;
   border-radius: 13px !important;
   background: rgba(255, 255, 255, 0.26) !important;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset !important;
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
-  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .wisp-panel-rail-horizontal {
@@ -1491,7 +1461,7 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
 }
 
 .wisp-panel-rail-horizontal > div:last-child {
-  border-color: rgba(46, 72, 104, 0.14) !important;
+  border-color: color-mix(in srgb, var(--ds-separator) 14%, transparent) !important;
 }
 
 .wisp-panel-rail-horizontal .wisp-rail-button {
@@ -1500,9 +1470,9 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
 }
 
 .wisp-panel-rail-horizontal .wisp-rail-button[aria-pressed="true"] {
-  color: #075fc9 !important;
-  background: rgba(255, 255, 255, 0.74) !important;
-  border-color: rgba(255, 255, 255, 0.84) !important;
+  color: var(--ds-label-primary) !important;
+  background: var(--ds-canvas) !important;
+  border-color: var(--ds-canvas) !important;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.92) inset,
     0 3px 10px rgba(38, 73, 112, 0.1) !important;
@@ -1512,7 +1482,7 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
   gap: 0 !important;
   padding: 0 !important;
   /* A neutral veil keeps weather atmospheric instead of recolouring the app. */
-  background: rgba(248, 249, 248, 0.62);
+  background: var(--ds-canvas);
 }
 
 .wisp-sidebar {
@@ -1521,10 +1491,10 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
   border: 0 !important;
   border-right: 1px solid rgba(61, 88, 120, 0.17) !important;
   border-radius: 0 !important;
-  background: rgba(244, 246, 245, 0.64) !important;
+  background: var(--ds-canvas) !important;
   box-shadow: 1px 0 0 rgba(255, 255, 255, 0.45) inset !important;
-  -webkit-backdrop-filter: blur(32px) saturate(145%);
-  backdrop-filter: blur(32px) saturate(145%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .wisp-sidebar::before {
@@ -1539,10 +1509,10 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
 
 .wisp-sidebar-item-active,
 .sidebar-item.active {
-  color: #075fc9 !important;
-  border-color: rgba(255, 255, 255, 0.75) !important;
+  color: var(--ds-label-primary) !important;
+  border-color: var(--ds-canvas) !important;
   border-radius: 11px !important;
-  background: rgba(255, 255, 255, 0.67) !important;
+  background: var(--ds-canvas) !important;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.92) inset,
     0 5px 16px rgba(38, 75, 115, 0.09) !important;
@@ -1558,9 +1528,7 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
   margin: 0 !important;
   border: 0 !important;
   border-radius: 0 !important;
-  background:
-    radial-gradient(620px 360px at 100% 0%, rgba(219, 236, 252, 0.24), transparent 68%),
-    rgba(251, 252, 255, 0.935) !important;
+  background: none;
   box-shadow: none !important;
 }
 
@@ -1568,9 +1536,9 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
   min-height: 40px;
   margin: 12px var(--wisp-content-gutter) 4px !important;
   padding-inline: 8px !important;
-  border: 1px solid rgba(255, 255, 255, 0.76) !important;
+  border: 1px solid var(--ds-canvas) !important;
   border-radius: 13px !important;
-  background: rgba(244, 248, 253, 0.72) !important;
+  background: var(--ds-canvas) !important;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.86) inset,
     0 5px 16px rgba(45, 73, 105, 0.06) !important;
@@ -1581,9 +1549,9 @@ html.theme-rolex .wisp-settings-sidebar button.bg-muted {
   margin: 0 !important;
   padding: 8px var(--wisp-content-gutter) !important;
   border: 0 !important;
-  border-bottom: 1px solid rgba(61, 88, 120, 0.13) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--ds-separator) 13%, transparent) !important;
   border-radius: 0 !important;
-  background: rgba(250, 252, 255, 0.58) !important;
+  background: color-mix(in srgb, var(--ds-canvas) 58%, transparent) !important;
   box-shadow: none !important;
 }
 
@@ -1637,13 +1605,13 @@ html .wisp-address-field:focus-within {
 
 .wisp-file-scroll {
   padding: 12px var(--wisp-content-gutter) 0;
-  background: radial-gradient(720px 440px at 92% 100%, rgba(192, 218, 248, 0.16), transparent 72%);
+  background: none;
 }
 
 .wisp-list-header {
   min-height: 40px;
   border-bottom: 1px solid rgba(61, 88, 120, 0.15) !important;
-  background: rgba(251, 252, 255, 0.88) !important;
+  background: var(--ds-canvas) !important;
 }
 
 .wisp-file-row {
@@ -1672,7 +1640,7 @@ html .wisp-address-field:focus-within {
 }
 
 .wisp-file-row:hover {
-  background: rgba(223, 237, 252, 0.58) !important;
+  background: color-mix(in srgb, var(--ds-accent) 12%, transparent) !important;
 }
 
 .wisp-file-row.file-selected,
@@ -1681,7 +1649,7 @@ html .wisp-address-field:focus-within {
   /* macOS 参考图：#C9DDF6 实色浅蓝选中行 */
   border-color: transparent !important;
   border-radius: 8px !important;
-  background: #c9ddf6 !important;
+  background: var(--ds-canvas) !important;
   box-shadow: none !important;
 }
 
@@ -1691,12 +1659,10 @@ html .wisp-address-field:focus-within {
   border: 0 !important;
   border-left: 1px solid rgba(61, 88, 120, 0.17) !important;
   border-radius: 0 !important;
-  background:
-    radial-gradient(440px 400px at 100% 12%, rgba(198, 224, 249, 0.38), transparent 70%),
-    rgba(238, 246, 254, 0.68) !important;
+  background: none;
   box-shadow: -1px 0 0 rgba(255, 255, 255, 0.5) inset !important;
-  -webkit-backdrop-filter: blur(28px) saturate(140%);
-  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .wisp-inspector::before {
@@ -1706,7 +1672,7 @@ html .wisp-address-field:focus-within {
 .wisp-inspector-header {
   min-height: 60px;
   padding: 10px 16px !important;
-  border-color: rgba(61, 88, 120, 0.14) !important;
+  border-color: color-mix(in srgb, var(--ds-separator) 14%, transparent) !important;
   background: rgba(255, 255, 255, 0.18);
 }
 
@@ -1717,7 +1683,7 @@ html .wisp-address-field:focus-within {
 
 .wisp-preview-empty {
   padding: 34px !important;
-  color: #6c7890 !important;
+  color: var(--ds-label-secondary) !important;
 }
 
 .wisp-preview-empty-content {
@@ -1732,7 +1698,7 @@ html .wisp-address-field:focus-within {
   height: 82px;
   margin: 0 auto 22px;
   place-items: center;
-  color: rgba(119, 137, 160, 0.62);
+  color: var(--ds-label-secondary);
   filter: drop-shadow(0 14px 18px rgba(53, 83, 119, 0.14));
 }
 
@@ -1743,7 +1709,7 @@ html .wisp-address-field:focus-within {
 
 .wisp-preview-empty h4 {
   margin: 0 0 8px;
-  color: #253147;
+  color: var(--ds-label-primary);
   font-size: 15px;
   font-weight: 650;
   letter-spacing: -0.012em;
@@ -1751,7 +1717,7 @@ html .wisp-address-field:focus-within {
 
 .wisp-preview-empty p {
   margin: 0;
-  color: #78859a;
+  color: var(--ds-label-secondary);
   font-size: 12px;
   line-height: 1.6;
 }
@@ -1761,7 +1727,7 @@ html .wisp-address-field:focus-within {
   border: 0 !important;
   border-top: 1px solid rgba(61, 88, 120, 0.16) !important;
   border-radius: 0 !important;
-  background: rgba(242, 248, 254, 0.86) !important;
+  background: var(--ds-canvas) !important;
   box-shadow: none !important;
 }
 
@@ -1770,11 +1736,11 @@ html .wisp-address-field:focus-within {
   margin: 0 !important;
   padding-inline: 16px !important;
   border: 0 !important;
-  border-top: 1px solid rgba(61, 88, 120, 0.14) !important;
-  background: rgba(235, 244, 252, 0.62) !important;
+  border-top: 1px solid color-mix(in srgb, var(--ds-separator) 14%, transparent) !important;
+  background: var(--ds-canvas) !important;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.44) inset !important;
-  -webkit-backdrop-filter: blur(22px) saturate(140%);
-  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 @media (max-width: 1100px) {

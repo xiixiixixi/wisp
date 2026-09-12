@@ -34,7 +34,7 @@ export const DragOverlay = () => {
           flexDirection: 'column',
           alignItems: 'center',
           gap: '8px',
-          color: 'var(--xp-blue)',
+          color: 'var(--ds-link)',
           fontSize: '14px',
           fontWeight: 600,
         }}
@@ -104,7 +104,7 @@ export const AttachedFilesBar = ({ files, onRemove, onClearAll }: AttachedFilesB
             padding: '2px 6px',
             borderRadius: '4px',
             background: 'rgb(var(--xp-blue-rgb) / 0.15)',
-            color: 'var(--xp-blue)',
+            color: 'var(--ds-link)',
           }}
         >
           <FileText size={10} style={{ flexShrink: 0 }} />

@@ -98,9 +98,13 @@ body {
   --xp-surface-light-rgb: 251 250 245;
 }
 
-/* Fixed interface typography; standard browser zoom remains available. */
+/* 基准字号 16px —— 全应用的 Tailwind rem 间距与字号都以它为基准。
+   早先写死 14px 会把每一处 h-/p-/gap-/text- 工具类整体缩放 0.875 倍：
+   按钮只有 35px 高、卡片内距 21px、text-xs 掉到 10.5px，与 design-system.css
+   里以 px 写死的字阶互相打架，间距也就没有统一节奏。16px 是设计系统
+   （DESIGN.md body-sans 16px）与可读性下限共同要求的基准。 */
 html {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1005,7 +1009,7 @@ html.theme-light {
   border-color: transparent !important;
   box-shadow: none !important;
   color: var(--xp-text) !important;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .wisp-panel-button-active {
@@ -1328,7 +1332,7 @@ html .rounded-md {
 /* Ink typography everywhere — the dot-matrix face is retired */
 .font-dot {
   font-family: inherit !important;
-  font-weight: 500;
+  font-weight: 400;
   font-variation-settings: normal;
 }
 

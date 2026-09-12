@@ -65,7 +65,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             {this.state.error?.message}
           </p>
           <button
-            className="rounded-[2px] border border-xp-border bg-xp-surface px-3 py-1.5 text-xs transition-colors hover:bg-xp-surface-light"
+            className="rounded-md border border-xp-border bg-xp-surface px-3 py-1.5 text-xs transition-colors hover:bg-xp-surface-light"
             onClick={() => this.setState({ hasError: false, error: null })}
           >
             {i18n.t('common.error.tryAgain')}

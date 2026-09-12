@@ -54,7 +54,7 @@ const SidebarTags = ({ currentPath, navigateToPath }: SidebarTagsProps) => {
       role="region"
       aria-label={t('sidebar.tags')}
     >
-      <h4 className="mb-1.5 text-[10px] font-medium uppercase tracking-widest text-xp-text-muted">
+      <h4 className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted">
         {t('sidebar.tags')}
       </h4>
       <div className="space-y-0.5">
@@ -67,7 +67,7 @@ const SidebarTags = ({ currentPath, navigateToPath }: SidebarTagsProps) => {
               onClick={() => navigateToPath(target)}
               title={t('sidebar.showTagged', { name: displayTagName(tag.name) })}
               aria-current={isActive ? 'page' : undefined}
-              className={`wisp-sidebar-item flex min-h-7 w-full items-center gap-2 rounded-[2px] px-2 py-1 text-left text-sm transition-colors ${
+              className={`wisp-sidebar-item flex min-h-7 w-full items-center gap-2 rounded-md px-2 py-1 text-left text-sm transition-colors ${
                 isActive ? 'text-xp-text' : 'text-xp-text-secondary hover:text-xp-text'
               }`}
               style={isActive ? { backgroundColor: hexA(tag.color, 0.12) } : undefined}

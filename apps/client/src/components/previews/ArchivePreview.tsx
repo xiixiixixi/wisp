@@ -48,7 +48,7 @@ const ArchivePreview = ({ file, onError, onLoad }: PreviewProps) => {
 
   if (error || !info) {
     return (
-      <div className="flex h-full items-center justify-center rounded-[2px] border border-xp-border bg-xp-surface p-4 text-center text-sm text-xp-text-muted">
+      <div className="flex h-full items-center justify-center rounded-md border border-xp-border bg-xp-surface p-4 text-center text-sm text-xp-text-muted">
         {tUi('previewPanel.archiveReadFailed')}
       </div>
     );
@@ -59,7 +59,7 @@ const ArchivePreview = ({ file, onError, onLoad }: PreviewProps) => {
   const hidden = entries.length - shown.length;
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface">
+    <div className="flex h-full flex-col overflow-hidden rounded-md border border-xp-border bg-xp-surface">
       {/* Summary — mirrors the Quick Look header */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-xp-border px-3 py-2 text-xs text-xp-text-secondary">
         <span>
@@ -80,22 +80,19 @@ const ArchivePreview = ({ file, onError, onLoad }: PreviewProps) => {
         <table className="w-full text-left text-xs">
           <thead className="sticky top-0 bg-xp-surface text-[10px] uppercase text-xp-text-muted">
             <tr>
-              <th className="px-3 py-1.5 font-medium">{tUi('previewPanel.archiveName')}</th>
-              <th className="px-2 py-1.5 text-right font-medium">{tUi('interface.sizeLabel')}</th>
-              <th className="px-2 py-1.5 text-right font-medium">
+              <th className="px-3 py-1.5 font-semibold">{tUi('previewPanel.archiveName')}</th>
+              <th className="px-2 py-1.5 text-right font-semibold">{tUi('interface.sizeLabel')}</th>
+              <th className="px-2 py-1.5 text-right font-semibold">
                 {tUi('previewPanel.archiveCompressed')}
               </th>
-              <th className="px-3 py-1.5 text-right font-medium">
+              <th className="px-3 py-1.5 text-right font-semibold">
                 {tUi('interface.modifiedLabel')}
               </th>
             </tr>
           </thead>
           <tbody>
             {shown.map((entry, i) => (
-              <tr
-                key={`${entry.path}-${i}`}
-                className="border-t border-xp-border/50 text-xp-text"
-              >
+              <tr key={`${entry.path}-${i}`} className="border-xp-border/50 border-t text-xp-text">
                 <td className="max-w-0 truncate px-3 py-1" title={entry.path}>
                   <span className="inline-flex items-center gap-1.5">
                     {entry.is_directory ? (
@@ -120,7 +117,7 @@ const ArchivePreview = ({ file, onError, onLoad }: PreviewProps) => {
           </tbody>
         </table>
         {hidden > 0 && (
-          <div className="border-t border-xp-border/50 px-3 py-2 text-center text-[11px] text-xp-text-muted">
+          <div className="border-xp-border/50 border-t px-3 py-2 text-center text-[11px] text-xp-text-muted">
             {tUi('previewPanel.archiveMore', { count: hidden })}
           </div>
         )}

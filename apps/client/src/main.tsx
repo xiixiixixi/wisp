@@ -9,6 +9,7 @@ import SkySync from '@/components/weather/SkySync';
 import './index.css';
 import './styles/liquid-glass.css';
 import './styles/fluid-glass.css';
+import './styles/design-system.css';
 import { migrateLegacyDefaultView } from './lib/view-default';
 import { installNativeTextEditing } from './lib/native-text-editing';
 import { installNativeMenuLanguage } from './lib/native-menu-language';
@@ -16,7 +17,6 @@ import { migrateRetiredSettings } from './lib/retired-settings';
 
 // TEMP(debug): on-screen console capture. Delete after the user confirms
 // media previews work; it mirrors console errors into a corner overlay.
-
 
 migrateRetiredSettings();
 

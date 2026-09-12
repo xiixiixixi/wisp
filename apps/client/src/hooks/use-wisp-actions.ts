@@ -1,7 +1,12 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TauriAPI, type FileEntry, type ConflictFileInfo } from '@/lib/tauri-api';
-import { detectSep } from '@/lib/constants';
+import {
+  openRecentEntry,
+  parentDirectory,
+  resolveEntryPath,
+  type EntryActionIntent,
+} from '@/lib/recent-entry-actions';
 import { isEditableFile } from '@/lib/editable-files';
 import { formatError } from '@/lib/file-operation-helpers';
 import type { TabItem, EditorGroup } from '@/types/split-view';
@@ -156,6 +161,56 @@ export const useWispActions = (deps: WispActionsDeps) => {
   dialogManagerRef.current = dialogManager;
   const toastRef = useRef(toast);
   toastRef.current = toast;
+  const currentLocationRef = useRef({ path: currentPath, groupId: activeGroup.id });
+  currentLocationRef.current = { path: currentPath, groupId: activeGroup.id };
+  const revealSequenceRef = useRef(0);
+  const pendingRevealRef = useRef<{
+    path: string;
+    directory: string;
+    source: string;
+    groupId: string;
+    arrived: boolean;
+  } | null>(null);
+  const clearPendingReveal = useCallback(() => {
+    pendingRevealRef.current = null;
+    pendingSelectRef.current = null;
+  }, [pendingSelectRef]);
+
+  useEffect(() => {
+    const request = pendingRevealRef.current;
+    if (!request) return;
+    if (
+      activeGroup.id !== request.groupId ||
+      (currentPath !== request.directory && (request.arrived || currentPath !== request.source))
+    ) {
+      clearPendingReveal();
+    } else if (currentPath === request.directory) request.arrived = true;
+  }, [currentPath, activeGroup.id, clearPendingReveal]);
+
+  const finishPendingReveal = useCallback(
+    (directory: string, directoryFiles: FileEntry[], succeeded: boolean) => {
+      const request = pendingRevealRef.current;
+      if (
+        !request ||
+        directory !== request.directory ||
+        currentLocationRef.current.path !== directory ||
+        currentLocationRef.current.groupId !== request.groupId
+      ) {
+        return;
+      }
+      // Only the target pane's settled query may consume this request. A stale
+      // files array from the source pane cannot establish absence of a target.
+      clearPendingReveal();
+      const file = succeeded
+        ? directoryFiles.find((entry) => entry.path === request.path)
+        : undefined;
+      if (file) {
+        setSelectedFile(file);
+        setSelectedFiles(new Set([file.path]));
+      }
+    },
+    [clearPendingReveal, setSelectedFile, setSelectedFiles],
+  );
 
   // ── Navigation (delegated to domain hook) ─────────────────────────────────
 
@@ -242,13 +297,33 @@ export const useWispActions = (deps: WispActionsDeps) => {
     [setCommandPaletteOpen],
   );
   const handleCommandPaletteFileSelect = useCallback(
-    (filePath: string, isDir: boolean) => {
-      if (isDir) {
-        navigation.navigateWithHistory(filePath);
-      } else {
-        const sep = detectSep(filePath);
-        const parts = filePath.split(sep);
-        const parentDir = parts.slice(0, -1).join(sep) + (parts.length > 2 ? '' : sep);
+    async (filePath: string, isDir: boolean | undefined, intent: EntryActionIntent = 'open') => {
+      const sequence = ++revealSequenceRef.current;
+      const source = currentLocationRef.current;
+      clearPendingReveal();
+      try {
+        if (intent === 'open') {
+          await openRecentEntry({ path: filePath, isDir }, navigation.navigateWithHistory, {
+            openDemoFile: handleQuickLook,
+          });
+          return;
+        }
+        filePath = await resolveEntryPath(filePath);
+        if (
+          sequence !== revealSequenceRef.current ||
+          currentLocationRef.current.path !== source.path ||
+          currentLocationRef.current.groupId !== source.groupId
+        ) {
+          return;
+        }
+        const parentDir = parentDirectory(filePath);
+        pendingRevealRef.current = {
+          path: filePath,
+          directory: parentDir,
+          source: source.path,
+          groupId: source.groupId,
+          arrived: parentDir === source.path,
+        };
         pendingSelectRef.current = filePath;
         if (parentDir && parentDir !== currentPath) {
           navigation.navigateWithHistory(parentDir);
@@ -257,12 +332,32 @@ export const useWispActions = (deps: WispActionsDeps) => {
           if (file) {
             setSelectedFile(file);
             setSelectedFiles(new Set([file.path]));
+            clearPendingReveal();
+          } else {
+            refetch();
           }
-          pendingSelectRef.current = null;
         }
+      } catch (error) {
+        if (sequence === revealSequenceRef.current) clearPendingReveal();
+        toastRef.current({
+          variant: 'destructive',
+          title: t('toast.openFileFailed'),
+          description: formatError(error),
+        });
       }
     },
-    [navigation, currentPath, files, pendingSelectRef, setSelectedFile, setSelectedFiles],
+    [
+      navigation,
+      currentPath,
+      files,
+      pendingSelectRef,
+      setSelectedFile,
+      setSelectedFiles,
+      handleQuickLook,
+      t,
+      refetch,
+      clearPendingReveal,
+    ],
   );
   const handleCloseQuickLook = useCallback(() => setQuickLookFile(null), [setQuickLookFile]);
   const handleClosePathBookmarks = useCallback(
@@ -300,7 +395,9 @@ export const useWispActions = (deps: WispActionsDeps) => {
         // stays an explicit open-in-editor action).
         void isEditableFile;
         try {
-          await TauriAPI.openFile(file.path);
+          await openRecentEntry({ path: file.path, isDir: false }, navigation.navigateWithHistory, {
+            openDemoFile: handleQuickLook,
+          });
         } catch (err) {
           toastRef.current({
             variant: 'destructive',
@@ -309,6 +406,10 @@ export const useWispActions = (deps: WispActionsDeps) => {
           });
         }
       },
+      revealEntry: (path: string) => {
+        void handleCommandPaletteFileSelect(path, undefined, 'reveal');
+      },
+      onDirectoryReady: finishPendingReveal,
       handleFileRightClick: (file: FileEntry, event: React.MouseEvent, _groupId: string) =>
         ctxMenuRef.current.handleFileRightClick(file, event),
       handleBackgroundRightClick: (event: React.MouseEvent, _groupId: string) =>
@@ -383,6 +484,8 @@ export const useWispActions = (deps: WispActionsDeps) => {
       navigation.navigateWithHistory,
       refetch,
       handleQuickLook,
+      handleCommandPaletteFileSelect,
+      finishPendingReveal,
       fileOps.renameFileInline,
     ],
   );

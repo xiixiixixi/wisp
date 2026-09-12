@@ -18,7 +18,6 @@ const IworkPreview = ({ file, onError, onLoad }: PreviewProps) => {
   const [pdfPath, setPdfPath] = useState<string | null>(null);
   const [thumbSrc, setThumbSrc] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
   const attemptRef = useRef(0);
 
   useEffect(() => {
@@ -26,12 +25,10 @@ const IworkPreview = ({ file, onError, onLoad }: PreviewProps) => {
     let cancelled = false;
     setPdfPath(null);
     setThumbSrc(null);
-    setFailed(false);
     setLoading(true);
 
     (async () => {
       if (!isTauri()) {
-        setFailed(true);
         setLoading(false);
         return;
       }
@@ -51,13 +48,11 @@ const IworkPreview = ({ file, onError, onLoad }: PreviewProps) => {
           setLoading(false);
           onLoad?.();
         } else {
-          setFailed(true);
           setLoading(false);
           onError?.(new Error('iWork document has no embedded QuickLook preview'));
         }
       } catch (err) {
         if (cancelled || myAttempt !== attemptRef.current) return;
-        setFailed(true);
         setLoading(false);
         onError?.(err instanceof Error ? err : new Error(String(err)));
       }
@@ -74,7 +69,7 @@ const IworkPreview = ({ file, onError, onLoad }: PreviewProps) => {
   if (pdfPath) {
     return (
       <div className="flex h-full flex-col gap-1.5">
-        <div className="min-h-0 flex-1 overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface">
+        <div className="min-h-0 flex-1 overflow-hidden rounded-md border border-xp-border bg-xp-surface">
           <iframe
             title={file.name}
             src={mediaUrl(pdfPath)}
@@ -92,7 +87,7 @@ const IworkPreview = ({ file, onError, onLoad }: PreviewProps) => {
   if (thumbSrc) {
     return (
       <div className="flex h-full flex-col gap-1.5">
-        <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface">
+        <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-md border border-xp-border bg-xp-surface">
           <img src={thumbSrc} alt={file.name} className="max-h-full max-w-full object-contain" />
         </div>
         <div className="flex-shrink-0 px-1 text-[10px] text-xp-text-muted">

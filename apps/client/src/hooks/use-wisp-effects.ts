@@ -145,11 +145,9 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
     selectedFiles,
     setSelectedFiles,
     selectedFile,
-    setSelectedFile,
     filteredFiles,
     refetch,
     toast,
-    pendingSelectRef,
     topBarRef: _topBarRef,
     toggleQuickLook,
     toggleHiddenFiles,
@@ -203,19 +201,6 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
       setShowChangeSummaryToast(true);
     }
   }, [fileChanges, setShowChangeSummaryToast]);
-
-  // ── Auto-select file after navigating from search results ──────────────────
-  useEffect(() => {
-    if (pendingSelectRef.current && files.length > 0) {
-      const target = pendingSelectRef.current;
-      pendingSelectRef.current = null;
-      const file = files.find((f) => f.path === target);
-      if (file) {
-        setSelectedFile(file);
-        setSelectedFiles(new Set([file.path]));
-      }
-    }
-  }, [files, pendingSelectRef, setSelectedFile, setSelectedFiles]);
 
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
   const selection = selectionCommands(
@@ -469,6 +454,14 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
   // shortcut system.
   useEffect(() => {
     const handleBookmarkKeys = (e: KeyboardEvent) => {
+      if (
+        document.querySelector(
+          '[role="dialog"][aria-modal="true"], [role="alertdialog"][aria-modal="true"]',
+        ) ||
+        (e.target instanceof Element && e.target.closest('[role="dialog"], [role="alertdialog"]'))
+      ) {
+        return;
+      }
       if (!(e.ctrlKey || e.metaKey)) return;
       if (!e.altKey) return;
       const target = e.target as HTMLElement;
@@ -613,7 +606,7 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
       window.removeEventListener('auxclick', onMouseUp as EventListener, true);
     };
     // Mounted once; latest callbacks are read through refs.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   // ── Vim mode ──────────────────────────────────────────────────────────────

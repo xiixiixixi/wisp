@@ -1,9 +1,11 @@
 import { act, render, cleanup } from '@testing-library/react';
-import { beforeEach, afterEach, describe, expect, it } from 'vitest';
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import SkySync from '@/components/weather/SkySync';
 import { migrateRetiredSettings, stripRetiredSettings } from '@/lib/retired-settings';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { DEFAULT_SETTINGS, migrateLegacyAiSettings } from '@/components/settings/shared';
+
+vi.mock('@/lib/native-appearance', () => ({ syncNativeAppearance: vi.fn(async () => {}) }));
 
 const retired = {
   fontSize: 'xl',
@@ -80,7 +82,7 @@ describe('simplified settings migration', () => {
     ).toEqual({ ...retained, aiServiceMode: 'custom', theme: 'auto' });
   });
 
-  it('applies fixed glass and removes old visual overrides on mount and restore', () => {
+  it('follows the light system appearance and removes old visual overrides on mount and restore', () => {
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(retired));
     document.documentElement.className =
       'theme-rolex font-xl reduce-motion reduce-transparency enhanced-focus high-contrast';
@@ -97,5 +99,42 @@ describe('simplified settings migration', () => {
     document.documentElement.classList.add('font-large');
     window.dispatchEvent(new CustomEvent('wisp-settings-changed'));
     expect(document.documentElement).toHaveClass('font-large');
+  });
+
+  it('follows dark appearance changes and stops listening when unmounted', () => {
+    let prefersDark = true;
+    const appearance = new EventTarget() as MediaQueryList;
+    Object.defineProperties(appearance, {
+      matches: { get: () => prefersDark },
+      media: { value: '(prefers-color-scheme: dark)' },
+    });
+    const matchMedia = vi.spyOn(window, 'matchMedia').mockReturnValue(appearance);
+    document.documentElement.className = 'theme-light';
+
+    const { unmount } = render(<SkySync />);
+    expect(window.matchMedia).toHaveBeenCalledWith('(prefers-color-scheme: dark)');
+    expect(document.documentElement).toHaveClass('theme-rolex', 'theme-fluid');
+    expect(document.documentElement).not.toHaveClass('theme-light');
+
+    act(() => {
+      prefersDark = false;
+      appearance.dispatchEvent(new Event('change'));
+    });
+    expect(document.documentElement).toHaveClass('theme-light', 'theme-fluid');
+    expect(document.documentElement).not.toHaveClass('theme-rolex');
+
+    act(() => {
+      prefersDark = true;
+      appearance.dispatchEvent(new Event('change'));
+    });
+    expect(document.documentElement).toHaveClass('theme-rolex', 'theme-fluid');
+    expect(document.documentElement).not.toHaveClass('theme-light');
+
+    unmount();
+    prefersDark = false;
+    appearance.dispatchEvent(new Event('change'));
+    expect(document.documentElement).toHaveClass('theme-rolex', 'theme-fluid');
+    expect(document.documentElement).not.toHaveClass('theme-light');
+    matchMedia.mockRestore();
   });
 });

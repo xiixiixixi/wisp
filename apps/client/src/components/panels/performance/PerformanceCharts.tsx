@@ -420,14 +420,14 @@ const ProjectNotice = ({ projectType }: { projectType?: string }) => {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        <svg width="16" height="16" viewBox="0 0 20 20" fill="#6a6f8a">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="var(--xp-blue)">
           <path
             fillRule="evenodd"
             d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
             clipRule="evenodd"
           />
         </svg>
-        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--xp-blue)' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--ds-link)' }}>
           {t('organizer.projectNotice', {
             type: t(`organizer.categoryNames.${projectType || 'Software'}`, {
               defaultValue: projectType || 'Software',
@@ -527,8 +527,8 @@ const SuggestionsSection = ({
                     ...smallBtnStyle,
                     flex: 1,
                     textAlign: 'center',
-                    background: '#6a6f8a',
-                    color: '#fff',
+                    background: 'var(--xp-accent)',
+                    color: 'var(--xp-on-accent)',
                     border: 'none',
                     opacity: selectedSuggestions.size === 0 || organizing ? 0.4 : 1,
                   }}
@@ -551,7 +551,7 @@ const SuggestionsSection = ({
                       fontSize: 12,
                       fontWeight: 500,
                       marginBottom: 4,
-                      color: 'var(--xp-blue)',
+                      color: 'var(--ds-link)',
                     }}
                   >
                     {t('organizer.previewMoves', { count: preview.moves.length })}
@@ -592,7 +592,7 @@ const SuggestionsSection = ({
                         >
                           {truncatePath(move.from)}
                         </span>
-                        <span style={{ color: 'var(--xp-blue)', flexShrink: 0 }}>&rarr;</span>
+                        <span style={{ color: 'var(--ds-link)', flexShrink: 0 }}>&rarr;</span>
                         <span
                           style={{
                             flex: 1,
@@ -624,8 +624,8 @@ const SuggestionsSection = ({
                         ...smallBtnStyle,
                         flex: 1,
                         textAlign: 'center',
-                        background: 'var(--xp-green)',
-                        color: '#000',
+                        background: 'var(--xp-accent)',
+                        color: 'var(--xp-on-accent)',
                         border: 'none',
                         opacity: organizing ? 0.4 : 1,
                       }}

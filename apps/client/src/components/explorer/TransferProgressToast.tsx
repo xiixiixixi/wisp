@@ -321,7 +321,7 @@ export const TransferProgressToast = ({
                   borderRadius: '4px',
                   border: '1px solid var(--xp-blue)',
                   background: 'transparent',
-                  color: 'var(--xp-blue)',
+                  color: 'var(--ds-link)',
                   cursor: canUndo ? 'pointer' : 'default',
                   opacity: canUndo ? 1 : 0.5,
                 }}

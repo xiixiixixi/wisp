@@ -1,5 +1,5 @@
 import i18n from '@/i18n';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, type CSSProperties } from 'react';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { TauriAPI } from '@/lib/tauri-api';
@@ -11,8 +11,10 @@ import {
 } from './agent-manager/cli-launch-bus';
 import { markExternalAgentExited } from './agent-manager/external-agent-registry';
 import { Plus, X, Terminal as TerminalIcon } from 'lucide-react';
+import { getTerminalTheme } from '@/lib/terminal-theme';
 
 import '@xterm/xterm/css/xterm.css';
+import '@/styles/terminal.css';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -32,40 +34,6 @@ interface XTermPanelProps {
    *  terminal is created lazily on first show, then kept alive forever). */
   visible?: boolean;
 }
-
-// ── Theme helper ─────────────────────────────────────────────────────────────
-
-const getCssVar = (name: string, fallback: string): string => {
-  if (typeof document === 'undefined') return fallback;
-  const val = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return val || fallback;
-};
-
-// Ink-on-paper ANSI palette — the same muted inks the app chrome uses,
-// resolved live from the theme tokens (canvas needs concrete colors).
-const getTermTheme = () => ({
-  background: getCssVar('--xp-bg', '#efece3'),
-  foreground: getCssVar('--xp-text', '#38352f'),
-  cursor: getCssVar('--xp-lime', '#c8452e'),
-  cursorAccent: getCssVar('--xp-bg', '#efece3'),
-  selectionBackground: 'rgba(200, 69, 46, 0.25)',
-  black: getCssVar('--xp-text-muted', '#66655d'),
-  red: getCssVar('--xp-red', '#a85646'),
-  green: getCssVar('--xp-green', '#6f7f57'),
-  yellow: getCssVar('--xp-orange', '#b0764a'),
-  blue: getCssVar('--xp-purple', '#7b7286'),
-  magenta: getCssVar('--xp-pink', '#ab7d76'),
-  cyan: getCssVar('--xp-cyan', '#6a7f80'),
-  white: getCssVar('--xp-text-secondary', '#6e6a61'),
-  brightBlack: getCssVar('--xp-text-muted', '#66655d'),
-  brightRed: getCssVar('--xp-red', '#a85646'),
-  brightGreen: getCssVar('--xp-green', '#6f7f57'),
-  brightYellow: getCssVar('--xp-yellow', '#b39a5d'),
-  brightBlue: getCssVar('--xp-purple', '#7b7286'),
-  brightMagenta: getCssVar('--xp-pink', '#ab7d76'),
-  brightCyan: getCssVar('--xp-cyan', '#6a7f80'),
-  brightWhite: getCssVar('--xp-text', '#38352f'),
-});
 
 // ── Single terminal instance ─────────────────────────────────────────────────
 
@@ -156,7 +124,7 @@ let tabCounter = 0;
 const createTab = (label?: string, attachSessionId?: string): TermTab => {
   tabCounter++;
   const id = attachSessionId ?? `pty-${Date.now()}-${tabCounter}`;
-  const theme = getTermTheme();
+  const theme = getTerminalTheme();
   const terminal = new Terminal({
     cursorBlink: true,
     fontSize: 13,
@@ -165,6 +133,8 @@ const createTab = (label?: string, attachSessionId?: string): TermTab => {
     fontFamily:
       '"SF Mono", "Fira Code", "Cascadia Code", Menlo, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", monospace',
     lineHeight: 1.3,
+    allowTransparency: false,
+    minimumContrastRatio: 4.5,
     theme,
     allowProposedApi: true,
   });
@@ -199,6 +169,7 @@ const createTab = (label?: string, attachSessionId?: string): TermTab => {
 const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
   const [tabs, setTabs] = useState<TermTab[]>([]);
   const [activeTabId, setActiveTabId] = useState('');
+  const [theme, setTheme] = useState(getTerminalTheme);
 
   // VS Code semantics: create the first terminal only on a visible transition
   // (first show, or toggling the panel back on with zero terminals). Closing
@@ -290,20 +261,26 @@ const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
     };
   }, []);
 
-  // Update theme when CSS variables change (theme switch)
+  // Appearance is resolved on the root class. Pointer lighting changes root.style
+  // every frame and must not invalidate the terminal's color cache.
   useEffect(() => {
     const observer = new MutationObserver(() => {
-      const theme = getTermTheme();
-      tabs.forEach((tab) => {
-        tab.terminal.options.theme = theme;
-      });
+      setTheme(getTerminalTheme());
     });
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class', 'style'],
+      attributeFilter: ['class'],
     });
+    setTheme(getTerminalTheme());
     return () => observer.disconnect();
-  }, [tabs]);
+  }, []);
+
+  // Recolor every existing terminal, including hidden tabs, without touching PTYs.
+  useEffect(() => {
+    tabs.forEach((tab) => {
+      tab.terminal.options.theme = theme;
+    });
+  }, [theme, tabs]);
 
   const handleAddTab = useCallback(() => {
     const tab = createTab();
@@ -332,22 +309,25 @@ const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
 
   return (
     <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        backgroundColor: getCssVar('--xp-bg', '#efece3'),
-      }}
+      className="wisp-terminal-panel"
+      style={
+        {
+          '--wisp-terminal-bg': theme.background,
+          '--wisp-terminal-fg': theme.foreground,
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+        } as CSSProperties
+      }
     >
       {/* Tab bar */}
       <div
+        className="wisp-terminal-tabbar wisp-bottom-subtoolbar"
         style={{
           display: 'flex',
           alignItems: 'center',
           height: 32,
           minHeight: 32,
-          borderBottom: `1px solid ${getCssVar('--xp-border', 'rgba(41,46,66,0.5)')}`,
-          backgroundColor: getCssVar('--xp-surface', 'rgba(26,27,38,0.8)'),
           overflow: 'hidden',
         }}
       >
@@ -355,6 +335,8 @@ const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
           {tabs.map((tab) => (
             <div
               key={tab.id}
+              className="wisp-terminal-tab"
+              data-active={tab.id === activeTabId}
               onClick={() => setActiveTabId(tab.id)}
               style={{
                 display: 'flex',
@@ -362,18 +344,11 @@ const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
                 gap: 6,
                 padding: '0 10px',
                 height: 32,
-                fontSize: 11,
+                fontSize: 13,
                 cursor: 'pointer',
-                color:
-                  tab.id === activeTabId
-                    ? getCssVar('--xp-text', '#38352f')
-                    : getCssVar('--xp-text-muted', '#66655d'),
+                color: tab.id === activeTabId ? 'var(--xp-text)' : 'var(--xp-text-muted)',
                 backgroundColor:
-                  tab.id === activeTabId ? getCssVar('--xp-bg', '#efece3') : 'transparent',
-                borderBottom:
-                  tab.id === activeTabId
-                    ? `1px solid ${getCssVar('--xp-lime', '#c8452e')}`
-                    : '1px solid transparent',
+                  tab.id === activeTabId ? 'var(--ds-sidebar-selection)' : 'transparent',
                 whiteSpace: 'nowrap',
                 transition: 'all 0.1s',
               }}
@@ -428,7 +403,7 @@ const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
             border: 'none',
             borderRadius: 4,
             background: 'transparent',
-            color: getCssVar('--xp-text-muted', '#66655d'),
+            color: 'var(--xp-text-muted)',
             cursor: 'pointer',
             flexShrink: 0,
           }}
@@ -445,7 +420,10 @@ const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
       </div>
 
       {/* Terminal instances */}
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+      <div
+        className="wisp-terminal-sessions"
+        style={{ flex: 1, position: 'relative', overflow: 'hidden' }}
+      >
         {tabs.length === 0 ? (
           <div
             style={{
@@ -454,7 +432,7 @@ const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: 12,
-              color: getCssVar('--xp-text-muted', '#66655d'),
+              color: 'var(--xp-text-muted)',
             }}
           >
             {i18n.t('xterm.noTerminals')}

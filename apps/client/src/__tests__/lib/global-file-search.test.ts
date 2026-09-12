@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { searchGlobalFiles, type GlobalSearchUpdate } from '@/lib/global-file-search';
+import {
+  GLOBAL_SEARCH_CANDIDATE_LIMIT,
+  searchGlobalFiles,
+  type GlobalSearchUpdate,
+} from '@/lib/global-file-search';
 import { TauriAPI } from '@/lib/tauri-api';
 
 vi.mock('@/lib/tauri-api', () => ({
@@ -101,5 +105,57 @@ describe('global file search', () => {
     );
     resolve({ results: [] } as never);
     await pending;
+  });
+  it.each(['files', 'folders'] as const)(
+    'filters %s before the display limit and stops once the requested type is full',
+    async (kind) => {
+      const unwanted = Array.from({ length: 75 }, (_, index) => `/Archive/other-${index}`);
+      const wanted = Array.from({ length: 55 }, (_, index) => `/Archive/wanted-${index}`);
+      vi.mocked(TauriAPI.findFiles).mockResolvedValue([...unwanted, ...wanted]);
+      vi.mocked(TauriAPI.isDir).mockImplementation(async (path) =>
+        kind === 'folders' ? path.includes('wanted-') : path.includes('other-'),
+      );
+      const update = vi.fn();
+      await searchGlobalFiles('archive', update, { kind });
+      expect(
+        update.mock.lastCall?.[0].results.map((result: { path: string }) => result.path),
+      ).toEqual(wanted.slice(0, 50));
+      expect(TauriAPI.isDir).toHaveBeenCalledTimes(125);
+      expect(update.mock.lastCall?.[0].limited).toBe(true);
+    },
+  );
+
+  it('bounds type probes and discloses an exhausted candidate budget instead of a complete empty result', async () => {
+    vi.mocked(TauriAPI.findFiles).mockResolvedValue(
+      Array.from({ length: GLOBAL_SEARCH_CANDIDATE_LIMIT + 10 }, (_, n) => `/Archive/file-${n}`),
+    );
+    let inFlight = 0;
+    let peak = 0;
+    vi.mocked(TauriAPI.isDir).mockImplementation(async () => {
+      peak = Math.max(peak, ++inFlight);
+      await Promise.resolve();
+      inFlight--;
+      return false;
+    });
+    const update = vi.fn();
+    await searchGlobalFiles('file', update, { kind: 'folders' });
+    expect(TauriAPI.isDir).toHaveBeenCalledTimes(GLOBAL_SEARCH_CANDIDATE_LIMIT);
+    expect(peak).toBeLessThanOrEqual(8);
+    expect(update.mock.lastCall?.[0]).toMatchObject({ results: [], limited: true });
+  });
+
+  it('stops probing superseded searches after the current small batch', async () => {
+    vi.mocked(TauriAPI.findFiles).mockResolvedValue(
+      Array.from({ length: 100 }, (_, n) => `/Archive/file-${n}`),
+    );
+    const controller = new AbortController();
+    vi.mocked(TauriAPI.isDir).mockImplementation(async () => {
+      controller.abort();
+      return false;
+    });
+    const update = vi.fn();
+    await searchGlobalFiles('file', update, { kind: 'folders', signal: controller.signal });
+    expect(vi.mocked(TauriAPI.isDir).mock.calls.length).toBeLessThanOrEqual(8);
+    expect(update).not.toHaveBeenCalled();
   });
 });

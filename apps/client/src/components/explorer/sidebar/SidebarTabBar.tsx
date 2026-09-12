@@ -20,7 +20,7 @@ const TAB_CLASS_INACTIVE = 'text-xp-text-muted hover:bg-xp-surface-light hover:t
 const SidebarTabBar = ({ activeTabId, onTabClick, extensionTabs }: SidebarTabBarProps) => {
   const { t } = useTranslation();
   const tabClass = (tabId: string) =>
-    `wisp-sidebar-tab flex items-center justify-center rounded-[2px] transition-colors ${
+    `wisp-sidebar-tab flex items-center justify-center rounded-md transition-colors ${
       activeTabId === tabId ? TAB_CLASS_ACTIVE : TAB_CLASS_INACTIVE
     }`;
 

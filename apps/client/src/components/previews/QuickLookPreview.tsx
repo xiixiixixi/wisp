@@ -22,9 +22,14 @@ const QuickLookPreview = ({ file, onError, onLoad }: PreviewProps) => {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const attemptRef = useRef(0);
+  const callbacksRef = useRef({ onError, onLoad });
+  callbacksRef.current = { onError, onLoad };
 
   useEffect(() => {
     const myAttempt = ++attemptRef.current;
+    const cancelAttempt = () => {
+      attemptRef.current += 1;
+    };
     setThumbSrc(null);
     setDocText(null);
     setFailed(false);
@@ -33,37 +38,35 @@ const QuickLookPreview = ({ file, onError, onLoad }: PreviewProps) => {
     if (!isTauri()) {
       setFailed(true);
       setLoading(false);
-      return;
+      callbacksRef.current.onError?.(
+        new Error('Native Quick Look preview is unavailable in the browser'),
+      );
+      return cancelAttempt;
     }
 
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    const jobs: Promise<void>[] = [
-      TauriAPI.previewQlThumbnail(file.path, 1600)
-        .then((thumb) => {
-          if (myAttempt !== attemptRef.current) return;
-          if (thumb) setThumbSrc(convertAssetUrl(thumb));
-          else setFailed(true);
-        })
-        .catch(() => {
-          if (myAttempt === attemptRef.current) setFailed(true);
-        }),
-    ];
-    if (TEXT_EXTRACTABLE.has(ext)) {
-      jobs.push(
-        TauriAPI.extractDocumentText(file.path)
-          .then((text) => {
-            if (myAttempt !== attemptRef.current) return;
-            if (text && text.trim()) setDocText(text.trim());
-          })
-          .catch(() => undefined),
-      );
-    }
-    Promise.all(jobs).then(() => {
+    const thumbnail = TauriAPI.previewQlThumbnail(file.path, 1600)
+      .then((thumb) => (thumb ? convertAssetUrl(thumb) : null))
+      .catch(() => null);
+    const extractedText = TEXT_EXTRACTABLE.has(ext)
+      ? TauriAPI.extractDocumentText(file.path)
+          .then((text) => text?.trim() || null)
+          .catch(() => null)
+      : Promise.resolve(null);
+
+    void Promise.all([thumbnail, extractedText]).then(([thumb, text]) => {
       if (myAttempt !== attemptRef.current) return;
+      setThumbSrc(thumb);
+      setDocText(text);
       setLoading(false);
-      onLoad?.();
+      if (thumb || text) {
+        callbacksRef.current.onLoad?.();
+      } else {
+        setFailed(true);
+        callbacksRef.current.onError?.(new Error('Quick Look could not render this file'));
+      }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return cancelAttempt;
   }, [file.path, file.name]);
 
   if (loading) return <PreviewSkeleton />;
@@ -79,12 +82,12 @@ const QuickLookPreview = ({ file, onError, onLoad }: PreviewProps) => {
   return (
     <div className="flex h-full flex-col gap-1.5">
       {thumbSrc && (
-        <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-[2px] border border-xp-border bg-xp-surface">
+        <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-md border border-xp-border bg-xp-surface">
           <img src={thumbSrc} alt={file.name} className="max-h-full max-w-full object-contain" />
         </div>
       )}
       {docText && (
-        <div className="min-h-0 flex-shrink-0 overflow-auto rounded-[2px] border border-xp-border bg-xp-surface p-2 text-xs leading-relaxed text-xp-text-secondary">
+        <div className="min-h-0 flex-shrink-0 overflow-auto rounded-md border border-xp-border bg-xp-surface p-2 text-xs leading-relaxed text-xp-text-secondary">
           <div className="mb-1 text-[10px] uppercase text-xp-text-muted">
             {tUi('previewPanel.extractedText')}
           </div>

@@ -140,7 +140,7 @@ const CostTracker = ({
               color: 'var(--xp-text-muted)',
             }}
           >
-            <ArrowDown size={8} style={{ color: 'var(--xp-blue)' }} />
+            <ArrowDown size={8} style={{ color: 'var(--ds-link)' }} />
             {formatTokens(todayTotalTokensIn)} {t('agentManager.costTracker.tokensIn')}
           </div>
           <div

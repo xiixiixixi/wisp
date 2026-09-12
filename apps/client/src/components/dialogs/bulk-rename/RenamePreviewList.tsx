@@ -322,7 +322,7 @@ const PreviewRow = ({ item, index, totalCount, isConflict, isResult }: PreviewRo
         style={{
           padding: '6px 4px',
           textAlign: 'center',
-          color: nameChanged ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
+          color: nameChanged ? 'var(--ds-link)' : 'var(--xp-text-muted)',
           fontSize: 14,
         }}
       >

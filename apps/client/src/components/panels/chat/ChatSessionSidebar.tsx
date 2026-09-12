@@ -48,7 +48,7 @@ const ChatSessionSidebar = ({
       style={{ flex: '1 1 0%', minHeight: 0, minWidth: 0, overflowY: 'auto', overflowX: 'hidden' }}
     >
       <div className="flex items-center justify-between border-b border-xp-border px-3 py-2">
-        <span className="text-xs font-medium">
+        <span className="text-xs font-semibold">
           {tUi('messages.chatHistoryCount', { count: sessions.length })}
         </span>
         {onClearHistory && sessions.length > 0 && (
@@ -83,7 +83,7 @@ const ChatSessionSidebar = ({
                 }}
               >
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium">{session.title}</div>
+                  <div className="truncate font-semibold">{session.title}</div>
                   <div className="flex items-center gap-2 text-[10px] text-xp-text-muted">
                     <span>{tUi('counts.messages', { count: session.message_count })}</span>
                     <span>{formatSessionDate(session.updated_at)}</span>

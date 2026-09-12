@@ -25,7 +25,7 @@ const PlacesSection = ({ userDirectories, currentPath, navigateToPath }: PlacesS
       role="region"
       aria-label={t('sidebar.quickAccess')}
     >
-      <h4 className="mb-1.5 text-[10px] font-medium uppercase tracking-widest text-xp-text-muted">
+      <h4 className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted">
         {t('sidebar.quickAccess')}
       </h4>
       <div className="space-y-0.5">
@@ -65,7 +65,7 @@ const PlacesSection = ({ userDirectories, currentPath, navigateToPath }: PlacesS
               <button
                 key={labelKey}
                 onClick={() => navigateToPath(path)}
-                className={`flex w-full items-center rounded-[2px] px-2 py-1.5 text-xs transition-colors ${
+                className={`flex w-full items-center rounded-md px-2 py-1.5 text-xs transition-colors ${
                   isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
                 }`}
                 aria-label={t('sidebar.navigateTo', { label })}

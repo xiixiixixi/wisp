@@ -166,6 +166,7 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
     // panel) but tighten the group so it doesn't read as a filler screen.
     return (
       <div
+        className="wisp-clipboard-panel"
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -185,6 +186,7 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
 
   return (
     <div
+      className="wisp-clipboard-panel"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -194,13 +196,12 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
     >
       {/* Header */}
       <div
+        className="wisp-clipboard-toolbar wisp-bottom-subtoolbar"
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '4px 12px',
-          borderBottom: '1px solid var(--xp-border)',
-          backgroundColor: 'rgb(var(--xp-surface-light-rgb) / 0.03)',
           flexShrink: 0,
         }}
       >
@@ -241,12 +242,12 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
         {entries.map((entry) => (
           <div
             key={entry.id}
+            className="wisp-clipboard-entry"
             style={{
               display: 'flex',
               alignItems: 'flex-start',
               gap: 8,
               padding: '6px 12px',
-              borderBottom: '1px solid var(--xp-border)',
               cursor: 'default',
               transition: 'background-color 0.1s',
             }}
@@ -262,7 +263,7 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
               style={{
                 flexShrink: 0,
                 marginTop: 2,
-                color: entry.operation === 'cut' ? 'var(--xp-yellow)' : 'var(--xp-blue)',
+                color: entry.operation === 'cut' ? 'var(--xp-yellow)' : 'var(--ds-link)',
               }}
               title={entry.operation === 'cut' ? t('common.cut') : t('common.copy')}
             >
@@ -328,7 +329,7 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
                 padding: '3px 10px',
                 fontSize: 11,
                 fontWeight: 500,
-                color: 'var(--xp-blue)',
+                color: 'var(--ds-link)',
                 backgroundColor: 'rgb(var(--xp-blue-rgb) / 0.1)',
                 border: '1px solid rgb(var(--xp-blue-rgb) / 0.2)',
                 borderRadius: 4,

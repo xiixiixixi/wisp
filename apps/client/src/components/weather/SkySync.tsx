@@ -1,18 +1,21 @@
 import { useEffect } from 'react';
 import { migrateRetiredSettings } from '@/lib/retired-settings';
+import { useWindowMaterial } from '@/hooks/use-window-material';
+import { applyAppearance, readAppearancePreference } from '@/lib/appearance';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
 
-/** Fixed appearance. OS motion, contrast and transparency preferences are
- * handled by CSS media queries, without app-specific controls or overrides. */
+/** Keep the selected appearance current. Material accessibility is handled by CSS. */
 const SkySync = () => {
+  useWindowMaterial();
   useEffect(() => {
+    const appearance = window.matchMedia('(prefers-color-scheme: dark)');
     const applyDefaults = () => {
       migrateRetiredSettings();
       const root = document.documentElement;
       root.classList.remove(
-        'theme-rolex',
         'theme-glass',
         'font-small',
-        'font-medium',
+        'font-semibold',
         'font-large',
         'font-xl',
         'reduce-motion',
@@ -20,12 +23,21 @@ const SkySync = () => {
         'enhanced-focus',
         'high-contrast',
       );
-      root.classList.add('theme-light', 'theme-fluid');
+      applyAppearance(readAppearancePreference(), appearance.matches);
       delete root.dataset.sky;
+    };
+    const syncFromStorage = (event: StorageEvent) => {
+      if (event.key === STORAGE_KEYS.SETTINGS || event.key === null) applyDefaults();
     };
     applyDefaults();
     window.addEventListener('wisp-settings-changed', applyDefaults);
-    return () => window.removeEventListener('wisp-settings-changed', applyDefaults);
+    window.addEventListener('storage', syncFromStorage);
+    appearance.addEventListener('change', applyDefaults);
+    return () => {
+      window.removeEventListener('wisp-settings-changed', applyDefaults);
+      window.removeEventListener('storage', syncFromStorage);
+      appearance.removeEventListener('change', applyDefaults);
+    };
   }, []);
   return null;
 };

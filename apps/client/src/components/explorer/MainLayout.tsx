@@ -155,7 +155,11 @@ export interface MainLayoutProps {
   folderComparePaths: { left: string; right: string };
   commandPaletteOpen: boolean;
   handleCloseCommandPalette: () => void;
-  handleCommandPaletteFileSelect: (filePath: string, isDir: boolean) => void;
+  handleCommandPaletteFileSelect: (
+    filePath: string,
+    isDir: boolean | undefined,
+    intent?: 'open' | 'reveal',
+  ) => void;
   showChangeSummaryToast: boolean;
   fileChanges: FileChangeSet | null;
   handleDismissChangesToast: () => void;

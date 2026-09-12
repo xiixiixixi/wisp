@@ -7,7 +7,13 @@ interface AnchoredMenuProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 /** Escape clipped/resizable panes while keeping the menu next to its control. */
-export const AnchoredMenu = ({ anchorRef, menuRef, style, ...props }: AnchoredMenuProps) => {
+export const AnchoredMenu = ({
+  anchorRef,
+  menuRef,
+  className,
+  style,
+  ...props
+}: AnchoredMenuProps) => {
   const nodeRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ left: 8, top: 8, maxHeight: 320 });
 
@@ -45,6 +51,7 @@ export const AnchoredMenu = ({ anchorRef, menuRef, style, ...props }: AnchoredMe
   return createPortal(
     <div
       {...props}
+      className={`wisp-popover-menu ${className ?? ''}`}
       ref={(node) => {
         nodeRef.current = node;
         menuRef.current = node;

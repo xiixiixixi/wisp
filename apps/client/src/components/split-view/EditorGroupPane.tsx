@@ -22,6 +22,7 @@ import {
 import { useFolderViewSettings } from '@/hooks/use-folder-view-settings';
 import { getDemoDirectory, isBrowserDemoMode } from '@/lib/browser-demo-files';
 import { ancestorPaths } from '@/lib/path-ancestry';
+import { useRecentDirectory } from '@/hooks/use-recent-directory';
 import { invoke } from '@tauri-apps/api/core';
 import { isTauri } from '@/lib/transport';
 import type { NativeWebPageState } from '@/lib/native-web-tab';
@@ -38,6 +39,7 @@ const FileEditorView = React.lazy(() => import('@/pages/FileEditorView'));
 export interface SharedPaneActions {
   // File operations
   handleFileOpen: (file: FileEntry) => void;
+  revealEntry?: (path: string) => void;
   handleFileRightClick: (file: FileEntry, event: React.MouseEvent, groupId: string) => void;
   handleBackgroundRightClick: (event: React.MouseEvent, groupId: string) => void;
   handleDelete: (files: FileEntry[]) => void;
@@ -82,6 +84,7 @@ export interface SharedPaneActions {
 
   // Files change callback: active pane pushes its files + refetch to parent
   onFilesChange?: (files: FileEntry[], refetch: () => void) => void;
+  onDirectoryReady?: (path: string, files: FileEntry[], succeeded: boolean) => void;
 
   // Navigation (for address bar in each pane)
   navigateBackInHistory?: () => void;
@@ -206,6 +209,7 @@ const EditorGroupPane = ({
     renameFileInline,
   } = sharedActions;
 
+  const [toolbarTarget, setToolbarTarget] = useState<HTMLElement | null>(null);
   const activeTab = group.tabs.find((t) => t.id === group.activeTabId);
   const [webRefreshTokens, setWebRefreshTokens] = useState<Record<string, number>>({});
   const [webPageStates, setWebPageStates] = useState<Record<string, NativeWebPageState>>({});
@@ -265,6 +269,9 @@ const EditorGroupPane = ({
   const {
     data: queryFilesRaw,
     isLoading: queryLoading,
+    isSuccess: querySucceeded,
+    isFetching: queryFetching,
+    isError: queryFailed,
     refetch: queryRefetch,
   } = useQuery<FileEntry[]>({
     queryKey: ['files', currentPath],
@@ -294,11 +301,10 @@ const EditorGroupPane = ({
         return await TauriAPI.readDirectory(currentPath);
       } catch (err) {
         if (String(err).includes('does not exist')) {
-          // The folder was deleted out from under this pane. Returning an
-          // empty listing drops the stale contents immediately; the ancestor
-          // navigation above moves the pane to a surviving folder.
+          // Recover the location without reporting a failed directory read as
+          // a successful empty visit. Failed query data is hidden below.
           void navigateToSurvivingAncestor();
-          return [];
+          throw err;
         }
         throw err;
       }
@@ -317,7 +323,11 @@ const EditorGroupPane = ({
       (!currentPath.startsWith('wisp://') || currentPath.startsWith('wisp://tag/')) &&
       !isCollectionPath,
   });
-  const queryFiles = queryFilesRaw ?? EMPTY_FILES;
+  const queryFiles = queryFailed ? EMPTY_FILES : (queryFilesRaw ?? EMPTY_FILES);
+  useRecentDirectory(
+    activeTab?.type === 'editor' ? '' : currentPath,
+    isActive && querySucceeded && !queryFetching && !isCollectionPath,
+  );
 
   // Fallback base path for collection scanning (memoized to avoid re-renders)
   const collectionFallbackPath = useMemo(() => {
@@ -531,6 +541,22 @@ const EditorGroupPane = ({
     setSelectedFile(null);
   }, [currentPath, isActive, setSelectedFiles, setSelectedFile]);
 
+  const onDirectoryReadyRef = useRef(sharedActions.onDirectoryReady);
+  onDirectoryReadyRef.current = sharedActions.onDirectoryReady;
+  useEffect(() => {
+    if (!isActive || activeTab?.type === 'editor' || queryFetching) return;
+    if (!querySucceeded && !queryFailed) return;
+    onDirectoryReadyRef.current?.(currentPath, queryFiles, querySucceeded);
+  }, [
+    currentPath,
+    isActive,
+    activeTab?.type,
+    queryFetching,
+    querySucceeded,
+    queryFailed,
+    queryFiles,
+  ]);
+
   // Track last-clicked index for shift-click range selection
   const lastClickedIndexRef = useRef<number>(-1);
   const sortedFilesRef = useRef(sortedFiles);
@@ -590,9 +616,6 @@ const EditorGroupPane = ({
   // File double click (per-pane)
   const handleFileDoubleClick = useCallback(
     async (file: FileEntry) => {
-      TauriAPI.addRecentFile(file.path).catch(() => {
-        /* fire-and-forget */
-      });
       if (!file.is_dir) {
         handleFileOpen(file);
       } else {
@@ -695,11 +718,13 @@ const EditorGroupPane = ({
   const renderContent = () => {
     if (currentPath === 'wisp://home') {
       return (
-        <div className="flex-1 overflow-auto">
+        <div className="min-h-0 flex-1 overflow-hidden">
           <HomePage
             onNavigate={(path: string) => onNavigateFromHome(path, group.id)}
             theme={theme}
             setTheme={setTheme}
+            onQuickLook={onQuickLook}
+            onReveal={sharedActions.revealEntry}
           />
         </div>
       );
@@ -783,6 +808,7 @@ const EditorGroupPane = ({
     // Default: file explorer
     return (
       <PaneFileExplorer
+        toolbarTarget={toolbarTarget}
         viewMode={localViewMode}
         setViewMode={localSetViewMode}
         sortBy={localSortBy}
@@ -843,7 +869,7 @@ const EditorGroupPane = ({
 
   return (
     <div
-      className={`flex h-full flex-col overflow-hidden ${isActive ? 'ring-1 ring-xp-blue/30' : ''}`}
+      className={`wisp-editor-pane flex h-full min-w-0 flex-col overflow-hidden ${isActive && totalGroups > 1 ? 'ring-1 ring-xp-blue/30' : ''}`}
       data-drop-target={isDroppablePath ? currentPath : undefined}
       data-is-folder={isDroppablePath ? 'true' : undefined}
       data-group-id={group.id}
@@ -891,45 +917,48 @@ const EditorGroupPane = ({
 
       {/* Navigation / Address Bar */}
       {!isEditorTab && !isHomeTab && (
-        <NavigationBar
-          currentPath={isNativeWebPath ? activeWebPage?.url || currentPath : currentPath}
-          navigateToPath={sharedActions.navigateToPath}
-          refetch={
-            isWebPath && activeTab
-              ? () => {
-                  setWebRefreshTokens((tokens) => ({
-                    ...tokens,
-                    [activeTab.id]: (tokens[activeTab.id] ?? 0) + 1,
-                  }));
-                }
-              : refetch
-          }
-          active={isActive}
-          onNavigateBack={
-            isNativeWebPath
-              ? () => navigateWebHistory('back')
-              : onNavigateBackHistory
-                ? () => onNavigateBackHistory(group.id)
-                : undefined
-          }
-          canNavigateBack={
-            isNativeWebPath ? (activeWebPage?.canGoBack ?? false) : group.historyIndex > 0
-          }
-          onNavigateForward={
-            isNativeWebPath
-              ? () => navigateWebHistory('forward')
-              : onNavigateForwardHistory
-                ? () => onNavigateForwardHistory(group.id)
-                : undefined
-          }
-          canNavigateForward={
-            isNativeWebPath
-              ? (activeWebPage?.canGoForward ?? false)
-              : group.historyIndex < group.pathHistory.length - 1
-          }
-          onNavigateUp={handlePaneNavigateUp}
-          canNavigateUp={canNavigateUp}
-        />
+        <div className="wisp-pane-toolbar">
+          <NavigationBar
+            currentPath={isNativeWebPath ? activeWebPage?.url || currentPath : currentPath}
+            navigateToPath={sharedActions.navigateToPath}
+            refetch={
+              isWebPath && activeTab
+                ? () => {
+                    setWebRefreshTokens((tokens) => ({
+                      ...tokens,
+                      [activeTab.id]: (tokens[activeTab.id] ?? 0) + 1,
+                    }));
+                  }
+                : refetch
+            }
+            active={isActive}
+            onNavigateBack={
+              isNativeWebPath
+                ? () => navigateWebHistory('back')
+                : onNavigateBackHistory
+                  ? () => onNavigateBackHistory(group.id)
+                  : undefined
+            }
+            canNavigateBack={
+              isNativeWebPath ? (activeWebPage?.canGoBack ?? false) : group.historyIndex > 0
+            }
+            onNavigateForward={
+              isNativeWebPath
+                ? () => navigateWebHistory('forward')
+                : onNavigateForwardHistory
+                  ? () => onNavigateForwardHistory(group.id)
+                  : undefined
+            }
+            canNavigateForward={
+              isNativeWebPath
+                ? (activeWebPage?.canGoForward ?? false)
+                : group.historyIndex < group.pathHistory.length - 1
+            }
+            onNavigateUp={handlePaneNavigateUp}
+            canNavigateUp={canNavigateUp}
+          />
+          <div className="wisp-pane-toolbar-actions" ref={setToolbarTarget} />
+        </div>
       )}
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">

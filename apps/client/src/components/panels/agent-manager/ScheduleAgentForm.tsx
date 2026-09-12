@@ -158,7 +158,7 @@ const ScheduleAgentForm = ({ initial, onClose }: ScheduleAgentFormProps) => {
             fontWeight: 600,
           }}
         >
-          <Calendar size={13} style={{ color: 'var(--xp-blue)' }} />
+          <Calendar size={13} style={{ color: 'var(--ds-link)' }} />
           {initial
             ? t('agentManager.schedule.editTitle', { defaultValue: 'Edit schedule' })
             : t('agentManager.schedule.newTitle', { defaultValue: 'New scheduled agent' })}

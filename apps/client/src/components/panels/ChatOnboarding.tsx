@@ -180,7 +180,7 @@ const ChatOnboarding = ({ onSendMessage, isLoading }: ChatOnboardingProps) => {
             <span
               style={{
                 flexShrink: 0,
-                color: 'var(--xp-blue)',
+                color: 'var(--ds-link)',
                 marginTop: '1px',
               }}
             >
@@ -233,7 +233,7 @@ const ChatOnboarding = ({ onSendMessage, isLoading }: ChatOnboardingProps) => {
           borderRadius: '8px',
           border: '1px solid var(--xp-blue)',
           background: 'rgb(var(--xp-blue-rgb) / 0.08)',
-          color: 'var(--xp-blue)',
+          color: 'var(--ds-link)',
           cursor: isLoading ? 'not-allowed' : 'pointer',
           fontSize: '13px',
           fontWeight: 500,

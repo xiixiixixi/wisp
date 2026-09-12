@@ -74,6 +74,13 @@ interface ActiveTransfer {
   silent: boolean;
 }
 
+interface DragDiagnostic {
+  t: number;
+  type: string;
+  pos?: { x: number; y: number };
+  paths?: number;
+}
+
 // ── Reducer ──────────────────────────────────────────────────────────────────
 
 const initialState: DragState = {
@@ -285,7 +292,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
   // via requestAnimationFrame, avoiding React re-renders on every mouse move.
   const cursorRef = useRef({ x: 0, y: 0 });
   const hoverPaneRef = useRef<string | null>(null);
-  const paneActivateTimerRef = useRef<number | null>(null);
+  const paneActivateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const rafIdRef = useRef<number>(0);
 
@@ -339,7 +346,8 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
           // window.__wispDragLog.
           try {
             if (localStorage.getItem('wispDebugDrag') === '1') {
-              const log = (window.__wispDragLog ??= []);
+              const debugWindow = window as Window & { __wispDragLog?: DragDiagnostic[] };
+              const log = (debugWindow.__wispDragLog ??= []);
               log.push({
                 t: Date.now(),
                 type: payload.type,
@@ -404,7 +412,9 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
                   ?.closest('[data-group-id]') as HTMLElement | null;
                 const paneId = paneEl?.getAttribute('data-group-id') ?? null;
                 if (paneId !== hoverPaneRef.current) {
-                  clearTimeout(paneActivateTimerRef.current);
+                  if (paneActivateTimerRef.current !== null) {
+                    clearTimeout(paneActivateTimerRef.current);
+                  }
                   hoverPaneRef.current = paneId;
                   if (paneId) {
                     paneActivateTimerRef.current = setTimeout(() => {

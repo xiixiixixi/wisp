@@ -177,7 +177,7 @@ const SidebarFileTree = ({
           aria-label={t(file.is_dir ? 'messages.folderAria' : 'messages.fileAria', {
             name: file.name,
           })}
-          className={`flex cursor-pointer items-center rounded-[2px] px-1 py-1 text-xs transition-colors hover:bg-xp-surface-light ${currentPath === file.path ? 'wisp-sidebar-item-active' : 'text-xp-text'} `}
+          className={`flex cursor-pointer items-center rounded-md px-1 py-1 text-xs transition-colors hover:bg-xp-surface-light ${currentPath === file.path ? 'wisp-sidebar-item-active' : 'text-xp-text'} `}
           style={{ paddingLeft: `${depth * 16 + 8}px` }}
           onClick={() => handleItemClick(file)}
           onContextMenu={(e) => handleItemRightClick(file, e)}
@@ -185,7 +185,7 @@ const SidebarFileTree = ({
           <div className="flex min-w-0 flex-1 items-center space-x-1">
             {file.is_dir ? (
               <button
-                className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-[2px] p-0.5 transition-colors hover:bg-xp-surface-light"
+                className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md p-0.5 transition-colors hover:bg-xp-surface-light"
                 onClick={(e) => toggleFolder(file.path, e)}
                 aria-expanded={isExpanded}
                 aria-label={isExpanded ? `Collapse ${file.name}` : `Expand ${file.name}`}
@@ -269,7 +269,7 @@ const SidebarFileTree = ({
       data-sidebar-section="fileTree"
     >
       <button
-        className="sticky top-0 z-10 flex w-full items-center bg-xp-surface px-3 py-1.5 text-[10px] font-medium uppercase tracking-widest text-xp-text-muted transition-colors hover:bg-xp-surface-light/50"
+        className="sticky top-0 z-10 flex w-full items-center bg-xp-surface px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted transition-colors hover:bg-xp-surface-light/50"
         onClick={onToggleCollapsed}
         aria-expanded={!collapsed}
       >
@@ -290,11 +290,11 @@ const SidebarFileTree = ({
                 aria-selected={currentPath === rootPath}
                 aria-expanded={expandedFolders.has(rootPath)}
                 aria-label={`Root drive ${rootPath}`}
-                className={`flex cursor-pointer items-center rounded-[2px] px-1 py-1 text-xs font-medium transition-colors hover:bg-xp-surface-light ${currentPath === rootPath ? 'wisp-sidebar-item-active' : 'text-xp-text'} `}
+                className={`flex cursor-pointer items-center rounded-md px-1 py-1 text-xs font-semibold transition-colors hover:bg-xp-surface-light ${currentPath === rootPath ? 'wisp-sidebar-item-active' : 'text-xp-text'} `}
                 onClick={() => navigateToPath(rootPath)}
               >
                 <button
-                  className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-[2px] p-0.5 transition-colors hover:bg-xp-surface-light"
+                  className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md p-0.5 transition-colors hover:bg-xp-surface-light"
                   onClick={(e) => toggleFolder(rootPath, e)}
                   aria-expanded={expandedFolders.has(rootPath)}
                   aria-label={

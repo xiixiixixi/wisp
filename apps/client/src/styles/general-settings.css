@@ -1,0 +1,230 @@
+.wisp-general-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 660px;
+  min-width: 0;
+}
+
+.wisp-general-preferences {
+  border-radius: 12px;
+  background: var(--ds-fill);
+}
+
+.wisp-general-appearance {
+  display: flex;
+  gap: 2px;
+  max-width: 100%;
+  margin: 0;
+  padding: 3px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--ds-fill);
+}
+
+.wisp-general-appearance label {
+  position: relative;
+  cursor: pointer;
+}
+
+.wisp-general-appearance label > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+  color: var(--ds-label-secondary);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.wisp-general-appearance label > span:hover {
+  background: var(--ds-hover);
+}
+
+.wisp-general-appearance input:checked + span {
+  background: var(--ds-control);
+  color: var(--ds-label-primary);
+  box-shadow: var(--ds-shadow-control);
+}
+
+.wisp-general-appearance input:focus-visible + span {
+  outline: 2px solid var(--ds-focus);
+  outline-offset: 2px;
+}
+
+.wisp-general-disclosure {
+  min-width: 0;
+  border-radius: 12px;
+  background: var(--ds-fill);
+}
+
+.wisp-general-disclosure > summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 10px 12px;
+  border-radius: inherit;
+  list-style: none;
+  cursor: pointer;
+  color: var(--ds-label-secondary);
+}
+
+.wisp-general-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.wisp-general-disclosure > summary:hover {
+  background: var(--ds-hover);
+}
+
+.wisp-general-disclosure > summary > span {
+  min-width: 0;
+  flex: 1;
+}
+
+.wisp-general-disclosure > summary > svg {
+  flex-shrink: 0;
+}
+
+.wisp-general-disclosure-title,
+.wisp-general-disclosure-description {
+  display: block;
+}
+
+.wisp-general-disclosure-title {
+  color: var(--ds-label-primary);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.wisp-general-disclosure-description {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.wisp-general-disclosure[open] .wisp-general-disclosure-chevron {
+  transform: rotate(90deg);
+}
+
+.wisp-general-disclosure-content {
+  min-width: 0;
+  padding: 0 12px 12px;
+}
+
+.wisp-general-keyboard-note {
+  margin: 0 0 12px;
+  color: var(--ds-label-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.wisp-general-reset {
+  align-self: flex-start;
+  margin-inline: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  max-width: 100%;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ds-label-secondary);
+  font-size: 13px;
+  text-align: left;
+}
+
+.wisp-general-reset:hover {
+  background: var(--ds-hover);
+  color: var(--ds-label-primary);
+}
+
+.wisp-settings-about {
+  min-width: 0;
+  padding: 12px 12px 4px;
+}
+
+.wisp-settings-about-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+}
+
+.wisp-settings-about-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wisp-settings-about-identity img {
+  flex: 0 0 auto;
+}
+
+.wisp-settings-about-identity h3 {
+  margin: 0;
+  color: var(--ds-label-primary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.wisp-settings-about-identity p,
+.wisp-settings-update-status {
+  margin: 3px 0 0;
+  color: var(--ds-label-secondary);
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.wisp-settings-update {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  max-width: 100%;
+  margin-left: auto;
+}
+
+.wisp-settings-update-status:empty {
+  display: none;
+}
+
+.wisp-settings-update-status[role="alert"],
+.wisp-settings-about-error {
+  color: var(--ds-destructive);
+}
+
+.wisp-settings-about-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 16px;
+  margin-top: 10px;
+}
+
+.wisp-settings-about-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border-radius: 4px;
+  color: var(--ds-link);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.wisp-settings-about-links a:hover {
+  text-decoration: underline;
+}
+
+.wisp-settings-about-error {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 17px;
+}

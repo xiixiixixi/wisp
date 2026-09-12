@@ -68,14 +68,15 @@ const semiParts = (value: string): string =>
     .join(', ');
 
 /** iCal dates: [YYYYMMDD] or YYYYMMDDTHHMMSS[Z]; date-only means all-day. */
-const parseIcalDate = (
-  raw: string,
-): { text: string; allDay: boolean } | null => {
+const parseIcalDate = (raw: string): { text: string; allDay: boolean } | null => {
   const m = raw.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?$/);
   if (!m) return raw ? { text: raw, allDay: false } : null;
   const [, y, mo, d, h, mi, s, z] = m;
   if (!h) return { text: `${y}-${mo}-${d}`, allDay: true };
-  return { text: `${y}-${mo}-${d} ${h}:${mi}${s && s !== '00' ? `:${s}` : ''}${z ? ' UTC' : ''}`, allDay: false };
+  return {
+    text: `${y}-${mo}-${d} ${h}:${mi}${s && s !== '00' ? `:${s}` : ''}${z ? ' UTC' : ''}`,
+    allDay: false,
+  };
 };
 
 const parseContacts = (text: string, fileName: string): ContactCard[] => {
@@ -90,8 +91,7 @@ const parseContacts = (text: string, fileName: string): ContactCard[] => {
       if (key === 'BEGIN' && value.trim().toUpperCase() === 'VEVENT') {
         current = { props: [] };
       } else if (key === 'END' && value.trim().toUpperCase() === 'VEVENT' && current) {
-        const get = (k: string) =>
-          current!.props.find(([key]) => key === k)?.[1] ?? '';
+        const get = (k: string) => current!.props.find(([key]) => key === k)?.[1] ?? '';
         const start = parseIcalDate(get('DTSTART'));
         const end = parseIcalDate(get('DTEND'));
         const rows: CardRow[] = [];
@@ -129,7 +129,11 @@ const parseContacts = (text: string, fileName: string): ContactCard[] => {
       const org = first('ORG');
       const title = first('TITLE');
       if (org || title)
-        rows.push({ icon: 'org', label: 'ORG', value: [semiParts(org), title].filter(Boolean).join(' · ') });
+        {rows.push({
+          icon: 'org',
+          label: 'ORG',
+          value: [semiParts(org), title].filter(Boolean).join(' · '),
+        });}
       for (const adr of get('ADR')) {
         const addr = semiParts(adr);
         if (addr) rows.push({ icon: 'addr', label: 'ADR', value: addr });
@@ -202,7 +206,7 @@ const ContactPreview = ({ file, onError, onLoad }: PreviewProps) => {
 
   if (raw !== null) {
     return (
-      <div className="h-full overflow-auto rounded-[2px] border border-xp-border bg-xp-surface p-4">
+      <div className="h-full overflow-auto rounded-md border border-xp-border bg-xp-surface p-4">
         <pre className="whitespace-pre-wrap break-words text-xs leading-relaxed text-xp-text">
           {raw}
         </pre>
@@ -219,15 +223,15 @@ const ContactPreview = ({ file, onError, onLoad }: PreviewProps) => {
   }
 
   return (
-    <div className="h-full space-y-3 overflow-auto rounded-[2px] border border-xp-border bg-xp-surface p-4">
+    <div className="h-full space-y-3 overflow-auto rounded-md border border-xp-border bg-xp-surface p-4">
       {cards.map((card, i) => (
-        <div key={i} className="rounded-[2px] border border-xp-border/60 bg-xp-surface-light/40 p-3">
+        <div key={i} className="border-xp-border/60 rounded-md border bg-xp-surface-light/40 p-3">
           {card.kind === 'vcard' ? (
             <div className="mb-2 flex items-center gap-2">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-xp-surface text-xp-text-secondary">
                 <User size={16} aria-hidden />
               </span>
-              <h4 className="truncate text-sm font-medium text-xp-text" title={card.title}>
+              <h4 className="truncate text-sm font-semibold text-xp-text" title={card.title}>
                 {card.title}
               </h4>
             </div>
@@ -235,7 +239,7 @@ const ContactPreview = ({ file, onError, onLoad }: PreviewProps) => {
             <div className="mb-2">
               <div className="mb-1 flex items-center gap-2">
                 <CalendarDays size={15} className="text-xp-text-secondary" aria-hidden />
-                <h4 className="truncate text-sm font-medium text-xp-text" title={card.title}>
+                <h4 className="truncate text-sm font-semibold text-xp-text" title={card.title}>
                   {card.title}
                 </h4>
               </div>
@@ -252,11 +256,7 @@ const ContactPreview = ({ file, onError, onLoad }: PreviewProps) => {
               const Icon = ICONS[row.icon];
               return (
                 <div key={j} className="flex items-start gap-2 text-xs">
-                  <Icon
-                    size={13}
-                    className="mt-0.5 shrink-0 text-xp-text-muted"
-                    aria-hidden
-                  />
+                  <Icon size={13} className="mt-0.5 shrink-0 text-xp-text-muted" aria-hidden />
                   <span className="min-w-0 break-words text-xp-text">{row.value}</span>
                 </div>
               );

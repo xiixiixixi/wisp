@@ -587,7 +587,7 @@ const ExtensionPermissionDialog = () => {
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0,
-                      color: isDangerous ? 'var(--xp-orange)' : 'rgb(var(--xp-blue-rgb) / 0.7)',
+                      color: isDangerous ? 'var(--xp-orange)' : 'var(--ds-link)',
                     }}
                   >
                     <PermIcon perm={perm} />

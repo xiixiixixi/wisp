@@ -142,7 +142,7 @@ const PinnedItem = React.memo(({ pin, onUnpin, onJump }: PinnedItemProps) => {
           fontWeight: 700,
           textTransform: 'uppercase',
           letterSpacing: '0.5px',
-          color: isAssistant ? 'var(--xp-purple)' : 'var(--xp-blue)',
+          color: isAssistant ? 'var(--xp-purple)' : 'var(--ds-link)',
           marginTop: '2px',
         }}
       >

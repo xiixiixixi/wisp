@@ -311,6 +311,11 @@
       "resetAll": "すべてのファイルの関連付けをリセット"
     },
     "general": {
+      "appearance": "外観",
+      "appearanceDesc": "システム設定に合わせるか、ライトまたはダークを選択します。",
+      "appearanceSystem": "システムに合わせる",
+      "appearanceLight": "ライト",
+      "appearanceDark": "ダーク",
       "language": "言語",
       "languageDesc": "お好みの言語を選択",
       "small": "小",
@@ -580,7 +585,7 @@
   "commandPalette": {
     "title": "Wisp 検索",
     "subtitle": "どこからでもファイルを検索、または Wisp に質問",
-    "trigger": "全体を検索、または Wisp に質問...",
+    "trigger": "ファイルとフォルダを検索…",
     "modeLabel": "検索モード",
     "modes": {
       "files": "ファイル",
@@ -2071,6 +2076,8 @@
   },
   "previews": {
     "audio": {
+      "playbackPosition": "再生位置",
+      "volume": "音量",
       "cannotPreview": "Cannot preview audio",
       "formatNotSupported": "The audio format may not be supported",
       "loading": "Loading audio...",

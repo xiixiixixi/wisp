@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import type { FileEntry } from '@/lib/tauri-api';
 import {
   getFileIcon,
@@ -19,6 +20,8 @@ import { getAllFolderColors } from '@/lib/folder-colors';
 import { useSmartView } from '@/hooks/use-smart-view';
 
 interface PaneFileExplorerProps {
+  /** Optional navigation-row outlet; state and callbacks remain owned by this pane. */
+  toolbarTarget?: HTMLElement | null;
   viewMode: string;
   setViewMode: (mode: string) => void;
   sortBy: SortField;
@@ -61,6 +64,7 @@ interface PaneFileExplorerProps {
 
 const PaneFileExplorer = React.memo(
   ({
+    toolbarTarget,
     viewMode,
     setViewMode,
     sortBy,
@@ -208,68 +212,71 @@ const PaneFileExplorer = React.memo(
       setColorFilter(null);
     }, [currentPath]);
 
+    const operationBar =
+      isLoading || displayFiles.length > 0 || selectedFiles.size > 0 ? (
+        <OperationBar
+          viewMode={viewMode}
+          setViewMode={handleSetViewMode}
+          viewModes={viewModes}
+          isAutoDetected={isAutoDetected}
+          onClearAutoDetect={clearSavedView}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          sortOrder={sortOrder}
+          toggleSortOrder={toggleSortOrder}
+          sortOptions={sortOptions}
+          groupByDate={groupByDate}
+          setGroupByDate={setGroupByDate}
+          handleCreateFolder={handleCreateFolder}
+          handleDelete={handleDelete}
+          selectedFiles={selectedFiles}
+          setBottomPanelCollapsed={setBottomPanelCollapsed}
+          setBottomPanelTab={setBottomPanelTab}
+          onSelectAll={() => {
+            const newSet = new Set(sortedFiles.map((f) => f.path));
+            setSelectedFiles(newSet);
+          }}
+          onSelectNone={() => {
+            setSelectedFiles(new Set());
+          }}
+          onInvertSelection={() => {
+            const allPaths = sortedFiles.map((f) => f.path);
+            setSelectedFiles((prev) => {
+              const next = new Set<string>();
+              for (const p of allPaths) {
+                if (!prev.has(p)) next.add(p);
+              }
+              return next;
+            });
+          }}
+          onAdvancedSelection={onAdvancedSelection}
+          showSizeBadges={showSizeBadges}
+          onToggleSizeBadges={toggleSizeBadges}
+          onCompress={onCompress}
+          onExtract={onExtract}
+          onProperties={onProperties}
+          currentPath={currentPath}
+          onCopy={clipboardCtx.copySelectedFiles}
+          onCut={clipboardCtx.cutSelectedFiles}
+          onPaste={clipboardCtx.pasteFiles}
+          hasClipboard={clipboardCtx.hasClipboard}
+          onPreview={onQuickLook ? handlePreviewSelected : undefined}
+          statusAccessory={
+            <div className="mr-1 flex items-center gap-2">
+              {showSizeBadges && <SizeDistributionChart files={displayFiles} />}
+              <FolderColorLegend
+                files={sortedFiles}
+                onFilterByColor={handleColorFilter}
+                activeColorFilter={colorFilter}
+              />
+            </div>
+          }
+        />
+      ) : null;
+
     return (
       <>
-        {(isLoading || displayFiles.length > 0 || selectedFiles.size > 0) && (
-          <OperationBar
-            viewMode={viewMode}
-            setViewMode={handleSetViewMode}
-            viewModes={viewModes}
-            isAutoDetected={isAutoDetected}
-            onClearAutoDetect={clearSavedView}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            sortOrder={sortOrder}
-            toggleSortOrder={toggleSortOrder}
-            sortOptions={sortOptions}
-            groupByDate={groupByDate}
-            setGroupByDate={setGroupByDate}
-            handleCreateFolder={handleCreateFolder}
-            handleDelete={handleDelete}
-            selectedFiles={selectedFiles}
-            setBottomPanelCollapsed={setBottomPanelCollapsed}
-            setBottomPanelTab={setBottomPanelTab}
-            onSelectAll={() => {
-              const newSet = new Set(sortedFiles.map((f) => f.path));
-              setSelectedFiles(newSet);
-            }}
-            onSelectNone={() => {
-              setSelectedFiles(new Set());
-            }}
-            onInvertSelection={() => {
-              const allPaths = sortedFiles.map((f) => f.path);
-              setSelectedFiles((prev) => {
-                const next = new Set<string>();
-                for (const p of allPaths) {
-                  if (!prev.has(p)) next.add(p);
-                }
-                return next;
-              });
-            }}
-            onAdvancedSelection={onAdvancedSelection}
-            showSizeBadges={showSizeBadges}
-            onToggleSizeBadges={toggleSizeBadges}
-            onCompress={onCompress}
-            onExtract={onExtract}
-            onProperties={onProperties}
-            currentPath={currentPath}
-            onCopy={clipboardCtx.copySelectedFiles}
-            onCut={clipboardCtx.cutSelectedFiles}
-            onPaste={clipboardCtx.pasteFiles}
-            hasClipboard={clipboardCtx.hasClipboard}
-            onPreview={onQuickLook ? handlePreviewSelected : undefined}
-            statusAccessory={
-              <div className="mr-1 flex items-center gap-2">
-                {showSizeBadges && <SizeDistributionChart files={displayFiles} />}
-                <FolderColorLegend
-                  files={sortedFiles}
-                  onFilterByColor={handleColorFilter}
-                  activeColorFilter={colorFilter}
-                />
-              </div>
-            }
-          />
-        )}
+        {toolbarTarget && operationBar ? createPortal(operationBar, toolbarTarget) : operationBar}
 
         <div
           ref={scrollContainerRef}

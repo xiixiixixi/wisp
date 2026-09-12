@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LayoutGrid, FileText, FolderOpen, ChevronRight } from 'lucide-react';
-import FileAssociationsSettings from './FileAssociationsSettings';
 import ContextMenuRulesCard from './ContextMenuRulesCard';
+import { getContextMenuRules } from '@/lib/context-menu-rules';
 import { Toggle, SelectField, SettingRow, type AppSettings, SettingsSection } from './shared';
 
 interface ExplorerSettingsProps {
@@ -11,6 +12,8 @@ interface ExplorerSettingsProps {
 
 const ExplorerSettings = ({ settings, updateSetting }: ExplorerSettingsProps) => {
   const { t } = useTranslation();
+  // Keep a recovery path for existing rules without showing an empty rule editor.
+  const [hasCustomRules] = useState(() => getContextMenuRules().length > 0);
 
   const viewModes = [
     { value: 'auto', label: t('settings.explorer.auto') },
@@ -59,32 +62,22 @@ const ExplorerSettings = ({ settings, updateSetting }: ExplorerSettingsProps) =>
           />
         </SettingRow>
       </SettingsSection>
-      <details className="wisp-settings-disclosure content-card group rounded-2xl">
-        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-xp-text">
-          {t('settings.tabs.fileAssociations')}
-          <ChevronRight
-            size={16}
-            className="shrink-0 transition-transform group-open:rotate-90"
-            aria-hidden="true"
-          />
-        </summary>
-        <div className="px-2 pb-4">
-          <FileAssociationsSettings embedded />
-        </div>
-      </details>
-      <details className="wisp-settings-disclosure content-card group rounded-2xl">
-        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-xp-text">
-          {t('settings.tabs.contextMenu')}
-          <ChevronRight
-            size={16}
-            className="shrink-0 transition-transform group-open:rotate-90"
-            aria-hidden="true"
-          />
-        </summary>
-        <div className="px-2 pb-4">
-          <ContextMenuRulesCard embedded />
-        </div>
-      </details>
+      {hasCustomRules && (
+        <details className="wisp-settings-advanced">
+          <summary>
+            <ChevronRight size={14} aria-hidden="true" />
+            {t('settings.explorer.advanced')}
+          </summary>
+          <div className="wisp-settings-advanced-body">
+            <SettingsSection title={t('settings.explorer.contextMenuVisibility')}>
+              <p className="wisp-settings-advanced-description">
+                {t('settings.explorer.contextMenuVisibilityDesc')}
+              </p>
+              <ContextMenuRulesCard embedded />
+            </SettingsSection>
+          </div>
+        </details>
+      )}
     </div>
   );
 };

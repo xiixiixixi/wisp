@@ -1,8 +1,25 @@
 import React, { useEffect, useRef, useCallback, useId } from 'react';
 import { createPortal } from 'react-dom';
+import { cn } from '@/lib/utils';
 
 const FOCUSABLE_SELECTOR =
-  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
+
+// Closed disclosure content remains mounted but cannot receive keyboard focus.
+const isAvailableFocusTarget = (element: HTMLElement) => {
+  if (element.tabIndex < 0 || element.closest('[hidden], [inert], [aria-hidden="true"]')) {
+    return false;
+  }
+  let ancestor = element.parentElement;
+  while (ancestor) {
+    if (ancestor.tagName === 'DETAILS' && !ancestor.hasAttribute('open')) {
+      const summary = Array.from(ancestor.children).find((child) => child.tagName === 'SUMMARY');
+      if (!summary?.contains(element)) return false;
+    }
+    ancestor = ancestor.parentElement;
+  }
+  return true;
+};
 
 interface DialogProps {
   open: boolean;
@@ -56,11 +73,15 @@ export const Dialog = ({
       if (!container) return;
 
       // Auto-focus: prefer [data-autofocus], then first focusable, then the container itself.
-      const autofocusEl = container.querySelector<HTMLElement>('[data-autofocus]');
+      const autofocusEl = Array.from(
+        container.querySelectorAll<HTMLElement>('[data-autofocus]'),
+      ).find(isAvailableFocusTarget);
       if (autofocusEl) {
         autofocusEl.focus();
       } else {
-        const first = container.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+        const first = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).find(
+          isAvailableFocusTarget,
+        );
         if (first) {
           first.focus();
         } else {
@@ -97,10 +118,7 @@ export const Dialog = ({
 
         const focusable = Array.from(
           container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
-        ).filter(
-          (element) =>
-            element.tabIndex >= 0 && !element.closest('[hidden], [inert], [aria-hidden="true"]'),
-        );
+        ).filter(isAvailableFocusTarget);
         if (focusable.length === 0) {
           e.preventDefault();
           container.focus();
@@ -137,7 +155,7 @@ export const Dialog = ({
   return createPortal(
     <DialogContext.Provider value={{ titleId }}>
       <div
-        className="wisp-dialog-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/35"
+        className="wisp-dialog-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/20"
         onClick={handleBackdropClick}
       >
         <div
@@ -146,7 +164,7 @@ export const Dialog = ({
           aria-modal="true"
           aria-labelledby={titleId}
           tabIndex={-1}
-          className="elevated-glass mx-4 max-h-[min(90dvh,calc(100dvh-40px))] w-full max-w-4xl overflow-y-auto overscroll-contain rounded-2xl border border-xp-border bg-xp-popover shadow-[var(--xp-shadow-popover)]"
+          className="elevated-glass mx-4 max-h-[min(90dvh,calc(100dvh-40px))] w-full max-w-4xl overflow-y-auto overscroll-contain rounded-2xl border border-[var(--ds-separator)] bg-xp-popover text-[13px] text-[var(--ds-label-primary)] shadow-[var(--xp-shadow-popover)]"
           style={{ outline: 'none', maxWidth }}
           onClick={(e) => e.stopPropagation()}
           onKeyDown={handleKeyDown}
@@ -165,7 +183,7 @@ interface DialogContentProps {
 }
 
 export const DialogContent = ({ children, className = '' }: DialogContentProps) => {
-  return <div className={`p-5 ${className}`}>{children}</div>;
+  return <div className={cn('p-5', className)}>{children}</div>;
 };
 
 interface DialogHeaderProps {
@@ -173,7 +191,7 @@ interface DialogHeaderProps {
 }
 
 export const DialogHeader = ({ children }: DialogHeaderProps) => {
-  return <div className="mb-4 border-b border-xp-border pb-4">{children}</div>;
+  return <div className="mb-5 space-y-1.5">{children}</div>;
 };
 
 interface DialogTitleProps {
@@ -188,7 +206,13 @@ export const DialogTitle = ({ children, className = '', id: idProp }: DialogTitl
   const resolvedId = idProp ?? ctx?.titleId;
 
   return (
-    <h2 id={resolvedId} className={`text-xl font-semibold text-xp-text ${className}`}>
+    <h2
+      id={resolvedId}
+      className={cn(
+        'text-[17px] font-semibold leading-[22px] text-[var(--ds-label-primary)]',
+        className,
+      )}
+    >
       {children}
     </h2>
   );
@@ -199,7 +223,7 @@ interface DialogDescriptionProps {
 }
 
 export const DialogDescription = ({ children }: DialogDescriptionProps) => {
-  return <p className="mt-2 text-sm text-xp-text-secondary">{children}</p>;
+  return <p className="text-[13px] leading-[1.4] text-[var(--ds-label-secondary)]">{children}</p>;
 };
 
 interface DialogTriggerProps {
@@ -216,5 +240,5 @@ interface DialogFooterProps {
 }
 
 export const DialogFooter = ({ children }: DialogFooterProps) => {
-  return <div className="flex justify-end gap-2 border-t border-xp-border pt-4">{children}</div>;
+  return <div className="flex flex-wrap justify-end gap-2 pt-5">{children}</div>;
 };

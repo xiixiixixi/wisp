@@ -70,6 +70,24 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
     if (!isOpen) setSubmenuStack([]);
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const focusScope = containerRef.current;
+    menuRef.current
+      ?.querySelector<HTMLElement>('[data-menu-item]:not([aria-disabled="true"])')
+      ?.focus();
+    return () => {
+      const currentFocus = document.activeElement;
+      if (
+        previousFocus?.isConnected &&
+        (!currentFocus || currentFocus === document.body || focusScope?.contains(currentFocus))
+      ) {
+        previousFocus.focus();
+      }
+    };
+  }, [isOpen]);
+
   // Close menu on click outside or Escape
   useEffect(() => {
     if (!isOpen) return;
@@ -81,7 +99,62 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
       }
     };
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' || e.key === 'Tab') {
+        if (e.key === 'Escape') e.preventDefault();
+        onClose();
+        return;
+      }
+
+      const activeItem = document.activeElement as HTMLElement | null;
+      const activePanel = activeItem?.closest('[role="menu"]');
+      if (!activePanel || !containerRef.current?.contains(activePanel)) return;
+      const activeDepth = Number(activePanel.getAttribute('data-menu-depth'));
+      if (closeTimer.current) {
+        clearTimeout(closeTimer.current);
+        closeTimer.current = null;
+      }
+      const enabledItems = Array.from(
+        activePanel.querySelectorAll<HTMLElement>('[data-menu-item]:not([aria-disabled="true"])'),
+      );
+      const focusSubmenu = () => {
+        requestAnimationFrame(() => {
+          const panels = containerRef.current?.querySelectorAll('[role="menu"]');
+          panels?.[panels.length - 1]
+            ?.querySelector<HTMLElement>('[data-menu-item]:not([aria-disabled="true"])')
+            ?.focus();
+        });
+      };
+      const currentIndex = enabledItems.indexOf(activeItem!);
+      if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) {
+        e.preventDefault();
+        setSubmenuStack((prev) => (prev.length > activeDepth ? prev.slice(0, activeDepth) : prev));
+        let nextIndex = e.key === 'Home' ? 0 : enabledItems.length - 1;
+        if (e.key === 'ArrowDown') nextIndex = (currentIndex + 1) % enabledItems.length;
+        if (e.key === 'ArrowUp') {
+          nextIndex = (currentIndex - 1 + enabledItems.length) % enabledItems.length;
+        }
+        enabledItems[nextIndex]?.focus();
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        activeItem?.click();
+        if (activeItem?.getAttribute('aria-haspopup') === 'menu') focusSubmenu();
+      } else if (e.key === 'ArrowRight' && activeItem?.getAttribute('aria-haspopup') === 'menu') {
+        e.preventDefault();
+        activeItem.click();
+        focusSubmenu();
+      } else if (e.key === 'ArrowLeft' && submenuStack.length > 0) {
+        e.preventDefault();
+        const parentId = activeDepth > 0 ? submenuStack[activeDepth - 1]?.id : undefined;
+        setSubmenuStack((prev) => prev.slice(0, Math.max(0, activeDepth - 1)));
+        Array.from(containerRef.current?.querySelectorAll<HTMLElement>('[data-menu-item]') ?? [])
+          .find(
+            (element) =>
+              element.dataset.menuItem === parentId &&
+              element.closest('[role="menu"]')?.getAttribute('data-menu-depth') ===
+                String(activeDepth - 1),
+          )
+          ?.focus();
+      }
     };
 
     document.addEventListener('mousedown', onMouseDown);
@@ -90,7 +163,7 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
       document.removeEventListener('mousedown', onMouseDown);
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, submenuStack]);
 
   // Clamp main menu to viewport
   useEffect(() => {
@@ -159,7 +232,9 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
     menuItems.map((item) => {
       if (item.visible === false) return null;
       if (item.separator) {
-        return <div key={item.id} className="my-1 border-t border-xp-border" />;
+        return (
+          <div key={item.id} role="separator" className="mx-2 my-1 border-t border-xp-border" />
+        );
       }
 
       const hasSubmenu = item.submenu && item.submenu.length > 0;
@@ -169,6 +244,8 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
         <div
           key={item.id}
           onMouseEnter={(e) => {
+            if (item.disabled) return;
+            e.currentTarget.querySelector<HTMLElement>('[data-menu-item]')?.focus();
             if (hasSubmenu) {
               openSubmenuAt(submenuLevel, item.id, e.currentTarget, item.submenu!);
             } else {
@@ -180,10 +257,18 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
           }}
         >
           <div
-            className={`flex cursor-pointer items-center justify-between px-3 py-1.5 text-sm ${
+            role={item.checked === undefined ? 'menuitem' : 'menuitemcheckbox'}
+            tabIndex={-1}
+            data-menu-item={item.id}
+            data-disabled={item.disabled ? '' : undefined}
+            aria-disabled={item.disabled || undefined}
+            aria-checked={item.checked}
+            aria-haspopup={hasSubmenu ? 'menu' : undefined}
+            aria-expanded={hasSubmenu ? submenuStack.some((sub) => sub.id === item.id) : undefined}
+            className={`group mx-1 flex min-h-7 cursor-default items-center justify-between rounded-md px-2 py-1 text-[13px] outline-none ${
               item.disabled
                 ? 'cursor-not-allowed text-xp-text-muted'
-                : 'text-xp-text hover:bg-xp-surface-light'
+                : 'text-xp-text hover:bg-xp-accent hover:text-xp-on-accent focus:bg-xp-accent focus:text-xp-on-accent'
             } `}
             onClick={(e) => {
               e.stopPropagation();
@@ -210,7 +295,7 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
             </div>
             <div className="flex items-center space-x-2">
               {item.checked && (
-                <svg className="h-3 w-3 text-xp-accent" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -219,7 +304,7 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
                 </svg>
               )}
               {item.shortcut && (
-                <span className="text-xs text-xp-text-muted">
+                <span className="text-xs text-xp-text-muted group-hover:text-inherit group-focus:text-inherit">
                   {isMacPlatform()
                     ? formatKeyComboForDisplay(item.shortcut.toLowerCase())
                     : item.shortcut}
@@ -250,7 +335,9 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
         {/* Main menu */}
         <div
           ref={menuRef}
-          className="context-menu-scroll fixed z-50 min-w-48 rounded-[2px] border border-xp-border bg-xp-popover py-1 shadow-[var(--xp-shadow-popover)]"
+          role="menu"
+          data-menu-depth={0}
+          className="context-menu-scroll fixed z-50 min-w-48 rounded-xl border border-xp-border bg-xp-popover py-1 shadow-[var(--xp-shadow-popover)]"
           style={{ left: x, top: y, maxHeight: '70vh', overflowY: 'auto', pointerEvents: 'auto' }}
         >
           {renderMenuItems(items, 0, true)}
@@ -260,7 +347,9 @@ const ContextMenu = ({ isOpen, x, y, onClose, items }: ContextMenuProps) => {
         {submenuStack.map((sub, idx) => (
           <div
             key={sub.id}
-            className="context-menu-scroll fixed min-w-48 rounded-[2px] border border-xp-border bg-xp-popover py-1 shadow-[var(--xp-shadow-popover)]"
+            role="menu"
+            data-menu-depth={idx + 1}
+            className="context-menu-scroll fixed min-w-48 rounded-xl border border-xp-border bg-xp-popover py-1 shadow-[var(--xp-shadow-popover)]"
             style={{
               left: sub.left,
               top: sub.top,

@@ -345,7 +345,7 @@ export const FileActionCard = ({
               padding: '1px 6px',
               borderRadius: '4px',
               background: 'rgb(var(--xp-blue-rgb) / 0.15)',
-              color: 'var(--xp-blue)',
+              color: 'var(--ds-link)',
               marginLeft: 'auto',
             }}
           >
@@ -371,7 +371,7 @@ export const FileActionCard = ({
             color: 'var(--xp-text)',
           }}
         >
-          <FileText size={12} style={{ flexShrink: 0, color: 'var(--xp-blue)' }} />
+          <FileText size={12} style={{ flexShrink: 0, color: 'var(--ds-link)' }} />
           <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{fileName}</span>
         </div>
 
@@ -435,7 +435,7 @@ export const FileActionCard = ({
               color: 'var(--xp-text)',
             }}
           >
-            <Search size={12} style={{ flexShrink: 0, color: 'var(--xp-blue)' }} />
+            <Search size={12} style={{ flexShrink: 0, color: 'var(--ds-link)' }} />
             <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>
               &quot;{action.query}&quot;
             </span>

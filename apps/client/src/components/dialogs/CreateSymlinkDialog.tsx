@@ -141,7 +141,7 @@ const CreateSymlinkDialog = ({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Link2 size={20} style={{ color: 'var(--xp-blue)' }} />
+            <Link2 size={20} style={{ color: 'var(--ds-link)' }} />
             <h2
               style={{
                 fontSize: '1.25rem',

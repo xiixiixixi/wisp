@@ -312,7 +312,7 @@ describe('JsonPreview', () => {
           'bg-xp-surface',
           'border',
           'border-xp-border',
-          'rounded',
+          'rounded-md',
           'p-3',
           'max-h-64',
           'overflow-y-auto',

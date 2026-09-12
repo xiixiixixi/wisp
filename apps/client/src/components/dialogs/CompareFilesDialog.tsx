@@ -176,7 +176,7 @@ const CompareFilesDialog = ({
         <div className="space-y-6 py-4">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="file1" className="text-sm font-medium">
+              <Label htmlFor="file1" className="text-sm font-semibold">
                 {t('dialogs.compareFiles.firstFile')}
               </Label>
               <div className="flex gap-2">
@@ -202,7 +202,7 @@ const CompareFilesDialog = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="file2" className="text-sm font-medium">
+              <Label htmlFor="file2" className="text-sm font-semibold">
                 {t('dialogs.compareFiles.secondFile')}
               </Label>
               <div className="flex gap-2">
@@ -229,7 +229,7 @@ const CompareFilesDialog = ({
           </div>
 
           {file1Path && file2Path && file1Path === file2Path && (
-            <div className="rounded-[2px] border border-xp-yellow/30 bg-xp-yellow/10 p-3">
+            <div className="rounded-md border border-xp-yellow/30 bg-xp-yellow/10 p-3">
               <div className="text-sm text-xp-yellow">
                 <AlertTriangle size={14} className="mr-1 inline-block" />{' '}
                 {t('dialogs.compareFiles.sameFileWarning')}

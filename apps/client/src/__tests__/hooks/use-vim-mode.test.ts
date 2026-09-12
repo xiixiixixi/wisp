@@ -475,6 +475,66 @@ describe('useVimMode hook', () => {
     });
   });
 
+  describe('background actions while a modal is open', () => {
+    it.each(['dialog', 'alertdialog'])(
+      'leaves %s tab keys alone, clears pending commands and resumes after close',
+      (role) => {
+        const actions = makeActions();
+        const opts = makeOptions({ actions, selectedFiles: new Set(['/a.txt']) });
+        const { result } = renderHook(() => useVimMode(opts));
+        act(() => pressKey('d'));
+        expect(result.current.pendingKeys).toBe('d');
+
+        const dialog = document.createElement('div');
+        dialog.setAttribute('role', role);
+        dialog.setAttribute('aria-modal', 'true');
+        const tab = document.createElement('button');
+        tab.setAttribute('role', 'tab');
+        dialog.append(tab);
+        document.body.append(dialog);
+        tab.focus();
+        try {
+          for (const key of ['j', 'Enter', 'd', 'd']) {
+            const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+            act(() => tab.dispatchEvent(event));
+            expect(event.defaultPrevented).toBe(false);
+          }
+          expect(result.current.pendingKeys).toBe('');
+          for (const action of Object.values(actions)) expect(action).not.toHaveBeenCalled();
+        } finally {
+          dialog.remove();
+        }
+
+        act(() => {
+          pressKey('j');
+          pressKey('Enter');
+          pressKey('d');
+          pressKey('d');
+        });
+        expect(actions.setSelectedFiles).toHaveBeenCalledOnce();
+        expect(actions.openFile).toHaveBeenCalledWith(opts.files[0]);
+        expect(actions.deleteFiles).toHaveBeenCalledWith([opts.files[0]]);
+      },
+    );
+
+    it('suspends document-level events before focus has entered the modal', () => {
+      const actions = makeActions();
+      renderHook(() => useVimMode(makeOptions({ actions })));
+      const dialog = document.createElement('div');
+      dialog.setAttribute('role', 'dialog');
+      dialog.setAttribute('aria-modal', 'true');
+      document.body.append(dialog);
+      try {
+        act(() => pressKey('j'));
+        expect(actions.setSelectedFiles).not.toHaveBeenCalled();
+      } finally {
+        dialog.remove();
+      }
+      act(() => pressKey('j'));
+      expect(actions.setSelectedFiles).toHaveBeenCalledOnce();
+    });
+  });
+
   describe('ignores modifier keys', () => {
     it('does not intercept Ctrl+key', () => {
       const actions = makeActions();

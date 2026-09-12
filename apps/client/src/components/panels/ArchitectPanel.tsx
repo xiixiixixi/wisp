@@ -269,7 +269,7 @@ Return this exact JSON structure:
               <div
                 style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}
               >
-                <Box size={14} style={{ color: 'var(--xp-blue)' }} />
+                <Box size={14} style={{ color: 'var(--ds-link)' }} />
                 <span style={{ fontSize: '13px', fontWeight: 600 }}>{data.projectType}</span>
               </div>
               <div style={{ fontSize: '11px', color: 'var(--xp-text-muted)', lineHeight: '1.4' }}>

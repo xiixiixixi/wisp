@@ -194,7 +194,7 @@ const RecentActions = ({ maxItems = 30, onUndo }: RecentActionsProps) => {
                   borderRadius: '3px',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = 'var(--xp-blue)';
+                  e.currentTarget.style.color = 'var(--ds-link)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.color = 'var(--xp-text-muted)';

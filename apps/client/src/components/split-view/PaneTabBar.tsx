@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { Plus, X, Columns, Rows, Pin, Maximize2, Minimize2, Link, Unlink } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -7,6 +8,8 @@ import type { CrossTabSelection } from '@/hooks/use-cross-tab-selection';
 import { useCrossTabSelectionContext } from '@/contexts/CrossTabSelectionContext';
 import { getTabIcon } from '@/lib/tab-utils';
 import type { PaneSyncMode } from '@/hooks/use-pane-sync';
+import ContextMenu, { type ContextMenuItem } from '@/components/ui/ContextMenu';
+import '@/styles/pane-tabs.css';
 
 interface PaneTabBarProps {
   groupId: string;
@@ -63,6 +66,9 @@ const TabContextMenu = ({
   onCloseOtherTabs,
   onCloseTabsToRight,
   onCloseAllTabs,
+  onMoveTab,
+  canMoveLeft,
+  canMoveRight,
 }: {
   menu: ContextMenuState;
   tab: TabItem;
@@ -74,156 +80,72 @@ const TabContextMenu = ({
   onCloseOtherTabs?: (tabId: string) => void;
   onCloseTabsToRight?: (tabId: string) => void;
   onCloseAllTabs?: () => void;
+  onMoveTab?: (direction: -1 | 1) => void;
+  canMoveLeft: boolean;
+  canMoveRight: boolean;
 }) => {
   const { t } = useTranslation();
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEsc);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEsc);
-    };
-  }, [onClose]);
-
-  // Adjust position so menu doesn't overflow viewport
-  useEffect(() => {
-    if (!menuRef.current) return;
-    const rect = menuRef.current.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    if (rect.right > vw) {
-      menuRef.current.style.left = `${menu.x - rect.width}px`;
-    }
-    if (rect.bottom > vh) {
-      menuRef.current.style.top = `${menu.y - rect.height}px`;
-    }
-  }, [menu.x, menu.y]);
-
-  const tabIndex = tabs.findIndex((t) => t.id === tab.id);
-  const hasTabsToRight = tabs.slice(tabIndex + 1).some((t) => !t.isPinned);
-  const hasOtherTabs = tabs.filter((t) => t.id !== tab.id && !t.isPinned).length > 0;
-
-  const items: { label: string; action: () => void; disabled?: boolean; separator?: boolean }[] = [
+  const tabIndex = tabs.findIndex((item) => item.id === tab.id);
+  const hasTabsToRight = tabs.slice(tabIndex + 1).some((item) => !item.isPinned);
+  const hasOtherTabs = tabs.some((item) => item.id !== tab.id && !item.isPinned);
+  const items: ContextMenuItem[] = [
     {
+      id: 'pin',
       label: tab.isPinned ? t('splitView.unpinTab') : t('splitView.pinTab'),
-      action: () => {
-        onTogglePin?.(tab.id);
-        onClose();
-      },
+      action: () => onTogglePin?.(tab.id),
+      disabled: !onTogglePin,
     },
     {
+      id: 'duplicate',
       label: t('splitView.duplicateTab'),
-      action: () => {
-        onDuplicateTab?.(tab.id);
-        onClose();
-      },
+      action: () => onDuplicateTab?.(tab.id),
+      disabled: !onDuplicateTab,
     },
+    ...(onMoveTab
+      ? [
+          {
+            id: 'move-left',
+            label: t('splitView.moveTabLeft', { defaultValue: 'Move Tab Left' }),
+            action: () => onMoveTab(-1),
+            disabled: !canMoveLeft,
+          },
+          {
+            id: 'move-right',
+            label: t('splitView.moveTabRight', { defaultValue: 'Move Tab Right' }),
+            action: () => onMoveTab(1),
+            disabled: !canMoveRight,
+          },
+        ]
+      : []),
+    { id: 'before-close', label: '', separator: true },
     {
+      id: 'close',
       label: t('splitView.closeTab'),
-      action: () => {
-        onCloseTab(tab.id);
-        onClose();
-      },
+      action: () => onCloseTab(tab.id),
       disabled: !!tab.isPinned,
-      separator: true,
     },
     {
+      id: 'close-other',
       label: t('splitView.closeOtherTabs'),
-      action: () => {
-        onCloseOtherTabs?.(tab.id);
-        onClose();
-      },
-      disabled: !hasOtherTabs,
+      action: () => onCloseOtherTabs?.(tab.id),
+      disabled: !hasOtherTabs || !onCloseOtherTabs,
     },
     {
+      id: 'close-right',
       label: t('splitView.closeTabsToRight'),
-      action: () => {
-        onCloseTabsToRight?.(tab.id);
-        onClose();
-      },
-      disabled: !hasTabsToRight,
+      action: () => onCloseTabsToRight?.(tab.id),
+      disabled: !hasTabsToRight || !onCloseTabsToRight,
     },
     {
+      id: 'close-all',
       label: t('splitView.closeAllTabs'),
-      action: () => {
-        onCloseAllTabs?.();
-        onClose();
-      },
+      action: onCloseAllTabs,
+      disabled: !onCloseAllTabs,
     },
   ];
-
-  const menuStyle: React.CSSProperties = {
-    position: 'fixed',
-    top: menu.y,
-    left: menu.x,
-    zIndex: 9999,
-    minWidth: 180,
-    background: 'var(--xp-surface)',
-    border: '1px solid var(--xp-border)',
-    borderRadius: 6,
-    padding: '4px 0',
-    boxShadow: 'var(--xp-shadow-popover)',
-  };
-
-  const itemBaseStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    padding: '6px 12px',
-    fontSize: 12,
-    color: 'var(--xp-text)',
-    cursor: 'pointer',
-    border: 'none',
-    background: 'transparent',
-    width: '100%',
-    textAlign: 'left',
-  };
-
-  const disabledStyle: React.CSSProperties = {
-    ...itemBaseStyle,
-    color: 'var(--xp-text-muted)',
-    cursor: 'default',
-    opacity: 0.5,
-  };
-
-  const separatorStyle: React.CSSProperties = {
-    height: 1,
-    background: 'var(--xp-border)',
-    margin: '4px 8px',
-  };
-
-  return (
-    <div ref={menuRef} style={menuStyle}>
-      {items.map((item, _i) => (
-        <React.Fragment key={item.label}>
-          <button
-            style={item.disabled ? disabledStyle : itemBaseStyle}
-            onMouseEnter={(e) => {
-              if (!item.disabled) {
-                (e.currentTarget as HTMLElement).style.background = 'var(--xp-surface-light)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'transparent';
-            }}
-            onClick={item.disabled ? undefined : item.action}
-            disabled={item.disabled}
-          >
-            {item.label}
-          </button>
-          {item.separator && <div style={separatorStyle} />}
-        </React.Fragment>
-      ))}
-    </div>
+  return createPortal(
+    <ContextMenu isOpen x={menu.x} y={menu.y} onClose={onClose} items={items} />,
+    document.body,
   );
 };
 
@@ -283,7 +205,7 @@ const PaneTabBar = ({
   // Drag-to-reorder state
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
-  const tabRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // Cross-tab file drop state: which tab is being hovered with external files
   const [crossTabDropTarget, setCrossTabDropTarget] = useState<string | null>(null);
@@ -334,6 +256,7 @@ const PaneTabBar = ({
   const handleContextMenu = useCallback((e: React.MouseEvent, tabId: string) => {
     e.preventDefault();
     e.stopPropagation();
+    e.currentTarget.querySelector<HTMLButtonElement>('[role="tab"]')?.focus();
     setContextMenu({ tabId, x: e.clientX, y: e.clientY });
   }, []);
 
@@ -416,71 +339,94 @@ const PaneTabBar = ({
     [dragIndex, pinnedCount, sortedTabs, tabs, onReorderTab],
   );
 
-  // Pin icon style
-  const pinIconStyle: React.CSSProperties = {
-    width: 10,
-    height: 10,
-    marginRight: 3,
-    flexShrink: 0,
-    transform: 'rotate(-45deg)',
-    color: 'var(--xp-blue)',
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
+      event.preventDefault();
+      event.stopPropagation();
+      const rect = event.currentTarget.getBoundingClientRect();
+      setContextMenu({ tabId: sortedTabs[index].id, x: rect.left, y: rect.bottom + 4 });
+      return;
+    }
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    let next: number;
+    if (event.key === 'ArrowRight') next = (index + 1) % sortedTabs.length;
+    else if (event.key === 'ArrowLeft') next = (index - 1 + sortedTabs.length) % sortedTabs.length;
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = sortedTabs.length - 1;
+    else return;
+    event.preventDefault();
+    event.stopPropagation();
+    onSwitchTab(sortedTabs[next].id);
+    tabRefs.current[next]?.focus();
   };
 
-  // Drop indicator style
-  const dropIndicatorStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: 2,
-    bottom: 2,
-    width: 2,
-    background: 'var(--xp-blue)',
-    borderRadius: 1,
-    zIndex: 10,
-    pointerEvents: 'none',
+  const switchSyncMode = () => {
+    if (!onSwitchPaneSyncMode) return;
+    const next = paneSyncMode === 'mirror' ? 'relative' : 'mirror';
+    onSwitchPaneSyncMode(next);
+    toast({
+      title:
+        next === 'mirror'
+          ? t('splitView.syncSwitchedToMirror')
+          : t('splitView.syncSwitchedToRelative'),
+    });
+  };
+  const syncTitle = paneSyncEnabled
+    ? t('splitView.syncNavOnTitle', {
+        mode:
+          paneSyncMode === 'mirror'
+            ? t('splitView.syncModeMirror')
+            : t('splitView.syncModeRelative'),
+      })
+    : t('splitView.syncNavOffTitle');
+  const ctxTab = contextMenu ? tabs.find((tab) => tab.id === contextMenu.tabId) : undefined;
+  const ctxIndex = ctxTab ? sortedTabs.findIndex((tab) => tab.id === ctxTab.id) : -1;
+  const canMove = (direction: -1 | 1) => {
+    const neighbour = sortedTabs[ctxIndex + direction];
+    return !!ctxTab && !!neighbour && !!neighbour.isPinned === !!ctxTab.isPinned;
+  };
+  const moveContextTab = (direction: -1 | 1) => {
+    if (!ctxTab || !canMove(direction)) return;
+    const target = sortedTabs[ctxIndex + direction];
+    onReorderTab?.(
+      tabs.findIndex((tab) => tab.id === ctxTab.id),
+      tabs.findIndex((tab) => tab.id === target.id),
+    );
   };
 
   return (
     <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        borderBottom: '1px solid var(--xp-border)',
-        flexShrink: 0,
-        background: 'var(--xp-surface)',
-        padding: '3px 5px',
-        gap: 2,
-      }}
+      className="wisp-pane-tabbar"
       onMouseDown={onFocus}
-      onDoubleClick={(e) => {
-        // Only toggle on double-click of the bar background, not on tab items or buttons
-        if (
-          (e.target as HTMLElement).closest('button') ||
-          (e.target as HTMLElement).closest('[data-tab-item]')
-        ) {
-          return;
-        }
+      onFocus={onFocus}
+      onDoubleClick={(event) => {
+        if ((event.target as HTMLElement).closest('button, [data-tab-item]')) return;
         handleToggleMaximize();
       }}
     >
-      {/* Tabs */}
       <div
-        style={{ flex: 1, display: 'flex', alignItems: 'center', overflowX: 'auto', minWidth: 0 }}
+        className="wisp-pane-tab-list"
+        role="tablist"
+        aria-label={t('splitView.tabList', { defaultValue: 'Pane tabs' })}
       >
         {sortedTabs.map((tab, index) => {
           const TabIcon = getTabIcon(tab);
+          const label =
+            tab.path === 'wisp://home' ? t('navigation.home', { defaultValue: 'Home' }) : tab.name;
           const isActive = activeTabId === tab.id;
           const isPinned = !!tab.isPinned;
           const isDropTarget = dropIndex === index && dragIndex !== null && dragIndex !== index;
-          const isBeingDragged = dragIndex === index;
           const hasCrossSelection = tabHasCrossTabSelection(tab);
-          const isCrossDropTarget = crossTabDropTarget === tab.id;
-
           return (
             <div
               key={tab.id}
-              ref={(el) => {
-                tabRefs.current[index] = el;
-              }}
+              className="wisp-pane-tab"
+              role="presentation"
               data-tab-item
+              data-active={isActive || undefined}
+              data-pinned={isPinned || undefined}
+              data-dragging={dragIndex === index || undefined}
+              data-cross-drop={crossTabDropTarget === tab.id || undefined}
               data-drop-target={
                 tab.type === 'folder' && tab.path && !tab.path.startsWith('wisp://')
                   ? tab.path
@@ -492,244 +438,112 @@ const PaneTabBar = ({
                   : undefined
               }
               draggable
-              onDragStart={(e) => handleDragStart(e, index)}
+              onDragStart={(event) => handleDragStart(event, index)}
               onDragEnd={handleDragEnd}
-              onDragOver={(e) => {
-                handleDragOver(e, index);
-                handleCrossTabDragOver(e, tab.id);
+              onDragOver={(event) => {
+                handleDragOver(event, index);
+                handleCrossTabDragOver(event, tab.id);
               }}
-              onDragLeave={(e) => handleCrossTabDragLeave(e, tab.id)}
-              onDrop={(e) => {
-                handleDrop(e, index);
-                handleCrossTabFileDrop(e, tab);
+              onDragLeave={(event) => handleCrossTabDragLeave(event, tab.id)}
+              onDrop={(event) => {
+                handleDrop(event, index);
+                handleCrossTabFileDrop(event, tab);
               }}
-              onContextMenu={(e) => handleContextMenu(e, tab.id)}
-              onClick={() => onSwitchTab(tab.id)}
-              style={{
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                padding: isPinned ? '4px 8px' : '4px 12px',
-                borderRadius: 4,
-                border: '1px solid transparent',
-                cursor: 'pointer',
-                minWidth: 0,
-                maxWidth: isPinned ? 120 : 180,
-                userSelect: 'none',
-                background: (() => {
-                  if (isCrossDropTarget) {
-                    return 'color-mix(in srgb, var(--xp-blue) 20%, var(--xp-surface-light))';
-                  }
-                  if (isActive) return 'var(--xp-surface-light)';
-                  if (isPinned) return 'var(--glass-well)';
-                  return 'transparent';
-                })(),
-                boxShadow: 'none',
-                outline: isCrossDropTarget ? '1px dashed var(--xp-blue)' : 'none',
-                outlineOffset: -1,
-                opacity: isBeingDragged ? 0.5 : 1,
-                transition: 'background 0.15s ease, outline 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  (e.currentTarget as HTMLElement).style.background = isPinned
-                    ? 'color-mix(in srgb, var(--xp-blue) 10%, transparent)'
-                    : 'var(--glass-well)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  (e.currentTarget as HTMLElement).style.background = isPinned
-                    ? 'var(--glass-well)'
-                    : 'transparent';
-                }
-              }}
+              onContextMenu={(event) => handleContextMenu(event, tab.id)}
             >
-              {/* Drop indicator - left edge */}
-              {isDropTarget && dragIndex !== null && dragIndex > index && (
-                <div style={{ ...dropIndicatorStyle, left: -1 }} />
-              )}
-              {/* Drop indicator - right edge */}
-              {isDropTarget && dragIndex !== null && dragIndex < index && (
-                <div style={{ ...dropIndicatorStyle, right: -1 }} />
-              )}
-
-              {/* Pin icon for pinned tabs */}
-              {isPinned && <Pin size={10} style={pinIconStyle} />}
-
-              <TabIcon
-                size={13}
-                style={{
-                  marginRight: 6,
-                  flexShrink: 0,
-                  color: 'var(--xp-text-secondary)',
-                }}
-              />
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: isActive ? 600 : 500,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  color: isActive ? 'var(--xp-text)' : 'var(--xp-text-secondary)',
-                }}
-              >
-                {tab.name}
-              </span>
-
-              {/* Cross-tab selection badge */}
-              {hasCrossSelection && (
+              {isDropTarget && dragIndex !== null && (
                 <span
-                  style={{
-                    width: 7,
-                    height: 7,
-                    borderRadius: '50%',
-                    background: 'var(--xp-blue)',
-                    flexShrink: 0,
-                    marginLeft: 4,
-                  }}
-                  title={t('splitView.crossTabBadgeTitle')}
+                  className="wisp-pane-tab-drop-marker"
+                  data-edge={dragIndex > index ? 'left' : 'right'}
+                  aria-hidden="true"
                 />
               )}
-
-              {/* Close button: hidden on pinned tabs */}
+              <button
+                ref={(element) => {
+                  tabRefs.current[index] = element;
+                }}
+                className="wisp-pane-tab-button"
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                aria-label={label}
+                aria-haspopup="menu"
+                tabIndex={
+                  isActive || (!sortedTabs.some((item) => item.id === activeTabId) && index === 0)
+                    ? 0
+                    : -1
+                }
+                title={tab.path === 'wisp://home' ? label : tab.path}
+                onClick={() => onSwitchTab(tab.id)}
+                onKeyDown={(event) => handleTabKeyDown(event, index)}
+              >
+                {isPinned && <Pin className="wisp-pane-tab-pin" size={10} aria-hidden="true" />}
+                <TabIcon className="wisp-pane-tab-icon" size={14} aria-hidden="true" />
+                <span className="wisp-pane-tab-label">{label}</span>
+                {hasCrossSelection && (
+                  <span
+                    className="wisp-pane-tab-badge"
+                    title={t('splitView.crossTabBadgeTitle')}
+                    aria-hidden="true"
+                  />
+                )}
+              </button>
               {!isPinned && tabs.length > 1 && (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCloseTab(tab.id);
-                  }}
-                  style={{
-                    marginLeft: 4,
-                    padding: 2,
-                    borderRadius: 3,
-                    border: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    color: 'var(--xp-text-muted)',
-                    opacity: 0,
-                    transition: 'opacity 0.1s',
-                  }}
-                  className="tab-close-btn"
-                  aria-label={`Close ${tab.name}`}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.background = 'var(--xp-surface-light)';
-                    (e.currentTarget as HTMLElement).style.color = 'var(--xp-text)';
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.background = 'transparent';
-                    (e.currentTarget as HTMLElement).style.color = 'var(--xp-text-muted)';
-                  }}
+                  className="wisp-pane-tab-close"
+                  type="button"
+                  tabIndex={isActive ? 0 : -1}
+                  aria-label={t('splitView.closeNamedTab', {
+                    name: label,
+                    defaultValue: 'Close {{name}}',
+                  })}
+                  onClick={() => onCloseTab(tab.id)}
                 >
-                  <X size={12} />
+                  <X size={12} aria-hidden="true" />
                 </button>
               )}
             </div>
           );
         })}
       </div>
-
-      {/* Actions */}
-      <div
-        style={{ display: 'flex', alignItems: 'center', flexShrink: 0, padding: '0 4px', gap: 2 }}
-      >
+      <div className="wisp-pane-tab-actions">
         <button
+          type="button"
+          className="wisp-pane-tab-action"
           onClick={onAddTab}
-          style={{
-            padding: 4,
-            borderRadius: 4,
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            color: 'var(--xp-text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background = 'var(--xp-surface-light)';
-            (e.currentTarget as HTMLElement).style.color = 'var(--xp-text)';
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.background = 'transparent';
-            (e.currentTarget as HTMLElement).style.color = 'var(--xp-text-muted)';
-          }}
           title={t('splitView.newTab')}
+          aria-label={t('splitView.newTab')}
         >
-          <Plus size={14} />
+          <Plus size={15} aria-hidden="true" />
         </button>
-        {/* Sync navigation toggle — only shown when multiple panes exist */}
         {hasMultiplePanes && onTogglePaneSync && (
           <button
+            type="button"
+            className="wisp-pane-tab-action wisp-pane-tab-sync"
             onClick={onTogglePaneSync}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (onSwitchPaneSyncMode) {
-                const nextMode = paneSyncMode === 'mirror' ? 'relative' : 'mirror';
-                onSwitchPaneSyncMode(nextMode);
-                // The icon looks identical across modes — toast so the
-                // right-click is never a silent no-op for the user.
-                toast({
-                  title:
-                    nextMode === 'mirror'
-                      ? t('splitView.syncSwitchedToMirror')
-                      : t('splitView.syncSwitchedToRelative'),
-                });
+            onContextMenu={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              switchSyncMode();
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
+                event.preventDefault();
+                event.stopPropagation();
+                switchSyncMode();
               }
             }}
-            style={{
-              padding: 4,
-              borderRadius: 4,
-              border: paneSyncEnabled ? '1px solid var(--xp-blue)' : 'none',
-              background: paneSyncEnabled
-                ? 'color-mix(in srgb, var(--xp-blue) 15%, transparent)'
-                : 'transparent',
-              cursor: 'pointer',
-              color: paneSyncEnabled ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              position: 'relative',
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = paneSyncEnabled
-                ? 'color-mix(in srgb, var(--xp-blue) 25%, transparent)'
-                : 'var(--xp-surface-light)';
-              (e.currentTarget as HTMLElement).style.color = 'var(--xp-blue)';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background = paneSyncEnabled
-                ? 'color-mix(in srgb, var(--xp-blue) 15%, transparent)'
-                : 'transparent';
-              (e.currentTarget as HTMLElement).style.color = paneSyncEnabled
-                ? 'var(--xp-blue)'
-                : 'var(--xp-text-muted)';
-            }}
-            title={
-              paneSyncEnabled
-                ? t('splitView.syncNavOnTitle', {
-                    mode:
-                      paneSyncMode === 'mirror'
-                        ? t('splitView.syncModeMirror')
-                        : t('splitView.syncModeRelative'),
-                  })
-                : t('splitView.syncNavOffTitle')
-            }
+            aria-pressed={!!paneSyncEnabled}
+            aria-label={syncTitle}
+            title={syncTitle}
           >
-            {paneSyncEnabled ? <Link size={14} /> : <Unlink size={14} />}
+            {paneSyncEnabled ? (
+              <Link size={14} aria-hidden="true" />
+            ) : (
+              <Unlink size={14} aria-hidden="true" />
+            )}
             {paneSyncEnabled && (
-              <span
-                style={{
-                  fontSize: 10,
-                  lineHeight: 1,
-                  marginLeft: 4,
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <span className="wisp-pane-tab-sync-mode">
                 {paneSyncMode === 'mirror'
                   ? t('splitView.syncModeMirrorShort')
                   : t('splitView.syncModeRelativeShort')}
@@ -738,136 +552,68 @@ const PaneTabBar = ({
           </button>
         )}
         <button
+          type="button"
+          className="wisp-pane-tab-action"
           onClick={onSplitHorizontal}
-          style={{
-            padding: 4,
-            borderRadius: 4,
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            color: 'var(--xp-text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background = 'var(--xp-surface-light)';
-            (e.currentTarget as HTMLElement).style.color = 'var(--xp-text)';
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.background = 'transparent';
-            (e.currentTarget as HTMLElement).style.color = 'var(--xp-text-muted)';
-          }}
           title={t('splitView.splitRight')}
+          aria-label={t('splitView.splitRight')}
         >
-          <Columns size={14} />
+          <Columns size={15} aria-hidden="true" />
         </button>
         <button
+          type="button"
+          className="wisp-pane-tab-action"
           onClick={onSplitVertical}
-          style={{
-            padding: 4,
-            borderRadius: 4,
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            color: 'var(--xp-text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background = 'var(--xp-surface-light)';
-            (e.currentTarget as HTMLElement).style.color = 'var(--xp-text)';
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.background = 'transparent';
-            (e.currentTarget as HTMLElement).style.color = 'var(--xp-text-muted)';
-          }}
           title={t('splitView.splitDown')}
+          aria-label={t('splitView.splitDown')}
         >
-          <Rows size={14} />
+          <Rows size={15} aria-hidden="true" />
         </button>
         {canClose && (
-          <button
-            onClick={handleToggleMaximize}
-            style={{
-              padding: 4,
-              borderRadius: 4,
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              color: isMaximized ? 'var(--xp-blue)' : 'var(--xp-text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'var(--xp-surface-light)';
-              (e.currentTarget as HTMLElement).style.color = 'var(--xp-blue)';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'transparent';
-              (e.currentTarget as HTMLElement).style.color = isMaximized
-                ? 'var(--xp-blue)'
-                : 'var(--xp-text-muted)';
-            }}
-            title={isMaximized ? t('splitView.restorePane') : t('splitView.maximizePane')}
-          >
-            {isMaximized ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-          </button>
-        )}
-        {canClose && (
-          <button
-            onClick={onCloseGroup}
-            style={{
-              padding: 4,
-              borderRadius: 4,
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              color: 'var(--xp-text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'rgb(var(--xp-red-rgb) / 0.2)';
-              (e.currentTarget as HTMLElement).style.color = 'var(--xp-red)';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'transparent';
-              (e.currentTarget as HTMLElement).style.color = 'var(--xp-text-muted)';
-            }}
-            title={t('splitView.closePane')}
-          >
-            <X size={14} />
-          </button>
+          <>
+            <button
+              type="button"
+              className="wisp-pane-tab-action"
+              onClick={handleToggleMaximize}
+              aria-pressed={!!isMaximized}
+              title={isMaximized ? t('splitView.restorePane') : t('splitView.maximizePane')}
+              aria-label={isMaximized ? t('splitView.restorePane') : t('splitView.maximizePane')}
+            >
+              {isMaximized ? (
+                <Minimize2 size={14} aria-hidden="true" />
+              ) : (
+                <Maximize2 size={14} aria-hidden="true" />
+              )}
+            </button>
+            <button
+              type="button"
+              className="wisp-pane-tab-action wisp-pane-tab-action-close"
+              onClick={onCloseGroup}
+              title={t('splitView.closePane')}
+              aria-label={t('splitView.closePane')}
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
+          </>
         )}
       </div>
-
-      {/* Context menu */}
-      {contextMenu &&
-        (() => {
-          const ctxTab = tabs.find((t) => t.id === contextMenu.tabId);
-          if (!ctxTab) return null;
-          return (
-            <TabContextMenu
-              menu={contextMenu}
-              tab={ctxTab}
-              tabs={tabs}
-              onClose={closeContextMenu}
-              onTogglePin={onTogglePin}
-              onDuplicateTab={onDuplicateTab}
-              onCloseTab={onCloseTab}
-              onCloseOtherTabs={onCloseOtherTabs}
-              onCloseTabsToRight={onCloseTabsToRight}
-              onCloseAllTabs={onCloseAllTabs}
-            />
-          );
-        })()}
-
-      {/* Inline style for the close button hover reveal */}
-      <style>{`
-        div:hover > .tab-close-btn {
-          opacity: 1 !important;
-        }
-      `}</style>
+      {contextMenu && ctxTab && (
+        <TabContextMenu
+          menu={contextMenu}
+          tab={ctxTab}
+          tabs={tabs}
+          onClose={closeContextMenu}
+          onTogglePin={onTogglePin}
+          onDuplicateTab={onDuplicateTab}
+          onCloseTab={onCloseTab}
+          onCloseOtherTabs={onCloseOtherTabs}
+          onCloseTabsToRight={onCloseTabsToRight}
+          onCloseAllTabs={onCloseAllTabs}
+          onMoveTab={onReorderTab ? moveContextTab : undefined}
+          canMoveLeft={canMove(-1)}
+          canMoveRight={canMove(1)}
+        />
+      )}
     </div>
   );
 };

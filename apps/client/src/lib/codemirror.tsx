@@ -1,9 +1,8 @@
 /**
  * Shared CodeMirror 6 setup for Wisp previews.
  *
- * One material language: transparent background so the editor sits on the
- * theme's glass surfaces, syntax colours mapped to the --xp-* tokens so dark
- * and light themes both work without reconfiguring the view.
+ * Syntax colors have their own light/dark palette. CSS changes the appearance
+ * without rebuilding the editor or touching the document and undo history.
  */
 import React, { useEffect, useRef } from 'react';
 import {
@@ -32,29 +31,31 @@ import {
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search';
 import { tags as t } from '@lezer/highlight';
 import { languages } from '@codemirror/language-data';
+import '@/styles/code-preview.css';
 
-/** Syntax colours reuse the theme palette (var() is legal in any CSS value). */
+/** Stable semantic classes work with both Lezer and legacy stream grammars. */
 export const wispHighlightStyle = HighlightStyle.define([
-  { tag: t.comment, color: 'var(--xp-text-muted)', fontStyle: 'italic' },
-  { tag: [t.keyword, t.moduleKeyword, t.controlKeyword], color: 'var(--xp-purple)' },
-  { tag: [t.string, t.special(t.string)], color: 'var(--xp-green)' },
-  { tag: [t.number, t.bool, t.null], color: 'var(--xp-orange)' },
-  { tag: [t.function(t.variableName), t.function(t.propertyName)], color: 'var(--xp-blue)' },
-  { tag: [t.typeName, t.className, t.namespace], color: 'var(--xp-yellow)' },
-  { tag: [t.propertyName, t.attributeName], color: 'var(--xp-cyan)' },
-  { tag: [t.definition(t.variableName), t.variableName], color: 'var(--xp-text)' },
-  { tag: t.operator, color: 'var(--xp-text-secondary)' },
-  { tag: t.link, color: 'var(--xp-blue)', textDecoration: 'underline' },
-  { tag: t.heading, color: 'var(--xp-text)', fontWeight: '600' },
-  { tag: t.emphasis, fontStyle: 'italic' },
-  { tag: t.strong, fontWeight: '700' },
-  { tag: t.invalid, color: 'var(--xp-red)' },
+  { tag: t.comment, class: 'code-token-comment' },
+  { tag: [t.keyword, t.operatorKeyword], class: 'code-token-keyword' },
+  { tag: [t.string, t.special(t.string), t.regexp], class: 'code-token-string' },
+  { tag: [t.number, t.bool, t.null, t.atom], class: 'code-token-constant' },
+  { tag: [t.function(t.variableName), t.function(t.propertyName)], class: 'code-token-function' },
+  { tag: [t.typeName, t.className, t.namespace], class: 'code-token-type' },
+  { tag: [t.propertyName, t.attributeName], class: 'code-token-property' },
+  { tag: t.variableName, class: 'code-token-variable' },
+  { tag: [t.operator, t.punctuation], class: 'code-token-punctuation' },
+  { tag: t.tagName, class: 'code-token-tag' },
+  { tag: t.link, class: 'code-token-link' },
+  { tag: t.heading, class: 'code-token-heading' },
+  { tag: t.emphasis, class: 'code-token-emphasis' },
+  { tag: t.strong, class: 'code-token-strong' },
+  { tag: t.invalid, class: 'code-token-invalid' },
 ]);
 
 export const wispEditorTheme = EditorView.theme({
   '&': {
-    backgroundColor: 'transparent',
-    color: 'var(--xp-text)',
+    backgroundColor: 'var(--code-background)',
+    color: 'var(--code-foreground)',
     fontSize: '12px',
     height: '100%',
   },
@@ -64,36 +65,39 @@ export const wispEditorTheme = EditorView.theme({
     fontFamily: '"SF Mono", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace',
     lineHeight: '1.55',
   },
-  '.cm-content': { caretColor: 'var(--xp-blue)' },
-  '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--xp-blue)' },
+  '.cm-content': { caretColor: 'var(--code-cursor)', padding: '10px 0' },
+  '.cm-line': { padding: '0 14px 0 8px' },
+  '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--code-cursor)' },
   '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
-    backgroundColor: 'var(--xp-selection-bg)',
+    backgroundColor: 'var(--code-selection)',
   },
-  '.cm-activeLine': { backgroundColor: 'color-mix(in srgb, var(--xp-text) 6%, transparent)' },
+  '.cm-activeLine': { backgroundColor: 'var(--code-active-line)' },
   '.cm-gutters': {
-    backgroundColor: 'transparent',
-    color: 'var(--xp-text-muted)',
+    backgroundColor: 'var(--code-background)',
+    color: 'var(--code-gutter)',
     border: 'none',
   },
-  '.cm-activeLineGutter': { backgroundColor: 'transparent', color: 'var(--xp-text)' },
+  '.cm-lineNumbers .cm-gutterElement': { padding: '0 8px 0 12px' },
+  '.cm-activeLineGutter': { backgroundColor: 'transparent', color: 'var(--code-foreground)' },
   '.cm-matchingBracket, &.cm-focused .cm-matchingBracket': {
-    backgroundColor: 'color-mix(in srgb, var(--xp-blue) 28%, transparent)',
+    backgroundColor: 'var(--code-bracket)',
     outline: 'none',
   },
   '.cm-selectionMatch': {
-    backgroundColor: 'color-mix(in srgb, var(--xp-yellow) 22%, transparent)',
+    backgroundColor: 'var(--code-search-match)',
   },
   '.cm-panels': {
-    backgroundColor: 'var(--glass-tint-strong, rgba(128, 128, 128, 0.2))',
-    color: 'var(--xp-text)',
+    backgroundColor: 'var(--code-panel)',
+    color: 'var(--code-foreground)',
   },
   '.cm-searchMatch': {
-    backgroundColor: 'color-mix(in srgb, var(--xp-yellow) 30%, transparent)',
+    backgroundColor: 'var(--code-search-match)',
   },
+  '.cm-searchMatch.cm-searchMatch-selected': { backgroundColor: 'var(--code-bracket)' },
   '.cm-tooltip': {
-    backgroundColor: 'var(--glass-tint-strong, rgba(128, 128, 128, 0.2))',
-    border: '1px solid var(--glass-hairline, rgba(128, 128, 128, 0.3))',
-    color: 'var(--xp-text)',
+    backgroundColor: 'var(--code-panel)',
+    border: '1px solid var(--code-border)',
+    color: 'var(--code-foreground)',
   },
 });
 
@@ -124,23 +128,61 @@ export async function loadLanguageFor(
   fileName: string,
   override?: string,
 ): Promise<LanguageDescription | null> {
-  if (override) {
-    const target = override.toLowerCase();
-    const byName = languages.find(
-      (l) => l.name.toLowerCase() === target || l.alias?.includes(target),
-    );
-    if (byName)
-      {return byName
-        .load()
-        .then(() => byName)
-        .catch(() => null);}
-  }
-  const desc = LanguageDescription.matchFilename(languages, fileName);
+  const desc = resolveLanguage(fileName, override);
   if (!desc) return null;
   return desc
     .load()
     .then(() => desc)
     .catch(() => null);
+}
+
+const languageAliases: Record<string, string> = {
+  typescriptreact: 'tsx',
+  javascriptreact: 'jsx',
+  shellscript: 'shell',
+};
+
+function languageByName(name: string): LanguageDescription | null {
+  const normalized = name.trim().toLowerCase();
+  // The upstream registry aliases JSON5 to the strict JSON grammar. Do not
+  // claim support for JSON5/JSONC or fall back from an explicit plain-text mode.
+  if (
+    ['text', 'txt', 'plaintext', 'plain text', 'text/plain', 'json5', 'jsonc'].includes(normalized)
+  ) {
+    return null;
+  }
+  return LanguageDescription.matchLanguageName(
+    languages,
+    languageAliases[normalized] ?? normalized,
+    false,
+  );
+}
+
+function resolveLanguage(fileName: string, override?: string): LanguageDescription | null {
+  if (override?.trim()) return languageByName(override);
+  const baseName = fileName.split(/[\\/]/).pop() ?? '';
+  const lowerName = baseName.toLowerCase();
+  if (/^(?:dockerfile|containerfile)(?:\..+)?$/.test(lowerName)) {
+    return languageByName('dockerfile');
+  }
+  if (
+    /\.(?:zsh|bash|ksh|sh)$/.test(lowerName) ||
+    /^\.(?:bashrc|bash_profile|bash_login|bash_logout|zshrc|zprofile|zshenv|zlogin|zlogout|profile)$/.test(
+      lowerName,
+    ) ||
+    /^\.env(?:\..+)?$/.test(lowerName)
+  ) {
+    return languageByName('shell');
+  }
+  if (['.editorconfig', '.gitconfig', '.gitmodules'].includes(lowerName)) {
+    return languageByName('properties');
+  }
+  // Match case-sensitive special filenames first (for example Python's BUILD),
+  // then case-insensitive extensions, including .TSX, .MTS, .CJS and .YAML.
+  return (
+    LanguageDescription.matchFilename(languages, baseName) ??
+    LanguageDescription.matchFilename(languages, lowerName)
+  );
 }
 
 /**
@@ -152,12 +194,14 @@ export async function loadLanguageFor(
 export interface WispCodeMirrorProps {
   doc: string;
   readOnly?: boolean;
+  /** Soft-wrap long lines without changing the document. */
+  lineWrapping?: boolean;
   /** Force a language by CodeMirror name (e.g. 'markdown'); default: detect from fileName. */
   language?: string;
   fileName?: string;
   /** Dirty signal — fires without a doc payload so callers never stringify per keystroke. */
   onDocChanged?: () => void;
-  /** Resolved CodeMirror language display name (after lazy grammar load). */
+  /** Resolved grammar name; empty while loading or when plain text is used. */
   onLanguageLoaded?: (name: string) => void;
   /** Live view handle; parents save via `editorRef.current?.state.doc`. */
   editorRef?: React.MutableRefObject<EditorView | null>;
@@ -170,6 +214,7 @@ export interface WispCodeMirrorProps {
 export function WispCodeMirror({
   doc,
   readOnly = true,
+  lineWrapping = false,
   language,
   fileName = '',
   onDocChanged,
@@ -184,6 +229,8 @@ export function WispCodeMirror({
   const langComp = useRef(new Compartment());
   const roComp = useRef(new Compartment());
   const saveComp = useRef(new Compartment());
+  const labelComp = useRef(new Compartment());
+  const wrapComp = useRef(new Compartment());
   const onSaveRef = useRef(onSave);
   onSaveRef.current = onSave;
   const onDocChangedRef = useRef(onDocChanged);
@@ -201,6 +248,7 @@ export function WispCodeMirror({
           ...baseExtensions(),
           langComp.current.of([]),
           roComp.current.of(readonlyExtensions(readOnly)),
+          wrapComp.current.of(lineWrapping ? EditorView.lineWrapping : []),
           saveComp.current.of(
             keymap.of([
               {
@@ -216,7 +264,9 @@ export function WispCodeMirror({
           EditorView.updateListener.of((update) => {
             if (update.docChanged) onDocChangedRef.current?.();
           }),
-          EditorView.contentAttributes.of({ 'aria-label': ariaLabel ?? '代码内容' }),
+          labelComp.current.of(
+            EditorView.contentAttributes.of({ 'aria-label': ariaLabel ?? '代码内容' }),
+          ),
         ],
       }),
     });
@@ -239,8 +289,15 @@ export function WispCodeMirror({
     if (doc !== current) {
       view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: doc } });
     }
-     
   }, [doc]);
+
+  useEffect(() => {
+    viewRef.current?.dispatch({
+      effects: labelComp.current.reconfigure(
+        EditorView.contentAttributes.of({ 'aria-label': ariaLabel ?? '代码内容' }),
+      ),
+    });
+  }, [ariaLabel]);
 
   // Editability toggle.
   useEffect(() => {
@@ -249,22 +306,38 @@ export function WispCodeMirror({
     });
   }, [readOnly]);
 
+  useEffect(() => {
+    viewRef.current?.dispatch({
+      effects: wrapComp.current.reconfigure(lineWrapping ? EditorView.lineWrapping : []),
+    });
+  }, [lineWrapping]);
+
   // Language grammar (lazy-loaded Lezer package).
   useEffect(() => {
     let cancelled = false;
+    // A different file must never temporarily retain the previous grammar or
+    // its badge while the next grammar downloads (or fails to load).
+    viewRef.current?.dispatch({ effects: langComp.current.reconfigure([]) });
+    onLanguageLoadedRef.current?.('');
     void loadLanguageFor(fileName, language).then((desc) => {
       if (cancelled || !viewRef.current) return;
       viewRef.current.dispatch({
         effects: langComp.current.reconfigure(desc?.support ?? []),
       });
-      if (desc) onLanguageLoadedRef.current?.(desc.name);
+      onLanguageLoadedRef.current?.(desc?.name ?? '');
     });
     return () => {
       cancelled = true;
     };
   }, [language, fileName]);
 
-  return <div ref={hostRef} className={className} style={{ height: '100%' }} />;
+  return (
+    <div
+      ref={hostRef}
+      className={`wisp-code-editor ${className ?? ''}`}
+      style={{ height: '100%' }}
+    />
+  );
 }
 
 function readonlyExtensions(readOnly: boolean): Extension[] {

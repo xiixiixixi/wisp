@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Switch, Route, useLocation } from 'wouter';
+import { useLocation } from 'wouter';
 import { queryClient } from './lib/queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -12,40 +12,55 @@ import { useToast } from '@/hooks/use-toast';
 import XtensionInstallDialog from '@/components/dialogs/XtensionInstallDialog';
 import UpdateBanner from '@/components/UpdateBanner';
 
-// Lazy-loaded pages -- Settings is only needed when navigating to /settings
+// Keep the explorer mounted beneath settings, including legacy /settings links.
 const Settings = React.lazy(() => import('@/pages/settings'));
 
-const AppNavigationBridge = () => {
-  const [, setLocation] = useLocation();
+export const AppWorkspace = () => {
+  const [location, setLocation] = useLocation();
+  const [settingsOpen, setSettingsOpen] = useState(location === '/settings');
+  const returnFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    // Keep query params (e.g. the browser demo's ?demo=1) alive across routes,
-    // otherwise the settings page loses demo mode and its fallback bindings.
-    const openSettings = () => setLocation(`/settings${window.location.search}`);
+    const openSettings = (event: Event) => {
+      // Capture before inert blurs the workspace or the menu unmounts.
+      const trigger = (event as CustomEvent<{ returnFocus?: HTMLElement }>).detail?.returnFocus;
+      const active = document.activeElement;
+      if (!active?.closest('[role="dialog"]')) {
+        returnFocusRef.current = trigger ?? (active instanceof HTMLElement ? active : null);
+      }
+      setSettingsOpen(true);
+    };
     window.addEventListener('wisp-open-settings', openSettings);
     return () => window.removeEventListener('wisp-open-settings', openSettings);
-  }, [setLocation]);
+  }, []);
 
-  return null;
-};
+  useEffect(() => {
+    if (location === '/settings') setSettingsOpen(true);
+  }, [location]);
 
-const Router = () => {
-  const { t: tUi } = useTranslation();
+  const closeSettings = () => {
+    setSettingsOpen(false);
+    const previous = returnFocusRef.current;
+    returnFocusRef.current = null;
+    requestAnimationFrame(() => {
+      if (previous?.isConnected) previous.focus({ preventScroll: true });
+    });
+    if (location === '/settings') setLocation(`/${window.location.search}`, { replace: true });
+  };
+
+  const explorerVisible = ['/', '/explorer', '/settings'].includes(location);
+
   return (
-    <React.Suspense
-      fallback={
-        <div className="flex h-screen items-center justify-center bg-xp-bg text-sm text-xp-text">
-          {tUi('panels.notes.loading')}
-        </div>
-      }
-    >
-      <Switch>
-        <Route path="/" component={ExplorerUnified} />
-        <Route path="/explorer" component={ExplorerUnified} />
-        <Route path="/settings" component={Settings} />
-        <Route component={NotFound} />
-      </Switch>
-    </React.Suspense>
+    <>
+      <div inert={settingsOpen ? true : undefined} aria-hidden={settingsOpen ? true : undefined}>
+        {explorerVisible ? <ExplorerUnified /> : <NotFound />}
+      </div>
+      {settingsOpen && (
+        <React.Suspense fallback={null}>
+          <Settings onClose={closeSettings} />
+        </React.Suspense>
+      )}
+    </>
   );
 };
 
@@ -140,8 +155,7 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <UpdateBanner />
       <ErrorBoundary>
-        <AppNavigationBridge />
-        <Router />
+        <AppWorkspace />
       </ErrorBoundary>
       <XtensionFileHandler />
     </QueryClientProvider>

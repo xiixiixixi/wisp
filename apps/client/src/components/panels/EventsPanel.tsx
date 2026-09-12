@@ -82,7 +82,7 @@ const EventsPanel = ({
     fileChanges && fileChanges.totalCount > 0 && (filter === 'all' || filter === 'files');
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="wisp-events-panel flex h-full min-h-0 flex-col">
       {/* Away-time digest — the report that earned the top slot */}
       {showDigest && (
         <ChangeReviewPanel
@@ -148,7 +148,7 @@ const EventsPanel = ({
                   •
                 </span>
                 <span
-                  className={`truncate ${item.entry.read ? 'text-xp-text-muted' : 'font-medium'}`}
+                  className={`truncate ${item.entry.read ? 'text-xp-text-muted' : 'font-semibold'}`}
                 >
                   {item.entry.title}
                 </span>
