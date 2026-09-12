@@ -139,12 +139,21 @@ describe('CodePreview', () => {
       await waitFor(() => {
         expect(screen.getByTestId('cm-editor')).toHaveAttribute('data-read-only', 'true');
       });
+      const preview = screen.getByTestId('cm-editor').closest('[data-preview-readonly]');
+      expect(preview).toHaveAttribute('data-preview-readonly', 'true');
 
       await user.click(screen.getByRole('button', { name: 'Edit' }));
       expect(screen.getByTestId('cm-editor')).toHaveAttribute('data-read-only', 'false');
+      expect(preview).toHaveAttribute('data-preview-editing', 'true');
+      expect(preview).not.toHaveAttribute('data-preview-readonly');
+      expect(screen.getByRole('button', { name: 'Done' }).closest('[data-preview-editing]')).toBe(
+        preview,
+      );
 
       await user.click(screen.getByRole('button', { name: 'Done' }));
       expect(screen.getByTestId('cm-editor')).toHaveAttribute('data-read-only', 'true');
+      expect(preview).not.toHaveAttribute('data-preview-editing');
+      expect(preview).toHaveAttribute('data-preview-readonly', 'true');
     });
 
     it('shows the resolved language badge', async () => {
@@ -194,6 +203,27 @@ describe('CodePreview', () => {
   });
 
   describe('Editing & Saving', () => {
+    it('protects an unsaved buffer from file navigation even after leaving edit mode', async () => {
+      const user = userEvent.setup();
+      render(<CodePreview {...mockProps} />);
+      const preview = (await screen.findByTestId('cm-editor')).closest('[data-preview-readonly]');
+
+      await user.click(screen.getByRole('button', { name: 'Edit' }));
+      await user.click(screen.getByTestId('cm-edit-trigger'));
+      await user.click(screen.getByRole('button', { name: 'Done' }));
+      expect(screen.getByTestId('cm-editor')).toHaveAttribute('data-read-only', 'true');
+      expect(preview).toHaveAttribute('data-preview-editing', 'true');
+      expect(preview).not.toHaveAttribute('data-preview-readonly');
+
+      await user.click(screen.getByRole('button', { name: 'Edit' }));
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+      await waitFor(() => expect(screen.queryByText(/unsaved/)).not.toBeInTheDocument());
+      expect(preview).toHaveAttribute('data-preview-editing', 'true');
+      await user.click(screen.getByRole('button', { name: 'Done' }));
+      expect(preview).not.toHaveAttribute('data-preview-editing');
+      expect(preview).toHaveAttribute('data-preview-readonly', 'true');
+    });
+
     it('saves the edited buffer through TauriAPI.saveTextFile', async () => {
       const user = userEvent.setup();
       vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce('const x = 1;');

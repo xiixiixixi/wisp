@@ -269,9 +269,6 @@ html.theme-fluid .wisp-statusbar {
   background: transparent !important;
   box-shadow: none !important;
 }
-.wisp-selection-summary {
-  flex: 0 1 auto;
-}
 html.theme-fluid .wisp-selection-toolbar > div {
   flex-wrap: nowrap;
   gap: 8px;
@@ -285,29 +282,16 @@ html.theme-fluid .wisp-selection-actions {
   box-shadow: var(--lg-control-shadow);
 }
 @container action-rail (max-width: 640px) {
-  .wisp-selection-actions button > span,
-  .wisp-selection-summary button > span {
+  .wisp-selection-actions button > span {
     display: none !important;
   }
   .wisp-selection-actions button {
     padding-inline: 8px !important;
   }
-  .wisp-selection-summary {
-    gap: 4px !important;
-  }
-  .wisp-selection-summary > span[aria-hidden] {
-    display: none;
-  }
 }
 @container action-rail (max-width: 390px) {
-  .wisp-selection-summary > span[aria-live] {
-    max-width: 64px;
-  }
   .wisp-selection-actions button {
     padding-inline: 6px !important;
-  }
-  .wisp-selection-summary button {
-    padding-inline: 4px !important;
   }
 }
 @media (max-width: 700px) {

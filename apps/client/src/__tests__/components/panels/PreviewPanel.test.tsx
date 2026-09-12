@@ -4,6 +4,11 @@ import '@testing-library/jest-dom';
 import PreviewPanel from '@/components/panels/PreviewPanel';
 import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
 import i18n from '@/i18n';
+import { requestAdjacentFile } from '@/lib/file-navigation';
+
+vi.mock('@/lib/file-navigation', () => ({
+  requestAdjacentFile: vi.fn(() => null),
+}));
 
 vi.mock('@/lib/transport', () => ({
   isTauri: () => false,
@@ -69,6 +74,159 @@ describe('PreviewPanel', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(requestAdjacentFile).mockReturnValue(null);
+  });
+
+  describe('Adjacent File Navigation', () => {
+    const getPreview = () => screen.getByRole('region', { name: 'Preview of document.txt' });
+    const keyDown = (target: Element, options: KeyboardEventInit = {}) => {
+      const event = new KeyboardEvent('keydown', {
+        key: 'ArrowDown',
+        bubbles: true,
+        cancelable: true,
+        ...options,
+      });
+      fireEvent(target, event);
+      return event;
+    };
+
+    it('captures read-only code arrows before its cursor keymap without moving focus', () => {
+      render(<PreviewPanel {...mockProps} />);
+      const wrapper = document.createElement('div');
+      wrapper.dataset.previewReadonly = 'true';
+      const editor = document.createElement('div');
+      editor.className = 'cm-editor';
+      const content = document.createElement('div');
+      content.setAttribute('role', 'textbox');
+      content.contentEditable = 'false';
+      content.tabIndex = 0;
+      const cursorKeymap = vi.fn();
+      content.addEventListener('keydown', cursorKeymap);
+      editor.append(content);
+      wrapper.append(editor);
+      getPreview().append(wrapper);
+      content.focus();
+      vi.mocked(requestAdjacentFile).mockReturnValue(mockFile);
+
+      expect(keyDown(content).defaultPrevented).toBe(true);
+      expect(requestAdjacentFile).toHaveBeenLastCalledWith(mockFile.path, 1);
+      expect(keyDown(content, { key: 'ArrowUp' }).defaultPrevented).toBe(true);
+      expect(requestAdjacentFile).toHaveBeenLastCalledWith(mockFile.path, -1);
+      expect(cursorKeymap).not.toHaveBeenCalled();
+      expect(content).toHaveFocus();
+    });
+
+    it('leaves arrows alone when the current file is absent from the active file list', () => {
+      render(<PreviewPanel {...mockProps} />);
+      const button = screen.getByRole('button', { name: 'Show file properties' });
+      expect(keyDown(button).defaultPrevented).toBe(false);
+      expect(requestAdjacentFile).toHaveBeenCalledWith(mockFile.path, 1);
+    });
+
+    it('protects an editing or dirty preview even when file properties have focus', () => {
+      render(<PreviewPanel {...mockProps} />);
+      const editing = document.createElement('div');
+      editing.dataset.previewEditing = 'true';
+      getPreview().append(editing);
+      const properties = screen.getByRole('button', { name: 'Show file properties' });
+      properties.focus();
+      vi.mocked(requestAdjacentFile).mockReturnValue(mockFile);
+
+      expect(keyDown(properties).defaultPrevented).toBe(false);
+      expect(requestAdjacentFile).not.toHaveBeenCalled();
+      editing.remove();
+      expect(keyDown(properties).defaultPrevented).toBe(true);
+    });
+
+    it.each([
+      ['input', {}],
+      ['textarea', {}],
+      ['select', {}],
+      ['div', { contenteditable: 'true' }],
+      ['div', { class: 'xterm' }],
+      ['div', { role: 'textbox' }],
+      ['div', { role: 'combobox' }],
+      ['div', { role: 'listbox' }],
+      ['div', { role: 'slider' }],
+      ['div', { role: 'tablist' }],
+    ])('preserves %s controls with attributes %j', (tag, attributes) => {
+      render(<PreviewPanel {...mockProps} />);
+      const control = document.createElement(tag);
+      for (const [name, value] of Object.entries(attributes)) control.setAttribute(name, value);
+      getPreview().append(control);
+      vi.mocked(requestAdjacentFile).mockReturnValue(mockFile);
+
+      expect(keyDown(control).defaultPrevented).toBe(false);
+      expect(requestAdjacentFile).not.toHaveBeenCalled();
+    });
+
+    it('preserves selection modifiers, composition, and non-vertical keys', () => {
+      render(<PreviewPanel {...mockProps} />);
+      const button = screen.getByRole('button', { name: 'Show file properties' });
+      vi.mocked(requestAdjacentFile).mockReturnValue(mockFile);
+      for (const options of [
+        { shiftKey: true },
+        { metaKey: true },
+        { ctrlKey: true },
+        { altKey: true },
+        { isComposing: true },
+        { key: 'ArrowLeft' },
+      ]) {
+        expect(keyDown(button, options).defaultPrevented).toBe(false);
+      }
+      expect(requestAdjacentFile).not.toHaveBeenCalled();
+    });
+
+    it.each(['dialog', 'alertdialog', 'menu'])('does not navigate behind an open %s', (role) => {
+      render(
+        <>
+          <PreviewPanel {...mockProps} />
+          <div role={role} aria-modal={role === 'menu' ? undefined : true} />
+        </>,
+      );
+      vi.mocked(requestAdjacentFile).mockReturnValue(mockFile);
+      const button = screen.getByRole('button', { name: 'Show file properties' });
+      expect(keyDown(button).defaultPrevented).toBe(false);
+      expect(requestAdjacentFile).not.toHaveBeenCalled();
+    });
+
+    it('does not take arrows from a control outside this preview', () => {
+      render(
+        <>
+          <PreviewPanel {...mockProps} />
+          <button type="button">Outside</button>
+        </>,
+      );
+      const outside = screen.getByRole('button', { name: 'Outside' });
+      outside.focus();
+      vi.mocked(requestAdjacentFile).mockReturnValue(mockFile);
+      expect(keyDown(outside).defaultPrevented).toBe(false);
+      expect(keyDown(document.body).defaultPrevented).toBe(false);
+      expect(requestAdjacentFile).not.toHaveBeenCalled();
+    });
+
+    it('continues from body focus after a preview unmount, and removes the listener on close', () => {
+      const { unmount } = render(<PreviewPanel {...mockProps} />);
+      vi.mocked(requestAdjacentFile).mockReturnValue(mockFile);
+      expect(document.body).toHaveFocus();
+      expect(keyDown(document.body).defaultPrevented).toBe(true);
+      expect(requestAdjacentFile).toHaveBeenCalledTimes(1);
+      unmount();
+      expect(keyDown(document.body).defaultPrevented).toBe(false);
+      expect(requestAdjacentFile).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not choose between multiple previews when focus is on the body', () => {
+      render(
+        <>
+          <PreviewPanel {...mockProps} />
+          <PreviewPanel {...mockProps} selectedFile={mockFolder} />
+        </>,
+      );
+      vi.mocked(requestAdjacentFile).mockReturnValue(mockFile);
+      expect(keyDown(document.body).defaultPrevented).toBe(false);
+      expect(requestAdjacentFile).not.toHaveBeenCalled();
+    });
   });
 
   describe('No File Selected', () => {
@@ -305,10 +463,15 @@ describe('PreviewPanel', () => {
 
     it('handles switching from file to null', () => {
       const { rerender } = render(<PreviewPanel {...mockProps} />);
+      expect(screen.getByRole('region', { name: `Preview of ${mockFile.name}` })).toHaveAttribute(
+        'data-file-preview',
+        mockFile.path,
+      );
 
       rerender(<PreviewPanel {...mockProps} selectedFile={null} />);
 
       expect(screen.getByText(i18n.t('previewPanel.selectFileToPreview'))).toBeInTheDocument();
+      expect(screen.getByRole('region')).not.toHaveAttribute('data-file-preview');
     });
 
     it('handles switching between different files', () => {
@@ -328,6 +491,10 @@ describe('PreviewPanel', () => {
       // The properties section updates immediately (not debounced)
       // Use getAllByText since the name may appear in both header and path
       expect(screen.getAllByText('other.txt').length).toBeGreaterThan(0);
+      expect(screen.getByRole('region', { name: `Preview of ${newFile.name}` })).toHaveAttribute(
+        'data-file-preview',
+        newFile.path,
+      );
     });
   });
 });

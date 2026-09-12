@@ -1,5 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, type RefObject } from 'react';
 import type { FileEntry } from '@/lib/tauri-api';
+import { FILE_NAVIGATION_EVENT, type FileNavigationRequest } from '@/lib/file-navigation';
 
 interface UseGridKeyboardNavOptions {
   files: FileEntry[];
@@ -13,6 +14,7 @@ interface UseGridKeyboardNavOptions {
   virtualizer: { scrollToIndex: (index: number, options?: Record<string, unknown>) => void };
   /** Called when Space is pressed on a focused file to show Quick Look. */
   onQuickLook?: (file: FileEntry) => void;
+  containerRef?: RefObject<HTMLDivElement | null>;
 }
 
 /**
@@ -21,7 +23,7 @@ interface UseGridKeyboardNavOptions {
  * Arrow keys move focus and update selection.
  * Shift+Arrow extends the selection range.
  * Home/End jump to first/last item.
- * Enter opens the focused item.
+ * Enter renames the focused item.
  * Space opens Quick Look preview for the focused item.
  */
 export const useGridKeyboardNav = ({
@@ -31,19 +33,61 @@ export const useGridKeyboardNav = ({
   viewMode,
   getColumnsCount,
   handleFileClick,
-  handleFileDoubleClick,
   needsVirtualization,
   virtualizer,
   onQuickLook,
+  containerRef,
 }: UseGridKeyboardNavOptions) => {
+  const selectIndex = useCallback(
+    (index: number, container: HTMLDivElement, shiftKey = false, focus = true) => {
+      const file = files[index];
+      if (!file) return null;
+      handleFileClick(file, { shiftKey, ctrlKey: false, metaKey: false } as React.MouseEvent);
+      if (needsVirtualization) {
+        virtualizer.scrollToIndex(Math.floor(index / columns), { align: 'auto' });
+      }
+      requestAnimationFrame(() => {
+        // Look up by path after virtual rows have mounted, never by the index
+        // within the (potentially partial) set of mounted DOM items.
+        const target = container.querySelector<HTMLElement>(
+          `[data-file-path="${CSS.escape(file.path)}"]`,
+        );
+        if (target) {
+          if (focus) target.focus({ preventScroll: true });
+          target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        }
+      });
+      return file;
+    },
+    [files, handleFileClick, needsVirtualization, virtualizer, columns],
+  );
+
+  useEffect(() => {
+    const handleRequest = (event: Event) => {
+      if (event.defaultPrevented) return;
+      const container = containerRef?.current;
+      if (!container || container.closest('[data-active="false"]')) return;
+      const request = event as CustomEvent<FileNavigationRequest>;
+      const index = files.findIndex((file) => file.path === request.detail.path);
+      if (index < 0) return;
+      event.preventDefault();
+      const next = Math.max(0, Math.min(files.length - 1, index + request.detail.direction));
+      request.detail.file = selectIndex(next, container, false, false);
+    };
+    window.addEventListener(FILE_NAVIGATION_EVENT, handleRequest);
+    return () => window.removeEventListener(FILE_NAVIGATION_EVENT, handleRequest);
+  }, [files, containerRef, selectIndex]);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       // Don't intercept when an input or textarea is focused
       const active = document.activeElement;
+      if (e.defaultPrevented || e.nativeEvent?.isComposing) return;
       if (
         active &&
         (active.tagName === 'INPUT' ||
           active.tagName === 'TEXTAREA' ||
+          active.tagName === 'SELECT' ||
           (active as HTMLElement).isContentEditable)
       ) {
         return;
@@ -67,12 +111,11 @@ export const useGridKeyboardNav = ({
       e.preventDefault();
 
       const container = e.currentTarget;
-      const items = Array.from(container.querySelectorAll<HTMLElement>('[role="option"]'));
-      if (items.length === 0) return;
 
       // Find currently focused item index
-      const focusedEl = (active as HTMLElement)?.closest?.('[role="option"]') as HTMLElement | null;
-      let currentIndex = focusedEl ? items.indexOf(focusedEl) : -1;
+      const focusedEl = (active as HTMLElement)?.closest?.('[data-file-path]');
+      const focusedPath = focusedEl?.getAttribute('data-file-path');
+      let currentIndex = files.findIndex((file) => file.path === focusedPath);
 
       // If nothing is focused, start from the first selected item or 0
       if (currentIndex === -1) {
@@ -109,18 +152,20 @@ export const useGridKeyboardNav = ({
       }
 
       // Arrow / Home / End navigation
-      const cols = viewMode === 'list' ? 1 : getColumnsCount();
+      const cols = ['list', 'details', 'column', 'gallery', 'tree'].includes(viewMode)
+        ? 1
+        : getColumnsCount();
       let nextIndex = currentIndex;
 
       switch (e.key) {
         case 'ArrowRight':
-          nextIndex = Math.min(currentIndex + 1, items.length - 1);
+          nextIndex = Math.min(currentIndex + 1, files.length - 1);
           break;
         case 'ArrowLeft':
           nextIndex = Math.max(currentIndex - 1, 0);
           break;
         case 'ArrowDown':
-          nextIndex = Math.min(currentIndex + cols, items.length - 1);
+          nextIndex = Math.min(currentIndex + cols, files.length - 1);
           break;
         case 'ArrowUp':
           nextIndex = Math.max(currentIndex - cols, 0);
@@ -129,60 +174,16 @@ export const useGridKeyboardNav = ({
           nextIndex = 0;
           break;
         case 'End':
-          nextIndex = items.length - 1;
+          nextIndex = files.length - 1;
           break;
       }
 
       if (nextIndex === currentIndex && e.key !== 'Home' && e.key !== 'End') return;
 
-      const targetFile = files[nextIndex];
-      if (!targetFile) return;
-
-      if (e.shiftKey) {
-        // Shift+Arrow: extend selection range from anchor to nextIndex
-        handleFileClick(targetFile, {
-          shiftKey: true,
-          ctrlKey: false,
-          metaKey: false,
-        } as unknown as React.MouseEvent);
-      } else {
-        // Plain arrow: select single item (handleFileClick tracks anchor internally)
-        handleFileClick(targetFile, {
-          shiftKey: false,
-          ctrlKey: false,
-          metaKey: false,
-        } as unknown as React.MouseEvent);
-      }
-
-      // Scroll virtualized row into view if needed
-      if (needsVirtualization) {
-        const rowIndex = Math.floor(nextIndex / columns);
-        virtualizer.scrollToIndex(rowIndex, { align: 'center' });
-      }
-
-      // Focus the DOM element and scroll it into view
-      requestAnimationFrame(() => {
-        const targetEl =
-          items[nextIndex] ||
-          container.querySelector<HTMLElement>(`[data-file-path="${CSS.escape(targetFile.path)}"]`);
-        if (targetEl) {
-          targetEl.focus({ preventScroll: false });
-          targetEl.scrollIntoView({ block: 'nearest' });
-        }
-      });
+      e.stopPropagation();
+      selectIndex(nextIndex, container, e.shiftKey);
     },
-    [
-      files,
-      selectedFiles,
-      columns,
-      viewMode,
-      getColumnsCount,
-      handleFileClick,
-      handleFileDoubleClick,
-      needsVirtualization,
-      virtualizer,
-      onQuickLook,
-    ],
+    [files, selectedFiles, viewMode, getColumnsCount, selectIndex, onQuickLook],
   );
 
   return { handleKeyDown };

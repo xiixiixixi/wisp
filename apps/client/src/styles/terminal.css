@@ -1,3 +1,6 @@
+/* The bottom panel owns the material; nested terminal surfaces must not
+   paint another opaque rectangle or stack the translucent drawer fill. */
+.wisp-terminal-panel,
 .wisp-terminal-sessions,
 .wisp-terminal-panel .xterm,
 .wisp-terminal-panel .xterm-viewport {
@@ -9,6 +12,6 @@
   padding: 8px 12px;
 }
 .wisp-terminal-panel .xterm .composition-view {
-  background: var(--wisp-terminal-bg);
+  background: var(--ds-surface);
   color: var(--wisp-terminal-fg);
 }

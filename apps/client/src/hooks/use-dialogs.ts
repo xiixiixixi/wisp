@@ -148,11 +148,6 @@ export interface DialogState {
   crossTabDialogOpen: boolean;
   setCrossTabDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
 
-  // Quick Look overlay
-  quickLookFile: FileEntry | null;
-  setQuickLookFile: React.Dispatch<React.SetStateAction<FileEntry | null>>;
-  handleQuickLook: (file: FileEntry) => void;
-
   // Collection editor dialog
   collectionEditorOpen: boolean;
   setCollectionEditorOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -382,12 +377,6 @@ export const useDialogs = (): DialogState => {
   // Cross-tab batch operations dialog
   const [crossTabDialogOpen, setCrossTabDialogOpen] = useState(false);
 
-  // Quick Look overlay
-  const [quickLookFile, setQuickLookFile] = useState<FileEntry | null>(null);
-  const handleQuickLook = useCallback((file: FileEntry) => {
-    setQuickLookFile((prev) => (prev && prev.path === file.path ? null : file));
-  }, []);
-
   // Collection editor dialog
   const [collectionEditorOpen, setCollectionEditorOpen] = useState(false);
   const [editingCollection, setEditingCollection] = useState<FileCollection | null>(null);
@@ -500,9 +489,6 @@ export const useDialogs = (): DialogState => {
     setShortcutsDialogOpen,
     crossTabDialogOpen,
     setCrossTabDialogOpen,
-    quickLookFile,
-    setQuickLookFile,
-    handleQuickLook,
     collectionEditorOpen,
     setCollectionEditorOpen,
     editingCollection,

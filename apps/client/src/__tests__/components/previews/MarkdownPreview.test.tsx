@@ -226,6 +226,13 @@ describe('MarkdownPreview', () => {
 
       expect(screen.getByTestId('cm-editor')).toHaveAttribute('data-read-only', 'false');
       expect(screen.getByTestId('cm-editor').textContent).toContain('# Hello World');
+      const preview = screen.getByTestId('cm-editor').closest('[data-preview-editing]');
+      expect(preview).toHaveAttribute('data-preview-editing', 'true');
+      expect(screen.getByRole('tab', { name: 'Preview' }).closest('[data-preview-editing]')).toBe(
+        preview,
+      );
+      await user.click(screen.getByRole('tab', { name: 'Preview' }));
+      expect(preview).not.toHaveAttribute('data-preview-editing');
     });
 
     it('saves source edits through TauriAPI.saveTextFile', async () => {
@@ -267,18 +274,22 @@ describe('MarkdownPreview', () => {
     await screen.findByRole('heading', { name: 'Hello World' });
     fireEvent.click(screen.getByRole('tab', { name: 'Edit' }));
     const editor = screen.getByTestId('cm-editor');
+    const preview = editor.closest('[data-preview-editing]');
     fireEvent.change(screen.getByRole('textbox', { name: 'Source draft' }), {
       target: { value: '# Updated draft' },
     });
     fireEvent.click(screen.getByRole('tab', { name: 'Preview' }));
     expect(screen.getByRole('heading', { name: 'Updated draft' })).toBeInTheDocument();
     expect(editor).not.toBeVisible();
+    expect(preview).toHaveAttribute('data-preview-editing', 'true');
     expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() =>
       expect(TauriAPI.saveTextFile).toHaveBeenCalledWith(mockFile.path, '# Updated draft'),
     );
+    await waitFor(() => expect(preview).not.toHaveAttribute('data-preview-editing'));
     fireEvent.click(screen.getByRole('tab', { name: 'Edit' }));
+    expect(preview).toHaveAttribute('data-preview-editing', 'true');
     expect(screen.getByTestId('cm-editor')).toBe(editor);
     expect(screen.getByRole('textbox', { name: 'Source draft' })).toHaveValue('# Updated draft');
   });
@@ -341,16 +352,23 @@ describe('MarkdownPreview', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
     const editor = screen.getByTestId('cm-editor');
+    const preview = editor.closest('[data-preview-editing]');
+    expect(preview).toHaveAttribute('data-preview-editing', 'true');
+    expect(screen.getByRole('button', { name: 'Preview' }).closest('[data-preview-editing]')).toBe(
+      preview,
+    );
     fireEvent.change(screen.getByRole('textbox', { name: 'Source draft' }), {
       target: { value: '<h1>Updated</h1>' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
     expect(container.querySelector('iframe')).toHaveAttribute('srcdoc', '<h1>Updated</h1>');
     expect(editor).not.toBeVisible();
+    expect(preview).toHaveAttribute('data-preview-editing', 'true');
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() =>
       expect(TauriAPI.saveTextFile).toHaveBeenCalledWith('/index.html', '<h1>Updated</h1>'),
     );
+    await waitFor(() => expect(preview).not.toHaveAttribute('data-preview-editing'));
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
     expect(screen.getByTestId('cm-editor')).toBe(editor);
   });

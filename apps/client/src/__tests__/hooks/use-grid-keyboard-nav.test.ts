@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useGridKeyboardNav } from '@/hooks/use-grid-keyboard-nav';
 import type { FileEntry } from '@/lib/tauri-api';
+import { requestAdjacentFile } from '@/lib/file-navigation';
 
 vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {},
@@ -85,6 +86,54 @@ describe('useGridKeyboardNav', () => {
   it('returns handleKeyDown function', () => {
     const { result } = renderHook(() => useGridKeyboardNav(defaultOptions));
     expect(typeof result.current.handleKeyDown).toBe('function');
+  });
+
+  it('uses the focused file path in a partially mounted virtual list', () => {
+    const container = document.createElement('div');
+    const row = document.createElement('div');
+    row.dataset.filePath = '/d.txt';
+    row.tabIndex = 0;
+    container.appendChild(row);
+    document.body.appendChild(container);
+    row.focus();
+    try {
+      const { result } = renderHook(() =>
+        useGridKeyboardNav({ ...defaultOptions, viewMode: 'list', needsVirtualization: true }),
+      );
+      result.current.handleKeyDown(createKeyboardEvent('ArrowDown', { currentTarget: container }));
+      expect(mockHandleFileClick).toHaveBeenCalledWith(sampleFiles[4], expect.any(Object));
+      expect(mockScrollToIndex).toHaveBeenCalledWith(1, { align: 'auto' });
+      result.current.handleKeyDown(createKeyboardEvent('End', { currentTarget: container }));
+      expect(mockHandleFileClick).toHaveBeenLastCalledWith(sampleFiles[5], expect.any(Object));
+    } finally {
+      container.remove();
+    }
+  });
+
+  it('resolves preview neighbours from the displayed order without moving preview focus', () => {
+    const container = document.createElement('div');
+    const preview = document.createElement('button');
+    document.body.append(container, preview);
+    preview.focus();
+    try {
+      const { unmount } = renderHook(() =>
+        useGridKeyboardNav({
+          ...defaultOptions,
+          files: [sampleFiles[2], sampleFiles[0], sampleFiles[5]],
+          containerRef: { current: container },
+        }),
+      );
+      expect(requestAdjacentFile('/c.txt', 1)).toEqual(sampleFiles[0]);
+      expect(mockHandleFileClick).toHaveBeenLastCalledWith(sampleFiles[0], expect.any(Object));
+      expect(document.activeElement).toBe(preview);
+      expect(requestAdjacentFile('/f.txt', 1)).toEqual(sampleFiles[5]);
+      expect(requestAdjacentFile('/not-visible.txt', 1)).toBeNull();
+      unmount();
+      expect(requestAdjacentFile('/c.txt', 1)).toBeNull();
+    } finally {
+      container.remove();
+      preview.remove();
+    }
   });
 
   it('ignores non-navigation keys', () => {

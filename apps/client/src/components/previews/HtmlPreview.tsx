@@ -29,7 +29,10 @@ const HtmlPreview = ({ file, onError, onLoad }: PreviewProps) => {
   }, [content, file.path]);
 
   return (
-    <div className="flex h-full flex-col">
+    <div
+      className="flex h-full flex-col"
+      data-preview-editing={tab === 'edit' || dirty ? 'true' : undefined}
+    >
       {/* Toolbar */}
       <div className="mb-1.5 flex flex-shrink-0 items-center gap-1.5">
         <div className="flex overflow-hidden rounded-md border border-xp-border bg-xp-bg text-xs">

@@ -303,11 +303,9 @@ describe('OperationBar', () => {
     );
 
     expect(screen.getByRole('toolbar', { name: 'Selected file actions' })).toBeInTheDocument();
-    expect(screen.getByText('1 selected')).toBeInTheDocument();
+    expect(screen.queryByText('1 selected')).not.toBeInTheDocument();
     expect(screen.queryByText('Medium Icons')).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Clear Selection' }));
-    expect(onSelectNone).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: 'Clear Selection' })).not.toBeInTheDocument();
   });
 
   it('offers preview only for a single selected file', () => {

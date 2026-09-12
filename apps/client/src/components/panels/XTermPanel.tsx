@@ -133,7 +133,7 @@ const createTab = (label?: string, attachSessionId?: string): TermTab => {
     fontFamily:
       '"SF Mono", "Fira Code", "Cascadia Code", Menlo, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", monospace',
     lineHeight: 1.3,
-    allowTransparency: false,
+    allowTransparency: true,
     minimumContrastRatio: 4.5,
     theme,
     allowProposedApi: true,

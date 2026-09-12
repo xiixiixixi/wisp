@@ -52,9 +52,14 @@ const ansiColors = [
 
 describe.each(['light', 'dark'] as const)('%s terminal palette', (appearance) => {
   const theme: ITheme = TERMINAL_THEMES[appearance];
+  // xterm evaluates RGB contrast while alpha lets the shared drawer show through.
+  const referenceCanvas = theme.background!.slice(0, 7);
 
-  it('provides an opaque canvas with at least 7:1 main text contrast', () => {
-    expect(contrast(theme.foreground, theme.background)).toBeGreaterThanOrEqual(7);
+  it('keeps the drawer visible and main text readable against its theme reference', () => {
+    const canvas = document.createElement('div');
+    canvas.style.backgroundColor = theme.background!;
+    expect(canvas.style.backgroundColor).toMatch(/^rgba\(.+, 0\)$/);
+    expect(contrast(theme.foreground, referenceCanvas)).toBeGreaterThanOrEqual(7);
   });
 
   it('keeps text under the block cursor readable', () => {
@@ -73,7 +78,7 @@ describe.each(['light', 'dark'] as const)('%s terminal palette', (appearance) =>
   });
 
   it.each(ansiColors)('keeps %s ANSI output at least 4.5:1 against the canvas', (color) => {
-    expect(contrast(theme[color], theme.background)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(theme[color], referenceCanvas)).toBeGreaterThanOrEqual(4.5);
   });
 });
 

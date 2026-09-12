@@ -58,7 +58,11 @@ const CodeMirrorPreview = ({
   }, [setDirty]);
 
   return (
-    <div className="wisp-code-preview flex h-full flex-col">
+    <div
+      className="wisp-code-preview flex h-full flex-col"
+      data-preview-editing={editable || dirty ? 'true' : undefined}
+      data-preview-readonly={!editable && !dirty ? 'true' : undefined}
+    >
       {/* Toolbar */}
       <div className="mb-1.5 flex flex-shrink-0 items-center gap-1.5">
         <span className="wisp-code-language px-1 py-1">

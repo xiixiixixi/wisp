@@ -164,8 +164,6 @@ export interface MainLayoutProps {
   fileChanges: FileChangeSet | null;
   handleDismissChangesToast: () => void;
   handleReviewChanges: () => void;
-  quickLookFile: FileEntry | null;
-  handleCloseQuickLook: () => void;
   pathBookmarksDialogOpen: boolean;
   handleClosePathBookmarks: () => void;
   workspaceLayoutDialogOpen: boolean;
@@ -264,8 +262,6 @@ const MainLayout = (props: MainLayoutProps) => {
     fileChanges,
     handleDismissChangesToast,
     handleReviewChanges,
-    quickLookFile,
-    handleCloseQuickLook,
     pathBookmarksDialogOpen,
     handleClosePathBookmarks,
     workspaceLayoutDialogOpen,
@@ -597,8 +593,6 @@ const MainLayout = (props: MainLayoutProps) => {
             fileChanges={fileChanges}
             onDismissChangesToast={handleDismissChangesToast}
             onReviewChanges={handleReviewChanges}
-            quickLookFile={quickLookFile}
-            onCloseQuickLook={handleCloseQuickLook}
             pathBookmarksDialogOpen={pathBookmarksDialogOpen}
             onClosePathBookmarks={handleClosePathBookmarks}
             onNavigate={navigateWithHistory}

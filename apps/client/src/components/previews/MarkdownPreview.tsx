@@ -148,69 +148,74 @@ const MarkdownPreview = ({ file, onError, onLoad }: PreviewProps) => {
   };
 
   return (
-    <Tabs value={tab} onValueChange={changeTab} className="flex h-full min-h-0 flex-col">
-      {/* Toolbar */}
-      <div className="wisp-text-preview-toolbar">
-        <TabsList aria-label={t('extensionsBar.preview')}>
-          <TabsTrigger value="rendered">{t('preview.rendered')}</TabsTrigger>
-          <TabsTrigger value="edit">{t('preview.edit')}</TabsTrigger>
-        </TabsList>
-        {dirty && (
-          <div className="ml-auto flex items-center gap-2">
-            <span className="text-xs text-xp-text-secondary" role="status">
-              {t('common.unsaved')}
-            </span>
-            <Button variant="outline" size="sm" onClick={() => void save()} disabled={saving}>
-              {saving ? t('common.saving') : t('common.save')}
-            </Button>
+    <div
+      className="flex h-full min-h-0 flex-col"
+      data-preview-editing={tab === 'edit' || dirty ? 'true' : undefined}
+    >
+      <Tabs value={tab} onValueChange={changeTab} className="flex h-full min-h-0 flex-col">
+        {/* Toolbar */}
+        <div className="wisp-text-preview-toolbar">
+          <TabsList aria-label={t('extensionsBar.preview')}>
+            <TabsTrigger value="rendered">{t('preview.rendered')}</TabsTrigger>
+            <TabsTrigger value="edit">{t('preview.edit')}</TabsTrigger>
+          </TabsList>
+          {dirty && (
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-xs text-xp-text-secondary" role="status">
+                {t('common.unsaved')}
+              </span>
+              <Button variant="outline" size="sm" onClick={() => void save()} disabled={saving}>
+                {saving ? t('common.saving') : t('common.save')}
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {loading && <PreviewSkeleton />}
+
+        {!loading && error && (
+          <div className="flex flex-1 items-center justify-center rounded-md border border-xp-border bg-xp-surface">
+            <div className="text-center text-xp-text-muted">
+              <p className="text-sm">{t('preview.cannotPreview')}</p>
+              <p className="mt-1 text-xs opacity-70">{error}</p>
+            </div>
           </div>
         )}
-      </div>
 
-      {loading && <PreviewSkeleton />}
+        {!loading && !error && (
+          <TabsContent
+            value="rendered"
+            className="md-preview !mt-0 min-h-0 flex-1 overflow-auto rounded-md border border-xp-border bg-xp-surface p-3"
+          >
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+              {draftPreview ?? content}
+            </ReactMarkdown>
+          </TabsContent>
+        )}
 
-      {!loading && error && (
-        <div className="flex flex-1 items-center justify-center rounded-md border border-xp-border bg-xp-surface">
-          <div className="text-center text-xp-text-muted">
-            <p className="text-sm">{t('preview.cannotPreview')}</p>
-            <p className="mt-1 text-xs opacity-70">{error}</p>
-          </div>
-        </div>
-      )}
-
-      {!loading && !error && (
-        <TabsContent
-          value="rendered"
-          className="md-preview !mt-0 min-h-0 flex-1 overflow-auto rounded-md border border-xp-border bg-xp-surface p-3"
-        >
-          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-            {draftPreview ?? content}
-          </ReactMarkdown>
-        </TabsContent>
-      )}
-
-      {!loading && !error && (
-        <TabsContent
-          value="edit"
-          forceMount
-          className="!mt-0 min-h-0 flex-1 overflow-hidden rounded-md border border-xp-border bg-xp-surface"
-        >
-          {editorMounted && (
-            <WispCodeMirror
-              doc={content}
-              readOnly={false}
-              language="markdown"
-              fileName={file.name}
-              editorRef={editorRef}
-              onDocChanged={handleDocChanged}
-              onSave={() => void save()}
-              ariaLabel={file.name}
-              className="h-full"
-            />
-          )}
-        </TabsContent>
-      )}
-    </Tabs>
+        {!loading && !error && (
+          <TabsContent
+            value="edit"
+            forceMount
+            className="!mt-0 min-h-0 flex-1 overflow-hidden rounded-md border border-xp-border bg-xp-surface"
+          >
+            {editorMounted && (
+              <WispCodeMirror
+                doc={content}
+                readOnly={false}
+                language="markdown"
+                fileName={file.name}
+                editorRef={editorRef}
+                onDocChanged={handleDocChanged}
+                onSave={() => void save()}
+                ariaLabel={file.name}
+                className="h-full"
+              />
+            )}
+          </TabsContent>
+        )}
+      </Tabs>
+    </div>
   );
 };
 

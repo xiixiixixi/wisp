@@ -474,6 +474,7 @@ const FileGrid = ({
 
   // ─── Virtual scrolling hooks (must be called before any early returns) ───
   const parentRef = useRef<HTMLDivElement>(null);
+  const keyboardRef = useRef<HTMLDivElement>(null);
 
   // ─── Grid layout helpers ──────────────────────────────────────────────────
   const {
@@ -509,8 +510,16 @@ const FileGrid = ({
     getColumnsCount,
   });
 
+  const keyboardFiles = useMemo(
+    () =>
+      !needsVirtualization && fileGroups?.length
+        ? fileGroups.flatMap((group) => group.files)
+        : files,
+    [files, fileGroups, needsVirtualization],
+  );
+
   const { handleKeyDown: handleGridNav } = useGridKeyboardNav({
-    files,
+    files: keyboardFiles,
     selectedFiles,
     columns,
     viewMode,
@@ -520,6 +529,7 @@ const FileGrid = ({
     needsVirtualization,
     virtualizer,
     onQuickLook,
+    containerRef: keyboardRef,
   });
 
   const handleGridKeyDown = useCallback(
@@ -629,7 +639,11 @@ const FileGrid = ({
   }
 
   if (viewMode === 'details') {
-    return <DetailsView {...viewComponentProps} fileGroups={fileGroups} />;
+    return (
+      <div ref={keyboardRef} className="contents" onKeyDown={handleGridKeyDown}>
+        <DetailsView {...viewComponentProps} fileGroups={fileGroups} />
+      </div>
+    );
   }
 
   if (viewMode === 'column') {
@@ -716,7 +730,10 @@ const FileGrid = ({
     if (fileGroups && fileGroups.length > 0) {
       return (
         <div
-          ref={bgDropRef}
+          ref={(element) => {
+            keyboardRef.current = element;
+            bgDropRef.current = element;
+          }}
           role="listbox"
           aria-label={t('explorer.details.fileListAria')}
           aria-multiselectable={true}
@@ -741,7 +758,10 @@ const FileGrid = ({
 
     return (
       <div
-        ref={bgDropRef}
+        ref={(element) => {
+          keyboardRef.current = element;
+          bgDropRef.current = element;
+        }}
         role="listbox"
         aria-label={t('explorer.details.fileListAria')}
         aria-multiselectable={true}
@@ -758,6 +778,7 @@ const FileGrid = ({
   return (
     <div
       ref={(el) => {
+        keyboardRef.current = el;
         (parentRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
         if (bgDropRef && 'current' in bgDropRef) {
           (bgDropRef as React.MutableRefObject<HTMLDivElement | null>).current = el;

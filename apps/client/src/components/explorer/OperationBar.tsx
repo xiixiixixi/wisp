@@ -16,7 +16,6 @@ import {
   Clipboard,
   Eye,
   Trash2,
-  X,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { SortField } from '@/lib/utils';
@@ -99,7 +98,6 @@ const OperationBar = ({
   setBottomPanelCollapsed,
   setBottomPanelTab,
   onSelectAll: _onSelectAll,
-  onSelectNone,
   onInvertSelection: _onInvertSelection,
   onAdvancedSelection: _onAdvancedSelection,
   showSizeBadges,
@@ -354,31 +352,7 @@ const OperationBar = ({
         role="toolbar"
         aria-label={t('operationBar.selectionActions')}
       >
-        <div className="flex min-h-8 items-center justify-between gap-3">
-          <div className="wisp-selection-summary flex min-w-0 items-center gap-2.5">
-            <span
-              className="flex h-5 min-w-5 items-center justify-center rounded-md bg-xp-lime px-1.5 text-[11px] font-semibold text-xp-on-accent"
-              aria-hidden="true"
-            >
-              {selectedFiles.size}
-            </span>
-            <span className="truncate text-xs font-semibold text-xp-text" aria-live="polite">
-              {t('common.selected', { count: selectedFiles.size })}
-            </span>
-            {onSelectNone && (
-              <button
-                type="button"
-                onClick={onSelectNone}
-                className="flex h-7 items-center gap-1 rounded-md px-2 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-                title={t('topBar.clearSelection')}
-                aria-label={t('topBar.clearSelection')}
-              >
-                <X size={13} aria-hidden="true" />
-                <span>{t('common.clear')}</span>
-              </button>
-            )}
-          </div>
-
+        <div className="flex min-h-8 items-center justify-end">
           <div className="wisp-selection-actions flex flex-shrink-0 items-center gap-1">
             {airDropButton}
             {selectedFiles.size === 1 && onPreview && (

@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ColumnView from '@/components/explorer/ColumnView';
 import type { FileEntry } from '@/lib/tauri-api';
+import { requestAdjacentFile } from '@/lib/file-navigation';
 
 const mockReadDirectory = vi.fn();
+const mockScrollToIndex = vi.fn();
 
 vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {
@@ -13,9 +15,16 @@ vi.mock('@/lib/tauri-api', () => ({
 }));
 
 vi.mock('@tanstack/react-virtual', () => ({
-  useVirtualizer: vi.fn(() => ({
-    getTotalSize: () => 0,
-    getVirtualItems: () => [],
+  useVirtualizer: vi.fn(({ count }: { count: number }) => ({
+    getTotalSize: () => count * 30,
+    getVirtualItems: () =>
+      Array.from({ length: Math.min(count, 4) }, (_, offset) => ({
+        key: offset + 5,
+        index: offset + 5,
+        start: (offset + 5) * 30,
+        size: 30,
+      })),
+    scrollToIndex: mockScrollToIndex,
   })),
 }));
 
@@ -199,6 +208,91 @@ describe('ColumnView', () => {
         // At least 2: one in column, one in preview
         expect(nameElements.length).toBeGreaterThanOrEqual(1);
       });
+    });
+  });
+
+  describe('Adjacent file navigation', () => {
+    it('moves selection and focus through the current column with up and down arrows', async () => {
+      render(<ColumnView {...defaultProps} />);
+      const rows = screen.getAllByRole('option');
+      rows[1].focus();
+      fireEvent.keyDown(rows[1], { key: 'ArrowDown' });
+      expect(defaultProps.handleFileClick).toHaveBeenLastCalledWith(
+        sampleFiles[2],
+        expect.anything(),
+      );
+      await waitFor(() => expect(rows[2]).toHaveFocus());
+      fireEvent.keyDown(rows[2], { key: 'ArrowUp' });
+      expect(defaultProps.handleFileClick).toHaveBeenLastCalledWith(
+        sampleFiles[1],
+        expect.anything(),
+      );
+      await waitFor(() => expect(rows[1]).toHaveFocus());
+    });
+
+    it('serves the child column order without moving focus out of Quick Look', async () => {
+      const children = ['z.txt', 'a.txt'].map((name) => ({
+        ...sampleFiles[2],
+        name,
+        path: `${sampleFiles[0].path}\\${name}`,
+      }));
+      mockReadDirectory.mockResolvedValue(children);
+      render(<ColumnView {...defaultProps} />);
+      fireEvent.click(screen.getAllByRole('option')[0]);
+      await screen.findByText('z.txt');
+      const overlayControl = document.createElement('button');
+      document.body.append(overlayControl);
+      overlayControl.focus();
+      act(() => expect(requestAdjacentFile(children[0].path, 1)).toBe(children[1]));
+      expect(defaultProps.handleFileClick).toHaveBeenLastCalledWith(children[1], expect.anything());
+      expect(screen.getAllByRole('option').at(-1)).toHaveAttribute('aria-selected', 'true');
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      expect(overlayControl).toHaveFocus();
+      overlayControl.remove();
+    });
+
+    it('uses the full virtualized column order rather than mounted row indices', () => {
+      const files = Array.from({ length: 201 }, (_, index) => ({
+        ...sampleFiles[2],
+        name: `file-${index}.txt`,
+        path: `/large/file-${index}.txt`,
+      }));
+      render(<ColumnView {...defaultProps} files={files} currentPath="/large" />);
+      const rows = screen.getAllByRole('option');
+      expect(rows).toHaveLength(4);
+      rows[1].focus();
+      fireEvent.keyDown(rows[1], { key: 'ArrowDown' });
+      expect(defaultProps.handleFileClick).toHaveBeenLastCalledWith(files[7], expect.anything());
+      expect(mockScrollToIndex).toHaveBeenLastCalledWith(7, { align: 'auto' });
+      act(() => expect(requestAdjacentFile(files[199].path, 1)).toBe(files[200]));
+      expect(mockScrollToIndex).toHaveBeenLastCalledWith(200, { align: 'auto' });
+    });
+
+    it('ignores a folder result after arrow navigation has selected a different folder', async () => {
+      let finishFirst!: (files: FileEntry[]) => void;
+      const secondFolder = { ...sampleFiles[0], name: 'Projects', path: '/Projects' };
+      const currentChild = {
+        ...sampleFiles[2],
+        name: 'current.txt',
+        path: '/Projects/current.txt',
+      };
+      const staleChild = { ...sampleFiles[2], name: 'stale.txt', path: '/Documents/stale.txt' };
+      mockReadDirectory.mockImplementation((path: string) =>
+        path === secondFolder.path
+          ? Promise.resolve([currentChild])
+          : new Promise<FileEntry[]>((resolve) => {
+              finishFirst = resolve;
+            }),
+      );
+      render(<ColumnView {...defaultProps} files={[sampleFiles[0], secondFolder]} />);
+      const firstRow = screen.getAllByRole('option')[0];
+      fireEvent.click(firstRow);
+      firstRow.focus();
+      fireEvent.keyDown(firstRow, { key: 'ArrowDown' });
+      await screen.findByText('current.txt');
+      await act(async () => finishFirst([staleChild]));
+      expect(screen.queryByText('stale.txt')).not.toBeInTheDocument();
+      expect(screen.getByText('current.txt')).toBeVisible();
     });
   });
 });

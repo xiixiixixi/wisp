@@ -53,7 +53,6 @@ export interface WispActionsDeps {
   crossTabSelection: CrossTabSelectionState;
   theme: string;
   setTheme: (theme: string) => void;
-  handleQuickLook: (file: FileEntry) => void;
   handleGDriveFileSelect: (file: FileEntry) => void;
   setPaneFiles: React.Dispatch<React.SetStateAction<FileEntry[]>>;
   paneRefetchRef: React.MutableRefObject<() => void>;
@@ -69,6 +68,7 @@ export interface WispActionsDeps {
   bottomPanelCollapsed: boolean;
   setLeftSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
   setRightSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+  setRightPanelTab: React.Dispatch<React.SetStateAction<string>>;
   setBottomPanelCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
   setBottomPanelTab: React.Dispatch<React.SetStateAction<BottomPanelTabId>>;
   setViewMode: React.Dispatch<React.SetStateAction<string>>;
@@ -90,7 +90,6 @@ export interface WispActionsDeps {
   setFolderCompareOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setFolderComparePaths: React.Dispatch<React.SetStateAction<{ left: string; right: string }>>;
   setCommandPaletteOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setQuickLookFile: React.Dispatch<React.SetStateAction<FileEntry | null>>;
   setPathBookmarksDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setWorkspaceLayoutDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setCrossTabDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -117,7 +116,6 @@ export const useWispActions = (deps: WispActionsDeps) => {
     crossTabSelection,
     theme,
     setTheme,
-    handleQuickLook,
     handleGDriveFileSelect,
     setPaneFiles,
     paneRefetchRef,
@@ -130,6 +128,7 @@ export const useWispActions = (deps: WispActionsDeps) => {
     bottomPanelCollapsed,
     setLeftSidebarCollapsed,
     setRightSidebarCollapsed,
+    setRightPanelTab,
     setBottomPanelCollapsed,
     setBottomPanelTab,
     setViewMode,
@@ -139,7 +138,6 @@ export const useWispActions = (deps: WispActionsDeps) => {
     setFolderCompareOpen,
     setFolderComparePaths: _setFolderComparePaths,
     setCommandPaletteOpen,
-    setQuickLookFile,
     setPathBookmarksDialogOpen,
     setWorkspaceLayoutDialogOpen,
     setCrossTabDialogOpen,
@@ -282,6 +280,32 @@ export const useWispActions = (deps: WispActionsDeps) => {
     ],
   );
 
+  // All explicit preview entry points open the same inspector.
+  const handlePreviewFile = useCallback(
+    (file: FileEntry) => {
+      revealSequenceRef.current++;
+      clearPendingReveal();
+      setSelectedFile(file);
+      setSelectedFiles(new Set([file.path]));
+      setRightPanelTab('preview');
+      setRightSidebarCollapsed(false);
+
+      // Return toolbar focus to the file view so the next arrow key selects
+      // its neighbour. Match the path as data, including quotes in filenames.
+      const row = Array.from(
+        document.querySelectorAll<HTMLElement>('[data-active="true"] [data-file-path]'),
+      ).find((element) => element.dataset.filePath === file.path);
+      row?.focus({ preventScroll: true });
+    },
+    [
+      clearPendingReveal,
+      setSelectedFile,
+      setSelectedFiles,
+      setRightPanelTab,
+      setRightSidebarCollapsed,
+    ],
+  );
+
   // ── Dialog close/action callbacks ─────────────────────────────────────────
 
   const handleCloseTemplatePicker = useCallback(
@@ -304,7 +328,7 @@ export const useWispActions = (deps: WispActionsDeps) => {
       try {
         if (intent === 'open') {
           await openRecentEntry({ path: filePath, isDir }, navigation.navigateWithHistory, {
-            openDemoFile: handleQuickLook,
+            openDemoFile: handlePreviewFile,
           });
           return;
         }
@@ -353,13 +377,12 @@ export const useWispActions = (deps: WispActionsDeps) => {
       pendingSelectRef,
       setSelectedFile,
       setSelectedFiles,
-      handleQuickLook,
       t,
       refetch,
       clearPendingReveal,
+      handlePreviewFile,
     ],
   );
-  const handleCloseQuickLook = useCallback(() => setQuickLookFile(null), [setQuickLookFile]);
   const handleClosePathBookmarks = useCallback(
     () => setPathBookmarksDialogOpen(false),
     [setPathBookmarksDialogOpen],
@@ -396,7 +419,7 @@ export const useWispActions = (deps: WispActionsDeps) => {
         void isEditableFile;
         try {
           await openRecentEntry({ path: file.path, isDir: false }, navigation.navigateWithHistory, {
-            openDemoFile: handleQuickLook,
+            openDemoFile: handlePreviewFile,
           });
         } catch (err) {
           toastRef.current({
@@ -453,7 +476,7 @@ export const useWispActions = (deps: WispActionsDeps) => {
         setSelectedFiles(new Set(_files.map((f) => f.path)));
       },
       onAdvancedSelection: () => dialogManagerRef.current.setShowAdvancedSelect(true),
-      onQuickLook: handleQuickLook,
+      onQuickLook: handlePreviewFile,
       renameFileInline: fileOps.renameFileInline,
       onFilesChange: (newFiles: FileEntry[], newRefetch: () => void) => {
         setPaneFiles(newFiles);
@@ -483,8 +506,8 @@ export const useWispActions = (deps: WispActionsDeps) => {
       navigation.navigateUp,
       navigation.navigateWithHistory,
       refetch,
-      handleQuickLook,
       handleCommandPaletteFileSelect,
+      handlePreviewFile,
       finishPendingReveal,
       fileOps.renameFileInline,
     ],
@@ -594,6 +617,7 @@ export const useWispActions = (deps: WispActionsDeps) => {
     canNavigateForwardInHistory: navigation.canNavigateForwardInHistory,
 
     // File click handlers
+    handlePreviewFile,
     addTab: fileActions.addTab,
     toggleFileSelection: fileActions.toggleFileSelection,
     handleFileClick: fileActions.handleFileClick,
@@ -624,7 +648,6 @@ export const useWispActions = (deps: WispActionsDeps) => {
     handleCloseFolderCompare,
     handleCloseCommandPalette,
     handleCommandPaletteFileSelect,
-    handleCloseQuickLook,
     handleClosePathBookmarks,
     handleCloseWorkspaceLayout,
     handleCloseCrossTabDialog,

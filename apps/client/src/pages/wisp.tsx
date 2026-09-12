@@ -234,7 +234,6 @@ const ExplorerUnified = () => {
     crossTabSelection,
     theme,
     setTheme,
-    handleQuickLook: dialogManager.handleQuickLook,
     handleGDriveFileSelect,
     setPaneFiles,
     paneRefetchRef,
@@ -248,6 +247,7 @@ const ExplorerUnified = () => {
     bottomPanelCollapsed: layout.bottomPanelCollapsed,
     setLeftSidebarCollapsed: layout.setLeftSidebarCollapsed,
     setRightSidebarCollapsed: layout.setRightSidebarCollapsed,
+    setRightPanelTab: layout.setRightPanelTab,
     setBottomPanelCollapsed: layout.setBottomPanelCollapsed,
     setBottomPanelTab: layout.setBottomPanelTab,
     setViewMode: layout.setViewMode,
@@ -257,7 +257,6 @@ const ExplorerUnified = () => {
     setFolderCompareOpen: dialogManager.setFolderCompareOpen,
     setFolderComparePaths: dialogManager.setFolderComparePaths,
     setCommandPaletteOpen: dialogManager.setCommandPaletteOpen,
-    setQuickLookFile: dialogManager.setQuickLookFile,
     setPathBookmarksDialogOpen: dialogManager.setPathBookmarksDialogOpen,
     setWorkspaceLayoutDialogOpen: dialogManager.setWorkspaceLayoutDialogOpen,
     setCrossTabDialogOpen: dialogManager.setCrossTabDialogOpen,
@@ -281,10 +280,10 @@ const ExplorerUnified = () => {
     topBarRef,
     leftSidebarRef,
     // 空格 = toggle 右侧预览面板（用户定稿：不再是 Quick Look 弹窗）
-    toggleQuickLook: (_file) => {
+    toggleQuickLook: (file) => {
       const showing = !layout.rightSidebarCollapsed && layout.rightPanelTab === 'preview';
-      layout.setRightPanelTab('preview');
-      layout.setRightSidebarCollapsed(showing);
+      if (showing && selectedFile?.path === file.path) layout.setRightSidebarCollapsed(true);
+      else actions.handlePreviewFile(file);
     },
     toggleHiddenFiles,
     navigateWithHistory: actions.navigateWithHistory,
@@ -406,8 +405,6 @@ const ExplorerUnified = () => {
         fileChanges={fileChanges}
         handleDismissChangesToast={actions.handleDismissChangesToast}
         handleReviewChanges={actions.handleReviewChanges}
-        quickLookFile={dialogManager.quickLookFile}
-        handleCloseQuickLook={actions.handleCloseQuickLook}
         pathBookmarksDialogOpen={dialogManager.pathBookmarksDialogOpen}
         handleClosePathBookmarks={actions.handleClosePathBookmarks}
         workspaceLayoutDialogOpen={dialogManager.workspaceLayoutDialogOpen}

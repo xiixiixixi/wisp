@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { FileEntry } from '@/lib/tauri-api';
 import { useDraggable } from '@/hooks/use-draggable';
@@ -9,6 +9,7 @@ import { isImageFile } from './FileGridHelpers';
 import { ViewComponentProps } from './FileGridTypes';
 import { FileReferenceBadge } from './FileReferenceBadge';
 import { formatDateTimeShort } from '@/lib/utils';
+import { useGridKeyboardNav } from '@/hooks/use-grid-keyboard-nav';
 
 // Filmstrip thumbnail item
 const GalleryStripThumb = React.memo(
@@ -66,6 +67,8 @@ const GalleryStripThumb = React.memo(
           name: file.name,
         })}
         data-gallery-path={file.path}
+        data-file-path={file.path}
+        tabIndex={0}
         className={`h-16 w-16 flex-shrink-0 cursor-pointer overflow-hidden rounded-md border-2 transition-all ${(() => {
           if (isFocused) return 'scale-105 border-xp-blue ring-1 ring-xp-blue';
           if (isSelected) return 'border-xp-blue';
@@ -123,12 +126,14 @@ const GalleryView = ({
   handleFileDoubleClick,
   handleFileRightClick,
   handleBackgroundRightClick,
+  onQuickLook,
 }: ViewComponentProps) => {
   const [focusedFile, setFocusedFile] = useState<FileEntry | null>(null);
   const [previewError, setPreviewError] = useState(false);
   const [previewDimensions, setPreviewDimensions] = useState<{ w: number; h: number } | null>(null);
   const { t } = useTranslation();
   const stripRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { getThumbnailUrl, preloadThumbnails } = useThumbnailCache(100);
 
   // Filmstrip virtualizer — each thumbnail is 64px wide + 4px gap = 68px per item
@@ -151,6 +156,33 @@ const GalleryView = ({
     currentPath.startsWith('wisp://') || currentPath.startsWith('gdrive://'),
     true,
   );
+  const attachContainer = useCallback(
+    (node: HTMLDivElement | null) => {
+      containerRef.current = node;
+      bgDropRef.current = node;
+    },
+    [bgDropRef],
+  );
+  const selectGalleryFile = useCallback(
+    (file: FileEntry, event: React.MouseEvent) => {
+      setFocusedFile(file);
+      handleFileClick(file, event);
+    },
+    [handleFileClick],
+  );
+  const { handleKeyDown } = useGridKeyboardNav({
+    files,
+    selectedFiles,
+    columns: 1,
+    viewMode: 'gallery',
+    getColumnsCount: () => 1,
+    handleFileClick: selectGalleryFile,
+    handleFileDoubleClick,
+    needsVirtualization: true,
+    virtualizer: filmstripVirtualizer,
+    containerRef,
+    onQuickLook,
+  });
 
   // Reset focused file when files change (navigated to a new folder)
   useEffect(() => {
@@ -173,46 +205,6 @@ const GalleryView = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayFile?.path]);
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (!displayFile) return;
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-        return;
-      }
-
-      const idx = files.indexOf(displayFile);
-      if (idx === -1) return;
-
-      if (e.key === 'ArrowRight' && idx < files.length - 1) {
-        e.preventDefault();
-        const next = files[idx + 1];
-        setFocusedFile(next);
-        const syntheticEvent = {
-          ctrlKey: e.ctrlKey,
-          shiftKey: e.shiftKey,
-          metaKey: e.metaKey,
-          button: 0,
-        } as React.MouseEvent;
-        handleFileClick(next, syntheticEvent);
-      } else if (e.key === 'ArrowLeft' && idx > 0) {
-        e.preventDefault();
-        const prev = files[idx - 1];
-        setFocusedFile(prev);
-        const syntheticEvent = {
-          ctrlKey: e.ctrlKey,
-          shiftKey: e.shiftKey,
-          metaKey: e.metaKey,
-          button: 0,
-        } as React.MouseEvent;
-        handleFileClick(prev, syntheticEvent);
-      }
-    };
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
-  }, [files, displayFile, handleFileClick]);
-
   // Scroll the active thumbnail into view via virtualizer
   useEffect(() => {
     if (!displayFile) return;
@@ -224,7 +216,9 @@ const GalleryView = ({
 
   return (
     <div
-      ref={bgDropRef}
+      ref={attachContainer}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
       className="flex h-full select-none flex-col overflow-hidden"
       aria-label={t('interface.galleryView')}
       onContextMenu={handleBackgroundRightClick || undefined}
@@ -345,10 +339,7 @@ const GalleryView = ({
                     allFiles={files}
                     getFileIcon={getFileIcon}
                     thumbnailUrl={isImageFile(file) ? getThumbnailUrl(file.path) : undefined}
-                    onClick={(e) => {
-                      setFocusedFile(file);
-                      handleFileClick(file, e);
-                    }}
+                    onClick={(e) => selectGalleryFile(file, e)}
                     onDoubleClick={() => handleFileDoubleClick(file)}
                     onRightClick={(e) => handleFileRightClick(file, e)}
                   />

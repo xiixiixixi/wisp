@@ -1,9 +1,10 @@
 import type { ITheme } from '@xterm/xterm';
 
-/** Opaque terminal surfaces keep ANSI text readable over native window materials. */
+/** Transparent canvases share the drawer material. Keep representative RGB
+ * channels for xterm's ANSI contrast calculations, which ignore alpha. */
 export const TERMINAL_THEMES = {
   light: {
-    background: '#f7f7f9',
+    background: '#f7f7f900',
     foreground: '#25262b',
     cursor: '#005fc4',
     cursorAccent: '#f7f7f9',
@@ -28,7 +29,7 @@ export const TERMINAL_THEMES = {
     brightWhite: '#353a46',
   },
   dark: {
-    background: '#202127',
+    background: '#20212700',
     foreground: '#ececf0',
     cursor: '#8bbbff',
     cursorAccent: '#202127',

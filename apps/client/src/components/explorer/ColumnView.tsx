@@ -4,6 +4,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
 import { ViewComponentProps } from './FileGridTypes';
 import { FileReferenceBadge } from './FileReferenceBadge';
+import { useGridKeyboardNav } from '@/hooks/use-grid-keyboard-nav';
 
 interface ColumnData {
   path: string;
@@ -38,6 +39,7 @@ const ColumnFileRow = React.memo(
       <div
         role="option"
         aria-selected={isActive || isSelected}
+        data-file-path={file.path}
         tabIndex={0}
         onClick={onClick}
         onDoubleClick={onDoubleClick}
@@ -170,11 +172,31 @@ const VirtualizedColumnPane = ({
     overscan: 10,
     enabled: needsVirtualization,
   });
+  const selectColumnFile = useCallback(
+    (file: FileEntry, event: React.MouseEvent) => handleColumnFileClick(file, colIndex, event),
+    [colIndex, handleColumnFileClick],
+  );
+  const { handleKeyDown } = useGridKeyboardNav({
+    files: column.files,
+    selectedFiles,
+    columns: 1,
+    viewMode: 'column',
+    getColumnsCount: () => 1,
+    handleFileClick: selectColumnFile,
+    handleFileDoubleClick,
+    needsVirtualization,
+    virtualizer,
+    containerRef: columnScrollRef,
+    onQuickLook,
+  });
 
   if (!needsVirtualization) {
     return (
       <div
         key={`${column.path}-${colIndex}`}
+        ref={columnScrollRef}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
         style={{
           minWidth: '220px',
           maxWidth: '280px',
@@ -217,6 +239,8 @@ const VirtualizedColumnPane = ({
   return (
     <div
       ref={columnScrollRef}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
       style={{
         minWidth: '220px',
         maxWidth: '280px',
@@ -314,7 +338,15 @@ const ColumnView = ({
 
         try {
           const dirFiles = await TauriAPI.readDirectory(file.path);
-          setColumns((prev) => [...prev, { path: file.path, files: dirFiles, selectedFile: null }]);
+          setColumns((prev) => {
+            // Repeated arrow presses may select a different folder before this
+            // request finishes. Only append to the selection that requested it.
+            if (prev[columnIndex]?.selectedFile !== file.path) return prev;
+            return [
+              ...prev.slice(0, columnIndex + 1),
+              { path: file.path, files: dirFiles, selectedFile: null },
+            ];
+          });
           setTimeout(() => {
             scrollRef.current?.scrollTo({
               left: scrollRef.current.scrollWidth,

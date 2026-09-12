@@ -873,6 +873,10 @@ const EditorGroupPane = ({
       data-drop-target={isDroppablePath ? currentPath : undefined}
       data-is-folder={isDroppablePath ? 'true' : undefined}
       data-group-id={group.id}
+      data-active={isActive}
+      onFocusCapture={() => {
+        if (!isActive) onSetActiveGroup(group.id);
+      }}
       onMouseDown={() => {
         if (!isActive) onSetActiveGroup(group.id);
       }}

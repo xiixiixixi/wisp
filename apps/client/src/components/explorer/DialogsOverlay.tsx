@@ -32,7 +32,6 @@ const CommandPalette = React.lazy(() => import('@/components/CommandPalette'));
 const FileOperationProgressDialog = React.lazy(
   () => import('@/components/dialogs/FileOperationProgressDialog'),
 );
-const QuickLookOverlay = React.lazy(() => import('@/components/QuickLookOverlay'));
 const CollectionEditorDialog = React.lazy(
   () => import('@/components/dialogs/CollectionEditorDialog'),
 );
@@ -148,10 +147,6 @@ export interface DialogsOverlayProps {
   onDismissChangesToast: () => void;
   onReviewChanges: () => void;
 
-  // ── Quick Look ───────────────────────────────────────────────────────────
-  quickLookFile: FileEntry | null;
-  onCloseQuickLook: () => void;
-
   // ── Path Bookmarks ───────────────────────────────────────────────────────
   pathBookmarksDialogOpen: boolean;
   onClosePathBookmarks: () => void;
@@ -218,9 +213,6 @@ const DialogsOverlay = ({
   fileChanges,
   onDismissChangesToast,
   onReviewChanges,
-  // Quick Look
-  quickLookFile,
-  onCloseQuickLook,
   // Path Bookmarks
   pathBookmarksDialogOpen,
   onClosePathBookmarks,
@@ -355,9 +347,6 @@ const DialogsOverlay = ({
             currentPath={currentPath}
           />
         )}
-
-        {/* Quick Look Overlay (pulls in react-syntax-highlighter) */}
-        {quickLookFile && <QuickLookOverlay file={quickLookFile} onClose={onCloseQuickLook} />}
 
         {/* Extension Permission Consent Dialog */}
         <ExtensionPermissionDialog />

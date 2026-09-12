@@ -1,8 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import GalleryView from '@/components/explorer/GalleryView';
 import type { FileEntry } from '@/lib/tauri-api';
+import { requestAdjacentFile } from '@/lib/file-navigation';
+
+vi.mock('@/lib/utils', () => ({ formatDateTimeShort: () => '2026-01-01' }));
+vi.mock('@tanstack/react-virtual', () => ({
+  useVirtualizer: ({ count }: { count: number }) => ({
+    getTotalSize: () => count * 68,
+    getVirtualItems: () =>
+      Array.from({ length: count }, (_, index) => ({
+        key: index,
+        index,
+        start: index * 68,
+        size: 68,
+      })),
+    scrollToIndex: vi.fn(),
+  }),
+}));
 
 vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {
@@ -15,9 +31,10 @@ vi.mock('@/hooks/use-draggable', () => ({
   useDraggable: vi.fn(() => ({})),
 }));
 
-vi.mock('@/hooks/use-droppable', () => ({
-  useDroppable: vi.fn(() => vi.fn()),
-}));
+vi.mock('@/hooks/use-droppable', async () => {
+  const { useRef } = await import('react');
+  return { useDroppable: () => useRef(null) };
+});
 
 vi.mock('@/hooks/use-thumbnail-cache', () => ({
   useThumbnailCache: vi.fn(() => ({
@@ -93,6 +110,68 @@ describe('GalleryView', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  describe('Adjacent file navigation', () => {
+    it('synchronizes selection, focus and the large preview for both vertical arrows', async () => {
+      render(<GalleryView {...defaultProps} />);
+      const rows = screen.getAllByRole('option');
+      rows[0].focus();
+      fireEvent.keyDown(rows[0], { key: 'ArrowDown' });
+      expect(defaultProps.handleFileClick).toHaveBeenLastCalledWith(
+        mixedFiles[1],
+        expect.anything(),
+      );
+      expect(screen.getByLabelText('Preview of photo2.png')).toBeVisible();
+      await waitFor(() => expect(rows[1]).toHaveFocus());
+      fireEvent.keyDown(rows[1], { key: 'ArrowUp' });
+      expect(defaultProps.handleFileClick).toHaveBeenLastCalledWith(
+        mixedFiles[0],
+        expect.anything(),
+      );
+      expect(screen.getByLabelText('Preview of photo1.jpg')).toBeVisible();
+      await waitFor(() => expect(rows[0]).toHaveFocus());
+    });
+
+    it('handles each horizontal arrow once and leaves arrows outside the view alone', async () => {
+      render(<GalleryView {...defaultProps} />);
+      const rows = screen.getAllByRole('option');
+      rows[0].focus();
+      fireEvent.keyDown(rows[0], { key: 'ArrowRight' });
+      expect(defaultProps.handleFileClick).toHaveBeenCalledTimes(1);
+      await waitFor(() => expect(rows[1]).toHaveFocus());
+      fireEvent.keyDown(rows[1], { key: 'ArrowLeft' });
+      expect(defaultProps.handleFileClick).toHaveBeenCalledTimes(2);
+      await waitFor(() => expect(rows[0]).toHaveFocus());
+      fireEvent.keyDown(document.body, { key: 'ArrowRight' });
+      expect(defaultProps.handleFileClick).toHaveBeenCalledTimes(2);
+    });
+
+    it('updates the gallery preview through adjacent requests while retaining overlay focus', async () => {
+      render(<GalleryView {...defaultProps} />);
+      const overlayControl = document.createElement('button');
+      document.body.append(overlayControl);
+      overlayControl.focus();
+      act(() => expect(requestAdjacentFile(mixedFiles[0].path, 1)).toBe(mixedFiles[1]));
+      expect(defaultProps.handleFileClick).toHaveBeenLastCalledWith(
+        mixedFiles[1],
+        expect.anything(),
+      );
+      expect(screen.getByLabelText('Preview of photo2.png')).toBeVisible();
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      expect(overlayControl).toHaveFocus();
+      overlayControl.remove();
+    });
+
+    it('opens Quick Look once for the focused thumbnail using Space', () => {
+      const onQuickLook = vi.fn();
+      render(<GalleryView {...defaultProps} onQuickLook={onQuickLook} />);
+      const row = screen.getAllByRole('option')[2];
+      row.focus();
+      fireEvent.keyDown(row, { key: ' ' });
+      expect(onQuickLook).toHaveBeenCalledOnce();
+      expect(onQuickLook).toHaveBeenCalledWith(mixedFiles[2]);
+    });
   });
 
   describe('Rendering', () => {

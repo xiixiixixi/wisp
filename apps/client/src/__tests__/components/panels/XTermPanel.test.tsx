@@ -151,7 +151,7 @@ describe('XTermPanel appearance and PTY lifetime', () => {
       expect(mocks.terminals).toHaveLength(1);
       expect(mocks.terminals[0].initialOptions).toMatchObject({
         theme: TERMINAL_THEMES[theme],
-        allowTransparency: false,
+        allowTransparency: true,
         minimumContrastRatio: 4.5,
       });
       expect(mocks.ptySpawn).toHaveBeenCalledWith(expect.any(String), '/workspace', 80, 24);

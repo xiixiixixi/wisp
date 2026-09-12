@@ -1,9 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { FileEntry, TauriAPI } from '@/lib/tauri-api';
 import { useDraggable } from '@/hooks/use-draggable';
 import { ViewComponentProps } from './FileGridTypes';
 import { FileReferenceBadge } from './FileReferenceBadge';
+import { useGridKeyboardNav } from '@/hooks/use-grid-keyboard-nav';
+
+const treeVirtualizer = { scrollToIndex: () => {} };
 
 interface TreeRowProps {
   file: FileEntry;
@@ -56,6 +59,7 @@ const TreeRow = ({
           name: file.name,
         })}
         tabIndex={0}
+        data-file-path={file.path}
         data-drop-target={file.is_dir ? file.path : undefined}
         data-is-folder={file.is_dir ? 'true' : undefined}
         className={`flex min-w-0 cursor-pointer items-center overflow-hidden rounded-md px-2 py-1 transition-colors hover:bg-xp-surface-light ${
@@ -191,6 +195,7 @@ const TreeView = ({
   const { t: tUi } = useTranslation();
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [folderContents, setFolderContents] = useState<Map<string, FileEntry[]>>(new Map());
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const toggleFolder = (folderPath: string) => {
     setExpandedFolders((prev) => {
@@ -220,6 +225,32 @@ const TreeView = ({
   };
 
   const sortedFiles = useMemo(() => sortFiles(files), [files]);
+  const visibleFiles = useMemo(() => {
+    const result: FileEntry[] = [];
+    const visit = (entries: FileEntry[]) => {
+      for (const file of entries) {
+        result.push(file);
+        if (file.is_dir && expandedFolders.has(file.path)) {
+          visit(sortFiles(folderContents.get(file.path) ?? []));
+        }
+      }
+    };
+    visit(sortedFiles);
+    return result;
+  }, [sortedFiles, expandedFolders, folderContents]);
+  const { handleKeyDown } = useGridKeyboardNav({
+    files: visibleFiles,
+    selectedFiles,
+    columns: 1,
+    viewMode: 'tree',
+    getColumnsCount: () => 1,
+    handleFileClick,
+    handleFileDoubleClick,
+    needsVirtualization: false,
+    virtualizer: treeVirtualizer,
+    containerRef,
+    onQuickLook,
+  });
 
   // Draggable rows need the full file list so multi-select drags can collect
   // every selected path, including items inside expanded folders.
@@ -233,8 +264,11 @@ const TreeView = ({
 
   return (
     <div
+      ref={containerRef}
       className="select-none overflow-hidden text-sm"
       role="tree"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
       aria-label={tUi('interface.fileTree')}
       onContextMenu={handleBackgroundRightClick || undefined}
     >

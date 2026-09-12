@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import FileGrid from '@/components/explorer/FileGrid';
 import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
+import { requestAdjacentFile } from '@/lib/file-navigation';
+import type { FileGroup } from '@/lib/utils';
+import * as locale from '@/lib/locale';
 
 // Mock the drag/drop hooks
 vi.mock('@/hooks/use-draggable', () => ({
@@ -180,14 +183,156 @@ describe('FileGrid', () => {
       render(<FileGrid {...selectedProps} />);
 
       const selectedFile = screen.getByText('document.txt').closest('[role="option"]');
-      expect(selectedFile?.className).toContain('bg-xp-blue');
+      expect(selectedFile).toHaveAttribute('aria-selected', 'true');
     });
 
     it('does not highlight unselected files', () => {
       render(<FileGrid {...mockProps} />);
 
       const unselectedFile = screen.getByText('document.txt').closest('[role="option"]');
-      expect(unselectedFile?.className).not.toContain('bg-xp-blue');
+      expect(unselectedFile).toHaveAttribute('aria-selected', 'false');
+    });
+  });
+
+  describe('Visible-order keyboard navigation', () => {
+    it.each([
+      ['ArrowUp', 0],
+      ['ArrowDown', 2],
+    ] as const)(
+      'selects the adjacent details row with %s and consumes the key',
+      async (key, target) => {
+        render(<FileGrid {...mockProps} viewMode="details" />);
+        const current = screen.getByRole('row', { name: 'document.txt' });
+        current.focus();
+        const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+
+        fireEvent(current, event);
+
+        expect(event.defaultPrevented).toBe(true);
+        expect(mockProps.handleFileClick).toHaveBeenCalledOnce();
+        expect(mockProps.handleFileClick).toHaveBeenCalledWith(
+          mockFiles[target],
+          expect.objectContaining({ shiftKey: false, ctrlKey: false, metaKey: false }),
+        );
+        await waitFor(() =>
+          expect(screen.getByRole('row', { name: mockFiles[target].name })).toHaveFocus(),
+        );
+      },
+    );
+
+    it('uses date-group order for both details arrows and adjacent-file requests', async () => {
+      const groups: FileGroup[] = [
+        { group: 'Today', files: [mockFiles[2]] },
+        { group: 'Yesterday', files: [mockFiles[0], mockFiles[1]] },
+      ];
+      render(<FileGrid {...mockProps} viewMode="details" fileGroups={groups} />);
+      const rows = screen.getAllByRole('row').filter((row) => row.hasAttribute('data-file-path'));
+      expect(rows.map((row) => row.getAttribute('data-file-path'))).toEqual([
+        mockFiles[2].path,
+        mockFiles[0].path,
+        mockFiles[1].path,
+      ]);
+      rows[0].focus();
+      const down = new KeyboardEvent('keydown', {
+        key: 'ArrowDown',
+        bubbles: true,
+        cancelable: true,
+      });
+      fireEvent(rows[0], down);
+      expect(down.defaultPrevented).toBe(true);
+      expect(mockProps.handleFileClick).toHaveBeenLastCalledWith(mockFiles[0], expect.any(Object));
+      await waitFor(() => expect(rows[1]).toHaveFocus());
+
+      mockProps.handleFileClick.mockClear();
+      expect(requestAdjacentFile(mockFiles[0].path, -1)).toBe(mockFiles[2]);
+      expect(mockProps.handleFileClick).toHaveBeenCalledOnce();
+      expect(mockProps.handleFileClick).toHaveBeenCalledWith(mockFiles[2], expect.any(Object));
+    });
+
+    it('routes a request only to the active pane when both panes contain the same paths', async () => {
+      const inactiveClick = vi.fn();
+      const activeClick = vi.fn();
+      render(
+        <>
+          <section data-active="false" aria-label="Inactive pane">
+            <FileGrid
+              {...mockProps}
+              groupId="inactive"
+              viewMode="details"
+              handleFileClick={inactiveClick}
+            />
+          </section>
+          <section data-active="true" aria-label="Active pane">
+            <FileGrid
+              {...mockProps}
+              groupId="active"
+              viewMode="details"
+              handleFileClick={activeClick}
+            />
+          </section>
+          <button>Preview control</button>
+        </>,
+      );
+      expect(
+        within(screen.getByRole('region', { name: 'Inactive pane' })).getByRole('row', {
+          name: 'document.txt',
+        }),
+      ).toBeInTheDocument();
+      expect(
+        within(screen.getByRole('region', { name: 'Active pane' })).getByRole('row', {
+          name: 'document.txt',
+        }),
+      ).toBeInTheDocument();
+      const preview = screen.getByRole('button', { name: 'Preview control' });
+      preview.focus();
+
+      expect(requestAdjacentFile(mockFiles[1].path, 1)).toBe(mockFiles[2]);
+
+      expect(inactiveClick).not.toHaveBeenCalled();
+      expect(activeClick).toHaveBeenCalledOnce();
+      expect(activeClick).toHaveBeenCalledWith(mockFiles[2], expect.any(Object));
+      // Wait for the queued row scroll: requests from preview must preserve its focus.
+      await act(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+      expect(preview).toHaveFocus();
+    });
+
+    it.each([
+      ['ArrowUp', 0],
+      ['ArrowDown', 2],
+    ] as const)(
+      'consumes %s at the details boundary without moving selection or focus',
+      (key, index) => {
+        render(<FileGrid {...mockProps} viewMode="details" />);
+        const row = screen.getByRole('row', { name: mockFiles[index].name });
+        row.focus();
+        const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+
+        fireEvent(row, event);
+
+        expect(event.defaultPrevented).toBe(true);
+        expect(mockProps.handleFileClick).not.toHaveBeenCalled();
+        expect(row).toHaveFocus();
+      },
+    );
+
+    it('returns the boundary file for preview requests and stops responding after unmount', () => {
+      const { unmount } = render(<FileGrid {...mockProps} viewMode="details" />);
+      expect(requestAdjacentFile(mockFiles[0].path, -1)).toBe(mockFiles[0]);
+      expect(requestAdjacentFile(mockFiles[2].path, 1)).toBe(mockFiles[2]);
+      expect(mockProps.handleFileClick).toHaveBeenNthCalledWith(
+        1,
+        mockFiles[0],
+        expect.any(Object),
+      );
+      expect(mockProps.handleFileClick).toHaveBeenNthCalledWith(
+        2,
+        mockFiles[2],
+        expect.any(Object),
+      );
+      unmount();
+      mockProps.handleFileClick.mockClear();
+      expect(requestAdjacentFile(mockFiles[1].path, 1)).toBeNull();
+      expect(mockProps.handleFileClick).not.toHaveBeenCalled();
     });
   });
 
@@ -270,14 +415,24 @@ describe('FileGrid', () => {
     });
 
     it('formats dates correctly', () => {
-      const detailsProps = { ...mockProps, viewMode: 'details' };
-      render(<FileGrid {...detailsProps} />);
+      const appLocale = vi.spyOn(locale, 'getAppLocale').mockReturnValue('en-US');
+      try {
+        render(
+          <FileGrid
+            {...mockProps}
+            viewMode="details"
+            files={[{ ...mockFiles[1], modified: new Date(2026, 0, 12, 12).getTime() / 1000 }]}
+          />,
+        );
 
-      // formatDate is called once per file; async effects may cause additional renders
-      expect(mockProps.formatDate.mock.calls.length).toBeGreaterThanOrEqual(3);
-      expect(mockProps.formatDate).toHaveBeenCalledWith(mockFiles[0].modified);
-      expect(mockProps.formatDate).toHaveBeenCalledWith(mockFiles[1].modified);
-      expect(mockProps.formatDate).toHaveBeenCalledWith(mockFiles[2].modified);
+        expect(
+          within(screen.getByRole('row', { name: 'document.txt' })).getByRole('gridcell', {
+            name: 'Jan 12',
+          }),
+        ).toBeVisible();
+      } finally {
+        appLocale.mockRestore();
+      }
     });
   });
 

@@ -12,6 +12,7 @@ import PreviewUnavailable, {
 } from '@/components/previews/PreviewUnavailable';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useTranslation } from 'react-i18next';
+import { requestAdjacentFile } from '@/lib/file-navigation';
 
 // Module-level cache for preview components by file type, avoiding redundant dynamic imports
 const previewComponentCache = new Map<PreviewType, React.ComponentType<PreviewProps>>();
@@ -303,6 +304,7 @@ const PreviewPanel = ({
 }: PreviewPanelProps) => {
   const { t: tUi } = useTranslation();
   const propertiesId = useId();
+  const previewRef = useRef<HTMLDivElement>(null);
   const propertiesToggleRef = useRef<HTMLButtonElement>(null);
   const [showProperties, setShowProperties] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
@@ -312,6 +314,78 @@ const PreviewPanel = ({
     setShowProperties(true);
     propertiesToggleRef.current?.focus();
   }, []);
+
+  const selectedPath = selectedFile?.path;
+  useEffect(() => {
+    if (!selectedPath) return;
+
+    const handlePreviewNavigation = (event: KeyboardEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.isComposing ||
+        event.shiftKey ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey ||
+        (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')
+      ) {
+        return;
+      }
+
+      const preview = previewRef.current;
+      const target = event.target instanceof Element ? event.target : document.activeElement;
+      if (!preview || !target) return;
+
+      // A dirty source may be hidden behind its rendered tab. Protect the
+      // entire preview, including file properties and the editor toolbar.
+      if (preview.querySelector('[data-preview-editing="true"]')) return;
+      if (
+        document.querySelector(
+          '[role="dialog"][aria-modal="true"], [role="alertdialog"][aria-modal="true"], [role="menu"]',
+        )
+      ) {
+        return;
+      }
+
+      if (target === document.body) {
+        // Focus can return to the body when the previous preview unmounts.
+        // Never use that fallback while another control or preview owns it.
+        if (
+          document.activeElement !== document.body ||
+          document.querySelectorAll('[data-file-preview]').length !== 1
+        ) {
+          return;
+        }
+      } else if (!preview.contains(target)) {
+        return;
+      }
+
+      if (
+        target.closest(
+          'input, textarea, select, .xterm, [role="combobox"], [role="listbox"], [role="slider"], [role="spinbutton"], [role="menu"], [role="menubar"], [role="tablist"], [role="dialog"], [role="alertdialog"]',
+        )
+      ) {
+        return;
+      }
+      const readOnlyEditor = target.closest('[data-preview-readonly="true"] .cm-editor');
+      if (
+        !readOnlyEditor &&
+        target.closest('[contenteditable]:not([contenteditable="false"]), [role="textbox"]')
+      ) {
+        return;
+      }
+
+      const file = requestAdjacentFile(selectedPath, event.key === 'ArrowDown' ? 1 : -1);
+      if (file) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    // Capture precedes CodeMirror's read-only cursor keymap and browser scroll.
+    document.addEventListener('keydown', handlePreviewNavigation, true);
+    return () => document.removeEventListener('keydown', handlePreviewNavigation, true);
+  }, [selectedPath]);
 
   // Clean up copy feedback timer on unmount
   useEffect(() => {
@@ -407,9 +481,11 @@ const PreviewPanel = ({
 
   return (
     <div
+      ref={previewRef}
       className="flex h-full flex-col"
       role="region"
       aria-label={`Preview of ${selectedFile.name}`}
+      data-file-preview={selectedFile.path}
     >
       {/* Main Preview Area - Takes most of the space */}
       <div
