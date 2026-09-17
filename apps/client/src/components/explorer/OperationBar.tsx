@@ -5,17 +5,11 @@ import {
   ArrowDown,
   ChevronDown,
   Rows3,
-  BarChart3,
   FolderPlus,
   Package,
   PackageOpen,
-  Info,
   Terminal,
-  Copy,
-  Scissors,
   Clipboard,
-  Eye,
-  Trash2,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { SortField } from '@/lib/utils';
@@ -58,10 +52,6 @@ interface OperationBarProps {
   onSelectNone?: () => void;
   onInvertSelection?: () => void;
   onAdvancedSelection?: () => void;
-  /** Whether size heatmap badges are shown */
-  showSizeBadges?: boolean;
-  /** Toggle size heatmap badges */
-  onToggleSizeBadges?: () => void;
   /** Whether the current view mode was auto-detected */
   isAutoDetected?: boolean;
   /** Callback to clear the auto-detected view and re-trigger detection */
@@ -93,29 +83,28 @@ const OperationBar = ({
   groupByDate,
   setGroupByDate,
   handleCreateFolder,
-  handleDelete,
+  handleDelete: _handleDelete,
   selectedFiles,
   setBottomPanelCollapsed,
   setBottomPanelTab,
   onSelectAll: _onSelectAll,
   onInvertSelection: _onInvertSelection,
   onAdvancedSelection: _onAdvancedSelection,
-  showSizeBadges,
-  onToggleSizeBadges,
   isAutoDetected: _isAutoDetected,
   onClearAutoDetect: _onClearAutoDetect,
   onCompress,
   onExtract,
-  onProperties,
+  onProperties: _onProperties,
   currentPath: _currentPath,
-  onCopy,
-  onCut,
+  onCopy: _onCopy,
+  onCut: _onCut,
   onPaste,
   hasClipboard,
-  onPreview,
+  onPreview: _onPreview,
   statusAccessory,
 }: OperationBarProps) => {
   const { t } = useTranslation();
+  const hasSelection = selectedFiles.size > 0;
   const [openMenu, setOpenMenu] = useState<OperationMenu | null>(null);
   const [airDropOpening, setAirDropOpening] = useState(false);
   const airDropOpeningRef = useRef(false);
@@ -344,106 +333,6 @@ const OperationBar = ({
     </button>
   );
 
-  if (selectedFiles.size > 0) {
-    return (
-      <div
-        ref={barRef}
-        className="wisp-operationbar wisp-selection-toolbar border-b border-xp-blue/30 bg-xp-blue/5 px-3 py-1.5"
-        role="toolbar"
-        aria-label={t('operationBar.selectionActions')}
-      >
-        <div className="flex min-h-8 items-center justify-end">
-          <div className="wisp-selection-actions flex flex-shrink-0 items-center gap-1">
-            {airDropButton}
-            {selectedFiles.size === 1 && onPreview && (
-              <button
-                type="button"
-                onClick={onPreview}
-                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold text-xp-text transition-colors hover:bg-xp-surface-light"
-                title={t('operationBar.preview')}
-                aria-label={t('operationBar.preview')}
-              >
-                <Eye size={15} aria-hidden="true" />
-                <span className="hidden lg:inline">{t('common.preview')}</span>
-              </button>
-            )}
-            {onCopy && (
-              <button
-                type="button"
-                onClick={onCopy}
-                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold text-xp-text transition-colors hover:bg-xp-surface-light"
-                title={t('contextMenu.copy')}
-                aria-label={t('contextMenu.copy')}
-              >
-                <Copy size={15} aria-hidden="true" />
-                <span className="hidden xl:inline">{t('contextMenu.copy')}</span>
-              </button>
-            )}
-            {onCut && (
-              <button
-                type="button"
-                onClick={onCut}
-                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold text-xp-text transition-colors hover:bg-xp-surface-light"
-                title={t('contextMenu.cut')}
-                aria-label={t('contextMenu.cut')}
-              >
-                <Scissors size={15} aria-hidden="true" />
-                <span className="hidden xl:inline">{t('contextMenu.cut')}</span>
-              </button>
-            )}
-            {onCompress && selectedFiles.size > 1 && (
-              <button
-                type="button"
-                onClick={onCompress}
-                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold text-xp-text transition-colors hover:bg-xp-surface-light"
-                title={t('operationBar.compress')}
-                aria-label={t('operationBar.compress')}
-              >
-                <Package size={15} aria-hidden="true" />
-                <span className="hidden xl:inline">{t('operationBar.compress')}</span>
-              </button>
-            )}
-            {onExtract && selectedFiles.size === 1 && (
-              <button
-                type="button"
-                onClick={onExtract}
-                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold text-xp-text transition-colors hover:bg-xp-surface-light"
-                title={t('operationBar.extract')}
-                aria-label={t('operationBar.extract')}
-              >
-                <PackageOpen size={15} aria-hidden="true" />
-                <span className="hidden xl:inline">{t('operationBar.extract')}</span>
-              </button>
-            )}
-            {onProperties && (
-              <button
-                type="button"
-                onClick={onProperties}
-                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold text-xp-text transition-colors hover:bg-xp-surface-light"
-                title={t('operationBar.properties')}
-                aria-label={t('operationBar.properties')}
-              >
-                <Info size={15} aria-hidden="true" />
-                <span className="hidden xl:inline">{t('operationBar.properties')}</span>
-              </button>
-            )}
-            <div className="mx-1 h-5 w-px bg-xp-border" aria-hidden="true" />
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold text-xp-red transition-colors hover:bg-xp-red/10"
-              title={t('operationBar.deleteItems', { count: selectedFiles.size })}
-              aria-label={t('operationBar.deleteItemsAria', { count: selectedFiles.size })}
-            >
-              <Trash2 size={15} aria-hidden="true" />
-              <span className="hidden lg:inline">{t('contextMenu.delete')}</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
       ref={barRef}
@@ -595,52 +484,6 @@ const OperationBar = ({
               </AnchoredMenu>
             )}
           </div>
-          {/* Selection actions appear contextually instead of filling every empty state. */}
-          {selectedFiles.size > 0 && (
-            <div className="ml-1 flex items-center gap-0.5 rounded-md border border-xp-border bg-muted px-1">
-              <span className="px-1.5 text-[11px] font-semibold tabular-nums text-xp-blue">
-                {selectedFiles.size}
-              </span>
-              {selectedFiles.size === 1 && onPreview && (
-                <button
-                  onClick={onPreview}
-                  className="rounded-md p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-                  title={t('operationBar.preview')}
-                  aria-label={t('operationBar.preview')}
-                >
-                  <Eye size={15} />
-                </button>
-              )}
-              {onCopy && (
-                <button
-                  onClick={onCopy}
-                  className="rounded-md p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-                  title={t('contextMenu.copy')}
-                  aria-label={t('contextMenu.copy')}
-                >
-                  <Copy size={15} />
-                </button>
-              )}
-              {onCut && (
-                <button
-                  onClick={onCut}
-                  className="rounded-md p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-                  title={t('contextMenu.cut')}
-                  aria-label={t('contextMenu.cut')}
-                >
-                  <Scissors size={15} />
-                </button>
-              )}
-              <button
-                onClick={handleDelete}
-                className="rounded-md p-1 text-xp-text-muted transition-colors hover:bg-xp-red/10 hover:text-xp-red"
-                title={t('contextMenu.delete')}
-                aria-label={t('contextMenu.delete')}
-              >
-                <Trash2 size={15} />
-              </button>
-            </div>
-          )}
           {onPaste && hasClipboard && (
             <button
               onClick={onPaste}
@@ -651,42 +494,44 @@ const OperationBar = ({
               <Clipboard size={15} />
             </button>
           )}
-
-          {/* Size Map toggle */}
-          {onToggleSizeBadges && (
-            <button
-              onClick={onToggleSizeBadges}
-              className={`wisp-control wisp-size-map-control flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${
-                showSizeBadges
-                  ? 'bg-xp-blue/10 text-xp-blue'
-                  : 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
-              }`}
-              title={
-                showSizeBadges
-                  ? t('operationBar.hideSizeHeatmap')
-                  : t('operationBar.showSizeHeatmap')
-              }
-              aria-label={
-                showSizeBadges
-                  ? t('operationBar.hideSizeHeatmap')
-                  : t('operationBar.showSizeHeatmap')
-              }
-              aria-pressed={showSizeBadges}
-            >
-              <BarChart3 size={14} />
-              <span className="wisp-size-map-label whitespace-nowrap">
-                {t('operationBar.sizeMap')}
-              </span>
-            </button>
-          )}
         </div>
 
         <div className="flex min-w-0 items-center gap-2">
           {statusAccessory && <div className="wisp-toolbar-accessory">{statusAccessory}</div>}
 
-          <div className="wisp-toolbar-controls wisp-toolbar-controls-secondary flex flex-shrink-0 items-center">
+          <div
+            className={`wisp-toolbar-controls wisp-toolbar-controls-secondary flex flex-shrink-0 items-center${
+              hasSelection ? 'wisp-selection-actions' : ''
+            }`}
+            role={hasSelection ? 'toolbar' : undefined}
+            aria-label={hasSelection ? t('operationBar.selectionActions') : undefined}
+          >
             {/* Action Buttons */}
             {airDropButton}
+            {hasSelection && onCompress && selectedFiles.size > 1 && (
+              <button
+                type="button"
+                onClick={onCompress}
+                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold text-xp-text transition-colors hover:bg-xp-surface-light"
+                title={t('operationBar.compress')}
+                aria-label={t('operationBar.compress')}
+              >
+                <Package size={15} aria-hidden="true" />
+                <span className="hidden xl:inline">{t('operationBar.compress')}</span>
+              </button>
+            )}
+            {hasSelection && onExtract && selectedFiles.size === 1 && (
+              <button
+                type="button"
+                onClick={onExtract}
+                className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold text-xp-text transition-colors hover:bg-xp-surface-light"
+                title={t('operationBar.extract')}
+                aria-label={t('operationBar.extract')}
+              >
+                <PackageOpen size={15} aria-hidden="true" />
+                <span className="hidden xl:inline">{t('operationBar.extract')}</span>
+              </button>
+            )}
             <button
               onClick={handleCreateFolder}
               className="wisp-control flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold text-xp-text transition-colors hover:text-xp-blue"

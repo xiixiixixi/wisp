@@ -541,7 +541,7 @@ html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-global-selectionbar
   background: transparent !important;
 }
 html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-navigationbar {
-  min-width: 0;
+  min-width: 150px;
   min-height: 36px;
   height: 36px;
   padding: 0 !important;
@@ -743,10 +743,6 @@ html:is(.theme-light, .theme-fluid, .theme-rolex)
 html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-editor-pane {
   container: editor-pane / inline-size;
 }
-html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-selection-toolbar {
-  width: 100%;
-  container: action-rail / inline-size;
-}
 /* File panes share the window's backing instead of sitting in a white card. */
 html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-pane-toolbar {
   display: flex;
@@ -758,21 +754,12 @@ html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-pane-toolbar {
   padding: 4px 16px 8px;
 }
 html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-pane-toolbar-actions {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   min-width: 0;
+  overflow: hidden;
 }
 html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-operationbar-layout {
   gap: 8px;
-}
-html:root:is(.theme-light, .theme-fluid, .theme-rolex)
-  .wisp-pane-toolbar:has(.wisp-selection-toolbar)
-  .wisp-navigationbar {
-  display: none;
-}
-html:root:is(.theme-light, .theme-fluid, .theme-rolex)
-  .wisp-pane-toolbar:has(.wisp-selection-toolbar)
-  .wisp-pane-toolbar-actions {
-  flex: 1 1 auto;
 }
 html:root:is(.theme-light, .theme-fluid, .theme-rolex)
   .wisp-navigationbar
@@ -849,9 +836,6 @@ html:root:is(.theme-light, .theme-fluid, .theme-rolex)
     .wisp-pane-toolbar
     .wisp-control
     > .whitespace-nowrap,
-  html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-size-map-label {
-    display: none;
-  }
   html:root:is(.theme-light, .theme-fluid, .theme-rolex)
     :is(.wisp-file-row, .wisp-list-header > div) {
     --wisp-details-grid: 24px minmax(0, 1fr) 72px 100px;

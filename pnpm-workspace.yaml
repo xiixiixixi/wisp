@@ -21,3 +21,5 @@ onlyBuiltDependencies:
   - '@prisma/engines'
   - prisma
   - sharp
+
+verifyDepsBeforeRun: false

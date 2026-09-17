@@ -4,8 +4,7 @@ import { createPortal } from 'react-dom';
 import { useDraggable } from '@/hooks/use-draggable';
 import { useDroppable } from '@/hooks/use-droppable';
 import { TagDots, GitStatusDot, LockBadge, isImageFile, isHiddenFile } from './FileGridHelpers';
-import { FileGridItemProps, SizeBadgeInfo } from './FileGridTypes';
-import { formatFileSize } from '@/lib/utils';
+import { FileGridItemProps } from './FileGridTypes';
 import { getFolderColorHex } from '@/lib/folder-colors';
 import { validateFileName } from '@/lib/validate-filename';
 import ThumbnailPreview from './ThumbnailPreview';
@@ -19,56 +18,6 @@ const getChatDisplayName = (filename: string): string => {
   name = name.replace(/^\d{4}-\d{2}-\d{2}_/, '');
   // Replace hyphens/underscores with spaces
   return name.replace(/[-_]/g, ' ');
-};
-
-// ─── Size badge component ────────────────────────────────────────────────────
-
-const SizeBadge = ({
-  file,
-  info,
-}: {
-  file: { name: string; size: number; is_dir: boolean };
-  info: SizeBadgeInfo;
-}) => {
-  let percentileLabel: string;
-  if (info.percentile >= 90) {
-    percentileLabel = 'Top 10%';
-  } else if (info.percentile >= 75) {
-    percentileLabel = 'Top 25%';
-  } else if (info.percentile >= 50) {
-    percentileLabel = 'Top 50%';
-  } else {
-    percentileLabel = 'Bottom 50%';
-  }
-
-  const tooltipText = file.is_dir
-    ? `${file.name} — Folder`
-    : `${file.name} — ${formatFileSize(file.size)} (${percentileLabel} in this folder)`;
-
-  return (
-    <div
-      title={tooltipText}
-      style={{
-        position: 'absolute',
-        top: 4,
-        right: 4,
-        width: 12,
-        height: 12,
-        borderRadius: '50%',
-        backgroundColor: info.color,
-        border: '1.5px solid var(--xp-border)',
-        zIndex: 5,
-        cursor: 'default',
-        transition: 'transform 0.15s ease',
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.transform = 'scale(1.3)';
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
-      }}
-    />
-  );
 };
 
 // ─── Inline rename validation icon ──────────────────────────────────────────
@@ -398,8 +347,6 @@ const FileGridItem = React.memo(
     onFileRightClick,
     getFolderSize,
     isCalculatingSize,
-    showSizeBadge,
-    sizeBadgeInfo,
     thumbnailUrl,
     isRenaming,
     existingNames,
@@ -566,7 +513,6 @@ const FileGridItem = React.memo(
             }}
           />
         )}
-        {showSizeBadge && sizeBadgeInfo && <SizeBadge file={file} info={sizeBadgeInfo} />}
         <div
           className={`${itemSize} ${isGridView ? 'mb-2' : ''} flex-shrink-0 ${isHiddenFile(file) && !isRenaming ? 'opacity-60' : ''}`}
           style={folderColorHex ? { color: folderColorHex } : undefined}

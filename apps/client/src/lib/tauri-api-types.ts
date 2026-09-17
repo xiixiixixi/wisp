@@ -1227,3 +1227,42 @@ export interface BackupProgress {
   current_file: string;
   percentage: number;
 }
+
+// ── ChatGPT Bridge (OpenAI Secure MCP Tunnel) ───────────────────────────────
+
+/** Persisted bridge configuration (chatgpt-bridge.json, camelCase on disk). */
+export interface ChatgptBridgeConfig {
+  version: number;
+  enabled: boolean;
+  tunnelId: string;
+  /** Explicit tunnel-client path; null = auto-detect (PATH + Homebrew). */
+  tunnelClientPath: string | null;
+  /** Directory whitelist — empty means the server serves nothing. */
+  allowedRoots: string[];
+  /** Per-file read cap in bytes for the read_file tool. */
+  maxFileBytes: number;
+}
+
+/** Live state of the tunnel-client child process. */
+export interface ChatgptBridgeStatus {
+  /** stopped | starting | running | error */
+  state: string;
+  enabled: boolean;
+  pid: number | null;
+  healthUrl: string | null;
+  /** Last /readyz probe result; null = not probed yet. */
+  ready: boolean | null;
+  restarts: number;
+  lastError: string | null;
+  startedAt: number | null;
+}
+
+/** Full snapshot returned by chatgpt_bridge_get_state / save_config. */
+export interface ChatgptBridgeState {
+  config: ChatgptBridgeConfig;
+  status: ChatgptBridgeStatus;
+  detectedClientPath: string | null;
+  hasApiKey: boolean;
+  configPath: string;
+  wispExe: string;
+}

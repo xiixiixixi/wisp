@@ -19,7 +19,17 @@ use serde_json::{json, Value};
 use std::io::{self, BufRead, Write};
 use tracing::{error, info};
 
+use crate::chatgpt_bridge;
 use crate::mcp_host;
+
+/// Which tool surface this stdio server exposes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum McpProfile {
+    /// Full toolset for local, trusted MCP clients (Claude Code etc.).
+    Full,
+    /// Read-only, whitelist-restricted tools for the ChatGPT bridge.
+    ChatgptReadonly,
+}
 
 // ─── JSON-RPC 2.0 Types ──────────────────────────────────────────────────────
 
@@ -61,7 +71,6 @@ const INTERNAL_ERROR: i64 = -32603;
 // ─── MCP Protocol Constants ──────────────────────────────────────────────────
 
 const MCP_PROTOCOL_VERSION: &str = "2024-11-05";
-const SERVER_NAME: &str = "wisp";
 const SERVER_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // ─── Response Builders ───────────────────────────────────────────────────────
@@ -95,7 +104,11 @@ fn error_response(id: Value, code: i64, message: String) -> JsonRpcResponse {
 // ─── Method Handlers ─────────────────────────────────────────────────────────
 
 /// Handle `initialize` — return server info and capabilities.
-fn handle_initialize(id: Value, _params: &Value) -> JsonRpcResponse {
+fn handle_initialize(id: Value, _params: &Value, profile: McpProfile) -> JsonRpcResponse {
+    let name = match profile {
+        McpProfile::Full => "wisp",
+        McpProfile::ChatgptReadonly => "wisp-chatgpt-bridge",
+    };
     success_response(
         id,
         json!({
@@ -104,35 +117,58 @@ fn handle_initialize(id: Value, _params: &Value) -> JsonRpcResponse {
                 "tools": {}
             },
             "serverInfo": {
-                "name": SERVER_NAME,
+                "name": name,
                 "version": SERVER_VERSION
             }
         }),
     )
 }
 
-/// Handle `tools/list` — return all available MCP tools.
-async fn handle_tools_list(id: Value) -> JsonRpcResponse {
-    match mcp_host::mcp_list_tools().await {
-        Ok(tools) => {
-            let tool_list: Vec<Value> = tools
-                .into_iter()
-                .map(|t| {
-                    json!({
-                        "name": t.name,
-                        "description": t.description,
-                        "inputSchema": t.input_schema
-                    })
-                })
-                .collect();
-            success_response(id, json!({ "tools": tool_list }))
-        }
-        Err(e) => error_response(id, INTERNAL_ERROR, format!("Failed to list tools: {}", e)),
-    }
+/// Handle `tools/list` — return the profile's available MCP tools.
+async fn handle_tools_list(id: Value, profile: McpProfile) -> JsonRpcResponse {
+    let tools = match profile {
+        McpProfile::Full => match mcp_host::mcp_list_tools().await {
+            Ok(tools) => tools,
+            Err(e) => {
+                return error_response(id, INTERNAL_ERROR, format!("Failed to list tools: {}", e))
+            }
+        },
+        McpProfile::ChatgptReadonly => chatgpt_bridge::bridge_list_tools(),
+    };
+    let tool_list: Vec<Value> = tools
+        .into_iter()
+        .map(|t| {
+            json!({
+                "name": t.name,
+                "description": t.description,
+                "inputSchema": t.input_schema
+            })
+        })
+        .collect();
+    success_response(id, json!({ "tools": tool_list }))
 }
 
 /// Handle `tools/call` — dispatch to the appropriate tool handler.
-async fn handle_tools_call(id: Value, params: &Value) -> JsonRpcResponse {
+async fn handle_tools_call(id: Value, params: &Value, profile: McpProfile) -> JsonRpcResponse {
+    // The readonly bridge returns MCP content blocks directly; the full host
+    // returns a JSON envelope that gets converted below.
+    if profile == McpProfile::ChatgptReadonly {
+        let tool_name = params
+            .get("name")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default()
+            .to_string();
+        let arguments = params.get("arguments").cloned().unwrap_or_else(|| json!({}));
+        let result = chatgpt_bridge::bridge_call_tool(&tool_name, &arguments);
+        return success_response(
+            id,
+            json!({
+                "content": result.content,
+                "isError": result.is_error
+            }),
+        );
+    }
+
     let tool_name = match params.get("name").and_then(|v| v.as_str()) {
         Some(name) => name.to_string(),
         None => {
@@ -181,7 +217,7 @@ async fn handle_tools_call(id: Value, params: &Value) -> JsonRpcResponse {
 // ─── Request Dispatcher ──────────────────────────────────────────────────────
 
 /// Route a single JSON-RPC request to the appropriate handler.
-async fn dispatch(req: JsonRpcRequest) -> Option<JsonRpcResponse> {
+async fn dispatch(req: JsonRpcRequest, profile: McpProfile) -> Option<JsonRpcResponse> {
     let id = req.id.clone().unwrap_or(Value::Null);
 
     // Notifications (no id) that we acknowledge silently
@@ -191,9 +227,9 @@ async fn dispatch(req: JsonRpcRequest) -> Option<JsonRpcResponse> {
     }
 
     let response = match req.method.as_str() {
-        "initialize" => handle_initialize(id, &req.params),
-        "tools/list" => handle_tools_list(id).await,
-        "tools/call" => handle_tools_call(id, &req.params).await,
+        "initialize" => handle_initialize(id, &req.params, profile),
+        "tools/list" => handle_tools_list(id, profile).await,
+        "tools/call" => handle_tools_call(id, &req.params, profile).await,
         _ => error_response(
             id,
             METHOD_NOT_FOUND,
@@ -211,9 +247,14 @@ async fn dispatch(req: JsonRpcRequest) -> Option<JsonRpcResponse> {
 /// This function blocks until stdin is closed (EOF). It is intended
 /// to be called from `main()` when `--mcp-server` is passed.
 pub fn run_mcp_server() {
+    run_mcp_server_with(McpProfile::Full);
+}
+
+/// Profile-aware variant used by the `--chatgpt-bridge-mcp` entry point.
+pub fn run_mcp_server_with(profile: McpProfile) {
     info!(
-        "[MCP Server] Starting Wisp MCP server v{}",
-        SERVER_VERSION
+        "[MCP Server] Starting Wisp MCP server v{} (profile: {:?})",
+        SERVER_VERSION, profile
     );
 
     let rt = tokio::runtime::Builder::new_multi_thread()
@@ -275,7 +316,7 @@ pub fn run_mcp_server() {
         }
 
         // Dispatch asynchronously
-        let maybe_response = rt.block_on(dispatch(request));
+        let maybe_response = rt.block_on(dispatch(request, profile));
 
         if let Some(response) = maybe_response {
             let mut out = stdout.lock();

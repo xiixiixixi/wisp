@@ -623,9 +623,6 @@
   "operationBar": {
     "selectionActions": "Tindakan item terpilih",
     "groupByDate": "Kelompokkan berdasarkan Tanggal",
-    "sizeMap": "Peta Ukuran",
-    "showSizeHeatmap": "Tampilkan heatmap ukuran",
-    "hideSizeHeatmap": "Sembunyikan heatmap ukuran",
     "select": "Pilih",
     "selectAll": "Pilih Semua",
     "selectNone": "Hapus Pilihan",
@@ -724,7 +721,8 @@
     "performance": "Performa",
     "extensions": "Ekstensi",
     "marketplace": "Marketplace",
-    "settings": "Pengaturan"
+    "settings": "Pengaturan",
+    "chatgptBridge": "Jembatan ChatGPT"
   },
   "navigation": {
     "breadcrumb": "Jejak navigasi",
@@ -2826,5 +2824,49 @@
     "justNow": "baru saja",
     "minutesAgo": "{{count}} mnt lalu",
     "hoursAgo": "{{count}} jam lalu"
+  },
+  "chatgptBridge": {
+    "title": "Jembatan ChatGPT",
+    "subtitle": "Izinkan ChatGPT membaca folder bersama lewat tunnel resmi OpenAI",
+    "state": {
+      "stopped": "Tersambung tidak",
+      "starting": "Menyambung",
+      "running": "Tersambung",
+      "error": "Galat"
+    },
+    "enabledTitle": "Aktifkan jembatan",
+    "enabledDesc": "Tetap tersambung selama Wisp berjalan; terputus saat Wisp keluar.",
+    "restart": "Mulai ulang",
+    "stop": "Hentikan",
+    "openAdminUi": "Buka UI admin",
+    "step1Title": "Instal tunnel-client",
+    "step1Desc": "Klien resmi hanya melakukan koneksi keluar — tidak ada port yang dibuka di Mac Anda. Jalankan di Terminal:",
+    "copy": "Salin",
+    "clientDetected": "Terdeteksi: {{path}}",
+    "clientMissing": "tunnel-client belum terdeteksi — instal dulu.",
+    "step2Title": "Buat tunnel",
+    "step2Desc": "Di",
+    "step3Title": "Runtime API key",
+    "step3Desc": "Di",
+    "apiKeyStored": "Tersimpan di keychain — ketik untuk mengganti",
+    "apiKeyPlaceholder": "sk-…",
+    "apiKeyDelete": "Hapus kunci",
+    "apiKeyNote": "Kunci disimpan di keychain macOS, tidak pernah ditulis ke berkas konfigurasi.",
+    "step4Title": "Folder bersama (whitelist)",
+    "step4Desc": "Hanya folder ini yang terlihat oleh ChatGPT; berkas sensitif seperti .env dan kunci privat selalu ditolak.",
+    "addRoot": "Tambah folder",
+    "addCurrentRoot": "Folder saat ini",
+    "removeRoot": "Hapus folder",
+    "step5Title": "Pasang di ChatGPT",
+    "step5Desc": "Aktifkan Developer mode, buat connector, pilih Tunnel dan tempel tunnel ID di atas.",
+    "step5Link": "Buka pengaturan connector ChatGPT",
+    "save": "Simpan & terapkan",
+    "privacyNote": "Catatan: konten yang dibaca ChatGPT dikirim ke OpenAI dan masuk konteks percakapan. Jangan simpan rahasia di folder bersama.",
+    "loadError": "Jembatan memerlukan aplikasi Wisp desktop.",
+    "toastSavedOn": "Diaktifkan — menyambungkan tunnel",
+    "toastSavedOff": "Jembatan dinonaktifkan",
+    "toastSaveError": "Gagal menyimpan",
+    "toastRestartError": "Gagal memulai ulang",
+    "toastCopied": "Disalin ke clipboard"
   }
 }

@@ -7,6 +7,7 @@ pub mod ai;
 pub mod airdrop;
 pub mod app_menu;
 pub mod backup;
+pub mod chatgpt_bridge;
 pub mod document_extractor;
 pub mod duplicate_finder;
 pub mod extensions;

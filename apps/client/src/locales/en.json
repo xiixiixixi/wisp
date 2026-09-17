@@ -779,9 +779,6 @@
   "operationBar": {
     "selectionActions": "Selected file actions",
     "groupByDate": "Group by Date",
-    "sizeMap": "Size Map",
-    "showSizeHeatmap": "Show size heatmap",
-    "hideSizeHeatmap": "Hide size heatmap",
     "select": "Select",
     "selectAll": "Select All",
     "selectNone": "Select None",
@@ -890,7 +887,8 @@
     "performance": "Activity",
     "extensions": "Extensions",
     "marketplace": "Marketplace",
-    "settings": "Settings"
+    "settings": "Settings",
+    "chatgptBridge": "ChatGPT Bridge"
   },
   "navigation": {
     "breadcrumb": "Breadcrumb",
@@ -4217,5 +4215,49 @@
     "emptyHint": "Items you open in Wisp appear here.",
     "search": "Search files and folders",
     "limit": "Showing {{count}} recent items"
+  },
+  "chatgptBridge": {
+    "title": "ChatGPT Bridge",
+    "subtitle": "Let ChatGPT read shared folders via OpenAI's official tunnel",
+    "state": {
+      "stopped": "Not connected",
+      "starting": "Connecting",
+      "running": "Connected",
+      "error": "Error"
+    },
+    "enabledTitle": "Enable bridge",
+    "enabledDesc": "Stays connected while Wisp runs; disconnects when Wisp quits.",
+    "restart": "Restart",
+    "stop": "Stop",
+    "openAdminUi": "Open admin UI",
+    "step1Title": "Install tunnel-client",
+    "step1Desc": "The official client makes outbound connections only — no ports opened on your Mac. Run in Terminal:",
+    "copy": "Copy",
+    "clientDetected": "Detected: {{path}}",
+    "clientMissing": "tunnel-client not detected yet — install it first.",
+    "step2Title": "Create a tunnel",
+    "step2Desc": "On",
+    "step3Title": "Runtime API key",
+    "step3Desc": "On",
+    "apiKeyStored": "Stored in keychain — type to replace",
+    "apiKeyPlaceholder": "sk-…",
+    "apiKeyDelete": "Delete key",
+    "apiKeyNote": "The key is stored in the macOS keychain, never in the config file.",
+    "step4Title": "Shared folders (whitelist)",
+    "step4Desc": "Only these folders are visible to ChatGPT; sensitive files like .env and private keys are always denied.",
+    "addRoot": "Add folder",
+    "addCurrentRoot": "Current folder",
+    "removeRoot": "Remove folder",
+    "step5Title": "Mount in ChatGPT",
+    "step5Desc": "Enable Developer mode, create a connector, choose Tunnel and paste the tunnel ID above.",
+    "step5Link": "Open ChatGPT connector settings",
+    "save": "Save & apply",
+    "privacyNote": "Note: content ChatGPT reads is sent to OpenAI and enters the conversation context. Keep secrets out of shared folders. Read-only ≠ private.",
+    "loadError": "The bridge requires the desktop Wisp app.",
+    "toastSavedOn": "Enabled — connecting the tunnel",
+    "toastSavedOff": "Bridge disabled",
+    "toastSaveError": "Save failed",
+    "toastRestartError": "Restart failed",
+    "toastCopied": "Copied to clipboard"
   }
 }

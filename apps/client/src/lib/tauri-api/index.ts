@@ -16,6 +16,7 @@ import * as weather from './weather';
 import * as pty from './pty';
 import * as preview from './preview';
 import * as airdrop from './airdrop';
+import * as chatgptBridge from './chatgpt-bridge';
 
 // Re-export all types so `import { FileEntry } from '@/lib/tauri-api'` keeps working
 export * from '../tauri-api-types';
@@ -34,6 +35,7 @@ export type { WeatherReport, WeatherDailyEntry, GeoPlace } from './weather';
 export * from './pty';
 export * from './preview';
 export * from './airdrop';
+export * from './chatgpt-bridge';
 
 // ---------------------------------------------------------------------------
 // Backward-compatible static class
@@ -41,6 +43,15 @@ export * from './airdrop';
 
 export class TauriAPI {
   static openAirDrop = airdrop.openAirDrop;
+  // ── ChatGPT bridge ──────────────────────────────────────────────────────
+  static chatgptBridgeGetState = chatgptBridge.chatgptBridgeGetState;
+  static chatgptBridgeGetStatus = chatgptBridge.chatgptBridgeGetStatus;
+  static chatgptBridgeSaveConfig = chatgptBridge.chatgptBridgeSaveConfig;
+  static chatgptBridgeSetApiKey = chatgptBridge.chatgptBridgeSetApiKey;
+  static chatgptBridgeDeleteApiKey = chatgptBridge.chatgptBridgeDeleteApiKey;
+  static chatgptBridgeRestart = chatgptBridge.chatgptBridgeRestart;
+  static chatgptBridgeStop = chatgptBridge.chatgptBridgeStop;
+  static listenToChatgptBridgeStatus = chatgptBridge.listenToChatgptBridgeStatus;
   // ── File system ─────────────────────────────────────────────────────────
   static readDirectory = fileSystem.readDirectory;
   static getFileProperties = fileSystem.getFileProperties;

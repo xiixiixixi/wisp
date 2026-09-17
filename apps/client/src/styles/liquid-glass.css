@@ -880,24 +880,7 @@ html .wisp-popover-menu > button {
 html .wisp-popover-menu > button:hover,
 html .wisp-popover-menu > button:focus-visible {
   background: var(--xp-selection-bg) !important;
-}
 
-@container (max-width: 390px) {
-  .wisp-operationbar {
-    padding-inline: 4px !important;
-  }
-
-  .wisp-toolbar-controls > .relative > .wisp-control,
-  .wisp-toolbar-controls > .wisp-control {
-    padding-inline: 7px !important;
-  }
-
-  .wisp-size-map-label {
-    display: none;
-  }
-
-  .wisp-size-map-control,
-  .wisp-size-map-separator,
   .wisp-toolbar-accessory {
     display: none !important;
   }

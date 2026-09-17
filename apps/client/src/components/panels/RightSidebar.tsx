@@ -14,6 +14,7 @@ const PreviewPanel = React.lazy(() => import('./PreviewPanel'));
 const MarketplacePanel = React.lazy(() => import('./MarketplacePanel'));
 const PerformanceDashboard = React.lazy(() => import('./PerformanceDashboard'));
 const AgentManagerPanel = React.lazy(() => import('./AgentManagerPanel'));
+const ChatgptBridgePanel = React.lazy(() => import('./ChatgptBridgePanel'));
 const ComparePreview = React.lazy(() => import('@/components/previews/ComparePreview'));
 
 interface Theme {
@@ -420,6 +421,13 @@ const RightSidebar = ({
                 return (
                   <ErrorBoundary>
                     <AgentManagerPanel currentPath={currentPath} />
+                  </ErrorBoundary>
+                );
+              }
+              if (rightPanelTab === 'chatgpt-bridge') {
+                return (
+                  <ErrorBoundary>
+                    <ChatgptBridgePanel currentPath={currentPath} />
                   </ErrorBoundary>
                 );
               }

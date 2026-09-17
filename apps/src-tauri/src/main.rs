@@ -26,6 +26,7 @@ use wisp::weather;
 use wisp::webview_tabs;
 // git_integration is consolidated into git module
 use wisp::backup;
+use wisp::chatgpt_bridge;
 use wisp::sync;
 
 use tracing::warn;
@@ -34,8 +35,10 @@ fn main() {
     // Load environment variables from .env file
     dotenvy::dotenv().ok();
 
-    // Initialize structured logging
+    // Initialize structured logging. In MCP stdio modes the protocol itself
+    // lives on stdout, so logs MUST go to stderr or they corrupt JSON-RPC.
     tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
                 .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("wisp=info,warn")),
@@ -48,6 +51,14 @@ fn main() {
     // server over stdio instead of the full Tauri GUI.
     if std::env::args().any(|a| a == "--mcp-server") {
         mcp_server::run_mcp_server();
+        return;
+    }
+
+    // ── ChatGPT Bridge MCP mode ──────────────────────────────────────
+    // Spawned by tunnel-client (`--mcp-command`) per OpenAI's Secure MCP
+    // Tunnel: read-only, whitelist-restricted tools for ChatGPT web.
+    if std::env::args().any(|a| a == "--chatgpt-bridge-mcp") {
+        mcp_server::run_mcp_server_with(mcp_server::McpProfile::ChatgptReadonly);
         return;
     }
 
@@ -160,6 +171,14 @@ fn main() {
             }
 
             extensions::init_extension_manager(app_data_dir.to_str().unwrap_or("./data"));
+
+            // ChatGPT Bridge (Secure MCP Tunnel): resume sharing if enabled.
+            {
+                let bridge_handle = app.handle().clone();
+                std::thread::spawn(move || {
+                    chatgpt_bridge::auto_start(&bridge_handle);
+                });
+            }
 
             // Start extension dev mode watcher
             {
@@ -503,6 +522,13 @@ fn main() {
             // MCP Host — tool provider for external AI clients
             mcp_host::mcp_list_tools,
             mcp_host::mcp_call_tool,
+            chatgpt_bridge::chatgpt_bridge_get_state,
+            chatgpt_bridge::chatgpt_bridge_get_status,
+            chatgpt_bridge::chatgpt_bridge_save_config,
+            chatgpt_bridge::chatgpt_bridge_set_api_key,
+            chatgpt_bridge::chatgpt_bridge_delete_api_key,
+            chatgpt_bridge::chatgpt_bridge_restart,
+            chatgpt_bridge::chatgpt_bridge_stop,
             // Agent session management
             agent_sessions::create_agent_session,
             agent_sessions::list_agent_sessions,
@@ -680,6 +706,11 @@ fn main() {
                     let _ = window.show();
                     let _ = window.set_focus();
                 }
+            }
+            // Real quit (⌘Q): kill the tunnel-client child. Window close on
+            // macOS only hides, so the bridge keeps running in between.
+            if let tauri::RunEvent::Exit = event {
+                chatgpt_bridge::shutdown();
             }
         });
 }

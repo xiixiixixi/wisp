@@ -779,9 +779,6 @@
   "operationBar": {
     "selectionActions": "选中文件操作",
     "groupByDate": "按日期分组",
-    "sizeMap": "大小图",
-    "showSizeHeatmap": "显示大小热力图",
-    "hideSizeHeatmap": "隐藏大小热力图",
     "select": "选择",
     "selectAll": "全选",
     "selectNone": "取消选择",
@@ -890,7 +887,8 @@
     "performance": "活动",
     "extensions": "扩展",
     "marketplace": "扩展市场",
-    "settings": "设置"
+    "settings": "设置",
+    "chatgptBridge": "ChatGPT 桥接"
   },
   "navigation": {
     "breadcrumb": "路径导航",
@@ -4217,5 +4215,49 @@
     "emptyHint": "在 Wisp 中打开的项目会出现在这里。",
     "search": "搜索文件和文件夹",
     "limit": "显示最近 {{count}} 项"
+  },
+  "chatgptBridge": {
+    "title": "ChatGPT 桥接",
+    "subtitle": "通过 OpenAI 官方隧道让 ChatGPT 只读访问共享目录",
+    "state": {
+      "stopped": "未连接",
+      "starting": "连接中",
+      "running": "已连接",
+      "error": "出错"
+    },
+    "enabledTitle": "启用桥接",
+    "enabledDesc": "Wisp 运行期间保持连接；退出 Wisp 时自动断开。",
+    "restart": "重启",
+    "stop": "停止",
+    "openAdminUi": "打开管理页",
+    "step1Title": "安装 tunnel-client",
+    "step1Desc": "官方客户端，只发出站连接，你的 Mac 不开放任何端口。终端执行：",
+    "copy": "复制",
+    "clientDetected": "已检测到：{{path}}",
+    "clientMissing": "尚未检测到 tunnel-client，请先安装。",
+    "step2Title": "创建 Tunnel",
+    "step2Desc": "在",
+    "step3Title": "运行时 API 密钥",
+    "step3Desc": "在",
+    "apiKeyStored": "已保存在钥匙串 — 输入可替换",
+    "apiKeyPlaceholder": "sk-…",
+    "apiKeyDelete": "删除密钥",
+    "apiKeyNote": "密钥保存在 macOS 钥匙串中，不会写入配置文件。",
+    "step4Title": "共享目录（白名单）",
+    "step4Desc": "只有这些目录里的内容对 ChatGPT 可见；.env、私钥等敏感文件始终拒绝访问。",
+    "addRoot": "添加目录",
+    "addCurrentRoot": "当前目录",
+    "removeRoot": "移除目录",
+    "step5Title": "在 ChatGPT 中挂载",
+    "step5Desc": "开启 Developer mode 后新建连接器，选择 Tunnel 并填入上面的 tunnel ID。",
+    "step5Link": "打开 ChatGPT 连接器设置",
+    "save": "保存并应用",
+    "privacyNote": "注意：ChatGPT 读取到的内容会发送到 OpenAI 并进入对话上下文。白名单目录里不要放密码本等敏感内容。只读 ≠ 隐私安全。",
+    "loadError": "桥接功能需要桌面版 Wisp。",
+    "toastSavedOn": "已启用，正在建立隧道连接",
+    "toastSavedOff": "已停用桥接",
+    "toastSaveError": "保存失败",
+    "toastRestartError": "重启失败",
+    "toastCopied": "已复制到剪贴板"
   }
 }

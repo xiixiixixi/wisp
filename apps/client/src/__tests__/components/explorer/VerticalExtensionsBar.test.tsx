@@ -98,6 +98,49 @@ describe('VerticalExtensionsBar', () => {
     });
   });
 
+  it('places the ChatGPT Bridge entry directly beside the hidden-files toggle', () => {
+    render(<VerticalExtensionsBar {...defaultProps} />);
+    const toggle = screen.getByRole('button', { name: 'Show Hidden Files' });
+    const bridge = screen.getByRole('button', { name: 'ChatGPT Bridge' });
+    // The bridge entry sits immediately after the hidden-files toggle,
+    // before the More (⋯) menu — user-requested placement.
+    expect(toggle.nextElementSibling).toContainElement(bridge);
+    expect(bridge).toHaveAttribute('aria-pressed', 'false');
+    expect(bridge).toHaveClass('wisp-rail-button');
+  });
+
+  it('opens the ChatGPT Bridge panel and collapses it when pressed again', () => {
+    const setRightPanelTab = vi.fn();
+    const setRightSidebarCollapsed = vi.fn();
+    const { rerender } = render(
+      <VerticalExtensionsBar
+        {...defaultProps}
+        setRightPanelTab={setRightPanelTab}
+        setRightSidebarCollapsed={setRightSidebarCollapsed}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'ChatGPT Bridge' }));
+    expect(setRightPanelTab).toHaveBeenCalledWith('chatgpt-bridge');
+    expect(setRightSidebarCollapsed).toHaveBeenCalledWith(false);
+
+    rerender(
+      <VerticalExtensionsBar
+        {...defaultProps}
+        rightPanelTab="chatgpt-bridge"
+        rightSidebarCollapsed={false}
+        setRightPanelTab={setRightPanelTab}
+        setRightSidebarCollapsed={setRightSidebarCollapsed}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'ChatGPT Bridge' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'ChatGPT Bridge' }));
+    expect(setRightSidebarCollapsed).toHaveBeenCalledWith(true);
+  });
+
   it('keeps Preview visible and progressively discloses the other built-in tools', () => {
     render(<VerticalExtensionsBar {...defaultProps} />);
 

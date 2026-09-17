@@ -14,7 +14,6 @@ import {
 import OperationBar from '@/components/explorer/OperationBar';
 import { useClipboardContext } from '@/contexts/ExplorerContext';
 import FileGrid from '@/components/explorer/FileGrid';
-import { SizeDistributionChart } from '@/components/explorer/SizeDistributionChart';
 import FolderColorLegend from '@/components/explorer/FolderColorLegend';
 import { getAllFolderColors } from '@/lib/folder-colors';
 import { useSmartView } from '@/hooks/use-smart-view';
@@ -99,9 +98,6 @@ const PaneFileExplorer = React.memo(
     onExtract,
     onProperties,
   }: PaneFileExplorerProps) => {
-    const [showSizeBadges, setShowSizeBadges] = useState(false);
-    const toggleSizeBadges = useCallback(() => setShowSizeBadges((prev) => !prev), []);
-
     // Clicking blank space clears the selection (Finder/VS Code behaviour).
     // The mouse-down position is tracked so a drag release (e.g. a file drag
     // ending on empty space) is not mistaken for a genuine click.
@@ -250,8 +246,6 @@ const PaneFileExplorer = React.memo(
             });
           }}
           onAdvancedSelection={onAdvancedSelection}
-          showSizeBadges={showSizeBadges}
-          onToggleSizeBadges={toggleSizeBadges}
           onCompress={onCompress}
           onExtract={onExtract}
           onProperties={onProperties}
@@ -263,7 +257,6 @@ const PaneFileExplorer = React.memo(
           onPreview={onQuickLook ? handlePreviewSelected : undefined}
           statusAccessory={
             <div className="mr-1 flex items-center gap-2">
-              {showSizeBadges && <SizeDistributionChart files={displayFiles} />}
               <FolderColorLegend
                 files={sortedFiles}
                 onFilterByColor={handleColorFilter}
@@ -306,7 +299,6 @@ const PaneFileExplorer = React.memo(
             isCalculatingSize={isCalculatingSize}
             calculateFolderSize={calculateFolderSize}
             onQuickLook={onQuickLook}
-            showSizeBadges={showSizeBadges}
             onRenameFile={onRenameFile}
             onCreateFolder={handleCreateFolder}
             onCreateFile={onCreateFile}

@@ -623,9 +623,6 @@
   "operationBar": {
     "selectionActions": "選択項目の操作",
     "groupByDate": "日付でグループ化",
-    "sizeMap": "サイズマップ",
-    "showSizeHeatmap": "サイズヒートマップを表示",
-    "hideSizeHeatmap": "サイズヒートマップを非表示",
     "select": "選択",
     "selectAll": "すべて選択",
     "selectNone": "選択解除",
@@ -724,7 +721,8 @@
     "performance": "パフォーマンス",
     "extensions": "拡張機能",
     "marketplace": "マーケットプレイス",
-    "settings": "設定"
+    "settings": "設定",
+    "chatgptBridge": "ChatGPT ブリッジ"
   },
   "navigation": {
     "breadcrumb": "パンくずリスト",
@@ -2826,5 +2824,49 @@
     "justNow": "たった今",
     "minutesAgo": "{{count}}分前",
     "hoursAgo": "{{count}}時間前"
+  },
+  "chatgptBridge": {
+    "title": "ChatGPT ブリッジ",
+    "subtitle": "OpenAI 公式トンネルで ChatGPT に共有フォルダを閲覧許可",
+    "state": {
+      "stopped": "未接続",
+      "starting": "接続中",
+      "running": "接続済み",
+      "error": "エラー"
+    },
+    "enabledTitle": "ブリッジを有効化",
+    "enabledDesc": "Wisp の起動中は接続を維持し、終了時に自動切断します。",
+    "restart": "再起動",
+    "stop": "停止",
+    "openAdminUi": "管理画面を開く",
+    "step1Title": "tunnel-client をインストール",
+    "step1Desc": "公式クライアントは送信接続のみを行い、Mac のポートは開きません。ターミナルで実行：",
+    "copy": "コピー",
+    "clientDetected": "検出済み：{{path}}",
+    "clientMissing": "tunnel-client が見つかりません。先にインストールしてください。",
+    "step2Title": "トンネルを作成",
+    "step2Desc": "",
+    "step3Title": "ランタイム API キー",
+    "step3Desc": "",
+    "apiKeyStored": "キーチェーンに保存済み — 入力で置き換え",
+    "apiKeyPlaceholder": "sk-…",
+    "apiKeyDelete": "キーを削除",
+    "apiKeyNote": "キーは macOS キーチェーンに保存され、設定ファイルには書き込まれません。",
+    "step4Title": "共有フォルダ（ホワイトリスト）",
+    "step4Desc": "これらのフォルダのみが ChatGPT に公開されます。.env や秘密鍵などの機密ファイルは常に拒否されます。",
+    "addRoot": "フォルダを追加",
+    "addCurrentRoot": "現在のフォルダ",
+    "removeRoot": "フォルダを削除",
+    "step5Title": "ChatGPT でマウント",
+    "step5Desc": "Developer mode を有効にし、コネクタを作成して Tunnel を選び、上の tunnel ID を貼り付けてください。",
+    "step5Link": "ChatGPT のコネクタ設定を開く",
+    "save": "保存して適用",
+    "privacyNote": "注意：ChatGPT が読み取った内容は OpenAI に送信され、会話コンテキストに入ります。共有フォルダに機密情報を置かないでください。",
+    "loadError": "ブリッジにはデスクトップ版 Wisp が必要です。",
+    "toastSavedOn": "有効化しました — トンネルに接続中",
+    "toastSavedOff": "ブリッジを無効化しました",
+    "toastSaveError": "保存に失敗しました",
+    "toastRestartError": "再起動に失敗しました",
+    "toastCopied": "クリップボードにコピーしました"
   }
 }

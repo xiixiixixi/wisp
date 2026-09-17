@@ -31,12 +31,6 @@ export interface ViewComponentProps {
   onQuickLook?: (file: FileEntry) => void;
 }
 
-export interface SizeBadgeInfo {
-  percentile: number;
-  color: string;
-  label: string;
-}
-
 export interface FileGridItemProps {
   onQuickLook?: (file: FileEntry) => void;
   file: FileEntry;
@@ -58,10 +52,6 @@ export interface FileGridItemProps {
   onFileRightClick: (file: FileEntry, event: React.MouseEvent) => void;
   getFolderSize: (path: string) => FolderSizeInfo | null;
   isCalculatingSize: (path: string) => boolean;
-  /** When true, show a color-coded size percentile badge */
-  showSizeBadge?: boolean;
-  /** Size percentile info for this file (color, label, percentile) */
-  sizeBadgeInfo?: SizeBadgeInfo | null;
   /** Pre-resolved thumbnail URL for image files (from useThumbnailCache) */
   thumbnailUrl?: string;
   /** When true, the file name label is replaced with an inline rename input */

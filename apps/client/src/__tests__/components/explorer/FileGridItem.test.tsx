@@ -433,31 +433,4 @@ describe('FileGridItem', () => {
       expect(screen.getByText('Chat')).toBeInTheDocument();
     });
   });
-
-  describe('Size badge', () => {
-    it('shows size badge when showSizeBadge is true and info provided', () => {
-      const { container } = render(
-        <FileGridItem
-          {...defaultProps}
-          showSizeBadge={true}
-          sizeBadgeInfo={{ percentile: 95, color: '#ff0000', label: 'Large' }}
-        />,
-      );
-      // The size badge is a div with a specific style
-      const badge = container.querySelector('[style*="border-radius: 50%"]');
-      expect(badge).toBeInTheDocument();
-    });
-
-    it('does not show size badge when showSizeBadge is false', () => {
-      const { container } = render(
-        <FileGridItem
-          {...defaultProps}
-          showSizeBadge={false}
-          sizeBadgeInfo={{ percentile: 95, color: '#ff0000', label: 'Large' }}
-        />,
-      );
-      const badges = container.querySelectorAll('[style*="border-radius: 50%"]');
-      expect(badges).toHaveLength(0);
-    });
-  });
 });

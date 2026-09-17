@@ -17,9 +17,6 @@ vi.mock('@/hooks/use-smart-view', () => ({
 }));
 vi.mock('@/components/explorer/FileGrid', () => ({ default: () => <div>Files</div> }));
 vi.mock('@/components/explorer/FolderColorLegend', () => ({ default: () => null }));
-vi.mock('@/components/explorer/SizeDistributionChart', () => ({
-  SizeDistributionChart: () => null,
-}));
 
 const props: ComponentProps<typeof PaneFileExplorer> = {
   viewMode: 'details',
@@ -79,9 +76,10 @@ describe('PaneFileExplorer toolbar placement', () => {
         selectedFiles={new Set(['/fixture/notes.txt'])}
       />,
     );
-    expect(outlet.querySelector('.wisp-selection-toolbar')).toBeInTheDocument();
-    fireEvent.click(within(outlet).getByRole('button', { name: 'Clear Selection' }));
-    expect(props.setSelectedFiles).toHaveBeenCalledWith(new Set());
+    // Selection actions merge into the component toolbar instead of replacing
+    // it, so the toolbar (and the navigation bar beside it) never disappears.
+    expect(outlet.querySelector('.wisp-component-toolbar')).toBeInTheDocument();
+    expect(outlet.querySelector('.wisp-selection-actions')).toBeInTheDocument();
 
     unmount();
     expect(outlet).toBeEmptyDOMElement();

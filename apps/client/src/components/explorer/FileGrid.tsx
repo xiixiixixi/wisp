@@ -8,7 +8,6 @@ import { useDroppable } from '@/hooks/use-droppable';
 import { useGridLayout } from '@/hooks/use-grid-layout';
 import { useTypeAheadSearch } from '@/hooks/use-type-ahead-search';
 import { useGridKeyboardNav } from '@/hooks/use-grid-keyboard-nav';
-import { useSizePercentiles } from '@/hooks/use-size-percentiles';
 import { useThumbnailCache } from '@/hooks/use-thumbnail-cache';
 import { ViewComponentProps } from './FileGridTypes';
 import { isImageFile } from './FileGridHelpers';
@@ -46,7 +45,6 @@ interface FileGridProps {
   calculateFolderSize?: (path: string) => void;
   onQuickLook?: (file: FileEntry) => void;
   /** Whether to show color-coded file size badges */
-  showSizeBadges?: boolean;
   /** Set of file paths that are part of a cross-tab selection */
   crossTabSelectedPaths?: Set<string>;
   /** Called when an inline rename is confirmed. If not provided, inline rename is disabled. */
@@ -81,7 +79,6 @@ const FileGrid = ({
   isCalculatingSize,
   calculateFolderSize,
   onQuickLook,
-  showSizeBadges = false,
   crossTabSelectedPaths,
   onRenameFile,
   renamingPath: externalRenamingPath,
@@ -271,7 +268,6 @@ const FileGrid = ({
   const emptyTags: FileTag[] = useMemo(() => [], []);
 
   // ─── Size percentiles for heatmap badges ─────────────────────────────────
-  const sizePercentiles = useSizePercentiles(files);
 
   // ─── Thumbnail cache for image hover previews ───────────────────────────
   const { getThumbnailUrl, preloadThumbnails } = useThumbnailCache(100);
@@ -709,8 +705,6 @@ const FileGrid = ({
           onFileRightClick={onFileRightClick}
           getFolderSize={getFolderSize}
           isCalculatingSize={isCalculatingSize}
-          showSizeBadge={showSizeBadges}
-          sizeBadgeInfo={sizePercentiles.get(file.path) || null}
           thumbnailUrl={isImageFile(file) ? getThumbnailUrl(file.path) : undefined}
           isRenaming={isFileRenaming}
           existingNames={isFileRenaming ? existingNames : undefined}
@@ -847,8 +841,6 @@ const FileGrid = ({
                     onFileRightClick={onFileRightClick}
                     getFolderSize={getFolderSize}
                     isCalculatingSize={isCalculatingSize}
-                    showSizeBadge={showSizeBadges}
-                    sizeBadgeInfo={sizePercentiles.get(file.path) || null}
                     thumbnailUrl={isImageFile(file) ? getThumbnailUrl(file.path) : undefined}
                     isRenaming={isFileRenaming}
                     existingNames={isFileRenaming ? existingNames : undefined}

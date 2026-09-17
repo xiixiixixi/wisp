@@ -7,7 +7,7 @@ import React, {
   useSyncExternalStore,
 } from 'react';
 import { extensionHost } from '@/lib/extension-host';
-import { Eye, Bot, ShoppingCart, Settings, Activity, Ellipsis, File } from 'lucide-react';
+import { Eye, Bot, ShoppingCart, Settings, Activity, Ellipsis, File, Plug } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useHiddenFiles } from '@/hooks/use-hidden-files';
 
@@ -213,6 +213,19 @@ const VerticalExtensionsBar = ({
             <circle cx="8" cy="16" r="1" fill="currentColor" stroke="none" />
             <path d="M12 16h4" strokeDasharray="none" />
           </File>
+        </button>
+        <button
+          onClick={() => handlePanelClick('chatgpt-bridge')}
+          className={`wisp-rail-button flex h-8 w-8 items-center justify-center rounded-md transition-all ${
+            isActivePanel('chatgpt-bridge')
+              ? 'bg-xp-blue text-[var(--xp-bg)]'
+              : 'text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text'
+          }`}
+          title={t('extensionsBar.chatgptBridge')}
+          aria-label={t('extensionsBar.chatgptBridge')}
+          aria-pressed={isActivePanel('chatgpt-bridge')}
+        >
+          <Plug size={16} />
         </button>
         <div ref={menuRootRef} className="relative">
           <button
