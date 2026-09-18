@@ -41,7 +41,25 @@ const ImagePreview = ({ file, onError, onLoad }: PreviewProps) => {
     setBridgeAttempted(false);
     attemptRef.current += 1;
 
-    // Convert file path to Tauri asset URL
+    // Convert file path to Tauri asset URL.
+    // Huge bitmaps decode to GB-scale surfaces inside WebKit (a 42MP JPEG
+    // alone is ~600MB decoded); the Finder Quick Look panel downsamples too.
+    // Files over this size go through the ImageIO bridge at panel resolution
+    // before ever reaching the webview, so the decode cache stays bounded.
+    if (isTauri() && file.size > 10 * 1024 * 1024) {
+      // Large bitmap: hand WebKit the downsampled copy only — never set the
+      // original src, or the full-res decode happens anyway.
+      const myAttempt = attemptRef.current;
+      void TauriAPI.previewConvertImage(file.path, 2560)
+        .then((converted) => {
+          if (converted && attemptRef.current === myAttempt) {
+            setBridgeAttempted(true);
+            setImageSrc(convertAssetUrl(converted));
+          }
+        })
+        .catch(() => undefined);
+      return;
+    }
     setImageSrc(convertAssetUrl(file.path));
   }, [file.path]);
 
