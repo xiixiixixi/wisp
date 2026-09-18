@@ -756,7 +756,6 @@ html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-pane-toolbar {
 html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-pane-toolbar-actions {
   flex: 0 1 auto;
   min-width: 0;
-  overflow: hidden;
 }
 html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-operationbar-layout {
   gap: 8px;
