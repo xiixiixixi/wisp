@@ -501,7 +501,7 @@ const OperationBar = ({
 
           <div
             className={`wisp-toolbar-controls wisp-toolbar-controls-secondary flex flex-shrink-0 items-center${
-              hasSelection ? 'wisp-selection-actions' : ''
+              hasSelection ? ' wisp-selection-actions' : ''
             }`}
             role={hasSelection ? 'toolbar' : undefined}
             aria-label={hasSelection ? t('operationBar.selectionActions') : undefined}
