@@ -1149,12 +1149,19 @@ fn find_files_with_spotlight(
 
     // Arguments are passed directly to mdfind (no shell), so file names and
     // paths cannot be interpreted as shell syntax.
+    //
+    // Finder-parity matching: `-name` only matches whole word prefixes, so
+    // "appt-notes.txt" / "app.trace" are invisible to a "ppt" query. Finder's
+    // own search box compiles to a case/diacritic-insensitive substring match
+    // on the file name — replicate that exact query. Quotes and backslashes
+    // in user input are escaped; everything else is inert inside the string.
+    let escaped = pattern.replace('\\', "\\\\").replace('"', "\\\"");
+    let query = format!("(kMDItemFSName = '*{escaped}*'cd)");
     let mut child = Command::new("/usr/bin/mdfind")
         .arg("-0")
         .arg("-onlyin")
         .arg(root)
-        .arg("-name")
-        .arg(pattern)
+        .arg(&query)
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .spawn()
