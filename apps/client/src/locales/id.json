@@ -1407,7 +1407,8 @@
     "epubPrevChapter": "Bab sebelumnya",
     "epubNextChapter": "Bab berikutnya",
     "epubChapterList": "Daftar bab",
-    "epubUnavailable": "Buku ini tidak dapat dibuka"
+    "epubUnavailable": "Buku ini tidak dapat dibuka",
+    "openSystemQuickLook": "Buka di Quick Look"
   },
   "home": {
     "goodMorning": "Selamat pagi",

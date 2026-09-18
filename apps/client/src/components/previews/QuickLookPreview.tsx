@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useRef, useState } from 'react';
 import { PreviewProps } from '@/lib/preview-factory';
+import { ExternalLink } from 'lucide-react';
 import { convertAssetUrl, isTauri } from '@/lib/transport';
 import { TauriAPI } from '@/lib/tauri-api';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
@@ -95,8 +96,21 @@ const QuickLookPreview = ({ file, onError, onLoad }: PreviewProps) => {
         </div>
       )}
       {(thumbSrc || docText) && (
-        <div className="flex-shrink-0 px-1 text-[10px] text-xp-text-muted">
-          {file.name} · {tUi('previewPanel.firstPageOnly')}
+        <div className="flex shrink-0 items-center gap-2 px-1">
+          <span className="min-w-0 flex-1 truncate text-[10px] text-xp-text-muted">
+            {file.name} · {tUi('previewPanel.firstPageOnly')}
+          </span>
+          {isTauri() && (
+            <button
+              type="button"
+              onClick={() => void TauriAPI.previewOpenQlPreview(file.path).catch(() => undefined)}
+              className="flex shrink-0 items-center gap-1 rounded-md border border-xp-border px-2 py-1 text-[11px] text-xp-text transition-colors hover:bg-xp-surface-light"
+              title={tUi('previewPanel.openSystemQuickLook')}
+            >
+              <ExternalLink size={11} aria-hidden="true" />
+              {tUi('previewPanel.openSystemQuickLook')}
+            </button>
+          )}
         </div>
       )}
     </div>

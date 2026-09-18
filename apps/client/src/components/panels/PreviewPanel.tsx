@@ -122,14 +122,36 @@ const EnhancedFilePreview: React.FC<{
 
         // Fall back to built-in preview factory
         if (!defaultPreviewFactory.canPreview(file)) {
+          // Finder never shows a dead end: oversized text-like content still
+          // previews as text (CodeMirror is virtualised). Sniff before giving
+          // up with 'too-large' — the caps above only bound the rich viewers.
           if (category !== 'unknown') {
+            if (isTauri() && file.size > 0 && file.size <= 100 * 1024 * 1024) {
+              let isText = false;
+              try {
+                isText = await TauriAPI.previewSniffText(file.path);
+              } catch {
+                isText = false;
+              }
+              if (cancelled) return;
+              if (isText) {
+                const TextComponent = await import('@/components/previews/TextPreview').then(
+                  (m) => m.default,
+                );
+                if (!cancelled) {
+                  setPreviewComponent(() => TextComponent);
+                  setLoading(false);
+                }
+                return;
+              }
+            }
             if (!cancelled) setUnavailableReason('too-large');
             return;
           }
           // Finder previews ANY text file regardless of extension (Makefile,
           // .gitignore, extensionless scripts, …) — sniff the content and
           // route it to the text preview when the leading bytes are UTF-8.
-          if (isTauri() && file.size > 0 && file.size <= 10 * 1024 * 1024) {
+          if (isTauri() && file.size > 0 && file.size <= 100 * 1024 * 1024) {
             let isText = false;
             try {
               isText = await TauriAPI.previewSniffText(file.path);

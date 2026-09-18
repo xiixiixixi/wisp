@@ -105,6 +105,15 @@ const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
         <div className="text-xp-text-muted">
           <p className="text-sm">{tUi('interface.cannotPreviewDocument')}</p>
           <p className="mt-1 text-xs opacity-70">{previewErrorText(error, tUi)}</p>
+          {isTauri() && (
+            <button
+              type="button"
+              onClick={() => void TauriAPI.previewOpenQlPreview(file.path).catch(() => undefined)}
+              className="mt-3 rounded-md border border-xp-border px-2.5 py-1.5 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
+            >
+              {tUi('previewPanel.openSystemQuickLook')}
+            </button>
+          )}
         </div>
       </div>
     );

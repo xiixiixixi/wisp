@@ -362,7 +362,7 @@ export class PreviewFactory {
       type: 'text',
       extensions: ['txt', 'log', 'ini', 'cfg', 'conf'],
       mimeTypes: ['text/plain'],
-      maxSize: 10 * 1024 * 1024, // 10MB
+      maxSize: 100 * 1024 * 1024, // CodeMirror is virtualised; Finder shows big text too
       priority: 8,
       canPreview: (file) => this.canPreviewText(file),
       getPreviewComponent: () => import('@/components/previews/TextPreview').then((m) => m.default),
@@ -373,7 +373,7 @@ export class PreviewFactory {
       type: 'code',
       extensions: [...CODE_EXTENSIONS],
       mimeTypes: ['text/', 'application/javascript', 'application/typescript'],
-      maxSize: 10 * 1024 * 1024, // 10MB
+      maxSize: 100 * 1024 * 1024, // CodeMirror is virtualised
       priority: 9,
       canPreview: (file) => this.canPreviewCode(file),
       getPreviewComponent: () => import('@/components/previews/CodePreview').then((m) => m.default),
@@ -406,7 +406,7 @@ export class PreviewFactory {
       type: 'markdown',
       extensions: ['md', 'markdown', 'mdown', 'mkd'],
       mimeTypes: ['text/markdown'],
-      maxSize: 10 * 1024 * 1024, // 10MB
+      maxSize: 100 * 1024 * 1024,
       priority: 10, // beats 'code', whose text/* mime would otherwise match .md first
       canPreview: (file) => this.canPreviewMarkdown(file),
       getPreviewComponent: () =>

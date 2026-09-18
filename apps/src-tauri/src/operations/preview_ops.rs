@@ -561,6 +561,34 @@ pub async fn preview_iwork_pdf(app: tauri::AppHandle, path: String) -> Result<Op
     }
 }
 
+/// Open the file in the system Quick Look window (`qlmanage -p`) — the
+/// exact surface Finder's space-bar preview uses. This is the full-document,
+/// all-pages native renderer; the embedded panel falls back to it for formats
+/// WKWebView cannot render completely (PowerPoint decks, oversized files, …).
+#[tauri::command]
+pub async fn preview_open_ql_preview(path: String) -> Result<(), String> {
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = path;
+        return Err("system Quick Look is macOS-only".to_string());
+    }
+    #[cfg(target_os = "macos")]
+    {
+        if !Path::new(&path).exists() {
+            return Err("file not found".to_string());
+        }
+        tokio::process::Command::new("/usr/bin/qlmanage")
+            .arg("-p")
+            .arg(&path)
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn()
+            .map(|_| ())
+            .map_err(|e| format!("failed to open Quick Look: {e}"))
+    }
+}
+
 /// Quick Look thumbnail for formats with no dedicated web previewer
 /// (ppt/pptx, usdz, icc, video posters, …). This is literally the engine
 /// Finder uses, so whatever previews in Finder produces a thumbnail here.

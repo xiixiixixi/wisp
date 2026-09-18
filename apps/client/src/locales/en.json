@@ -1661,7 +1661,8 @@
     "epubPrevChapter": "Previous chapter",
     "epubNextChapter": "Next chapter",
     "epubChapterList": "Chapters",
-    "epubUnavailable": "This book could not be opened"
+    "epubUnavailable": "This book could not be opened",
+    "openSystemQuickLook": "Open in Quick Look"
   },
   "home": {
     "workspace": "Intelligent workspace",

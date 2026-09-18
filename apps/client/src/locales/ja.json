@@ -1407,7 +1407,8 @@
     "epubPrevChapter": "前の章",
     "epubNextChapter": "次の章",
     "epubChapterList": "章一覧",
-    "epubUnavailable": "この電子書籍を開けません"
+    "epubUnavailable": "この電子書籍を開けません",
+    "openSystemQuickLook": "クイックルックで開く"
   },
   "home": {
     "goodMorning": "おはようございます",

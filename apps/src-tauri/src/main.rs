@@ -316,6 +316,7 @@ fn main() {
             operations::preview_doc_html,
             operations::preview_plist_xml,
             operations::preview_ql_thumbnail,
+            operations::preview_open_ql_preview,
             operations::preview_iwork_pdf,
             operations::preview_epub,
             operations::preview_remux_media,

@@ -1661,7 +1661,8 @@
     "epubPrevChapter": "上一章",
     "epubNextChapter": "下一章",
     "epubChapterList": "章节",
-    "epubUnavailable": "无法打开此电子书"
+    "epubUnavailable": "无法打开此电子书",
+    "openSystemQuickLook": "用系统快速查看"
   },
   "home": {
     "workspace": "智能工作区",

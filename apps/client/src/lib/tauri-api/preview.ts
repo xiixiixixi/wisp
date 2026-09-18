@@ -66,3 +66,7 @@ export const previewSniffText = async (path: string): Promise<boolean> => {
     return false;
   }
 };
+
+/** Open the file in the system Quick Look window (Finder's space-bar view). */
+export const previewOpenQlPreview = async (path: string): Promise<void> =>
+  await transport('preview_open_ql_preview', { path });
