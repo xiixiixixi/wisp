@@ -276,23 +276,12 @@ html.theme-fluid .wisp-selection-toolbar > div {
 }
 html.theme-fluid .wisp-selection-actions {
   gap: 2px;
-  background: var(--lg-specular), var(--lg-control-fill);
-  border-radius: 12px;
-  padding: 2px;
-  box-shadow: var(--lg-control-shadow);
 }
-@container action-rail (max-width: 640px) {
-  .wisp-selection-actions button > span {
-    display: none !important;
-  }
-  .wisp-selection-actions button {
-    padding-inline: 8px !important;
-  }
+html.theme-fluid .wisp-selection-actions button > span {
+  display: none !important;
 }
-@container action-rail (max-width: 390px) {
-  .wisp-selection-actions button {
-    padding-inline: 6px !important;
-  }
+html.theme-fluid .wisp-selection-actions button {
+  padding-inline: 8px !important;
 }
 @media (max-width: 700px) {
   html.theme-fluid .wisp-workspace {
