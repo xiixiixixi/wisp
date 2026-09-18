@@ -628,7 +628,7 @@ fn build_mcp_command(wisp_exe: &Path, config_path: &Path) -> String {
 /// instead of treating the kill as a crash to restart.
 fn stop_if_running() {
     let pid = {
-        let mut inner = MANAGER.inner.lock().unwrap();
+        let mut inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
         inner.pid.take()
     };
     if let Some(pid) = pid {
@@ -683,13 +683,13 @@ pub fn stop_bridge() {
     MANAGER.should_run.store(false, Ordering::SeqCst);
     stop_if_running();
     let data_dir = {
-        let inner = MANAGER.inner.lock().unwrap();
+        let inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
         inner.data_dir.clone()
     };
     let _ = std::fs::remove_file(data_dir.join(PID_FILE));
     let _ = std::fs::remove_file(data_dir.join(HEALTH_URL_FILE));
     {
-        let mut inner = MANAGER.inner.lock().unwrap();
+        let mut inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
         inner.state = "stopped".to_string();
         inner.ready = None;
         inner.health_url = None;
@@ -707,7 +707,7 @@ pub fn init(app: &AppHandle) {
         .path()
         .app_data_dir()
         .unwrap_or_else(|_| PathBuf::from("./data"));
-    let mut inner = MANAGER.inner.lock().unwrap();
+    let mut inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
     inner.app = Some(app.clone());
     inner.data_dir = data_dir.clone();
     inner.config = BridgeConfig::load(&data_dir.join(CONFIG_FILE));
@@ -716,7 +716,7 @@ pub fn init(app: &AppHandle) {
 /// Start (or restart) tunnel-client with the current config.
 pub fn start_bridge() -> Result<(), String> {
     let (config, data_dir) = {
-        let inner = MANAGER.inner.lock().unwrap();
+        let inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
         (inner.config.clone(), inner.data_dir.clone())
     };
 
@@ -775,7 +775,7 @@ pub fn start_bridge() -> Result<(), String> {
 
     MANAGER.should_run.store(true, Ordering::SeqCst);
     {
-        let mut inner = MANAGER.inner.lock().unwrap();
+        let mut inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
         inner.pid = Some(pid);
         inner.state = "starting".to_string();
         inner.last_error = None;
@@ -796,7 +796,7 @@ pub fn start_bridge() -> Result<(), String> {
                     Ok(0) | Err(_) => break,
                     Ok(n) => {
                         let chunk = String::from_utf8_lossy(&buf[..n]).to_string();
-                        let mut inner = MANAGER.inner.lock().unwrap();
+                        let mut inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
                         inner.stderr_tail.push_str(&chunk);
                         let len = inner.stderr_tail.len();
                         if len > MAX_STDERR_TAIL {
@@ -818,7 +818,7 @@ pub fn start_bridge() -> Result<(), String> {
             };
             let should_run = MANAGER.should_run.load(Ordering::SeqCst);
             let was_ours = {
-                let inner = MANAGER.inner.lock().unwrap();
+                let inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
                 inner.pid == Some(pid)
             };
             if !should_run || !was_ours {
@@ -828,18 +828,18 @@ pub fn start_bridge() -> Result<(), String> {
             }
             let uptime = now_ms().saturating_sub(started_at) / 1000;
             let stderr = {
-                let inner = MANAGER.inner.lock().unwrap();
+                let inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
                 inner.stderr_tail.clone()
             };
             warn!(
                 "[ChatGPTBridge] tunnel-client exited ({status}); uptime {uptime}s"
             );
             let restarts = {
-                let inner = MANAGER.inner.lock().unwrap();
+                let inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
                 inner.restarts
             };
             if restarts >= RESTART_BACKOFF_SECS.len() as u32 {
-                let mut inner = MANAGER.inner.lock().unwrap();
+                let mut inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
                 inner.pid = None;
                 inner.state = "error".to_string();
                 inner.last_error = Some(if stderr.is_empty() {
@@ -853,15 +853,15 @@ pub fn start_bridge() -> Result<(), String> {
             }
             let backoff = if uptime >= STABLE_UPTIME_SECS {
                 // It ran stably; treat this as a fresh crash.
-                MANAGER.inner.lock().unwrap().restarts = 0;
+                MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner()).restarts = 0;
                 RESTART_BACKOFF_SECS[0]
             } else {
                 let delay = RESTART_BACKOFF_SECS[restarts as usize];
-                MANAGER.inner.lock().unwrap().restarts = restarts + 1;
+                MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner()).restarts = restarts + 1;
                 delay
             };
             {
-                let mut inner = MANAGER.inner.lock().unwrap();
+                let mut inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
                 inner.state = "starting".to_string();
                 inner.last_error = Some(format!(
                     "tunnel-client exited ({status}); restarting in {backoff}s…"
@@ -875,7 +875,7 @@ pub fn start_bridge() -> Result<(), String> {
             match start_bridge() {
                 Ok(()) => return, // the new child owns its own waiter thread
                 Err(e) => {
-                    let mut inner = MANAGER.inner.lock().unwrap();
+                    let mut inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
                     inner.state = "error".to_string();
                     inner.last_error = Some(e);
                     drop(inner);
@@ -898,7 +898,7 @@ pub fn start_bridge() -> Result<(), String> {
             .filter(|s| !s.is_empty());
         if let Some(url) = url {
             let ready = probe_ready(&url);
-            let mut inner = MANAGER.inner.lock().unwrap();
+            let mut inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
             let changed =
                 inner.health_url.as_deref() != Some(url.as_str()) || inner.ready != ready;
             inner.health_url = Some(url);
@@ -932,13 +932,13 @@ fn probe_ready(base_url: &str) -> Option<bool> {
 pub fn auto_start(app: &AppHandle) {
     init(app);
     let enabled = {
-        let inner = MANAGER.inner.lock().unwrap();
+        let inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
         inner.config.enabled
     };
     if enabled {
         if let Err(e) = start_bridge() {
             warn!("[ChatGPTBridge] auto-start failed: {e}");
-            let mut inner = MANAGER.inner.lock().unwrap();
+            let mut inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
             inner.state = "error".to_string();
             inner.last_error = Some(e);
             drop(inner);
@@ -967,7 +967,7 @@ pub struct BridgeStateResponse {
 
 fn state_response() -> BridgeStateResponse {
     let (config, data_dir) = {
-        let inner = MANAGER.inner.lock().unwrap();
+        let inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
         (inner.config.clone(), inner.data_dir.clone())
     };
     BridgeStateResponse {
@@ -1000,17 +1000,17 @@ pub async fn chatgpt_bridge_save_config(
     config: BridgeConfig,
 ) -> Result<BridgeStateResponse, String> {
     {
-        let mut inner = MANAGER.inner.lock().unwrap();
+        let mut inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
         inner.config = config.clone();
     }
     config
-        .save(&MANAGER.inner.lock().unwrap().data_dir.join(CONFIG_FILE))
+        .save(&MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner()).data_dir.join(CONFIG_FILE))
         .map_err(|e| format!("Failed to save config: {e}"))?;
 
     if config.enabled {
         if let Err(e) = start_bridge() {
             // Config stays saved; surface the failure as bridge state.
-            let mut inner = MANAGER.inner.lock().unwrap();
+            let mut inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
             inner.state = "error".to_string();
             inner.last_error = Some(e.clone());
             drop(inner);
@@ -1038,7 +1038,7 @@ pub async fn chatgpt_bridge_delete_api_key() -> Result<(), String> {
 #[command]
 pub async fn chatgpt_bridge_restart() -> Result<BridgeStatus, String> {
     let enabled = {
-        let inner = MANAGER.inner.lock().unwrap();
+        let inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
         inner.config.enabled
     };
     if !enabled {

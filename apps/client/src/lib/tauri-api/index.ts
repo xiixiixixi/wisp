@@ -365,6 +365,7 @@ export class TauriAPI {
   static previewPlistXml = preview.previewPlistXml;
   static previewQlThumbnail = preview.previewQlThumbnail;
   static previewOpenQlPreview = preview.previewOpenQlPreview;
+  static previewOpenQlPanel = preview.previewOpenQlPanel;
   static previewIworkPdf = preview.previewIworkPdf;
   static previewEpub = preview.previewEpub;
   static previewRemuxMedia = preview.previewRemuxMedia;

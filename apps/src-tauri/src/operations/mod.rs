@@ -15,6 +15,8 @@ pub mod image_ops;
 pub mod media_protocol;
 pub mod metadata_ops;
 pub mod preview_ops;
+pub mod ql_panel;
+pub use ql_panel::*;
 pub mod progress;
 pub mod properties_ops;
 pub mod secure_delete_ops;

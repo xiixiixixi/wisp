@@ -70,3 +70,7 @@ export const previewSniffText = async (path: string): Promise<boolean> => {
 /** Open the file in the system Quick Look window (Finder's space-bar view). */
 export const previewOpenQlPreview = async (path: string): Promise<void> =>
   await transport('preview_open_ql_preview', { path });
+
+/** Host the system Quick Look panel inside Wisp (in-process, full document). */
+export const previewOpenQlPanel = async (path: string): Promise<void> =>
+  await transport('preview_open_ql_panel', { path });

@@ -108,7 +108,13 @@ const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
           {isTauri() && (
             <button
               type="button"
-              onClick={() => void TauriAPI.previewOpenQlPreview(file.path).catch(() => undefined)}
+              onClick={() => void (async () => {
+                try {
+                  await TauriAPI.previewOpenQlPanel(file.path);
+                } catch {
+                  await TauriAPI.previewOpenQlPreview(file.path);
+                }
+              })()}
               className="mt-3 rounded-md border border-xp-border px-2.5 py-1.5 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
             >
               {tUi('previewPanel.openSystemQuickLook')}
