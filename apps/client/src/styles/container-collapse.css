@@ -1,0 +1,48 @@
+/**
+ * 容器查询：窄容器时文字让位给图标。
+ *
+ * 适用两处 ——
+ *  · .pi-composer（对话输入盒）：画布模式对话列只有 300px，模型/思考/权限
+ *    的文字标签在 <320px 容器里隐藏，只留图标；
+ *  · .wisp-operationbar-layout（文件面板工具条）：面板被分屏/画布挤压时
+ *    排序·视图文字（<420px）与动作文字（<560px）逐级隐藏，只留图标。
+ * 容器宽度恢复后标签自动回来。
+ */
+
+.pi-composer {
+  container: pi-composer / inline-size;
+}
+
+/* 尺子必须挂在稳定的块级祖先上：挂在 .wisp-operationbar-layout 自身会触发
+ * 尺寸包含，把它算成 0 宽（标签全被误判为"极度挤压"而隐藏）。 */
+.wisp-pane-toolbar {
+  container: operationbar / inline-size;
+}
+
+/* —— 对话输入盒 —— */
+.pi-composer-label {
+  display: none;
+}
+@container pi-composer (min-width: 320px) {
+  .pi-composer-label {
+    display: inline;
+  }
+}
+
+/* —— 文件面板工具条 —— */
+.ob-label-md {
+  display: none;
+}
+@container operationbar (min-width: 420px) {
+  .ob-label-md {
+    display: inline;
+  }
+}
+.ob-label-lg {
+  display: none;
+}
+@container operationbar (min-width: 560px) {
+  .ob-label-lg {
+    display: inline;
+  }
+}

@@ -14,7 +14,9 @@ const PreviewPanel = React.lazy(() => import('./PreviewPanel'));
 const MarketplacePanel = React.lazy(() => import('./MarketplacePanel'));
 const PerformanceDashboard = React.lazy(() => import('./PerformanceDashboard'));
 const AgentManagerPanel = React.lazy(() => import('./AgentManagerPanel'));
+const PiChatPanel = React.lazy(() => import('./PiChatPanel'));
 const ChatgptBridgePanel = React.lazy(() => import('./ChatgptBridgePanel'));
+const WeixinBridgePanel = React.lazy(() => import('./WeixinBridgePanel'));
 const ComparePreview = React.lazy(() => import('@/components/previews/ComparePreview'));
 
 interface Theme {
@@ -30,6 +32,9 @@ interface RightSidebarProps {
   setRightSidebarCollapsed: (collapsed: boolean) => void;
   rightPanelTab: string;
   width?: number;
+  /** Canvas mode: the chat tab splits into document + conversation columns. */
+  canvasMode?: boolean;
+  setCanvasMode?: (on: boolean) => void;
   selectedFile: FileEntry | null;
   formatFileSize: (bytes: number) => string;
   formatDate: (timestamp: number) => string;
@@ -49,6 +54,8 @@ const RightSidebar = ({
   setRightSidebarCollapsed,
   rightPanelTab,
   width,
+  canvasMode = false,
+  setCanvasMode,
   selectedFile,
   formatFileSize,
   formatDate,
@@ -65,8 +72,11 @@ const RightSidebar = ({
   const { t: tUi } = useTranslation();
   const outerRef = useRef<HTMLDivElement>(null);
   const panelContentRef = useRef<HTMLDivElement>(null);
-  const [measuredHeight, setMeasuredHeight] = useState<number>(0);
+  const [measuredHeight, setMeasuredHeight] = useState(0);
   const [compareDismissed, setCompareDismissed] = useState(false);
+
+  // Canvas mode only applies to the chat tab: document column + chat column.
+  const canvasActive = canvasMode && rightPanelTab === 'chat';
 
   // ── Preview scrubber state ──────────────────────────────────────────────────
   const [previewIndex, setPreviewIndex] = useState(0);
@@ -271,12 +281,13 @@ const RightSidebar = ({
 
   // Get panel title for header
   const getTabTitle = () => {
+    if (canvasActive) return i18n.t('piChat.canvasTitle');
     if (showCompare) return i18n.t('dialogs.compareFiles.title');
     if (scrubberCompareFiles) return i18n.t('dialogs.compareFiles.title');
     if (rightPanelTab === 'preview') return i18n.t('extensionsBar.preview');
-    if (rightPanelTab === 'chat' || rightPanelTab === 'agent-manager') {
-      return i18n.t('extensionsBar.agent');
-    }
+    if (rightPanelTab === 'chat') return i18n.t('extensionsBar.chat');
+    if (rightPanelTab === 'agent-manager') return i18n.t('extensionsBar.agent');
+    if (rightPanelTab === 'weixin-bridge') return i18n.t('extensionsBar.weixin');
     if (rightPanelTab === 'performance') return i18n.t('extensionsBar.performance');
     if (rightPanelTab === 'marketplace') return i18n.t('extensionsBar.marketplace');
     const panel = extensionHost.getPanel(rightPanelTab);
@@ -290,7 +301,14 @@ const RightSidebar = ({
       ref={outerRef}
       className="wisp-inspector border-l border-xp-border bg-xp-surface"
       data-panel={rightPanelTab}
-      style={{ width: width ?? 320, flexShrink: 0, minHeight: 0, overflow: 'hidden' }}
+      data-canvas={canvasActive ? 'on' : undefined}
+      style={{
+        // 画布模式是「读文档」场景：双栏太挤没意义，地板抬到 720。
+        width: canvasActive ? Math.max(width ?? 320, 720) : width ?? 320,
+        flexShrink: 0,
+        minHeight: 0,
+        overflow: 'hidden',
+      }}
     >
       {/* Inner container with explicit measured height -- bypasses WebView2 flex height bug */}
       <div
@@ -417,10 +435,54 @@ const RightSidebar = ({
                   </ErrorBoundary>
                 );
               }
-              if (rightPanelTab === 'chat' || rightPanelTab === 'agent-manager') {
+              if (rightPanelTab === 'chat') {
+                if (canvasActive) {
+                  return (
+                    <ErrorBoundary>
+                      {/* 画布模式：左文档（预览面板）+ 右对话，同屏并排 */}
+                      <div className="flex h-full min-h-0 w-full" data-testid="canvas-split">
+                        <div className="flex min-w-0 flex-1 flex-col">
+                          <PreviewPanel
+                            selectedFile={selectedFile}
+                            formatFileSize={formatFileSize}
+                            formatDate={formatDate}
+                            getFolderSize={getFolderSize}
+                            isCalculatingSize={isCalculatingSize}
+                            currentPath={currentPath}
+                          />
+                        </div>
+                        <div className="flex w-[300px] shrink-0 flex-col border-l border-xp-border">
+                          <PiChatPanel
+                            currentPath={currentPath}
+                            canvasMode
+                            onCanvasChange={setCanvasMode}
+                          />
+                        </div>
+                      </div>
+                    </ErrorBoundary>
+                  );
+                }
+                return (
+                  <ErrorBoundary>
+                    <PiChatPanel
+                      currentPath={currentPath}
+                      canvasMode={false}
+                      onCanvasChange={setCanvasMode}
+                    />
+                  </ErrorBoundary>
+                );
+              }
+              if (rightPanelTab === 'agent-manager') {
                 return (
                   <ErrorBoundary>
                     <AgentManagerPanel currentPath={currentPath} />
+                  </ErrorBoundary>
+                );
+              }
+              if (rightPanelTab === 'weixin-bridge') {
+                return (
+                  <ErrorBoundary>
+                    <WeixinBridgePanel currentPath={currentPath} />
                   </ErrorBoundary>
                 );
               }

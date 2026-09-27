@@ -175,7 +175,7 @@ const FileRow = React.memo(
             }
             return (
               <button
-                className="text-xp-text-muted underline decoration-dotted transition-colors hover:text-xp-accent"
+                className="flex h-7 w-full justify-end text-xp-text-muted underline decoration-dotted transition-colors hover:text-xp-accent"
                 onClick={handleCalculateClick}
                 title={t('explorer.details.calculateTitle')}
               >

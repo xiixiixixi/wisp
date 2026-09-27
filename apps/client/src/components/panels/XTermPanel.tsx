@@ -185,7 +185,7 @@ const XTermPanel = ({ cwd, visible = true }: XTermPanelProps) => {
   }, [visible, tabs.length]);
 
   // Attach tabs to CLI-agent PTY sessions launched outside this panel
-  // (NewAgentForm). Drains launches that fired before this lazy panel
+  // Drains launches that fired before this lazy panel
   // mounted, then keeps listening for new ones.
   useEffect(() => {
     const attach = (launch: CliAgentLaunch) => {

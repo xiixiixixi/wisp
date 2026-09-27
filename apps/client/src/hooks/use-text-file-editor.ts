@@ -64,6 +64,32 @@ export function useTextFileEditor(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file.path]);
 
+  // 文件被改写（AI 工具/其他窗口）→ 重读内容，画布"改完即见"。
+  // 有未保存手改时不覆盖，避免吃掉用户的草稿。
+  useEffect(() => {
+    const onWritten = (event: Event) => {
+      const detail = (event as CustomEvent<{ path?: string }>).detail;
+      if (!detail?.path || detail.path !== file.path) return;
+      if (dirtyRef.current || savingRef.current) return;
+      let stale = false;
+      const reload = async () => {
+        try {
+          const text = await TauriAPI.readTextFile(file.path);
+          if (stale || dirtyRef.current) return;
+          setContent(text);
+        } catch {
+          // 读失败保留现有内容
+        }
+      };
+      void reload();
+      return () => {
+        stale = true;
+      };
+    };
+    window.addEventListener('wisp-file-written', onWritten);
+    return () => window.removeEventListener('wisp-file-written', onWritten);
+  }, [file.path]);
+
   const save = useCallback(async () => {
     const view = editorRef.current;
     const path = loadedPathRef.current;

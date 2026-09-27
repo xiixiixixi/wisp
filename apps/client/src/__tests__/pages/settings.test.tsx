@@ -27,13 +27,14 @@ describe('Settings dialog', () => {
     localStorage.clear();
   });
 
-  it('names the modal and exposes only General and File Explorer categories', () => {
+  it('names the modal and exposes General, File Explorer and AI categories', () => {
     render(<Settings />);
     const dialog = within(screen.getByRole('dialog', { name: 'Settings' }));
     expect(dialog.getByRole('heading', { level: 2, name: 'Settings' })).toBeInTheDocument();
     expect(dialog.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
       'General',
       'File Explorer',
+      'AI',
     ]);
     expect(dialog.getByRole('tab', { name: 'General' })).toHaveAttribute('aria-selected', 'true');
     expect(dialog.getByRole('tabpanel', { name: 'General' })).toBeInTheDocument();

@@ -64,7 +64,11 @@ const FileDetailsDialog = ({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="border-xp-border/60 mx-4 flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-md border bg-xp-surface/95 shadow-2xl shadow-black/30 duration-150 animate-in fade-in zoom-in-95">
+      <div
+      role="dialog"
+      aria-modal="true"
+      className="elevated-glass border-xp-border/60 mx-4 flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-md border duration-150 animate-in fade-in zoom-in-95"
+    >
         {/* Header */}
         <div className="border-xp-border/40 flex flex-shrink-0 items-center justify-between border-b px-5 py-3.5">
           <div className="flex min-w-0 items-center space-x-2.5">

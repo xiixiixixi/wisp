@@ -898,7 +898,6 @@ export type ShortcutAction =
   | 'SplitPaneHorizontal'
   // Terminal / AI
   | 'OpenTerminal'
-  | 'ToggleAgentLauncher'
   | 'ToggleAgentWorkspace'
   | 'OpenAIAssistant'
   | 'OpenExtensions'

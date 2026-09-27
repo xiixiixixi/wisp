@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { TauriAPI, type TrashItem } from '@/lib/tauri-api';
 import { useToast } from '@/hooks/use-toast';
 import { getFileIcon, formatFileSize, formatDate } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { showConfirmationToast } from '@/components/ui/Toast';
 
@@ -223,53 +224,57 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
       data-drop-target=""
       data-drop-action="trash"
     >
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-xp-border p-4">
-        <h2 className="flex items-center gap-2 text-xl font-semibold text-xp-text">
-          <Trash2 size={20} /> {t('pages.trash.title')}
+      {/* Header — 对齐窗格工具条密度与按钮体系 */}
+      <div className="flex h-12 flex-shrink-0 items-center justify-between border-b border-xp-border px-3">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-xp-text">
+          <Trash2 size={17} className="text-xp-text-secondary" /> {t('pages.trash.title')}
         </h2>
-        <div className="flex items-center space-x-2">
-          <button
+        <div className="flex items-center gap-1.5">
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleSelectAll}
-            className="rounded-md border border-xp-border bg-xp-surface px-3 py-1 text-sm hover:bg-xp-surface-light"
             aria-label={
               isAllSelected ? t('pages.trash.ariaDeselectAll') : t('pages.trash.ariaSelectAll')
             }
           >
             {isAllSelected ? t('pages.trash.deselectAll') : t('pages.trash.selectAll')}
-          </button>
-          <button
-            onClick={() => handleRestore()}
+          </Button>
+          <Button
+            size="sm"
             disabled={selectedItems.size === 0}
-            className="rounded-md bg-xp-blue px-3 py-1 text-sm text-xp-on-accent hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => handleRestore()}
             aria-label={t('pages.trash.ariaRestoreCount', { count: selectedItems.size })}
           >
             {t('pages.trash.restoreCount', { count: selectedItems.size })}
-          </button>
-          <button
-            onClick={() => handlePermanentDelete()}
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
             disabled={selectedItems.size === 0}
-            className="rounded-md bg-xp-red px-3 py-1 text-sm text-xp-on-accent hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => handlePermanentDelete()}
             aria-label={t('pages.trash.ariaDeleteCount', { count: selectedItems.size })}
           >
             {t('pages.trash.deletePermanentlyCount', { count: selectedItems.size })}
-          </button>
-          <button
-            onClick={handleEmptyTrash}
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
             disabled={trashItems.length === 0}
-            className="rounded-md bg-xp-red px-3 py-1 text-sm text-xp-on-accent hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={handleEmptyTrash}
             aria-label={t('pages.trash.ariaEmptyBin')}
           >
             {t('pages.trash.emptyRecycleBin')}
-          </button>
+          </Button>
           {onClose && (
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={onClose}
-              className="rounded-md border border-xp-border bg-xp-surface px-3 py-1 text-sm hover:bg-xp-surface-light"
               aria-label={t('pages.trash.ariaBackToHome')}
             >
               {t('pages.trash.backToHome')}
-            </button>
+            </Button>
           )}
         </div>
       </div>

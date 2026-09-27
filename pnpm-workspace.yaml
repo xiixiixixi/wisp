@@ -8,10 +8,12 @@ packages:
   - 'packages/extensions/**'
 
 allowBuilds:
+  '@google/genai': false
   '@prisma/client': true
   '@prisma/engines': true
   esbuild: true
   prisma: true
+  protobufjs: false
   sharp: true
 
 onlyBuiltDependencies:
@@ -23,3 +25,23 @@ onlyBuiltDependencies:
   - sharp
 
 verifyDepsBeforeRun: false
+
+overrides:
+  handlebars: ">=4.7.9"
+  glob: ">=10.5.0"
+  "minimatch@>=9.0.0 <9.0.7": ">=9.0.7"
+  "minimatch@<3.1.2": ">=3.1.2"
+  lodash: ">=4.18.0"
+  "picomatch@>=4.0.0 <4.0.4": ">=4.0.4"
+  "flatted@<3.4.0": ">=3.4.0"
+  "brace-expansion@>=2.0.0 <2.0.3": ">=2.0.3"
+  "brace-expansion@>=4.0.0 <5.0.5": ">=5.0.5"
+  underscore: ">=1.13.6"
+  "@xmldom/xmldom": ">=0.9.7"
+  undici: ">=6.21.1"
+  prismjs: ">=1.30.0"
+  "yaml@>=2.0.0 <2.8.3": ">=2.8.3"
+  rollup: ">=4.30.0"
+  # 0.26+ dropped support for lowering modern destructuring to vite 5's
+  # legacy dep-scan targets, which killed the dev server's optimizer.
+  esbuild: "0.25.12"

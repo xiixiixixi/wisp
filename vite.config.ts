@@ -61,6 +61,11 @@ export default defineConfig(({ mode }) => ({
     // "Cannot access 'default' before initialization" in the browser.
     exclude: ['pdfjs-dist'],
     include: ['react-pdf'],
+    // pi engine stack uses modern ESM that esbuild cannot lower to vite 5's
+    // legacy default targets (chrome87/safari14). Optimize against a modern
+    // target instead — pre-bundling keeps CJS named-export interop (yaml's
+    // `parse`, partial-json) working in the WKWebView's strict ESM.
+    esbuildOptions: { target: 'es2022' },
   },
   define: {
     __APP_VERSION__: JSON.stringify(tauriVersion),

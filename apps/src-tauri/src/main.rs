@@ -6,7 +6,8 @@ use tauri::{Emitter, Listener, Manager, WindowEvent};
 // All modules are declared in lib.rs (the `wisp` library crate).
 // Import them here so the binary can register Tauri commands.
 use wisp::agent;
-use wisp::agent_sessions;
+use wisp::mem0;
+use wisp::pi_bridge;
 use wisp::ai;
 use wisp::duplicate_finder;
 use wisp::extensions;
@@ -67,6 +68,7 @@ fn main() {
     );
     builder
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_drag::init())
@@ -386,8 +388,6 @@ fn main() {
             ai::get_ai_models,
             ai::check_ollama_status,
             ai::chat_with_ai,
-            ai::analyze_file_with_ai,
-            ai::get_file_help,
             operations::folder_ops::calculate_folder_size,
             operations::folder_ops::get_cached_folder_sizes,
             operations::folder_ops::clear_folder_size_cache,
@@ -395,9 +395,6 @@ fn main() {
             ai::get_recent_folders,
             ai::add_to_recent_folders,
             ai::get_system_info,
-            // AI-powered rename & auto-tag
-            ai::suggest_filename,
-            ai::auto_tag_files,
             // Undo/Redo
             operations::undo_redo::undo_operation,
             operations::undo_redo::redo_operation,
@@ -507,18 +504,8 @@ fn main() {
             file_organizer::analyze_directory,
             file_organizer::preview_organization,
             file_organizer::execute_organization,
-            // Claude Agent operations
-            agent::agent_chat,
-            agent::agent_respond_approval,
-            agent::agent_cancel_session,
+            // Agent settings (read-only, legacy model source for extension ai API)
             agent::get_agent_settings,
-            agent::update_agent_settings,
-            agent::update_agent_api_keys,
-            agent::agent_approve_plan,
-            agent::agent_get_plan,
-            agent::get_agent_memory,
-            agent::clear_agent_memory,
-            agent::delete_agent_memory,
             agent::get_agent_permissions,
             agent::update_agent_permissions,
             // MCP Host — tool provider for external AI clients
@@ -531,13 +518,42 @@ fn main() {
             chatgpt_bridge::chatgpt_bridge_delete_api_key,
             chatgpt_bridge::chatgpt_bridge_restart,
             chatgpt_bridge::chatgpt_bridge_stop,
-            // Agent session management
-            agent_sessions::create_agent_session,
-            agent_sessions::list_agent_sessions,
             project_memory::project_memory_sessions,
-            agent_sessions::get_agent_session,
-            agent_sessions::stop_agent_session,
-            agent_sessions::remove_agent_session,
+            mem0::mem0_config_state,
+            mem0::mem0_save_config,
+            mem0::mem0_add,
+            mem0::mem0_search,
+            mem0::mem0_list,
+            mem0::mem0_delete,
+            mem0::mem0_delete_all,
+            operations::weixin_ops::weixin_state_get,
+            operations::weixin_ops::weixin_state_set,
+            operations::weixin_ops::weixin_creds_get,
+            operations::weixin_ops::weixin_creds_set,
+            operations::weixin_ops::weixin_creds_clear,
+            operations::weixin_ops::weixin_http,
+            operations::weixin_ops::weixin_log,
+            operations::mcp_ops::mcp_config_get,
+            operations::mcp_ops::mcp_config_set,
+            operations::mcp_ops::mcp_test_server,
+            operations::mcp_ops::mcp_client_servers,
+            operations::mcp_ops::mcp_client_list_tools,
+            operations::mcp_ops::mcp_client_call_tool,
+            pi_bridge::agent_execute_tool,
+            pi_bridge::pi_config_state,
+            pi_bridge::pi_config_write_models,
+            pi_bridge::pi_config_set_auth_key,
+            pi_bridge::pi_config_remove_auth_key,
+            pi_bridge::pi_auth_keys,
+            pi_bridge::agent_load_context_chain,
+            pi_bridge::pi_session_create,
+            pi_bridge::pi_session_list,
+            pi_bridge::pi_session_read,
+            pi_bridge::pi_session_append,
+            pi_bridge::pi_session_delete,
+            pi_bridge::pi_session_rename,
+            pi_bridge::pi_session_fork,
+            pi_bridge::pi_session_relink,
             // Recent files operations
             storage::add_recent_file,
             storage::get_recent_files,
@@ -578,22 +594,10 @@ fn main() {
             storage::get_file_metadata,
             storage::set_file_metadata,
             storage::get_all_metadata_keys,
-            // Chat history operations
-            storage::get_chat_sessions,
-            storage::get_chat_session,
-            storage::save_chat_session,
-            storage::delete_chat_session,
-            storage::clear_chat_history,
             // Extension-scoped storage operations
             storage::get_extension_storage,
             storage::set_extension_storage,
             storage::delete_extension_storage,
-            // Chat-as-Files operations
-            storage::chat_files::get_chats_directory,
-            storage::chat_files::create_chat_file,
-            storage::chat_files::read_chat_file,
-            storage::chat_files::save_chat_file,
-            storage::chat_files::get_chat_file_summary,
             // Storage analytics operations
             operations::analyze_storage,
             // Directory diagnostics

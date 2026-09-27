@@ -222,3 +222,4 @@ async fn calculate_directory_size_recursive(
         dir_count,
     })
 }
+

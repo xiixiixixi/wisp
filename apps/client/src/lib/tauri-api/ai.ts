@@ -1,12 +1,6 @@
 import { transport } from '../transport';
 import { STORAGE_KEYS } from '../storage-keys';
-import type {
-  FileSystemNode,
-  AgentProgress,
-  SafeAgentSettings,
-  UpdateAgentSettingsPayload,
-  UpdateAgentApiKeysPayload,
-} from '../tauri-api-types';
+import type { SafeAgentSettings } from '../tauri-api-types';
 
 // ── AI model operations ─────────────────────────────────────────────────────
 
@@ -27,7 +21,7 @@ export const checkOllamaStatus = async (): Promise<boolean> =>
 /**
  * Models routed to a user-configured endpoint carry the "custom-openai:" or
  * "custom-anthropic:" prefix. The endpoint + key are injected here from
- * settings so every caller (chat, agent loop, extensions) works unchanged.
+ * settings so every caller (chat, extensions) works unchanged.
  */
 const CUSTOM_OPENAI_PREFIX = 'custom-openai:';
 const CUSTOM_ANTHROPIC_PREFIX = 'custom-anthropic:';
@@ -70,58 +64,7 @@ export const chatWithAI = async (
   });
 };
 
-export const analyzeFileWithAI = async (
-  model: string,
-  fileContext: { name: string; path: string; file_type: string; content?: string },
-): Promise<string> =>
-  await transport('analyze_file_with_ai', {
-    model,
-    fileContext,
-  });
-
-export const getFileHelp = async (
-  model: string,
-  fileName: string,
-  fileType: string,
-): Promise<string> =>
-  await transport('get_file_help', {
-    model,
-    fileName,
-    fileType,
-  });
-
-// ── AI-powered rename suggestions ───────────────────────────────────────────
-
-export const suggestFilename = async (filePath: string): Promise<string[]> =>
-  await transport('suggest_filename', { filePath });
-
-// ── AI-powered auto-tagging by content ──────────────────────────────────────
-
-export const autoTagFiles = async (filePaths: string[]): Promise<[string, string[]][]> =>
-  await transport('auto_tag_files', { filePaths });
-
-// ── AI Agent operations ─────────────────────────────────────────────────────
-
-export const agentReadFileTree = async (
-  rootPath: string,
-  maxRecursion?: number,
-  includeContent?: boolean,
-): Promise<{ tree: FileSystemNode; progress: AgentProgress[] }> => {
-  const result = await transport('agent_read_file_tree', {
-    rootPath,
-    maxRecursion: maxRecursion || 10,
-    includeContent: includeContent !== false,
-  });
-  const [tree, progress] = result as [FileSystemNode, AgentProgress[]];
-  return { tree, progress };
-};
-
-export const agentRequestWritePermission = async (
-  filePath: string,
-  content: string,
-  reason: string,
-): Promise<string> =>
-  await transport('agent_request_write_permission', { filePath, content, reason });
+// ── Approval-gated file write (extension sandbox `files.write`) ─────────────
 
 export const agentWriteFileWithPermission = async (
   filePath: string,
@@ -134,19 +77,49 @@ export const agentWriteFileWithPermission = async (
     permissionGranted,
   });
 
-// ── Claude Agent operations ─────────────────────────────────────────────────
-
-export const agentRespondApproval = async (toolCallId: string, approved: boolean): Promise<void> =>
-  await transport('agent_respond_approval', { toolCallId, approved });
-
-export const agentCancelSession = async (sessionId: string): Promise<void> =>
-  await transport('agent_cancel_session', { sessionId });
+// ── Legacy agent settings (read-only; default model for extension ai.chat) ──
 
 export const getAgentSettings = async (): Promise<SafeAgentSettings> =>
   await transport('get_agent_settings');
 
-export const updateAgentSettings = async (settings: UpdateAgentSettingsPayload): Promise<void> =>
-  await transport('update_agent_settings', { settings });
+// ── mem0 cloud memory ───────────────────────────────────────────────────────
 
-export const updateAgentApiKeys = async (payload: UpdateAgentApiKeysPayload): Promise<void> =>
-  await transport('update_agent_api_keys', { payload });
+export interface Mem0ConfigState {
+  enabled: boolean;
+  has_key: boolean;
+  user_id: string;
+  auto_capture: boolean;
+}
+
+export interface Mem0HitDto {
+  id: string;
+  memory: string;
+  score: number | null;
+  categories: string[];
+}
+
+export const mem0ConfigState = async (): Promise<Mem0ConfigState> =>
+  await transport('mem0_config_state');
+
+export const mem0SaveConfig = async (opts: {
+  enabled?: boolean;
+  userId?: string;
+  autoCapture?: boolean;
+  apiKey?: string;
+}): Promise<Mem0ConfigState> =>
+  await transport('mem0_save_config', {
+    enabled: opts.enabled ?? null,
+    userId: opts.userId ?? null,
+    autoCapture: opts.autoCapture ?? null,
+    apiKey: opts.apiKey ?? null,
+  });
+
+export const mem0List = async (limit = 50): Promise<Mem0HitDto[]> =>
+  await transport('mem0_list', { limit });
+
+export const mem0Delete = async (id: string): Promise<void> =>
+  await transport('mem0_delete', { id });
+
+export const mem0DeleteAll = async (): Promise<void> =>
+  await transport('mem0_delete_all');
+

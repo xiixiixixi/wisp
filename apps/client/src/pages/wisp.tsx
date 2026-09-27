@@ -215,6 +215,8 @@ const ExplorerUnified = () => {
   });
 
   // ── Folder sizes ──────────────────────────────────────────────────────────
+  // 可见的文件网格由 EditorGroupPane 的 hook 实例供给（含自动计算门控），
+  // 这里只保留缓存读取给预览等处，避免两份状态重复计算。
   const { getFolderSize, isCalculatingSize } = useFolderSizes(files);
 
   // ── Actions ───────────────────────────────────────────────────────────────

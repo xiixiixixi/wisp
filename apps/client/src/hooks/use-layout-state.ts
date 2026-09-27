@@ -58,6 +58,11 @@ export interface LayoutState {
   bottomPanelTab: BottomPanelTabId;
   setBottomPanelTab: React.Dispatch<React.SetStateAction<BottomPanelTabId>>;
 
+  // Canvas mode: chat panel splits into document + conversation columns.
+  // Session-only (never persisted) — entering it is always an explicit act.
+  canvasMode: boolean;
+  setCanvasMode: React.Dispatch<React.SetStateAction<boolean>>;
+
   // Search panel
   searchPanelOpen: boolean;
   setSearchPanelOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -90,11 +95,12 @@ export const useLayoutState = (): LayoutState => {
   // Panel tabs
   const [rightPanelTab, setRightPanelTab] = useState<string>(() => {
     const stored = loadUiState<string>('rightPanelTab', 'preview');
-    // 'chat' merged into 'agent-manager'; 'tokenizer'/'extensions' panels removed
-    if (stored === 'chat') return 'agent-manager';
+    // 'chat' is a live tab again (pi chat); only legacy removed panels migrate.
     if (stored === 'tokenizer' || stored === 'extensions') return 'preview';
     return stored;
   });
+  // Canvas mode is deliberately ephemeral: it never survives a relaunch.
+  const [canvasMode, setCanvasMode] = useState(false);
   const [bottomPanelTab, _setBottomPanelTabRaw] = useState<BottomPanelTabId>(() => {
     const stored = loadUiState<string>('bottomPanelTab', 'terminal');
     // The activity-log / changes / notifications tabs merged into 'events'
@@ -138,8 +144,14 @@ export const useLayoutState = (): LayoutState => {
     setLeftSidebarWidth((w) => Math.min(480, Math.max(180, w + delta)));
   }, []);
   // Sidebar bounds follow the WINDOW, not fixed pixels: the preview pane may
-  // take up to 60% of the window (cap 760px) and at least 240px.
-  const rightSidebarMax = () => Math.max(360, Math.min(window.innerWidth * 0.6, 760));
+  // take up to 60% of the window (cap 760px) and at least 240px. Canvas mode
+  // is a reading surface — allow a larger share (70%, cap 1080px).
+  const canvasModeRef = useRef(canvasMode);
+  canvasModeRef.current = canvasMode;
+  const rightSidebarMax = () =>
+    canvasModeRef.current
+      ? Math.max(360, Math.min(window.innerWidth * 0.7, 1080))
+      : Math.max(360, Math.min(window.innerWidth * 0.6, 760));
 
   const handleRightResize = useCallback((delta: number) => {
     setRightSidebarWidth((w) => Math.min(rightSidebarMax(), Math.max(240, w - delta)));
@@ -359,6 +371,8 @@ export const useLayoutState = (): LayoutState => {
     setRightPanelTab,
     bottomPanelTab,
     setBottomPanelTab,
+    canvasMode,
+    setCanvasMode,
     searchPanelOpen,
     setSearchPanelOpen,
     viewMode,

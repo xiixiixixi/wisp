@@ -66,12 +66,15 @@ export interface MainLayoutProps {
   setBottomPanelCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
   leftSidebarWidth: number;
   rightSidebarWidth: number;
+  setRightSidebarWidth: React.Dispatch<React.SetStateAction<number>>;
   bottomPanelHeight: number;
   handleLeftResize: (delta: number) => void;
   handleRightResize: (delta: number) => void;
   handleBottomResize: (delta: number) => void;
   rightPanelTab: string;
   setRightPanelTab: React.Dispatch<React.SetStateAction<string>>;
+  canvasMode: boolean;
+  setCanvasMode: React.Dispatch<React.SetStateAction<boolean>>;
   bottomPanelTab: BottomPanelTabId;
   setBottomPanelTab: React.Dispatch<React.SetStateAction<BottomPanelTabId>>;
   searchPanelOpen: boolean;
@@ -214,12 +217,15 @@ const MainLayout = (props: MainLayoutProps) => {
     setBottomPanelCollapsed,
     leftSidebarWidth,
     rightSidebarWidth,
+    setRightSidebarWidth,
     bottomPanelHeight,
     handleLeftResize,
     handleRightResize,
     handleBottomResize,
     rightPanelTab,
     setRightPanelTab,
+    canvasMode,
+    setCanvasMode,
     bottomPanelTab,
     setBottomPanelTab,
     searchPanelOpen,
@@ -293,6 +299,90 @@ const MainLayout = (props: MainLayoutProps) => {
     window.addEventListener('wisp-open-url', handler);
     return () => window.removeEventListener('wisp-open-url', handler);
   }, [navigateToPath]);
+
+  // Canvas mode entry: split the chat panel into document + conversation.
+  // Any surface (chat toggle, file cards, selection asks) may request it.
+  // 进画布前的侧栏宽度：退出画布时还原（画布要 760 宽，普通聊天窄条即可）。
+  const preCanvasWidthRef = React.useRef<number | null>(null);
+  const openCanvas = React.useCallback(
+    (filePath?: string, fileName?: string) => {
+      setCanvasMode(true);
+      setRightSidebarCollapsed(false);
+      setRightPanelTab('chat');
+      if (rightSidebarWidth < 760) {
+        preCanvasWidthRef.current = rightSidebarWidth;
+        setRightSidebarWidth(760);
+      }
+      if (filePath) {
+        const name =
+          fileName ?? filePath.split('/').pop() ?? filePath;
+        const ext = name.includes('.') ? name.split('.').pop()! : '';
+        const entry: FileEntry = {
+          name,
+          path: filePath,
+          is_dir: false,
+          is_readonly: false,
+          size: 0,
+          modified: Math.floor(Date.now() / 1000),
+          file_type: ext,
+        };
+        setSelectedFile(entry);
+        setSelectedFiles(new Set([filePath]));
+      }
+    },
+    // setSelectedFile/setSelectedFiles are stable useState setters
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rightSidebarWidth, setRightPanelTab, setRightSidebarCollapsed],
+  );
+
+  // 退出画布 → 侧栏还原到进画布前的宽度；此外自愈：非画布状态下宽度
+  // 仍停在画布档（>520，比如旧数据残留 / 重启带入），直接收窄回 360。
+  React.useEffect(() => {
+    if (canvasMode) return;
+    const restore = preCanvasWidthRef.current;
+    if (restore !== null) {
+      preCanvasWidthRef.current = null;
+      setRightSidebarWidth(restore);
+    } else if (rightSidebarWidth > 520) {
+      setRightSidebarWidth(360);
+    }
+  }, [canvasMode, rightSidebarWidth, setRightSidebarWidth]);
+
+  React.useEffect(() => {
+    const handler = (event: Event) => {
+      const { path, name } = (event as CustomEvent<{ path?: string; name?: string }>).detail;
+      openCanvas(path, name);
+    };
+    window.addEventListener('wisp-canvas-request', handler);
+    return () => window.removeEventListener('wisp-canvas-request', handler);
+  }, [openCanvas]);
+
+  // Anything (code preview buttons, context-menu AI actions) can summon the
+  // chat panel with an optional prefilled prompt. A selection payload means
+  // the ask came from document text — forward it so the chat can quote the
+  // exact passage, and enter canvas mode with that document beside the chat.
+  React.useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{
+        prompt?: string;
+        selection?: { text: string; filePath: string; fileName: string };
+      }>).detail;
+      setRightSidebarCollapsed(false);
+      setRightPanelTab('chat');
+      if (detail?.selection?.filePath) {
+        openCanvas(detail.selection.filePath, detail.selection.fileName);
+      }
+      if (detail?.prompt || detail?.selection) {
+        window.dispatchEvent(
+          new CustomEvent('wisp-ai-chat-request', {
+            detail: { prompt: detail?.prompt, selection: detail?.selection },
+          }),
+        );
+      }
+    };
+    window.addEventListener('wisp-open-chat', handler);
+    return () => window.removeEventListener('wisp-open-chat', handler);
+  }, [setRightPanelTab, setRightSidebarCollapsed, openCanvas]);
 
   const activeTabObj = activeGroup.tabs.find((t: TabItem) => t.id === activeGroup.activeTabId);
 
@@ -494,6 +584,8 @@ const MainLayout = (props: MainLayoutProps) => {
                 setRightSidebarCollapsed={setRightSidebarCollapsed}
                 rightPanelTab={rightPanelTab}
                 width={rightSidebarWidth}
+                canvasMode={canvasMode}
+                setCanvasMode={setCanvasMode}
                 selectedFile={selectedFile}
                 formatFileSize={formatFileSize}
                 formatDate={formatDate}

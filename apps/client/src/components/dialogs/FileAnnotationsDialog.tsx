@@ -90,7 +90,11 @@ const FileAnnotationsDialog = ({ isOpen, onClose, filePath }: FileAnnotationsDia
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="mx-4 flex max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-md border border-xp-border bg-xp-surface shadow-2xl">
+      <div
+      role="dialog"
+      aria-modal="true"
+      className="elevated-glass mx-4 flex max-h-[80vh] w-full max-w-md flex-col overflow-hidden rounded-md border border-xp-border"
+    >
         {/* Header */}
         <div className="flex flex-shrink-0 items-center justify-between border-b border-xp-border px-4 py-3">
           <div className="flex items-center space-x-2">

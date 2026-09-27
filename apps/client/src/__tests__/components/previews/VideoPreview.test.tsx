@@ -28,7 +28,6 @@ describe('VideoPreview', () => {
     onLoad: vi.fn(),
   };
 
-  let mockConvertFileSrc: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     vi.clearAllMocks();

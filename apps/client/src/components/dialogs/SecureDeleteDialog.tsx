@@ -141,7 +141,8 @@ const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDelete
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div
-        className="w-[520px] max-w-[90vw] overflow-hidden rounded-md bg-xp-surface shadow-2xl"
+        role="dialog" aria-modal="true"
+        className="elevated-glass w-[520px] max-w-[90vw] overflow-hidden rounded-md"
         onKeyDown={handleKeyDown}
       >
         {/* Header */}

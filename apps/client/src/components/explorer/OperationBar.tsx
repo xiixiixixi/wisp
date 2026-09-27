@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import '@/styles/container-collapse.css';
 import {
   ArrowUp,
   ArrowUpDown,
@@ -126,12 +127,17 @@ const OperationBar = ({
     if (restoreFocus && menu) requestAnimationFrame(() => triggerFor(menu)?.focus());
   };
 
-  const toggleMenu = (menu: OperationMenu) => {
+  const toggleMenu = (menu: OperationMenu, keyboardActivated = false) => {
     if (openMenu === menu) {
       setOpenMenu(null);
     } else {
+      // 鼠标打开：不预聚焦菜单项（macOS 惯例——焦点高亮只属于键盘导航；
+      // 预聚焦会让第一项显示实心蓝，看起来像错误的当前视图）。
+      // Enter/Space 合成的 click（detail=0）与方向键路径仍聚焦。
       setOpenMenu(menu);
-      requestAnimationFrame(() => focusMenuItem(menu, 'first'));
+      if (keyboardActivated) {
+        requestAnimationFrame(() => focusMenuItem(menu, 'first'));
+      }
     }
   };
 
@@ -345,7 +351,7 @@ const OperationBar = ({
             <button
               ref={sortTriggerRef}
               type="button"
-              onClick={() => toggleMenu('sort')}
+              onClick={(e) => toggleMenu('sort', e.detail === 0)}
               onKeyDown={(event) => handleMenuTriggerKeyDown('sort', event)}
               className="wisp-control flex items-center gap-1 rounded-md px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:text-xp-text"
               aria-label={t('operationBar.sortBy', {
@@ -356,7 +362,7 @@ const OperationBar = ({
               aria-expanded={openMenu === 'sort'}
             >
               <ArrowUpDown size={14} aria-hidden="true" />
-              <span className="whitespace-nowrap">{currentSortLabel}</span>
+              <span className="whitespace-nowrap ob-label-md">{currentSortLabel}</span>
               <ChevronDown size={12} className="opacity-60" />
             </button>
 
@@ -439,7 +445,7 @@ const OperationBar = ({
             <button
               ref={viewTriggerRef}
               type="button"
-              onClick={() => toggleMenu('view')}
+              onClick={(e) => toggleMenu('view', e.detail === 0)}
               onKeyDown={(event) => handleMenuTriggerKeyDown('view', event)}
               className="wisp-control flex items-center gap-1 rounded-md px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:text-xp-text"
               aria-label={t('operationBar.viewMode', {
@@ -449,7 +455,7 @@ const OperationBar = ({
               aria-expanded={openMenu === 'view'}
             >
               <span className="text-sm">{viewModes[viewMode]?.icon}</span>
-              <span className="whitespace-nowrap">{currentViewLabel}</span>
+              <span className="whitespace-nowrap ob-label-md">{currentViewLabel}</span>
               <ChevronDown size={12} className="opacity-60" />
             </button>
 
@@ -517,7 +523,7 @@ const OperationBar = ({
                 aria-label={t('operationBar.compress')}
               >
                 <Package size={15} aria-hidden="true" />
-                <span className="hidden xl:inline">{t('operationBar.compress')}</span>
+                <span className="ob-label-lg">{t('operationBar.compress')}</span>
               </button>
             )}
             {hasSelection && onExtract && selectedFiles.size === 1 && (
@@ -529,7 +535,7 @@ const OperationBar = ({
                 aria-label={t('operationBar.extract')}
               >
                 <PackageOpen size={15} aria-hidden="true" />
-                <span className="hidden xl:inline">{t('operationBar.extract')}</span>
+                <span className="ob-label-lg">{t('operationBar.extract')}</span>
               </button>
             )}
             <button
@@ -539,7 +545,7 @@ const OperationBar = ({
               aria-label={t('operationBar.createFolder')}
             >
               <FolderPlus size={16} />
-              <span className="hidden xl:inline">{t('operationBar.newFolder')}</span>
+              <span className="ob-label-lg">{t('operationBar.newFolder')}</span>
             </button>
 
             <button

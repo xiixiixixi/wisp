@@ -68,7 +68,11 @@ const XtensionInstallDialog = ({
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
       {/* Dialog */}
-      <div className="relative w-[420px] max-w-[90vw] overflow-hidden rounded-md border border-xp-border bg-xp-bg shadow-2xl">
+      <div
+      role="dialog"
+      aria-modal="true"
+      className="elevated-glass relative w-[420px] max-w-[90vw] overflow-hidden rounded-md border border-xp-border"
+    >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-xp-border px-5 py-4">
           <div className="flex items-center gap-3">

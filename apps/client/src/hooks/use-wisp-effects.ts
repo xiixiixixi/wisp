@@ -18,7 +18,6 @@ import { useShortcuts } from '@/hooks/use-shortcuts';
 import { useVimMode, isVimModeEnabled, type VimModeActions } from '@/hooks/use-vim-mode';
 import {
   AGENT_LAUNCH_REQUEST_EVENT,
-  requestAgentLaunch,
 } from '@/components/panels/agent-manager/agent-launch-request';
 import type { TabItem, EditorGroup } from '@/types/split-view';
 import type { BottomPanelTabId } from '@/hooks/use-layout-state';
@@ -208,6 +207,7 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
     files ?? [],
     fileOps.contextMenuActions,
     _handleFileDoubleClick,
+    currentPath,
   );
   useShortcuts(
     {
@@ -420,10 +420,6 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
       },
       onSplitPaneHorizontal: () => {
         splitLayoutRef.current.splitGroup(activeGroupRef.current.id, 'horizontal');
-      },
-      onToggleAgentLauncher: () => {
-        setRightSidebarCollapsed(false);
-        setRightPanelTab('agent-manager');
       },
       onToggleAgentWorkspace: () => {
         setRightSidebarCollapsed(false);
@@ -743,21 +739,9 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
     [splitLayoutRef],
   );
 
-  // ── Legacy AI request bridge ─────────────────────────────────────────────
-  // Existing code actions now prefill the external Agent launcher instead of
-  // opening the retired built-in chat loop.
-  useWindowEvent(
-    'wisp-ai-chat-request',
-    (e: Event) => {
-      const prompt = (e as CustomEvent<{ prompt: string }>).detail?.prompt;
-      if (prompt) {
-        setRightSidebarCollapsed(false);
-        setRightPanelTab('agent-manager');
-        requestAgentLaunch(prompt);
-      }
-    },
-    [setRightSidebarCollapsed, setRightPanelTab],
-  );
+  // NOTE the old 'wisp-ai-chat-request' bridge (which hijacked prompts into
+  // the external Agent launcher) was removed when the built-in pi chat came
+  // back — MainLayout's wisp-open-chat now routes prompts to PiChatPanel.
 
   useWindowEvent(AGENT_LAUNCH_REQUEST_EVENT, () => {
     setRightSidebarCollapsed(false);

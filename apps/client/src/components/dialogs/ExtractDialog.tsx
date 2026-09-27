@@ -259,7 +259,11 @@ const ExtractDialog = ({ isOpen, onClose, onComplete, archivePath }: ExtractDial
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="max-h-[90vh] w-[600px] max-w-[90vw] overflow-hidden rounded-md bg-xp-surface shadow-2xl">
+      <div
+      role="dialog"
+      aria-modal="true"
+      className="elevated-glass max-h-[90vh] w-[600px] max-w-[90vw] overflow-hidden rounded-md"
+    >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-xp-border p-6">
           <h2 className="text-xl font-semibold text-xp-text">{t('dialogs.extract.title')}</h2>

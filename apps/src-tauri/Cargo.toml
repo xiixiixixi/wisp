@@ -1,6 +1,6 @@
 [package]
 name = "wisp"
-version = "0.99.34"
+version = "0.99.35"
 description = "A modern file explorer built with Tauri"
 authors = ["Justin Maximillian Kimlim"]
 license = "AGPL-3.0"
@@ -71,6 +71,7 @@ unrar = "0.5"
 wasmi = "0.40"
 ed25519-dalek = { version = "2.2.0", features = ["rand_core"] }
 portable-pty = "0.8"
+tauri-plugin-http = "2"
 
 [dev-dependencies]
 tokio-test = "0.4"

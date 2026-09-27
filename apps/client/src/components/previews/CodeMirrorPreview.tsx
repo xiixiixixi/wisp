@@ -7,6 +7,7 @@ import type { EditorView } from '@codemirror/view';
 import { WrapText } from 'lucide-react';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
 import { useTextFileEditor } from '@/hooks/use-text-file-editor';
+import AiSelectionAsk from '@/components/previews/AiSelectionAsk';
 
 export interface CodeMirrorPreviewProps extends PreviewProps {
   /** Force a CodeMirror language instead of filename detection. */
@@ -128,7 +129,11 @@ const CodeMirrorPreview = ({
       )}
 
       {!loading && !error && (
-        <div className="wisp-code-surface min-h-0 flex-1 overflow-hidden rounded-lg border">
+        <AiSelectionAsk
+          filePath={file.path}
+          fileName={file.name}
+          className="wisp-code-surface min-h-0 flex-1 overflow-hidden rounded-lg border"
+        >
           <WispCodeMirror
             doc={content}
             readOnly={!editable}
@@ -142,7 +147,7 @@ const CodeMirrorPreview = ({
             ariaLabel={file.name}
             className="h-full"
           />
-        </div>
+        </AiSelectionAsk>
       )}
     </div>
   );

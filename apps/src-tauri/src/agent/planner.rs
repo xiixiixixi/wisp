@@ -252,34 +252,6 @@ pub fn get_plan(plan_id: &str) -> Option<OperationPlan> {
         .cloned()
 }
 
-/// Approve a pending plan.
-pub fn approve_plan(plan_id: &str) -> Result<(), String> {
-    let mut plans = PLANS.lock().unwrap_or_else(|e| e.into_inner());
-    if let Some(plan) = plans.get_mut(plan_id) {
-        if plan.status == "pending_approval" {
-            plan.status = "approved".to_string();
-            Ok(())
-        } else {
-            Err(format!(
-                "Plan '{}' is not pending approval (status: {})",
-                plan_id, plan.status
-            ))
-        }
-    } else {
-        Err(format!("Plan '{}' not found", plan_id))
-    }
-}
-
-/// Get all plans (for UI listing).
-pub fn get_all_plans() -> Vec<OperationPlan> {
-    PLANS
-        .lock()
-        .unwrap_or_else(|e| e.into_inner())
-        .values()
-        .cloned()
-        .collect()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -441,69 +413,12 @@ mod tests {
         assert!(output["description"].is_null());
     }
 
-    // ─── get_plan / approve_plan ────────────────────────────────────────
+    // ─── get_plan ───────────────────────────────────────────────────────
 
     #[test]
     fn get_plan_nonexistent() {
         let plan = get_plan("plan_nonexistent_xyz");
         assert!(plan.is_none());
-    }
-
-    #[test]
-    fn approve_plan_nonexistent() {
-        let result = approve_plan("plan_nonexistent_abc");
-        assert!(result.is_err());
-        assert!(result.unwrap_err().contains("not found"));
-    }
-
-    #[test]
-    fn approve_plan_success() {
-        let plan_id = insert_test_plan(
-            "approve_success",
-            vec![PlanStep {
-                action: "create_directory".to_string(),
-                description: "Step".to_string(),
-                params: json!({}),
-                status: "pending".to_string(),
-                result: None,
-                error: None,
-            }],
-        );
-
-        // Should start as pending_approval
-        let plan = get_plan(&plan_id).unwrap();
-        assert_eq!(plan.status, "pending_approval");
-
-        // Approve it
-        let approve_result = approve_plan(&plan_id);
-        assert!(approve_result.is_ok());
-
-        // Check status changed
-        let plan = get_plan(&plan_id).unwrap();
-        assert_eq!(plan.status, "approved");
-    }
-
-    #[test]
-    fn approve_plan_already_approved() {
-        // Use a unique plan ID to avoid collisions with concurrent tests.
-        let plan_id = insert_test_plan(
-            "double_approve",
-            vec![PlanStep {
-                action: "create_directory".to_string(),
-                description: "Step".to_string(),
-                params: json!({}),
-                status: "pending".to_string(),
-                result: None,
-                error: None,
-            }],
-        );
-
-        approve_plan(&plan_id).unwrap();
-
-        // Approving again should fail
-        let result = approve_plan(&plan_id);
-        assert!(result.is_err());
-        assert!(result.unwrap_err().contains("not pending approval"));
     }
 
     // ─── execute_execute_plan ───────────────────────────────────────────

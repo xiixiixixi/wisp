@@ -7,6 +7,8 @@ export const selectionCommands = (
   files: FileEntry[],
   actions: ContextMenuAction,
   openSingle: (file: FileEntry) => void,
+  /** Current folder — ⌘⌥C with no selection copies its path. */
+  currentPath?: string,
 ) => {
   const entries = files.filter((file) => selectedPaths.has(file.path));
   return {
@@ -30,6 +32,19 @@ export const selectionCommands = (
           },
       );
       if (targets.length) return actions.copyPath(targets);
+      // 无选中 → 复制当前文件夹路径（Finder 无此行为，属 Wisp 的便利键；
+      // 虚拟路径（wisp://、collection://）对剪贴板无意义，跳过）。
+      if (currentPath && currentPath.startsWith('/')) {
+        return actions.copyPath({
+          path: currentPath,
+          name: currentPath.split('/').pop() || currentPath,
+          is_dir: true,
+          is_readonly: false,
+          size: 0,
+          modified: 0,
+          file_type: '',
+        });
+      }
     },
     duplicate: () => {
       if (entries.length) return actions.duplicateFiles(entries);

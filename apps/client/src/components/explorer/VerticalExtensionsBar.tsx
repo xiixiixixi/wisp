@@ -7,7 +7,7 @@ import React, {
   useSyncExternalStore,
 } from 'react';
 import { extensionHost } from '@/lib/extension-host';
-import { Eye, Bot, ShoppingCart, Settings, Activity, Ellipsis, File, Plug } from 'lucide-react';
+import { Eye, Bot, ShoppingCart, Settings, Activity, Ellipsis, File, Plug, Smartphone } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useHiddenFiles } from '@/hooks/use-hidden-files';
 
@@ -38,6 +38,7 @@ const VerticalExtensionsBar = ({
   const menuRef = useRef<HTMLDivElement>(null);
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
   const initialMenuFocusRef = useRef<'first' | 'last'>('first');
+  const keyboardOpenRef = useRef(false);
   const extRefreshKey = useSyncExternalStore(
     extensionHost.subscribe,
     extensionHost.getSnapshotVersion,
@@ -57,8 +58,14 @@ const VerticalExtensionsBar = ({
       {
         id: 'ai',
         icon: <Bot size={16} />,
-        label: t('extensionsBar.agent'),
-        target: 'agent-manager',
+        label: t('extensionsBar.chat'),
+        target: 'chat',
+      },
+      {
+        id: 'weixin',
+        icon: <Smartphone size={16} />,
+        label: t('extensionsBar.weixin'),
+        target: 'weixin-bridge',
       },
       ...registeredPanels.map((panel) => ({
         id: panel.id,
@@ -79,6 +86,7 @@ const VerticalExtensionsBar = ({
   const isActivePanel = (id: string) => {
     if (rightSidebarCollapsed) return false;
     if (id === 'ai') return rightPanelTab === 'chat' || rightPanelTab === 'agent-manager';
+    if (id === 'weixin') return rightPanelTab === 'weixin-bridge';
     return rightPanelTab === id;
   };
 
@@ -132,7 +140,9 @@ const VerticalExtensionsBar = ({
   useEffect(() => {
     if (!menuOpen) return;
     const focusFrame = requestAnimationFrame(() => {
-      focusMenuItem(initialMenuFocusRef.current);
+      // 鼠标打开不预聚焦（macOS 惯例）；键盘打开（方向键）才高亮首/末项。
+      if (keyboardOpenRef.current) focusMenuItem(initialMenuFocusRef.current);
+      keyboardOpenRef.current = false;
       initialMenuFocusRef.current = 'first';
     });
     const handlePointerDown = (event: PointerEvent) => {
@@ -187,7 +197,7 @@ const VerticalExtensionsBar = ({
           onClick={() => handlePanelClick('preview')}
           className={`wisp-rail-button flex h-8 w-8 items-center justify-center rounded-md transition-all ${
             isActivePanel('preview')
-              ? 'bg-xp-blue text-[var(--xp-bg)]'
+              ? 'bg-xp-blue text-xp-on-accent'
               : 'text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text'
           }`}
           title={previewLabel}
@@ -218,7 +228,7 @@ const VerticalExtensionsBar = ({
           onClick={() => handlePanelClick('chatgpt-bridge')}
           className={`wisp-rail-button flex h-8 w-8 items-center justify-center rounded-md transition-all ${
             isActivePanel('chatgpt-bridge')
-              ? 'bg-xp-blue text-[var(--xp-bg)]'
+              ? 'bg-xp-blue text-xp-on-accent'
               : 'text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text'
           }`}
           title={t('extensionsBar.chatgptBridge')}
@@ -231,17 +241,22 @@ const VerticalExtensionsBar = ({
           <button
             ref={menuTriggerRef}
             type="button"
-            onClick={() => setMenuOpen((open) => !open)}
+            onClick={(e) => {
+              // detail=0 → Enter/Space 键盘激活，仍按键盘打开聚焦首项。
+              keyboardOpenRef.current = e.detail === 0;
+              setMenuOpen((open) => !open);
+            }}
             onKeyDown={(event) => {
               if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
                 event.preventDefault();
                 initialMenuFocusRef.current = event.key === 'ArrowUp' ? 'last' : 'first';
+                keyboardOpenRef.current = true;
                 setMenuOpen(true);
               }
             }}
             className={`wisp-rail-button flex h-8 w-8 items-center justify-center rounded-md transition-all ${
               hasActiveSecondaryPanel
-                ? 'bg-xp-blue text-[var(--xp-bg)]'
+                ? 'bg-xp-blue text-xp-on-accent'
                 : 'text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text'
             }`}
             title={moreToolsLabel}
@@ -280,13 +295,19 @@ const VerticalExtensionsBar = ({
                     aria-checked={active}
                     tabIndex={-1}
                     onClick={() => handleSecondaryPanelClick(id, target)}
-                    className={`flex w-full items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-left text-xs transition-colors ${
+                    className={`group flex w-full items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-left text-xs transition-colors ${
                       active
-                        ? 'bg-xp-blue/15 font-semibold text-xp-blue'
-                        : 'text-xp-text hover:bg-xp-surface-light'
+                        ? 'bg-xp-blue font-semibold text-xp-on-accent'
+                        : 'text-xp-text hover:bg-xp-blue hover:text-xp-on-accent'
                     }`}
                   >
-                    <span className="flex h-5 w-5 items-center justify-center text-xp-text-secondary">
+                    <span
+                      className={`flex h-5 w-5 items-center justify-center ${
+                        active
+                          ? 'text-xp-on-accent'
+                          : 'text-xp-text-secondary group-hover:text-xp-on-accent'
+                      }`}
+                    >
                       {icon}
                     </span>
                     <span className="min-w-0 flex-1 truncate">{label}</span>
@@ -308,9 +329,9 @@ const VerticalExtensionsBar = ({
                     }),
                   );
                 }}
-                className="flex w-full items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-left text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
+                className="group flex w-full items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-left text-xs text-xp-text transition-colors hover:bg-xp-blue hover:text-xp-on-accent"
               >
-                <span className="flex h-5 w-5 items-center justify-center text-xp-text-secondary">
+                <span className="flex h-5 w-5 items-center justify-center text-xp-text-secondary group-hover:text-xp-on-accent">
                   <Settings size={16} />
                 </span>
                 <span className="min-w-0 flex-1 truncate">{t('extensionsBar.settings')}</span>

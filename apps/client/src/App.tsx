@@ -10,6 +10,7 @@ import { TauriAPI } from '@/lib/tauri-api';
 import { extensionHost } from '@/lib/extension-host';
 import { useToast } from '@/hooks/use-toast';
 import XtensionInstallDialog from '@/components/dialogs/XtensionInstallDialog';
+import { weixinBridge } from '@/lib/weixin/bridge';
 import UpdateBanner from '@/components/UpdateBanner';
 
 // Keep the explorer mounted beneath settings, including legacy /settings links.
@@ -32,6 +33,11 @@ export const AppWorkspace = () => {
     };
     window.addEventListener('wisp-open-settings', openSettings);
     return () => window.removeEventListener('wisp-open-settings', openSettings);
+  }, []);
+
+  // 微信桥：应用启动即恢复凭据并进入消息循环（不依赖面板打开）
+  useEffect(() => {
+    void weixinBridge.init();
   }, []);
 
   useEffect(() => {

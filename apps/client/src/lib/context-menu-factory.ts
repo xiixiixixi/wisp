@@ -20,6 +20,7 @@ import {
   FolderOpen,
   ExternalLink,
   Wrench,
+  Bot,
   Copy,
   Scissors,
   Clipboard,
@@ -490,6 +491,52 @@ export class ContextMenuFactory {
         label: i18n.t('contextMenu.createLink'),
         icon: mi(Link2),
         action: () => this.actions.createSymlink(file),
+      });
+    }
+
+    // AI ▸ quick actions — summon the chat panel with a prefilled prompt.
+    // First version sends as a folder-anchored conversation; the user can
+    // edit the prompt before pressing Enter.
+    if (!isMultiSelect) {
+      const ask = (template: string) =>
+        window.dispatchEvent(
+          new CustomEvent('wisp-open-chat', { detail: { prompt: template } }),
+        );
+      finderParityItems.push({
+        id: 'ai-actions',
+        label: i18n.t('contextMenu.aiActions'),
+        icon: mi(Bot),
+        submenu: [
+          ...(file.is_dir
+            ? [
+                {
+                  id: 'ai-organize',
+                  label: i18n.t('contextMenu.aiOrganize'),
+                  action: () =>
+                    ask(i18n.t('contextMenu.aiOrganizePrompt', { name: file.name })),
+                },
+              ]
+            : [
+                {
+                  id: 'ai-summarize',
+                  label: i18n.t('contextMenu.aiSummarize'),
+                  action: () =>
+                    ask(i18n.t('contextMenu.aiSummarizePrompt', { name: file.name })),
+                },
+                {
+                  id: 'ai-explain',
+                  label: i18n.t('contextMenu.aiExplain'),
+                  action: () =>
+                    ask(i18n.t('contextMenu.aiExplainPrompt', { name: file.name })),
+                },
+                {
+                  id: 'ai-rename',
+                  label: i18n.t('contextMenu.aiRename'),
+                  action: () =>
+                    ask(i18n.t('contextMenu.aiRenamePrompt', { name: file.name })),
+                },
+              ]),
+        ],
       });
     }
 

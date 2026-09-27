@@ -3,6 +3,7 @@
  * Always reference these constants instead of hardcoding key strings.
  */
 export const STORAGE_KEYS = {
+  PI_DEFAULT_MODEL: 'wisp:pi-default-model',
   // Core settings & UI
   SETTINGS: 'wisp:settings',
   UI_STATE: 'wisp:ui-state',
@@ -44,9 +45,7 @@ export const STORAGE_KEYS = {
   VIM_MODE: 'wisp-vim-mode',
   VIM_LEARNING_MODE: 'wisp-vim-learning-mode',
 
-  // AI / tokenizer
-  OPENAI_KEY: 'wisp_openai_key',
-  OLLAMA_URL: 'wisp_ollama_url',
+  OLLAMA_URL: 'wisp_ollama_url', // pi providers: local Ollama endpoint
 
   // Misc
   CUSTOM_TEMPLATES: 'wisp:custom-templates',
@@ -67,58 +66,18 @@ export const STORAGE_KEYS = {
   // File open preferences (Open With)
   FILE_OPEN_PREFS: 'wisp:file-open-prefs',
 
-  // AI Chat file access
-  AI_FILE_ACCESS_GRANTED: 'wisp:ai-file-access-granted',
 
-  // AI Chat history
-  AI_CHAT_HISTORY: 'wisp:ai-chat-history',
 
-  // AI Chat action templates
-  AI_ACTION_TEMPLATES: 'wisp:ai-action-templates',
 
-  // AI Proactive agent
-  PROACTIVE_AGENT_ENABLED: 'wisp:proactive-agent-enabled',
-
-  // AI Agent memory
-  AI_AGENT_MEMORY: 'wisp:ai-agent-memory',
-
-  // AI Chat pinned messages
-  AI_CHAT_PINNED: 'wisp:ai-chat-pinned',
-
-  // AI Chat feedback (thumbs up/down)
-  AI_CHAT_FEEDBACK: 'wisp:ai-chat-feedback',
-
-  // AI Agent audit log
-  AI_AUDIT_LOG: 'wisp:ai-audit-log',
-
-  // AI Agent security rules
-  AI_SECURITY_RULES: 'wisp:ai-security-rules',
-
-  // AI Workflow templates
-  AI_WORKFLOW_TEMPLATES: 'wisp:ai-workflow-templates',
-
-  // AI Chat onboarding
-  AI_ONBOARDING_DONE: 'wisp:ai-onboarding-done',
-
-  // Agent launcher recent prompts
-  AGENT_LAUNCHER_RECENT: 'wisp:agent-launcher-recent',
+  // Agent launcher (external CLI agents)
   AGENT_LAUNCHER_LAST_TYPE: 'wisp:agent-launcher-last-type',
   AGENT_LAUNCHER_CUSTOM_COMMAND: 'wisp:agent-launcher-custom-command',
 
   // Extension auto-update
 
-  // Agent cost tracking (daily token/cost history)
-  AGENT_COST_HISTORY: 'wisp:agent-cost-history',
 
-  // Agent session history (completed sessions)
-  AGENT_SESSION_HISTORY: 'wisp:agent-session-history',
 
-  // Agent notification preferences (per-type enable/disable)
-  AGENT_NOTIFICATION_PREFS: 'wisp:agent-notification-prefs',
 
-  // Agent scheduled tasks
-  AGENT_SCHEDULES: 'wisp:agent-schedules',
-  AGENT_SCHEDULE_RUNS: 'wisp:agent-schedule-runs',
 } as const;
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];

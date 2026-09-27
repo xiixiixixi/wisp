@@ -10,6 +10,7 @@ import './index.css';
 import './styles/liquid-glass.css';
 import './styles/fluid-glass.css';
 import './styles/design-system.css';
+import './styles/pi-chat.css';
 import { migrateLegacyDefaultView } from './lib/view-default';
 import { installNativeTextEditing } from './lib/native-text-editing';
 import { installNativeMenuLanguage } from './lib/native-menu-language';

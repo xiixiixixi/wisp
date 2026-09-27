@@ -134,3 +134,29 @@ describe('text clipboard feedback', () => {
     expect(writeText).toHaveBeenCalledWith(files[0].path);
   });
 });
+
+describe('copyPath with no selection', () => {
+  it('copies the current folder path when nothing is selected', () => {
+    const copyPath = vi.fn();
+    const cmds = selectionCommands(new Set(), [], { copyPath } as never, vi.fn(), '/Users/x/Downloads');
+    cmds.copyPath();
+    expect(copyPath).toHaveBeenCalledTimes(1);
+    const arg = copyPath.mock.calls[0][0];
+    expect(arg.path).toBe('/Users/x/Downloads');
+    expect(arg.is_dir).toBe(true);
+    expect(arg.name).toBe('Downloads');
+  });
+
+  it('skips the fallback on virtual paths and keeps selection priority', () => {
+    const copyPath = vi.fn();
+    // 虚拟路径：不复制
+    const virtual = selectionCommands(new Set(), [], { copyPath } as never, vi.fn(), 'wisp://home');
+    virtual.copyPath();
+    expect(copyPath).not.toHaveBeenCalled();
+    // 有选中：选中优先，不回落
+    const file = { path: '/a/b.txt', name: 'b.txt', is_dir: false, is_readonly: false, size: 1, modified: 0, file_type: '' };
+    const withSel = selectionCommands(new Set(['/a/b.txt']), [file], { copyPath } as never, vi.fn(), '/a');
+    withSel.copyPath();
+    expect(copyPath).toHaveBeenCalledWith([file]);
+  });
+});

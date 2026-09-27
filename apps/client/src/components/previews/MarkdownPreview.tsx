@@ -11,6 +11,7 @@ import { getCodeLanguageLabel, highlightCode } from '@/lib/shiki';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Check, Copy } from 'lucide-react';
+import AiSelectionAsk from '@/components/previews/AiSelectionAsk';
 import '@/styles/code-preview.css';
 
 /** Async Shiki block; output is generated HTML (code is escaped by Shiki). */
@@ -187,9 +188,12 @@ const MarkdownPreview = ({ file, onError, onLoad }: PreviewProps) => {
             value="rendered"
             className="md-preview !mt-0 min-h-0 flex-1 overflow-auto rounded-md border border-xp-border bg-xp-surface p-3"
           >
-            <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-              {draftPreview ?? content}
-            </ReactMarkdown>
+            {/* 渲染视图包一层选区浮条：划选文字 → 「问 AI」→ 选区+指令进对话 */}
+            <AiSelectionAsk filePath={file.path} fileName={file.name} className="h-full">
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                {draftPreview ?? content}
+              </ReactMarkdown>
+            </AiSelectionAsk>
           </TabsContent>
         )}
 

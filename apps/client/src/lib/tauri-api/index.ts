@@ -9,7 +9,6 @@ import * as search from './search';
 import * as git from './git';
 import * as extensions from './extensions';
 import * as ai from './ai';
-import * as agentSessions from './agent-sessions';
 import * as storage from './storage';
 import * as system from './system';
 import * as weather from './weather';
@@ -27,7 +26,6 @@ export * from './search';
 export * from './git';
 export * from './extensions';
 export * from './ai';
-export * from './agent-sessions';
 export * from './storage';
 export * from './system';
 export * from './weather';
@@ -211,25 +209,13 @@ export class TauriAPI {
   static getAiModels = ai.getAiModels;
   static checkOllamaStatus = ai.checkOllamaStatus;
   static chatWithAI = ai.chatWithAI;
-  static analyzeFileWithAI = ai.analyzeFileWithAI;
-  static getFileHelp = ai.getFileHelp;
-  static suggestFilename = ai.suggestFilename;
-  static autoTagFiles = ai.autoTagFiles;
-  static agentReadFileTree = ai.agentReadFileTree;
-  static agentRequestWritePermission = ai.agentRequestWritePermission;
   static agentWriteFileWithPermission = ai.agentWriteFileWithPermission;
-  static agentRespondApproval = ai.agentRespondApproval;
-  static agentCancelSession = ai.agentCancelSession;
   static getAgentSettings = ai.getAgentSettings;
-  static updateAgentSettings = ai.updateAgentSettings;
-  static updateAgentApiKeys = ai.updateAgentApiKeys;
-
-  // ── Agent Sessions ──────────────────────────────────────────────────────
-  static createAgentSession = agentSessions.createAgentSession;
-  static listAgentSessions = agentSessions.listAgentSessions;
-  static getAgentSession = agentSessions.getAgentSession;
-  static stopAgentSession = agentSessions.stopAgentSession;
-  static removeAgentSession = agentSessions.removeAgentSession;
+  static mem0ConfigState = ai.mem0ConfigState;
+  static mem0SaveConfig = ai.mem0SaveConfig;
+  static mem0List = ai.mem0List;
+  static mem0Delete = ai.mem0Delete;
+  static mem0DeleteAll = ai.mem0DeleteAll;
 
   // ── Storage ─────────────────────────────────────────────────────────────
   static getBookmarks = storage.getBookmarks;

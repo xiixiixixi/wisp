@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { createInstance } from 'i18next';
@@ -7,7 +8,17 @@ import zh from '@/locales/zh.json';
 
 describe('Chinese and English catalogs', () => {
   it('has matching keys/placeholders and no unresolved static UI keys', () => {
-    const script = resolve(process.cwd(), 'scripts/audit-i18n.mjs');
+    // vitest transpiles sources, so walk up from cwd to find the repo-root script.
+    let script: string | null = null;
+    for (let dir = process.cwd(); ; dir = resolve(dir, '..')) {
+      const candidate = resolve(dir, 'scripts/audit-i18n.mjs');
+      if (existsSync(candidate)) {
+        script = candidate;
+        break;
+      }
+      if (dir === resolve(dir, '..')) break;
+    }
+    if (!script) throw new Error('scripts/audit-i18n.mjs not found above cwd');
     const report = JSON.parse(execFileSync(process.execPath, [script], { encoding: 'utf8' }));
     expect(report.parity).toEqual([]);
     expect(report.interpolation).toEqual([]);

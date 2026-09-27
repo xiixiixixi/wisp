@@ -73,7 +73,6 @@ export interface ShortcutHandlers {
 
   // Terminal / AI
   onOpenTerminal?: () => void;
-  onToggleAgentLauncher?: () => void;
   onToggleAgentWorkspace?: () => void;
 
   // Extension actions
@@ -237,9 +236,6 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
         break;
       case 'SplitPaneHorizontal':
         h.onSplitPaneHorizontal?.();
-        break;
-      case 'ToggleAgentLauncher':
-        h.onToggleAgentLauncher?.();
         break;
       case 'ToggleAgentWorkspace':
         h.onToggleAgentWorkspace?.();

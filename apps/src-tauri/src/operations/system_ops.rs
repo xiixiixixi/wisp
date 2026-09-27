@@ -71,11 +71,13 @@ pub async fn list_drives() -> Result<Vec<DriveInfo>, String> {
             total_space: 0,
             free_space: 0,
         });
-        // List /Volumes for external drives
+        // List /Volumes for external drives. Finder 同款：系统维护卷
+        // （Recovery/Preboot/VM）不展示——它们既不可推出也不该被误点。
+        const SYSTEM_VOLUME_NAMES: &[&str] = &["Recovery", "Preboot", "VM"];
         if let Ok(entries) = std::fs::read_dir("/Volumes") {
             for entry in entries.flatten() {
                 let name = entry.file_name().to_string_lossy().to_string();
-                if name == "Macintosh HD" {
+                if name == "Macintosh HD" || SYSTEM_VOLUME_NAMES.contains(&name.as_str()) {
                     continue;
                 }
                 let path = entry.path().to_string_lossy().to_string();

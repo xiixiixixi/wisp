@@ -11,6 +11,19 @@ const renderWithSuspense = (ui: React.ReactElement) => {
 };
 
 // Mock sub-components
+vi.mock('@/components/panels/PiChatPanel', () => ({
+  default: ({
+    currentPath,
+    canvasMode,
+  }: {
+    currentPath: string;
+    canvasMode?: boolean;
+  }) => (
+    <div data-testid="pi-chat-panel" data-canvas={String(!!canvasMode)}>
+      {currentPath}
+    </div>
+  ),
+}));
 vi.mock('@/components/panels/PreviewPanel', () => ({
   default: ({ selectedFile }: { selectedFile?: { name: string } | null }) => (
     <div data-testid="preview-panel">
@@ -73,6 +86,9 @@ vi.mock('@/hooks/use-preview-history', () => ({
 vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {
     openFile: vi.fn(),
+    getAgentSettings: vi.fn(() =>
+      Promise.resolve({ enabled: true, model: 'ollama:llama3.2', maxTurns: 25, autoApprove: false, thinkingEnabled: false, thinkingBudget: 10000, hasApiKey: false, hasOpenaiApiKey: false }),
+    ),
   },
   FileEntry: {},
 }));
@@ -148,10 +164,31 @@ describe('RightSidebar', () => {
       expect(await screen.findByTestId('agent-manager-panel')).toHaveTextContent('C:\\Users\\Test');
     });
 
-    it('migrates the retired chat tab to the external Agent panel', async () => {
+    it('renders the pi chat panel for the chat tab', async () => {
       renderWithSuspense(<RightSidebar {...defaultProps} rightPanelTab="chat" />);
-      expect(await screen.findByTestId('agent-manager-panel')).toBeInTheDocument();
-      expect(screen.queryByTestId('ai-panel-switch')).not.toBeInTheDocument();
+      // 懒加载分片在并行测试下偶发偏慢，放宽到 3s
+      expect(await screen.findByTestId('pi-chat-panel', {}, { timeout: 3000 })).toBeInTheDocument();
+    });
+
+    it('splits into document + chat columns in canvas mode', async () => {
+      renderWithSuspense(
+        <RightSidebar
+          {...defaultProps}
+          rightPanelTab="chat"
+          canvasMode
+          selectedFile={{ name: '周报.md', path: '/docs/周报.md' } as never}
+        />,
+      );
+      expect(await screen.findByTestId('canvas-split', {}, { timeout: 3000 })).toBeInTheDocument();
+      expect(
+        await screen.findByTestId('pi-chat-panel', {}, { timeout: 3000 }),
+      ).toBeInTheDocument();
+      expect(screen.getByTestId('preview-panel')).toHaveTextContent('Preview: 周报.md');
+      // 画布标题替换普通聊天标题
+      const header = screen.getByRole('toolbar', { name: i18n.t('piChat.canvasTitle') });
+      expect(within(header).getByRole('heading')).toHaveTextContent(
+        i18n.t('piChat.canvasTitle'),
+      );
     });
 
     it('shows marketplace panel when tab is marketplace', async () => {

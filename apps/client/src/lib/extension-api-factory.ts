@@ -13,8 +13,6 @@ import {
   type CommandHandler,
 } from './extension-host-types';
 import { BLOCKED_TAURI_COMMANDS } from './extension-sandbox';
-import { AIService } from './ai-service';
-import { AgentService } from './agent-service';
 
 /** Dependencies injected by the ExtensionHost instance */
 export interface ExtensionApiDeps {
@@ -542,18 +540,18 @@ export const createExtensionApi = (manifest: ExtensionManifest, deps: ExtensionA
         if (!hasPermission(manifest, 'ai:chat')) {
           throw new Error(`Extension "${manifest.id}" missing permission: ai:chat`);
         }
-        const settings = await AgentService.getSettings();
+        const settings = await TauriAPI.getAgentSettings();
         const chatMessages = messages.map((m) => ({
           role: m.role as 'user' | 'assistant' | 'system',
           content: m.content,
         }));
-        return AIService.chatWithAI(settings.model, chatMessages);
+        return TauriAPI.chatWithAI(settings.model, chatMessages);
       },
       getProvider: async (): Promise<{ model: string; provider: string }> => {
         if (!hasPermission(manifest, 'ai:read')) {
           throw new Error(`Extension "${manifest.id}" missing permission: ai:read`);
         }
-        const settings = await AgentService.getSettings();
+        const settings = await TauriAPI.getAgentSettings();
         const m = settings.model;
         const provider = m.startsWith('claude')
           ? 'anthropic'
@@ -572,28 +570,6 @@ export const createExtensionApi = (manifest: ExtensionManifest, deps: ExtensionA
                     ? 'meta'
                     : 'ollama';
         return { model: settings.model, provider };
-      },
-      startAgent: async (
-        messages: Array<{ role: string; content: string }>,
-        currentPath: string,
-        onEvent: (event: unknown) => void,
-      ): Promise<string> => {
-        if (!hasPermission(manifest, 'ai:chat')) {
-          throw new Error(`Extension "${manifest.id}" missing permission: ai:chat`);
-        }
-        return AgentService.startAgentChat(messages, currentPath, onEvent);
-      },
-      respondToApproval: async (toolCallId: string, response: string): Promise<void> => {
-        if (!hasPermission(manifest, 'ai:chat')) {
-          throw new Error(`Extension "${manifest.id}" missing permission: ai:chat`);
-        }
-        return AgentService.respondToApproval(toolCallId, response);
-      },
-      cancelAgent: async (): Promise<void> => {
-        if (!hasPermission(manifest, 'ai:chat')) {
-          throw new Error(`Extension "${manifest.id}" missing permission: ai:chat`);
-        }
-        return AgentService.cancelSession();
       },
     },
     analytics: {

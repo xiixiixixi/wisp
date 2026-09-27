@@ -110,6 +110,34 @@ describe('MarkdownPreview', () => {
       });
     });
 
+    it('reloads content when a wisp-file-written event targets this file', async () => {
+      render(<MarkdownPreview {...mockProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Hello World');
+      });
+      expect(TauriAPI.readTextFile).toHaveBeenCalledTimes(1);
+
+      vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce('# Changed\n\nNew content.');
+      window.dispatchEvent(
+        new CustomEvent('wisp-file-written', { detail: { path: mockFile.path } }),
+      );
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Changed');
+      });
+      expect(TauriAPI.readTextFile).toHaveBeenCalledTimes(2);
+    });
+
+    it('wraps the rendered markdown in the AI selection layer (canvas mode entry)', async () => {
+      render(<MarkdownPreview {...mockProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Hello World');
+      });
+      expect(screen.getByTestId('ai-selection-layer')).toBeInTheDocument();
+    });
+
     it('renders GFM tables', async () => {
       vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce('| a | b |\n| --- | --- |\n| 1 | 2 |');
 

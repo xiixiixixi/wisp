@@ -81,11 +81,11 @@ describe('retired feature contracts', () => {
       STORAGE_KEYS.CONTEXT_MENU_RULES,
       JSON.stringify([{ menuItemId: 'version-history', id: 'old' }, retained]),
     );
-    localStorage.setItem(STORAGE_KEYS.AI_AUDIT_LOG, '[{"keep":true}]');
+    localStorage.setItem('wisp:ai-audit-log', '[{"keep":true}]');
     localStorage.setItem(STORAGE_KEYS.INSTALLED_EXTENSIONS, '[{"id":"keep"}]');
     migrateRetiredSettings();
     expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.CONTEXT_MENU_RULES)!)).toEqual([retained]);
-    expect(localStorage.getItem(STORAGE_KEYS.AI_AUDIT_LOG)).toBe('[{"keep":true}]');
+    expect(localStorage.getItem('wisp:ai-audit-log')).toBe('[{"keep":true}]');
     expect(localStorage.getItem(STORAGE_KEYS.INSTALLED_EXTENSIONS)).toBe('[{"id":"keep"}]');
     migrateRetiredSettings();
     expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.CONTEXT_MENU_RULES)!)).toEqual([retained]);

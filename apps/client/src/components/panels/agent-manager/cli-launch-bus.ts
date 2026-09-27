@@ -1,5 +1,5 @@
 /**
- * Mini event bus connecting the CLI agent launcher (NewAgentForm) with the
+ * Mini event bus connecting the CLI agent launcher (ExternalAgentLauncher) with the
  * terminal panel. The launcher spawns its own PTY session (not via
  * XTermPanel), so the terminal panel needs to be told to attach a tab to it.
  *

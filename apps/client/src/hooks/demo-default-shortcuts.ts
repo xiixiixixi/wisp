@@ -216,5 +216,4 @@ export const DEMO_DEFAULT_SHORTCUTS: ShortcutBinding[] = [
   ),
   // ── Terminal / AI ──
   B('open-terminal', ['ctrl', '`'], 'OpenTerminal', 'Open terminal', 'ctrl+`'),
-  B('agent-launcher', ['ctrl', 'k'], 'ToggleAgentLauncher', 'Open Agent', 'ctrl+k'),
 ];

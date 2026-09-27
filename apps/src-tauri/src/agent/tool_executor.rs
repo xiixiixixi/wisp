@@ -2,7 +2,6 @@ use serde_json::{json, Value};
 use std::path::Path;
 use std::sync::OnceLock;
 
-use super::memory;
 use super::planner;
 use super::security::{
     is_blocked_command, is_custom_blocked_command, is_network_command,
@@ -518,8 +517,6 @@ pub fn execute_tool(name: &str, input: &Value) -> Result<String, String> {
         "extract_document_text" => execute_extract_document_text(input),
         "create_plan" => planner::execute_create_plan(input),
         "execute_plan" => planner::execute_execute_plan(input),
-        "remember" => memory::execute_remember(input),
-        "recall" => memory::execute_recall(input),
         _ => Err(format!("Unknown tool: {}", name)),
     }
 }

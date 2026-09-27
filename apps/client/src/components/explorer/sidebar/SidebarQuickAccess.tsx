@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Home, User, FileText, Download, Monitor, Image, Cloud } from 'lucide-react';
+import { Home, User, FileText, Download, Monitor, Image, Cloud, LayoutGrid } from 'lucide-react';
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 import { PATH_SEPARATOR, isWindows, isMac } from '@/lib/constants';
 import { useTranslation } from 'react-i18next';
@@ -89,6 +89,17 @@ const SidebarQuickAccess = ({
                 labelKey: 'sidebar.userDirectory' as const,
                 tone: 'text-xp-cyan',
               },
+              ...(isMac
+                ? [
+                    {
+                      // Finder 收藏同款：应用程序（macOS 系统目录）
+                      path: '/Applications',
+                      Icon: LayoutGrid,
+                      labelKey: 'sidebar.applications' as const,
+                      tone: 'text-xp-green',
+                    },
+                  ]
+                : []),
               {
                 path: userDirectories.documents,
                 Icon: FileText,

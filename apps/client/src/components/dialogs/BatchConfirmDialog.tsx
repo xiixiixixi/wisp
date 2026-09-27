@@ -157,7 +157,7 @@ const BatchConfirmDialog = ({
         aria-describedby={meta.warning ? 'batch-confirm-warning' : undefined}
         aria-modal="true"
         tabIndex={-1}
-        className="flex max-h-[80vh] w-[540px] max-w-[90vw] flex-col rounded-md border border-xp-border bg-xp-surface shadow-2xl outline-none"
+        className="elevated-glass flex max-h-[80vh] w-[540px] max-w-[90vw] flex-col rounded-md border border-xp-border outline-none"
         onKeyDown={handleKeyDown}
       >
         {/* Header */}

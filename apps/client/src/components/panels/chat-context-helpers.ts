@@ -4,7 +4,9 @@
  */
 import { TauriAPI } from '@/lib/tauri-api';
 import { getDemoDirectory, getDemoTextFile, isBrowserDemoMode } from '@/lib/browser-demo-files';
-import { basename } from './chat-file-actions';
+
+/** File name from a path (mirrors the removed chat-file-actions helper). */
+const basename = (p: string): string => p.split(/[/\\]/).pop() ?? p;
 
 // ---------------------------------------------------------------------------
 // Constants

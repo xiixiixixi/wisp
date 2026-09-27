@@ -33,7 +33,6 @@ import TrashPage from '@/components/TrashPage';
 import FileComparisonPage from '@/pages/FileComparisonPage';
 import PaneFileExplorer from './PaneFileExplorer';
 
-const ChatFileView = React.lazy(() => import('@/pages/ChatFileView'));
 const FileEditorView = React.lazy(() => import('@/pages/FileEditorView'));
 
 export interface SharedPaneActions {
@@ -399,20 +398,20 @@ const EditorGroupPane = ({
   const { getFolderSize, isCalculatingSize, calculateFolderSize, calculateMissingSizes } =
     useFolderSizes(files);
 
-  // Auto-calculate folder sizes if the setting is enabled
+  // Auto-calculate folder sizes: the setting opts in globally; the details
+  // view opts in implicitly (the size column is the point of that view).
   useEffect(() => {
+    let auto = false;
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-      if (saved) {
-        const settings = JSON.parse(saved);
-        if (settings.autoCalculateFolderSizes && files.some((f) => f.is_dir)) {
-          calculateMissingSizes();
-        }
-      }
+      if (saved) auto = Boolean(JSON.parse(saved)?.autoCalculateFolderSizes);
     } catch {
       /* ignore localStorage/parse errors */
     }
-  }, [files, calculateMissingSizes]);
+    if ((auto || localViewMode === 'details') && files.some((f) => f.is_dir)) {
+      calculateMissingSizes();
+    }
+  }, [files, calculateMissingSizes, localViewMode]);
 
   // Listen for files-changed events (from drag-drop operations) to refetch
   useEffect(() => {
@@ -760,23 +759,6 @@ const EditorGroupPane = ({
           file2Path={activeTab.comparisonData.file2Path}
           onError={(error: string) => onError('Comparison Error', error)}
         />
-      );
-    }
-
-    // Chat file view
-    if (activeTab?.path?.endsWith('.chat')) {
-      return (
-        <div className="flex-1 overflow-auto">
-          <React.Suspense
-            fallback={
-              <div className="flex h-full items-center justify-center text-xp-text-muted">
-                {tUi('interface.loadingChat')}
-              </div>
-            }
-          >
-            <ChatFileView filePath={activeTab.path} />
-          </React.Suspense>
-        </div>
       );
     }
 

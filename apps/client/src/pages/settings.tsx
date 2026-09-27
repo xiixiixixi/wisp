@@ -1,10 +1,12 @@
 import { useState, useEffect, useId, useRef, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Settings2, FolderOpen, X } from 'lucide-react';
+import { Settings2, FolderOpen, Bot, X, Plug } from 'lucide-react';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { Dialog, DialogTitle } from '@/components/ui/dialog';
 import GeneralSettings from '@/components/settings/GeneralSettings';
 import ExplorerSettings from '@/components/settings/ExplorerSettings';
+import AiModelSettings from '@/components/settings/AiModelSettings';
+import McpSettings from '@/components/settings/McpSettings';
 import { applyTheme } from '@/lib/utils';
 import { normalizeLanguage } from '@/lib/language-settings';
 import { applyAppearance, normalizeAppearance } from '@/lib/appearance';
@@ -16,7 +18,7 @@ import {
 } from '@/components/settings/shared';
 import '@/components/settings/settings-dialog.css';
 
-type SettingsTab = 'general' | 'explorer';
+type SettingsTab = 'general' | 'explorer' | 'ai' | 'mcp';
 
 interface SettingsProps {
   onClose?: () => void;
@@ -30,6 +32,8 @@ const Settings = ({ onClose }: SettingsProps) => {
   const tabs = [
     { id: 'general' as const, label: t('settings.tabs.general'), icon: Settings2 },
     { id: 'explorer' as const, label: t('settings.tabs.explorer'), icon: FolderOpen },
+    { id: 'ai' as const, label: t('settings.tabs.ai'), icon: Bot },
+    { id: 'mcp' as const, label: t('settings.tabs.mcp'), icon: Plug },
   ];
   const selectTab = (tab: SettingsTab) => {
     setActiveTab(tab);
@@ -37,9 +41,10 @@ const Settings = ({ onClose }: SettingsProps) => {
   };
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
     let next: number | null = null;
-    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') next = 1 - index;
+    if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+    if (event.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length;
     if (event.key === 'Home') next = 0;
-    if (event.key === 'End') next = 1;
+    if (event.key === 'End') next = tabs.length - 1;
     if (next === null) return;
     event.preventDefault();
     selectTab(tabs[next].id);
@@ -206,8 +211,12 @@ const Settings = ({ onClose }: SettingsProps) => {
               updateSetting={updateSetting}
               setSettings={setSettings}
             />
-          ) : (
+          ) : activeTab === 'explorer' ? (
             <ExplorerSettings settings={settings} updateSetting={updateSetting} />
+          ) : activeTab === 'mcp' ? (
+            <McpSettings />
+          ) : (
+            <AiModelSettings />
           )}
         </div>
         <footer className="wisp-settings-dialog-footer">{t('settings.savedAutomatically')}</footer>

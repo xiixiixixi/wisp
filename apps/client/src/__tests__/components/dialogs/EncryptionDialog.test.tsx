@@ -277,7 +277,7 @@ describe('EncryptionDialog', () => {
 
     it('calls onClose on Escape key', () => {
       render(<EncryptionDialog {...defaultProps} />);
-      const dialog = screen.getByText('Encrypt File').closest('div[class*="bg-xp-surface"]')!;
+      const dialog = screen.getByRole('dialog');
       fireEvent.keyDown(dialog, { key: 'Escape' });
       expect(defaultProps.onClose).toHaveBeenCalled();
     });
@@ -294,7 +294,7 @@ describe('EncryptionDialog', () => {
         target: { value: 'password123' },
       });
 
-      const dialog = screen.getByText('Encrypt File').closest('div[class*="bg-xp-surface"]')!;
+      const dialog = screen.getByRole('dialog');
       fireEvent.keyDown(dialog, { key: 'Enter' });
 
       await waitFor(() => {

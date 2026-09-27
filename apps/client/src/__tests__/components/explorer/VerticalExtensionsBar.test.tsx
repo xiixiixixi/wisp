@@ -150,12 +150,12 @@ describe('VerticalExtensionsBar', () => {
       'false',
     );
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-    expect(screen.queryByRole('menuitemradio', { name: 'Agent' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitemradio', { name: 'Chat' })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'More tools' }));
 
     expect(screen.getByRole('menu', { name: 'More tools' })).toBeInTheDocument();
-    expect(screen.getByRole('menuitemradio', { name: 'Agent' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitemradio', { name: 'Chat' })).toBeInTheDocument();
     expect(screen.getByRole('menuitemradio', { name: 'Activity' })).toBeInTheDocument();
     expect(screen.getByRole('menuitemradio', { name: 'Marketplace' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'Settings' })).toBeInTheDocument();
@@ -202,8 +202,8 @@ describe('VerticalExtensionsBar', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'More tools' }));
-    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Agent' }));
-    expect(setRightPanelTab).toHaveBeenCalledWith('agent-manager');
+    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Chat' }));
+    expect(setRightPanelTab).toHaveBeenCalledWith('chat');
     expect(setRightSidebarCollapsed).toHaveBeenCalledWith(false);
 
     rerender(
@@ -239,7 +239,7 @@ describe('VerticalExtensionsBar', () => {
     const trigger = screen.getByRole('button', { name: 'More tools' });
 
     fireEvent.keyDown(trigger, { key: 'ArrowDown' });
-    const agent = await screen.findByRole('menuitemradio', { name: 'Agent' });
+    const agent = await screen.findByRole('menuitemradio', { name: 'Chat' });
     await waitFor(() => expect(agent).toHaveFocus());
 
     fireEvent.keyDown(agent, { key: 'ArrowDown' });
