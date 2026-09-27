@@ -220,62 +220,65 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
 
   return (
     <div
-      className="flex h-full flex-col bg-xp-bg text-xp-text"
+      className="flex h-full flex-col text-xp-text"
       data-drop-target=""
       data-drop-action="trash"
     >
-      {/* Header — 对齐窗格工具条密度与按钮体系 */}
-      <div className="flex h-12 flex-shrink-0 items-center justify-between border-b border-xp-border px-3">
-        <h2 className="flex items-center gap-2 text-base font-semibold text-xp-text">
-          <Trash2 size={17} className="text-xp-text-secondary" /> {t('pages.trash.title')}
-        </h2>
-        <div className="flex items-center gap-1.5">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSelectAll}
-            aria-label={
-              isAllSelected ? t('pages.trash.ariaDeselectAll') : t('pages.trash.ariaSelectAll')
-            }
-          >
-            {isAllSelected ? t('pages.trash.deselectAll') : t('pages.trash.selectAll')}
-          </Button>
-          <Button
-            size="sm"
-            disabled={selectedItems.size === 0}
-            onClick={() => handleRestore()}
-            aria-label={t('pages.trash.ariaRestoreCount', { count: selectedItems.size })}
-          >
-            {t('pages.trash.restoreCount', { count: selectedItems.size })}
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            disabled={selectedItems.size === 0}
-            onClick={() => handlePermanentDelete()}
-            aria-label={t('pages.trash.ariaDeleteCount', { count: selectedItems.size })}
-          >
-            {t('pages.trash.deletePermanentlyCount', { count: selectedItems.size })}
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            disabled={trashItems.length === 0}
-            onClick={handleEmptyTrash}
-            aria-label={t('pages.trash.ariaEmptyBin')}
-          >
-            {t('pages.trash.emptyRecycleBin')}
-          </Button>
-          {onClose && (
+      {/* 操作条 — 与文件窗格的 OperationBar 同位同密度；标题走窗格标签页 */}
+      <div className="wisp-operationbar wisp-component-toolbar wisp-no-select border-b border-xp-border bg-xp-surface px-3 py-1.5">
+        <div className="wisp-operationbar-layout @container flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-2">
+            <Trash2 size={15} className="shrink-0 text-xp-text-secondary" aria-hidden="true" />
+            <span className="truncate text-xs font-semibold text-xp-text">{t('pages.trash.title')}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
             <Button
               variant="outline"
               size="sm"
-              onClick={onClose}
-              aria-label={t('pages.trash.ariaBackToHome')}
+              onClick={handleSelectAll}
+              aria-label={
+                isAllSelected ? t('pages.trash.ariaDeselectAll') : t('pages.trash.ariaSelectAll')
+              }
             >
-              {t('pages.trash.backToHome')}
+              {isAllSelected ? t('pages.trash.deselectAll') : t('pages.trash.selectAll')}
             </Button>
-          )}
+            <Button
+              size="sm"
+              disabled={selectedItems.size === 0}
+              onClick={() => handleRestore()}
+              aria-label={t('pages.trash.ariaRestoreCount', { count: selectedItems.size })}
+            >
+              {t('pages.trash.restoreCount', { count: selectedItems.size })}
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={selectedItems.size === 0}
+              onClick={() => handlePermanentDelete()}
+              aria-label={t('pages.trash.ariaDeleteCount', { count: selectedItems.size })}
+            >
+              {t('pages.trash.deletePermanentlyCount', { count: selectedItems.size })}
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={trashItems.length === 0}
+              onClick={handleEmptyTrash}
+              aria-label={t('pages.trash.ariaEmptyBin')}
+            >
+              {t('pages.trash.emptyRecycleBin')}
+            </Button>
+            {onClose && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onClose}
+                aria-label={t('pages.trash.ariaBackToHome')}
+              >
+                {t('pages.trash.backToHome')}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
