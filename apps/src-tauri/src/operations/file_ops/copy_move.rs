@@ -622,6 +622,14 @@ pub async fn move_file(source: String, destination: String) -> Result<(), String
     .map_err(|e| e.to_string())?
 }
 
+/// macOS 默认文件系统大小写不敏感：FILE.txt 和 file.txt 是同一个文件。
+/// 仅大小写变化的重命名要放行（Finder 同款），真正的新名字冲突仍拒绝。
+fn path_eq_case_insensitive(a: &Path, b: &Path) -> bool {
+    let la = a.to_string_lossy().to_lowercase();
+    let lb = b.to_string_lossy().to_lowercase();
+    la == lb
+}
+
 #[command]
 pub async fn rename(old_path: String, new_path: String) -> Result<(), String> {
     validate_file_path(&old_path)?;
@@ -635,7 +643,11 @@ pub async fn rename(old_path: String, new_path: String) -> Result<(), String> {
             return Err("Source file does not exist".to_string());
         }
 
-        if new.exists() {
+        // Case-only rename (FILE.txt → file.txt) on a case-insensitive FS:
+        // `new` "exists" because it resolves to the same file as `old`.
+        // Finder allows this; a plain fs::rename also handles it fine.
+        let case_only = old != new && path_eq_case_insensitive(old, new);
+        if !case_only && new.exists() {
             return Err(format!("Destination already exists: {}", new_path));
         }
 
@@ -658,6 +670,28 @@ mod tests {
     use std::fs::{self, File};
     use std::io::Write;
     use tempfile::tempdir;
+
+    #[tokio::test]
+    async fn case_only_rename_succeeds_and_real_conflict_still_rejected() {
+        let temp = tempdir().expect("temp");
+        let path = temp.path().join("FILE.TXT");
+        std::fs::File::create(&path).expect("create");
+
+        // 大小写变化（同文件）→ 成功
+        let lower = temp.path().join("file.txt");
+        rename(path.to_string_lossy().to_string(), lower.to_string_lossy().to_string())
+            .await
+            .expect("case-only rename should pass");
+
+        // 真冲突（另一个文件已在）→ 拒绝
+        std::fs::File::create(temp.path().join("other.txt")).expect("create2");
+        let err = rename(
+            lower.to_string_lossy().to_string(),
+            temp.path().join("OTHER.txt").to_string_lossy().to_string(),
+        )
+        .await;
+        assert!(err.is_err(), "real conflict must still be rejected");
+    }
 
     #[tokio::test]
     async fn test_copy_file_basic() {

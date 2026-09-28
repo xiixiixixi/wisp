@@ -1,6 +1,6 @@
 {
   "productName": "Wisp",
-  "version": "0.99.36",
+  "version": "0.99.37",
   "identifier": "com.wisp.app",
   "build": {
     "beforeBuildCommand": "pnpm -w frontend:build",
