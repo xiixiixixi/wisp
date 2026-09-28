@@ -72,7 +72,7 @@ export const SidebarBookmarkItems = ({
         return (
           <div
             key={bookmark.path}
-            className={`wisp-sidebar-item group flex w-full cursor-pointer items-center rounded-md px-2 py-1.5 text-xs transition-colors ${
+            className={`wisp-sidebar-item group flex w-full cursor-pointer items-center rounded-md px-2.5 py-[7px] text-[13px] transition-colors ${
               isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
             }`}
             data-drop-target={bookmark.is_dir ? bookmark.path : undefined}

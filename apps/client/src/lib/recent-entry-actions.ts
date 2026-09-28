@@ -70,7 +70,9 @@ export const openRecentEntry = async (
     return;
   }
   const isDir = entry.isDir ?? (await TauriAPI.isDir(path));
-  if (isDir) {
+  // Finder parity：.app 在文件系统层是目录，但双击 = 启动应用（不进包内）。
+  const isAppBundle = path.endsWith('.app');
+  if (isDir && !isAppBundle) {
     // The pane records the visit after its directory read succeeds.
     navigateToPath(path);
     return;

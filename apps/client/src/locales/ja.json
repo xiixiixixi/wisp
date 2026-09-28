@@ -256,7 +256,8 @@
     "aiSummarizePrompt": "「{{name}}」を要約して要点を教えて。",
     "aiExplainPrompt": "「{{name}}」とは何ですか？どのアプリで開く？注意点は？",
     "aiRenamePrompt": "「{{name}}」を読んで、より良いファイル名を3つ提案して（拡張子は維持）。",
-    "aiOrganizePrompt": "「{{name}}」内のファイルを分析し、整理プランを提示して（実行は承認後に）。"
+    "aiOrganizePrompt": "「{{name}}」内のファイルを分析し、整理プランを提示して（実行は承認後に）。",
+    "showPackageContents": "パッケージの内容を表示"
   },
   "drives": {
     "eject": "取り出し",

@@ -267,7 +267,8 @@
     "aiSummarizePrompt": "Summarize \"{{name}}\" and give me the key points.",
     "aiExplainPrompt": "What is \"{{name}}\"? Which app opens it? Anything I should know?",
     "aiRenamePrompt": "Read \"{{name}}\" and suggest 3 better filenames (keep the extension).",
-    "aiOrganizePrompt": "Analyze the files in \"{{name}}\" and propose an organization plan (show the plan first; execute only after I approve)."
+    "aiOrganizePrompt": "Analyze the files in \"{{name}}\" and propose an organization plan (show the plan first; execute only after I approve).",
+    "showPackageContents": "Show Package Contents"
   },
   "drives": {
     "eject": "Eject",

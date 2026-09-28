@@ -574,9 +574,10 @@ html[data-native-material] :is(.wisp-sidebar, .wisp-settings-sidebar) {
 html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-sidebar-trash {
   width: calc(100% - 24px);
   margin: 4px 12px;
-  padding: 9px 10px;
+  /* 与其余侧栏行同基准：7px 上下 = 32px；左 10px 内边距让图标 x=12+10=22 */
+  padding: 7px 10px;
   border: 0 !important;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-navigationbar .wisp-address-field {
   min-width: 0;

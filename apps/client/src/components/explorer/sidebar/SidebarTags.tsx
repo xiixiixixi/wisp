@@ -67,7 +67,7 @@ const SidebarTags = ({ currentPath, navigateToPath }: SidebarTagsProps) => {
               onClick={() => navigateToPath(target)}
               title={t('sidebar.showTagged', { name: displayTagName(tag.name) })}
               aria-current={isActive ? 'page' : undefined}
-              className={`wisp-sidebar-item flex min-h-7 w-full items-center gap-2 rounded-md px-2 py-1 text-left text-sm transition-colors ${
+              className={`wisp-sidebar-item flex min-h-7 w-full items-center gap-2 rounded-md px-2.5 py-[7px] text-left text-[13px] transition-colors ${
                 isActive ? 'text-xp-text' : 'text-xp-text-secondary hover:text-xp-text'
               }`}
               style={isActive ? { backgroundColor: hexA(tag.color, 0.12) } : undefined}

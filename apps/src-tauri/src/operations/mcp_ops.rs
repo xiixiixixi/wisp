@@ -70,7 +70,13 @@ fn load_config() -> Result<HashMap<String, McpServerConfig>, String> {
     let Some(path) = config_path() else {
         return Err("home directory unavailable".into());
     };
-    let raw = std::fs::read_to_string(&path).map_err(|e| format!("read {}: {e}", path.display()))?;
+    // pi 生态惯例：配置目录渐进式出现——文件不存在 = 还没配置 = 空清单，
+    // 不是错误（只在文件存在但内容坏了时才报 parse 错）。
+    let raw = match std::fs::read_to_string(&path) {
+        Ok(r) => r,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(HashMap::new()),
+        Err(e) => return Err(format!("read {}: {e}", path.display())),
+    };
     if raw.trim().is_empty() {
         return Ok(HashMap::new());
     }
@@ -482,6 +488,19 @@ pub async fn mcp_test_server(server: String) -> Result<Value, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn missing_config_returns_empty_not_error() {
+        // pi 生态渐进式配置：文件不存在 = 空清单（新机器首开不报错）
+        let path = config_path().expect("home");
+        let moved = path.with_extension("json.bak");
+        let _ = std::fs::rename(&path, &moved);
+        let result = load_config();
+        if moved.exists() {
+            let _ = std::fs::rename(&moved, &path);
+        }
+        assert!(result.map(|m| m.is_empty()).unwrap_or(false));
+    }
 
     #[test]
     fn parse_config_camel_and_snake() {

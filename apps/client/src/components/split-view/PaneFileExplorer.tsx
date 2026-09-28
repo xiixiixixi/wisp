@@ -17,6 +17,17 @@ import FileGrid from '@/components/explorer/FileGrid';
 import FolderColorLegend from '@/components/explorer/FolderColorLegend';
 import { getAllFolderColors } from '@/lib/folder-colors';
 import { useSmartView } from '@/hooks/use-smart-view';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
+
+const loadUiStateHasViewMode = (): boolean => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.UI_STATE);
+    if (raw) return 'viewMode' in JSON.parse(raw);
+  } catch {
+    /* ignore */
+  }
+  return false;
+};
 
 interface PaneFileExplorerProps {
   /** Optional navigation-row outlet; state and callbacks remain owned by this pane. */
@@ -153,9 +164,12 @@ const PaneFileExplorer = React.memo(
       currentPath,
     );
 
-    // Apply the suggested view when it changes (on path change or initial detection)
+    // Apply the suggested view only until the user has picked a global view
+    // once (手动设过 = 全局通用的用户选择，自动检测不再覆盖)
     const appliedSuggestionRef = useRef<string | null>(null);
     useEffect(() => {
+      const userPicked = loadUiStateHasViewMode();
+      if (userPicked) return;
       const key = `${currentPath}:${suggestedView}`;
       if (appliedSuggestionRef.current !== key) {
         appliedSuggestionRef.current = key;

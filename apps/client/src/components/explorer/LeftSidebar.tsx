@@ -116,7 +116,7 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
             onClick={() => navigateToPath('wisp://trash')}
             aria-label={t('navigation.trash')}
             title={t('navigation.trash')}
-            className={`wisp-sidebar-trash flex w-full flex-shrink-0 items-center border-t border-xp-border px-5 py-2.5 text-xs transition-colors ${
+            className={`wisp-sidebar-trash flex w-full flex-shrink-0 items-center text-[13px] transition-colors ${
               currentPath === 'wisp://trash'
                 ? 'bg-xp-blue/15 text-xp-blue'
                 : 'text-xp-text hover:bg-xp-surface-light'

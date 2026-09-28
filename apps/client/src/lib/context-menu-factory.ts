@@ -464,6 +464,16 @@ export class ContextMenuFactory {
     // Open with, Create Link and Properties/Tags sit on the first level the
     // way 打开方式/显示简介/制作替身/标签… do in Finder's context menu.
 
+    // .app bundle：Finder 同款——「显示包内容」进包浏览（.app 在文件系统层
+    // 是目录，双击已特判为启动应用，浏览包内容只能从这里进）。
+    if (!isMultiSelect && file.path.endsWith('.app')) {
+      finderParityItems.push({
+        id: 'show-package-contents',
+        label: i18n.t('contextMenu.showPackageContents'),
+        action: () => this.actions.openInNewTab(file),
+      });
+    }
+
     // Open with ▸ (single file only) — Finder-style submenu. The app list is
     // attached asynchronously by use-context-menu (get_file_associations);
     // until it lands the submenu shows a loading row plus 其他….

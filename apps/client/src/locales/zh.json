@@ -267,7 +267,8 @@
     "aiSummarizePrompt": "请总结「{{name}}」的内容，给出要点。",
     "aiExplainPrompt": "「{{name}}」是什么文件？用什么打开？有什么注意事项？",
     "aiRenamePrompt": "请阅读「{{name}}」的内容，给出 3 个更好的文件名建议（保留扩展名）。",
-    "aiOrganizePrompt": "请分析「{{name}}」里的文件，给出一个整理方案（先列计划，经我确认后再执行）。"
+    "aiOrganizePrompt": "请分析「{{name}}」里的文件，给出一个整理方案（先列计划，经我确认后再执行）。",
+    "showPackageContents": "显示包内容"
   },
   "drives": {
     "eject": "弹出",

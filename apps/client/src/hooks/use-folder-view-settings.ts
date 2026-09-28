@@ -33,7 +33,6 @@ const DEFAULT_GROUP_BY_DATE = true;
 // ── Persistence helpers ───────────────────────────────────────────────────────
 
 const STORAGE_KEY = STORAGE_KEYS.FOLDER_SETTINGS;
-const MAX_ENTRIES = 500;
 
 const loadAllSettings = (): Record<string, FolderSettings> => {
   try {
@@ -55,17 +54,6 @@ const getSettingsForPath = (path: string): FolderSettings | null => {
   return all[path] ?? null;
 };
 
-const saveSettingsForPath = (path: string, settings: FolderSettings): void => {
-  const all = loadAllSettings();
-  all[path] = { ...all[path], ...settings };
-  // LRU eviction — drop oldest keys when over limit
-  const keys = Object.keys(all);
-  if (keys.length > MAX_ENTRIES) {
-    delete all[keys[0]];
-  }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
-};
-
 // ── Global sort (shared by every folder and every pane) ──────────────────────
 
 // The single source of truth for sorting is the `sortBy`/`sortOrder` fields
@@ -73,6 +61,7 @@ const saveSettingsForPath = (path: string, settings: FolderSettings): void => {
 // sort dropdown) reads and writes. Panes listen for the event to re-sort live.
 const GLOBAL_SORT_KEY = STORAGE_KEYS.UI_STATE;
 const SORT_CHANGED_EVENT = 'wisp-sort-changed';
+const VIEW_CHANGED_EVENT = 'wisp-view-changed';
 
 const readUiState = (): Record<string, unknown> => {
   try {
@@ -85,6 +74,23 @@ const readUiState = (): Record<string, unknown> => {
     /* ignore */
   }
   return {};
+};
+
+/** Global view/grouping if the user ever picked one; null means "use defaults". */
+const loadGlobalView = (): { viewMode?: string; groupByDate?: boolean } | null => {
+  const state = readUiState();
+  if (!('viewMode' in state) && !('groupByDate' in state)) return null;
+  return state as { viewMode?: string; groupByDate?: boolean };
+};
+
+const saveGlobalView = (patch: { viewMode?: string; groupByDate?: boolean }): void => {
+  const next = { ...readUiState(), ...patch };
+  localStorage.setItem(GLOBAL_SORT_KEY, JSON.stringify(next));
+  window.dispatchEvent(
+    new CustomEvent(VIEW_CHANGED_EVENT, {
+      detail: { viewMode: next.viewMode, groupByDate: next.groupByDate },
+    }),
+  );
 };
 
 /** Global sort if the user ever picked one; null means "use folder defaults". */
@@ -131,11 +137,13 @@ export const useFolderViewSettings = (
       const saved = getSettingsForPath(path);
       const globalSort = loadGlobalSort();
 
+      // 全局通用的视图/排序/分组（用户点过一次即全局生效，不再每个文件夹各设一套）
+      const globalView = loadGlobalView();
       return {
-        viewMode: saved?.viewMode ?? globalViewMode ?? DEFAULT_VIEW_MODE,
+        viewMode: globalView?.viewMode ?? saved?.viewMode ?? globalViewMode ?? DEFAULT_VIEW_MODE,
         sortBy: globalSort?.sortBy ?? DEFAULT_SORT_BY,
         sortOrder: globalSort?.sortOrder ?? DEFAULT_SORT_ORDER,
-        groupByDate: saved?.groupByDate ?? DEFAULT_GROUP_BY_DATE,
+        groupByDate: globalView?.groupByDate ?? saved?.groupByDate ?? DEFAULT_GROUP_BY_DATE,
       };
     },
     [globalViewMode],
@@ -175,6 +183,17 @@ export const useFolderViewSettings = (
     return () => window.removeEventListener(SORT_CHANGED_EVENT, handler);
   }, []);
 
+  // Follow global view/grouping changes made from any other pane
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ viewMode?: string; groupByDate?: boolean }>).detail;
+      if (detail?.viewMode) setViewModeState(detail.viewMode);
+      if (typeof detail?.groupByDate === 'boolean') setGroupByDateState(detail.groupByDate);
+    };
+    window.addEventListener(VIEW_CHANGED_EVENT, handler);
+    return () => window.removeEventListener(VIEW_CHANGED_EVENT, handler);
+  }, []);
+
   // Sync viewMode when globalViewMode (from useSmartView) changes for this path
   // Only apply if the user hasn't explicitly saved settings for this folder
   const prevGlobalViewRef = useRef(globalViewMode);
@@ -190,13 +209,10 @@ export const useFolderViewSettings = (
 
   // ── Setters that persist to localStorage ────────────────────────────────────
 
-  const setViewMode = useCallback(
-    (mode: string) => {
-      setViewModeState(mode);
-      saveSettingsForPath(currentPath, { viewMode: mode });
-    },
-    [currentPath],
-  );
+  const setViewMode = useCallback((mode: string) => {
+    setViewModeState(mode);
+    saveGlobalView({ viewMode: mode });
+  }, []);
 
   const setSortBy = useCallback((field: SortField) => {
     setSortByState(field);
@@ -208,13 +224,10 @@ export const useFolderViewSettings = (
     saveGlobalSort({ sortOrder: order });
   }, []);
 
-  const setGroupByDate = useCallback(
-    (enabled: boolean) => {
-      setGroupByDateState(enabled);
-      saveSettingsForPath(currentPath, { groupByDate: enabled });
-    },
-    [currentPath],
-  );
+  const setGroupByDate = useCallback((enabled: boolean) => {
+    setGroupByDateState(enabled);
+    saveGlobalView({ groupByDate: enabled });
+  }, []);
 
   const toggleSortOrder = useCallback(() => {
     setSortOrderState((prev) => {

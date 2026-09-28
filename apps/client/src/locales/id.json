@@ -256,7 +256,8 @@
     "aiSummarizePrompt": "Ringkas \"{{name}}\" dan beri poin-poin pentingnya.",
     "aiExplainPrompt": "Apa itu \"{{name}}\"? Aplikasi apa untuk membukanya? Ada yang perlu diketahui?",
     "aiRenamePrompt": "Baca \"{{name}}\" dan sarankan 3 nama file yang lebih baik (pertahankan ekstensi).",
-    "aiOrganizePrompt": "Analisis file di \"{{name}}\" dan usulkan rencana penataan (tampilkan rencananya dulu; jalankan setelah saya setujui)."
+    "aiOrganizePrompt": "Analisis file di \"{{name}}\" dan usulkan rencana penataan (tampilkan rencananya dulu; jalankan setelah saya setujui).",
+    "showPackageContents": "Tampilkan Isi Paket"
   },
   "drives": {
     "eject": "Keluarkan",
