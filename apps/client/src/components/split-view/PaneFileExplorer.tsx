@@ -224,6 +224,7 @@ const PaneFileExplorer = React.memo(
           groupByDate={groupByDate}
           setGroupByDate={setGroupByDate}
           handleCreateFolder={handleCreateFolder}
+          onCreateFile={onCreateFile}
           handleDelete={handleDelete}
           selectedFiles={selectedFiles}
           setBottomPanelCollapsed={setBottomPanelCollapsed}

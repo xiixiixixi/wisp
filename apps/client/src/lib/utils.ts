@@ -391,14 +391,15 @@ export const formatFolderSize = (
   folderSizeInfo: FolderSizeInfo | null,
   isCalculating?: boolean,
 ): string => {
-  if (isCalculating) return 'Calculating...';
+  if (isCalculating) return i18n.t('interface.calculatingSize');
   if (!folderSizeInfo) return '—';
 
   const sizeStr = formatFileSize(folderSizeInfo.total_size);
   const itemCount = folderSizeInfo.file_count + folderSizeInfo.dir_count;
 
   if (itemCount === 0) return i18n.t('interface.empty');
-  return i18n.t('messages.folderSize', { size: sizeStr, count: itemCount });
+  // 大小列只显示体积（Finder 同款），项目数不再拼进括号
+  return i18n.t('messages.folderSize', { size: sizeStr });
 };
 
 // Date formatting utility

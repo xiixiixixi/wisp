@@ -544,8 +544,20 @@ const ApiModelSettings = () => {
           <>
             <SettingRow
               icon={KeyRound}
-              label="API Key"
-              description={t('settings.aiCfg.keyRowDesc')}
+              label={t('settings.aiCfg.mem0KeyLabel')}
+              description={
+                <span>
+                  {t('settings.aiCfg.mem0KeyDesc')}{' '}
+                  <a
+                    href="https://api.mem0.ai"
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="text-xp-accent hover:underline"
+                  >
+                    api.mem0.ai
+                  </a>
+                </span>
+              }
             >
               <div className="relative w-52">
                 <Input

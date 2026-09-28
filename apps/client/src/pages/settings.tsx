@@ -41,8 +41,8 @@ const Settings = ({ onClose }: SettingsProps) => {
   };
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
     let next: number | null = null;
-    if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
-    if (event.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length;
+    if (event.key === 'ArrowDown') next = (index + 1) % tabs.length;
+    if (event.key === 'ArrowUp') next = (index - 1 + tabs.length) % tabs.length;
     if (event.key === 'Home') next = 0;
     if (event.key === 'End') next = tabs.length - 1;
     if (next === null) return;
@@ -164,9 +164,9 @@ const Settings = ({ onClose }: SettingsProps) => {
       onOpenChange={(open) => {
         if (!open) onClose?.();
       }}
-      maxWidth={660}
+      maxWidth={720}
     >
-      <div className="wisp-settings-dialog">
+      <div className="wisp-settings-dialog elevated-glass">
         <header className="wisp-settings-dialog-header">
           <DialogTitle>{t('settings.title')}</DialogTitle>
           <button
@@ -175,49 +175,68 @@ const Settings = ({ onClose }: SettingsProps) => {
             aria-label={t('settings.close')}
             onClick={onClose}
           >
-            <X size={17} aria-hidden="true" />
+            <X size={14} aria-hidden="true" />
           </button>
         </header>
-        <div className="wisp-settings-tabbar" role="tablist" aria-label={t('settings.categories')}>
-          {tabs.map(({ id: tab, label, icon: Icon }, index) => (
-            <button
-              type="button"
-              key={tab}
-              id={`${id}-tab-${tab}`}
-              role="tab"
-              aria-selected={activeTab === tab}
-              aria-controls={`${id}-panel-${tab}`}
-              tabIndex={activeTab === tab ? 0 : -1}
-              data-autofocus={activeTab === tab ? '' : undefined}
-              onClick={() => selectTab(tab)}
-              onKeyDown={(event) => handleTabKeyDown(event, index)}
-            >
-              <Icon size={16} aria-hidden="true" />
-              {label}
-            </button>
-          ))}
-        </div>
-        <div
-          ref={contentRef}
-          className="wisp-settings-dialog-body"
-          id={`${id}-panel-${activeTab}`}
-          role="tabpanel"
-          aria-labelledby={`${id}-tab-${activeTab}`}
-          tabIndex={0}
-        >
-          {activeTab === 'general' ? (
-            <GeneralSettings
-              settings={settings}
-              updateSetting={updateSetting}
-              setSettings={setSettings}
-            />
-          ) : activeTab === 'explorer' ? (
-            <ExplorerSettings settings={settings} updateSetting={updateSetting} />
-          ) : activeTab === 'mcp' ? (
-            <McpSettings />
-          ) : (
-            <AiModelSettings />
-          )}
+        <div className="wisp-settings-split flex min-h-0 flex-1">
+          {/* 左侧导航列 —— macOS 系统设置同款：图标+文字行，选中 = 实心 accent + 白字 */}
+          <nav
+            className="wisp-settings-nav wisp-no-select flex w-[188px] shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-xp-border px-2 pb-3 pt-1"
+            role="tablist"
+            aria-label={t('settings.categories')}
+            aria-orientation="vertical"
+          >
+            {tabs.map(({ id: tab, label, icon: Icon }, index) => (
+              <button
+                type="button"
+                key={tab}
+                id={`${id}-tab-${tab}`}
+                role="tab"
+                aria-selected={activeTab === tab}
+                aria-controls={`${id}-panel-${tab}`}
+                tabIndex={activeTab === tab ? 0 : -1}
+                data-autofocus={activeTab === tab ? '' : undefined}
+                onClick={() => selectTab(tab)}
+                onKeyDown={(event) => handleTabKeyDown(event, index)}
+                className={`flex items-center gap-2.5 rounded-[7px] px-2.5 py-[7px] text-left text-[13px] transition-colors ${
+                  activeTab === tab
+                    ? 'bg-xp-blue font-medium text-white'
+                    : 'text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text'
+                }`}
+                data-settings-nav={tab}
+              >
+                <Icon size={16} aria-hidden="true" className="shrink-0" />
+                <span className="min-w-0 truncate">{label}</span>
+              </button>
+            ))}
+          </nav>
+
+          {/* 右侧内容区：分组卡片（现有 SettingsSection 体系） */}
+          <div
+            ref={contentRef}
+            className="wisp-settings-dialog-body min-w-0 flex-1"
+            id={`${id}-panel-${activeTab}`}
+            role="tabpanel"
+            aria-labelledby={`${id}-tab-${activeTab}`}
+            tabIndex={0}
+          >
+            <h2 className="px-1 pb-3 pt-1 text-[15px] font-semibold text-xp-text">
+              {tabs.find((x) => x.id === activeTab)?.label}
+            </h2>
+            {activeTab === 'general' ? (
+              <GeneralSettings
+                settings={settings}
+                updateSetting={updateSetting}
+                setSettings={setSettings}
+              />
+            ) : activeTab === 'explorer' ? (
+              <ExplorerSettings settings={settings} updateSetting={updateSetting} />
+            ) : activeTab === 'mcp' ? (
+              <McpSettings />
+            ) : (
+              <AiModelSettings />
+            )}
+          </div>
         </div>
         <footer className="wisp-settings-dialog-footer">{t('settings.savedAutomatically')}</footer>
       </div>

@@ -300,7 +300,8 @@
       "explorerWarning": "Folder akan dibuka di Wisp. Nonaktifkan untuk mengembalikan Windows Explorer.",
       "betaWarning": "Peringatan Beta",
       "betaWarningDesc": "Tampilkan dialog peringatan beta awal lagi",
-      "showWarning": "Tampilkan Peringatan"
+      "showWarning": "Tampilkan Peringatan",
+      "about": "Tentang"
     },
     "explorer": {
       "display": "Tampilan",
@@ -413,7 +414,9 @@
       "learnRowDesc": "Menyuling tiap percakapan menjadi memori jangka panjang",
       "mem0CloudTitle": "Memori yang dipelajari",
       "mem0MasterDesc": "Mengingat preferensi dan fak lintas obrolan",
-      "mem0Count": "{{count}} memori"
+      "mem0Count": "{{count}} memori",
+      "mem0KeyLabel": "Mem0 API Key",
+      "mem0KeyDesc": "Kunci memori cloud mem0 (dipakai dengan"
     },
     "mcp": {
       "title": "Server MCP",
@@ -484,7 +487,8 @@
     "newFolder": "Folder Baru",
     "newFile": "File Baru",
     "compress": "Kompres",
-    "extract": "Ekstrak"
+    "extract": "Ekstrak",
+    "createFile": "Dokumen baru"
   },
   "fileOperations": {
     "openFailedTitle": "File tidak dapat dibuka",

@@ -196,7 +196,7 @@ const EditorGroupPane = ({
     handleBackgroundRightClick,
     handleDelete,
     handleCreateFolder,
-    handleCreateFile: _handleCreateFile,
+    handleCreateFile,
     handleCompress,
     handleExtract,
     handleProperties,
@@ -398,8 +398,9 @@ const EditorGroupPane = ({
   const { getFolderSize, isCalculatingSize, calculateFolderSize, calculateMissingSizes } =
     useFolderSizes(files);
 
-  // Auto-calculate folder sizes: the setting opts in globally; the details
-  // view opts in implicitly (the size column is the point of that view).
+  // Auto-calculate folder sizes ONLY when the user opts in via settings.
+  // Finder parity: the details view shows "—" until the user asks (计算 button
+  // or the explorer setting) — browsing never kicks off disk walks.
   useEffect(() => {
     let auto = false;
     try {
@@ -408,10 +409,10 @@ const EditorGroupPane = ({
     } catch {
       /* ignore localStorage/parse errors */
     }
-    if ((auto || localViewMode === 'details') && files.some((f) => f.is_dir)) {
+    if (auto && files.some((f) => f.is_dir)) {
       calculateMissingSizes();
     }
-  }, [files, calculateMissingSizes, localViewMode]);
+  }, [files, calculateMissingSizes]);
 
   // Listen for files-changed events (from drag-drop operations) to refetch
   useEffect(() => {
@@ -732,7 +733,7 @@ const EditorGroupPane = ({
     if (currentPath === 'wisp://trash') {
       return (
         <div className="flex-1 overflow-auto">
-          <TrashPage onClose={() => onNavigate(group.id, 'wisp://home', 'Home')} />
+          <TrashPage toolbarTarget={toolbarTarget} />
         </div>
       );
     }
@@ -807,6 +808,7 @@ const EditorGroupPane = ({
         currentPath={currentPath}
         groupId={group.id}
         handleCreateFolder={() => handleCreateFolder(currentPath)}
+          onCreateFile={() => handleCreateFile(currentPath)}
         handleDelete={() =>
           handleDelete(sortedFiles.filter((file) => selectedFiles.has(file.path)))
         }

@@ -62,7 +62,7 @@ describe('McpSettings', () => {
     // 先选 http 但不填 URL → 提示
     fireEvent.click(screen.getByRole('button', { name: 'http' }));
     fireEvent.click(screen.getByTestId('mcp-edit-save'));
-    await waitFor(() => expect(transportMock).toHaveBeenCalledTimes(1)); // 只有 get，未 set
+    await waitFor(() => expect(transportMock.mock.calls.some((c) => c[0] === 'mcp_config_set')).toBe(false)); // 未触发保存
 
     fireEvent.change(screen.getByLabelText('url'), { target: { value: 'https://s/mcp' } });
     fireEvent.click(screen.getByTestId('mcp-edit-save'));
@@ -81,6 +81,7 @@ describe('McpSettings', () => {
     render(<McpSettings />);
     await screen.findByTestId('mcp-test-web-reader');
     fireEvent.click(screen.getByTestId('mcp-test-web-reader'));
-    expect(await screen.findByTestId('mcp-test-result-web-reader')).toHaveTextContent(/3/);
+    const results = await screen.findAllByTestId('mcp-test-result-web-reader');
+    expect(results[results.length - 1]).toHaveTextContent(/3/);
   });
 });

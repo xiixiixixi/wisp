@@ -707,9 +707,10 @@ const NavigationBar = ({
             );
           }
           if (special) {
+            // 与 PathBreadcrumbs 同一左基线（实测面包屑图标 offset=8px，此行补齐差值）
             return (
-              <div className="flex h-full min-w-0 flex-1 cursor-text items-center gap-2 px-1">
-                <span className="text-xp-text-muted">{special.icon}</span>
+              <div className="flex h-full min-w-0 flex-1 cursor-text items-center gap-2">
+                <span className="ml-1.5 text-xp-text-muted">{special.icon}</span>
                 <span className="text-sm font-semibold">{special.label}</span>
               </div>
             );

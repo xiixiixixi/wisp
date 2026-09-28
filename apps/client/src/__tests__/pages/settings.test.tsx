@@ -35,6 +35,7 @@ describe('Settings dialog', () => {
       'General',
       'File Explorer',
       'AI',
+      'MCP servers',
     ]);
     expect(dialog.getByRole('tab', { name: 'General' })).toHaveAttribute('aria-selected', 'true');
     expect(dialog.getByRole('tabpanel', { name: 'General' })).toBeInTheDocument();
@@ -58,7 +59,7 @@ describe('Settings dialog', () => {
     const general = screen.getByRole('tab', { name: 'General' });
     const explorer = screen.getByRole('tab', { name: 'File Explorer' });
     general.focus();
-    fireEvent.keyDown(general, { key: 'ArrowRight' });
+    fireEvent.keyDown(general, { key: 'ArrowDown' });
     expect(explorer).toHaveFocus();
     expect(explorer).toHaveAttribute('aria-selected', 'true');
     expect(general).toHaveAttribute('tabindex', '-1');

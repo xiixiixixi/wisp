@@ -179,7 +179,28 @@ const homeRoot = ['Documents', 'Downloads', 'Desktop', 'Pictures', 'Videos', 'Mu
   }),
 );
 
+// ── /Applications 演示条目 ────────────────────────────────────────────────────
+const appEntry = (name: string, sizeMB: number, days: number): FileEntry =>
+  makeEntry('/Applications', name, {
+    is_dir: false,
+    size: sizeMB * 1024 * 1024,
+    modified: new Date(Date.now() - days * 86400_000).toISOString(),
+    file_type: 'app',
+  });
+
+const applicationsEntries: FileEntry[] = [
+  appEntry('Wisp.app', 42, 1),
+  appEntry('Safari.app', 128, 9),
+  appEntry('Xcode.app', 2048, 21),
+  appEntry('Notes.app', 36, 4),
+  appEntry('Terminal.app', 24, 60),
+  appEntry('Music.app', 212, 12),
+  appEntry('Photos.app', 186, 12),
+  appEntry('Mail.app', 96, 30),
+];
+
 const demoDirectories: Record<string, FileEntry[]> = {
+  '/Applications': applicationsEntries,
   [DEMO_HOME_PATH]: homeRoot,
   [`${DEMO_HOME_PATH}/Documents`]: documents,
   [`${DEMO_HOME_PATH}/Documents/Launch`]: launch,

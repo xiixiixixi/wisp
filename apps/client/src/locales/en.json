@@ -312,7 +312,8 @@
       "weatherCityPlaceholder": "City name, e.g. Shanghai",
       "keyboard": "Keyboard",
       "keyboardDesc": "Shortcuts and Vim mode",
-      "keyboardNote": "Common actions follow Mac shortcut conventions. Wisp has additional shortcuts for its bottom panel, terminal, and split panes; view or customize them here."
+      "keyboardNote": "Common actions follow Mac shortcut conventions. Wisp has additional shortcuts for its bottom panel, terminal, and split panes; view or customize them here.",
+      "about": "About"
     },
     "explorer": {
       "display": "Display",
@@ -525,7 +526,9 @@
       "learnRowDesc": "Distills each conversation into long-term memory",
       "mem0CloudTitle": "Learned memories",
       "mem0MasterDesc": "Remembers preferences and facts across chats",
-      "mem0Count": "{{count}} memories"
+      "mem0Count": "{{count}} memories",
+      "mem0KeyLabel": "Mem0 API Key",
+      "mem0KeyDesc": "Key for mem0 cloud memory (used with"
     },
     "mcp": {
       "title": "MCP servers",
@@ -624,7 +627,8 @@
       "tryAgain": "Check that the selected items still exist, then try again on macOS.",
       "invalidPaths": "Some selected items have moved or cannot be accessed. Select them again.",
       "unavailable": "AirDrop is currently unavailable. Try again later or check AirDrop in Finder."
-    }
+    },
+    "createFile": "New document"
   },
   "fileOperations": {
     "openFailedTitle": "Couldn’t open file",
@@ -2929,7 +2933,7 @@
     "regexExample": "e.g. ^(.+)\\.txt$ or find_this",
     "replacementExample": "e.g. $1_renamed.txt or new_name",
     "renameSyntax": "Supports <code>$1</code>, <code>$2</code> (capture groups), <code>{N}</code> (zero-padded numbers), and <code>{date}</code> (YYYY-MM-DD).",
-    "folderSize": "{{size}} ({{count}} items)",
+    "folderSize": "{{size}}",
     "fileAria": "{{name}}, file",
     "folderAria": "{{name}}, folder",
     "colorFolders": "{{color}}: {{count}} folders",

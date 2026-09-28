@@ -56,7 +56,7 @@ const Toast = ({
 }: ToastProps) => {
   const titleId = title ? `toast-${id}-title` : undefined;
   const baseClasses =
-    'wisp-notification relative flex w-full overflow-hidden rounded-xl border shadow-[var(--xp-shadow-popover)] transition-all duration-200 ease-in-out transform motion-reduce:transition-none';
+    'wisp-notification relative flex w-full overflow-hidden rounded-xl border transition-all duration-200 ease-in-out transform motion-reduce:transition-none';
   const variantClasses =
     variant === 'destructive'
       ? 'bg-xp-popover border-xp-red/50 text-xp-text'
@@ -243,7 +243,7 @@ const ConfirmationToast = ({
   const { t } = useTranslation();
 
   return (
-    <div className="wisp-notification relative flex w-full overflow-hidden rounded-xl border border-xp-border bg-xp-popover text-xp-text shadow-[var(--xp-shadow-popover)]">
+    <div className="wisp-notification relative flex w-full overflow-hidden rounded-xl border border-xp-border bg-xp-popover text-xp-text">
       <div className="flex-1 p-4 pr-12">
         <div className="mb-1 text-sm font-semibold">{title}</div>
         {description && <div className="mb-3 text-xs text-xp-text-secondary">{description}</div>}
@@ -301,7 +301,7 @@ const InputToast = ({
   };
 
   return (
-    <div className="wisp-notification relative flex w-full overflow-hidden rounded-xl border border-xp-border bg-xp-popover text-xp-text shadow-[var(--xp-shadow-popover)]">
+    <div className="wisp-notification relative flex w-full overflow-hidden rounded-xl border border-xp-border bg-xp-popover text-xp-text">
       <div className="flex-1 p-4 pr-12">
         <div className="mb-1 text-sm font-semibold">{title}</div>
         {description && <div className="mb-3 text-xs text-xp-text-secondary">{description}</div>}

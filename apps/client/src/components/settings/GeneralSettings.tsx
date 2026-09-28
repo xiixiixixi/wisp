@@ -107,15 +107,19 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
           </div>
         )}
       </details>
-      <button
-        type="button"
-        onClick={() => setSettings(DEFAULT_SETTINGS)}
-        className="wisp-general-reset"
-      >
-        <RotateCcw size={14} aria-hidden="true" />
-        {t('settings.resetAll')}
-      </button>
-      <AboutSettings />
+      <SettingsSection title={t('settings.general.about', { defaultValue: '关于' })}>
+        <div className="flex items-center justify-between px-1 py-1.5">
+          <button
+            type="button"
+            onClick={() => setSettings(DEFAULT_SETTINGS)}
+            className="wisp-general-reset"
+          >
+            <RotateCcw size={14} aria-hidden="true" />
+            {t('settings.resetAll')}
+          </button>
+        </div>
+        <AboutSettings />
+      </SettingsSection>
     </div>
   );
 };

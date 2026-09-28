@@ -38,11 +38,3 @@
     display: inline;
   }
 }
-.ob-label-lg {
-  display: none;
-}
-@container operationbar (min-width: 560px) {
-  .ob-label-lg {
-    display: inline;
-  }
-}

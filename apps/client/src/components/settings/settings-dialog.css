@@ -9,21 +9,26 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 24px 10px;
+  padding: 16px 20px 10px;
   flex: 0 0 auto;
 }
 .wisp-settings-close {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  transition: background 120ms ease;
+}
+.wisp-settings-close:hover {
+  background: var(--ds-fill);
 }
 .wisp-settings-tabbar {
   display: flex;
   align-self: flex-start;
   flex: 0 0 auto;
   gap: 4px;
-  padding: 4px;
+  padding: 3px;
   margin: 0 24px 16px;
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--ds-fill);
 }
 .wisp-settings-tabbar > button {
@@ -31,7 +36,7 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  min-height: 32px;
+  min-height: 28px;
   padding: 5px 14px;
   border: 1px solid transparent;
   border-radius: 9px;
@@ -56,13 +61,17 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
-  padding: 0 20px 16px 24px;
+  padding: 4px 20px 16px 20px;
 }
 .wisp-settings-dialog-footer {
   flex: 0 0 auto;
-  padding: 10px 24px 14px;
+  padding: 8px 20px 12px;
   color: var(--ds-label-tertiary);
   font-size: 11px;
+  border-top: 1px solid var(--ds-separator);
+}
+.wisp-settings-split {
+  border-top: 1px solid var(--ds-separator);
 }
 .wisp-settings-dialog summary::-webkit-details-marker {
   display: none;
@@ -133,4 +142,11 @@ html:root:is(.theme-light, .theme-fluid, .theme-rolex)
   .content-card.content-card {
   background: var(--ds-fill) !important;
   border: 0 !important;
+}
+
+/* 卡内行间发丝分隔（macOS inset group list 同款） */
+.wisp-settings-dialog-body .content-card > .divide-y > * + * {
+  border-top-width: 1px !important;
+  border-top-style: solid !important;
+  border-top-color: var(--ds-separator) !important;
 }

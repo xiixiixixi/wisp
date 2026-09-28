@@ -4,15 +4,16 @@ import { useQuery } from '@tanstack/react-query';
 import { TauriAPI, type TrashItem } from '@/lib/tauri-api';
 import { useToast } from '@/hooks/use-toast';
 import { getFileIcon, formatFileSize, formatDate } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Undo2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { showConfirmationToast } from '@/components/ui/Toast';
 
 interface RecycleBinProps {
-  onClose?: () => void;
+  /** 路径栏右侧 actions 槽；传入则把回收站操作传送过去（与其他页面工具条同位） */
+  toolbarTarget?: HTMLElement | null;
 }
 
-const RecycleBin = ({ onClose }: RecycleBinProps) => {
+const RecycleBin = ({ toolbarTarget }: RecycleBinProps) => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
@@ -208,15 +209,57 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
     }
   };
 
-  const handleSelectAll = () => {
-    if (selectedItems.size === trashItems.length) {
-      setSelectedItems(new Set());
-    } else {
-      setSelectedItems(new Set(trashItems.map((item) => item.original_path)));
-    }
-  };
+  const hasSelection = selectedItems.size > 0;
 
-  const isAllSelected = selectedItems.size === trashItems.length && trashItems.length > 0;
+  // 操作条（与其他页面的窗格工具条同位同款）：
+  // 无选中 → 只显示"清空回收站"；有选中 → 换成"还原(n)/永久删除(n)"。
+  const toolbar = (
+    <div className="wisp-operationbar wisp-component-toolbar wisp-no-select">
+      <div className="wisp-operationbar-layout @container flex items-center justify-end gap-4">
+        <div className="wisp-toolbar-controls wisp-toolbar-controls-secondary flex flex-shrink-0 items-center">
+          {hasSelection ? (
+            <>
+              <button
+                type="button"
+                className="wisp-control flex items-center gap-1 rounded-md px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:text-xp-text disabled:pointer-events-none disabled:opacity-50"
+                onClick={() => handleRestore()}
+                aria-label={t('pages.trash.ariaRestoreCount', { count: selectedItems.size })}
+              >
+                <Undo2 size={14} aria-hidden="true" />
+                <span className="ob-label-md whitespace-nowrap">
+                  {t('pages.trash.restoreCount', { count: selectedItems.size })}
+                </span>
+              </button>
+              <button
+                type="button"
+                className="wisp-control flex items-center gap-1 rounded-md px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:text-xp-red disabled:pointer-events-none disabled:opacity-50"
+                onClick={() => handlePermanentDelete()}
+                aria-label={t('pages.trash.ariaDeleteCount', { count: selectedItems.size })}
+              >
+                <Trash2 size={14} aria-hidden="true" />
+                <span className="ob-label-md whitespace-nowrap">
+                  {t('pages.trash.deletePermanentlyCount', { count: selectedItems.size })}
+                </span>
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="wisp-control flex items-center gap-1 rounded-md px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:text-xp-red disabled:pointer-events-none disabled:opacity-50"
+              disabled={trashItems.length === 0}
+              onClick={handleEmptyTrash}
+              aria-label={t('pages.trash.ariaEmptyBin')}
+            >
+              <Trash2 size={14} aria-hidden="true" />
+              <span className="ob-label-md whitespace-nowrap">
+                {t('pages.trash.emptyRecycleBin')}
+              </span>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div
@@ -224,63 +267,8 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
       data-drop-target=""
       data-drop-action="trash"
     >
-      {/* 操作条 — 与文件窗格的 OperationBar 同位同密度；标题走窗格标签页 */}
-      <div className="wisp-operationbar wisp-component-toolbar wisp-no-select border-b border-xp-border bg-xp-surface px-3 py-1.5">
-        <div className="wisp-operationbar-layout @container flex items-center justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-2">
-            <Trash2 size={15} className="shrink-0 text-xp-text-secondary" aria-hidden="true" />
-            <span className="truncate text-xs font-semibold text-xp-text">{t('pages.trash.title')}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSelectAll}
-              aria-label={
-                isAllSelected ? t('pages.trash.ariaDeselectAll') : t('pages.trash.ariaSelectAll')
-              }
-            >
-              {isAllSelected ? t('pages.trash.deselectAll') : t('pages.trash.selectAll')}
-            </Button>
-            <Button
-              size="sm"
-              disabled={selectedItems.size === 0}
-              onClick={() => handleRestore()}
-              aria-label={t('pages.trash.ariaRestoreCount', { count: selectedItems.size })}
-            >
-              {t('pages.trash.restoreCount', { count: selectedItems.size })}
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              disabled={selectedItems.size === 0}
-              onClick={() => handlePermanentDelete()}
-              aria-label={t('pages.trash.ariaDeleteCount', { count: selectedItems.size })}
-            >
-              {t('pages.trash.deletePermanentlyCount', { count: selectedItems.size })}
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              disabled={trashItems.length === 0}
-              onClick={handleEmptyTrash}
-              aria-label={t('pages.trash.ariaEmptyBin')}
-            >
-              {t('pages.trash.emptyRecycleBin')}
-            </Button>
-            {onClose && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onClose}
-                aria-label={t('pages.trash.ariaBackToHome')}
-              >
-                {t('pages.trash.backToHome')}
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* 操作条：有路径栏槽就传送过去（与其他页面工具条同位），没有则原位显示 */}
+      {toolbarTarget ? createPortal(toolbar, toolbarTarget) : toolbar}
 
       {/* Content */}
       <div className="flex-1 overflow-auto p-4">
@@ -294,13 +282,13 @@ const RecycleBin = ({ onClose }: RecycleBinProps) => {
           }
           if (trashItems.length === 0) {
             return (
-              <div className="flex h-full items-center justify-center">
-                <div className="text-center text-xp-text-muted">
-                  <div className="mb-4 text-4xl">
-                    <Trash2 size="1em" className="inline-block text-xp-text-muted" />
+              <div className="wisp-preview-empty flex h-full items-center justify-center text-center text-xp-text-secondary">
+                <div className="wisp-preview-empty-content">
+                  <div className="wisp-preview-empty-visual" aria-hidden="true">
+                    <Trash2 size={40} strokeWidth={1.25} />
                   </div>
-                  <div className="text-lg">{t('pages.trash.empty')}</div>
-                  <div className="mt-2 text-sm">{t('pages.trash.emptyHint')}</div>
+                  <h4>{t('pages.trash.empty')}</h4>
+                  <p>{t('pages.trash.emptyHint')}</p>
                 </div>
               </div>
             );

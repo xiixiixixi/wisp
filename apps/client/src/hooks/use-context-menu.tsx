@@ -30,12 +30,62 @@ const appMenuItem = (
 ): ContextMenuItem => ({
   id: `open-with-app-${appPath}`,
   label: isDefault ? i18n.t('contextMenu.defaultApp', { name: appName }) : appName,
+  // 应用图标（Finder 同款：菜单里每个 app 画自己的 icon）
+  icon: <AppMenuIcon appName={appName} appPath={appPath} />,
   action: () => {
     TauriAPI.openFileWithApplication(file.path, appPath).catch((err: unknown) => {
       console.error('openFileWithApplication failed:', err);
     });
   },
 });
+
+/**
+ * 打开方式菜单里的应用图标：桌面版走系统真图标（NSWorkspace，同文件列表），
+ * 演示环境用与 .app 列表图标同语义的圆角方块+首字母（按名稳定取色）。
+ */
+const AppMenuIcon = ({ appName, appPath }: { appName: string; appPath: string }) => {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!isTauri()) return;
+    let cancelled = false;
+    TauriAPI.getFileIconPng(appPath)
+      .then((p: string) => {
+        if (!cancelled) return import('@/lib/transport').then(({ convertAssetUrl }) => convertAssetUrl(p));
+        return null;
+      })
+      .then((u: string | null) => {
+        if (!cancelled && u) setUrl(u);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [appPath]);
+
+  if (url) {
+    return <img src={url} alt="" width={14} height={14} className="shrink-0" draggable={false} />;
+  }
+  const initial = appName.charAt(0).toUpperCase() || 'A';
+  let hash = 0;
+  for (let i = 0; i < appName.length; i += 1) hash = (hash * 31 + appName.charCodeAt(i)) >>> 0;
+  const hue = hash % 360;
+  return (
+    <svg viewBox="0 0 48 48" width={14} height={14} aria-hidden="true" className="shrink-0">
+      <rect x="4" y="4" width="40" height="40" rx="10" fill={`hsl(${hue}, 62%, 52%)`} />
+      <text
+        x="24"
+        y="32"
+        textAnchor="middle"
+        fontFamily="-apple-system, 'SF Pro Text', sans-serif"
+        fontWeight="700"
+        fontSize="22"
+        fill="#fff"
+      >
+        {initial}
+      </text>
+    </svg>
+  );
+};
 
 /** Replace the open-with submenu placeholder with the real app list. */
 const attachOpenWithApps = (
@@ -137,6 +187,15 @@ export const useContextMenu = (deps: UseContextMenuDeps) => {
         void fetchAssociations(file).then((assoc) => {
           setContextMenuItems((prev) => attachOpenWithApps(prev, file, assoc));
         });
+      } else if (!file.is_dir) {
+        // 演示环境拿不到系统应用列表：立即撤掉"正在读取…"占位
+        setContextMenuItems((prev) =>
+          prev.map((item) =>
+            item.id === 'open-with'
+              ? { ...item, submenu: (item.submenu ?? []).filter((sub) => sub.id !== 'open-with-loading') }
+              : item,
+          ),
+        );
       }
     },
     [contextMenuFactoryRef, selectedFiles, clipboard],

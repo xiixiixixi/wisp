@@ -229,6 +229,7 @@ const loadFinderVisual = (file: FileEntry): VisualRequest => {
 
 type DemoVisualKind =
   | 'folder'
+  | 'app'
   | 'image'
   | 'pdf'
   | 'book'
@@ -243,6 +244,8 @@ type DemoVisualKind =
 
 const demoVisualKind = (file: FileEntry): DemoVisualKind => {
   if (file.is_dir) return 'folder';
+  // 应用程序：以真实 App 图标语义呈现（圆角方块 + 应用名首字母），不再用通用文件图标
+  if (file.file_type === 'app' || file.name.endsWith('.app')) return 'app';
   const ext = extensionOf(file);
   if (WEB_IMAGE_EXTENSIONS.has(ext) || ['heic', 'heif', 'tif', 'tiff'].includes(ext)) {
     return 'image';
@@ -304,6 +307,47 @@ const DemoFinderVisual = ({ file }: { file: FileEntry }) => {
         <path d="M4 12.5c0-2 1.6-3.5 3.5-3.5H19l4 4h17.5c2 0 3.5 1.6 3.5 3.5v3H4z" fill="#77c5ff" />
         <path d="M4 17h40v21.5c0 2-1.6 3.5-3.5 3.5h-33C5.6 42 4 40.4 4 38.5z" fill="#4aa7f2" />
         <path d="M6 18.5h36" stroke="#a9ddff" strokeWidth="1.4" opacity=".9" />
+      </svg>
+    );
+  }
+
+  if (kind === 'app') {
+    // 应用图标：macOS App 图标语义 —— 圆角方块 + 应用名首字母；按名字定色（稳定复现）
+    const appName = file.name.replace(/\.app$/i, '');
+    const initial = appName.charAt(0).toUpperCase() || 'A';
+    let hash = 0;
+    for (let i = 0; i < appName.length; i += 1) hash = (hash * 31 + appName.charCodeAt(i)) >>> 0;
+    const hue = hash % 360;
+    return (
+      <svg
+        viewBox="0 0 48 48"
+        width="1em"
+        height="1em"
+        aria-hidden="true"
+        data-demo-file-visual={kind}
+      >
+        <rect x="8" y="8" width="32" height="32" rx="8" fill={`hsl(${hue}, 62%, 52%)`} />
+        <rect
+          x="8"
+          y="8"
+          width="32"
+          height="32"
+          rx="8"
+          fill="none"
+          stroke="rgba(255,255,255,.35)"
+          strokeWidth="1.2"
+        />
+        <text
+          x="24"
+          y="31"
+          textAnchor="middle"
+          fontFamily="-apple-system, 'SF Pro Text', sans-serif"
+          fontWeight="700"
+          fontSize="19"
+          fill="#fff"
+        >
+          {initial}
+        </text>
       </svg>
     );
   }

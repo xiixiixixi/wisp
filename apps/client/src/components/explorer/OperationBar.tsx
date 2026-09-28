@@ -6,6 +6,7 @@ import {
   ArrowDown,
   ChevronDown,
   Rows3,
+  FilePlus,
   FolderPlus,
   Package,
   PackageOpen,
@@ -45,6 +46,7 @@ interface OperationBarProps {
   groupByDate?: boolean;
   setGroupByDate?: (enabled: boolean) => void;
   handleCreateFolder: () => void;
+  onCreateFile?: () => void;
   handleDelete: () => void;
   selectedFiles: Set<string>;
   setBottomPanelCollapsed: (collapsed: boolean) => void;
@@ -84,6 +86,7 @@ const OperationBar = ({
   groupByDate,
   setGroupByDate,
   handleCreateFolder,
+  onCreateFile,
   handleDelete: _handleDelete,
   selectedFiles,
   setBottomPanelCollapsed,
@@ -490,16 +493,6 @@ const OperationBar = ({
               </AnchoredMenu>
             )}
           </div>
-          {onPaste && hasClipboard && (
-            <button
-              onClick={onPaste}
-              className="rounded-md p-1 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-              title={t('contextMenu.paste')}
-              aria-label={t('contextMenu.paste')}
-            >
-              <Clipboard size={15} />
-            </button>
-          )}
         </div>
 
         <div className="flex min-w-0 items-center gap-2">
@@ -523,7 +516,7 @@ const OperationBar = ({
                 aria-label={t('operationBar.compress')}
               >
                 <Package size={15} aria-hidden="true" />
-                <span className="ob-label-lg">{t('operationBar.compress')}</span>
+                
               </button>
             )}
             {hasSelection && onExtract && selectedFiles.size === 1 && (
@@ -535,18 +528,38 @@ const OperationBar = ({
                 aria-label={t('operationBar.extract')}
               >
                 <PackageOpen size={15} aria-hidden="true" />
-                <span className="ob-label-lg">{t('operationBar.extract')}</span>
+                
               </button>
             )}
             <button
               onClick={handleCreateFolder}
-              className="wisp-control flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold text-xp-text transition-colors hover:text-xp-blue"
+              className="wisp-control-icon flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:text-xp-text"
               title={t('operationBar.createFolder')}
               aria-label={t('operationBar.createFolder')}
             >
               <FolderPlus size={16} />
-              <span className="ob-label-lg">{t('operationBar.newFolder')}</span>
             </button>
+            {onCreateFile && (
+              <button
+                onClick={onCreateFile}
+                className="wisp-control-icon flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:text-xp-text"
+                title={t('operationBar.createFile')}
+                aria-label={t('operationBar.createFile')}
+              >
+                <FilePlus size={16} />
+              </button>
+            )}
+            {onPaste && hasClipboard && (
+              <button
+                onClick={onPaste}
+                className="wisp-control-icon flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:text-xp-text"
+                title={t('contextMenu.paste')}
+                aria-label={t('contextMenu.paste')}
+                data-testid="op-paste"
+              >
+                <Clipboard size={16} />
+              </button>
+            )}
 
             <button
               onClick={() => {

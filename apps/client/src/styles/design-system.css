@@ -1626,7 +1626,8 @@ html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-notification {
   color: var(--ds-label-primary);
   border: 1px solid var(--ds-separator) !important;
   border-radius: 16px !important;
-  box-shadow: var(--ds-shadow-pop) !important;
+  /* 气泡本体即圆角玻璃——不再叠投影（旧 var(--ds-shadow-pop) 在圆角外投出矩形暗边） */
+  box-shadow: none !important;
   -webkit-backdrop-filter: var(--ds-mat-blur) !important;
   backdrop-filter: var(--ds-mat-blur) !important;
 }

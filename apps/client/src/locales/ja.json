@@ -300,7 +300,8 @@
       "explorerWarning": "フォルダは Wisp で開きます。Windows エクスプローラーに戻すには無効にしてください。",
       "betaWarning": "ベータ警告",
       "betaWarningDesc": "早期ベータ警告ダイアログを再表示",
-      "showWarning": "警告を表示"
+      "showWarning": "警告を表示",
+      "about": "について"
     },
     "explorer": {
       "display": "表示",
@@ -413,7 +414,9 @@
       "learnRowDesc": "各会話を長期メモリに要約します",
       "mem0CloudTitle": "学習したメモリ",
       "mem0MasterDesc": "会話をまたいで好みや事実を記憶",
-      "mem0Count": "{{count}} 件"
+      "mem0Count": "{{count}} 件",
+      "mem0KeyLabel": "Mem0 API Key",
+      "mem0KeyDesc": "mem0 クラウド記憶のキー（"
     },
     "mcp": {
       "title": "MCP サーバー",
@@ -484,7 +487,8 @@
     "newFolder": "新しいフォルダ",
     "newFile": "新しいファイル",
     "compress": "圧縮",
-    "extract": "解凍"
+    "extract": "解凍",
+    "createFile": "新規ドキュメント"
   },
   "fileOperations": {
     "openFailedTitle": "ファイルを開けませんでした",

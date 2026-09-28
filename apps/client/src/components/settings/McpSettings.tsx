@@ -4,7 +4,7 @@
  * 内联表单（stdio：命令/参数/环境变量 JSON；http：地址/请求头 JSON）。
  * 配置落在 ~/.pi/agent/mcp.json（Claude Desktop 同款格式）。
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, Plug, Plus, RefreshCw, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -69,6 +69,38 @@ const McpSettings = () => {
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  // ZCode 同款：进页面自动探测全部服务器连通性（状态灯直接可见，不用逐个手点）
+  const probeAll = useCallback(async () => {
+    const names = Object.keys(servers);
+    for (const name of names) {
+      setTesting(name);
+      try {
+        const r = await transport<{ ok: boolean; toolCount?: number; error?: string }>(
+          'mcp_test_server',
+          { server: name },
+        );
+        setTestResults((prev) => ({
+          ...prev,
+          [name]: r.ok
+            ? { ok: true, text: t('settings.mcp.testOk', { count: r.toolCount ?? 0 }) }
+            : { ok: false, text: r.error ?? 'failed' },
+        }));
+      } catch (e) {
+        setTestResults((prev) => ({ ...prev, [name]: { ok: false, text: String(e) } }));
+      } finally {
+        setTesting(null);
+      }
+    }
+  }, [servers, t]);
+
+  const probedRef = useRef(false);
+  useEffect(() => {
+    if (loaded && !probedRef.current && Object.keys(servers).length > 0) {
+      probedRef.current = true;
+      void probeAll();
+    }
+  }, [loaded, servers, probeAll]);
 
   const persist = useCallback(
     async (next: Record<string, McpEntry>) => {
@@ -177,12 +209,47 @@ const McpSettings = () => {
       {names.map((name) => {
         const entry = servers[name];
         const result = testResults[name];
+        const dot: 'ok' | 'err' | 'wait' | 'idle' = testing === name
+          ? 'wait'
+          : result
+            ? result.ok
+              ? 'ok'
+              : 'err'
+            : 'idle';
+        const dotCls =
+          dot === 'ok'
+            ? 'bg-xp-green'
+            : dot === 'err'
+              ? 'bg-xp-red'
+              : dot === 'wait'
+                ? 'bg-xp-yellow animate-pulse'
+                : 'bg-xp-border-strong bg-xp-text-muted opacity-50';
         return (
           <div key={name} data-testid={`mcp-server-row-${name}`}>
             {editing === name ? null : (
               <SettingRow
-                label={name}
-                description={`${entry.type === 'http' ? 'http' : 'stdio'} · ${describeEntry(entry)}`}
+                label={
+                  <span className="flex items-center gap-1.5">
+                    <span className={`h-2 w-2 shrink-0 rounded-full ${dotCls}`} aria-hidden="true" data-testid={`mcp-dot-${name}`} />
+                    {name}
+                  </span>
+                }
+                description={
+                  <span className="flex flex-col gap-0.5">
+                    <span className="font-mono text-[10px] text-xp-text-muted">
+                      {entry.type === 'http' ? 'http' : 'stdio'} · {describeEntry(entry)}
+                    </span>
+                    {result && (
+                      <span
+                        className={`text-[10px] ${result.ok ? 'text-xp-green' : 'text-xp-red'}`}
+                        data-testid={`mcp-test-result-${name}`}
+                      >
+                        {result.ok ? '✓ ' : '✗ '}
+                        {result.text}
+                      </span>
+                    )}
+                  </span>
+                }
               >
                 <div className="flex items-center gap-1.5">
                     <button
@@ -219,15 +286,6 @@ const McpSettings = () => {
                   </div>
               </SettingRow>
             )}
-            {editing === name ? null : result ? (
-              <div
-                className={`px-14 pb-1 text-[10px] ${result.ok ? 'text-xp-green' : 'text-xp-red'}`}
-                data-testid={`mcp-test-result-${name}`}
-              >
-                {result.ok ? '✓ ' : '✗ '}
-                {result.text}
-              </div>
-            ) : null}
           </div>
         );
       })}

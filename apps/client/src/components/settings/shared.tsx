@@ -104,7 +104,7 @@ export const SettingsSection = ({
   children,
 }: {
   title: string;
-  description?: string;
+  description?: React.ReactNode;
   children: React.ReactNode;
 }) => (
   <section className="content-card rounded-xl p-1">
@@ -126,8 +126,8 @@ export const SettingRow = ({
   children,
 }: {
   icon?: React.ElementType;
-  label: string;
-  description?: string;
+  label: React.ReactNode;
+  description?: React.ReactNode;
   children: React.ReactNode;
 }) => {
   const id = useId();

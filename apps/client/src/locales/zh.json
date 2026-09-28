@@ -312,7 +312,8 @@
       "weatherCityPlaceholder": "城市名，如 上海",
       "keyboard": "键盘",
       "keyboardDesc": "快捷键与 Vim 模式",
-      "keyboardNote": "常用操作沿用 Mac 的快捷键习惯；Wisp 的底部面板、终端和分屏另有快捷键，可在这里查看和修改。"
+      "keyboardNote": "常用操作沿用 Mac 的快捷键习惯；Wisp 的底部面板、终端和分屏另有快捷键，可在这里查看和修改。",
+      "about": "关于"
     },
     "explorer": {
       "display": "显示",
@@ -525,7 +526,9 @@
       "learnRowDesc": "每轮对话自动提炼为长期记忆",
       "mem0CloudTitle": "已学会的记忆",
       "mem0MasterDesc": "跨对话记住你的偏好与事实",
-      "mem0Count": "{{count}} 条记忆"
+      "mem0Count": "{{count}} 条记忆",
+      "mem0KeyLabel": "Mem0 API Key",
+      "mem0KeyDesc": "mem0 云记忆的密钥（用于"
     },
     "mcp": {
       "title": "MCP 服务器",
@@ -624,7 +627,8 @@
       "tryAgain": "请确认所选项目仍然存在，并在 macOS 上重试。",
       "invalidPaths": "部分所选项目已移动或无法访问，请重新选择。",
       "unavailable": "AirDrop 当前不可用，请稍后重试，或在访达中检查 AirDrop。"
-    }
+    },
+    "createFile": "新建文档"
   },
   "fileOperations": {
     "openFailedTitle": "无法打开文件",
@@ -2929,7 +2933,7 @@
     "regexExample": "例如 ^(.+)\\.txt$ 或 find_this",
     "replacementExample": "例如 $1_renamed.txt 或 new_name",
     "renameSyntax": "支持捕获组 <code>$1</code>、<code>$2</code>，补零编号 <code>{N}</code>，以及日期 <code>{date}</code>（YYYY-MM-DD）。",
-    "folderSize": "{{size}}（{{count}} 个项目）",
+    "folderSize": "{{size}}",
     "fileAria": "{{name}}，文件",
     "folderAria": "{{name}}，文件夹",
     "colorFolders": "{{color}}：{{count}} 个文件夹",
