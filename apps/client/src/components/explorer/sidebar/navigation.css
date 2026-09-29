@@ -1,0 +1,224 @@
+.wisp-sidebar .wisp-nav-section {
+  padding: 12px 12px 4px;
+  min-width: 0;
+}
+.wisp-sidebar .wisp-nav-section + .wisp-nav-section {
+  margin-top: 8px;
+}
+.wisp-sidebar .wisp-nav-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  margin: 0 0 4px;
+  padding: 0 8px;
+  color: var(--ds-label-secondary);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+}
+.wisp-sidebar .wisp-nav-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  padding: 7px 10px;
+  text-align: left;
+}
+.wisp-nav-row > svg {
+  flex: 0 0 auto;
+  color: var(--ds-label-secondary);
+}
+.wisp-sidebar .wisp-nav-row.wisp-sidebar-item-active > svg {
+  color: var(--ds-link);
+}
+.wisp-nav-row-group {
+  position: relative;
+  min-width: 0;
+}
+.wisp-nav-row-group .wisp-nav-row {
+  padding-right: 36px;
+}
+.wisp-sidebar .wisp-nav-row-action {
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  color: var(--ds-label-secondary);
+  opacity: 0;
+}
+.wisp-nav-row-group:hover .wisp-nav-row-action,
+.wisp-nav-row-group:focus-within .wisp-nav-row-action {
+  opacity: 1;
+}
+.wisp-sidebar .wisp-nav-row-action:hover {
+  background: var(--ds-hover);
+  color: var(--ds-label-primary);
+}
+.wisp-sidebar .wisp-nav-add {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px;
+  min-height: 28px;
+  padding: 3px 5px;
+  margin-left: auto;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ds-link);
+}
+.wisp-nav-add:hover {
+  background: var(--ds-hover);
+}
+.wisp-nav-add:disabled {
+  color: var(--ds-label-secondary);
+}
+.wisp-nav-feedback {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  padding: 6px 10px;
+  color: var(--ds-label-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+.wisp-nav-feedback button {
+  color: var(--ds-link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.wisp-nav-empty {
+  margin: 0;
+  padding: 4px 10px 8px;
+  color: var(--ds-label-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+.wisp-sidebar .wisp-drive-details {
+  display: block;
+  margin-top: 2px;
+  color: var(--ds-label-secondary);
+  font-size: 12px;
+}
+.wisp-drive-meter {
+  display: block;
+  height: 3px;
+  margin-top: 5px;
+  overflow: hidden;
+  background: var(--ds-fill);
+  border-radius: 3px;
+}
+.wisp-drive-meter > span {
+  display: block;
+  height: 100%;
+  background: var(--ds-accent);
+}
+.wisp-drive-meter[data-full="true"] > span {
+  background: var(--ds-destructive);
+}
+.wisp-sidebar .wisp-sidebar-tablist {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  overflow-x: auto;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--ds-separator);
+}
+.wisp-sidebar .wisp-sidebar-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  max-width: 160px;
+  min-height: 32px;
+  padding: 5px 8px;
+  font-size: 12px;
+}
+.wisp-panel-rail .wisp-tools-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* 双胶囊布局：工具胶囊 + 分栏胶囊并排，中间 22px 间隙 */
+.wisp-panel-rail .wisp-split-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 22px;
+}
+.wisp-panel-rail-horizontal .wisp-tools-actions,
+.wisp-panel-rail-horizontal .wisp-split-group {
+  padding: 4px;
+  min-height: 44px;
+}
+.wisp-panel-rail-horizontal {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.wisp-panel-rail-vertical .wisp-split-group {
+  flex-direction: column;
+  align-items: stretch;
+}
+.wisp-panel-rail .wisp-named-tool {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 5px 8px;
+  white-space: nowrap;
+  font-size: 13px;
+}
+.wisp-panel-rail .wisp-tools-menu {
+  width: 232px;
+  max-height: min(580px, calc(100vh - 100px));
+  overflow-y: auto;
+}
+.wisp-panel-rail .wisp-tools-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 9px;
+  border-radius: 6px;
+  text-align: left;
+  color: var(--ds-label-primary);
+  font-size: 13px;
+}
+.wisp-tools-menu-item > svg {
+  flex: 0 0 auto;
+}
+.wisp-panel-rail .wisp-tools-menu-item[aria-checked="true"] {
+  background: var(--ds-selection-idle);
+}
+.wisp-tools-menu-heading {
+  padding: 6px 9px 4px;
+  color: var(--ds-label-secondary);
+  font-size: 12px;
+}
+.wisp-tool-active-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ds-accent);
+}
+.wisp-panel-rail-vertical .wisp-tools-actions {
+  flex-direction: column;
+  align-items: stretch;
+}
+@media (hover: none) {
+  .wisp-sidebar .wisp-nav-row-action {
+    opacity: 1;
+  }
+}

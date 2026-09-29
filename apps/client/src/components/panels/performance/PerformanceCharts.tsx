@@ -1,9 +1,10 @@
 import { getAppLocale } from '@/lib/locale';
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TauriAPI, type OrganizationAnalysis, type OrganizationPlan } from '@/lib/tauri-api';
 import { formatFileSize } from '@/lib/utils';
 import { FolderClosed } from 'lucide-react';
+import { PanelMessage } from '../PanelFeedback';
 import {
   cardStyle,
   smallBtnStyle,
@@ -33,9 +34,18 @@ const OrganizerTabContent = React.memo(
     const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
     const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
     const [lastAnalyzedPath, setLastAnalyzedPath] = useState<string>('');
+    const [feedback, setFeedback] = useState<string | null>(null);
+    const requestedPath = useRef(currentPath);
+    requestedPath.current = currentPath;
+    const requestVersion = useRef(0);
+    const selectionVersion = useRef(0);
+    const previewPath = useRef('');
+    const isFolder = Boolean(currentPath) && !currentPath.includes('://');
 
     const analyze = useCallback(async () => {
-      if (!currentPath) return;
+      if (!isFolder) return;
+      const version = ++requestVersion.current;
+      selectionVersion.current += 1;
       setLoading(true);
       setError(null);
       setPreview(null);
@@ -43,21 +53,24 @@ const OrganizerTabContent = React.memo(
       setSelectedSuggestions(new Set());
       try {
         const result = await TauriAPI.analyzeDirectory(currentPath);
+        if (version !== requestVersion.current || requestedPath.current !== currentPath) return;
         setAnalysis(result);
         setLastAnalyzedPath(currentPath);
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : String(e));
+        if (version === requestVersion.current && requestedPath.current === currentPath)
+          {setError(e instanceof Error ? e.message : String(e));}
       } finally {
-        setLoading(false);
+        if (version === requestVersion.current && requestedPath.current === currentPath)
+          {setLoading(false);}
       }
-    }, [currentPath]);
+    }, [currentPath, isFolder]);
 
     // Auto-analyze when path changes
     useEffect(() => {
-      if (currentPath && currentPath !== lastAnalyzedPath) {
+      if (isFolder && currentPath !== lastAnalyzedPath) {
         analyze();
       }
-    }, [currentPath, lastAnalyzedPath, analyze]);
+    }, [currentPath, lastAnalyzedPath, analyze, isFolder]);
 
     const toggleSection = (section: string) => {
       setCollapsedSections((prev) => {
@@ -69,6 +82,10 @@ const OrganizerTabContent = React.memo(
     };
 
     const toggleSuggestion = (idx: number) => {
+      if (organizing) return;
+      selectionVersion.current += 1;
+      setPreview(null);
+      setShowPreview(false);
       setSelectedSuggestions((prev) => {
         const next = new Set(prev);
         if (next.has(idx)) next.delete(idx);
@@ -79,9 +96,12 @@ const OrganizerTabContent = React.memo(
 
     const handlePreview = async () => {
       if (selectedSuggestions.size === 0) return;
+      const version = selectionVersion.current;
       try {
         const indices = Array.from(selectedSuggestions);
         const plan = await TauriAPI.previewOrganization(currentPath, indices);
+        if (version !== selectionVersion.current || requestedPath.current !== currentPath) return;
+        previewPath.current = currentPath;
         setPreview(plan);
         setShowPreview(true);
       } catch (e: unknown) {
@@ -90,7 +110,7 @@ const OrganizerTabContent = React.memo(
     };
 
     const handleOrganize = async () => {
-      if (!preview) return;
+      if (!preview || previewPath.current !== currentPath || organizing) return;
       setOrganizing(true);
       try {
         const count = await TauriAPI.executeOrganization(preview);
@@ -99,9 +119,14 @@ const OrganizerTabContent = React.memo(
         await analyze();
         setError(null);
         window.dispatchEvent(new CustomEvent('files-changed'));
-        alert(`Successfully organized ${count} file${count !== 1 ? 's' : ''}!`);
+        setFeedback(t('panelActions.organized', { count }));
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : String(e));
+        window.dispatchEvent(new CustomEvent('files-changed'));
+        setPreview(null);
+        setShowPreview(false);
+        setError(
+          t('panelActions.organizeFailed', { error: e instanceof Error ? e.message : String(e) }),
+        );
       } finally {
         setOrganizing(false);
       }
@@ -112,10 +137,17 @@ const OrganizerTabContent = React.memo(
       return name.length > 30 ? `${name.substring(0, 27)}...` : name;
     };
 
+    if (!isFolder)
+      {return (
+        <div className="px-4 py-6">
+          <PanelMessage>{t('panelActions.chooseLocalFolder')}</PanelMessage>
+        </div>
+      );}
+
     return (
       <div
         style={{
-          padding: '10px 12px',
+          padding: '12px 16px',
           overflowY: 'auto',
           overflowX: 'hidden',
           flex: '1 1 0%',
@@ -136,12 +168,12 @@ const OrganizerTabContent = React.memo(
           </span>
           <button
             onClick={analyze}
-            disabled={loading}
+            disabled={loading || organizing}
             style={{
               ...smallBtnStyle,
               opacity: loading ? 0.5 : 1,
-              background: '#6a6f8a',
-              color: '#fff',
+              background: 'var(--ds-accent)',
+              color: 'var(--ds-on-dark)',
               border: 'none',
             }}
           >
@@ -149,6 +181,8 @@ const OrganizerTabContent = React.memo(
           </button>
         </div>
 
+        <p className="wisp-panel-help break-all">{currentPath}</p>
+        {feedback && <PanelMessage>{feedback}</PanelMessage>}
         {error && (
           <div
             style={{
@@ -338,7 +372,7 @@ const CategoriesSection = ({
                     {t(`organizer.categoryNames.${cat.name}`, { defaultValue: cat.name })}
                   </span>
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--xp-text-secondary)' }}>
+                <div style={{ fontSize: 12, color: 'var(--xp-text-secondary)' }}>
                   {t('performanceDashboard.filesUnit', { count: cat.file_count })} &middot;{' '}
                   {formatFileSize(cat.total_size)}
                 </div>
@@ -376,7 +410,7 @@ const CategoriesSection = ({
                         // eslint-disable-next-line react/no-array-index-key
                         key={i}
                         style={{
-                          fontSize: 11,
+                          fontSize: 12,
                           color: 'var(--xp-text-secondary)',
                           padding: '2px 0',
                           overflow: 'hidden',
@@ -390,7 +424,7 @@ const CategoriesSection = ({
                     {cat.file_count > 5 && (
                       <div
                         style={{
-                          fontSize: 11,
+                          fontSize: 12,
                           color: 'var(--xp-text-secondary)',
                           fontStyle: 'italic',
                           marginTop: 4,
@@ -435,7 +469,7 @@ const ProjectNotice = ({ projectType }: { projectType?: string }) => {
           })}
         </span>
       </div>
-      <p style={{ fontSize: 11, color: 'var(--xp-text-secondary)', lineHeight: 1.5 }}>
+      <p style={{ fontSize: 12, color: 'var(--xp-text-secondary)', lineHeight: 1.5 }}>
         {t(
           'interface.thisIsAProjectDirectoryFileOrganizationIsSkippedToAvoidBreakingTheProjectStructure',
         )}
@@ -514,27 +548,6 @@ const SuggestionsSection = ({
                 >
                   {t('bulkRename.preview')}
                 </button>
-                <button
-                  onClick={() => {
-                    if (selectedSuggestions.size > 0 && preview) {
-                      handleOrganize();
-                    } else {
-                      handlePreview().then(() => {});
-                    }
-                  }}
-                  disabled={selectedSuggestions.size === 0 || organizing}
-                  style={{
-                    ...smallBtnStyle,
-                    flex: 1,
-                    textAlign: 'center',
-                    background: 'var(--xp-accent)',
-                    color: 'var(--xp-on-accent)',
-                    border: 'none',
-                    opacity: selectedSuggestions.size === 0 || organizing ? 0.4 : 1,
-                  }}
-                >
-                  {organizing ? t('organizer.organizing') : t('organizer.organize')}
-                </button>
               </div>
 
               {/* Preview panel */}
@@ -556,10 +569,11 @@ const SuggestionsSection = ({
                   >
                     {t('organizer.previewMoves', { count: preview.moves.length })}
                   </div>
+                  <p className="wisp-panel-help">{t('panelActions.organizeRecovery')}</p>
                   {preview.creates.length > 0 && (
                     <div
                       style={{
-                        fontSize: 11,
+                        fontSize: 12,
                         color: 'var(--xp-text-secondary)',
                         marginBottom: 4,
                       }}
@@ -577,7 +591,7 @@ const SuggestionsSection = ({
                           display: 'flex',
                           alignItems: 'center',
                           gap: 4,
-                          fontSize: 11,
+                          fontSize: 12,
                           color: 'var(--xp-text-secondary)',
                           padding: '2px 0',
                         }}
@@ -586,23 +600,23 @@ const SuggestionsSection = ({
                           style={{
                             flex: 1,
                             overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
+                            overflowWrap: 'anywhere',
+                            whiteSpace: 'normal',
                           }}
                         >
-                          {truncatePath(move.from)}
+                          {move.from}
                         </span>
                         <span style={{ color: 'var(--ds-link)', flexShrink: 0 }}>&rarr;</span>
                         <span
                           style={{
                             flex: 1,
                             overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
+                            overflowWrap: 'anywhere',
+                            whiteSpace: 'normal',
                             color: 'var(--xp-green)',
                           }}
                         >
-                          {truncatePath(move.to)}
+                          {move.to}
                         </span>
                       </div>
                     ))}
@@ -619,7 +633,7 @@ const SuggestionsSection = ({
                     </button>
                     <button
                       onClick={handleOrganize}
-                      disabled={organizing}
+                      disabled={organizing || preview.moves.length === 0}
                       style={{
                         ...smallBtnStyle,
                         flex: 1,
@@ -630,7 +644,9 @@ const SuggestionsSection = ({
                         opacity: organizing ? 0.4 : 1,
                       }}
                     >
-                      {organizing ? t('organizer.moving') : t('organizer.confirm')}
+                      {organizing
+                        ? t('organizer.moving')
+                        : t('panelActions.moveCount', { count: preview.moves.length })}
                     </button>
                   </div>
                 </div>
@@ -718,7 +734,7 @@ const DuplicatesSection = ({
                         }}
                         title={file.path}
                         style={{
-                          fontSize: 11,
+                          fontSize: 12,
                           color: 'var(--xp-text-secondary)',
                           padding: '2px 0',
                           overflow: 'hidden',
@@ -739,7 +755,7 @@ const DuplicatesSection = ({
                   {analysis.duplicate_summary!.recommendations[i] && (
                     <div
                       style={{
-                        fontSize: 11,
+                        fontSize: 12,
                         color: 'var(--xp-yellow)',
                         marginTop: 4,
                         fontStyle: 'italic',
@@ -804,7 +820,7 @@ const InsightsSection = ({
                 <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--xp-text)' }}>
                   {value}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--xp-text-secondary)' }}>{label}</div>
+                <div style={{ fontSize: 12, color: 'var(--xp-text-secondary)' }}>{label}</div>
               </div>
             ))}
           </div>
@@ -812,7 +828,7 @@ const InsightsSection = ({
           {/* Type distribution bar */}
           {analysis.insights.type_distribution.length > 0 && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, color: 'var(--xp-text-secondary)', marginBottom: 4 }}>
+              <div style={{ fontSize: 12, color: 'var(--xp-text-secondary)', marginBottom: 4 }}>
                 {t('organizer.typeDistribution')}
               </div>
               <div
@@ -857,7 +873,7 @@ const InsightsSection = ({
                       display: 'flex',
                       alignItems: 'center',
                       gap: 4,
-                      fontSize: 11,
+                      fontSize: 12,
                       color: 'var(--xp-text-secondary)',
                     }}
                   >
@@ -880,7 +896,7 @@ const InsightsSection = ({
           {/* Largest files */}
           {analysis.insights.largest_files.length > 0 && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, color: 'var(--xp-text-secondary)', marginBottom: 4 }}>
+              <div style={{ fontSize: 12, color: 'var(--xp-text-secondary)', marginBottom: 4 }}>
                 {t('organizer.largestFiles')}
               </div>
               {analysis.insights.largest_files.map((file) => (
@@ -914,7 +930,7 @@ const InsightsSection = ({
                   >
                     {file.name}
                   </span>
-                  <span style={{ fontSize: 11, color: 'var(--xp-text-secondary)', flexShrink: 0 }}>
+                  <span style={{ fontSize: 12, color: 'var(--xp-text-secondary)', flexShrink: 0 }}>
                     {formatFileSize(file.size)}
                   </span>
                 </div>
@@ -925,7 +941,7 @@ const InsightsSection = ({
           {/* Oldest files */}
           {analysis.insights.oldest_files.length > 0 && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, color: 'var(--xp-text-secondary)', marginBottom: 4 }}>
+              <div style={{ fontSize: 12, color: 'var(--xp-text-secondary)', marginBottom: 4 }}>
                 {t('organizer.oldestFiles')}
               </div>
               {analysis.insights.oldest_files.map((file) => (
@@ -959,7 +975,7 @@ const InsightsSection = ({
                   >
                     {file.name}
                   </span>
-                  <span style={{ fontSize: 11, color: 'var(--xp-text-secondary)', flexShrink: 0 }}>
+                  <span style={{ fontSize: 12, color: 'var(--xp-text-secondary)', flexShrink: 0 }}>
                     {file.modified > 0
                       ? new Date(file.modified * 1000).toLocaleDateString(getAppLocale())
                       : t('organizer.Unknown')}

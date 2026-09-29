@@ -3,25 +3,46 @@
  * 服务列表（状态点）+「添加供应商」→ 内联表单
  * （API 地址 / API 格式 / API Key / 逐个添加模型）。
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Brain, Eye, EyeOff, KeyRound, Pencil, Plus, Sparkles, Trash2, UserRound, X } from 'lucide-react';
+import {
+  Brain,
+  CircleHelp,
+  Eye,
+  EyeOff,
+  KeyRound,
+  Pencil,
+  Plus,
+  Sparkles,
+  Trash2,
+  UserRound,
+  X,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogTitle } from '@/components/ui/dialog';
-import { SettingsSection, SettingRow, SelectField, Toggle } from './shared';
+import {
+  SettingsSection,
+  SettingRow,
+  SettingInput,
+  SettingsStatus,
+  SelectField,
+  Toggle,
+} from './shared';
 import {
   piConfigState,
   piConfigWriteModels,
   piConfigRemoveAuthKey,
   type ModelsJson,
   type PiConfigStateDto,
+  type PiModelDef,
 } from '@/lib/pi-engine/pi-config';
 import { invalidatePiConfig } from '@/lib/pi-engine/providers';
 import { isTauri } from '@/lib/transport';
 import { TauriAPI, type Mem0ConfigState, type Mem0HitDto } from '@/lib/tauri-api';
 import { invalidateMem0State } from '@/lib/pi-engine/mem0';
 import { toast } from '@/hooks/use-toast';
+import type { SettingsEditorProps } from './draft-state';
 
 /** 思考程度：auto=跟模型默认；off=关闭；low/medium/high=开启并给档位。 */
 export type ThinkingPref = 'auto' | 'off' | 'low' | 'medium' | 'high';
@@ -32,6 +53,7 @@ interface ModelRow {
   contextWindow: number;
   maxTokens: number;
   thinking: ThinkingPref;
+  original?: PiModelDef;
 }
 
 interface ServiceDraft {
@@ -76,7 +98,7 @@ const hostOf = (baseUrl: string): string => {
   }
 };
 
-const ApiModelSettings = () => {
+const ApiModelSettings = ({ onDraftChange }: SettingsEditorProps = {}) => {
   const { t } = useTranslation();
   const [state, setState] = useState<PiConfigStateDto | null>(null);
   const [draft, setDraft] = useState<ServiceDraft | null>(null);
@@ -86,14 +108,45 @@ const ApiModelSettings = () => {
   const [mem0Hits, setMem0Hits] = useState<Mem0HitDto[] | null>(null);
   const [mem0Key, setMem0Key] = useState('');
   const [showMem0Key, setShowMem0Key] = useState(false);
+  const [memoryHelpOpen, setMemoryHelpOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [memoryBusy, setMemoryBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [memoryError, setMemoryError] = useState('');
+  const [memoryLoadFailed, setMemoryLoadFailed] = useState(false);
+  const [modelError, setModelError] = useState('');
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
+  const [clearMemory, setClearMemory] = useState(false);
+  const initialDraft = useRef('');
+  const savedUserId = useRef('wisp');
+  const draftDirty = draft !== null && JSON.stringify(draft) !== initialDraft.current;
+  useEffect(() => {
+    onDraftChange?.({
+      dirty:
+        draftDirty ||
+        modelDialog !== null ||
+        !!mem0Key ||
+        (!!mem0 && mem0.user_id !== savedUserId.current),
+      busy: saving || memoryBusy,
+    });
+  }, [draftDirty, modelDialog, mem0Key, mem0, saving, memoryBusy, onDraftChange]);
+  const openDraft = (next: ServiceDraft) => {
+    initialDraft.current = JSON.stringify(next);
+    setDraft(next);
+    setShowKey(false);
+    setError('');
+    setModelError('');
+  };
 
   const reload = useCallback(async () => {
     if (!isTauri()) return;
     try {
       invalidatePiConfig();
       setState(await piConfigState());
+      setLoadFailed(false);
     } catch {
-      setState(null);
+      setLoadFailed(true);
     }
   }, []);
 
@@ -107,31 +160,52 @@ const ApiModelSettings = () => {
     try {
       const state = await TauriAPI.mem0ConfigState();
       setMem0(state);
-      setMem0Hits(state.enabled ? await TauriAPI.mem0List(50) : null);
+      savedUserId.current = state.user_id;
+      setMemoryLoadFailed(false);
+      if (state.enabled) {
+        try {
+          setMem0Hits(await TauriAPI.mem0List(50));
+        } catch {
+          setMemoryError(t('settings.aiCfg.memoryListFailed'));
+        }
+      } else setMem0Hits(null);
     } catch {
-      setMem0(MEM0_DEFAULT);
-      setMem0Hits(null);
+      setMemoryLoadFailed(true);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     reloadMem0();
   }, [reloadMem0]);
 
-  const saveMem0 = useCallback(
-    async (opts: { enabled?: boolean; userId?: string; autoCapture?: boolean; apiKey?: string }) => {
-      try {
-        const state = await TauriAPI.mem0SaveConfig(opts);
-        setMem0(state);
-        setMem0Key('');
-        invalidateMem0State();
-        if (state.enabled) setMem0Hits(await TauriAPI.mem0List(50));
-      } catch (e) {
-        toast({ title: String(e instanceof Error ? e.message : e) });
+  const saveMem0 = async (opts: {
+    enabled?: boolean;
+    userId?: string;
+    autoCapture?: boolean;
+    apiKey?: string;
+  }) => {
+    if (memoryBusy) return;
+    setMemoryBusy(true);
+    setMemoryError('');
+    try {
+      const result = await TauriAPI.mem0SaveConfig(opts);
+      setMem0(result);
+      savedUserId.current = result.user_id;
+      if (opts.apiKey) setMem0Key('');
+      invalidateMem0State();
+      if (result.enabled) {
+        try {
+          setMem0Hits(await TauriAPI.mem0List(50));
+        } catch {
+          setMemoryError(t('settings.aiCfg.memoryListFailed'));
+        }
       }
-    },
-    [],
-  );
+    } catch {
+      setMemoryError(t('settings.aiCfg.memorySaveFailed'));
+    } finally {
+      setMemoryBusy(false);
+    }
+  };
 
   const m0 = mem0 ?? MEM0_DEFAULT;
 
@@ -139,46 +213,103 @@ const ApiModelSettings = () => {
     ? Object.entries(state.models_json.providers).filter(([, cfg]) => (cfg.models?.length ?? 0) > 0)
     : [];
 
-  const removeService = async (id: string) => {
-    const next: ModelsJson = { providers: { ...(state?.models_json.providers ?? {}) } };
-    delete next.providers[id];
-    await piConfigWriteModels(next);
-    await piConfigRemoveAuthKey(id);
-    await reload();
+  const removeService = async () => {
+    if (!removing || saving) return;
+    setSaving(true);
+    setError('');
+    try {
+      const fresh = await piConfigState();
+      const next: ModelsJson = { providers: { ...fresh.models_json.providers } };
+      delete next.providers[removing];
+      await piConfigWriteModels(next);
+      await piConfigRemoveAuthKey(removing);
+      invalidatePiConfig();
+      setState({ ...fresh, models_json: next });
+      setRemoving(null);
+    } catch {
+      setError(t('settings.aiCfg.deleteFailed'));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const save = async () => {
-    if (!draft) return;
-    const fresh = await piConfigState();
-    const next: ModelsJson = { providers: { ...fresh.models_json.providers } };
-    const id = draft.editId ?? hostOf(draft.baseUrl);
-    next.providers[id] = {
-      baseUrl: draft.baseUrl.trim(),
-      api: draft.protocol,
-      ...(draft.apiKey.trim() ? { apiKey: draft.apiKey.trim() } : {}),
-      models: draft.models
-        .filter((m) => m.enabled)
-        .map((m) => ({
-          id: m.id,
-          name: m.id,
-          reasoning: false,
-          input: ['text'],
-          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-          contextWindow: 128000,
-          maxTokens: 8192,
-        })),
-    };
-    await piConfigWriteModels(next);
-    setDraft(null);
-    reload();
-    toast({ title: t('settings.aiCfg.savedToast', { name: hostOf(draft.baseUrl) }) });
+    if (!draft || saving) return;
+    try {
+      if (!['http:', 'https:'].includes(new URL(draft.baseUrl.trim()).protocol)) throw new Error();
+    } catch {
+      setError(t('settings.aiCfg.invalidUrl'));
+      return;
+    }
+    if (!draft.models.some((model) => model.enabled && model.id.trim())) {
+      setError(t('settings.aiCfg.needEnabledModel'));
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      const fresh = await piConfigState();
+      const next: ModelsJson = { providers: { ...fresh.models_json.providers } };
+      const baseId = hostOf(draft.baseUrl);
+      let id = draft.editId ?? baseId;
+      let suffix = 2;
+      while (!draft.editId && Object.hasOwn(next.providers, id)) id = `${baseId}-${suffix++}`;
+      const previous = draft.editId ? next.providers[id] : undefined;
+      next.providers[id] = {
+        ...previous,
+        baseUrl: draft.baseUrl.trim(),
+        api: draft.protocol,
+        ...(draft.apiKey.trim() ? { apiKey: draft.apiKey.trim() } : {}),
+        models: draft.models
+          .filter((model) => model.enabled)
+          .map((model) => {
+            const result: PiModelDef = {
+              ...model.original,
+              id: model.id,
+              name: model.original?.name ?? model.id,
+            };
+            delete result.contextWindow;
+            delete result.maxTokens;
+            delete result.thinkingLevel;
+            if (model.contextWindow > 0) result.contextWindow = model.contextWindow;
+            if (model.maxTokens > 0) result.maxTokens = model.maxTokens;
+            if (model.thinking === 'off') result.reasoning = false;
+            else if (model.thinking !== 'auto') {
+              result.reasoning = true;
+              result.thinkingLevel = model.thinking;
+            }
+            return result;
+          }),
+      };
+      await piConfigWriteModels(next);
+      invalidatePiConfig();
+      setState({ ...fresh, models_json: next });
+      setDraft(null);
+      toast({ title: t('settings.aiCfg.savedToast', { name: hostOf(draft.baseUrl) }) });
+    } catch {
+      setError(t('settings.aiCfg.saveFailed'));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div className="space-y-3" data-testid="ai-model-settings">
       <SettingsSection title={t('settings.aiCfg.serviceTitle')}>
+        {loadFailed && (
+          <div>
+            <SettingsStatus error>{t('settings.aiCfg.loadFailed')}</SettingsStatus>
+            <div className="wisp-settings-actions">
+              <Button variant="secondary" onClick={reload}>
+                {t('settings.retry')}
+              </Button>
+            </div>
+          </div>
+        )}
+        {!isTauri() && <SettingsStatus>{t('settings.aiCfg.desktopOnly')}</SettingsStatus>}
         {services.map(([id, cfg]) => {
-          const hasKey = Boolean(cfg.apiKey) || state?.auth_status.some((s) => s.provider === id && s.has_key);
+          const hasKey =
+            Boolean(cfg.apiKey) || state?.auth_status.some((s) => s.provider === id && s.has_key);
           return (
             <div
               key={id}
@@ -194,28 +325,34 @@ const ApiModelSettings = () => {
                   <div className="text-[13px] leading-4 text-xp-text">{cfg.name ?? id}</div>
                   <div className="truncate text-xs text-xp-text-secondary">
                     {(cfg.models ?? []).map((m) => m.id).join(' · ')}
+                    <span className="ml-2">
+                      {t(hasKey ? 'settings.aiCfg.keyReady' : 'settings.aiCfg.keyMissing')}
+                    </span>
                   </div>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="wisp-settings-inline-actions">
                 <Button
                   type="button"
                   size="sm"
                   variant="ghost"
-                  aria-label={t('settings.aiCfg.edit')}
+                  aria-label={t('settings.aiCfg.editNamed', { name: cfg.name ?? id })}
+                  disabled={saving || draft !== null}
                   onClick={() =>
-                    setDraft({
+                    openDraft({
                       baseUrl: cfg.baseUrl ?? '',
                       protocol: cfg.api ?? 'openai-completions',
-                      apiKey: cfg.apiKey ?? '',
+                      apiKey: '',
                       models: (cfg.models ?? []).map((m) => ({
                         id: m.id,
                         enabled: true,
+                        original: m,
                         contextWindow: m.contextWindow ?? 0,
                         maxTokens: m.maxTokens ?? 0,
-                        thinking: (m as { thinkingLevel?: string }).thinkingLevel as
-                          | ThinkingPref
-                          | undefined ?? (m.reasoning === false ? 'off' : 'auto'),
+                        thinking:
+                          ((m as { thinkingLevel?: string }).thinkingLevel as
+                            | ThinkingPref
+                            | undefined) ?? (m.reasoning === false ? 'off' : 'auto'),
                       })),
                       editId: id,
                     })
@@ -227,8 +364,12 @@ const ApiModelSettings = () => {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  aria-label={t('settings.aiCfg.deleteProvider')}
-                  onClick={() => removeService(id)}
+                  aria-label={t('settings.aiCfg.deleteNamed', { name: cfg.name ?? id })}
+                  disabled={saving || draft !== null}
+                  onClick={() => {
+                    setError('');
+                    setRemoving(id);
+                  }}
                 >
                   <Trash2 size={13} />
                 </Button>
@@ -243,15 +384,15 @@ const ApiModelSettings = () => {
               <Plus {...props} strokeWidth={2.4} />
             )}
             label={t('settings.aiCfg.addProvider')}
-            description={t('settings.aiCfg.serviceAddDesc')}
           >
             <Button
               type="button"
               size="sm"
               onClick={() => {
-                setDraft(emptyDraft());
+                openDraft(emptyDraft());
                 setShowKey(false);
               }}
+              disabled={!isTauri() || saving || loadFailed}
               data-testid="pi-add-provider"
             >
               {t('settings.aiCfg.add')}
@@ -261,10 +402,20 @@ const ApiModelSettings = () => {
       </SettingsSection>
 
       {modelDialog && (
-        <Dialog open onOpenChange={(open) => { if (!open) setModelDialog(null); }} maxWidth={420}>
+        <Dialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setModelDialog(null);
+          }}
+          maxWidth={420}
+        >
           <div className="wisp-settings-dialog">
             <header className="wisp-settings-dialog-header">
-              <DialogTitle>{modelDialog.index === null ? t('settings.aiCfg.addModel') : t('settings.aiCfg.editModel')}</DialogTitle>
+              <DialogTitle>
+                {modelDialog.index === null
+                  ? t('settings.aiCfg.addModel')
+                  : t('settings.aiCfg.editModel')}
+              </DialogTitle>
               <button
                 type="button"
                 className="wisp-control-icon wisp-settings-close"
@@ -291,7 +442,9 @@ const ApiModelSettings = () => {
                   <div className="mt-1">
                     <SelectField
                       value={modelDialog.thinking}
-                      onChange={(v) => setModelDialog({ ...modelDialog, thinking: v as ThinkingPref })}
+                      onChange={(v) =>
+                        setModelDialog({ ...modelDialog, thinking: v as ThinkingPref })
+                      }
                       label={t('settings.aiCfg.fldThinking')}
                       options={[
                         { value: 'auto', label: t('settings.aiCfg.thinkAuto') },
@@ -331,9 +484,16 @@ const ApiModelSettings = () => {
                 </div>
               </div>
             </div>
+            <p className="wisp-settings-status">{t('settings.aiCfg.limitsHint')}</p>
+            {modelError && <SettingsStatus error>{modelError}</SettingsStatus>}
             <footer className="wisp-settings-dialog-footer">
               <div className="flex justify-end gap-2">
-                <Button type="button" size="sm" variant="secondary" onClick={() => setModelDialog(null)}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setModelDialog(null)}
+                >
                   {t('common.cancel')}
                 </Button>
                 <Button
@@ -341,9 +501,39 @@ const ApiModelSettings = () => {
                   size="sm"
                   disabled={!modelDialog.id.trim()}
                   onClick={() => {
+                    setModelError('');
+                    const limits = [modelDialog.contextWindow, modelDialog.maxTokens];
+                    if (
+                      limits.some(
+                        (value) =>
+                          value.trim() &&
+                          (!Number.isSafeInteger(Number(value)) || Number(value) <= 0),
+                      ) ||
+                      (Number(modelDialog.contextWindow) > 0 &&
+                        Number(modelDialog.maxTokens) > Number(modelDialog.contextWindow))
+                    ) {
+                      setModelError(t('settings.aiCfg.invalidLimits'));
+                      return;
+                    }
+                    if (
+                      draft?.models.some(
+                        (model, index) =>
+                          index !== modelDialog.index && model.id === modelDialog.id.trim(),
+                      )
+                    ) {
+                      setModelError(t('settings.aiCfg.duplicateModel'));
+                      return;
+                    }
                     const row: ModelRow = {
+                      original:
+                        modelDialog.index !== null
+                          ? draft?.models[modelDialog.index]?.original
+                          : undefined,
                       id: modelDialog.id.trim(),
-                      enabled: true,
+                      enabled:
+                        modelDialog.index === null
+                          ? true
+                          : (draft?.models[modelDialog.index]?.enabled ?? true),
                       contextWindow: Number(modelDialog.contextWindow) || 0,
                       maxTokens: Number(modelDialog.maxTokens) || 0,
                       thinking: modelDialog.thinking,
@@ -367,8 +557,10 @@ const ApiModelSettings = () => {
       )}
 
       {draft && (
-        <SettingsSection title={draft.editId ? t('settings.aiCfg.edit') : t('settings.aiCfg.addProvider')}>
-          <div className="wisp-setting-row flex flex-col gap-3 rounded-lg px-3 py-3" data-testid="pi-service-form">
+        <SettingsSection
+          title={draft.editId ? t('settings.aiCfg.edit') : t('settings.aiCfg.addProvider')}
+        >
+          <fieldset disabled={saving} className="wisp-settings-form" data-testid="pi-service-form">
             <label className="text-xs text-xp-text-secondary">
               {t('settings.aiCfg.fldBaseUrl')}
               <Input
@@ -388,21 +580,27 @@ const ApiModelSettings = () => {
                   onChange={(v) => setDraft({ ...draft, protocol: v })}
                   label={t('settings.aiCfg.fldProtocol')}
                   options={[
-                    { value: 'openai-completions', label: 'OpenAI 兼容' },
-                    { value: 'anthropic-messages', label: 'Anthropic 兼容' },
+                    { value: 'openai-completions', label: t('settings.aiCfg.openaiCompatible') },
+                    { value: 'anthropic-messages', label: t('settings.aiCfg.anthropicCompatible') },
                   ]}
                 />
               </div>
             </label>
 
             <label className="text-xs text-xp-text-secondary">
-              API Key
+              {t('settings.aiCfg.keyLabel')}
               <div className="relative mt-1">
                 <Input
                   type={showKey ? 'text' : 'password'}
+                  autoComplete="off"
+                  spellCheck={false}
                   value={draft.apiKey}
                   onChange={(e) => setDraft({ ...draft, apiKey: e.target.value })}
-                  placeholder={t('settings.aiCfg.keyPlaceholder')}
+                  placeholder={t(
+                    draft.editId
+                      ? 'settings.aiCfg.keepKeyPlaceholder'
+                      : 'settings.aiCfg.keyPlaceholder',
+                  )}
                   className="pr-8 font-mono text-xs"
                 />
                 <button
@@ -425,7 +623,16 @@ const ApiModelSettings = () => {
                   type="button"
                   size="sm"
                   variant="secondary"
-                  onClick={() => setModelDialog({ index: null, id: '', contextWindow: '', maxTokens: '', thinking: 'auto' })}
+                  onClick={() => {
+                    setModelError('');
+                    setModelDialog({
+                      index: null,
+                      id: '',
+                      contextWindow: '',
+                      maxTokens: '',
+                      thinking: 'auto',
+                    });
+                  }}
                   data-testid="pi-add-model"
                 >
                   <Plus size={11} className="mr-1" />
@@ -433,20 +640,20 @@ const ApiModelSettings = () => {
                 </Button>
               </div>
               {draft.models.length === 0 ? (
-                <div className="rounded-md border border-dashed border-xp-border px-3 py-2.5 text-[11px] text-xp-text-muted">
+                <div className="rounded-md border border-dashed border-xp-border px-3 py-2.5 text-xs text-xp-text-muted">
                   {t('settings.aiCfg.noModelsYet')}
                 </div>
               ) : (
                 <div className="space-y-1">
                   {draft.models.map((m, i) => (
                     <div
-                      key={i}
+                      key={m.id}
                       className="flex items-center gap-2 rounded-md border border-xp-border px-2.5 py-1.5"
                     >
                       <span className="min-w-0 flex-1 truncate font-mono text-xs text-xp-text">
                         {m.id || '…'}
                       </span>
-                      <span className="shrink-0 rounded bg-xp-surface-light px-1.5 py-0.5 text-[10px] text-xp-text-muted">
+                      <span className="shrink-0 rounded bg-xp-surface-light px-1.5 py-0.5 text-xs text-xp-text-muted">
                         {m.contextWindow >= 1000
                           ? `${Math.round(m.contextWindow / 1000)}K`
                           : t('settings.aiCfg.auto')}
@@ -455,7 +662,7 @@ const ApiModelSettings = () => {
                         type="button"
                         size="sm"
                         variant="ghost"
-                        aria-label={t('settings.aiCfg.edit')}
+                        aria-label={t('settings.aiCfg.editNamed', { name: m.id })}
                         data-testid={`pi-edit-model-${i}`}
                         onClick={() =>
                           setModelDialog({
@@ -471,11 +678,14 @@ const ApiModelSettings = () => {
                       </Button>
                       <Toggle
                         id={`model-toggle-${i}`}
+                        label={t('settings.aiCfg.useModel', { name: m.id })}
                         checked={m.enabled}
                         onChange={(v) =>
                           setDraft({
                             ...draft,
-                            models: draft.models.map((x, j) => (j === i ? { ...x, enabled: v } : x)),
+                            models: draft.models.map((x, j) =>
+                              j === i ? { ...x, enabled: v } : x,
+                            ),
                           })
                         }
                       />
@@ -483,7 +693,7 @@ const ApiModelSettings = () => {
                         type="button"
                         size="sm"
                         variant="ghost"
-                        aria-label={t('settings.aiCfg.deleteModel')}
+                        aria-label={t('settings.aiCfg.deleteNamed', { name: m.id })}
                         onClick={() =>
                           setDraft({ ...draft, models: draft.models.filter((_, j) => j !== i) })
                         }
@@ -496,30 +706,66 @@ const ApiModelSettings = () => {
               )}
             </div>
 
+            {error && <SettingsStatus error>{error}</SettingsStatus>}
             <div className="flex justify-end gap-2">
-              <Button type="button" size="sm" variant="secondary" onClick={() => setDraft(null)}>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                disabled={saving}
+                onClick={() => {
+                  setDraft(null);
+                  setError('');
+                }}
+              >
                 {t('common.cancel')}
               </Button>
               <Button
                 type="button"
                 size="sm"
-                disabled={!draft.baseUrl.trim() || draft.models.filter((m) => m.id.trim()).length === 0}
+                disabled={
+                  saving ||
+                  !draft.baseUrl.trim() ||
+                  !draft.models.some((m) => m.enabled && m.id.trim())
+                }
                 onClick={save}
                 data-testid="pi-service-save"
               >
-                {draft.editId ? t('common.save') : t('settings.aiCfg.add')}
+                {t(saving ? 'settings.saving' : 'common.save')}
               </Button>
             </div>
-          </div>
+          </fieldset>
         </SettingsSection>
       )}
 
-      <SettingsSection title={t('settings.aiCfg.mem0Title')}>
-        <SettingRow
-          icon={Brain}
-          label={t('settings.aiCfg.mem0Auto')}
-          description={t('settings.aiCfg.mem0MasterDesc')}
-        >
+      <SettingsSection
+        title={
+          <span className="inline-flex items-center gap-2">
+            {t('settings.aiCfg.mem0Title')}
+            <button
+              type="button"
+              aria-label={t('settings.aiCfg.mem0Help')}
+              aria-expanded={memoryHelpOpen}
+              onClick={() => setMemoryHelpOpen((open) => !open)}
+              className="inline-flex items-center text-xp-text-secondary hover:text-xp-blue"
+            >
+              <CircleHelp size={14} aria-hidden="true" />
+            </button>
+          </span>
+        }
+        description={memoryHelpOpen ? t('settings.aiCfg.mem0Desc') : undefined}
+      >
+        {memoryLoadFailed && (
+          <div>
+            <SettingsStatus error>{t('settings.aiCfg.memoryLoadFailed')}</SettingsStatus>
+            <div className="wisp-settings-actions">
+              <Button variant="secondary" onClick={reloadMem0}>
+                {t('settings.retry')}
+              </Button>
+            </div>
+          </div>
+        )}
+        <SettingRow icon={Brain} label={t('settings.aiCfg.mem0Auto')}>
           {m0.enabled && (
             <>
               <span className="mr-1.5 text-xs text-xp-text-secondary">
@@ -535,6 +781,7 @@ const ApiModelSettings = () => {
           )}
           <Toggle
             id="mem0-enabled"
+            disabled={memoryBusy || memoryLoadFailed || !isTauri()}
             checked={m0.enabled}
             onChange={(v) => saveMem0({ enabled: v })}
           />
@@ -542,70 +789,57 @@ const ApiModelSettings = () => {
 
         {m0.enabled && (
           <>
-            <SettingRow
-              icon={KeyRound}
-              label={t('settings.aiCfg.mem0KeyLabel')}
-              description={
-                <span>
-                  {t('settings.aiCfg.mem0KeyDesc')}{' '}
-                  <a
-                    href="https://api.mem0.ai"
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="text-xp-accent hover:underline"
+            <SettingRow icon={KeyRound} label={t('settings.aiCfg.mem0KeyLabel')}>
+              <div className="flex max-w-full items-center gap-2">
+                <div className="relative min-w-0 flex-1">
+                  <SettingInput
+                    type={showMem0Key ? 'text' : 'password'}
+                    value={mem0Key}
+                    onChange={(e) => setMem0Key(e.target.value)}
+                    autoComplete="off"
+                    spellCheck={false}
+                    disabled={memoryBusy}
+                    placeholder={m0.has_key ? '••••••••' : 'm0-...'}
+                    className="pr-8 font-mono text-xs"
+                    data-testid="mem0-key-input"
+                  />
+                  <button
+                    type="button"
+                    aria-label={t('settings.aiCfg.toggleKey')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-xp-text-muted hover:text-xp-text"
+                    onClick={() => setShowMem0Key((v) => !v)}
                   >
-                    api.mem0.ai
-                  </a>
-                </span>
-              }
-            >
-              <div className="relative w-52">
-                <Input
-                  type={showMem0Key ? 'text' : 'password'}
-                  value={mem0Key}
-                  onChange={(e) => setMem0Key(e.target.value)}
-                  onBlur={() => {
-                    const v = mem0Key.trim();
-                    if (v) void saveMem0({ apiKey: v });
-                  }}
-                  placeholder={m0.has_key ? '••••••••' : 'm0-...'}
-                  className="pr-8 font-mono text-xs"
-                  data-testid="mem0-key-input"
-                />
-                <button
-                  type="button"
-                  aria-label={t('settings.aiCfg.toggleKey')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-xp-text-muted hover:text-xp-text"
-                  onClick={() => setShowMem0Key((v) => !v)}
+                    {showMem0Key ? <EyeOff size={13} /> : <Eye size={13} />}
+                  </button>
+                </div>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={memoryBusy || !mem0Key.trim()}
+                  onClick={() => void saveMem0({ apiKey: mem0Key.trim() })}
                 >
-                  {showMem0Key ? <EyeOff size={13} /> : <Eye size={13} />}
-                </button>
+                  {t(memoryBusy ? 'settings.saving' : 'common.save')}
+                </Button>
               </div>
             </SettingRow>
 
-            <SettingRow
-              icon={UserRound}
-              label={t('settings.aiCfg.mem0UserId')}
-              description={t('settings.aiCfg.userRowDesc')}
-            >
-              <Input
+            <SettingRow icon={UserRound} label={t('settings.aiCfg.mem0UserId')}>
+              <SettingInput
+                disabled={memoryBusy}
                 value={m0.user_id}
                 onChange={(e) => setMem0((m) => (m ? { ...m, user_id: e.target.value } : m))}
                 onBlur={() => {
                   const v = m0.user_id.trim();
-                  if (v && v !== 'wisp') void saveMem0({ userId: v });
+                  if (v && v !== savedUserId.current) void saveMem0({ userId: v });
                 }}
                 className="w-52 font-mono text-xs"
               />
             </SettingRow>
 
-            <SettingRow
-              icon={Sparkles}
-              label={t('settings.aiCfg.mem0AutoCapture')}
-              description={t('settings.aiCfg.learnRowDesc')}
-            >
+            <SettingRow icon={Sparkles} label={t('settings.aiCfg.mem0AutoCapture')}>
               <Toggle
                 id="mem0-capture"
+                disabled={memoryBusy}
                 checked={m0.auto_capture}
                 onChange={(v) => saveMem0({ autoCapture: v })}
               />
@@ -614,12 +848,12 @@ const ApiModelSettings = () => {
             {mem0Hits !== null && (
               <div className="px-3 py-2">
                 {mem0Hits.length === 0 ? (
-                  <div className="rounded-md border border-dashed border-xp-border px-3 py-2.5 text-[11px] text-xp-text-muted">
+                  <div className="rounded-md border border-dashed border-xp-border px-3 py-2.5 text-xs text-xp-text-muted">
                     {t('settings.aiCfg.mem0CloudEmpty')}
                   </div>
                 ) : (
                   <>
-                    <div className="mb-1 text-[11px] font-medium text-xp-text-secondary">
+                    <div className="mb-1 text-xs font-medium text-xp-text-secondary">
                       {t('settings.aiCfg.mem0CloudTitle')}
                     </div>
                     <div className="space-y-0.5">
@@ -632,7 +866,7 @@ const ApiModelSettings = () => {
                           <div className="min-w-0">
                             <div className="truncate text-xs text-xp-text">{m.memory}</div>
                             {m.categories.length > 0 && (
-                              <div className="truncate text-[10px] text-xp-text-muted">
+                              <div className="truncate text-xs text-xp-text-muted">
                                 {m.categories.join(' · ')}
                               </div>
                             )}
@@ -641,11 +875,20 @@ const ApiModelSettings = () => {
                             type="button"
                             size="sm"
                             variant="ghost"
-                            aria-label={t('common.delete')}
-                            className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                            aria-label={t('settings.aiCfg.deleteNamed', { name: m.memory })}
+                            className="shrink-0"
+                            disabled={memoryBusy}
                             onClick={async () => {
-                              await TauriAPI.mem0Delete(m.id);
-                              await reloadMem0();
+                              setMemoryBusy(true);
+                              setMemoryError('');
+                              try {
+                                await TauriAPI.mem0Delete(m.id);
+                                await reloadMem0();
+                              } catch {
+                                setMemoryError(t('settings.aiCfg.memoryDeleteFailed'));
+                              } finally {
+                                setMemoryBusy(false);
+                              }
                             }}
                           >
                             <Trash2 size={12} />
@@ -659,10 +902,10 @@ const ApiModelSettings = () => {
                         size="sm"
                         variant="ghost"
                         className="text-xp-red"
-                        onClick={async () => {
-                          await TauriAPI.mem0DeleteAll();
-                          await reloadMem0();
-                          toast({ title: t('settings.aiCfg.mem0ClearedToast') });
+                        disabled={memoryBusy}
+                        onClick={() => {
+                          setMemoryError('');
+                          setClearMemory(true);
                         }}
                         data-testid="mem0-clear"
                       >
@@ -674,13 +917,83 @@ const ApiModelSettings = () => {
                 )}
               </div>
             )}
-
-            <p className="px-3 pb-2 pt-1 text-[11px] leading-4 text-xp-text-muted">
-              {t('settings.aiCfg.mem0Desc')}
-            </p>
           </>
         )}
+        {memoryError && <SettingsStatus error>{memoryError}</SettingsStatus>}
       </SettingsSection>
+      {removing && (
+        <Dialog
+          open
+          preventClose={saving}
+          onOpenChange={(open) => {
+            if (!open) setRemoving(null);
+          }}
+          maxWidth={420}
+        >
+          <div className="wisp-settings-confirm">
+            <DialogTitle>{t('settings.aiCfg.deleteTitle', { name: removing })}</DialogTitle>
+            <p>{t('settings.aiCfg.deleteDescription')}</p>
+            {error && <SettingsStatus error>{error}</SettingsStatus>}
+            <div className="wisp-settings-actions">
+              <Button
+                variant="secondary"
+                disabled={saving}
+                data-autofocus
+                onClick={() => setRemoving(null)}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button disabled={saving} onClick={removeService}>
+                {t(saving ? 'settings.saving' : 'settings.aiCfg.deleteProvider')}
+              </Button>
+            </div>
+          </div>
+        </Dialog>
+      )}
+      {clearMemory && (
+        <Dialog
+          open
+          preventClose={memoryBusy}
+          onOpenChange={(open) => {
+            if (!open) setClearMemory(false);
+          }}
+          maxWidth={420}
+        >
+          <div className="wisp-settings-confirm">
+            <DialogTitle>{t('settings.aiCfg.clearMemoryTitle')}</DialogTitle>
+            <p>{t('settings.aiCfg.clearMemoryDescription')}</p>
+            {memoryError && <SettingsStatus error>{memoryError}</SettingsStatus>}
+            <div className="wisp-settings-actions">
+              <Button
+                variant="secondary"
+                disabled={memoryBusy}
+                data-autofocus
+                onClick={() => setClearMemory(false)}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button
+                disabled={memoryBusy}
+                onClick={async () => {
+                  setMemoryBusy(true);
+                  setMemoryError('');
+                  try {
+                    await TauriAPI.mem0DeleteAll();
+                    await reloadMem0();
+                    setClearMemory(false);
+                  } catch {
+                    setMemoryError(t('settings.aiCfg.memoryDeleteFailed'));
+                  } finally {
+                    setMemoryBusy(false);
+                  }
+                }}
+              >
+                {t(memoryBusy ? 'settings.saving' : 'settings.aiCfg.mem0Clear')}
+              </Button>
+            </div>
+          </div>
+        </Dialog>
+      )}
     </div>
   );
 };

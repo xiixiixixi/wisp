@@ -19,6 +19,8 @@ pub mod mcp_ops;
 pub mod weixin_ops;
 pub mod ql_panel;
 pub use ql_panel::*;
+pub mod ql_view;
+pub use ql_view::*;
 pub mod progress;
 pub mod properties_ops;
 pub mod secure_delete_ops;

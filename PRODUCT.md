@@ -23,7 +23,7 @@ native file operations require the desktop runtime.
 The user requested Apple Liquid Glass styling throughout the interface and
 components, including appropriate component visibility and interaction.
 Retain the Wisp name, existing content and functionality. The repository's
-current appearance is always light; do not introduce weather-driven polarity.
+current appearance supports light, dark, and following the system. Both appearances must be equally readable; do not introduce weather-driven polarity.
 
 ## Accessibility & Inclusion
 

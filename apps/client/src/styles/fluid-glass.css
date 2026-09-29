@@ -473,7 +473,7 @@ html.theme-fluid
     input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]):not(
         .wisp-address-input
       ),
-    textarea,
+    textarea:not(.pi-composer-input),
     select,
     [role="combobox"]
   ) {

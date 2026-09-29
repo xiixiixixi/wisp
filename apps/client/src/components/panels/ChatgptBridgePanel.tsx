@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Bot,
   CircleAlert,
+  Circle,
+  CircleCheck,
+  CircleHelp,
   ExternalLink,
   FolderPlus,
   KeyRound,
@@ -15,6 +17,8 @@ import {
 import { TauriAPI, type ChatgptBridgeState } from '@/lib/tauri-api';
 import { useToast } from '@/hooks/use-toast';
 import { isTauri } from '@/lib/transport';
+import { Button } from '@/components/ui/button';
+import { PanelConfirmation, PanelMessage } from './PanelFeedback';
 
 interface ChatgptBridgePanelProps {
   currentPath?: string;
@@ -38,25 +42,72 @@ const stateDotClass = (state: string): string => {
   }
 };
 
-const Section = ({
-  step,
-  title,
-  children,
-}: {
-  step: number;
-  title: string;
-  children: React.ReactNode;
-}) => (
-  <section className="rounded-[10px] border border-xp-border bg-xp-surface px-3 py-2.5">
-    <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold text-xp-text">
-      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-xp-blue/15 text-[10px] font-semibold text-xp-blue">
-        {step}
-      </span>
-      {title}
-    </h3>
+const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <section className="wisp-panel-section !px-4">
+    <h3 className="wisp-panel-section-title mb-2">{title}</h3>
     {children}
   </section>
 );
+
+const BridgeOverview = ({
+  statusLabel,
+  statusState,
+}: {
+  statusLabel?: string;
+  statusState?: string;
+}) => {
+  const { t } = useTranslation();
+  const [helpOpen, setHelpOpen] = useState(false);
+  const helpId = React.useId();
+
+  return (
+    <section className="border-b border-xp-border px-4 pb-4 pt-4">
+      <div className="flex items-center justify-between gap-2">
+        {statusLabel ? (
+          <span
+            aria-live="polite"
+            className="flex items-center gap-2 text-xs text-xp-text-secondary"
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${stateDotClass(statusState ?? 'stopped')} ${
+                statusState === 'starting' ? 'animate-pulse' : ''
+              }`}
+              aria-hidden="true"
+            />
+            {statusLabel}
+          </span>
+        ) : (
+          <span className="text-xs font-medium text-xp-text">
+            {t('chatgptBridge.overviewTitle')}
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={() => setHelpOpen((open) => !open)}
+          aria-expanded={helpOpen}
+          aria-controls={helpId}
+          className="flex shrink-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-xp-text-secondary hover:text-xp-blue"
+        >
+          <CircleHelp size={14} aria-hidden="true" />
+          {t('chatgptBridge.helpButton')}
+        </button>
+      </div>
+      <p className="mt-2 text-xs leading-relaxed text-xp-text-secondary">
+        {t('chatgptBridge.overviewDesc')}
+      </p>
+      <div
+        id={helpId}
+        hidden={!helpOpen}
+        className="mt-3 border-t border-xp-border pt-3 text-xs leading-relaxed text-xp-text-secondary"
+      >
+        <p className="font-medium text-xp-text">{t('chatgptBridge.helpTitle')}</p>
+        <p className="mt-1">{t('chatgptBridge.helpSetup')}</p>
+        <p className="mt-2">{t('chatgptBridge.helpScope')}</p>
+        <p className="mt-2">{t('chatgptBridge.helpPrivacy')}</p>
+      </div>
+    </section>
+  );
+};
 
 const inputClass =
   'w-full rounded-[8px] border border-xp-border bg-xp-surface-light px-2.5 py-1.5 text-xs text-xp-text placeholder:text-xp-text-muted/60 focus:border-xp-blue focus:outline-none';
@@ -77,6 +128,8 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
   const [roots, setRoots] = useState<string[]>([]);
   const [enabled, setEnabled] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [deleteKeyOpen, setDeleteKeyOpen] = useState(false);
 
   const applyState = useCallback((next: ChatgptBridgeState) => {
     setState(next);
@@ -86,32 +139,34 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
   }, []);
 
   useEffect(() => {
+    if (!isTauri()) return;
     let unlisten: (() => void) | undefined;
-    const load = async () => {
+    const load = async (initialize = false) => {
       try {
-        applyState(await TauriAPI.chatgptBridgeGetState());
+        const next = await TauriAPI.chatgptBridgeGetState();
+        if (initialize) applyState(next);
+        else setState(next);
         setLoadError(null);
       } catch (err) {
-        // Web demo / shim: surface once instead of an empty panel.
-        setLoadError((err as Error).message);
+        setLoadError(String(err));
       }
     };
-    load();
-    if (isTauri()) {
-      TauriAPI.listenToChatgptBridgeStatus(() => {
-        // Status events only change status fields; refresh the snapshot.
-        load();
+    void load(true);
+    TauriAPI.listenToChatgptBridgeStatus(() => {
+      // Status events only change status fields; refresh the snapshot.
+      load();
+    })
+      .then((un) => {
+        unlisten = un;
       })
-        .then((un) => {
-          unlisten = un;
-        })
-        .catch(() => undefined);
-    }
+      .catch(() => undefined);
     return () => unlisten?.();
   }, [applyState]);
 
   const status = state?.status;
   const detected = state?.detectedClientPath;
+  const configuredClientPath = state?.config.tunnelClientPath?.trim();
+  const clientPath = configuredClientPath || detected;
   const hasApiKey = state?.hasApiKey ?? false;
 
   const addRoot = async () => {
@@ -119,19 +174,28 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
       const result = await TauriAPI.showOpenDialog({ directory: true, multiple: false });
       const dir = result?.[0];
       if (dir && !roots.includes(dir)) setRoots((prev) => [...prev, dir]);
-    } catch {
-      /* user cancelled */
+    } catch (error) {
+      setFormError(String(error));
     }
   };
 
   const addCurrentFolder = () => {
-    if (currentPath && !roots.includes(currentPath)) {
+    if (currentPath && !currentPath.includes('://') && !roots.includes(currentPath)) {
       setRoots((prev) => [...prev, currentPath]);
     }
   };
 
   const save = async (nextEnabled: boolean) => {
     if (!state) return;
+    setFormError(null);
+    if (
+      nextEnabled &&
+      (!tunnelId.trim() || (!hasApiKey && !apiKeyInput.trim()) || roots.length === 0 || !clientPath)
+    ) {
+      setFormError(t('panelActions.bridgeIncomplete'));
+      setEnabled(state.config.enabled);
+      return;
+    }
     setBusy(true);
     try {
       if (apiKeyInput.trim()) {
@@ -158,9 +222,11 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
       });
       // Refresh so the panel shows the real (possibly error) state.
       try {
-        applyState(await TauriAPI.chatgptBridgeGetState());
+        const next = await TauriAPI.chatgptBridgeGetState();
+        setState(next);
+        setEnabled(next.config.enabled);
       } catch {
-        /* keep local state */
+        /* keep local edits available for retry */
       }
     } finally {
       setBusy(false);
@@ -186,8 +252,8 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
     setBusy(true);
     try {
       await TauriAPI.chatgptBridgeStop();
-    } catch {
-      /* already stopped */
+    } catch (error) {
+      setFormError(t('panelActions.stopFailed', { error: String(error) }));
     } finally {
       setBusy(false);
     }
@@ -205,56 +271,81 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
     try {
       await navigator.clipboard.writeText(BREW_INSTALL_CMD);
       toast({ title: t('chatgptBridge.toastCopied') });
-    } catch {
-      /* clipboard denied */
+    } catch (error) {
+      setFormError(t('panelActions.copyFailed', { error: String(error) }));
     }
   };
 
-  if (loadError && !state) {
+  const desktopRuntime = isTauri();
+
+  if (!desktopRuntime || (loadError && !state)) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
-        <CircleAlert size={20} className="text-xp-text-muted" />
-        <p className="text-xs text-xp-text-muted">{t('chatgptBridge.loadError')}</p>
+      <div className="flex h-full flex-col overflow-y-auto">
+        <BridgeOverview />
+        <section className="px-4 py-4">
+          <div className="flex items-start gap-2.5">
+            <CircleAlert
+              size={16}
+              className="mt-0.5 shrink-0 text-xp-text-secondary"
+              aria-hidden="true"
+            />
+            <div className="min-w-0">
+              <h3 className="text-xs font-medium text-xp-text">
+                {desktopRuntime
+                  ? t('panelActions.connectionLoadFailed')
+                  : t('chatgptBridge.desktopOnlyTitle')}
+              </h3>
+              <p className="mt-1 text-xs leading-relaxed text-xp-text-secondary">
+                {desktopRuntime ? t('chatgptBridge.loadError') : t('chatgptBridge.desktopOnlyDesc')}
+              </p>
+            </div>
+          </div>
+          {desktopRuntime && (
+            <div className="mt-3">
+              <PanelMessage error>{loadError}</PanelMessage>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  void TauriAPI.chatgptBridgeGetState()
+                    .then((next) => {
+                      applyState(next);
+                      setLoadError(null);
+                    })
+                    .catch((error) => setLoadError(String(error)))
+                }
+              >
+                {t('common.error.tryAgain')}
+              </Button>
+            </div>
+          )}
+        </section>
       </div>
     );
   }
 
   const stateLabel = t(`chatgptBridge.state.${status?.state ?? 'stopped'}`);
+  let clientStatusText = t('chatgptBridge.clientMissing');
+  if (detected) clientStatusText = t('chatgptBridge.clientDetected', { path: detected });
+  if (configuredClientPath) {
+    clientStatusText = t('chatgptBridge.clientConfigured', { path: configuredClientPath });
+  }
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
-      <header className="flex items-center gap-2.5 px-3 pb-2 pt-3">
-        <span className="bg-xp-blue/12 flex h-7 w-7 items-center justify-center rounded-[8px] text-xp-blue">
-          <Bot size={15} />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h2 className="text-[13px] font-semibold leading-tight text-xp-text">
-            {t('chatgptBridge.title')}
-          </h2>
-          <p className="truncate text-[11px] leading-tight text-xp-text-muted">
-            {t('chatgptBridge.subtitle')}
-          </p>
-        </div>
-        <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-xp-border bg-xp-surface px-2 py-1 text-[11px] text-xp-text-secondary">
-          <span
-            className={`h-1.5 w-1.5 rounded-full ${
-              status?.state === 'starting' ? 'animate-pulse' : ''
-            }${stateDotClass(status?.state ?? 'stopped')}`}
-            aria-hidden="true"
-          />
-          {stateLabel}
-        </span>
-      </header>
+      <BridgeOverview statusLabel={stateLabel} statusState={status?.state} />
 
-      <div className="flex flex-col gap-2 px-3 pb-4">
-        {status?.lastError && (
-          <div className="rounded-[10px] border border-xp-red/30 bg-[var(--xp-wash-red)] px-3 py-2 text-[11px] leading-relaxed text-xp-red">
-            {status.lastError}
+      <div className="flex flex-col pb-4">
+        {formError && (
+          <div className="px-4">
+            <PanelMessage error>{formError}</PanelMessage>
           </div>
         )}
+        {status?.lastError && (
+          <div className="mx-4 mt-3 text-xs leading-relaxed text-xp-red">{status.lastError}</div>
+        )}
 
-        {/* master switch + runtime controls */}
-        <section className="rounded-[10px] border border-xp-border bg-xp-surface px-3 py-2.5">
+        {/* Persistent connection setting + controls for the current session. */}
+        <section className="wisp-panel-section !px-4">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
               <p className="text-xs font-semibold text-xp-text">
@@ -267,31 +358,33 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
             <button
               type="button"
               role="switch"
+              aria-label={t('chatgptBridge.enabledTitle')}
               aria-checked={enabled}
-              disabled={busy}
+              disabled={busy || !state}
               onClick={() => {
                 const next = !enabled;
                 setEnabled(next);
                 save(next);
               }}
-              className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
-                enabled ? 'bg-xp-blue' : 'bg-xp-border'
-              }`}
+              className="inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-md px-1 text-xs text-xp-text-secondary transition-colors hover:text-xp-blue disabled:opacity-50"
             >
-              <span
-                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-all ${
-                  enabled ? 'left-[18px]' : 'left-0.5'
-                }`}
-              />
+              {enabled ? (
+                <CircleCheck size={14} className="text-xp-blue" aria-hidden="true" />
+              ) : (
+                <Circle size={14} aria-hidden="true" />
+              )}
+              <span>
+                {t(enabled ? 'chatgptBridge.enabledStateOn' : 'chatgptBridge.enabledStateOff')}
+              </span>
             </button>
           </div>
           {enabled && (
-            <div className="mt-2 flex items-center gap-2 border-t border-xp-border pt-2">
+            <div className="mt-3 flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={restart}
                 disabled={busy}
-                className="flex items-center gap-1.5 rounded-[8px] border border-xp-border px-2.5 py-1.5 text-[11px] text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+                className="flex items-center gap-1.5 text-xs text-xp-text-secondary transition-colors hover:text-xp-blue disabled:opacity-50"
               >
                 <RefreshCw size={12} /> {t('chatgptBridge.restart')}
               </button>
@@ -299,7 +392,8 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
                 type="button"
                 onClick={stop}
                 disabled={busy}
-                className="flex items-center gap-1.5 rounded-[8px] border border-xp-border px-2.5 py-1.5 text-[11px] text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+                title={t('chatgptBridge.stopHint')}
+                className="flex items-center gap-1.5 text-xs text-xp-text-secondary transition-colors hover:text-xp-blue disabled:opacity-50"
               >
                 <StopCircle size={12} /> {t('chatgptBridge.stop')}
               </button>
@@ -307,7 +401,7 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
                 <button
                   type="button"
                   onClick={() => openLink(`${status.healthUrl}/ui`)}
-                  className="ml-auto flex items-center gap-1 text-[11px] text-xp-blue hover:underline"
+                  className="flex items-center gap-1 text-xs text-xp-blue hover:underline"
                 >
                   {t('chatgptBridge.openAdminUi')} <ExternalLink size={11} />
                 </button>
@@ -316,42 +410,39 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
           )}
         </section>
 
-        <Section step={1} title={t('chatgptBridge.step1Title')}>
-          <p className="mb-2 text-[11px] leading-relaxed text-xp-text-muted">
+        <Section title={t('chatgptBridge.step1Title')}>
+          <p className="mb-2 text-xs leading-relaxed text-xp-text-secondary">
             {t('chatgptBridge.step1Desc')}
           </p>
           <div className="flex items-center gap-2">
-            <code className="min-w-0 flex-1 truncate rounded-[8px] bg-xp-surface-light px-2.5 py-1.5 font-mono text-[11px] text-xp-text">
+            <code className="min-w-0 flex-1 truncate rounded-md border border-xp-border px-2 py-1.5 font-mono text-[11px] text-xp-text">
               {BREW_INSTALL_CMD}
             </code>
             <button
               type="button"
               onClick={copyBrew}
-              className="shrink-0 rounded-[8px] border border-xp-border px-2.5 py-1.5 text-[11px] text-xp-text transition-colors hover:bg-xp-surface-light"
+              className="shrink-0 text-xs text-xp-blue hover:underline"
             >
               {t('chatgptBridge.copy')}
             </button>
           </div>
-          <p className="mt-2 text-[11px] text-xp-text-muted">
-            {detected
-              ? t('chatgptBridge.clientDetected', { path: detected })
-              : t('chatgptBridge.clientMissing')}
-          </p>
+          <p className="mt-2 break-all text-xs text-xp-text-secondary">{clientStatusText}</p>
         </Section>
 
-        <Section step={2} title={t('chatgptBridge.step2Title')}>
-          <p className="mb-2 text-[11px] leading-relaxed text-xp-text-muted">
+        <Section title={t('chatgptBridge.step2Title')}>
+          <p className="mb-2 text-xs leading-relaxed text-xp-text-secondary">
             {t('chatgptBridge.step2Desc')}{' '}
             <button
               type="button"
               onClick={() => openLink(PLATFORM_TUNNELS_URL)}
               className="text-xp-blue hover:underline"
             >
-              platform.openai.com → Tunnels
+              {t('panelActions.openTunnelSettings')}
             </button>
           </p>
           <input
             className={inputClass}
+            aria-label={t('chatgptBridge.step2Title')}
             value={tunnelId}
             onChange={(e) => setTunnelId(e.target.value)}
             placeholder="tunnel_0123456789abcdef…"
@@ -359,15 +450,15 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
           />
         </Section>
 
-        <Section step={3} title={t('chatgptBridge.step3Title')}>
-          <p className="mb-2 text-[11px] leading-relaxed text-xp-text-muted">
+        <Section title={t('chatgptBridge.step3Title')}>
+          <p className="mb-2 text-xs leading-relaxed text-xp-text-secondary">
             {t('chatgptBridge.step3Desc')}{' '}
             <button
               type="button"
               onClick={() => openLink(PLATFORM_API_KEYS_URL)}
               className="text-xp-blue hover:underline"
             >
-              Runtime API keys
+              {t('panelActions.openKeySettings')}
             </button>
           </p>
           <div className="flex items-center gap-2">
@@ -378,6 +469,7 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
               />
               <input
                 type="password"
+                aria-label={t('chatgptBridge.step3Title')}
                 className={`${inputClass} pl-7`}
                 value={apiKeyInput}
                 onChange={(e) => setApiKeyInput(e.target.value)}
@@ -390,37 +482,30 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
             {hasApiKey && !apiKeyInput && (
               <button
                 type="button"
-                onClick={async () => {
-                  try {
-                    await TauriAPI.chatgptBridgeDeleteApiKey();
-                    applyState(await TauriAPI.chatgptBridgeGetState());
-                  } catch {
-                    /* keychain unavailable */
-                  }
-                }}
+                onClick={() => setDeleteKeyOpen(true)}
+                aria-label={t('chatgptBridge.apiKeyDelete')}
                 title={t('chatgptBridge.apiKeyDelete')}
-                className="shrink-0 rounded-[8px] border border-xp-border p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-red"
+                className="shrink-0 p-1.5 text-xp-text-secondary transition-colors hover:text-xp-red"
               >
                 <Trash2 size={13} />
               </button>
             )}
           </div>
-          <p className="mt-2 text-[11px] text-xp-text-muted">{t('chatgptBridge.apiKeyNote')}</p>
+          <p className="mt-2 text-xs leading-relaxed text-xp-text-secondary">
+            {t('chatgptBridge.apiKeyNote')}
+          </p>
         </Section>
 
-        <Section step={4} title={t('chatgptBridge.step4Title')}>
-          <p className="mb-2 text-[11px] leading-relaxed text-xp-text-muted">
+        <Section title={t('chatgptBridge.step4Title')}>
+          <p className="mb-2 text-xs leading-relaxed text-xp-text-secondary">
             {t('chatgptBridge.step4Desc')}
           </p>
           {roots.length > 0 && (
             <ul className="mb-2 flex flex-col gap-1" data-testid="bridge-roots">
               {roots.map((root) => (
-                <li
-                  key={root}
-                  className="flex items-center gap-2 rounded-[8px] bg-xp-surface-light px-2.5 py-1.5"
-                >
+                <li key={root} className="flex items-center gap-2 py-1.5">
                   <span
-                    className="min-w-0 flex-1 truncate font-mono text-[11px] text-xp-text"
+                    className="min-w-0 flex-1 truncate font-mono text-xs text-xp-text"
                     title={root}
                   >
                     {root}
@@ -428,7 +513,7 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
                   <button
                     type="button"
                     onClick={() => setRoots((prev) => prev.filter((r) => r !== root))}
-                    className="shrink-0 text-xp-text-muted transition-colors hover:text-xp-red"
+                    className="shrink-0 p-1 text-xp-text-secondary transition-colors hover:text-xp-red"
                     aria-label={t('chatgptBridge.removeRoot')}
                   >
                     <Trash2 size={12} />
@@ -441,15 +526,15 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
             <button
               type="button"
               onClick={addRoot}
-              className="flex items-center gap-1.5 rounded-[8px] border border-xp-border px-2.5 py-1.5 text-[11px] text-xp-text transition-colors hover:bg-xp-surface-light"
+              className="flex items-center gap-1.5 text-xs text-xp-blue hover:underline"
             >
               <FolderPlus size={12} /> {t('chatgptBridge.addRoot')}
             </button>
-            {currentPath && !roots.includes(currentPath) && (
+            {currentPath && !currentPath.includes('://') && !roots.includes(currentPath) && (
               <button
                 type="button"
                 onClick={addCurrentFolder}
-                className="flex min-w-0 items-center gap-1.5 rounded-[8px] border border-xp-border px-2.5 py-1.5 text-[11px] text-xp-text transition-colors hover:bg-xp-surface-light"
+                className="flex min-w-0 items-center gap-1.5 text-xs text-xp-blue hover:underline"
                 title={currentPath}
               >
                 <Plus size={12} />
@@ -459,8 +544,8 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
           </div>
         </Section>
 
-        <Section step={5} title={t('chatgptBridge.step5Title')}>
-          <p className="text-[11px] leading-relaxed text-xp-text-muted">
+        <Section title={t('chatgptBridge.step5Title')}>
+          <p className="text-xs leading-relaxed text-xp-text-secondary">
             {t('chatgptBridge.step5Desc')}{' '}
             <button
               type="button"
@@ -476,13 +561,32 @@ const ChatgptBridgePanel = ({ currentPath }: ChatgptBridgePanelProps) => {
           type="button"
           onClick={() => save(enabled)}
           disabled={busy || !state}
-          className="flex items-center justify-center gap-2 rounded-[10px] bg-xp-blue px-3 py-2 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="mx-4 mt-4 flex items-center justify-center gap-2 rounded-[8px] bg-xp-blue px-3 py-2 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {busy && <Loader2 size={13} className="animate-spin" />}
           {t('chatgptBridge.save')}
         </button>
 
-        <p className="rounded-[10px] bg-[var(--xp-wash-yellow)] px-3 py-2 text-[11px] leading-relaxed text-xp-text-secondary">
+        <PanelConfirmation
+          open={deleteKeyOpen}
+          title={t('chatgptBridge.apiKeyDelete')}
+          description={t('panelActions.deleteKeyDescription')}
+          confirmLabel={t('chatgptBridge.apiKeyDelete')}
+          busy={busy}
+          onCancel={() => setDeleteKeyOpen(false)}
+          onConfirm={() => {
+            setBusy(true);
+            void TauriAPI.chatgptBridgeDeleteApiKey()
+              .then(() => TauriAPI.chatgptBridgeGetState())
+              .then(setState)
+              .catch((error) => setFormError(String(error)))
+              .finally(() => {
+                setBusy(false);
+                setDeleteKeyOpen(false);
+              });
+          }}
+        />
+        <p className="mx-4 mt-4 text-xs leading-relaxed text-xp-text-secondary">
           {t('chatgptBridge.privacyNote')}
         </p>
       </div>

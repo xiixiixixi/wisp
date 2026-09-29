@@ -10,7 +10,7 @@ import {
 } from '@/hooks/use-vim-mode';
 import { Toggle, SettingRow, SettingsSection } from './shared';
 
-const ShortcutsSettingsPanel = () => {
+const ShortcutsSettingsPanel = ({ active = true }: { active?: boolean }) => {
   const { t } = useTranslation();
   const [vimModeEnabled, setVimModeEnabledState] = useState(() => isVimModeEnabled());
   const [vimLearningMode, setVimLearningModeState] = useState(() => isVimLearningModeEnabled());
@@ -135,7 +135,7 @@ const ShortcutsSettingsPanel = () => {
       </SettingsSection>{' '}
       <SettingsSection title={t('settings.shortcuts.keyBindings')}>
         <div className="px-4 py-2">
-          <KeyboardShortcutsSettings />
+          <KeyboardShortcutsSettings active={active} />
         </div>
       </SettingsSection>
     </div>

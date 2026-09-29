@@ -1,7 +1,7 @@
 import { themes as builtinThemes, type ThemeDef } from './utils';
 
 /**
- * Wisp ships exactly three built-in themes (Wisp Ink, Wisp Slate, Wisp Paper).
+ * Wisp supports light, dark, and system appearance via the appearance module.
  * This module keeps the historical hook shape so existing callers keep working.
  */
 export const getAllThemes = (): Record<string, ThemeDef> => builtinThemes;

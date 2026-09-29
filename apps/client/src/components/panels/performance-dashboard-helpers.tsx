@@ -35,10 +35,10 @@ export const cardStyle: React.CSSProperties = {
 };
 
 export const cardTitleStyle: React.CSSProperties = {
-  fontSize: 11,
+  fontSize: 12,
   fontWeight: 600,
-  textTransform: 'uppercase' as const,
-  letterSpacing: '0.06em',
+  textTransform: 'none' as const,
+  letterSpacing: 'normal',
   color: 'var(--xp-text-muted)',
   marginBottom: 10,
 };
@@ -71,9 +71,10 @@ export const progressBarContainer: React.CSSProperties = {
 };
 
 export const smallBtnStyle: React.CSSProperties = {
-  fontSize: 11,
-  padding: '3px 10px',
-  borderRadius: 4,
+  fontSize: 12,
+  padding: '6px 12px',
+  minHeight: 30,
+  borderRadius: 7,
   border: '1px solid var(--xp-border)',
   background: 'var(--xp-surface)',
   color: 'var(--xp-text)',
@@ -95,15 +96,15 @@ export const sectionHeaderStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: 8,
-  padding: '8px 12px',
+  padding: '12px 16px',
   cursor: 'pointer',
   border: 'none',
   background: 'none',
   width: '100%',
-  fontSize: 11,
+  fontSize: 12,
   fontWeight: 600,
-  textTransform: 'uppercase' as const,
-  letterSpacing: '0.06em',
+  textTransform: 'none' as const,
+  letterSpacing: 'normal',
   color: 'var(--xp-text-secondary)',
   transition: 'background 0.15s',
 };
@@ -177,6 +178,7 @@ export const OrganizerSectionHeader = ({
 }) => {
   return (
     <button
+      aria-expanded={!collapsed}
       onClick={onToggle}
       style={{
         display: 'flex',
@@ -265,13 +267,13 @@ export const OrganizerSuggestionItem = ({
             >
               {suggestion.suggested_name}/
             </span>
-            <span style={{ fontSize: 11, color: 'var(--xp-text-secondary)', flexShrink: 0 }}>
+            <span style={{ fontSize: 12, color: 'var(--xp-text-secondary)', flexShrink: 0 }}>
               ({tUi('counts.files', { count: suggestion.files_to_move.length })})
             </span>
           </div>
           <div
             style={{
-              fontSize: 11,
+              fontSize: 12,
               color: 'var(--xp-text-secondary)',
               overflow: 'hidden',
               textOverflow: 'ellipsis',

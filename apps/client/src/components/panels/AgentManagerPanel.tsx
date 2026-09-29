@@ -14,7 +14,7 @@ interface SectionTitleProps {
 }
 
 const SectionTitle = ({ icon: Icon, title }: SectionTitleProps) => (
-  <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-xp-text-muted">
+  <div className="flex items-center gap-2 text-[13px] font-semibold text-xp-text">
     <Icon size={12} aria-hidden="true" />
     <span>{title}</span>
   </div>
@@ -25,23 +25,23 @@ const AgentManagerPanel = ({ currentPath }: AgentManagerPanelProps) => {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto" data-testid="agent-cockpit">
-      <div className="border-b border-xp-border px-3 py-3">
+      <div className="border-b border-xp-border px-4 py-3">
         <p className="text-xs leading-5 text-xp-text-secondary">
           {t('agentManager.cockpit.description')}
         </p>
       </div>
 
-      <section className="flex flex-col gap-3 border-b border-xp-border px-3 py-4">
+      <section className="flex flex-col gap-3 border-b border-xp-border px-4 py-4">
         <SectionTitle icon={Play} title={t('agentManager.cockpit.startTitle')} />
         <ExternalAgentLauncher currentPath={currentPath} />
       </section>
 
-      <section className="flex flex-col gap-2 border-b border-xp-border px-3 py-4">
+      <section className="flex flex-col gap-2 border-b border-xp-border px-4 py-4">
         <SectionTitle icon={Radio} title={t('agentManager.cockpit.runningTitle')} />
         <TerminalAgentDetector />
       </section>
 
-      <section className="flex flex-col gap-2 px-3 py-4">
+      <section className="flex flex-col gap-2 px-4 py-4">
         <SectionTitle icon={History} title={t('agentManager.cockpit.historyTitle')} />
         <ProjectMemorySection currentPath={currentPath} />
       </section>

@@ -1,13 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
-import React, { useRef, useState, useMemo, useLayoutEffect, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useMemo, useLayoutEffect, useEffect } from 'react';
 import ExtensionPanelHost from './ExtensionPanelHost';
-import PreviewNavigationBar from './PreviewNavigationBar';
 import { extensionHost } from '@/lib/extension-host';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
-import { usePreviewHistory } from '@/hooks/use-preview-history';
 import { X } from 'lucide-react';
+import './side-panels.css';
 
 // Lazy-loaded panels -- only loaded when the user switches to their tab
 const PreviewPanel = React.lazy(() => import('./PreviewPanel'));
@@ -78,14 +77,10 @@ const RightSidebar = ({
   // Canvas mode only applies to the chat tab: document column + chat column.
   const canvasActive = canvasMode && rightPanelTab === 'chat';
 
-  // ── Preview scrubber state ──────────────────────────────────────────────────
+  // Multi-selection still supports keyboard navigation without a navigation bar.
   const [previewIndex, setPreviewIndex] = useState(0);
-  const [scrubberCompareMode, setScrubberCompareMode] = useState(false);
-  const { getHistory, addToHistory, versionRef } = usePreviewHistory();
-  // Force re-render counter so the Recent dropdown can re-read history
-  const [historyVersion, setHistoryVersion] = useState(0);
 
-  // Build ordered list of selected FileEntry objects for the scrubber
+  // Build the ordered list of selected files for keyboard navigation.
   const selectedFileEntries = useMemo<FileEntry[]>(() => {
     if (!selectedFiles || selectedFiles.size <= 1) return [];
     const fileMap = new Map(allFiles.map((f) => [f.path, f]));
@@ -109,30 +104,10 @@ const RightSidebar = ({
     }
   }, [selectedFileEntries.length, multiSelected]);
 
-  // Reset scrubber compare mode when selection changes
-  const prevSelectionKey = useRef('');
-  const selectionKey = selectedFiles ? Array.from(selectedFiles).sort().join('|') : '';
-  if (selectionKey !== prevSelectionKey.current) {
-    prevSelectionKey.current = selectionKey;
-    if (scrubberCompareMode) setScrubberCompareMode(false);
-  }
-
-  // Determine the file to preview: when multi-select scrubber is active, use scrubber index
-  const scrubberFile =
+  const keyboardPreviewFile =
     multiSelected && isPreviewTab ? (selectedFileEntries[previewIndex] ?? null) : null;
 
-  // The effective file for the preview panel
-  const effectivePreviewFile = scrubberFile ?? selectedFile;
-
-  // Track previewed files in history
-  useEffect(() => {
-    if (effectivePreviewFile && isPreviewTab) {
-      addToHistory(effectivePreviewFile);
-      setHistoryVersion(versionRef.current);
-    }
-    // effectivePreviewFile?.path is sufficient; versionRef is a ref
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectivePreviewFile?.path, isPreviewTab, addToHistory]);
+  const effectivePreviewFile = keyboardPreviewFile ?? selectedFile;
 
   // ── Keyboard navigation ────────────────────────────────────────────────────
   useEffect(() => {
@@ -185,16 +160,7 @@ const RightSidebar = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [multiSelected, isPreviewTab, rightSidebarCollapsed, selectedFileEntries, previewIndex]);
 
-  // ── Compare mode for scrubber ──────────────────────────────────────────────
-  const scrubberCompareFiles = useMemo<[FileEntry, FileEntry] | null>(() => {
-    if (!scrubberCompareMode || !multiSelected || previewIndex === 0) return null;
-    const prev = selectedFileEntries[previewIndex - 1];
-    const curr = selectedFileEntries[previewIndex];
-    if (prev && curr) return [prev, curr];
-    return null;
-  }, [scrubberCompareMode, multiSelected, previewIndex, selectedFileEntries]);
-
-  // ── Original 2-file compare logic ──────────────────────────────────────────
+  // ── Two-file comparison ────────────────────────────────────────────────────
   const compareFiles = useMemo<[FileEntry, FileEntry] | null>(() => {
     if (!selectedFiles || selectedFiles.size !== 2) return null;
     const paths = Array.from(selectedFiles);
@@ -213,12 +179,7 @@ const RightSidebar = ({
     if (compareDismissed) setCompareDismissed(false);
   }
 
-  // Whether to show the original compare mode (only when NOT using scrubber compare)
-  const showCompare =
-    rightPanelTab === 'preview' &&
-    compareFiles !== null &&
-    !compareDismissed &&
-    !scrubberCompareMode;
+  const showCompare = isPreviewTab && compareFiles !== null && !compareDismissed;
 
   // Measure the actual rendered height of the outer div (set by flex cross-axis stretch)
   useLayoutEffect(() => {
@@ -235,25 +196,9 @@ const RightSidebar = ({
     return () => ro.disconnect();
   }, [rightSidebarCollapsed]);
 
-  // ── History select handler ─────────────────────────────────────────────────
-  const handleHistorySelect = useCallback(
-    (file: FileEntry) => {
-      // Navigate to the file's parent directory and ensure it shows in preview
-      if (navigateToPath) {
-        const separator = file.path.includes('\\') ? '\\' : '/';
-        const parentDir = file.path.substring(0, file.path.lastIndexOf(separator));
-        if (parentDir) {
-          navigateToPath(parentDir);
-        }
-      }
-    },
-    [navigateToPath],
-  );
-
   if (rightSidebarCollapsed) return null;
 
-  // Show scrubber navigation bar?
-  const showScrubber = isPreviewTab && multiSelected && !showCompare;
+  const showSelectedPreview = isPreviewTab && multiSelected && !showCompare;
 
   // Props bag passed to extension panels (for any extension that uses PanelRenderProps)
   // Convert selectedFiles Set<string> to the array format extensions expect
@@ -268,7 +213,7 @@ const RightSidebar = ({
     : undefined;
 
   const extensionProps = {
-    selectedFile: showScrubber ? effectivePreviewFile : selectedFile,
+    selectedFile: showSelectedPreview ? effectivePreviewFile : selectedFile,
     formatFileSize,
     formatDate,
     allFiles,
@@ -283,11 +228,11 @@ const RightSidebar = ({
   const getTabTitle = () => {
     if (canvasActive) return i18n.t('piChat.canvasTitle');
     if (showCompare) return i18n.t('dialogs.compareFiles.title');
-    if (scrubberCompareFiles) return i18n.t('dialogs.compareFiles.title');
     if (rightPanelTab === 'preview') return i18n.t('extensionsBar.preview');
     if (rightPanelTab === 'chat') return i18n.t('extensionsBar.chat');
-    if (rightPanelTab === 'agent-manager') return i18n.t('extensionsBar.agent');
+    if (rightPanelTab === 'agent-manager') return i18n.t('extensionsBar.externalAssistants');
     if (rightPanelTab === 'weixin-bridge') return i18n.t('extensionsBar.weixin');
+    if (rightPanelTab === 'chatgpt-bridge') return i18n.t('extensionsBar.chatgptBridge');
     if (rightPanelTab === 'performance') return i18n.t('extensionsBar.performance');
     if (rightPanelTab === 'marketplace') return i18n.t('extensionsBar.marketplace');
     const panel = extensionHost.getPanel(rightPanelTab);
@@ -299,12 +244,12 @@ const RightSidebar = ({
   return (
     <div
       ref={outerRef}
-      className="wisp-inspector border-l border-xp-border bg-xp-surface"
+      className={`wisp-inspector border-l border-xp-border${isPreviewTab ? '' : 'wisp-panel-workspace'}`}
       data-panel={rightPanelTab}
       data-canvas={canvasActive ? 'on' : undefined}
       style={{
         // 画布模式是「读文档」场景：双栏太挤没意义，地板抬到 720。
-        width: canvasActive ? Math.max(width ?? 320, 720) : width ?? 320,
+        width: canvasActive ? Math.max(width ?? 320, 720) : (width ?? 320),
         flexShrink: 0,
         minHeight: 0,
         overflow: 'hidden',
@@ -329,6 +274,9 @@ const RightSidebar = ({
         >
           <div className="min-w-0">
             <h3 className="truncate text-sm font-semibold">{tabTitle}</h3>
+            {!isPreviewTab && tUi(`panelPurpose.${rightPanelTab}`, { defaultValue: '' }) && (
+              <p className="wisp-panel-purpose">{tUi(`panelPurpose.${rightPanelTab}`)}</p>
+            )}
           </div>
           <button
             onClick={() => setRightSidebarCollapsed(true)}
@@ -348,24 +296,10 @@ const RightSidebar = ({
           </button>
         </div>
 
-        {/* Preview scrubber navigation bar (multi-select only) */}
-        {showScrubber && (
-          <PreviewNavigationBar
-            files={selectedFileEntries}
-            currentIndex={previewIndex}
-            onIndexChange={setPreviewIndex}
-            getHistory={getHistory}
-            historyVersion={historyVersion}
-            onHistorySelect={handleHistorySelect}
-            compareMode={scrubberCompareMode}
-            onCompareToggle={() => setScrubberCompareMode((v) => !v)}
-            showCompareToggle={selectedFileEntries.length >= 2 && previewIndex > 0}
-          />
-        )}
-
         {/* Panel content */}
         <div
           ref={panelContentRef}
+          className={isPreviewTab ? undefined : 'wisp-panel-body'}
           tabIndex={-1}
           style={{
             flex: '1 1 0%',
@@ -384,19 +318,6 @@ const RightSidebar = ({
             }
           >
             {(() => {
-              if (scrubberCompareFiles) {
-                return (
-                  <ErrorBoundary>
-                    <ComparePreview
-                      leftFile={scrubberCompareFiles[0]}
-                      rightFile={scrubberCompareFiles[1]}
-                      onDismiss={() => setScrubberCompareMode(false)}
-                      formatFileSize={formatFileSize}
-                      formatDate={formatDate}
-                    />
-                  </ErrorBoundary>
-                );
-              }
               if (showCompare && compareFiles) {
                 return (
                   <ErrorBoundary>
@@ -414,7 +335,7 @@ const RightSidebar = ({
                 return (
                   <ErrorBoundary>
                     <PreviewPanel
-                      selectedFile={showScrubber ? effectivePreviewFile : selectedFile}
+                      selectedFile={showSelectedPreview ? effectivePreviewFile : selectedFile}
                       formatFileSize={formatFileSize}
                       formatDate={formatDate}
                       getFolderSize={getFolderSize}

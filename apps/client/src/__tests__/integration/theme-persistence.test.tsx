@@ -220,7 +220,8 @@ describe('system appearance across Settings and the folder page', () => {
     expect(screen.getByRole('radio', { name: 'Light' })).toBeChecked();
     expectSystemAppearance(false);
 
-    await user.click(await screen.findByRole('button', { name: 'Reset all settings to defaults' }));
+    await user.click(await screen.findByRole('button', { name: 'Restore default preferences' }));
+    await user.click(screen.getByRole('button', { name: 'Restore defaults', exact: true }));
     expect(screen.getByRole('radio', { name: 'Follow system' })).toBeChecked();
     expectSystemAppearance(true);
     expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS)!)).toMatchObject({

@@ -30,7 +30,7 @@ interface LeftSidebarProps {
 }
 
 const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function LeftSidebar(
-  { currentPath, navigateToPath, handleFileRightClick, width },
+  { currentPath, navigateToPath, handleFileClick, handleFileRightClick, handleFileOpen, width },
   ref,
 ) {
   const { t } = useTranslation();
@@ -72,7 +72,7 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
     <nav
       role="navigation"
       aria-label={t('sidebar.explorerSidebar')}
-      className="wisp-sidebar wisp-no-select flex flex-shrink-0 flex-col border-r border-xp-border bg-xp-surface"
+      className="wisp-sidebar wisp-no-select flex flex-shrink-0 flex-col border-r border-xp-border"
       style={{ width: width ?? 256, minHeight: 0, overflow: 'hidden' }}
     >
       {/* The tab strip only earns space when an extension contributes a tab. */}
@@ -106,8 +106,9 @@ const LeftSidebar = forwardRef<LeftSidebarHandle, LeftSidebarProps>(function Lef
               currentPath={currentPath}
               navigateToPath={navigateToPath}
               handleFileRightClick={handleFileRightClick}
+              handleFileOpen={handleFileOpen ?? handleFileClick}
             />
-            <SidebarDrives navigateToPath={navigateToPath} />
+            <SidebarDrives currentPath={currentPath} navigateToPath={navigateToPath} />
             <SidebarTags currentPath={currentPath} navigateToPath={navigateToPath} />
           </div>
 

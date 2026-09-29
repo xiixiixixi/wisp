@@ -17,6 +17,7 @@ import { parseBrowserDrop, uniqueDroppedName } from '@/lib/drag-drop-content';
 import { listenForGlobalFileChanges, notifyFilesChanged } from '@/lib/file-change-events';
 import { ensureFileOperationProgressListener } from '@/lib/file-operation-progress';
 import { undoLastTransfer } from '@/hooks/use-transfer-history';
+import { isLiveSpringLoadTarget, springLoadedFolderDetail } from '@/hooks/use-spring-loaded-folder';
 import { ConflictResolutionDialog } from '@/components/dialogs/ConflictResolutionDialog';
 import { TransferProgressToast } from '@/components/explorer/TransferProgressToast';
 
@@ -296,6 +297,14 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const rafIdRef = useRef<number>(0);
 
+  const clearPaneActivation = useCallback(() => {
+    if (paneActivateTimerRef.current !== null) {
+      clearTimeout(paneActivateTimerRef.current);
+      paneActivateTimerRef.current = null;
+    }
+    hoverPaneRef.current = null;
+  }, []);
+
   const clearHighlight = useCallback(() => {
     if (highlightedRef.current) {
       highlightedRef.current.removeAttribute('data-drop-hover');
@@ -426,7 +435,12 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
                 }
               }
 
-              if (targetPath !== lastHoverPathRef.current) {
+              // The same folder path can be visible in two panes. Its DOM
+              // target still changed, so restart the timer for the new pane.
+              if (
+                targetPath !== lastHoverPathRef.current ||
+                (target?.element ?? null) !== highlightedRef.current
+              ) {
                 clearHighlight();
 
                 if (target) {
@@ -470,9 +484,21 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
                     if (isFolder) {
                       springTimerRef.current = setTimeout(() => {
                         springTimerRef.current = null;
+                        const { x: hoverX, y: hoverY } = cursorRef.current;
+                        const liveTarget = findDropTarget(hoverX, hoverY);
+                        if (
+                          !isLiveSpringLoadTarget(
+                            stateRef.current.isDragging,
+                            stateRef.current.isOverWindow,
+                            target,
+                            liveTarget,
+                          )
+                        ) {
+                          return;
+                        }
                         window.dispatchEvent(
                           new CustomEvent('spring-load-folder', {
-                            detail: { path: target.path },
+                            detail: springLoadedFolderDetail(liveTarget.element, liveTarget.path),
                           }),
                         );
                       }, 500);
@@ -494,6 +520,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
               position: { x: number; y: number };
             };
             clearHighlight();
+            clearPaneActivation();
 
             if (paths?.length > 0 && position) {
               // Logical points already (see the 'over' handler note)
@@ -599,6 +626,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
             dispatch({ type: 'END_DRAG' });
           } else if (payload.type === 'leave') {
             clearHighlight();
+            clearPaneActivation();
             cancelAnimationFrame(rafIdRef.current);
             dispatch({ type: 'SET_OVER_WINDOW', value: false });
             // Only end drag if it was external — internal startDrag returns to our window
@@ -616,8 +644,9 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
     return () => {
       unlisten?.();
       cancelAnimationFrame(rafIdRef.current);
+      clearPaneActivation();
     };
-  }, [findDropTarget, clearHighlight, runTransfer, resolveSameVolume]);
+  }, [findDropTarget, clearHighlight, clearPaneActivation, runTransfer, resolveSameVolume]);
 
   // Listen for Option/⌘ during drag to switch move / copy / link (macOS semantics)
   useEffect(() => {
@@ -741,11 +770,12 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
     // Cmd+Option = link) alive for that short hand-off window.
     if (endTimerRef.current) clearTimeout(endTimerRef.current);
     endTimerRef.current = setTimeout(() => {
+      clearPaneActivation();
       setGlobalDragSelectionGuard(false);
       dispatch({ type: 'END_DRAG' });
       endTimerRef.current = null;
     }, 250);
-  }, []);
+  }, [clearPaneActivation]);
 
   useEffect(
     () => () => {

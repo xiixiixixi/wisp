@@ -936,7 +936,7 @@ button.bg-primary {
 input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]):not(
     .wisp-address-input
   ),
-textarea,
+textarea:not(.pi-composer-input),
 select,
 [role="combobox"] {
   background: rgba(255, 255, 255, 0.52) !important;
@@ -955,7 +955,7 @@ html.theme-rolex
     input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]):not(
         .wisp-address-input
       ),
-    textarea,
+    textarea:not(.pi-composer-input),
     select,
     [role="combobox"]
   ) {

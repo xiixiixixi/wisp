@@ -1,13 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import userEvent from '@testing-library/user-event';
 import DetailsView from '@/components/explorer/DetailsView';
 import type { FileEntry } from '@/lib/tauri-api';
 
 // Mock @tanstack/react-virtual
+const virtualRows = vi.hoisted(() => ({ indices: [] as number[] }));
 vi.mock('@tanstack/react-virtual', () => ({
   useVirtualizer: () => ({
-    getVirtualItems: () => [],
+    getVirtualItems: () =>
+      virtualRows.indices.map((index) => ({ key: index, index, start: index * 32, size: 32 })),
     getTotalSize: () => 0,
     scrollToIndex: vi.fn(),
   }),
@@ -86,6 +89,43 @@ describe('DetailsView', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    virtualRows.indices = [];
+  });
+
+  it('keeps one visible keyboard entry when the preferred file is outside the virtual window', async () => {
+    const user = userEvent.setup();
+    const files = Array.from({ length: 220 }, (_, index) => ({
+      ...sampleFiles[0],
+      path: `/files/${index}.txt`,
+      name: `${index}.txt`,
+    }));
+    virtualRows.indices = [150, 151, 152];
+    const content = () => (
+      <>
+        <button>Before files</button>
+        <DetailsView
+          {...defaultProps}
+          files={files}
+          selectedFiles={new Set([files[0].path])}
+          tabStopPath={files[0].path}
+        />
+        <button>After files</button>
+      </>
+    );
+    const { container, rerender } = render(content());
+    const entries = () =>
+      Array.from(container.querySelectorAll<HTMLElement>('[data-file-path]')).filter(
+        (row) => row.tabIndex === 0,
+      );
+    expect(entries().map((row) => row.dataset.filePath)).toEqual(['/files/150.txt']);
+    screen.getByRole('button', { name: 'Before files' }).focus();
+    await user.tab();
+    expect(entries()[0]).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'After files' })).toHaveFocus();
+    virtualRows.indices = [0, 1, 2];
+    rerender(content());
+    expect(entries().map((row) => row.dataset.filePath)).toEqual(['/files/0.txt']);
   });
 
   describe('Table structure', () => {

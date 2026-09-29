@@ -1,21 +1,32 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PreviewProps } from '@/lib/preview-factory';
 import { WispCodeMirror } from '@/lib/codemirror';
 import type { EditorView } from '@codemirror/view';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
 import { useTextFileEditor } from '@/hooks/use-text-file-editor';
+import { convertAssetUrl, isTauri } from '@/lib/transport';
+import { TauriAPI } from '@/lib/tauri-api';
 
 /**
- * HTML preview: rendered in a sandboxed iframe (scripts stay sandboxed and
- * the app CSP keeps inline script from executing — a static render), with a
- * CodeMirror source tab and ⌘S save.
+ * HTML preview: saved files load from their asset URL so relative styles and
+ * images resolve beside the HTML file. Unsaved drafts use srcDoc. Both are
+ * script-blocked; the source tab can still edit and save the file.
  */
 const HtmlPreview = ({ file, onError, onLoad }: PreviewProps) => {
   const { t } = useTranslation();
   const [tab, setTab] = useState<'rendered' | 'edit'>('rendered');
   const [editorMounted, setEditorMounted] = useState(false);
   const [draftPreview, setDraftPreview] = useState<string | null>(null);
+  const nativeMode = isTauri();
+  const [assetScope, setAssetScope] = useState<{ path: string; allowed: boolean | null }>({
+    path: file.path,
+    allowed: null,
+  });
+  let assetAllowed: boolean | null = false;
+  if (nativeMode) {
+    assetAllowed = assetScope.path === file.path ? assetScope.allowed : null;
+  }
   const editorRef = useRef<EditorView | null>(null);
   const { content, loading, error, dirty, setDirty, saving, save } = useTextFileEditor(
     file,
@@ -27,6 +38,48 @@ const HtmlPreview = ({ file, onError, onLoad }: PreviewProps) => {
   useEffect(() => {
     setDraftPreview(null);
   }, [content, file.path]);
+
+  useEffect(() => {
+    if (!nativeMode) return;
+    let cancelled = false;
+    setAssetScope({ path: file.path, allowed: null });
+    void TauriAPI.previewAssetAllowed(file.path)
+      .then((allowed) => {
+        if (!cancelled) setAssetScope({ path: file.path, allowed });
+      })
+      .catch(() => {
+        if (!cancelled) setAssetScope({ path: file.path, allowed: false });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [file.path, nativeMode]);
+
+  const savedUrl = useMemo(() => {
+    if (assetAllowed !== true) return null;
+    try {
+      // Bust the asset cache after this component reads a changed file, even
+      // when an edit leaves the byte length unchanged.
+      let hash = 2166136261;
+      for (let i = 0; i < content.length; i += 1) {
+        hash = Math.imul(hash ^ content.charCodeAt(i), 16777619);
+      }
+      const url = new URL(convertAssetUrl(file.path));
+      // Tauri's convertFileSrc encodes the entire path as one URL segment.
+      // Its asset handler decodes the path after removing the first URL slash.
+      // Preserve the directory separators in the URL so a stylesheet's or
+      // image's relative URL resolves beside the HTML file.
+      const encodedSeparator = file.path.startsWith('/') ? /%2F/gi : /%5C/gi;
+      url.pathname = url.pathname.replace(encodedSeparator, '/');
+      url.searchParams.set('wisp-preview', `${file.modified}-${(hash >>> 0).toString(36)}`);
+      return url.toString();
+    } catch {
+      // An invalid asset URL must not take away the readable static preview.
+      return null;
+    }
+  }, [assetAllowed, content, file.modified, file.path]);
+  const renderSavedFile = savedUrl !== null && (draftPreview === null || draftPreview === content);
+  const waitingForAsset = !loading && !error && tab === 'rendered' && assetAllowed === null;
 
   return (
     <div
@@ -83,7 +136,7 @@ const HtmlPreview = ({ file, onError, onLoad }: PreviewProps) => {
         )}
       </div>
 
-      {loading && <PreviewSkeleton />}
+      {(loading || waitingForAsset) && <PreviewSkeleton />}
 
       {!loading && error && (
         <div className="flex flex-1 items-center justify-center rounded-md border border-xp-border bg-xp-surface">
@@ -94,12 +147,15 @@ const HtmlPreview = ({ file, onError, onLoad }: PreviewProps) => {
         </div>
       )}
 
-      {!loading && !error && tab === 'rendered' && (
+      {!loading && !error && !waitingForAsset && tab === 'rendered' && (
         <div className="min-h-0 flex-1 overflow-hidden rounded-md border border-xp-border bg-white">
           <iframe
+            key={renderSavedFile ? savedUrl : 'draft'}
             title={t('preview.htmlPreview')}
-            sandbox="allow-scripts"
-            srcDoc={draftPreview ?? content}
+            sandbox=""
+            referrerPolicy="no-referrer"
+            src={renderSavedFile ? savedUrl : undefined}
+            srcDoc={renderSavedFile ? undefined : (draftPreview ?? content)}
             className="h-full w-full border-0"
           />
         </div>

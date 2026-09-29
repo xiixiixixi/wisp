@@ -39,17 +39,19 @@ const file: FileEntry = {
   is_readonly: false,
 };
 
-const Probe = () => {
+const Probe = ({ tabIndex = 0, children }: { tabIndex?: number; children?: React.ReactNode }) => {
   const handlers = useDraggable({ file, selectedFiles: new Set(), allFiles: [file] });
   return (
     <div
       data-testid="probe"
-      tabIndex={0}
+      tabIndex={tabIndex}
       {...handlers}
       onMouseDown={(e) => {
         handlers.onMouseDown(e);
       }}
-    />
+    >
+      {children}
+    </div>
   );
 };
 
@@ -139,14 +141,31 @@ describe('useDraggable', () => {
     expect(mockStartDrag).not.toHaveBeenCalled();
   });
 
-  it('prevents primary mousedown from starting a text selection', () => {
-    const { getByTestId } = render(<Probe />);
-    const el = getByTestId('probe');
+  it.each([0, -1])(
+    'focuses a clicked row with tabindex=%s before suppressing text selection',
+    (tabIndex) => {
+      const { getByTestId } = render(<Probe tabIndex={tabIndex} />);
+      const el = getByTestId('probe');
 
-    const allowed = fireEvent.mouseDown(el, { clientX: 100, clientY: 100, button: 0 });
+      const allowed = fireEvent.mouseDown(el, { clientX: 100, clientY: 100, button: 0 });
 
-    expect(allowed).toBe(false);
-    expect(document.activeElement).toBe(el);
+      expect(allowed).toBe(false);
+      expect(document.activeElement).toBe(el);
+    },
+  );
+
+  it('leaves an inline rename input focused when its row is outside the Tab sequence', () => {
+    const { getByRole, getByTestId } = render(
+      <Probe tabIndex={-1}>
+        <input aria-label="Rename file" />
+      </Probe>,
+    );
+    const input = getByRole('textbox');
+    input.focus();
+    expect(fireEvent.mouseDown(input, { button: 0 })).toBe(true);
+    expect(input).toHaveFocus();
+    expect(getByTestId('probe')).not.toHaveFocus();
+    expect(mockStartDrag).not.toHaveBeenCalled();
   });
 });
 

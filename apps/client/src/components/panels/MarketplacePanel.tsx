@@ -1,5 +1,7 @@
 import i18n from '@/i18n';
-import React, { useState, useEffect, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { PanelConfirmation } from './PanelFeedback';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { TauriAPI } from '@/lib/tauri-api';
@@ -15,7 +17,6 @@ import {
   Search,
   ExternalLink,
   RefreshCw,
-  Package,
   Loader2,
   AlertCircle,
   Inbox,
@@ -122,7 +123,7 @@ const ExtensionsContent = ({
   const { t: tUi } = useTranslation();
   if (isLoading) {
     return (
-      <div className="flex h-32 flex-col items-center justify-center gap-2">
+      <div className="flex min-h-40 flex-col items-center justify-center gap-2">
         <Loader2 className="h-6 w-6 animate-spin text-xp-blue" />
         <span className="text-xs text-xp-text-muted">{tUi('interface.loadingExtensions')}</span>
       </div>
@@ -131,7 +132,7 @@ const ExtensionsContent = ({
 
   if (error) {
     return (
-      <div className="flex h-32 flex-col items-center justify-center gap-2 px-4">
+      <div className="flex min-h-40 flex-col items-center justify-center gap-2 px-4 py-6">
         <AlertCircle className="h-6 w-6 text-xp-red" />
         <span className="text-center text-xs text-xp-text-muted">
           {tUi('interface.failedToLoadExtensions')}
@@ -149,7 +150,7 @@ const ExtensionsContent = ({
 
   if (extensions.length === 0) {
     return (
-      <div className="flex h-32 flex-col items-center justify-center gap-2">
+      <div className="flex min-h-40 flex-col items-center justify-center gap-2">
         <Inbox className="h-6 w-6 text-xp-text-muted" />
         <span className="text-xs text-xp-text-muted">{tUi('interface.noExtensionsFound')}</span>
         {(debouncedSearch || selectedCategory) && (
@@ -222,6 +223,8 @@ const MarketplacePanel = () => {
   // Detail dialog
   const [selectedExtension, setSelectedExtension] = useState<MarketplaceExtension | null>(null);
   const [showDetail, setShowDetail] = useState(false);
+  const [uninstallTarget, setUninstallTarget] = useState<MarketplaceExtension | null>(null);
+  const requestVersion = useRef(0);
 
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -237,8 +240,7 @@ const MarketplacePanel = () => {
   useEffect(() => {
     loadInstalledExtensions();
     loadCategories();
-    loadExtensions(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   // Reload extensions when filters change
@@ -252,7 +254,10 @@ const MarketplacePanel = () => {
       const data = (await marketplaceFetch(`${getMarketplaceApi()}/categories`)) as {
         categories?: MarketplaceCategory[];
       };
-      if (data.categories) setCategories(data.categories);
+      if (data.categories?.length) {
+        setCategories(data.categories);
+        return;
+      }
     } catch {
       // Remote marketplace not available
     }
@@ -277,6 +282,7 @@ const MarketplacePanel = () => {
 
   const loadExtensions = useCallback(
     async (page: number) => {
+      const request = ++requestVersion.current;
       setIsLoading(true);
       setError(null);
       try {
@@ -290,6 +296,7 @@ const MarketplacePanel = () => {
         const data = (await marketplaceFetch(
           `${getMarketplaceApi()}/extensions?${params.toString()}`,
         )) as { extensions?: MarketplaceExtension[]; pagination?: PaginationInfo };
+        if (request !== requestVersion.current) return;
         // Themes are built into Wisp (Ink/Slate/Paper) — hide marketplace theme extensions.
         const nonTheme = (data.extensions || []).filter(
           (ext) => !ext.categories?.some((c) => c.slug === 'theme'),
@@ -304,16 +311,18 @@ const MarketplacePanel = () => {
           },
         );
       } catch {
+        if (request !== requestVersion.current) return;
         setError(i18n.t('marketplace.unavailable'));
         setExtensions([]);
       } finally {
-        setIsLoading(false);
+        if (request === requestVersion.current) setIsLoading(false);
       }
     },
     [debouncedSearch, selectedCategory, sortBy],
   );
 
   const handleInstall = async (extension: MarketplaceExtension) => {
+    if (installingId) return;
     const perms = extension.permissions ?? [];
 
     if (requiresConsentDialog(perms)) {
@@ -407,6 +416,7 @@ const MarketplacePanel = () => {
   };
 
   const handleUninstall = async (extension: MarketplaceExtension) => {
+    if (installingId) return;
     setInstallingId(extension.id);
     try {
       // Use slug (matches manifest ID on disk) rather than marketplace CUID
@@ -426,6 +436,7 @@ const MarketplacePanel = () => {
       });
     } finally {
       setInstallingId(null);
+      setUninstallTarget(null);
     }
   };
 
@@ -549,22 +560,21 @@ const MarketplacePanel = () => {
   };
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-xp-bg text-xp-text">
+    <div className="flex h-full w-full flex-col overflow-hidden text-xp-text">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-xp-border px-3 py-2">
-        <h3 className="flex items-center gap-2 text-sm font-semibold">
-          <Package className="h-4 w-4 text-xp-blue" />
-          {t('interface.extensionMarketplace')}
-        </h3>
-        <div className="flex items-center gap-1">
-          <button
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-xp-border px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleInstallFromFile}
             disabled={!!installingId}
             className="rounded-md p-1.5 text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
             title={t('interface.installFromXtensionFile')}
           >
             <FolderOpen className="h-3.5 w-3.5" />
-          </button>
+            {t('panelActions.installFromFile')}
+          </Button>
           <button
             onClick={() => loadExtensions(pagination.page)}
             disabled={isLoading}
@@ -590,6 +600,7 @@ const MarketplacePanel = () => {
           <input
             type="text"
             placeholder={i18n.t('marketplace.searchPlaceholder')}
+            aria-label={t('marketplace.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded-md border border-xp-border bg-xp-surface py-1.5 pl-9 pr-3 text-sm text-xp-text transition-colors placeholder:text-xp-text-muted focus:border-xp-blue focus:outline-none"
@@ -748,7 +759,9 @@ const MarketplacePanel = () => {
           debouncedSearch={debouncedSearch}
           selectedCategory={selectedCategory}
           handleInstall={handleInstall}
-          handleUninstall={handleUninstall}
+          handleUninstall={(extension) => {
+            if (!installingId) setUninstallTarget(extension);
+          }}
           loadExtensions={loadExtensions}
           setSearchTerm={setSearchTerm}
           setSelectedCategory={setSelectedCategory}
@@ -776,12 +789,28 @@ const MarketplacePanel = () => {
         </button>
       </div>
 
+      <PanelConfirmation
+        open={uninstallTarget !== null}
+        title={t('panelActions.uninstallTitle', { name: uninstallTarget?.displayName })}
+        description={t('panelActions.uninstallDescription')}
+        confirmLabel={t('interface.uninstall')}
+        busy={!!installingId}
+        onCancel={() => setUninstallTarget(null)}
+        onConfirm={() => {
+          if (uninstallTarget) void handleUninstall(uninstallTarget);
+        }}
+      />
       {/* Extension Detail Dialog */}
       <ExtensionDetailDialog
         isOpen={showDetail}
         onClose={() => setShowDetail(false)}
         extension={selectedExtension}
-        isInstalled={selectedExtension ? installedExtensions.includes(selectedExtension.id) : false}
+        isInstalled={
+          selectedExtension
+            ? installedExtensions.includes(selectedExtension.id) ||
+              installedExtensions.includes(selectedExtension.slug)
+            : false
+        }
         isInstalling={selectedExtension ? installingId === selectedExtension.id : false}
         onInstall={handleInstall}
       />

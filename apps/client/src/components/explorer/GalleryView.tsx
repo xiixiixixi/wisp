@@ -10,12 +10,13 @@ import { ViewComponentProps } from './FileGridTypes';
 import { FileReferenceBadge } from './FileReferenceBadge';
 import { formatDateTimeShort } from '@/lib/utils';
 import { useGridKeyboardNav } from '@/hooks/use-grid-keyboard-nav';
+import { useFileTabStop } from '@/hooks/use-file-tab-stop';
 
 // Filmstrip thumbnail item
 const GalleryStripThumb = React.memo(
   ({
     file,
-    isFocused,
+    tabStopPath,
     isSelected,
     selectedFiles,
     allFiles,
@@ -26,7 +27,7 @@ const GalleryStripThumb = React.memo(
     onRightClick,
   }: {
     file: FileEntry;
-    isFocused: boolean;
+    tabStopPath?: string;
     isSelected: boolean;
     selectedFiles: Set<string>;
     allFiles: FileEntry[];
@@ -47,7 +48,7 @@ const GalleryStripThumb = React.memo(
       position: 'absolute',
       bottom: 1,
       right: 1,
-      fontSize: 7,
+      fontSize: 12,
       lineHeight: 1,
       padding: '1px 3px',
       borderRadius: 3,
@@ -68,12 +69,9 @@ const GalleryStripThumb = React.memo(
         })}
         data-gallery-path={file.path}
         data-file-path={file.path}
-        tabIndex={0}
-        className={`h-16 w-16 flex-shrink-0 cursor-pointer overflow-hidden rounded-md border-2 transition-all ${(() => {
-          if (isFocused) return 'scale-105 border-xp-blue ring-1 ring-xp-blue';
-          if (isSelected) return 'border-xp-blue';
-          return 'border-transparent hover:border-xp-text-muted';
-        })()} `}
+        tabIndex={tabStopPath === file.path ? 0 : -1}
+        data-file-presentation="filmstrip"
+        className="wisp-file-item h-16 w-16 flex-shrink-0 cursor-default overflow-hidden rounded-md p-1"
         style={{ position: 'relative' }}
         onClick={onClick}
         onDoubleClick={onDoubleClick}
@@ -146,6 +144,12 @@ const GalleryView = ({
     overscan: 5,
   });
 
+  const virtualThumbs = filmstripVirtualizer.getVirtualItems();
+  const renderedFiles = virtualThumbs.flatMap((thumb) =>
+    files[thumb.index] ? [files[thumb.index]] : [],
+  );
+  const { tabStopPath, rememberFileFocus } = useFileTabStop(files, selectedFiles, renderedFiles);
+
   // Preload thumbnails for all image files in this folder
   useEffect(() => {
     const imagePaths = files.filter(isImageFile).map((f) => f.path);
@@ -210,16 +214,17 @@ const GalleryView = ({
     if (!displayFile) return;
     const idx = files.indexOf(displayFile);
     if (idx !== -1) {
-      filmstripVirtualizer.scrollToIndex(idx, { align: 'center', behavior: 'smooth' });
+      filmstripVirtualizer.scrollToIndex(idx, { align: 'center', behavior: 'auto' });
     }
   }, [displayFile, files, filmstripVirtualizer]);
 
   return (
     <div
       ref={attachContainer}
-      tabIndex={0}
+      tabIndex={tabStopPath ? -1 : 0}
+      onFocusCapture={rememberFileFocus}
       onKeyDown={handleKeyDown}
-      className="flex h-full select-none flex-col overflow-hidden"
+      className="wisp-file-selection-surface flex h-full select-none flex-col overflow-hidden"
       aria-label={t('interface.galleryView')}
       onContextMenu={handleBackgroundRightClick || undefined}
     >
@@ -307,8 +312,11 @@ const GalleryView = ({
       <div className="flex-shrink-0 border-t border-xp-border bg-xp-surface">
         <div
           ref={stripRef}
+          role="listbox"
+          aria-label={t('explorer.details.fileListAria')}
+          aria-multiselectable={true}
           className="gallery-filmstrip overflow-x-auto p-2"
-          style={{ position: 'relative', height: '56px' }}
+          style={{ position: 'relative', height: '84px' }}
         >
           <div
             style={{
@@ -317,7 +325,7 @@ const GalleryView = ({
               position: 'relative',
             }}
           >
-            {filmstripVirtualizer.getVirtualItems().map((virtualItem) => {
+            {virtualThumbs.map((virtualItem) => {
               const file = files[virtualItem.index];
               return (
                 <div
@@ -327,13 +335,13 @@ const GalleryView = ({
                     top: 0,
                     left: 0,
                     width: `${virtualItem.size - 4}px`,
-                    height: '48px',
+                    height: '64px',
                     transform: `translateX(${virtualItem.start}px)`,
                   }}
                 >
                   <GalleryStripThumb
                     file={file}
-                    isFocused={displayFile?.path === file.path}
+                    tabStopPath={tabStopPath}
                     isSelected={selectedFiles.has(file.path)}
                     selectedFiles={selectedFiles}
                     allFiles={files}

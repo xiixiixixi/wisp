@@ -5,6 +5,7 @@ import ColumnView from '@/components/explorer/ColumnView';
 import type { FileEntry } from '@/lib/tauri-api';
 import { requestAdjacentFile } from '@/lib/file-navigation';
 
+const virtualWindow = vi.hoisted(() => ({ start: 5, size: 4 }));
 const mockReadDirectory = vi.fn();
 const mockScrollToIndex = vi.fn();
 
@@ -18,12 +19,15 @@ vi.mock('@tanstack/react-virtual', () => ({
   useVirtualizer: vi.fn(({ count }: { count: number }) => ({
     getTotalSize: () => count * 30,
     getVirtualItems: () =>
-      Array.from({ length: Math.min(count, 4) }, (_, offset) => ({
-        key: offset + 5,
-        index: offset + 5,
-        start: (offset + 5) * 30,
-        size: 30,
-      })),
+      Array.from(
+        { length: Math.min(count - virtualWindow.start, virtualWindow.size) },
+        (_, offset) => ({
+          key: offset + virtualWindow.start,
+          index: offset + virtualWindow.start,
+          start: (offset + virtualWindow.start) * 30,
+          size: 30,
+        }),
+      ),
     scrollToIndex: mockScrollToIndex,
   })),
 }));
@@ -76,7 +80,29 @@ describe('ColumnView', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    virtualWindow.start = 5;
+    virtualWindow.size = 4;
     mockReadDirectory.mockResolvedValue([]);
+  });
+  it('keeps a single visible column entry after the selected file scrolls out of the virtual window', () => {
+    const files = Array.from({ length: 220 }, (_, index) => ({
+      ...sampleFiles[1],
+      path: `/files/${index}.txt`,
+      name: `${index}.txt`,
+    }));
+    const content = () => (
+      <ColumnView {...defaultProps} files={files} selectedFiles={new Set([files[0].path])} />
+    );
+    const { container, rerender } = render(content());
+    const entries = () =>
+      Array.from(container.querySelectorAll<HTMLElement>('[data-file-path]')).filter(
+        (row) => row.tabIndex === 0,
+      );
+    expect(entries().map((row) => row.dataset.filePath)).toEqual(['/files/5.txt']);
+    expect(screen.getByRole('listbox')).toHaveAttribute('tabindex', '-1');
+    virtualWindow.start = 0;
+    rerender(content());
+    expect(entries().map((row) => row.dataset.filePath)).toEqual(['/files/0.txt']);
   });
 
   describe('Rendering', () => {

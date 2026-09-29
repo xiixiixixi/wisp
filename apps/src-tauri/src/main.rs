@@ -315,11 +315,15 @@ fn main() {
             operations::write_text_file,
             operations::extract_document_text,
             operations::preview_convert_image,
+            operations::preview_asset_allowed,
             operations::preview_doc_html,
             operations::preview_plist_xml,
             operations::preview_ql_thumbnail,
             operations::preview_open_ql_preview,
             operations::preview_open_ql_panel,
+            operations::preview_mount_ql_view,
+            operations::preview_update_ql_view,
+            operations::preview_close_ql_view,
             operations::preview_iwork_pdf,
             operations::preview_epub,
             operations::preview_remux_media,
@@ -686,6 +690,9 @@ fn main() {
             sync::get_auto_sync_status,
         ])
         .on_window_event(|window, event| {
+            if let WindowEvent::Destroyed = event {
+                operations::close_ql_view_for_window(window.label());
+            }
             if let WindowEvent::CloseRequested { api, .. } = event {
                 duplicate_finder::cancel_current_scan();
                 file_watcher::stop_primary_watcher();

@@ -6,18 +6,20 @@ import { TauriAPI } from '@/lib/tauri-api';
 import { convertAssetUrl, isTauri } from '@/lib/transport';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
 import { previewErrorText } from '@/lib/preview-error';
+import { isMacPlatform } from '@/lib/shortcut-utils';
+import NativeFilePreview from './NativeFilePreview';
 
 type MammothModule = typeof import('mammoth');
 
 /**
- * Word/RichText document preview, Finder-parity pipeline:
+ * Portable Word/RichText fallback when embedded system preview is unavailable:
  * 1. Rust bridge runs macOS `textutil` (NSAttributedString) → HTML with the
  *    document's formatting; rendered in a script-blocked sandboxed iframe so
  *    inline images extracted next to the HTML load via the asset protocol.
  * 2. .docx falls back to mammoth (semantic HTML) when textutil is unavailable
  *    (non-macOS) or the conversion fails.
  */
-const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
+const ConvertedDocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
   const { t: tUi } = useTranslation();
   const [htmlPath, setHtmlPath] = useState<string | null>(null);
   const [htmlContent, setHtmlContent] = useState<string>('');
@@ -34,7 +36,7 @@ const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
         setHtmlPath(null);
         setHtmlContent('');
 
-        // 1. Native macOS conversion — the same engine Quick Look renders with.
+        // 1. Basic rich-text conversion. It does not preserve full page layout.
         if (isTauri()) {
           const converted = await TauriAPI.previewDocHtml(file.path).catch(() => null);
           if (myAttempt !== attemptRef.current) return;
@@ -108,13 +110,15 @@ const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
           {isTauri() && (
             <button
               type="button"
-              onClick={() => void (async () => {
-                try {
-                  await TauriAPI.previewOpenQlPanel(file.path);
-                } catch {
-                  await TauriAPI.previewOpenQlPreview(file.path);
-                }
-              })()}
+              onClick={() =>
+                void (async () => {
+                  try {
+                    await TauriAPI.previewOpenQlPanel(file.path);
+                  } catch {
+                    await TauriAPI.previewOpenQlPreview(file.path);
+                  }
+                })()
+              }
               className="mt-3 rounded-md border border-xp-border px-2.5 py-1.5 text-xs text-xp-text transition-colors hover:bg-xp-surface-light"
             >
               {tUi('previewPanel.openSystemQuickLook')}
@@ -137,7 +141,7 @@ const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
             className="h-full w-full border-0 bg-white"
           />
         </div>
-        <div className="flex-shrink-0 px-1 text-[10px] text-xp-text-muted">{file.name}</div>
+        <div className="flex-shrink-0 px-1 text-xs text-xp-text-muted">{file.name}</div>
       </div>
     );
   }
@@ -153,6 +157,18 @@ const DocumentPreview = ({ file, onError, onLoad }: PreviewProps) => {
       />
     </div>
   );
+};
+
+const DocumentPreview = (props: PreviewProps) => {
+  const extension = props.file.name.split('.').pop()?.toLowerCase();
+  if (isTauri() && isMacPlatform() && (extension === 'doc' || extension === 'docx')) {
+    return (
+      <NativeFilePreview key={props.file.path} {...props}>
+        <ConvertedDocumentPreview {...props} />
+      </NativeFilePreview>
+    );
+  }
+  return <ConvertedDocumentPreview {...props} />;
 };
 
 export default React.memo(DocumentPreview);

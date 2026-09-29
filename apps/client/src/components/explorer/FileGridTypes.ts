@@ -2,6 +2,8 @@ import React from 'react';
 import { FileEntry, FolderSizeInfo, FileTag } from '@/lib/tauri-api';
 
 export interface ViewComponentProps {
+  /** One keyboard entry point for the whole file collection. */
+  tabStopPath?: string;
   files: FileEntry[];
   selectedFiles: Set<string>;
   currentPath: string;
@@ -32,6 +34,7 @@ export interface ViewComponentProps {
 }
 
 export interface FileGridItemProps {
+  tabStopPath?: string;
   onQuickLook?: (file: FileEntry) => void;
   file: FileEntry;
   isSelected: boolean;

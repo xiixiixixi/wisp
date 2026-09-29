@@ -34,7 +34,7 @@ const barStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   borderBottom: '1px solid var(--xp-border)',
-  background: 'var(--xp-surface)',
+  background: 'transparent',
   flexShrink: 0,
 };
 
@@ -49,8 +49,8 @@ const arrowBtnStyle: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  width: 24,
-  height: 24,
+  width: 30,
+  height: 30,
   borderRadius: 4,
   border: '1px solid var(--xp-border)',
   background: 'transparent',
@@ -69,7 +69,7 @@ const arrowBtnDisabledStyle: React.CSSProperties = {
 };
 
 const posIndicatorStyle: React.CSSProperties = {
-  fontSize: 11,
+  fontSize: 12,
   color: 'var(--xp-text-secondary)',
   whiteSpace: 'nowrap',
   userSelect: 'none',
@@ -95,7 +95,7 @@ const tabStyle: React.CSSProperties = {
   border: '1px solid transparent',
   background: 'transparent',
   color: 'var(--xp-text-secondary)',
-  fontSize: 11,
+  fontSize: 12,
   cursor: 'pointer',
   whiteSpace: 'nowrap',
   flexShrink: 0,
@@ -146,7 +146,7 @@ const recentDropdownBtnStyle: React.CSSProperties = {
   border: '1px solid var(--xp-border)',
   background: 'transparent',
   color: 'var(--xp-text-secondary)',
-  fontSize: 10,
+  fontSize: 12,
   cursor: 'pointer',
   marginLeft: 'auto',
   flexShrink: 0,
@@ -175,7 +175,7 @@ const dropdownItemStyle: React.CSSProperties = {
   alignItems: 'center',
   gap: 8,
   padding: '6px 12px',
-  fontSize: 11,
+  fontSize: 12,
   color: 'var(--xp-text)',
   cursor: 'pointer',
   background: 'transparent',
@@ -194,7 +194,7 @@ const compareToggleStyle: React.CSSProperties = {
   border: '1px solid var(--xp-border)',
   background: 'transparent',
   color: 'var(--xp-text-secondary)',
-  fontSize: 10,
+  fontSize: 12,
   cursor: 'pointer',
   flexShrink: 0,
   transition: 'background 0.12s, color 0.12s',
@@ -279,6 +279,11 @@ const PreviewNavigationBar = ({
   const tabStripRef = useRef<HTMLDivElement>(null);
   const [recentOpen, setRecentOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const recentButtonRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (recentOpen)
+      {dropdownRef.current?.querySelector<HTMLButtonElement>('[role=menuitem]')?.focus();}
+  }, [recentOpen]);
 
   const total = files.length;
   const canPrev = currentIndex > 0;
@@ -290,7 +295,7 @@ const PreviewNavigationBar = ({
     if (!strip) return;
     const activeTab = strip.children[currentIndex] as HTMLElement | undefined;
     if (activeTab) {
-      activeTab.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+      activeTab.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
     }
   }, [currentIndex]);
 
@@ -366,6 +371,7 @@ const PreviewNavigationBar = ({
           <button
             style={compareMode ? compareToggleActiveStyle : compareToggleStyle}
             onClick={onCompareToggle}
+            aria-pressed={compareMode}
             title={i18n.t('previewNav.comparePrev')}
             aria-label={tUi('previewNav.comparePrev')}
             onMouseEnter={(e) => {
@@ -392,6 +398,9 @@ const PreviewNavigationBar = ({
         {/* Recent dropdown */}
         <div style={{ position: 'relative', marginLeft: 'auto' }} ref={dropdownRef}>
           <button
+            ref={recentButtonRef}
+            aria-haspopup="menu"
+            aria-expanded={recentOpen}
             style={recentDropdownBtnStyle}
             onClick={() => setRecentOpen(!recentOpen)}
             title={i18n.t('previewNav.recentPreviewed')}
@@ -409,12 +418,33 @@ const PreviewNavigationBar = ({
           </button>
 
           {recentOpen && (
-            <div style={dropdownStyle}>
+            <div
+              style={dropdownStyle}
+              role="menu"
+              aria-label={tUi('previewNav.recentPreviewed')}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                  event.stopPropagation();
+                  setRecentOpen(false);
+                  recentButtonRef.current?.focus();
+                }
+                if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                  event.preventDefault();
+                  const items = Array.from(
+                    event.currentTarget.querySelectorAll<HTMLButtonElement>('[role=menuitem]'),
+                  );
+                  const active = items.indexOf(document.activeElement as HTMLButtonElement);
+                  items[
+                    (active + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length
+                  ]?.focus();
+                }
+              }}
+            >
               {historyItems.length === 0 ? (
                 <div
                   style={{
                     padding: '12px 16px',
-                    fontSize: 11,
+                    fontSize: 12,
                     color: 'var(--xp-text-secondary)',
                     textAlign: 'center',
                   }}
@@ -424,6 +454,7 @@ const PreviewNavigationBar = ({
               ) : (
                 historyItems.map((entry) => (
                   <button
+                    role="menuitem"
                     key={entry.file.path}
                     style={dropdownItemStyle}
                     onClick={() => {
@@ -480,7 +511,7 @@ const PreviewNavigationBar = ({
               style={isActive ? activeTabStyle : tabStyle}
               onClick={() => onIndexChange(idx)}
               title={file.name}
-              aria-label={`Preview ${file.name}`}
+              aria-label={tUi('panelActions.previewFile', { name: file.name })}
               aria-current={isActive ? 'true' : undefined}
               onMouseEnter={(e) => {
                 if (!isActive) {

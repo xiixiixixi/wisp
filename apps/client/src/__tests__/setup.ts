@@ -229,6 +229,9 @@ vi.mock('@/lib/utils', () => ({
 }));
 
 // jsdom doesn't implement scrollIntoView
+if (typeof Element !== 'undefined' && typeof Element.prototype.scrollTo !== 'function') {
+  Element.prototype.scrollTo = vi.fn();
+}
 if (typeof Element !== 'undefined' && typeof Element.prototype.scrollIntoView !== 'function') {
   Element.prototype.scrollIntoView = vi.fn();
 }

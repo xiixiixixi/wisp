@@ -330,6 +330,7 @@ const FileGridItem = React.memo(
     onQuickLook,
     file,
     isSelected,
+    tabStopPath,
     tags,
     gitStatus,
     isGridView,
@@ -462,14 +463,15 @@ const FileGridItem = React.memo(
           name: file.name,
         })}
         data-file-path={file.path}
+        data-file-presentation={isGridView ? 'thumbnail' : 'row'}
         tabIndex={
-          isSelected || (selectedFiles.size === 0 && allFiles[0]?.path === file.path) ? 0 : -1
+          (tabStopPath ??
+            allFiles.find((entry) => selectedFiles.has(entry.path))?.path ??
+            allFiles[0]?.path) === file.path
+            ? 0
+            : -1
         }
-        className={`cursor-pointer rounded-md transition-colors duration-150 ${
-          isSelected
-            ? 'bg-xp-selection border border-xp-blue ring-1 ring-xp-blue'
-            : 'border border-transparent hover:bg-xp-surface-light'
-        } ${(() => {
+        className={`wisp-file-item cursor-default rounded-md transition-colors duration-150 ${(() => {
           if (isGridView) return 'min-w-0 overflow-hidden p-3 text-center';
           if (isListView) {
             return 'flex min-w-0 items-center space-x-2 overflow-hidden p-2 text-left';
@@ -521,7 +523,7 @@ const FileGridItem = React.memo(
         </div>
         <div className={`${isGridView ? 'w-full min-w-0' : 'min-w-0 flex-1'} select-none`}>
           <div
-            className={`font-normal ${isHiddenFile(file) && !isRenaming ? 'text-xp-text-muted' : 'text-xp-text'} ${isRenaming ? '' : 'overflow-hidden'} ${isListView ? 'text-xs' : 'text-sm'} ${isGridView ? 'justify-center' : ''} flex items-center`}
+            className={`wisp-file-name font-normal ${isHiddenFile(file) && !isRenaming ? 'text-xp-text-muted' : 'text-xp-text'} ${isRenaming ? '' : 'overflow-hidden'} ${isListView ? 'text-xs' : 'text-sm'} ${isGridView ? 'justify-center' : ''} flex items-center`}
             style={isRenaming ? { position: 'relative', overflow: 'visible' } : undefined}
           >
             {renderNameArea()}

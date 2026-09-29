@@ -6,7 +6,7 @@
  * "Resume" relaunches the session in an embedded terminal via the CLI agent
  * launch chain (auto-creates the terminal tab).
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { History, RefreshCw } from 'lucide-react';
 import { isTauri } from '@/lib/transport';
@@ -23,7 +23,7 @@ const rowStyle: React.CSSProperties = {
   gap: '6px',
   padding: '4px 6px',
   border: '1px solid var(--xp-border)',
-  borderRadius: '4px',
+  borderRadius: '7px',
   background: 'var(--xp-surface)',
   marginBottom: '4px',
 };
@@ -38,21 +38,31 @@ const ProjectMemorySection = ({ currentPath }: ProjectMemorySectionProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cwd, setCwd] = useState('');
+  const version = useRef(0);
+  const latestPath = useRef(currentPath);
+  latestPath.current = currentPath;
 
   const load = useCallback(async () => {
     const path = currentPath;
-    if (!path) return;
+    const request = ++version.current;
+    setSessions([]);
+    if (!path || path.includes('://')) {
+      setCwd('');
+      setLoading(false);
+      return;
+    }
     setCwd(path);
     setLoading(true);
     setError(null);
     try {
       const result = await projectMemorySessions(path);
-      setSessions(result);
+      if (request === version.current && latestPath.current === path) setSessions(result);
     } catch (err) {
+      if (request !== version.current || latestPath.current !== path) return;
       setError(err instanceof Error ? err.message : String(err));
       setSessions([]);
     } finally {
-      setLoading(false);
+      if (request === version.current) setLoading(false);
     }
   }, [currentPath]);
 
@@ -63,6 +73,7 @@ const ProjectMemorySection = ({ currentPath }: ProjectMemorySectionProps) => {
   if (!isTauri()) return null;
 
   const handleResume = (session: ProjectSession) => {
+    if (loading || cwd !== currentPath) return;
     const command =
       session.agent === 'claude-code'
         ? `claude --resume ${session.id}`
@@ -77,7 +88,7 @@ const ProjectMemorySection = ({ currentPath }: ProjectMemorySectionProps) => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
         <span
           style={{
-            fontSize: '10px',
+            fontSize: '12px',
             color: 'var(--xp-text-muted)',
             flex: 1,
             overflow: 'hidden',
@@ -93,12 +104,14 @@ const ProjectMemorySection = ({ currentPath }: ProjectMemorySectionProps) => {
         <button
           type="button"
           onClick={() => void load()}
+          disabled={loading}
+          aria-label={t('agentManager.projectMemory.refresh')}
           title={t('agentManager.projectMemory.refresh')}
           style={{
             background: 'none',
             border: '1px solid var(--xp-border)',
-            borderRadius: '4px',
-            padding: '1px 4px',
+            borderRadius: '7px',
+            padding: '6px 8px',
             cursor: 'pointer',
             color: 'var(--xp-text-muted)',
             display: 'inline-flex',
@@ -109,63 +122,65 @@ const ProjectMemorySection = ({ currentPath }: ProjectMemorySectionProps) => {
       </div>
 
       {error && (
-        <div style={{ fontSize: '10px', color: 'var(--xp-red)', padding: '2px 0' }}>
+        <div style={{ fontSize: '12px', color: 'var(--xp-red)', padding: '2px 0' }}>
           {t('agentManager.projectMemory.loadError')}: {error}
         </div>
       )}
 
       {!error && !loading && sessions.length === 0 && (
-        <div style={{ fontSize: '10px', color: 'var(--xp-text-muted)', padding: '4px 2px' }}>
+        <div style={{ fontSize: '12px', color: 'var(--xp-text-muted)', padding: '4px 2px' }}>
           <History size={11} style={{ verticalAlign: -1, marginRight: 4 }} />
           {t('agentManager.projectMemory.empty')}
         </div>
       )}
 
-      {sessions.map((session) => (
-        <div key={`${session.agent}-${session.id}`} style={rowStyle}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
+      {cwd === currentPath &&
+        sessions.map((session) => (
+          <div key={`${session.agent}-${session.id}`} style={rowStyle}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: '12px',
+                  color: 'var(--xp-text)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+                title={session.title}
+              >
+                {session.title}
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--xp-text-muted)' }}>
+                {agentLabel(session.agent)} ·{' '}
+                {session.lastActivity
+                  ? formatRelativeTime(Date.parse(session.lastActivity) || Date.now())
+                  : ''}
+                {session.changedFiles.length > 0 &&
+                  ` · ${t('agentManager.projectMemory.changedFiles', {
+                    count: session.changedFiles.length,
+                  })}`}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleResume(session)}
+              disabled={loading}
               style={{
-                fontSize: '11px',
-                color: 'var(--xp-text)',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
+                background: 'none',
+                border: '1px solid var(--xp-border)',
+                borderRadius: '7px',
+                padding: '6px 10px',
+                fontSize: '12px',
+                color: 'var(--xp-text-muted)',
+                cursor: 'pointer',
+                flexShrink: 0,
               }}
-              title={session.title}
+              title={t('agentManager.projectMemory.resumeHint')}
             >
-              {session.title}
-            </div>
-            <div style={{ fontSize: '10px', color: 'var(--xp-text-muted)' }}>
-              {agentLabel(session.agent)} ·{' '}
-              {session.lastActivity
-                ? formatRelativeTime(Date.parse(session.lastActivity) || Date.now())
-                : ''}
-              {session.changedFiles.length > 0 &&
-                ` · ${t('agentManager.projectMemory.changedFiles', {
-                  count: session.changedFiles.length,
-                })}`}
-            </div>
+              {t('agentManager.projectMemory.resume')}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => handleResume(session)}
-            style={{
-              background: 'none',
-              border: '1px solid var(--xp-border)',
-              borderRadius: '4px',
-              padding: '2px 6px',
-              fontSize: '10px',
-              color: 'var(--xp-text-muted)',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
-            title={t('agentManager.projectMemory.resumeHint')}
-          >
-            {t('agentManager.projectMemory.resume')}
-          </button>
-        </div>
-      ))}
+        ))}
     </div>
   );
 };

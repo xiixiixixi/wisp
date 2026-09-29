@@ -6,16 +6,20 @@ import type { FileEntry } from '@/lib/tauri-api';
 import { requestAdjacentFile } from '@/lib/file-navigation';
 
 vi.mock('@/lib/utils', () => ({ formatDateTimeShort: () => '2026-01-01' }));
+const virtualWindow = vi.hoisted(() => ({ start: 0, size: Infinity }));
 vi.mock('@tanstack/react-virtual', () => ({
   useVirtualizer: ({ count }: { count: number }) => ({
     getTotalSize: () => count * 68,
     getVirtualItems: () =>
-      Array.from({ length: count }, (_, index) => ({
-        key: index,
-        index,
-        start: index * 68,
-        size: 68,
-      })),
+      Array.from(
+        { length: Math.min(count - virtualWindow.start, virtualWindow.size) },
+        (_, offset) => ({
+          key: offset + virtualWindow.start,
+          index: offset + virtualWindow.start,
+          start: (offset + virtualWindow.start) * 68,
+          size: 68,
+        }),
+      ),
     scrollToIndex: vi.fn(),
   }),
 }));
@@ -110,6 +114,33 @@ describe('GalleryView', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    virtualWindow.start = 0;
+    virtualWindow.size = Infinity;
+  });
+  it('keeps one filmstrip entry when scrolling away from the selected thumbnail', () => {
+    const files = Array.from({ length: 220 }, (_, index) => ({
+      ...imageFiles[0],
+      path: `/photos/${index}.jpg`,
+      name: `${index}.jpg`,
+    }));
+    virtualWindow.start = 150;
+    virtualWindow.size = 4;
+    const content = () => (
+      <GalleryView {...defaultProps} files={files} selectedFiles={new Set([files[0].path])} />
+    );
+    const { container, rerender } = render(content());
+    const entries = () =>
+      Array.from(container.querySelectorAll<HTMLElement>('[data-file-path]')).filter(
+        (row) => row.tabIndex === 0,
+      );
+    expect(entries().map((row) => row.dataset.filePath)).toEqual(['/photos/150.jpg']);
+    expect(container.querySelector('.wisp-file-selection-surface')).toHaveAttribute(
+      'tabindex',
+      '-1',
+    );
+    virtualWindow.start = 0;
+    rerender(content());
+    expect(entries().map((row) => row.dataset.filePath)).toEqual(['/photos/0.jpg']);
   });
 
   describe('Adjacent file navigation', () => {

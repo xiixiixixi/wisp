@@ -5,6 +5,7 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 vi.mock('@/lib/transport', () => ({
   isTauri: () => false,
@@ -17,7 +18,16 @@ vi.mock('@/lib/transport', () => ({
 vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {
     getAgentSettings: vi.fn(() =>
-      Promise.resolve({ enabled: true, model: 'ollama:llama3.2', max_turns: 25, autoApprove: false, thinkingEnabled: false, thinkingBudget: 10000, hasApiKey: false, hasOpenaiApiKey: false }),
+      Promise.resolve({
+        enabled: true,
+        model: 'ollama:llama3.2',
+        max_turns: 25,
+        autoApprove: false,
+        thinkingEnabled: false,
+        thinkingBudget: 10000,
+        hasApiKey: false,
+        hasOpenaiApiKey: false,
+      }),
     ),
   },
 }));
@@ -44,7 +54,7 @@ describe('PiChatPanel', () => {
   it('prefills the input when a quick action dispatches wisp-ai-chat-request', async () => {
     render(<PiChatPanel currentPath="/Users/x/Downloads" />);
     // panel settled
-    expect(await screen.findByTestId('pi-chat-mode-folder')).toBeInTheDocument();
+    expect(await screen.findByTestId('pi-chat-mode')).toBeInTheDocument();
 
     window.dispatchEvent(
       new CustomEvent('wisp-ai-chat-request', {
@@ -58,50 +68,84 @@ describe('PiChatPanel', () => {
 
   it('switches between folder and quick modes', async () => {
     render(<PiChatPanel currentPath="/Users/x/Downloads" />);
-    const folderBtn = await screen.findByTestId('pi-chat-mode-folder');
-    const quickBtn = screen.getByTestId('pi-chat-mode-quick');
+    const modePicker = await screen.findByTestId('pi-chat-mode');
 
-    expect(screen.getByText('/Users/x/Downloads')).toBeInTheDocument();
-    fireEvent.click(quickBtn);
-    await waitFor(() => expect(screen.queryByText('/Users/x/Downloads')).not.toBeInTheDocument());
+    expect(modePicker).toHaveAccessibleName(/\/Users\/x\/Downloads/);
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    fireEvent.click(modePicker);
+    expect(screen.getByTestId('pi-chat-mode-folder')).toHaveAttribute('aria-checked', 'true');
+    fireEvent.click(screen.getByTestId('pi-chat-mode-quick'));
+    await waitFor(() => expect(modePicker).toHaveAccessibleName(/Quick|速聊/i));
+    expect(modePicker).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
 
-    fireEvent.click(folderBtn);
-    await waitFor(() => expect(screen.getByText('/Users/x/Downloads')).toBeInTheDocument());
+    fireEvent.click(modePicker);
+    expect(screen.getByTestId('pi-chat-mode-quick')).toHaveAttribute('aria-checked', 'true');
+    fireEvent.click(screen.getByTestId('pi-chat-mode-folder'));
+    await waitFor(() => expect(modePicker).toHaveAccessibleName(/\/Users\/x\/Downloads/));
+  });
+
+  it('keeps model settings reachable after changing mode from the icon menu', async () => {
+    const user = userEvent.setup();
+    const openSettings = vi.fn();
+    window.addEventListener('wisp-open-settings', openSettings);
+
+    try {
+      render(<PiChatPanel currentPath="/Users/x/Downloads" />);
+      const modePicker = await screen.findByTestId('pi-chat-mode');
+      await user.click(modePicker);
+      await user.click(screen.getByRole('menuitemradio', { name: /Quick|速聊/i }));
+      expect(modePicker).toHaveAccessibleName(/Quick|速聊/i);
+
+      const settingsButton = await screen.findByTestId('pi-chat-open-settings');
+      expect(settingsButton).toHaveAccessibleName();
+      await user.click(settingsButton);
+
+      expect(openSettings).toHaveBeenCalledTimes(1);
+      expect((openSettings.mock.calls[0][0] as CustomEvent).detail.returnFocus).toBe(
+        settingsButton,
+      );
+    } finally {
+      window.removeEventListener('wisp-open-settings', openSettings);
+    }
   });
 
   it('re-derives the mode from navigation: quick does not stick across folders', async () => {
     const view = render(<PiChatPanel currentPath="/Users/x/Downloads" />);
-    await view.findByTestId('pi-chat-mode-folder');
+    const modePicker = await view.findByTestId('pi-chat-mode');
     // 手动切到速聊
+    fireEvent.click(modePicker);
     fireEvent.click(view.getByTestId('pi-chat-mode-quick'));
-    await waitFor(() => expect(view.getByTestId('pi-chat-mode-quick').className).toContain('font-medium'));
+    await waitFor(() => expect(modePicker).toHaveAccessibleName(/Quick|速聊/i));
 
     // 切换到另一个文件夹 → 回到文件夹模式（速聊不跟随）
     view.rerender(<PiChatPanel currentPath="/Users/x/Documents" />);
-    await waitFor(() => expect(view.getByTestId('pi-chat-mode-folder').className).toContain('font-medium'));
-    expect(view.getByText('/Users/x/Documents')).toBeInTheDocument();
+    await waitFor(() => expect(modePicker).toHaveAccessibleName(/\/Users\/x\/Documents/));
 
     // 主页等虚拟路径 → 速聊
     view.rerender(<PiChatPanel currentPath="wisp://home" />);
-    await waitFor(() => expect(view.getByTestId('pi-chat-mode-quick').className).toContain('font-medium'));
+    await waitFor(() => expect(modePicker).toHaveAccessibleName(/Quick|速聊/i));
   });
 
   it('shows the permission picker, defaults to ask, and full access persists', async () => {
     localStorage.removeItem('wisp:pi-permission');
     const view = render(<PiChatPanel currentPath="/Users/x" />);
     const picker = await view.findByTestId('pi-permission-picker');
-    expect(picker).toHaveTextContent(/先询问|Ask first/i);
+    expect(picker).toHaveAccessibleName(/先询问|Ask first/i);
 
     fireEvent.click(picker);
     const full = await view.findByRole('menuitem', { name: /完全访问|Full access/i });
     fireEvent.click(full);
+    expect(localStorage.getItem('wisp:pi-permission')).toBe('ask');
+    expect(screen.getByRole('dialog')).toHaveTextContent(/future chats/);
+    fireEvent.click(screen.getByRole('button', { name: /Full access/i }));
     await waitFor(() => expect(localStorage.getItem('wisp:pi-permission')).toBe('full'));
-    expect(picker).toHaveTextContent(/完全访问|Full access/i);
+    expect(picker).toHaveAccessibleName(/完全访问|Full access/i);
   });
 
   it('shows the approval bar shape only after a request (none by default)', async () => {
     render(<PiChatPanel currentPath="/Users/x" />);
-    await screen.findByTestId('pi-chat-mode-folder');
+    await screen.findByTestId('pi-chat-mode');
     expect(screen.queryByTestId('pi-chat-approval')).not.toBeInTheDocument();
   });
 
@@ -109,22 +153,24 @@ describe('PiChatPanel', () => {
     localStorage.removeItem('wisp:pi-thinking');
     render(<PiChatPanel currentPath="/Users/x" />);
     const picker = await screen.findByTestId('pi-thinking-picker');
-    // 默认 auto —— 面板文字不带高亮
-    expect(picker).toHaveTextContent(/Auto|自动/i);
+    // 图标入口通过无障碍名称与悬停提示表达当前档位。
+    expect(picker).toHaveAccessibleName(/Auto|自动/i);
+    expect(picker).toHaveAttribute('title', expect.stringMatching(/Auto|自动/i));
 
     fireEvent.click(picker);
     const high = await screen.findByRole('menuitem', { name: /High|高/i });
     fireEvent.click(high);
 
     await waitFor(() => expect(localStorage.getItem('wisp:pi-thinking')).toBe('high'));
-    expect(picker).toHaveTextContent(/High|高/i);
+    expect(picker).toHaveAccessibleName(/High|高/i);
+    expect(picker).toHaveAttribute('title', expect.stringMatching(/High|高/i));
   });
 
   // ── 画布模式 ────────────────────────────────────────────────────────────────
 
   it('shows a selection chip and composes the edit-only prompt on send', async () => {
     render(<PiChatPanel currentPath="/Users/x" />);
-    await screen.findByTestId('pi-chat-mode-folder');
+    await screen.findByTestId('pi-chat-mode');
 
     window.dispatchEvent(
       new CustomEvent('wisp-ai-chat-request', {
@@ -154,17 +200,13 @@ describe('PiChatPanel', () => {
       expect(screen.getByText(/把这段改得简洁一些/)).toBeInTheDocument();
     });
     // 发送后选区 chip 清空
-    await waitFor(() =>
-      expect(screen.queryByTestId('pi-selection-chip')).not.toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.queryByTestId('pi-selection-chip')).not.toBeInTheDocument());
   });
 
   it('canvas toggle: turning on dispatches wisp-canvas-request, turning off calls onCanvasChange(false)', async () => {
     const onCanvasChange = vi.fn();
-    const view = render(
-      <PiChatPanel currentPath="/Users/x" onCanvasChange={onCanvasChange} />,
-    );
-    await view.findByTestId('pi-chat-mode-folder');
+    const view = render(<PiChatPanel currentPath="/Users/x" onCanvasChange={onCanvasChange} />);
+    await view.findByTestId('pi-chat-mode');
 
     const spy = vi.fn();
     window.addEventListener('wisp-canvas-request', spy);
@@ -188,7 +230,7 @@ describe('PiChatPanel', () => {
   it('shows welcome suggestions only after a model is configured (never as a bottom strip)', async () => {
     // 未配置模型：无建议词条，只有配置引导
     const bare = render(<PiChatPanel currentPath="/Users/x" />);
-    await bare.findByTestId('pi-chat-mode-folder');
+    await bare.findByTestId('pi-chat-mode');
     expect(bare.queryAllByTestId('pi-suggestion')).toHaveLength(0);
     expect(bare.getByTestId('pi-chat-open-settings')).toBeInTheDocument();
     bare.unmount();
@@ -198,7 +240,7 @@ describe('PiChatPanel', () => {
       { ref: 'openai:gpt-4o-mini', label: 'GPT-4o mini', providerLabel: 'OpenAI' },
     ]);
     const view = render(<PiChatPanel currentPath="/Users/x" />);
-    await view.findByTestId('pi-chat-mode-folder');
+    await view.findByTestId('pi-chat-mode');
     const chips = await view.findAllByTestId('pi-suggestion');
     expect(chips).toHaveLength(4);
     // 点词条 → 填入输入盒
@@ -208,7 +250,7 @@ describe('PiChatPanel', () => {
 
   it('quick actions menu fills the input with a ready-made prompt', async () => {
     const view = render(<PiChatPanel currentPath="/Users/x" />);
-    await view.findByTestId('pi-chat-mode-folder');
+    await view.findByTestId('pi-chat-mode');
 
     fireEvent.click(view.getByTestId('pi-quick-actions'));
     const items = await view.findAllByRole('menuitem');
@@ -225,7 +267,7 @@ describe('PiChatPanel', () => {
 
   it('typing "/" opens the slash menu, filtering works, Enter executes and clears', async () => {
     const view = render(<PiChatPanel currentPath="/Users/x" />);
-    await view.findByTestId('pi-chat-mode-folder');
+    await view.findByTestId('pi-chat-mode');
 
     const textarea = view.getByRole('textbox');
     fireEvent.change(textarea, { target: { value: '/' } });
@@ -257,7 +299,7 @@ describe('PiChatPanel', () => {
       },
     ]);
     const view = render(<PiChatPanel currentPath="/Users/x" />);
-    await view.findByTestId('pi-chat-mode-folder');
+    await view.findByTestId('pi-chat-mode');
 
     const textarea = view.getByRole('textbox');
     fireEvent.change(textarea, { target: { value: '/sle' } });
@@ -273,7 +315,7 @@ describe('PiChatPanel', () => {
 
   it('Escape dismisses the slash menu until the next "/" session', async () => {
     const view = render(<PiChatPanel currentPath="/Users/x" />);
-    await view.findByTestId('pi-chat-mode-folder');
+    await view.findByTestId('pi-chat-mode');
 
     const textarea = view.getByRole('textbox');
     fireEvent.change(textarea, { target: { value: '/new' } });
@@ -291,7 +333,7 @@ describe('PiChatPanel', () => {
 
   it('stacks multiple quotes and composes all of them into the prompt', async () => {
     render(<PiChatPanel currentPath="/Users/x" />);
-    await screen.findByTestId('pi-chat-mode-folder');
+    await screen.findByTestId('pi-chat-mode');
 
     const dispatch = (text: string, file: string) =>
       window.dispatchEvent(
@@ -318,14 +360,12 @@ describe('PiChatPanel', () => {
       expect(screen.getByText(/第二段被引用的内容/)).toBeInTheDocument();
     });
     // 发送后引用条清空
-    await waitFor(() =>
-      expect(screen.queryByTestId('pi-selection-chip')).not.toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.queryByTestId('pi-selection-chip')).not.toBeInTheDocument());
   });
 
   it('the + button clears the draft and selection, not just hidden state', async () => {
     const view = render(<PiChatPanel currentPath="/Users/x" />);
-    await view.findByTestId('pi-chat-mode-folder');
+    await view.findByTestId('pi-chat-mode');
 
     window.dispatchEvent(
       new CustomEvent('wisp-ai-chat-request', {

@@ -27,8 +27,12 @@ colors:
   lg-glass-stroke-strong: "rgb(255 255 255 / 94%)"
   lg-divider: "rgb(40 43 51 / 10%)"
 typography:
+  control: {fontSize: "13px", lineHeight: "18px"}
+  helper: {fontSize: "12px", lineHeight: "18px"}
+  section: {fontSize: "14px", lineHeight: "20px"}
   body:
     fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif'
+    fontSize: "13px"
     letterSpacing: "-0.008em"
   title: {fontSize: "1.25rem", fontWeight: 600, lineHeight: "1.75rem"}
   label: {fontSize: "0.75rem", fontWeight: 500, lineHeight: "1rem"}
@@ -71,7 +75,7 @@ components:
 
 **Creative North Star: "Apple-inspired Liquid Glass workspace"**
 
-Wisp is an always-light file workspace with a neutral silver ambient ground, a transparent titlebar/sidebar surround, a lifted white file canvas, and a frosted inspector. The canvas and inspector have matching rounded 20px edges; the previous blue wash has been replaced while blue remains the interaction accent. This documents the implemented, user-authorized redesign. The visual sequence supports navigating, selecting, previewing, and acting; this is a CSS material approximation, not Apple's native Liquid Glass renderer.
+Historical baseline (superseded by the September 28 two-appearance redesign): Wisp used a light-only file workspace with a neutral silver ambient ground, a transparent titlebar/sidebar surround, a lifted white file canvas, and a frosted inspector. The canvas and inspector have matching rounded 20px edges; the previous blue wash has been replaced while blue remains the interaction accent. This documents the implemented, user-authorized redesign. The visual sequence supports navigating, selecting, previewing, and acting; this is a CSS material approximation, not Apple's native Liquid Glass renderer.
 
 **Key Characteristics:**
 
@@ -182,7 +186,7 @@ Cleanup verification: 134 focused frontend tests and 62 Rust file-operation/encr
 
 ## Do's and Don'ts
 
-- Do preserve the always-light silver surround, white canvas, frosted inspector, and user-selected Liquid Glass direction.
+- Support light, dark, and system appearance. Keep the central file area and sidebar planes transparent, without added background fills. Do not show the filename tabs, previous/next controls, or recent-history bar above sidebar previews. Settings category selection must not use a thick blue left stripe. Individual controls and document pages retain their readable surfaces. Verify the current rendered interface rather than relying on historical captures.
 - Do reuse final fluid tokens, shared controls, keyboard focus, and saved pane preferences.
 - Do keep filenames, selection, previews, and current location readable at narrow widths.
 - Do keep the 64px titlebar/header rhythm, 56px action rail, nonwrapping selection controls, 44px file rows, and 16px content gutters. Wrap extremely narrow path navigation rather than hiding the current directory; do not repeat inspector footer metadata above the preview.

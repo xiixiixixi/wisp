@@ -5,6 +5,7 @@ import { FileEntry, TauriAPI } from '@/lib/tauri-api';
 import { ViewComponentProps } from './FileGridTypes';
 import { FileReferenceBadge } from './FileReferenceBadge';
 import { useGridKeyboardNav } from '@/hooks/use-grid-keyboard-nav';
+import { useFileTabStop } from '@/hooks/use-file-tab-stop';
 
 interface ColumnData {
   path: string;
@@ -20,6 +21,7 @@ const ColumnFileRow = React.memo(
     file,
     isActive,
     isSelected,
+    tabStopPath,
     getFileIcon,
     onQuickLook,
     onClick,
@@ -29,6 +31,7 @@ const ColumnFileRow = React.memo(
     file: FileEntry;
     isActive: boolean;
     isSelected: boolean;
+    tabStopPath?: string;
     getFileIcon: (file: FileEntry) => React.ReactNode;
     onQuickLook?: (file: FileEntry) => void;
     onClick: (e: React.MouseEvent) => void;
@@ -40,7 +43,8 @@ const ColumnFileRow = React.memo(
         role="option"
         aria-selected={isActive || isSelected}
         data-file-path={file.path}
-        tabIndex={0}
+        tabIndex={tabStopPath === file.path ? 0 : -1}
+        className="wisp-file-item"
         onClick={onClick}
         onDoubleClick={onDoubleClick}
         onContextMenu={onRightClick}
@@ -65,38 +69,11 @@ const ColumnFileRow = React.memo(
           alignItems: 'center',
           gap: '8px',
           padding: '4px 12px',
-          cursor: 'pointer',
+          cursor: 'default',
           fontSize: '13px',
           color: 'var(--xp-text)',
-          backgroundColor: (() => {
-            if (isActive) return 'var(--xp-accent)';
-            if (isSelected) return 'var(--xp-selection-bg)';
-            return 'transparent';
-          })(),
-          borderBottom: '1px solid var(--xp-border)',
-          outline: 'none',
           height: `${COLUMN_ROW_HEIGHT}px`,
           boxSizing: 'border-box',
-        }}
-        onMouseEnter={(e) => {
-          if (!isActive) {
-            (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--xp-surface-light)';
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!isActive && !isSelected) {
-            (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
-          } else if (isSelected && !isActive) {
-            (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--xp-selection-bg)';
-          }
-        }}
-        onFocus={(e) => {
-          if (!isActive) {
-            (e.currentTarget as HTMLElement).style.boxShadow = 'inset 0 0 0 1px var(--xp-accent)';
-          }
-        }}
-        onBlur={(e) => {
-          (e.currentTarget as HTMLElement).style.boxShadow = 'none';
         }}
       >
         <span
@@ -172,6 +149,15 @@ const VirtualizedColumnPane = ({
     overscan: 10,
     enabled: needsVirtualization,
   });
+  const virtualRows = virtualizer.getVirtualItems();
+  const renderedFiles = needsVirtualization
+    ? virtualRows.flatMap((row) => (column.files[row.index] ? [column.files[row.index]] : []))
+    : column.files;
+  const { tabStopPath, rememberFileFocus } = useFileTabStop(
+    column.files,
+    selectedFiles,
+    renderedFiles,
+  );
   const selectColumnFile = useCallback(
     (file: FileEntry, event: React.MouseEvent) => handleColumnFileClick(file, colIndex, event),
     [colIndex, handleColumnFileClick],
@@ -196,7 +182,12 @@ const VirtualizedColumnPane = ({
         key={`${column.path}-${colIndex}`}
         ref={columnScrollRef}
         onKeyDown={handleKeyDown}
-        tabIndex={0}
+        tabIndex={tabStopPath ? -1 : 0}
+        role="listbox"
+        aria-label={column.path}
+        aria-multiselectable={true}
+        className="wisp-file-selection-surface"
+        onFocusCapture={rememberFileFocus}
         style={{
           minWidth: '220px',
           maxWidth: '280px',
@@ -211,6 +202,7 @@ const VirtualizedColumnPane = ({
           <ColumnFileRow
             key={file.path}
             file={file}
+            tabStopPath={tabStopPath}
             isActive={column.selectedFile === file.path}
             isSelected={selectedFiles.has(file.path)}
             getFileIcon={getFileIcon}
@@ -240,7 +232,12 @@ const VirtualizedColumnPane = ({
     <div
       ref={columnScrollRef}
       onKeyDown={handleKeyDown}
-      tabIndex={0}
+      tabIndex={tabStopPath ? -1 : 0}
+      role="listbox"
+      aria-label={column.path}
+      aria-multiselectable={true}
+      className="wisp-file-selection-surface"
+      onFocusCapture={rememberFileFocus}
       style={{
         minWidth: '220px',
         maxWidth: '280px',
@@ -258,7 +255,7 @@ const VirtualizedColumnPane = ({
           position: 'relative',
         }}
       >
-        {virtualizer.getVirtualItems().map((virtualRow) => {
+        {virtualRows.map((virtualRow) => {
           const file = column.files[virtualRow.index];
           return (
             <div
@@ -274,6 +271,7 @@ const VirtualizedColumnPane = ({
             >
               <ColumnFileRow
                 file={file}
+                tabStopPath={tabStopPath}
                 isActive={column.selectedFile === file.path}
                 isSelected={selectedFiles.has(file.path)}
                 getFileIcon={getFileIcon}
@@ -350,7 +348,7 @@ const ColumnView = ({
           setTimeout(() => {
             scrollRef.current?.scrollTo({
               left: scrollRef.current.scrollWidth,
-              behavior: 'smooth',
+              behavior: 'auto',
             });
           }, 50);
         } catch (err) {

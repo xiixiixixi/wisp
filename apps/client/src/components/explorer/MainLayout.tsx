@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { FileEntry, FolderSizeInfo, ConflictFileInfo } from '@/lib/tauri-api';
 import { formatFileSize, formatDate, type ThemeDef, type SortField } from '@/lib/utils';
 import type { TabItem, SplitLayoutState } from '@/types/split-view';
@@ -289,7 +290,7 @@ const MainLayout = (props: MainLayoutProps) => {
     editingCollection,
     handleDismissAllChanges,
   } = props;
-
+  const { t } = useTranslation();
   // Preview links (markdown etc.) ask the shell to open URLs in a web tab.
   React.useEffect(() => {
     const handler = (event: Event) => {
@@ -314,8 +315,7 @@ const MainLayout = (props: MainLayoutProps) => {
         setRightSidebarWidth(760);
       }
       if (filePath) {
-        const name =
-          fileName ?? filePath.split('/').pop() ?? filePath;
+        const name = fileName ?? filePath.split('/').pop() ?? filePath;
         const ext = name.includes('.') ? name.split('.').pop()! : '';
         const entry: FileEntry = {
           name,
@@ -335,18 +335,16 @@ const MainLayout = (props: MainLayoutProps) => {
     [rightSidebarWidth, setRightPanelTab, setRightSidebarCollapsed],
   );
 
-  // 退出画布 → 侧栏还原到进画布前的宽度；此外自愈：非画布状态下宽度
-  // 仍停在画布档（>520，比如旧数据残留 / 重启带入），直接收窄回 360。
+  // Restore only a width that we changed when entering the canvas. A user's
+  // wider document preview must not snap back while they resize it.
   React.useEffect(() => {
     if (canvasMode) return;
     const restore = preCanvasWidthRef.current;
     if (restore !== null) {
       preCanvasWidthRef.current = null;
       setRightSidebarWidth(restore);
-    } else if (rightSidebarWidth > 520) {
-      setRightSidebarWidth(360);
     }
-  }, [canvasMode, rightSidebarWidth, setRightSidebarWidth]);
+  }, [canvasMode, setRightSidebarWidth]);
 
   React.useEffect(() => {
     const handler = (event: Event) => {
@@ -363,10 +361,12 @@ const MainLayout = (props: MainLayoutProps) => {
   // exact passage, and enter canvas mode with that document beside the chat.
   React.useEffect(() => {
     const handler = (event: Event) => {
-      const detail = (event as CustomEvent<{
-        prompt?: string;
-        selection?: { text: string; filePath: string; fileName: string };
-      }>).detail;
+      const detail = (
+        event as CustomEvent<{
+          prompt?: string;
+          selection?: { text: string; filePath: string; fileName: string };
+        }>
+      ).detail;
       setRightSidebarCollapsed(false);
       setRightPanelTab('chat');
       if (detail?.selection?.filePath) {
@@ -480,9 +480,18 @@ const MainLayout = (props: MainLayoutProps) => {
         setRightPanelTab={setRightPanelTab}
         rightSidebarCollapsed={rightSidebarCollapsed}
         setRightSidebarCollapsed={setRightSidebarCollapsed}
+        onSplitRight={() => splitLayout.splitGroup(layoutState.activeGroupId, 'horizontal')}
+        onSplitDown={() => splitLayout.splitGroup(layoutState.activeGroupId, 'vertical')}
       />
     ),
-    [rightPanelTab, setRightPanelTab, rightSidebarCollapsed, setRightSidebarCollapsed],
+    [
+      rightPanelTab,
+      setRightPanelTab,
+      rightSidebarCollapsed,
+      setRightSidebarCollapsed,
+      splitLayout,
+      layoutState.activeGroupId,
+    ],
   );
 
   return (
@@ -506,8 +515,6 @@ const MainLayout = (props: MainLayoutProps) => {
             ref={topBarRef}
             leftSidebarCollapsed={leftSidebarCollapsed}
             setLeftSidebarCollapsed={setLeftSidebarCollapsed}
-            onSplitRight={() => splitLayout.splitGroup(activeGroup.id, 'horizontal')}
-            onSplitDown={() => splitLayout.splitGroup(activeGroup.id, 'vertical')}
             crossTabTotalCount={crossTabSelection.totalSelectedCount}
             crossTabTabCount={crossTabSelection.selectedTabCount}
             hasMultiTabSelection={crossTabSelection.hasMultiTabSelection}
@@ -535,7 +542,14 @@ const MainLayout = (props: MainLayoutProps) => {
                   searchPanelOpen={searchPanelOpen}
                   onToggleSearchPanel={() => setSearchPanelOpen((prev) => !prev)}
                 />
-                <ResizeHandle direction="horizontal" onResize={handleLeftResize} />
+                <ResizeHandle
+                  direction="horizontal"
+                  onResize={handleLeftResize}
+                  ariaLabel={t('sidebar.resizeNavigation')}
+                  value={leftSidebarWidth}
+                  min={180}
+                  max={480}
+                />
               </>
             )}
 
@@ -576,7 +590,17 @@ const MainLayout = (props: MainLayoutProps) => {
 
             {/* Right Sidebar */}
             {!rightSidebarCollapsed && (
-              <ResizeHandle direction="horizontal" onResize={handleRightResize} />
+              <ResizeHandle
+                direction="horizontal"
+                onResize={handleRightResize}
+                ariaLabel={t('sidebar.resizePanel')}
+                value={rightSidebarWidth}
+                min={240}
+                max={Math.max(
+                  360,
+                  Math.min(window.innerWidth * (canvasMode ? 0.7 : 0.6), canvasMode ? 1080 : 760),
+                )}
+              />
             )}
             <ErrorBoundary>
               <RightSidebar
@@ -604,7 +628,14 @@ const MainLayout = (props: MainLayoutProps) => {
 
           {/* Bottom Panel */}
           {!bottomPanelCollapsed && (
-            <ResizeHandle direction="vertical" onResize={handleBottomResize} />
+            <ResizeHandle
+              direction="vertical"
+              onResize={handleBottomResize}
+              ariaLabel={t('sidebar.resizeDrawer')}
+              value={bottomPanelHeight}
+              min={120}
+              max={500}
+            />
           )}
           <ErrorBoundary>
             <BottomPanel

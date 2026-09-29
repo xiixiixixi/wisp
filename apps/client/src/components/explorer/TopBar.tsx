@@ -369,28 +369,30 @@ const TopBar = React.memo(
             {rightActions}
 
             {/* Split actions */}
-            <div className="wisp-toolbar-group ml-1 flex flex-shrink-0 items-center gap-0.5">
-              {onSplitRight && (
-                <button
-                  onClick={onSplitRight}
-                  className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-md text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-                  title={t('topBar.splitRightShortcut')}
-                  aria-label={t('topBar.splitRight')}
-                >
-                  <Columns size={14} />
-                </button>
-              )}
-              {onSplitDown && (
-                <button
-                  onClick={onSplitDown}
-                  className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-md text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-                  title={t('topBar.splitDownShortcut')}
-                  aria-label={t('topBar.splitDown')}
-                >
-                  <Rows size={14} />
-                </button>
-              )}
-            </div>
+            {(onSplitRight || onSplitDown) && (
+              <div className="wisp-toolbar-group ml-1 flex flex-shrink-0 items-center gap-0.5">
+                {onSplitRight && (
+                  <button
+                    onClick={onSplitRight}
+                    className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-md text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                    title={t('topBar.splitRightShortcut')}
+                    aria-label={t('topBar.splitRight')}
+                  >
+                    <Columns size={14} />
+                  </button>
+                )}
+                {onSplitDown && (
+                  <button
+                    onClick={onSplitDown}
+                    className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-md text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                    title={t('topBar.splitDownShortcut')}
+                    aria-label={t('topBar.splitDown')}
+                  >
+                    <Rows size={14} />
+                  </button>
+                )}
+              </div>
+            )}
 
             {!isMac && (
               <div

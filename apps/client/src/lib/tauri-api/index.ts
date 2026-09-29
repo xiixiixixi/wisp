@@ -348,10 +348,14 @@ export class TauriAPI {
   // ── Finder-parity preview bridges ──────────────────────────────────────
   static previewConvertImage = preview.previewConvertImage;
   static previewDocHtml = preview.previewDocHtml;
+  static previewAssetAllowed = preview.previewAssetAllowed;
   static previewPlistXml = preview.previewPlistXml;
   static previewQlThumbnail = preview.previewQlThumbnail;
   static previewOpenQlPreview = preview.previewOpenQlPreview;
   static previewOpenQlPanel = preview.previewOpenQlPanel;
+  static previewMountQlView = preview.previewMountQlView;
+  static previewUpdateQlView = preview.previewUpdateQlView;
+  static previewCloseQlView = preview.previewCloseQlView;
   static previewIworkPdf = preview.previewIworkPdf;
   static previewEpub = preview.previewEpub;
   static previewRemuxMedia = preview.previewRemuxMedia;

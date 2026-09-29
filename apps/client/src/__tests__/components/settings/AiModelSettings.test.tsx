@@ -1,189 +1,226 @@
-/**
- * AI 设置页 —— ZCode 式：服务列表 + 表单 + 「添加模型」为独立弹窗
- * （模型 ID / 上下文窗口 / 最大输出 Token）。
- */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-
-// 内存版 pi 配置存储 —— 保存真的写进去，列表真的读出来
-const store = { providers: {} as Record<string, { name?: string; baseUrl?: string; api?: string; apiKey?: string; models?: { id: string }[] }> };
-const authKeys: Record<string, string> = {};
-
-vi.mock('@/lib/transport', () => ({
-  isTauri: () => true,
-  transport: vi.fn(async (cmd: string, args?: Record<string, unknown>) => {
-    if (cmd === 'pi_config_state') {
-      return {
-        models_path: '/models.json',
-        auth_path: '/auth.json',
-        models_json: JSON.parse(JSON.stringify(store)),
-        auth_status: Object.entries(authKeys).map(([provider, has]) => ({
-          provider, has_key: Boolean(has),
-        })),
-      };
-    }
-    if (cmd === 'pi_auth_keys') return { ...authKeys };
-    if (cmd === 'pi_config_write_models') {
-      store.providers = (args!.modelsJson as typeof store).providers;
-      return;
-    }
-    if (cmd === 'pi_config_set_auth_key') {
-      authKeys[args!.provider as string] = args!.apiKey as string;
-      return;
-    }
-    throw new Error(`unexpected transport: ${cmd}`);
-  }),
-}));
-
-beforeEach(() => {
-  store.providers = {};
-  for (const k of Object.keys(authKeys)) delete authKeys[k];
-});
-
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ModelsJson } from '@/lib/pi-engine/pi-config';
 import AiModelSettings from '@/components/settings/AiModelSettings';
 
-describe('AiModelSettings', () => {
-  it('empty state: one add-provider button, no vendor names, no form', () => {
-    render(<AiModelSettings />);
-    expect(screen.getByTestId('pi-add-provider')).toBeInTheDocument();
-    for (const vendor of ['Anthropic', 'MiniMax', 'DeepSeek', 'GLM', 'Kimi']) {
-      expect(screen.queryByText(new RegExp(vendor))).not.toBeInTheDocument();
+const mock = vi.hoisted(() => ({
+  transport: vi.fn(),
+  saveMemory: vi.fn(),
+  memoryState: vi.fn(),
+  memoryList: vi.fn(),
+}));
+vi.mock('@/lib/transport', () => ({
+  isTauri: () => true,
+  transport: (...args: unknown[]) => mock.transport(...args),
+}));
+vi.mock('@/lib/tauri-api', () => ({
+  TauriAPI: {
+    mem0ConfigState: (...args: unknown[]) => mock.memoryState(...args),
+    mem0SaveConfig: (...args: unknown[]) => mock.saveMemory(...args),
+    mem0List: (...args: unknown[]) => mock.memoryList(...args),
+  },
+}));
+vi.mock('@/lib/pi-engine/providers', () => ({ invalidatePiConfig: vi.fn() }));
+vi.mock('@/lib/pi-engine/mem0', () => ({ invalidateMem0State: vi.fn() }));
+vi.mock('@/hooks/use-toast', () => ({ toast: vi.fn() }));
+let store: ModelsJson;
+let failWrite: boolean;
+const memory = { enabled: false, has_key: false, user_id: 'wisp', auto_capture: true };
+const renderReady = async () => {
+  const result = render(<AiModelSettings />);
+  await act(async () => {});
+  return result;
+};
+const startService = () => {
+  fireEvent.click(screen.getByTestId('pi-add-provider'));
+  fireEvent.change(screen.getByLabelText('Service URL'), {
+    target: { value: 'https://api.example.com/v1' },
+  });
+};
+const addModel = (name = 'model-a') => {
+  fireEvent.click(screen.getByTestId('pi-add-model'));
+  fireEvent.change(screen.getByLabelText('Model ID'), { target: { value: name } });
+};
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  store = { providers: {} };
+  failWrite = false;
+  mock.transport.mockImplementation(async (cmd: string, args: Record<string, unknown>) => {
+    if (cmd === 'pi_config_state') {
+      return {
+        models_json: structuredClone(store),
+        auth_status: [],
+        models_path: '/m',
+        auth_path: '/a',
+      };
     }
+    if (cmd === 'pi_config_write_models') {
+      if (failWrite) throw new Error('disk unavailable');
+      store = structuredClone(args.modelsJson as ModelsJson);
+      return;
+    }
+    if (cmd === 'pi_config_remove_auth_key') return;
+    throw new Error(cmd);
+  });
+  mock.memoryState.mockResolvedValue(memory);
+  mock.memoryList.mockResolvedValue([]);
+  mock.saveMemory.mockResolvedValue(memory);
+});
+
+describe('model service settings', () => {
+  it('adds a model with app defaults and keeps same-host services separate', async () => {
+    await renderReady();
+    expect(screen.queryByTestId('pi-service-form')).not.toBeInTheDocument();
+    for (const name of ['first', 'second']) {
+      startService();
+      addModel(name);
+      fireEvent.click(screen.getByTestId('pi-model-dialog-save'));
+      fireEvent.click(screen.getByTestId('pi-service-save'));
+      await waitFor(() => expect(screen.queryByTestId('pi-service-form')).not.toBeInTheDocument());
+    }
+    expect(Object.keys(store.providers)).toEqual(['api.example.com', 'api.example.com-2']);
+    expect(store.providers['api.example.com'].models).toEqual([{ id: 'first', name: 'first' }]);
+    expect(store.providers['api.example.com-2'].models?.[0].id).toBe('second');
+  });
+
+  it('saves actual length and thinking values while preserving existing capabilities and the saved key', async () => {
+    store.providers.saved = {
+      name: 'My service',
+      apiKey: '$WISP_KEEP_KEY$',
+      baseUrl: 'https://api.example.com',
+      headers: { 'x-custom': 'keep' },
+      modelOverrides: { a: { compat: true } },
+      models: [
+        {
+          id: 'vision',
+          name: 'Vision model',
+          input: ['text', 'image'],
+          reasoning: true,
+          contextWindow: 200000,
+          maxTokens: 16000,
+          cost: { input: 1, output: 2, cacheRead: 0, cacheWrite: 0 },
+        },
+      ],
+    };
+    await renderReady();
+    fireEvent.click(screen.getByRole('button', { name: 'Edit My service' }));
+    expect(screen.getByLabelText('API key')).toHaveValue('');
+    fireEvent.click(screen.getByTestId('pi-edit-model-0'));
+    fireEvent.change(screen.getByLabelText('Context window'), { target: { value: '64000' } });
+    fireEvent.change(screen.getByLabelText('Maximum reply length'), { target: { value: '4096' } });
+    fireEvent.click(screen.getByRole('combobox', { name: 'Thinking' }));
+    fireEvent.click(await screen.findByRole('option', { name: 'High' }));
+    fireEvent.click(screen.getByTestId('pi-model-dialog-save'));
+    fireEvent.click(screen.getByTestId('pi-service-save'));
+    await waitFor(() => expect(screen.queryByTestId('pi-service-form')).not.toBeInTheDocument());
+    expect(store.providers.saved).toMatchObject({
+      apiKey: '$WISP_KEEP_KEY$',
+      headers: { 'x-custom': 'keep' },
+      modelOverrides: { a: { compat: true } },
+      models: [
+        {
+          id: 'vision',
+          name: 'Vision model',
+          input: ['text', 'image'],
+          contextWindow: 64000,
+          maxTokens: 4096,
+          reasoning: true,
+          thinkingLevel: 'high',
+          cost: { input: 1, output: 2 },
+        },
+      ],
+    });
+  });
+
+  it('keeps the form and key after failed save, then retries successfully', async () => {
+    await renderReady();
+    startService();
+    fireEvent.change(screen.getByLabelText('API key'), { target: { value: 'test-only-secret' } });
+    addModel();
+    fireEvent.click(screen.getByTestId('pi-model-dialog-save'));
+    failWrite = true;
+    fireEvent.click(screen.getByTestId('pi-service-save'));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Your changes are kept');
+    expect(screen.getByLabelText('API key')).toHaveValue('test-only-secret');
+    expect(store.providers).toEqual({});
+    failWrite = false;
+    fireEvent.click(screen.getByTestId('pi-service-save'));
+    await screen.findByTestId('pi-service-api.example.com');
     expect(screen.queryByTestId('pi-service-form')).not.toBeInTheDocument();
   });
 
-  it('add opens the form with url/protocol/key fields and empty model list', () => {
-    render(<AiModelSettings />);
-    fireEvent.click(screen.getByTestId('pi-add-provider'));
-    expect(screen.getByTestId('pi-service-form')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('https://api.example.com/v1')).toBeInTheDocument();
-    expect(screen.getByText(/还没有模型|No models yet/i)).toBeInTheDocument();
+  it('rejects impossible model limits and duplicate names before persisting', async () => {
+    await renderReady();
+    startService();
+    addModel();
+    fireEvent.change(screen.getByLabelText('Context window'), { target: { value: '100' } });
+    fireEvent.change(screen.getByLabelText('Maximum reply length'), { target: { value: '200' } });
+    fireEvent.click(screen.getByTestId('pi-model-dialog-save'));
+    expect(screen.getByRole('alert')).toHaveTextContent('cannot exceed');
+    fireEvent.change(screen.getByLabelText('Maximum reply length'), { target: { value: '50' } });
+    fireEvent.click(screen.getByTestId('pi-model-dialog-save'));
+    addModel();
+    fireEvent.click(screen.getByTestId('pi-model-dialog-save'));
+    expect(screen.getByRole('alert')).toHaveTextContent('already in the list');
+    expect(mock.transport.mock.calls.some(([cmd]) => cmd === 'pi_config_write_models')).toBe(false);
   });
 
-  it('add-model dialog: only model id required; limits optional (留空=自动)', () => {
-    render(<AiModelSettings />);
-    fireEvent.click(screen.getByTestId('pi-add-provider'));
-    fireEvent.click(screen.getByTestId('pi-add-model'));
-    // 必填只有模型 ID；上下文/输出留空 = 自动（对齐 ZCode/pi/opencode 的行为）
-    expect(screen.getByPlaceholderText(/deepseek-chat/)).toBeInTheDocument();
-    // 上下文/输出直接平铺可见（留空 = 自动），无需展开
-    expect(screen.getAllByPlaceholderText(/自动|Auto/i).length).toBe(2);
-    fireEvent.change(screen.getByPlaceholderText(/deepseek-chat/), { target: { value: 'my-model' } });
+  it('persists thinking off and exposes named model controls', async () => {
+    await renderReady();
+    startService();
+    addModel();
+    fireEvent.click(screen.getByRole('combobox', { name: 'Thinking' }));
+    fireEvent.click(await screen.findByRole('option', { name: 'Off' }));
     fireEvent.click(screen.getByTestId('pi-model-dialog-save'));
-    expect(screen.queryByPlaceholderText(/deepseek-chat/)).not.toBeInTheDocument();
-    expect(screen.getByText('my-model')).toBeInTheDocument();
-    expect(screen.getAllByText(/自动|Auto/i).length).toBeGreaterThan(0);   // 留空 → 自动徽标
-  });
-});
-
-describe('AiModelSettings 多供应商', () => {
-  it('保存一个服务后按钮回归，可以继续添加第二个', async () => {
-    const { render, screen, fireEvent } = await import('@testing-library/react');
-    render(<AiModelSettings />);
-
-    // 第一个服务
-    fireEvent.click(screen.getByTestId('pi-add-provider'));
-    fireEvent.change(screen.getByPlaceholderText('https://api.example.com/v1'), {
-      target: { value: 'https://api.deepseek.com' },
-    });
-    fireEvent.click(screen.getByTestId('pi-add-model'));
-    fireEvent.change(screen.getByPlaceholderText('deepseek-chat'), {
-      target: { value: 'deepseek-chat' },
-    });
-    fireEvent.click(screen.getByTestId('pi-model-dialog-save'));   // 弹窗：先加模型行
-    fireEvent.click(screen.getByTestId('pi-service-save'));        // 表单：保存服务
-
-    // 列表出现第一个服务；添加按钮回归
-    expect(await screen.findByTestId('pi-service-api.deepseek.com')).toBeInTheDocument();
-    expect(screen.getByTestId('pi-add-provider')).toBeInTheDocument();
-
-    // 第二个服务（不同域名 → 不同 provider id）
-    fireEvent.click(screen.getByTestId('pi-add-provider'));
-    fireEvent.change(screen.getByPlaceholderText('https://api.example.com/v1'), {
-      target: { value: 'https://api.minimaxi.com' },
-    });
-    fireEvent.click(screen.getByTestId('pi-add-model'));
-    fireEvent.change(screen.getByPlaceholderText('deepseek-chat'), {
-      target: { value: 'MiniMax-M2.7' },
-    });
-    fireEvent.click(screen.getByTestId('pi-model-dialog-save'));
+    expect(screen.getByRole('switch', { name: 'Use model-a' })).toBeChecked();
+    expect(screen.getByRole('button', { name: 'Delete model-a' })).toBeVisible();
     fireEvent.click(screen.getByTestId('pi-service-save'));
-
-    expect(await screen.findByTestId('pi-service-api.minimaxi.com')).toBeInTheDocument();
-    expect(screen.getByTestId('pi-service-api.deepseek.com')).toBeInTheDocument();
-    // 两个服务都在列表里
-    expect(screen.getAllByTestId(/^pi-service-/).length).toBe(2);
+    await screen.findByTestId('pi-service-api.example.com');
+    expect(store.providers['api.example.com'].models?.[0]).toMatchObject({ reasoning: false });
+    expect(store.providers['api.example.com'].models?.[0]).not.toHaveProperty('thinkingLevel');
   });
-});
 
-describe('AiModelSettings 编辑模型', () => {
-  it('铅笔打开弹窗带出原值，改名后保存回同一行', () => {
-    render(<AiModelSettings />);
-    fireEvent.click(screen.getByTestId('pi-add-provider'));
-    // 加两个模型
-    fireEvent.click(screen.getByTestId('pi-add-model'));
-    fireEvent.change(screen.getByPlaceholderText('deepseek-chat'), { target: { value: 'model-a' } });
-    fireEvent.click(screen.getByTestId('pi-model-dialog-save'));
-    fireEvent.click(screen.getByTestId('pi-add-model'));
-    fireEvent.change(screen.getByPlaceholderText('deepseek-chat'), { target: { value: 'model-b' } });
-    fireEvent.click(screen.getByTestId('pi-model-dialog-save'));
-    expect(screen.getByText('model-a')).toBeInTheDocument();
-    expect(screen.getByText('model-b')).toBeInTheDocument();
-
-    // 编辑第一行
-    fireEvent.click(screen.getByTestId('pi-edit-model-0'));
-    const input = screen.getByDisplayValue('model-a');
-    fireEvent.change(input, { target: { value: 'model-a2' } });
-    fireEvent.click(screen.getByTestId('pi-model-dialog-save'));
-
-    // 原名消失、新名在第一行位置；第二行不受影响
-    expect(screen.queryByText('model-a')).not.toBeInTheDocument();
-    const rows = screen.getAllByText(/model-a2|model-b/);
-    expect(rows.map((r) => r.textContent)).toEqual(['model-a2', 'model-b']);
+  it('requires explicit confirmation before removing a service', async () => {
+    store.providers.saved = { baseUrl: 'https://e.test', models: [{ id: 'one' }] };
+    await renderReady();
+    fireEvent.click(screen.getByRole('button', { name: 'Delete saved' }));
+    expect(store.providers.saved).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(store.providers.saved).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Delete saved' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete', exact: true }));
+    await waitFor(() => expect(store.providers.saved).toBeUndefined());
   });
-});
 
-describe('AiModelSettings 思考程度', () => {
-  it('弹窗可选思考档位，关闭时 models.json 里 reasoning=false', async () => {
-    const writes: unknown[] = [];
-    const { transport } = await import('@/lib/transport');
-    (transport as ReturnType<typeof vi.fn>).mockImplementation(
-      async (cmd: string, args?: Record<string, unknown>) => {
-        if (cmd === 'pi_config_state')
-          return {
-            models_path: '/m', auth_path: '/a',
-            models_json: JSON.parse(JSON.stringify(store)),
-            auth_status: [],
-          };
-        if (cmd === 'pi_config_write_models') {
-          writes.push(args!.modelsJson);
-          store.providers = (args!.modelsJson as typeof store).providers;
-          return;
-        }
-        throw new Error(`unexpected: ${cmd}`);
-      },
-    );
+  it('shows cloud-memory privacy details only when requested', async () => {
+    await renderReady();
+    expect(screen.queryByText(/conversation content is sent to Mem0/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'About cloud memory' }));
+    expect(screen.getByText(/conversation content is sent to Mem0/)).toBeVisible();
+  });
 
-    render(<AiModelSettings />);
-    fireEvent.click(screen.getByTestId('pi-add-provider'));
-    fireEvent.change(screen.getByPlaceholderText('https://api.example.com/v1'), {
-      target: { value: 'https://api.deepseek.com' },
+  it('retains a failed memory key and permits resetting the profile to wisp', async () => {
+    mock.memoryState.mockResolvedValue({ ...memory, enabled: true, user_id: 'custom' });
+    mock.saveMemory
+      .mockRejectedValueOnce(new Error('failed'))
+      .mockResolvedValue({ ...memory, enabled: true, user_id: 'wisp' });
+    await renderReady();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Memory profile' }), {
+      target: { value: 'wisp' },
     });
-    // 加模型 → 思考程度选「关闭」
-    fireEvent.click(screen.getByTestId('pi-add-model'));
-    fireEvent.change(screen.getByPlaceholderText('deepseek-chat'), {
-      target: { value: 'ds-chat' },
+    fireEvent.blur(screen.getByRole('textbox', { name: 'Memory profile' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Your input is kept');
+    expect(screen.getByRole('textbox', { name: 'Memory profile' })).toHaveValue('wisp');
+    fireEvent.blur(screen.getByRole('textbox', { name: 'Memory profile' }));
+    await waitFor(() => expect(mock.saveMemory).toHaveBeenLastCalledWith({ userId: 'wisp' }));
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
+    mock.saveMemory.mockRejectedValueOnce(new Error('failed'));
+    fireEvent.change(screen.getByTestId('mem0-key-input'), {
+      target: { value: 'test-memory-key' },
     });
-    fireEvent.click(screen.getByRole('combobox', { name: /思考程度|Thinking/i }));
-    // Radix 异步挂载选项
-    fireEvent.click(await screen.findByRole('option', { name: /关闭|Off/i }));
-    fireEvent.click(screen.getByTestId('pi-model-dialog-save'));
-    fireEvent.click(screen.getByTestId('pi-service-save'));
-
-    await screen.findByTestId('pi-service-api.deepseek.com');
-    expect(writes.length).toBeGreaterThan(0);
-    const model = (writes.at(-1) as typeof store).providers['api.deepseek.com'].models?.[0];
-    expect(model?.reasoning).toBe(false);
-    expect((model as { thinkingLevel?: string }).thinkingLevel).toBeUndefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Your input is kept');
+    expect(screen.getByTestId('mem0-key-input')).toHaveValue('test-memory-key');
   });
 });

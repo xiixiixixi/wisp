@@ -12,13 +12,7 @@ const renderWithSuspense = (ui: React.ReactElement) => {
 
 // Mock sub-components
 vi.mock('@/components/panels/PiChatPanel', () => ({
-  default: ({
-    currentPath,
-    canvasMode,
-  }: {
-    currentPath: string;
-    canvasMode?: boolean;
-  }) => (
+  default: ({ currentPath, canvasMode }: { currentPath: string; canvasMode?: boolean }) => (
     <div data-testid="pi-chat-panel" data-canvas={String(!!canvasMode)}>
       {currentPath}
     </div>
@@ -87,7 +81,16 @@ vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {
     openFile: vi.fn(),
     getAgentSettings: vi.fn(() =>
-      Promise.resolve({ enabled: true, model: 'ollama:llama3.2', maxTurns: 25, autoApprove: false, thinkingEnabled: false, thinkingBudget: 10000, hasApiKey: false, hasOpenaiApiKey: false }),
+      Promise.resolve({
+        enabled: true,
+        model: 'ollama:llama3.2',
+        maxTurns: 25,
+        autoApprove: false,
+        thinkingEnabled: false,
+        thinkingBudget: 10000,
+        hasApiKey: false,
+        hasOpenaiApiKey: false,
+      }),
     ),
   },
   FileEntry: {},
@@ -180,15 +183,11 @@ describe('RightSidebar', () => {
         />,
       );
       expect(await screen.findByTestId('canvas-split', {}, { timeout: 3000 })).toBeInTheDocument();
-      expect(
-        await screen.findByTestId('pi-chat-panel', {}, { timeout: 3000 }),
-      ).toBeInTheDocument();
+      expect(await screen.findByTestId('pi-chat-panel', {}, { timeout: 3000 })).toBeInTheDocument();
       expect(screen.getByTestId('preview-panel')).toHaveTextContent('Preview: 周报.md');
       // 画布标题替换普通聊天标题
       const header = screen.getByRole('toolbar', { name: i18n.t('piChat.canvasTitle') });
-      expect(within(header).getByRole('heading')).toHaveTextContent(
-        i18n.t('piChat.canvasTitle'),
-      );
+      expect(within(header).getByRole('heading')).toHaveTextContent(i18n.t('piChat.canvasTitle'));
     });
 
     it('shows marketplace panel when tab is marketplace', async () => {
@@ -228,6 +227,7 @@ describe('RightSidebar', () => {
       expect(await screen.findByText('Preview: test.txt')).toBeInTheDocument();
       expect(screen.queryByText('test.txt', { exact: true })).not.toBeInTheDocument();
       expect(document.querySelector('.wisp-inspector-context')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('preview-nav-bar')).not.toBeInTheDocument();
     });
   });
 
@@ -315,8 +315,8 @@ describe('RightSidebar', () => {
     });
   });
 
-  describe('Multi-select scrubber', () => {
-    it('shows preview navigation bar when multiple files are selected on preview tab', () => {
+  describe('Multi-selection preview', () => {
+    it('keeps keyboard navigation without a navigation bar for multiple selected files', () => {
       const file1 = {
         name: 'a.txt',
         path: 'C:\\a.txt',
@@ -353,7 +353,10 @@ describe('RightSidebar', () => {
         />,
       );
 
-      expect(screen.getByTestId('preview-nav-bar')).toBeInTheDocument();
+      expect(screen.queryByTestId('preview-nav-bar')).not.toBeInTheDocument();
+      expect(screen.getByTestId('preview-panel')).toHaveTextContent('Preview: a.txt');
+      fireEvent.keyDown(window, { key: 'ArrowRight' });
+      expect(screen.getByTestId('preview-panel')).toHaveTextContent('Preview: b.txt');
     });
 
     it('does not show scrubber on non-preview tabs', () => {

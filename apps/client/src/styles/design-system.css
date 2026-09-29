@@ -77,6 +77,11 @@ html.theme-rolex {
   --ds-drawer-fill: rgb(255 255 255 / 18%);
   --ds-segment-track: rgb(75 70 90 / 6%);
   --ds-content-veil: transparent;
+  --ds-selection-active: #006bd6;
+  --ds-selection-active-text: #fff;
+  --ds-selection-idle: #e3e7ed;
+  --ds-selection-idle-text: #1d1d1f;
+  --ds-row-hover: rgb(29 29 31 / 5%);
   --ds-canvas: #fff;
   --ds-surface: #f6f6f8;
   --ds-field: #fff;
@@ -268,6 +273,10 @@ html.theme-rolex {
   --ds-drawer-fill: rgb(255 255 255 / 3%);
   --ds-segment-track: rgb(0 0 0 / 16%);
   --ds-content-veil: transparent;
+  --ds-selection-active: #2568bd;
+  --ds-selection-idle: #424650;
+  --ds-selection-idle-text: #f5f5f7;
+  --ds-row-hover: rgb(245 245 247 / 7%);
   --ds-canvas: #1c1c1e;
   --ds-surface: #29292d;
   --ds-field: #343438;
@@ -441,7 +450,10 @@ html[data-native-material] #root {
   background: transparent !important;
 }
 html[data-native-material] .wisp-shell {
-  --ds-window-veil: transparent;
+  --ds-window-veil: rgb(255 255 255 / 42%);
+}
+html.theme-rolex[data-native-material] .wisp-shell {
+  --ds-window-veil: rgb(24 25 31 / 52%);
 }
 /* Protect text until the native window confirms an explicit appearance. */
 html[data-native-material][data-wisp-appearance="light"]:not([data-native-appearance="light"])
@@ -472,11 +484,11 @@ html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-sidebar {
   backdrop-filter: none !important;
 }
 html:is(.theme-light, .theme-fluid, .theme-rolex) :is(.wisp-settings-sidebar, .wisp-inspector) {
-  background: var(--ds-mat-thin-bg) !important;
+  background: transparent !important;
   border-color: var(--ds-separator) !important;
   box-shadow: none !important;
-  -webkit-backdrop-filter: var(--ds-mat-blur) !important;
-  backdrop-filter: var(--ds-mat-blur) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 html:is(.theme-light, .theme-fluid, .theme-rolex) .paper-grain,
 html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-sidebar::before,
@@ -504,9 +516,34 @@ html:is(.theme-light, .theme-fluid, .theme-rolex) :is(.wisp-navigationbar, .wisp
   border: 0 !important;
 }
 html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-panel-rail {
-  background: var(--ds-surface) !important;
-  border-color: var(--ds-separator) !important;
+  background: transparent !important;
+  border-color: transparent !important;
   box-shadow: none !important;
+}
+/* Keep the titlebar rail itself clear; its two button groups own their bases. */
+html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-panel-rail-horizontal {
+  padding: 0 !important;
+  gap: 8px !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-panel-rail-horizontal
+  :is(.wisp-tools-actions, .wisp-split-group) {
+  flex-shrink: 0;
+  min-height: 38px;
+  margin: 0 !important;
+  padding: 2px 4px !important;
+  gap: 2px;
+  background: var(--ds-glass-sheen), var(--ds-mat-chrome-bg) !important;
+  border: 0.5px solid rgb(0 0 0 / 5%) !important;
+  border-radius: 13px !important;
+  box-shadow: var(--ds-shadow-control) !important;
+  -webkit-backdrop-filter: var(--ds-mat-blur-small) !important;
+  backdrop-filter: var(--ds-mat-blur-small) !important;
 }
 /* Shared 16px gutters align the context toolbar, column labels and rows. */
 html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-workspace {
@@ -601,25 +638,25 @@ html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-control-group {
   padding-inline: 4px;
 }
 html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-inspector {
-  border-radius: 18px !important;
-  margin: 0 0 0 6px;
-  box-shadow: var(--ds-shadow-pop) !important;
+  border-radius: 0 !important;
+  margin: 0;
+  /* 分隔由拖拽条小柄承担（与 .wisp-sidebar 同款 border:0）——不再叠一条边框线 */
+  border: 0 !important;
+  box-shadow: none !important;
 }
-/* File previews share the window plane; only the document itself needs a canvas. */
+/* Sidebar previews share the same window plane as the file browser. */
 html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-inspector[data-panel="preview"] {
   margin: 0 !important;
   border: 0 !important;
   border-radius: 0 !important;
-  background: var(--ds-drawer-fill) !important;
+  background: transparent !important;
   box-shadow: none !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
-html:is(.theme-light, .theme-fluid, .theme-rolex)
-  .wisp-inspector[data-panel="preview"]
-  .wisp-inspector-header {
+html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-inspector .wisp-inspector-header {
   border: 0 !important;
-  background: transparent;
+  background: transparent !important;
 }
 html:is(.theme-light, .theme-fluid, .theme-rolex)
   .wisp-inspector[data-panel="preview"]
@@ -678,7 +715,7 @@ html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-settings-content {
 html:is(.theme-light, .theme-fluid, .theme-rolex) :is(.wisp-sidebar-item, .sidebar-item) {
   min-height: 32px;
   border: 0 !important;
-  border-radius: 10px !important;
+  border-radius: 7px !important;
   font-family: var(--ds-font-stack) !important;
   font-size: 13px !important;
   font-weight: 400 !important;
@@ -703,15 +740,15 @@ html:is(.theme-light, .theme-fluid, .theme-rolex)
 html:is(.theme-light, .theme-fluid, .theme-rolex)
   .wisp-settings-sidebar
   button[aria-current="page"] {
-  background: var(--ds-selection-sheen), var(--ds-sidebar-selection) !important;
+  background: var(--ds-selection-idle) !important;
   color: var(--ds-label-primary) !important;
   border-color: transparent !important;
-  box-shadow: var(--ds-shadow-control) !important;
+  box-shadow: none !important;
 }
 html:is(.theme-light, .theme-fluid, .theme-rolex)
   .wisp-sidebar
   .wisp-sidebar-item-active.wisp-sidebar-item-active:hover {
-  background: var(--ds-sidebar-selection) !important;
+  background: var(--ds-selection-idle) !important;
 }
 html:is(.theme-light, .theme-fluid, .theme-rolex)
   :is(.wisp-sidebar-item, .sidebar-item):hover:not(.wisp-sidebar-item-active):not(
@@ -729,8 +766,85 @@ html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-file-row {
 }
 html:is(.theme-light, .theme-fluid, .theme-rolex)
   .wisp-file-row:is(.file-selected, .is-selected, [aria-selected="true"], [data-selected="true"]) {
-  background: var(--ds-accent-tint) !important;
+  background: var(--ds-selection-idle) !important;
   color: var(--ds-label-primary) !important;
+}
+
+/* Selection, hover, and keyboard focus are separate states. No optical effects
+   belong on a file row: the content stays still while the user navigates. */
+html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-file-item {
+  border: 0 !important;
+  box-shadow: none !important;
+  outline-offset: -2px;
+  transform: none !important;
+  scale: none !important;
+  background: transparent !important;
+  transition:
+    background-color var(--ds-motion-fast),
+    color var(--ds-motion-fast);
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-file-item:hover:not([aria-selected="true"]) {
+  background: var(--ds-row-hover) !important;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-file-item[aria-selected="true"] {
+  background: var(--ds-selection-idle) !important;
+  color: var(--ds-selection-idle-text) !important;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex):not([data-window-focused="false"])
+  .wisp-file-selection-surface:focus-within
+  .wisp-file-item[aria-selected="true"] {
+  --xp-text: var(--ds-selection-active-text);
+  --xp-text-secondary: var(--ds-selection-active-text);
+  --xp-text-muted: var(--ds-selection-active-text);
+  --xp-text-rgb: 255 255 255;
+  --xp-text-secondary-rgb: 255 255 255;
+  --xp-text-muted-rgb: 255 255 255;
+  color: var(--ds-selection-active-text) !important;
+  background: var(--ds-selection-active) !important;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-file-item[aria-selected="true"]
+  .wisp-file-name {
+  color: inherit;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-file-item[data-file-presentation="filmstrip"][aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 2px solid var(--ds-selection-active);
+  border-radius: inherit;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-resize-handle-horizontal {
+  width: 10px !important;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-resize-handle-vertical {
+  height: 10px !important;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-resize-handle:focus-visible {
+  outline: 2px solid var(--ds-focus) !important;
+  outline-offset: -2px;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  :is(.wisp-clipboard-panel, .wisp-properties-panel)
+  button {
+  min-height: 28px;
+  border-radius: 7px;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-clipboard-entry:is(:hover, :focus-within) {
+  background: var(--ds-row-hover) !important;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-file-item:focus-visible {
+  outline: 2px solid var(--ds-focus) !important;
+  outline-offset: -2px !important;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex):not([data-window-focused="false"])
+  .wisp-file-selection-surface:focus-within
+  .wisp-file-item[aria-selected="true"]:focus-visible {
+  outline-color: var(--ds-selection-active-text) !important;
 }
 html:is(.theme-light, .theme-fluid, .theme-rolex)
   .wisp-content-canvas
@@ -878,8 +992,7 @@ html:is(.theme-light, .theme-fluid, .theme-rolex)
     .wisp-toolbar-group,
     .wisp-window-controls,
     .wisp-toolbar-controls,
-    .wisp-control-group,
-    .wisp-panel-rail-horizontal
+    .wisp-control-group
   ) {
   background: var(--ds-glass-sheen), var(--ds-mat-chrome-bg) !important;
   border: 0.5px solid rgb(0 0 0 / 5%) !important;
@@ -935,16 +1048,56 @@ html:is(.theme-light, .theme-fluid, .theme-rolex)
   button:hover:not(:disabled) {
   background: var(--ds-hover) !important;
 }
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-titlebar
+  .wisp-panel-rail-horizontal
+  .wisp-rail-button:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+html:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-panel-rail-horizontal
+  .wisp-rail-button:focus:not(:focus-visible) {
+  outline: none !important;
+}
 html:is(.theme-light, .theme-fluid, .theme-rolex)
   :is(
     .wisp-control[aria-pressed="true"],
-    .wisp-panel-rail .wisp-rail-button[aria-pressed="true"],
     .wisp-sidebar-tab[aria-selected="true"],
     .wisp-bottom-tab[aria-selected="true"]
   ) {
-  background: var(--ds-sidebar-selection) !important;
+  background: var(--ds-accent) !important;
+  color: var(--ds-on-dark) !important;
+  box-shadow: none !important;
+}
+/* An active rail action changes only its icon color. */
+html:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-panel-rail
+  .wisp-rail-button[aria-pressed="true"] {
+  background: transparent !important;
+  border-color: transparent !important;
   color: var(--ds-link) !important;
-  box-shadow: var(--ds-shadow-control) !important;
+  box-shadow: none !important;
+}
+html:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-panel-rail
+  .wisp-rail-button[aria-pressed="true"]:hover {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: var(--ds-link) !important;
+  box-shadow: none !important;
+}
+html:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-panel-rail-horizontal
+  .wisp-rail-button:is([aria-expanded="true"], :active),
+html:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-panel-rail-horizontal
+  .wisp-rail-button:is([aria-expanded="true"], :active):hover {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: var(--ds-link) !important;
+  box-shadow: none !important;
 }
 
 html:root:is(.theme-light, .theme-fluid, .theme-rolex)
@@ -1047,15 +1200,15 @@ html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-clipboard-entry {
 /* Shared and legacy action buttons. Variant rules follow the base. */
 html:is(.theme-light, .theme-fluid, .theme-rolex)
   :is(button.glass-button, button.bg-xp-accent, button.bg-xp-blue, button.bg-primary) {
-  min-height: 28px;
-  border-radius: 999px !important;
+  min-height: 32px;
+  border-radius: 8px !important;
   border: 1px solid var(--ds-separator) !important;
-  background: var(--ds-glass-sheen), var(--ds-control) !important;
+  background: var(--ds-control) !important;
   color: var(--ds-label-primary) !important;
   font-size: 13px !important;
   line-height: 18px;
   font-weight: 500 !important;
-  box-shadow: var(--ds-shadow-control) !important;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 7%) !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
   transition:
@@ -1064,7 +1217,7 @@ html:is(.theme-light, .theme-fluid, .theme-rolex)
     opacity var(--ds-motion-fast);
 }
 html:is(.theme-light, .theme-fluid, .theme-rolex) button.glass-button[data-size="sm"] {
-  min-height: 24px;
+  min-height: 28px;
 }
 html:is(.theme-light, .theme-fluid, .theme-rolex) button.glass-button[data-size="lg"] {
   min-height: 36px;
@@ -1146,7 +1299,7 @@ html:is(.theme-light, .theme-fluid, .theme-rolex)
     input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]):not(
         .wisp-address-input
       ):not([type="file"]),
-    textarea,
+    textarea:not(.pi-composer-input),
     select,
     [role="combobox"]
   ) {
@@ -1160,10 +1313,10 @@ html:is(.theme-light, .theme-fluid, .theme-rolex)
   backdrop-filter: none !important;
 }
 html:is(.theme-light, .theme-fluid, .theme-rolex) .glass-input[role="combobox"] {
-  --ds-field-fill: var(--ds-glass-sheen), var(--ds-control);
-  --ds-field-radius: 999px;
-  --ds-field-shadow: var(--ds-shadow-control);
-  --ds-field-border: transparent;
+  --ds-field-fill: var(--ds-field);
+  --ds-field-radius: 8px;
+  --ds-field-shadow: none;
+  --ds-field-border: var(--ds-separator-strong);
   padding-inline: 12px;
 }
 html:is(.theme-light, .theme-fluid, .theme-rolex) :is(input, textarea)::placeholder {
@@ -1664,4 +1817,22 @@ html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-settings-content {
   color: var(--ds-label-primary);
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
+}
+
+/* Keep wheel/trackpad scrolling in document previews without visual rails.
+   Native document scroll views are configured separately in ql_view.rs. */
+html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-panel-overflow-menu {
+  background: var(--ds-surface) !important;
+  border: 1px solid var(--ds-separator-strong) !important;
+  border-radius: 12px !important;
+}
+html:root .wisp-preview-content,
+html:root .wisp-preview-content * {
+  scrollbar-width: none !important;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-preview-content::-webkit-scrollbar,
+html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-preview-content ::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }

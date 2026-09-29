@@ -25,11 +25,7 @@ const ExplorerSettings = ({ settings, updateSetting }: ExplorerSettingsProps) =>
   return (
     <div className="space-y-4">
       <SettingsSection title={t('settings.explorer.display')}>
-        <SettingRow
-          icon={LayoutGrid}
-          label={t('settings.explorer.defaultView')}
-          description={t('settings.explorer.defaultViewDesc')}
-        >
+        <SettingRow icon={LayoutGrid} label={t('settings.explorer.defaultView')}>
           <SelectField
             label={t('settings.explorer.defaultView')}
             value={settings.defaultView}
@@ -37,11 +33,7 @@ const ExplorerSettings = ({ settings, updateSetting }: ExplorerSettingsProps) =>
             options={viewModes}
           />
         </SettingRow>
-        <SettingRow
-          icon={FileText}
-          label={t('settings.explorer.fileExtensions')}
-          description={t('settings.explorer.fileExtensionsDesc')}
-        >
+        <SettingRow icon={FileText} label={t('settings.explorer.fileExtensions')}>
           <Toggle
             id="fileExtensions"
             label={t('settings.explorer.fileExtensions')}
@@ -49,11 +41,7 @@ const ExplorerSettings = ({ settings, updateSetting }: ExplorerSettingsProps) =>
             onChange={(v) => updateSetting('showFileExtensions', v)}
           />
         </SettingRow>
-        <SettingRow
-          icon={FolderOpen}
-          label={t('settings.explorer.autoFolderSizes')}
-          description={t('settings.explorer.autoFolderSizesDesc')}
-        >
+        <SettingRow icon={FolderOpen} label={t('settings.explorer.autoFolderSizes')}>
           <Toggle
             id="autoFolderSizes"
             label={t('settings.explorer.autoFolderSizes')}
@@ -70,9 +58,6 @@ const ExplorerSettings = ({ settings, updateSetting }: ExplorerSettingsProps) =>
           </summary>
           <div className="wisp-settings-advanced-body">
             <SettingsSection title={t('settings.explorer.contextMenuVisibility')}>
-              <p className="wisp-settings-advanced-description">
-                {t('settings.explorer.contextMenuVisibilityDesc')}
-              </p>
               <ContextMenuRulesCard embedded />
             </SettingsSection>
           </div>

@@ -8,6 +8,7 @@ import { useDroppable } from '@/hooks/use-droppable';
 import { useGridLayout } from '@/hooks/use-grid-layout';
 import { useTypeAheadSearch } from '@/hooks/use-type-ahead-search';
 import { useGridKeyboardNav } from '@/hooks/use-grid-keyboard-nav';
+import { useFileTabStop } from '@/hooks/use-file-tab-stop';
 import { useThumbnailCache } from '@/hooks/use-thumbnail-cache';
 import { ViewComponentProps } from './FileGridTypes';
 import { isImageFile } from './FileGridHelpers';
@@ -513,6 +514,15 @@ const FileGrid = ({
         : files,
     [files, fileGroups, needsVirtualization],
   );
+  const virtualRows = virtualizer.getVirtualItems();
+  const mountedFiles = needsVirtualization
+    ? virtualRows.flatMap((row) => files.slice(row.index * columns, (row.index + 1) * columns))
+    : keyboardFiles;
+  const { tabStopPath, rememberFileFocus } = useFileTabStop(
+    keyboardFiles,
+    selectedFiles,
+    mountedFiles,
+  );
 
   const { handleKeyDown: handleGridNav } = useGridKeyboardNav({
     files: keyboardFiles,
@@ -603,6 +613,7 @@ const FileGrid = ({
 
   // ─── Delegate to specialized views ──────────────────────────────────────
   const viewComponentProps: ViewComponentProps = {
+    tabStopPath,
     files,
     selectedFiles,
     currentPath,
@@ -636,7 +647,12 @@ const FileGrid = ({
 
   if (viewMode === 'details') {
     return (
-      <div ref={keyboardRef} className="contents" onKeyDown={handleGridKeyDown}>
+      <div
+        ref={keyboardRef}
+        className="wisp-file-selection-surface contents"
+        onFocusCapture={rememberFileFocus}
+        onKeyDown={handleGridKeyDown}
+      >
         <DetailsView {...viewComponentProps} fileGroups={fileGroups} />
       </div>
     );
@@ -683,6 +699,7 @@ const FileGrid = ({
           </>
         )}
         <FileGridItem
+          tabStopPath={tabStopPath}
           file={file}
           isSelected={selectedFiles.has(file.path)}
           tags={allTags.get(file.path) || emptyTags}
@@ -731,7 +748,8 @@ const FileGrid = ({
           role="listbox"
           aria-label={t('explorer.details.fileListAria')}
           aria-multiselectable={true}
-          className="relative"
+          className="wisp-file-selection-surface relative"
+          onFocusCapture={rememberFileFocus}
           onContextMenu={handleBackgroundRightClick || undefined}
           onKeyDown={handleGridKeyDown}
         >
@@ -759,7 +777,8 @@ const FileGrid = ({
         role="listbox"
         aria-label={t('explorer.details.fileListAria')}
         aria-multiselectable={true}
-        className={`${getGridLayout()} relative p-2`}
+        className={`wisp-file-selection-surface ${getGridLayout()} relative p-2`}
+        onFocusCapture={rememberFileFocus}
         onContextMenu={handleBackgroundRightClick || undefined}
         onKeyDown={handleGridKeyDown}
       >
@@ -781,7 +800,9 @@ const FileGrid = ({
       role="listbox"
       aria-label={t('explorer.details.fileListAria')}
       aria-multiselectable={true}
-      className="relative h-full select-none overflow-auto"
+      tabIndex={tabStopPath ? -1 : 0}
+      className="wisp-file-selection-surface relative h-full select-none overflow-auto"
+      onFocusCapture={rememberFileFocus}
       style={{ padding: '8px' }}
       onContextMenu={handleBackgroundRightClick || undefined}
       onKeyDown={handleGridKeyDown}
@@ -793,7 +814,7 @@ const FileGrid = ({
           position: 'relative',
         }}
       >
-        {virtualizer.getVirtualItems().map((virtualRow) => {
+        {virtualRows.map((virtualRow) => {
           const startIndex = virtualRow.index * columns;
           const rowFiles = files.slice(startIndex, startIndex + columns);
 
@@ -816,6 +837,7 @@ const FileGrid = ({
                 const isFileRenaming = renamingPath === file.path;
                 return (
                   <FileGridItem
+                    tabStopPath={tabStopPath}
                     key={file.path}
                     file={file}
                     isSelected={selectedFiles.has(file.path)}

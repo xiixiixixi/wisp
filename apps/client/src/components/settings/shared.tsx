@@ -103,18 +103,18 @@ export const SettingsSection = ({
   description,
   children,
 }: {
-  title: string;
+  title: React.ReactNode;
   description?: React.ReactNode;
   children: React.ReactNode;
 }) => (
-  <section className="content-card rounded-xl p-1">
+  <section className="wisp-settings-section">
     <div className="px-3 pb-2 pt-3">
       <h3 className="text-[13px] font-semibold text-xp-text">{title}</h3>
       {description && (
         <p className="mt-1 text-xs leading-[1.4] text-xp-text-secondary">{description}</p>
       )}
     </div>
-    <div className="divide-xp-border/40 divide-y">{children}</div>
+    <div className="wisp-settings-section-rows">{children}</div>
   </section>
 );
 
@@ -154,6 +154,31 @@ export const SettingRow = ({
     </div>
   );
 };
+
+/** Text fields use the same visible row label as switches and selects. */
+export const SettingInput = (props: React.ComponentProps<typeof Input>) => {
+  const row = useContext(SettingLabelContext);
+  return (
+    <Input
+      aria-labelledby={props['aria-label'] ? undefined : row?.labelId}
+      aria-describedby={row?.descriptionId}
+      {...props}
+    />
+  );
+};
+
+/** Status stays beside the task and is announced without moving keyboard focus. */
+export const SettingsStatus = ({
+  error,
+  children,
+}: {
+  error?: boolean;
+  children: React.ReactNode;
+}) => (
+  <p className={`wisp-settings-status${error ? 'is-error' : ''}`} role={error ? 'alert' : 'status'}>
+    {children}
+  </p>
+);
 
 /** Section heading. */
 export const SectionTitle = ({ title, description }: { title: string; description?: string }) => (

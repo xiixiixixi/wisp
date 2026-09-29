@@ -14,26 +14,42 @@ import {
 import AboutSettings from './AboutSettings';
 import ShortcutsSettingsPanel from './ShortcutsSettings';
 import '@/styles/general-settings.css';
+import { Dialog, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface GeneralSettingsProps {
+  active?: boolean;
   settings: AppSettings;
   updateSetting: (key: string, value: string | boolean | number) => void;
   setSettings: (s: AppSettings) => void;
 }
 
-const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettingsProps) => {
+const GeneralSettings = ({
+  settings,
+  updateSetting,
+  setSettings,
+  active = true,
+}: GeneralSettingsProps) => {
   const { t, i18n } = useTranslation();
   const appearanceId = useId();
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const resetPreferences = () => {
+    setSettings({
+      ...settings,
+      appearance: DEFAULT_SETTINGS.appearance,
+      language: DEFAULT_SETTINGS.language,
+      defaultView: DEFAULT_SETTINGS.defaultView,
+      showFileExtensions: DEFAULT_SETTINGS.showFileExtensions,
+      autoCalculateFolderSizes: DEFAULT_SETTINGS.autoCalculateFolderSizes,
+    });
+    setConfirmReset(false);
+  };
   const showSystemIntegration = isTauri() && navigator.userAgent.includes('Windows');
   return (
     <div className="wisp-general-settings">
       <div className="wisp-general-preferences">
-        <SettingRow
-          icon={Monitor}
-          label={t('settings.general.appearance')}
-          description={t('settings.general.appearanceDesc')}
-        >
+        <SettingRow icon={Monitor} label={t('settings.general.appearance')}>
           <fieldset className="wisp-general-appearance">
             <legend className="sr-only">{t('settings.general.appearance')}</legend>
             {[
@@ -58,11 +74,7 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
             ))}
           </fieldset>
         </SettingRow>
-        <SettingRow
-          icon={Globe}
-          label={t('settings.general.language')}
-          description={t('settings.general.languageDesc')}
-        >
+        <SettingRow icon={Globe} label={t('settings.general.language')}>
           <SelectField
             label={t('settings.general.language')}
             value={normalizeLanguage(settings.language || i18n.resolvedLanguage || i18n.language)}
@@ -89,37 +101,42 @@ const GeneralSettings = ({ settings, updateSetting, setSettings }: GeneralSettin
             <span className="wisp-general-disclosure-title">
               {t('settings.general.keyboard', { defaultValue: 'Keyboard' })}
             </span>
-            <span className="wisp-general-disclosure-description">
-              {t('settings.general.keyboardDesc', { defaultValue: 'Shortcuts and Vim mode' })}
-            </span>
           </span>
           <ChevronRight className="wisp-general-disclosure-chevron" size={14} aria-hidden="true" />
         </summary>
         {keyboardOpen && (
           <div className="wisp-general-disclosure-content wisp-general-keyboard">
-            <p className="wisp-general-keyboard-note">
-              {t('settings.general.keyboardNote', {
-                defaultValue:
-                  'On macOS, common shortcuts follow familiar Mac conventions. Wisp also includes shortcuts for its terminal and split panes.',
-              })}
-            </p>
-            <ShortcutsSettingsPanel />
+            <ShortcutsSettingsPanel active={active} />
           </div>
         )}
       </details>
       <SettingsSection title={t('settings.general.about', { defaultValue: '关于' })}>
-        <div className="flex items-center justify-between px-1 py-1.5">
-          <button
-            type="button"
-            onClick={() => setSettings(DEFAULT_SETTINGS)}
-            className="wisp-general-reset"
-          >
-            <RotateCcw size={14} aria-hidden="true" />
-            {t('settings.resetAll')}
-          </button>
-        </div>
         <AboutSettings />
       </SettingsSection>
+      <button type="button" className="wisp-general-reset" onClick={() => setConfirmReset(true)}>
+        <RotateCcw size={14} aria-hidden="true" />
+        {t('settings.resetAll')}
+      </button>
+      {confirmReset && (
+        <Dialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setConfirmReset(false);
+          }}
+          maxWidth={420}
+        >
+          <div className="wisp-settings-confirm">
+            <DialogTitle>{t('settings.general.resetConfirmTitle')}</DialogTitle>
+            <p>{t('settings.general.resetDescription')}</p>
+            <div className="wisp-settings-actions">
+              <Button variant="secondary" data-autofocus onClick={() => setConfirmReset(false)}>
+                {t('common.cancel')}
+              </Button>
+              <Button onClick={resetPreferences}>{t('settings.general.resetConfirm')}</Button>
+            </div>
+          </div>
+        </Dialog>
+      )}
     </div>
   );
 };

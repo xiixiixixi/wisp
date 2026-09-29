@@ -9,13 +9,14 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Copy, FileText, Loader2, ShieldAlert, Trash2, X } from 'lucide-react';
+import { ArrowRight, Copy, FileText, Loader2, ShieldAlert, Trash2, X } from 'lucide-react';
 import PiChatComposer, {
   loadThinkingPref,
   type PermissionMode,
   type ThinkingLevel,
 } from './PiChatComposer';
 import { useSessionEvents } from './agent-manager/use-session-events';
+import { PanelConfirmation } from './PanelFeedback';
 import { transport, isTauri } from '@/lib/transport';
 import {
   PiEngine,
@@ -57,7 +58,6 @@ const MAX_PENDING_SELECTIONS = 5;
 /** 画布自动进入只认文档类产物：代码/配置写入不抢布局。 */
 const CANVAS_DOC_EXTS = new Set(['md', 'markdown', 'txt', 'text']);
 
-
 const PiChatPanel = ({ currentPath, canvasMode = false, onCanvasChange }: PiChatPanelProps) => {
   const { t } = useTranslation();
   const [mode, setMode] = useState<Mode>('folder');
@@ -72,6 +72,8 @@ const PiChatPanel = ({ currentPath, canvasMode = false, onCanvasChange }: PiChat
   const [approval, setApproval] = useState<ApprovalRequest | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [deletingSession, setDeletingSession] = useState<SessionMetaDto | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const [available, setAvailable] = useState<AvailableModel[]>([]);
   const [skills, setSkills] = useState<WispSkill[]>([]);
   const [thinking, setThinking] = useState<ThinkingLevel>(loadThinkingPref);
@@ -99,7 +101,9 @@ const PiChatPanel = ({ currentPath, canvasMode = false, onCanvasChange }: PiChat
         .then(setSkills)
         .catch(() => undefined);
       const savedDefault = localStorage.getItem('wisp:pi-last-model') || '';
-      const preferred = list.some((m) => m.ref === savedDefault) ? savedDefault : list[0]?.ref ?? '';
+      const preferred = list.some((m) => m.ref === savedDefault)
+        ? savedDefault
+        : (list[0]?.ref ?? '');
       setModel((current) => (current && current !== 'ollama:llama3.2' ? current : preferred));
     };
     void runDiscovery();
@@ -323,15 +327,20 @@ const PiChatPanel = ({ currentPath, canvasMode = false, onCanvasChange }: PiChat
 
   const deleteSession = useCallback(
     async (id: string) => {
+      setDeleteBusy(true);
       try {
         await transport('pi_session_delete', { id });
+        setDeletingSession(null);
         refreshSessions();
         if (sessionId === id) newConversation();
-      } catch {
-        // ignore — index refresh will resync
+      } catch (error) {
+        setError(t('panelActions.deleteChatFailed', { error: String(error) }));
+        setDeletingSession(null);
+      } finally {
+        setDeleteBusy(false);
       }
     },
-    [refreshSessions, sessionId, newConversation],
+    [refreshSessions, sessionId, newConversation, t],
   );
 
   const visibleSessions = useMemo(() => sessions.slice(0, 20), [sessions]);
@@ -380,9 +389,7 @@ const PiChatPanel = ({ currentPath, canvasMode = false, onCanvasChange }: PiChat
     if (!onCanvasChange) return;
     const completed = toolEvents.some(
       (e) =>
-        e.type === 'tool_result' &&
-        e.toolName === 'write_file' &&
-        e.toolStatus === 'completed',
+        e.type === 'tool_result' && e.toolName === 'write_file' && e.toolStatus === 'completed',
     );
     if (!completed) return;
     const path = writePathRef.current;
@@ -405,6 +412,17 @@ const PiChatPanel = ({ currentPath, canvasMode = false, onCanvasChange }: PiChat
 
   return (
     <div className="flex min-h-0 flex-1 flex-col" data-testid="pi-chat-panel">
+      <PanelConfirmation
+        open={deletingSession !== null}
+        title={t('panelActions.deleteChatTitle')}
+        description={t('panelActions.deleteChatDescription', { name: deletingSession?.title })}
+        confirmLabel={t('piChat.deleteSession')}
+        busy={deleteBusy}
+        onCancel={() => setDeletingSession(null)}
+        onConfirm={() => {
+          if (deletingSession) void deleteSession(deletingSession.id);
+        }}
+      />
       {/* 历史抽屉（从输入盒工具条展开向上） */}
       {showHistory && (
         <div className="mx-3 mb-1 max-h-44 flex-shrink-0 overflow-y-auto rounded-md border border-xp-border bg-xp-popover px-1 py-1 shadow-lg">
@@ -419,17 +437,24 @@ const PiChatPanel = ({ currentPath, canvasMode = false, onCanvasChange }: PiChat
               className={`group flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-xp-surface-light ${
                 sessionId === s.id ? 'bg-xp-surface-light' : ''
               }`}
-              onClick={() => loadSession(s.id)}
             >
-              <span className="min-w-0 flex-1 truncate text-xp-text">{s.title}</span>
+              <button
+                type="button"
+                className="min-w-0 flex-1 truncate py-1 text-left text-xp-text"
+                disabled={loading}
+                onClick={() => loadSession(s.id)}
+              >
+                {s.title}
+              </button>
               <span className="text-[10px] text-xp-text-muted">{s.message_count}</span>
               <button
                 type="button"
-                className="hidden rounded p-0.5 text-xp-text-muted hover:text-xp-red group-hover:block"
+                className="rounded p-1.5 text-xp-text-muted opacity-0 hover:text-xp-red focus-visible:opacity-100 group-hover:opacity-100"
+                disabled={loading}
                 aria-label={t('piChat.deleteSession')}
                 onClick={(e) => {
                   e.stopPropagation();
-                  deleteSession(s.id);
+                  setDeletingSession(s);
                 }}
               >
                 <Trash2 size={11} />
@@ -441,51 +466,72 @@ const PiChatPanel = ({ currentPath, canvasMode = false, onCanvasChange }: PiChat
 
       {/* 消息区：无气泡平铺文档流（ZCode 式） */}
       <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
-        {/* 空状态：居中欢迎语；配好模型后给建议词条，否则给配置引导 */}
+        {/* 空状态：未配置时只显示一步引导；可用时显示欢迎语与建议词条 */}
         {messages.length === 0 && !loading && (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-1">
-            <div className="text-center">
-              <div className="text-[15px] font-semibold text-xp-text">
-                {mode === 'folder' ? t('piChat.welcomeTitle') : t('piChat.welcomeQuickTitle')}
-              </div>
-              <div className="mt-1 text-[11px] text-xp-text-muted">
-                {mode === 'folder'
-                  ? `${t('piChat.welcomeIn')} ${currentPath.split('/').pop() || currentPath}`
-                  : t('piChat.welcomeQuick')}
-              </div>
-            </div>
             {available.length === 0 ? (
-              <div className="w-full max-w-xs rounded-md border border-xp-border bg-xp-surface px-3 py-3 text-left">
-                <div className="text-xs font-medium text-xp-text">{t('piChat.needModelTitle')}</div>
-                <div className="mt-1 text-[11px] leading-4 text-xp-text-secondary">
+              <div className="w-full max-w-[260px] text-left">
+                <h3 className="text-[15px] font-medium text-xp-text">
+                  {t('piChat.needModelTitle')}
+                </h3>
+                <p className="mt-2 text-[13px] leading-5 text-xp-text-secondary">
                   {t('piChat.needModelDesc')}
-                </div>
+                </p>
                 <button
                   type="button"
-                  className="mt-2.5 rounded-md bg-xp-accent px-3 py-1.5 text-[11px] text-xp-on-accent hover:bg-xp-accent-hover"
-                  onClick={() => window.dispatchEvent(new CustomEvent('wisp-open-settings'))}
+                  className="mt-3 inline-flex min-h-8 items-center gap-1.5 rounded text-[13px] font-medium text-xp-accent underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-xp-accent"
+                  onClick={(event) =>
+                    window.dispatchEvent(
+                      new CustomEvent('wisp-open-settings', {
+                        detail: { returnFocus: event.currentTarget },
+                      }),
+                    )
+                  }
                   data-testid="pi-chat-open-settings"
                 >
                   {t('piChat.goConfigure')}
+                  <ArrowRight size={14} aria-hidden="true" />
                 </button>
               </div>
             ) : (
-              <div className="flex max-w-[240px] flex-wrap justify-center gap-1.5">
-                {(mode === 'folder'
-                  ? [t('piChat.sugOrganize'), t('piChat.sugDuplicates'), t('piChat.sugRecent'), t('piChat.sugWhatHere')]
-                  : [t('piChat.sugTranslate'), t('piChat.sugExplain'), t('piChat.sugWrite'), t('piChat.sugCompare')]
-                ).map((sug) => (
-                  <button
-                    key={sug}
-                    type="button"
-                    className="rounded-md border border-xp-border px-2.5 py-1 text-[11px] text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
-                    onClick={() => setInput(sug)}
-                    data-testid="pi-suggestion"
-                  >
-                    {sug}
-                  </button>
-                ))}
-              </div>
+              <>
+                <div className="text-center">
+                  <div className="text-[15px] font-semibold text-xp-text">
+                    {mode === 'folder' ? t('piChat.welcomeTitle') : t('piChat.welcomeQuickTitle')}
+                  </div>
+                  <div className="mt-1 text-[11px] text-xp-text-muted">
+                    {mode === 'folder'
+                      ? `${t('piChat.welcomeIn')} ${currentPath.split('/').pop() || currentPath}`
+                      : t('piChat.welcomeQuick')}
+                  </div>
+                </div>
+                <div className="flex max-w-[240px] flex-wrap justify-center gap-1.5">
+                  {(mode === 'folder'
+                    ? [
+                        t('piChat.sugOrganize'),
+                        t('piChat.sugDuplicates'),
+                        t('piChat.sugRecent'),
+                        t('piChat.sugWhatHere'),
+                      ]
+                    : [
+                        t('piChat.sugTranslate'),
+                        t('piChat.sugExplain'),
+                        t('piChat.sugWrite'),
+                        t('piChat.sugCompare'),
+                      ]
+                  ).map((sug) => (
+                    <button
+                      key={sug}
+                      type="button"
+                      className="rounded-md border border-xp-border px-2.5 py-1 text-[11px] text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                      onClick={() => setInput(sug)}
+                      data-testid="pi-suggestion"
+                    >
+                      {sug}
+                    </button>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )}
@@ -493,9 +539,7 @@ const PiChatPanel = ({ currentPath, canvasMode = false, onCanvasChange }: PiChat
         {messages.map((m, i) => (
           <div key={i} className="group/msg relative py-1.5">
             {/* 轮次分隔：每条用户消息前画一条发丝线（首轮除外） */}
-            {m.role === 'user' && i > 0 && (
-              <div className="mb-2 mt-1 border-t border-xp-border" />
-            )}
+            {m.role === 'user' && i > 0 && <div className="mb-2 mt-1 border-t border-xp-border" />}
             {m.role === 'user' ? (
               <div className="whitespace-pre-wrap break-words text-sm font-medium text-xp-text">
                 {m.text}
@@ -605,7 +649,9 @@ const PiChatPanel = ({ currentPath, canvasMode = false, onCanvasChange }: PiChat
                     )}
                     {e.type === 'tool_result' && (
                       <>
-                        <span className={e.toolStatus === 'error' ? 'text-xp-red' : 'text-xp-green'}>
+                        <span
+                          className={e.toolStatus === 'error' ? 'text-xp-red' : 'text-xp-green'}
+                        >
                           {e.toolStatus === 'error' ? '✗' : '✓'}
                         </span>
                         <span className="min-w-0 flex-1 truncate">
@@ -687,9 +733,7 @@ const PiChatPanel = ({ currentPath, canvasMode = false, onCanvasChange }: PiChat
                 aria-label={t('piChat.selectionClear')}
                 title={t('piChat.selectionClear')}
                 className="shrink-0 rounded p-0.5 text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text"
-                onClick={() =>
-                  setPendingSelections((prev) => prev.filter((_, idx) => idx !== i))
-                }
+                onClick={() => setPendingSelections((prev) => prev.filter((_, idx) => idx !== i))}
               >
                 <X size={11} />
               </button>

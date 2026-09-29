@@ -13,7 +13,7 @@ interface PiModelPickerProps {
   models: AvailableModel[];
   value: string;
   onChange: (ref: string) => void;
-  /** 输入盒工具条形态：纯文字无边框（ZCode 式），默认为带框整宽。 */
+  /** 输入盒工具条形态：仅图标；菜单和悬停说明保留模型名称。 */
   compact?: boolean;
 }
 
@@ -45,21 +45,25 @@ const PiModelPicker = ({ models, value, onChange, compact }: PiModelPickerProps)
         type="button"
         className={
           compact
-            ? 'flex max-w-[10rem] items-center gap-1 rounded-md px-1.5 py-1 text-left text-[11px] text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text'
+            ? `pi-composer-tool ${current ? 'text-xp-accent' : ''}`
             : 'flex w-full items-center gap-1.5 rounded-md border border-xp-border bg-xp-surface-light px-2 py-1.5 text-left text-[11px] text-xp-text'
         }
         onClick={() => setOpen((v) => !v)}
-        title={current ? `${current.providerLabel} · ${current.label}` : undefined}
+        title={current ? `${current.providerLabel} · ${current.label}` : t('piChat.pickModel')}
+        aria-label={current ? `${t('piChat.pickModel')}：${current.label}` : t('piChat.pickModel')}
+        aria-expanded={open}
+        aria-haspopup="listbox"
         data-testid="pi-model-picker"
       >
-        <Sparkles size={11} className="shrink-0 opacity-70" />
-        {/* compact 模式下窄列（画布对话列）只留图标，容器够宽再显模型名 */}
-        <span
-          className={`min-w-0 truncate ${compact ? 'pi-composer-label' : 'flex-1'}`}
-        >
-          {current ? (compact ? current.label : `${current.providerLabel} · ${current.label}`) : t('piChat.pickModel')}
-        </span>
-        <ChevronDown size={10} className="shrink-0 opacity-60" />
+        <Sparkles size={compact ? 16 : 11} className="shrink-0" />
+        {!compact && (
+          <>
+            <span className="min-w-0 flex-1 truncate">
+              {current ? `${current.providerLabel} · ${current.label}` : t('piChat.pickModel')}
+            </span>
+            <ChevronDown size={10} className="shrink-0 opacity-60" />
+          </>
+        )}
       </button>
       {open && (
         <div

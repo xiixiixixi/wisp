@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useWindowEvent } from '@/hooks/use-window-event';
+import type { SpringLoadedFolderDetail } from '@/hooks/use-spring-loaded-folder';
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
 import { isTauri } from '@/lib/transport';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
@@ -16,9 +17,7 @@ import {
 import { extensionHost } from '@/lib/extension-host';
 import { useShortcuts } from '@/hooks/use-shortcuts';
 import { useVimMode, isVimModeEnabled, type VimModeActions } from '@/hooks/use-vim-mode';
-import {
-  AGENT_LAUNCH_REQUEST_EVENT,
-} from '@/components/panels/agent-manager/agent-launch-request';
+import { AGENT_LAUNCH_REQUEST_EVENT } from '@/components/panels/agent-manager/agent-launch-request';
 import type { TabItem, EditorGroup } from '@/types/split-view';
 import type { BottomPanelTabId } from '@/hooks/use-layout-state';
 import type { SortField } from '@/lib/utils';
@@ -602,7 +601,6 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
       window.removeEventListener('auxclick', onMouseUp as EventListener, true);
     };
     // Mounted once; latest callbacks are read through refs.
-     
   }, []);
 
   // ── Vim mode ──────────────────────────────────────────────────────────────
@@ -749,13 +747,13 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
   }, [setRightSidebarCollapsed, setRightPanelTab]);
 
   // ── Spring-loaded folder navigation ──────────────────────────────────────
-  // When DragDropContext fires 'spring-load-folder' (a folder hovered for
-  // 500ms while dragging), navigate into that folder automatically.
+  // Drop targets inside a pane navigate in that pane itself. Sidebar targets
+  // have no group ID and retain the active-pane navigation behavior.
   useWindowEvent(
     'spring-load-folder',
     (e: Event) => {
-      const { path } = (e as CustomEvent<{ path: string }>).detail;
-      if (path) navigateWithHistory(path);
+      const detail = (e as CustomEvent<SpringLoadedFolderDetail>).detail;
+      if (detail?.path && !detail.groupId) navigateWithHistory(detail.path);
     },
     [navigateWithHistory],
   );

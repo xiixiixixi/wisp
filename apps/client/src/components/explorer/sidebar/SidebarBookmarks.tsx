@@ -19,6 +19,7 @@ interface SidebarBookmarkItemsProps {
   currentPath: string;
   navigateToPath: (path: string) => void;
   handleFileRightClick?: (file: FileEntry, event: React.MouseEvent) => void;
+  handleFileOpen?: (file: FileEntry) => void;
   showEmpty?: boolean;
 }
 
@@ -27,10 +28,22 @@ export const SidebarBookmarkItems = ({
   currentPath,
   navigateToPath,
   handleFileRightClick,
+  handleFileOpen,
   showEmpty = false,
 }: SidebarBookmarkItemsProps) => {
   const { t } = useTranslation();
   const [bookmarks, setBookmarks] = useState<BookmarkEntry[]>([]);
+  const [removeError, setRemoveError] = useState(false);
+
+  const asFileEntry = (bookmark: BookmarkEntry): FileEntry => ({
+    name: bookmark.name,
+    path: bookmark.path,
+    size: 0,
+    modified: 0,
+    is_dir: bookmark.is_dir,
+    file_type: bookmark.is_dir ? 'folder' : bookmark.name.split('.').pop() || '',
+    is_readonly: false,
+  });
 
   const loadBookmarks = () => {
     TauriAPI.getBookmarks()
@@ -50,11 +63,13 @@ export const SidebarBookmarkItems = ({
 
   const handleRemoveBookmark = async (path: string, event: React.MouseEvent) => {
     event.stopPropagation();
+    setRemoveError(false);
     try {
       await TauriAPI.removeBookmark(path);
       setBookmarks((prev) => prev.filter((b) => b.path !== path));
     } catch (error) {
       console.error('Failed to remove bookmark:', error);
+      setRemoveError(true);
     }
   };
 
@@ -66,63 +81,67 @@ export const SidebarBookmarkItems = ({
 
   return (
     <div className="border-xp-border/60 mt-1 space-y-0.5 border-t pt-1">
+      {removeError && (
+        <p className="wisp-nav-feedback" role="alert">
+          {t('sidebar.removeBookmarkFailed')}
+        </p>
+      )}
       {bookmarks.map((bookmark) => {
         const bookmarkColor = bookmark.is_dir ? getFolderColorHex(bookmark.path) : null;
         const isActive = currentPath === bookmark.path;
         return (
           <div
             key={bookmark.path}
-            className={`wisp-sidebar-item group flex w-full cursor-pointer items-center rounded-md px-2.5 py-[7px] text-[13px] transition-colors ${
-              isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
-            }`}
+            className="wisp-sidebar-item group flex w-full items-center rounded-md text-[13px]"
             data-drop-target={bookmark.is_dir ? bookmark.path : undefined}
             data-is-folder={bookmark.is_dir ? 'true' : undefined}
-            onClick={() => navigateToPath(bookmark.path)}
             onContextMenu={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              if (handleFileRightClick) {
-                const syntheticFile: FileEntry = {
-                  name: bookmark.name,
-                  path: bookmark.path,
-                  size: 0,
-                  modified: 0,
-                  is_dir: bookmark.is_dir,
-                  file_type: bookmark.is_dir ? 'folder' : bookmark.name.split('.').pop() || '',
-                  is_readonly: false,
-                };
-                handleFileRightClick(syntheticFile, e);
-              }
+              handleFileRightClick?.(asFileEntry(bookmark), e);
             }}
-            title={bookmark.path}
           >
-            {bookmarkColor && (
-              <span
-                style={{
-                  display: 'inline-block',
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  backgroundColor: bookmarkColor,
-                  flexShrink: 0,
-                  marginRight: 4,
-                }}
-                aria-hidden="true"
-              />
-            )}
-            {bookmark.is_dir ? (
-              <FolderClosed
-                size={14}
-                className="mr-2 flex-shrink-0 text-xp-text-secondary"
-                style={bookmarkColor ? { color: bookmarkColor } : undefined}
-              />
-            ) : (
-              <File size={14} className="mr-2 flex-shrink-0 text-xp-text-secondary" />
-            )}
-            <span className="flex-1 truncate">{bookmark.name}</span>
             <button
+              type="button"
+              className={`flex min-w-0 flex-1 items-center rounded-md px-2.5 py-[7px] text-left transition-colors ${
+                isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
+              }`}
+              onClick={() => {
+                if (bookmark.is_dir) navigateToPath(bookmark.path);
+                else handleFileOpen?.(asFileEntry(bookmark));
+              }}
+              title={bookmark.path}
+              aria-current={isActive ? 'location' : undefined}
+            >
+              {bookmarkColor && (
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    backgroundColor: bookmarkColor,
+                    flexShrink: 0,
+                    marginRight: 4,
+                  }}
+                  aria-hidden="true"
+                />
+              )}
+              {bookmark.is_dir ? (
+                <FolderClosed
+                  size={14}
+                  className="mr-2 flex-shrink-0 text-xp-text-secondary"
+                  style={bookmarkColor ? { color: bookmarkColor } : undefined}
+                />
+              ) : (
+                <File size={14} className="mr-2 flex-shrink-0 text-xp-text-secondary" />
+              )}
+              <span className="min-w-0 flex-1 truncate">{bookmark.name}</span>
+            </button>
+            <button
+              type="button"
               onClick={(e) => handleRemoveBookmark(bookmark.path, e)}
-              className="ml-2 flex-shrink-0 text-xp-text-muted opacity-0 transition-opacity hover:text-xp-red focus:opacity-100 group-hover:opacity-100"
+              className="mr-2 flex-shrink-0 text-xp-text-muted opacity-0 transition-opacity hover:text-xp-red focus:opacity-100 group-hover:opacity-100"
               title={t('sidebarBookmarks.remove')}
               aria-label={`${t('sidebarBookmarks.remove')}: ${bookmark.name}`}
             >

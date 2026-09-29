@@ -1,10 +1,14 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import DocumentPreview from '@/components/previews/DocumentPreview';
 import type { FileEntry } from '@/lib/tauri-api';
 
 const mocks = vi.hoisted(() => ({
   native: vi.fn(() => true),
+  mac: vi.fn(() => false),
+  mount: vi.fn(),
+  update: vi.fn(),
+  close: vi.fn(),
   previewDocHtml: vi.fn(),
   readBinaryFile: vi.fn(),
   convertToHtml: vi.fn(),
@@ -12,6 +16,9 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {
+    previewMountQlView: mocks.mount,
+    previewUpdateQlView: mocks.update,
+    previewCloseQlView: mocks.close,
     previewDocHtml: mocks.previewDocHtml,
     readBinaryFile: mocks.readBinaryFile,
   },
@@ -20,6 +27,7 @@ vi.mock('@/lib/transport', () => ({
   isTauri: mocks.native,
   convertAssetUrl: (path: string) => `asset://localhost${path}`,
 }));
+vi.mock('@/lib/shortcut-utils', () => ({ isMacPlatform: mocks.mac }));
 vi.mock('mammoth', () => ({ convertToHtml: mocks.convertToHtml }));
 vi.mock('@/components/ui/Skeleton', () => ({
   PreviewSkeleton: () => <div role="status">Loading document</div>,
@@ -48,6 +56,11 @@ function deferred<T>() {
 describe('DocumentPreview conversion lifecycle', () => {
   beforeEach(() => {
     mocks.native.mockReturnValue(true);
+    // Existing cases intentionally exercise the portable conversion fallback.
+    mocks.mac.mockReturnValue(false);
+    mocks.mount.mockReset().mockResolvedValue(undefined);
+    mocks.update.mockReset().mockResolvedValue(undefined);
+    mocks.close.mockReset().mockResolvedValue(undefined);
     mocks.previewDocHtml.mockReset().mockResolvedValue('/converted/report.html');
     mocks.readBinaryFile.mockReset().mockResolvedValue(new Uint8Array([1, 2, 3]));
     mocks.convertToHtml
@@ -55,12 +68,95 @@ describe('DocumentPreview conversion lifecycle', () => {
       .mockResolvedValue({ value: '<p>Converted DOCX</p>', messages: [] });
   });
 
+  afterEach(async () => {
+    cleanup();
+    await act(async () => {});
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  const enableMacPreview = () => {
+    mocks.mac.mockReturnValue(true);
+    vi.stubGlobal(
+      'ResizeObserver',
+      vi.fn().mockImplementation(() => ({
+        observe: vi.fn(),
+        unobserve: vi.fn(),
+        disconnect: vi.fn(),
+      })),
+    );
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function () {
+      return this.hasAttribute('data-native-document')
+        ? new DOMRect(600, 80, 400, 500)
+        : new DOMRect(0, 0, window.innerWidth, window.innerHeight);
+    });
+  };
+
+  it.each([file, docx])(
+    'embeds $name in the Mac sidebar without converting document contents',
+    async (documentFile) => {
+      enableMacPreview();
+      const onLoad = vi.fn();
+      const { container } = render(<DocumentPreview file={documentFile} onLoad={onLoad} />);
+
+      await waitFor(() => expect(mocks.mount).toHaveBeenCalledTimes(1));
+      expect(mocks.mount).toHaveBeenCalledWith(
+        documentFile.path,
+        expect.any(String),
+        expect.objectContaining({ x: 600, y: 80, width: 400, height: 500 }),
+        true,
+      );
+      await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument());
+      expect(container.querySelector('[data-native-document]')).toHaveAttribute(
+        'data-native-document',
+        documentFile.path,
+      );
+      expect(mocks.previewDocHtml).not.toHaveBeenCalled();
+      expect(mocks.readBinaryFile).not.toHaveBeenCalled();
+      expect(mocks.convertToHtml).not.toHaveBeenCalled();
+      expect(screen.queryByTitle(documentFile.name)).not.toBeInTheDocument();
+      // Native attachment alone does not establish that the document has rendered.
+      expect(onLoad).not.toHaveBeenCalled();
+    },
+  );
+
+  it('starts document conversion only after the Mac sidebar attachment fails', async () => {
+    enableMacPreview();
+    const pending = deferred<void>();
+    mocks.mount.mockReturnValueOnce(pending.promise);
+    const onError = vi.fn();
+    render(<DocumentPreview file={docx} onError={onError} />);
+
+    try {
+      await waitFor(() => expect(mocks.mount).toHaveBeenCalledTimes(1));
+      expect(mocks.previewDocHtml).not.toHaveBeenCalled();
+      expect(mocks.readBinaryFile).not.toHaveBeenCalled();
+      expect(mocks.convertToHtml).not.toHaveBeenCalled();
+      expect(screen.getByRole('status')).toHaveTextContent('Loading document');
+
+      await act(async () => pending.reject(new Error('System preview unavailable')));
+
+      expect(await screen.findByTitle(docx.name)).toHaveAttribute(
+        'src',
+        'asset://localhost/converted/report.html',
+      );
+      expect(mocks.close).toHaveBeenCalledWith(mocks.mount.mock.calls[0][1]);
+      expect(mocks.previewDocHtml).toHaveBeenCalledTimes(1);
+      expect(mocks.previewDocHtml).toHaveBeenCalledWith(docx.path);
+      expect(mocks.readBinaryFile).not.toHaveBeenCalled();
+      expect(onError).not.toHaveBeenCalled();
+    } finally {
+      // An assertion failure must not leave the shared native queue blocked.
+      await act(async () => pending.resolve());
+    }
+  });
+
   it.each(['rejected', 'empty'] as const)(
     'forwards a %s native conversion for a non-DOCX file to the parent error handler',
     async (result) => {
-      if (result === 'rejected')
-        {mocks.previewDocHtml.mockRejectedValue(new Error('Conversion failed'));}
-      else mocks.previewDocHtml.mockResolvedValue(null);
+      if (result === 'rejected') {
+        mocks.previewDocHtml.mockRejectedValue(new Error('Conversion failed'));
+      } else mocks.previewDocHtml.mockResolvedValue(null);
       const onError = vi.fn();
       const onLoad = vi.fn();
       render(<DocumentPreview file={file} onError={onError} onLoad={onLoad} />);

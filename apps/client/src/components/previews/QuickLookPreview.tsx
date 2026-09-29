@@ -5,6 +5,8 @@ import { ExternalLink } from 'lucide-react';
 import { convertAssetUrl, isTauri } from '@/lib/transport';
 import { TauriAPI } from '@/lib/tauri-api';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
+import { isMacPlatform } from '@/lib/shortcut-utils';
+import NativeFilePreview from './NativeFilePreview';
 
 /** Formats whose text the Rust document extractor can also pull. */
 const TEXT_EXTRACTABLE = new Set(['ppt', 'pptx', 'pps', 'ppsx']);
@@ -16,7 +18,7 @@ const TEXT_EXTRACTABLE = new Set(['ppt', 'pptx', 'pps', 'ppsx']);
  * additionally show the extracted slide text below, so the content — not
  * just the cover — is readable.
  */
-const QuickLookPreview = ({ file, onError, onLoad }: PreviewProps) => {
+const QuickLookThumbnailPreview = ({ file, onError, onLoad }: PreviewProps) => {
   const { t: tUi } = useTranslation();
   const [thumbSrc, setThumbSrc] = useState<string | null>(null);
   const [docText, setDocText] = useState<string | null>(null);
@@ -88,28 +90,28 @@ const QuickLookPreview = ({ file, onError, onLoad }: PreviewProps) => {
         </div>
       )}
       {docText && (
-        <div className="min-h-0 flex-shrink-0 overflow-auto rounded-md border border-xp-border bg-xp-surface p-2 text-xs leading-relaxed text-xp-text-secondary">
-          <div className="mb-1 text-[10px] uppercase text-xp-text-muted">
-            {tUi('previewPanel.extractedText')}
-          </div>
+        <div className="max-h-[45%] min-h-0 shrink overflow-auto rounded-md border border-xp-border bg-xp-surface p-2 text-xs leading-relaxed text-xp-text-secondary">
+          <div className="mb-1 text-xs text-xp-text-muted">{tUi('previewPanel.extractedText')}</div>
           <pre className="whitespace-pre-wrap break-words font-sans">{docText}</pre>
         </div>
       )}
       {(thumbSrc || docText) && (
         <div className="flex shrink-0 items-center gap-2 px-1">
-          <span className="min-w-0 flex-1 truncate text-[10px] text-xp-text-muted">
+          <span className="min-w-0 flex-1 truncate text-xs text-xp-text-muted">
             {file.name} · {tUi('previewPanel.firstPageOnly')}
           </span>
-          {isTauri() && (
+          {isTauri() && !TEXT_EXTRACTABLE.has(file.name.split('.').pop()?.toLowerCase() || '') && (
             <button
               type="button"
-              onClick={() => void (async () => {
-                try {
-                  await TauriAPI.previewOpenQlPanel(file.path);
-                } catch {
-                  await TauriAPI.previewOpenQlPreview(file.path);
-                }
-              })()}
+              onClick={() =>
+                void (async () => {
+                  try {
+                    await TauriAPI.previewOpenQlPanel(file.path);
+                  } catch {
+                    await TauriAPI.previewOpenQlPreview(file.path);
+                  }
+                })()
+              }
               className="flex shrink-0 items-center gap-1 rounded-md border border-xp-border px-2 py-1 text-[11px] text-xp-text transition-colors hover:bg-xp-surface-light"
               title={tUi('previewPanel.openSystemQuickLook')}
             >
@@ -121,6 +123,20 @@ const QuickLookPreview = ({ file, onError, onLoad }: PreviewProps) => {
       )}
     </div>
   );
+};
+
+const QuickLookPreview = (props: PreviewProps) => {
+  const isPresentation = TEXT_EXTRACTABLE.has(
+    props.file.name.split('.').pop()?.toLowerCase() || '',
+  );
+  if (isPresentation && isTauri() && isMacPlatform()) {
+    return (
+      <NativeFilePreview key={props.file.path} {...props}>
+        <QuickLookThumbnailPreview {...props} />
+      </NativeFilePreview>
+    );
+  }
+  return <QuickLookThumbnailPreview {...props} />;
 };
 
 export default React.memo(QuickLookPreview);

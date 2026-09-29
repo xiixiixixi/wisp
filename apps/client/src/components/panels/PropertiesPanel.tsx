@@ -1,9 +1,11 @@
 import { getAppLocale } from '@/lib/locale';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TauriAPI } from '@/lib/tauri-api';
 import { getFileIcon, formatFileSize, formatDate } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { formatError } from '@/lib/file-operation-helpers';
+import { LoaderCircle } from 'lucide-react';
 
 interface FileProperties {
   path: string;
@@ -57,24 +59,32 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
   const [activeTab, setActiveTab] = useState<'general' | 'permissions' | 'details'>('general');
   const [editingPermissions, setEditingPermissions] = useState(false);
   const [permissionString, setPermissionString] = useState('');
+  const [saving, setSaving] = useState(false);
+  const requestRef = useRef(0);
+  const savingRef = useRef(false);
+  const currentPathRef = useRef(filePath);
+  currentPathRef.current = filePath;
 
   const loadProperties = useCallback(async () => {
+    const request = ++requestRef.current;
     if (!filePath) return;
     setLoading(true);
     setError(null);
     try {
       const props = await TauriAPI.getDetailedFileProperties(filePath);
+      if (request !== requestRef.current || currentPathRef.current !== filePath) return;
       setProperties(props);
       setPermissionString(props.permissions.permissions_string);
     } catch (err) {
-      setError((err as Error).message);
+      if (request !== requestRef.current || currentPathRef.current !== filePath) return;
+      setError(formatError(err));
       toast({
         title: t('panels.properties.toastLoadErrorTitle'),
-        description: t('panels.properties.toastLoadErrorDesc', { error: (err as Error).message }),
+        description: t('panels.properties.toastLoadErrorDesc', { error: formatError(err) }),
         variant: 'destructive',
       });
     } finally {
-      setLoading(false);
+      if (request === requestRef.current) setLoading(false);
     }
   }, [filePath, toast, t]);
 
@@ -84,14 +94,21 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
       setEditingPermissions(false);
       loadProperties();
     }
+    return () => {
+      requestRef.current += 1;
+    };
   }, [filePath, loadProperties]);
 
   const handleSavePermissions = async () => {
-    if (!properties) return;
+    if (!properties || properties.path !== filePath || savingRef.current) return;
+    savingRef.current = true;
+    setSaving(true);
     try {
       await TauriAPI.setFilePermissions(filePath, permissionString);
-      setEditingPermissions(false);
-      loadProperties();
+      if (currentPathRef.current === filePath) {
+        setEditingPermissions(false);
+        loadProperties();
+      }
       toast({
         title: t('panels.properties.toastPermUpdatedTitle'),
         description: t('panels.properties.toastPermUpdatedDesc'),
@@ -99,9 +116,12 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
     } catch (err) {
       toast({
         title: t('panels.properties.toastPermErrorTitle'),
-        description: t('panels.properties.toastPermErrorDesc', { error: (err as Error).message }),
+        description: t('panels.properties.toastPermErrorDesc', { error: formatError(err) }),
         variant: 'destructive',
       });
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
     }
   };
 
@@ -137,7 +157,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
-        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-xp-blue" />
+        <LoaderCircle aria-hidden="true" className="mr-2 h-4 w-4 animate-spin text-xp-blue" />
         {t('panels.properties.loadingProperties')}
       </div>
     );
@@ -149,7 +169,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
         <span className="text-xp-red">{t('panels.properties.errorPrefix', { error })}</span>
         <button
           onClick={loadProperties}
-          className="rounded-md bg-xp-blue px-2 py-0.5 text-[10px] text-xp-on-accent hover:bg-xp-blue-dark"
+          className="rounded-md bg-xp-blue px-2 py-0.5 text-xs text-xp-on-accent hover:bg-xp-blue-dark"
         >
           {t('panels.properties.retry')}
         </button>
@@ -167,7 +187,8 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`rounded-md px-2 py-0.5 text-[10px] font-semibold capitalize ${
+            aria-pressed={activeTab === tab}
+            className={`rounded-md px-2 py-0.5 text-xs font-semibold capitalize ${
               activeTab === tab
                 ? 'bg-xp-blue/20 text-xp-blue'
                 : 'text-xp-text-muted hover:bg-xp-surface-light'
@@ -179,8 +200,9 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
         <div className="flex-1" />
         <button
           onClick={loadProperties}
-          className="rounded-md px-2 py-0.5 text-[10px] font-semibold text-xp-text-muted hover:bg-xp-surface-light"
+          className="rounded-md px-2 py-0.5 text-xs font-semibold text-xp-text-muted hover:bg-xp-surface-light"
           title={t('panels.properties.refreshTitle')}
+          aria-label={t('panels.properties.refreshTitle')}
         >
           <svg
             className="h-3 w-3"
@@ -201,7 +223,7 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-5 py-3">
         {activeTab === 'general' && (
-          <div className="flex gap-6">
+          <div className="flex flex-wrap gap-6">
             {/* Left: file identity */}
             <div className="flex flex-shrink-0 items-start gap-2">
               <span className="text-2xl leading-none">
@@ -222,26 +244,26 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
                 >
                   {properties.name}
                 </div>
-                <div className="text-[10px] text-xp-text-muted">{properties.file_type}</div>
+                <div className="text-xs text-xp-text-muted">{properties.file_type}</div>
                 {/* Attribute badges */}
                 <div className="mt-1 flex flex-wrap gap-1">
                   {properties.is_hidden && (
-                    <span className="rounded-md bg-xp-yellow/20 px-1 py-0.5 text-[9px] text-xp-yellow">
+                    <span className="rounded-md bg-xp-yellow/20 px-1 py-0.5 text-xs text-xp-yellow">
                       {t('panels.properties.hiddenBadge')}
                     </span>
                   )}
                   {properties.is_readonly && (
-                    <span className="rounded-md bg-xp-red/20 px-1 py-0.5 text-[9px] text-xp-red">
+                    <span className="rounded-md bg-xp-red/20 px-1 py-0.5 text-xs text-xp-red">
                       {t('panels.properties.readonlyBadge')}
                     </span>
                   )}
                   {properties.is_directory && (
-                    <span className="rounded-md bg-xp-blue/20 px-1 py-0.5 text-[9px] text-xp-blue">
+                    <span className="rounded-md bg-xp-blue/20 px-1 py-0.5 text-xs text-xp-blue">
                       {t('panels.properties.directoryBadge')}
                     </span>
                   )}
                   {properties.attributes.symlink_target && (
-                    <span className="rounded-md bg-xp-purple/20 px-1 py-0.5 text-[9px] text-xp-purple">
+                    <span className="rounded-md bg-xp-purple/20 px-1 py-0.5 text-xs text-xp-purple">
                       {t('panels.properties.symlinkBadge')}
                     </span>
                   )}
@@ -250,7 +272,10 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
             </div>
 
             {/* Right: properties grid */}
-            <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-6 gap-y-0.5 text-xs">
+            <div
+              className="grid min-w-0 flex-1 basis-[300px] gap-x-6 gap-y-0.5 text-xs"
+              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))' }}
+            >
               <PropRow label={t('panels.properties.labelLocation')} value={properties.path} />
               <PropRow label={t('panels.properties.labelSize')} value={properties.size_formatted} />
               {properties.attributes.item_count != null && (
@@ -308,34 +333,37 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
                 value={properties.permissions.executable}
               />
             </div>
-            <div className="mt-2 flex items-center gap-2">
-              <span className="w-20 text-[10px] font-semibold text-xp-text-muted">
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="w-20 text-xs font-semibold text-xp-text-muted">
                 {t('panels.properties.labelPermissions')}
               </span>
               <input
                 type="text"
+                aria-label={t('panels.properties.labelPermissions')}
                 value={
                   editingPermissions ? permissionString : properties.permissions.permissions_string
                 }
                 onChange={(e) => setPermissionString(e.target.value)}
-                disabled={!editingPermissions}
-                className="flex-1 rounded-md border border-xp-border bg-xp-bg px-2 py-1 text-[11px] text-xp-text disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!editingPermissions || saving}
+                className="min-w-0 flex-1 rounded-md border border-xp-border bg-xp-bg px-2 py-1 text-xs text-xp-text disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder={t('panels.properties.permPlaceholder')}
               />
               {editingPermissions ? (
                 <>
                   <button
                     onClick={handleSavePermissions}
-                    className="rounded-md bg-xp-blue px-2 py-1 text-[10px] text-xp-on-accent hover:bg-xp-blue-dark"
+                    disabled={saving}
+                    className="rounded-md bg-xp-blue px-2 py-1 text-xs text-xp-on-accent hover:bg-xp-blue-dark"
                   >
-                    {t('common.save')}
+                    {t(saving ? 'common.saving' : 'common.save')}
                   </button>
                   <button
+                    disabled={saving}
                     onClick={() => {
                       setEditingPermissions(false);
                       setPermissionString(properties.permissions.permissions_string);
                     }}
-                    className="rounded-md bg-xp-surface-light px-2 py-1 text-[10px] text-xp-text hover:bg-xp-border"
+                    className="rounded-md bg-xp-surface-light px-2 py-1 text-xs text-xp-text hover:bg-xp-border"
                   >
                     {t('common.cancel')}
                   </button>
@@ -343,13 +371,13 @@ const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
               ) : (
                 <button
                   onClick={() => setEditingPermissions(true)}
-                  className="rounded-md bg-xp-surface-light px-2 py-1 text-[10px] text-xp-text hover:bg-xp-border"
+                  className="rounded-md bg-xp-surface-light px-2 py-1 text-xs text-xp-text hover:bg-xp-border"
                 >
                   {t('common.edit')}
                 </button>
               )}
             </div>
-            <p className="text-[9px] text-xp-text-muted">{t('panels.properties.permHint')}</p>
+            <p className="text-xs text-xp-text-muted">{t('panels.properties.permHint')}</p>
           </div>
         )}
 
@@ -429,10 +457,10 @@ const PropRow = ({ label, value }: { label: string; value: string }) => {
   // reads as a field grid instead of a wrapped sentence.
   return (
     <div className="flex min-h-[28px] min-w-0 items-baseline gap-2">
-      <span className="w-[88px] flex-shrink-0 text-[10px] font-semibold text-xp-text-muted">
+      <span className="w-[88px] flex-shrink-0 text-xs font-semibold text-xp-text-muted">
         {label}
       </span>
-      <span className="min-w-[180px] truncate text-[11px] text-xp-text" title={value}>
+      <span className="min-w-0 flex-1 truncate text-xs text-xp-text" title={value}>
         {value}
       </span>
     </div>
@@ -442,7 +470,7 @@ const PropRow = ({ label, value }: { label: string; value: string }) => {
 const PermBadge = ({ label, value }: { label: string; value: boolean }) => {
   return (
     <div
-      className={`flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold ${
+      className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold ${
         value ? 'bg-xp-green/10 text-xp-green' : 'bg-xp-red/10 text-xp-red'
       }`}
     >

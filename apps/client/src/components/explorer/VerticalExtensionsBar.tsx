@@ -7,8 +7,21 @@ import React, {
   useSyncExternalStore,
 } from 'react';
 import { extensionHost } from '@/lib/extension-host';
-import { Eye, Bot, ShoppingCart, Settings, Activity, Ellipsis, File, Plug, Smartphone } from 'lucide-react';
+import {
+  Columns,
+  Rows,
+  Eye,
+  Bot,
+  Settings,
+  Ellipsis,
+  File,
+  Plug,
+  Smartphone,
+  Check,
+  Sparkles,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import '@/components/explorer/sidebar/navigation.css';
 import { useHiddenFiles } from '@/hooks/use-hidden-files';
 
 interface VerticalExtensionsBarProps {
@@ -17,6 +30,10 @@ interface VerticalExtensionsBarProps {
   setRightPanelTab: (tab: string) => void;
   rightSidebarCollapsed: boolean;
   setRightSidebarCollapsed: (collapsed: boolean) => void;
+  /** 向右分割当前窗格（MainLayout 提供） */
+  onSplitRight?: () => void;
+  /** 向下分割当前窗格 */
+  onSplitDown?: () => void;
 }
 
 /**
@@ -29,6 +46,8 @@ const VerticalExtensionsBar = ({
   setRightPanelTab,
   rightSidebarCollapsed,
   setRightSidebarCollapsed,
+  onSplitRight,
+  onSplitDown,
 }: VerticalExtensionsBarProps) => {
   const { t } = useTranslation();
   const { showHiddenFiles, toggleHiddenFiles } = useHiddenFiles();
@@ -56,11 +75,17 @@ const VerticalExtensionsBar = ({
   const secondaryPanels = useMemo(
     () => [
       {
-        id: 'ai',
+        id: 'chat',
         icon: <Bot size={16} />,
         label: t('extensionsBar.chat'),
         target: 'chat',
       },
+      {
+        id: 'agent-manager',
+        icon: <Sparkles size={16} />,
+        label: t('extensionsBar.externalAssistants'),
+      },
+      { id: 'chatgpt-bridge', icon: <Plug size={16} />, label: t('extensionsBar.chatgptBridge') },
       {
         id: 'weixin',
         icon: <Smartphone size={16} />,
@@ -73,11 +98,10 @@ const VerticalExtensionsBar = ({
         label: panel.title,
         target: undefined as string | undefined,
       })),
-      { id: 'performance', icon: <Activity size={16} />, label: t('extensionsBar.performance') },
       {
-        id: 'marketplace',
-        icon: <ShoppingCart size={16} />,
-        label: t('extensionsBar.marketplace'),
+        id: 'settings-entry',
+        icon: <Settings size={16} />,
+        label: t('extensionsBar.settings'),
       },
     ],
     [registeredPanels, t],
@@ -85,7 +109,6 @@ const VerticalExtensionsBar = ({
 
   const isActivePanel = (id: string) => {
     if (rightSidebarCollapsed) return false;
-    if (id === 'ai') return rightPanelTab === 'chat' || rightPanelTab === 'agent-manager';
     if (id === 'weixin') return rightPanelTab === 'weixin-bridge';
     return rightPanelTab === id;
   };
@@ -114,7 +137,7 @@ const VerticalExtensionsBar = ({
     () =>
       Array.from(
         menuRef.current?.querySelectorAll<HTMLElement>(
-          '[role="menuitemradio"], [role="menuitem"]',
+          '[role="menuitemradio"], [role="menuitemcheckbox"], [role="menuitem"]',
         ) ?? [],
       ),
     [],
@@ -186,64 +209,42 @@ const VerticalExtensionsBar = ({
 
   return (
     <div
-      className={`wisp-panel-rail wisp-no-select flex border-xp-border bg-xp-surface ${
-        orientation === 'horizontal'
-          ? 'wisp-panel-rail-horizontal flex-row items-center'
-          : 'w-10 flex-col border-l'
-      }`}
+      className={`wisp-panel-rail wisp-no-select ${orientation === 'horizontal' ? 'wisp-panel-rail-horizontal' : 'wisp-panel-rail-vertical'}`}
     >
-      <div className={`flex ${orientation === 'horizontal' ? 'flex-row' : 'flex-col py-1'}`}>
-        <button
-          onClick={() => handlePanelClick('preview')}
-          className={`wisp-rail-button flex h-8 w-8 items-center justify-center rounded-md transition-all ${
-            isActivePanel('preview')
-              ? 'bg-xp-blue text-xp-on-accent'
-              : 'text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text'
-          }`}
-          title={previewLabel}
-          aria-label={previewLabel}
-          aria-pressed={isActivePanel('preview')}
-        >
-          <Eye size={16} />
-        </button>
+      <div className="wisp-tools-actions">
         <button
           type="button"
           onClick={toggleHiddenFiles}
-          className="wisp-visibility-toggle wisp-icon-button flex h-8 w-8 shrink-0 items-center justify-center text-xp-text-secondary transition-colors"
-          aria-label={t('settings.explorer.showHidden')}
+          aria-label={t('extensionsBar.hiddenFiles')}
           aria-pressed={showHiddenFiles}
-          title={`${t('settings.explorer.showHidden')} (${isMac ? '⌘⇧.' : 'Ctrl+Shift+.'})`}
+          title={`${t('extensionsBar.hiddenFiles')} (${isMac ? '⌘⇧.' : 'Ctrl+Shift+.'})`}
+          className={`wisp-rail-button wisp-named-tool ${
+            showHiddenFiles ? 'text-xp-accent' : 'text-xp-text-secondary hover:text-xp-text'
+          }`}
+          data-testid="rail-hidden-files"
         >
           <File
             size={16}
             strokeDasharray={showHiddenFiles ? undefined : '2.5 2.5'}
             aria-hidden="true"
-          >
-            {/* A dot-prefixed filename makes this a hidden file, not a copy action. */}
-            <circle cx="8" cy="16" r="1" fill="currentColor" stroke="none" />
-            <path d="M12 16h4" strokeDasharray="none" />
-          </File>
+          />
         </button>
         <button
-          onClick={() => handlePanelClick('chatgpt-bridge')}
-          className={`wisp-rail-button flex h-8 w-8 items-center justify-center rounded-md transition-all ${
-            isActivePanel('chatgpt-bridge')
-              ? 'bg-xp-blue text-xp-on-accent'
-              : 'text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text'
-          }`}
-          title={t('extensionsBar.chatgptBridge')}
-          aria-label={t('extensionsBar.chatgptBridge')}
-          aria-pressed={isActivePanel('chatgpt-bridge')}
+          type="button"
+          onClick={() => handlePanelClick('preview')}
+          className="wisp-rail-button wisp-named-tool"
+          title={previewLabel}
+          aria-label={previewLabel}
+          aria-pressed={isActivePanel('preview')}
         >
-          <Plug size={16} />
+          <Eye size={16} aria-hidden="true" />
         </button>
         <div ref={menuRootRef} className="relative">
           <button
             ref={menuTriggerRef}
             type="button"
-            onClick={(e) => {
-              // detail=0 → Enter/Space 键盘激活，仍按键盘打开聚焦首项。
-              keyboardOpenRef.current = e.detail === 0;
+            onClick={(event) => {
+              keyboardOpenRef.current = event.detail === 0;
               setMenuOpen((open) => !open);
             }}
             onKeyDown={(event) => {
@@ -254,94 +255,97 @@ const VerticalExtensionsBar = ({
                 setMenuOpen(true);
               }
             }}
-            className={`wisp-rail-button flex h-8 w-8 items-center justify-center rounded-md transition-all ${
-              hasActiveSecondaryPanel
-                ? 'bg-xp-blue text-xp-on-accent'
-                : 'text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text'
-            }`}
+            className="wisp-rail-button wisp-named-tool"
             title={moreToolsLabel}
             aria-label={moreToolsLabel}
             aria-haspopup="menu"
             aria-expanded={menuOpen}
             aria-pressed={hasActiveSecondaryPanel}
           >
-            <Ellipsis size={17} />
+            <Ellipsis size={17} aria-hidden="true" />
           </button>
-
           {menuOpen && (
             <div
               ref={menuRef}
               role="menu"
               aria-label={moreToolsLabel}
               onKeyDown={handleMenuKeyDown}
-              onBlur={() => {
+              onBlur={() =>
                 requestAnimationFrame(() => {
                   if (!menuRootRef.current?.contains(document.activeElement)) closeMenu();
-                });
-              }}
-              className={`wisp-panel-overflow-menu absolute z-[100] min-w-48 rounded-[12px] border border-xp-border bg-xp-popover p-1.5 shadow-[var(--xp-shadow-popover)] ${
-                orientation === 'horizontal'
-                  ? 'right-0 top-[calc(100%+8px)]'
-                  : 'right-[calc(100%+8px)] top-0'
-              }`}
+                })
+              }
+              className={`wisp-panel-overflow-menu wisp-tools-menu absolute z-[100] rounded-xl border border-xp-border bg-xp-popover p-1.5 shadow-[var(--xp-shadow-popover)] ${orientation === 'horizontal' ? 'right-0 top-[calc(100%+8px)]' : 'left-[calc(100%+8px)] top-0'}`}
             >
+              <div className="wisp-tools-menu-heading" role="presentation">
+                {t('extensionsBar.panels')}
+              </div>
               {secondaryPanels.map(({ id, icon, label, target }) => {
                 const active = isActivePanel(id);
                 return (
                   <button
                     key={id}
                     type="button"
-                    role="menuitemradio"
-                    aria-checked={active}
+                    role={id === 'settings-entry' ? 'menuitem' : 'menuitemradio'}
+                    aria-checked={id === 'settings-entry' ? undefined : active}
                     tabIndex={-1}
-                    onClick={() => handleSecondaryPanelClick(id, target)}
-                    className={`group flex w-full items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-left text-xs transition-colors ${
-                      active
-                        ? 'bg-xp-blue font-semibold text-xp-on-accent'
-                        : 'text-xp-text hover:bg-xp-blue hover:text-xp-on-accent'
-                    }`}
+                    onClick={() => {
+                      if (id === 'settings-entry') {
+                        closeMenu(false);
+                        window.dispatchEvent(
+                          new CustomEvent('wisp-open-settings', {
+                            detail: { returnFocus: menuTriggerRef.current },
+                          }),
+                        );
+                        return;
+                      }
+                      handleSecondaryPanelClick(id, target);
+                    }}
+                    className="wisp-tools-menu-item"
                   >
                     <span
-                      className={`flex h-5 w-5 items-center justify-center ${
-                        active
-                          ? 'text-xp-on-accent'
-                          : 'text-xp-text-secondary group-hover:text-xp-on-accent'
-                      }`}
+                      className="flex h-5 w-5 shrink-0 items-center justify-center"
+                      aria-hidden="true"
                     >
                       {icon}
                     </span>
                     <span className="min-w-0 flex-1 truncate">{label}</span>
+                    {active && <Check size={14} aria-hidden="true" />}
                   </button>
                 );
               })}
-
-              <div className="my-1 border-t border-xp-border" aria-hidden="true" />
-
-              <button
-                type="button"
-                role="menuitem"
-                tabIndex={-1}
-                onClick={() => {
-                  closeMenu();
-                  window.dispatchEvent(
-                    new CustomEvent('wisp-open-settings', {
-                      detail: { returnFocus: menuTriggerRef.current },
-                    }),
-                  );
-                }}
-                className="group flex w-full items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-left text-xs text-xp-text transition-colors hover:bg-xp-blue hover:text-xp-on-accent"
-              >
-                <span className="flex h-5 w-5 items-center justify-center text-xp-text-secondary group-hover:text-xp-on-accent">
-                  <Settings size={16} />
-                </span>
-                <span className="min-w-0 flex-1 truncate">{t('extensionsBar.settings')}</span>
-              </button>
             </div>
           )}
         </div>
       </div>
 
-      {orientation === 'vertical' && <div className="flex-1" />}
+      {/* 胶囊2：分栏（向右/向下） */}
+      {(onSplitRight || onSplitDown) && (
+        <div className="wisp-split-group">
+          {onSplitRight && (
+            <button
+              type="button"
+              onClick={onSplitRight}
+              title={t('splitView.splitRight')}
+              aria-label={t('splitView.splitRight')}
+              className="wisp-rail-button wisp-named-tool text-xp-text-secondary hover:text-xp-text"
+            >
+              <Columns size={16} aria-hidden="true" />
+            </button>
+          )}
+          {onSplitDown && (
+            <button
+              type="button"
+              onClick={onSplitDown}
+              title={t('splitView.splitDown')}
+              aria-label={t('splitView.splitDown')}
+              className="wisp-rail-button wisp-named-tool text-xp-text-secondary hover:text-xp-text"
+            >
+              <Rows size={16} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

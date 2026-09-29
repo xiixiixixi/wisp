@@ -5,10 +5,12 @@ import { useDraggable } from '@/hooks/use-draggable';
 import { ViewComponentProps } from './FileGridTypes';
 import { FileReferenceBadge } from './FileReferenceBadge';
 import { useGridKeyboardNav } from '@/hooks/use-grid-keyboard-nav';
+import { useFileTabStop } from '@/hooks/use-file-tab-stop';
 
 const treeVirtualizer = { scrollToIndex: () => {} };
 
 interface TreeRowProps {
+  tabStopPath?: string;
   file: FileEntry;
   depth: number;
   selectedFiles: Set<string>;
@@ -32,6 +34,7 @@ const sortFiles = (files: FileEntry[]): FileEntry[] =>
   });
 
 const TreeRow = ({
+  tabStopPath,
   file,
   depth,
   selectedFiles,
@@ -58,15 +61,11 @@ const TreeRow = ({
         aria-label={tUi(file.is_dir ? 'messages.folderAria' : 'messages.fileAria', {
           name: file.name,
         })}
-        tabIndex={0}
+        tabIndex={tabStopPath === file.path ? 0 : -1}
         data-file-path={file.path}
         data-drop-target={file.is_dir ? file.path : undefined}
         data-is-folder={file.is_dir ? 'true' : undefined}
-        className={`flex min-w-0 cursor-pointer items-center overflow-hidden rounded-md px-2 py-1 transition-colors hover:bg-xp-surface-light ${
-          selectedFiles.has(file.path)
-            ? 'border border-xp-purple/40 bg-xp-purple/20'
-            : 'border border-transparent text-xp-text'
-        } `}
+        className="wisp-file-item flex min-h-8 min-w-0 cursor-default items-center overflow-hidden rounded-md px-2 py-1 text-xp-text"
         style={{
           paddingLeft: `${depth * 20 + 8}px`,
           borderLeft: depth > 0 ? '1px solid rgba(120,132,152,0.18)' : undefined,
@@ -141,6 +140,7 @@ const TreeRow = ({
           {folderContents.has(file.path) ? (
             sortFiles(folderContents.get(file.path) ?? []).map((childFile) => (
               <TreeRow
+                tabStopPath={tabStopPath}
                 key={childFile.path}
                 file={childFile}
                 depth={depth + 1}
@@ -238,6 +238,7 @@ const TreeView = ({
     visit(sortedFiles);
     return result;
   }, [sortedFiles, expandedFolders, folderContents]);
+  const { tabStopPath, rememberFileFocus } = useFileTabStop(visibleFiles, selectedFiles);
   const { handleKeyDown } = useGridKeyboardNav({
     files: visibleFiles,
     selectedFiles,
@@ -265,15 +266,17 @@ const TreeView = ({
   return (
     <div
       ref={containerRef}
-      className="select-none overflow-hidden text-sm"
+      className="wisp-file-selection-surface select-none overflow-hidden text-sm"
       role="tree"
-      tabIndex={0}
+      tabIndex={visibleFiles.length === 0 ? 0 : -1}
+      onFocusCapture={rememberFileFocus}
       onKeyDown={handleKeyDown}
       aria-label={tUi('interface.fileTree')}
       onContextMenu={handleBackgroundRightClick || undefined}
     >
       {sortedFiles.map((file) => (
         <TreeRow
+          tabStopPath={tabStopPath}
           key={file.path}
           file={file}
           depth={0}

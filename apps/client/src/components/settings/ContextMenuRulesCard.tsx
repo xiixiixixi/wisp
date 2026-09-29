@@ -11,33 +11,7 @@ import {
   type ContextMenuRule,
   type RuleMatcher,
 } from '@/lib/context-menu-rules';
-import { SectionTitle, Divider } from './shared';
-
-// ── Toggle (local, matching shared.tsx style) ──────────────────────
-
-const RuleToggle = ({
-  checked,
-  onChange,
-}: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) => (
-  <button
-    type="button"
-    role="switch"
-    aria-checked={checked}
-    className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-md border border-transparent transition-colors focus-visible:outline-none ${
-      checked ? 'bg-xp-selection' : 'bg-xp-border'
-    }`}
-    onClick={() => onChange(!checked)}
-  >
-    <span
-      className={`pointer-events-none inline-block h-3.5 w-3.5 rounded-md transition-all ${
-        checked ? 'translate-x-4 bg-xp-text' : 'translate-x-0.5 bg-xp-text-muted'
-      }`}
-    />
-  </button>
-);
+import { SectionTitle, Divider, Toggle } from './shared';
 
 // ── Condition label helpers ────────────────────────────────────────
 
@@ -114,6 +88,7 @@ const RuleForm = React.memo(
             {t('settings.contextMenuRules.menuItemLabel')}
           </label>
           <select
+            aria-label={t('settings.contextMenuRules.menuItemLabel')}
             value={form.menuItemId}
             onChange={(e) => setForm((f) => ({ ...f, menuItemId: e.target.value }))}
             className="h-8 w-full rounded-md border border-xp-border bg-xp-bg px-2 text-sm text-xp-text focus:border-xp-text-secondary focus:outline-none"
@@ -157,6 +132,7 @@ const RuleForm = React.memo(
               {t('settings.contextMenuRules.matchByLabel')}
             </label>
             <select
+              aria-label={t('settings.contextMenuRules.matchByLabel')}
               value={form.matcherType}
               onChange={(e) => {
                 const type = e.target.value as RuleMatcher['type'];
@@ -184,6 +160,7 @@ const RuleForm = React.memo(
             </label>
             {form.matcherType === 'is_directory' ? (
               <select
+                aria-label={t('settings.contextMenuRules.valueLabel')}
                 value={form.matcherValue || 'true'}
                 onChange={(e) => setForm((f) => ({ ...f, matcherValue: e.target.value }))}
                 className="h-8 w-full rounded-md border border-xp-border bg-xp-bg px-2 text-sm text-xp-text focus:border-xp-text-secondary focus:outline-none"
@@ -194,6 +171,7 @@ const RuleForm = React.memo(
             ) : (
               <input
                 type="text"
+                aria-label={t('settings.contextMenuRules.valueLabel')}
                 value={form.matcherValue}
                 onChange={(e) => setForm((f) => ({ ...f, matcherValue: e.target.value }))}
                 placeholder={placeholders[form.matcherType]}
@@ -244,7 +222,12 @@ const RuleRow = React.memo(
     const { t } = useTranslation();
     return (
       <div className="group flex items-center gap-3 rounded-md px-3 py-2.5 transition-colors hover:bg-xp-surface-light/50">
-        <RuleToggle checked={rule.enabled} onChange={onToggle} />
+        <Toggle
+          id={`rule-${rule.id}`}
+          label={t('settings.contextMenuRules.enableRule', { name: rule.menuItemLabel })}
+          checked={rule.enabled}
+          onChange={onToggle}
+        />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm text-xp-text">
             <span className="font-semibold">{rule.menuItemLabel}</span>
@@ -254,10 +237,11 @@ const RuleRow = React.memo(
             </span>
           </div>
         </div>
-        <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="wisp-settings-inline-actions">
           <button
             onClick={onEdit}
             className="rounded-md p-1.5 text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+            aria-label={`${t('settings.contextMenuRules.editRule')}: ${rule.menuItemLabel}`}
             title={t('settings.contextMenuRules.editRule')}
           >
             <Pencil size={13} />
@@ -265,6 +249,7 @@ const RuleRow = React.memo(
           <button
             onClick={onDelete}
             className="rounded-md p-1.5 text-xp-text-secondary transition-colors hover:bg-xp-red/10 hover:text-xp-red"
+            aria-label={`${t('settings.contextMenuRules.deleteRule')}: ${rule.menuItemLabel}`}
             title={t('settings.contextMenuRules.deleteRule')}
           >
             <Trash2 size={13} />

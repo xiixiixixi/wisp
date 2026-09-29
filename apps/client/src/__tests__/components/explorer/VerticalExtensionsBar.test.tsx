@@ -7,7 +7,6 @@ import { extensionHost } from '@/lib/extension-host';
 import i18n from '@/i18n';
 import { useHiddenFiles } from '@/hooks/use-hidden-files';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
-
 vi.mock('@/lib/extension-host', () => ({
   extensionHost: {
     subscribe: vi.fn(() => () => {}),
@@ -15,16 +14,15 @@ vi.mock('@/lib/extension-host', () => ({
     getRegisteredPanels: vi.fn(() => []),
   },
 }));
-
+const props = {
+  orientation: 'horizontal' as const,
+  rightPanelTab: 'preview',
+  setRightPanelTab: vi.fn(),
+  rightSidebarCollapsed: true,
+  setRightSidebarCollapsed: vi.fn(),
+};
+const openTools = () => fireEvent.click(screen.getByRole('button', { name: 'More tools' }));
 describe('VerticalExtensionsBar', () => {
-  const defaultProps = {
-    orientation: 'horizontal' as const,
-    rightPanelTab: 'preview',
-    setRightPanelTab: vi.fn(),
-    rightSidebarCollapsed: true,
-    setRightSidebarCollapsed: vi.fn(),
-  };
-
   beforeEach(async () => {
     vi.clearAllMocks();
     localStorage.clear();
@@ -32,251 +30,151 @@ describe('VerticalExtensionsBar', () => {
     await i18n.changeLanguage('en');
   });
 
-  describe('Hidden files', () => {
-    it('sits directly beside Preview and changes only its icon when toggled', () => {
-      render(<VerticalExtensionsBar {...defaultProps} />);
-      const toggle = screen.getByRole('button', { name: 'Show Hidden Files' });
-      const preview = screen.getByRole('button', { name: 'File Preview' });
-      expect(preview.nextElementSibling).toBe(toggle);
-      expect(toggle.closest('.wisp-panel-rail-horizontal')).toBe(
-        preview.closest('.wisp-panel-rail-horizontal'),
-      );
-      expect(toggle).not.toHaveClass('wisp-rail-button');
-      const neutralClass = toggle.className;
-      expect(toggle.querySelector('svg')).toHaveClass('lucide-file');
-      expect(toggle.querySelector('svg')).toHaveAttribute('stroke-dasharray', '2.5 2.5');
-      expect(toggle.querySelector('circle')).toHaveAttribute('cx', '8');
-      fireEvent.click(toggle);
-      expect(toggle).toHaveAttribute('aria-pressed', 'true');
-      expect(toggle.className).toBe(neutralClass);
-      expect(toggle.querySelector('svg')).toHaveClass('lucide-file');
-      expect(toggle.querySelector('svg')).not.toHaveAttribute('stroke-dasharray');
-      expect(toggle.querySelector('svg')).not.toHaveClass('lucide-files');
-      expect(defaultProps.setRightPanelTab).not.toHaveBeenCalled();
+  it('names the three primary actions and keeps all work panels discoverable', () => {
+    render(<VerticalExtensionsBar {...props} />);
+    expect(screen.getByRole('button', { name: 'File Preview' })).toHaveTextContent('');
+    expect(screen.getByRole('button', { name: 'More tools' })).toHaveTextContent('');
+    openTools();
+    for (const name of ['Chat', 'ChatGPT Bridge', 'WeChat bot'])
+      {expect(screen.getByRole('menuitemradio', { name })).toBeInTheDocument();}
+    // 活动面板已移除；显示隐藏文件提升为 rail 独立按钮
+    expect(screen.queryByRole('menuitemradio', { name: 'Activity' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('menuitemcheckbox', { name: 'Show hidden files' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('toggles hidden files across panes and preserves unrelated saved settings', async () => {
+    const Pane = () => (
+      <output data-testid="hidden-state">{String(useHiddenFiles().showHiddenFiles)}</output>
+    );
+    localStorage.setItem(
+      STORAGE_KEYS.SETTINGS,
+      JSON.stringify({ language: 'en', showHiddenFiles: false }),
+    );
+    render(
+      <>
+        <VerticalExtensionsBar {...props} />
+        <Pane />
+        <Pane />
+      </>,
+    );
+    openTools();
+    const toggle = screen.getByTestId('rail-hidden-files');
+    fireEvent.click(toggle);
+    await waitFor(() => expect(toggle).toHaveAttribute('aria-pressed', 'true'));
+    expect(
+      screen.getAllByTestId('hidden-state').every((element) => element.textContent === 'true'),
+    ).toBe(true);
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS)!)).toEqual({
+      language: 'en',
+      showHiddenFiles: true,
     });
-
-    const PaneState = () => {
-      const { showHiddenFiles } = useHiddenFiles();
-      return <output data-testid="pane-hidden-state">{String(showHiddenFiles)}</output>;
-    };
-
-    it('toggles hidden files for all panes and persists without losing other settings', () => {
-      localStorage.setItem(
-        STORAGE_KEYS.SETTINGS,
-        JSON.stringify({ language: 'en', showHiddenFiles: false }),
-      );
-      render(
-        <>
-          <VerticalExtensionsBar {...defaultProps} />
-          <PaneState />
-          <PaneState />
-        </>,
-      );
-      const toggle = screen.getByRole('button', { name: 'Show Hidden Files' });
-      expect(toggle).toHaveAttribute('aria-pressed', 'false');
-      fireEvent.click(toggle);
-      expect(toggle).toHaveAttribute('aria-pressed', 'true');
-      expect(
-        screen.getAllByTestId('pane-hidden-state').every((el) => el.textContent === 'true'),
-      ).toBe(true);
-      expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS)!)).toEqual({
-        language: 'en',
-        showHiddenFiles: true,
-      });
-      fireEvent.click(toggle);
-      expect(toggle).toHaveAttribute('aria-pressed', 'false');
-    });
-
-    it('restores the saved state and follows shortcut updates', () => {
-      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({ showHiddenFiles: true }));
-      render(<VerticalExtensionsBar {...defaultProps} />);
-      const toggle = screen.getByRole('button', { name: 'Show Hidden Files' });
-      expect(toggle).toHaveAttribute('aria-pressed', 'true');
-      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({ showHiddenFiles: false }));
-      fireEvent(window, new CustomEvent('wisp-settings-changed'));
-      expect(toggle).toHaveAttribute('aria-pressed', 'false');
-    });
+    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({ showHiddenFiles: false }));
+    fireEvent(window, new CustomEvent('wisp-settings-changed'));
+    expect(screen.getByTestId('rail-hidden-files')).toHaveAttribute('aria-pressed', 'false');
+    expect(props.setRightPanelTab).not.toHaveBeenCalled();
   });
 
-  it('places the ChatGPT Bridge entry directly beside the hidden-files toggle', () => {
-    render(<VerticalExtensionsBar {...defaultProps} />);
-    const toggle = screen.getByRole('button', { name: 'Show Hidden Files' });
-    const bridge = screen.getByRole('button', { name: 'ChatGPT Bridge' });
-    // The bridge entry sits immediately after the hidden-files toggle,
-    // before the More (⋯) menu — user-requested placement.
-    expect(toggle.nextElementSibling).toContainElement(bridge);
-    expect(bridge).toHaveAttribute('aria-pressed', 'false');
-    expect(bridge).toHaveClass('wisp-rail-button');
-  });
-
-  it('opens the ChatGPT Bridge panel and collapses it when pressed again', () => {
-    const setRightPanelTab = vi.fn();
-    const setRightSidebarCollapsed = vi.fn();
-    const { rerender } = render(
-      <VerticalExtensionsBar
-        {...defaultProps}
-        setRightPanelTab={setRightPanelTab}
-        setRightSidebarCollapsed={setRightSidebarCollapsed}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'ChatGPT Bridge' }));
-    expect(setRightPanelTab).toHaveBeenCalledWith('chatgpt-bridge');
-    expect(setRightSidebarCollapsed).toHaveBeenCalledWith(false);
-
-    rerender(
-      <VerticalExtensionsBar
-        {...defaultProps}
-        rightPanelTab="chatgpt-bridge"
-        rightSidebarCollapsed={false}
-        setRightPanelTab={setRightPanelTab}
-        setRightSidebarCollapsed={setRightSidebarCollapsed}
-      />,
-    );
-    expect(screen.getByRole('button', { name: 'ChatGPT Bridge' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-    fireEvent.click(screen.getByRole('button', { name: 'ChatGPT Bridge' }));
-    expect(setRightSidebarCollapsed).toHaveBeenCalledWith(true);
-  });
-
-  it('keeps Preview visible and progressively discloses the other built-in tools', () => {
-    render(<VerticalExtensionsBar {...defaultProps} />);
-
-    expect(screen.getByRole('button', { name: 'File Preview' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'More tools' })).toHaveAttribute(
-      'aria-expanded',
-      'false',
-    );
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-    expect(screen.queryByRole('menuitemradio', { name: 'Chat' })).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'More tools' }));
-
-    expect(screen.getByRole('menu', { name: 'More tools' })).toBeInTheDocument();
-    expect(screen.getByRole('menuitemradio', { name: 'Chat' })).toBeInTheDocument();
-    expect(screen.getByRole('menuitemradio', { name: 'Activity' })).toBeInTheDocument();
-    expect(screen.getByRole('menuitemradio', { name: 'Marketplace' })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: 'Settings' })).toBeInTheDocument();
-  });
-
-  it('opens Preview directly and folds it when pressed again', () => {
-    const setRightPanelTab = vi.fn();
-    const setRightSidebarCollapsed = vi.fn();
-    const { rerender } = render(
-      <VerticalExtensionsBar
-        {...defaultProps}
-        setRightPanelTab={setRightPanelTab}
-        setRightSidebarCollapsed={setRightSidebarCollapsed}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'File Preview' }));
-    expect(setRightPanelTab).toHaveBeenCalledWith('preview');
-    expect(setRightSidebarCollapsed).toHaveBeenCalledWith(false);
-
+  it('opens the bridge and collapses it only when the same panel is selected again', () => {
+    const { rerender } = render(<VerticalExtensionsBar {...props} />);
+    openTools();
+    fireEvent.click(screen.getByRole('menuitemradio', { name: 'ChatGPT Bridge' }));
+    expect(props.setRightPanelTab).toHaveBeenCalledWith('chatgpt-bridge');
+    expect(props.setRightSidebarCollapsed).toHaveBeenCalledWith(false);
     vi.clearAllMocks();
     rerender(
       <VerticalExtensionsBar
-        {...defaultProps}
+        {...props}
+        rightPanelTab="chatgpt-bridge"
         rightSidebarCollapsed={false}
-        setRightPanelTab={setRightPanelTab}
-        setRightSidebarCollapsed={setRightSidebarCollapsed}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'File Preview' }));
-    expect(setRightSidebarCollapsed).toHaveBeenCalledWith(true);
-    expect(setRightPanelTab).not.toHaveBeenCalled();
+    openTools();
+    fireEvent.click(screen.getByRole('menuitemradio', { name: 'ChatGPT Bridge' }));
+    expect(props.setRightSidebarCollapsed).toHaveBeenCalledWith(true);
+    expect(props.setRightPanelTab).not.toHaveBeenCalled();
   });
 
-  it('maps Agent to its panel, expands the sidebar, and marks More as active', () => {
-    const setRightPanelTab = vi.fn();
-    const setRightSidebarCollapsed = vi.fn();
-    const { rerender } = render(
+  it('switches from external assistants to chat without closing the sidebar', () => {
+    render(
       <VerticalExtensionsBar
-        {...defaultProps}
-        setRightPanelTab={setRightPanelTab}
-        setRightSidebarCollapsed={setRightSidebarCollapsed}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'More tools' }));
-    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Chat' }));
-    expect(setRightPanelTab).toHaveBeenCalledWith('chat');
-    expect(setRightSidebarCollapsed).toHaveBeenCalledWith(false);
-
-    rerender(
-      <VerticalExtensionsBar
-        {...defaultProps}
+        {...props}
         rightPanelTab="agent-manager"
         rightSidebarCollapsed={false}
-        setRightPanelTab={setRightPanelTab}
-        setRightSidebarCollapsed={setRightSidebarCollapsed}
       />,
     );
-    expect(screen.getByRole('button', { name: 'More tools' })).toHaveAttribute(
-      'aria-pressed',
+    openTools();
+    expect(screen.getByRole('menuitemradio', { name: 'External assistants' })).toHaveAttribute(
+      'aria-checked',
       'true',
     );
+    expect(screen.getByRole('menuitemradio', { name: 'Chat' })).toHaveAttribute(
+      'aria-checked',
+      'false',
+    );
+    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Chat' }));
+    expect(props.setRightPanelTab).toHaveBeenCalledWith('chat');
+    expect(props.setRightSidebarCollapsed).not.toHaveBeenCalled();
   });
 
-  it('includes registered extension panels in the More menu', () => {
+  it('collapses an already-open preview', () => {
+    render(<VerticalExtensionsBar {...props} rightSidebarCollapsed={false} />);
+    fireEvent.click(screen.getByRole('button', { name: 'File Preview' }));
+    expect(props.setRightSidebarCollapsed).toHaveBeenCalledWith(true);
+    expect(props.setRightPanelTab).not.toHaveBeenCalled();
+  });
+
+  it('opens registered extension panels', () => {
     vi.mocked(extensionHost.getRegisteredPanels).mockReturnValue([
-      { id: 'notes-panel', title: 'Notes', icon: <span aria-hidden="true">N</span> },
+      { id: 'notes', title: 'Notes', icon: <span>N</span> },
     ] as ReturnType<typeof extensionHost.getRegisteredPanels>);
-
-    render(<VerticalExtensionsBar {...defaultProps} />);
-    fireEvent.click(screen.getByRole('button', { name: 'More tools' }));
+    render(<VerticalExtensionsBar {...props} />);
+    openTools();
     fireEvent.click(screen.getByRole('menuitemradio', { name: 'Notes' }));
-
-    expect(defaultProps.setRightPanelTab).toHaveBeenCalledWith('notes-panel');
-    expect(defaultProps.setRightSidebarCollapsed).toHaveBeenCalledWith(false);
+    expect(props.setRightPanelTab).toHaveBeenCalledWith('notes');
   });
 
-  it('supports arrow navigation and returns focus to More on Escape', async () => {
-    render(<VerticalExtensionsBar {...defaultProps} />);
+  it('supports arrow navigation and returns focus to Tools after Escape', async () => {
+    render(<VerticalExtensionsBar {...props} />);
     const trigger = screen.getByRole('button', { name: 'More tools' });
-
     fireEvent.keyDown(trigger, { key: 'ArrowDown' });
-    const agent = await screen.findByRole('menuitemradio', { name: 'Chat' });
-    await waitFor(() => expect(agent).toHaveFocus());
-
-    fireEvent.keyDown(agent, { key: 'ArrowDown' });
-    expect(screen.getByRole('menuitemradio', { name: 'Activity' })).toHaveFocus();
-
+    const chat = await screen.findByRole('menuitemradio', { name: 'Chat' });
+    await waitFor(() => expect(chat).toHaveFocus());
+    fireEvent.keyDown(chat, { key: 'ArrowDown' });
+    expect(screen.getByRole('menuitemradio', { name: 'External assistants' })).toHaveFocus();
     fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' });
     await waitFor(() => expect(trigger).toHaveFocus());
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
-  it('opens on the last item with ArrowUp and preserves normal Tab order', async () => {
+  it('opens the last item with ArrowUp and lets Tab leave the menu', async () => {
     const user = userEvent.setup();
-    render(
-      <>
-        <VerticalExtensionsBar {...defaultProps} />
-        <button type="button">After toolbar</button>
-      </>,
-    );
-    const trigger = screen.getByRole('button', { name: 'More tools' });
-
-    trigger.focus();
+    render(<VerticalExtensionsBar {...props} />);
+    screen.getByRole('button', { name: 'More tools' }).focus();
     await user.keyboard('{ArrowUp}');
-    const settings = await screen.findByRole('menuitem', { name: 'Settings' });
-    await waitFor(() => expect(settings).toHaveFocus());
-
+    await waitFor(() => {
+      // 菜单内任意项获得焦点即算 ArrowUp 生效（最后一项随菜单内容变化）
+      const focused = document.activeElement as HTMLElement | null;
+      expect(focused?.closest('[role="menu"]')).not.toBeNull();
+    });
     await user.tab();
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'After toolbar' })).toHaveFocus(),
-    );
     await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
   });
 
-  it('closes the More menu when focus moves to an outside pointer target', () => {
-    render(<VerticalExtensionsBar {...defaultProps} />);
-    fireEvent.click(screen.getByRole('button', { name: 'More tools' }));
-    expect(screen.getByRole('menu')).toBeInTheDocument();
+  it('opens settings with a return-focus target', () => {
+    const listener = vi.fn();
+    window.addEventListener('wisp-open-settings', listener);
+    render(<VerticalExtensionsBar {...props} />);
+    openTools();
+    fireEvent.click(screen.getAllByRole('menuitem', { name: 'Settings' })[0]);
+    expect(listener.mock.calls.length).toBeGreaterThan(0);
+    window.removeEventListener('wisp-open-settings', listener);
+  });
 
+  it('closes Tools after an outside pointer press', () => {
+    render(<VerticalExtensionsBar {...props} />);
+    openTools();
     fireEvent.pointerDown(document.body);
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });

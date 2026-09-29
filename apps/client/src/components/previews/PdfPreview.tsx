@@ -3,15 +3,15 @@ import React, { useEffect, useState } from 'react';
 import { PreviewProps } from '@/lib/preview-factory';
 import { mediaUrl } from '@/lib/preview-media';
 import { PreviewSkeleton } from '@/components/ui/Skeleton';
+import { isTauri } from '@/lib/transport';
+import { isMacPlatform } from '@/lib/shortcut-utils';
+import NativeFilePreview from './NativeFilePreview';
 
 /**
- * PDF preview via the webview's native PDF viewer (WKWebView/WebView2 both
- * ship one). The file streams straight from the asset protocol — no pdfjs
- * bundle, no worker, no engine-specific module-eval bugs. Native chrome
- * provides zoom, page nav, and text search.
+ * Other platforms retain the browser's PDF support. macOS uses a native
+ * document view below, without WebKit's built-in floating PDF toolbar.
  */
-const PdfPreview = ({ file, onError, onLoad }: PreviewProps) => {
-  const { t: tUi } = useTranslation();
+const BrowserPdfPreview = ({ file, onError, onLoad }: PreviewProps) => {
   const [src, setSrc] = useState('');
   const [ready, setReady] = useState(false);
 
@@ -19,7 +19,7 @@ const PdfPreview = ({ file, onError, onLoad }: PreviewProps) => {
     setReady(false);
     // media:// serves ranged requests, so WKWebView's PDF viewer starts
     // rendering immediately instead of buffering the whole file first.
-    setSrc(mediaUrl(file.path));
+    setSrc(`${mediaUrl(file.path)}#toolbar=0&navpanes=0&scrollbar=0`);
   }, [file.path]);
 
   return (
@@ -38,19 +38,40 @@ const PdfPreview = ({ file, onError, onLoad }: PreviewProps) => {
               setReady(true);
               onLoad?.();
             }}
-            onError={(e) => {
+            onError={() => {
               onError?.(new Error('Failed to load PDF'));
-              e.currentTarget.src = src; // let the webview retry once
             }}
             className="h-full w-full border-0"
           />
         )}
       </div>
-      <div className="flex-shrink-0 px-1 text-[10px] text-xp-text-muted">
-        {file.name} {tUi('interface.useTheViewerSControlsToZoomAndPage')}
-      </div>
     </div>
   );
+};
+
+const NativePdfUnavailable = ({ onError }: PreviewProps) => {
+  const { t } = useTranslation();
+  useEffect(() => {
+    // The parent supplies retry/open actions. Do not silently restore the
+    // browser PDF plugin (and its floating toolbar) on a native load failure.
+    onError?.(new Error('Failed to load PDF'));
+  }, [onError]);
+  return (
+    <div className="flex h-full items-center justify-center p-4 text-sm text-xp-text-secondary">
+      {t('previewPanel.unavailable.failedTitle')}
+    </div>
+  );
+};
+
+const PdfPreview = (props: PreviewProps) => {
+  if (isTauri() && isMacPlatform()) {
+    return (
+      <NativeFilePreview key={props.file.path} {...props}>
+        <NativePdfUnavailable {...props} />
+      </NativeFilePreview>
+    );
+  }
+  return <BrowserPdfPreview key={props.file.path} {...props} />;
 };
 
 export default PdfPreview;

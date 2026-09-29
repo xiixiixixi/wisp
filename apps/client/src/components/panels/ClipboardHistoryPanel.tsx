@@ -179,7 +179,7 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
       >
         <ClipboardIcon />
         <span style={{ fontSize: 12, fontWeight: 500 }}>{t('clipboardHistory.emptyTitle')}</span>
-        <span style={{ fontSize: 11, opacity: 0.7 }}>{t('clipboardHistory.emptyDesc')}</span>
+        <span style={{ fontSize: 12, opacity: 1 }}>{t('clipboardHistory.emptyDesc')}</span>
       </div>
     );
   }
@@ -205,7 +205,7 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
           flexShrink: 0,
         }}
       >
-        <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--xp-text-muted)' }}>
+        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--xp-text-muted)' }}>
           {entries.length === 1
             ? t('clipboardHistory.entrySingle', { count: entries.length })
             : t('clipboardHistory.entriesCount', { count: entries.length })}
@@ -218,7 +218,7 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
             alignItems: 'center',
             gap: 4,
             padding: '2px 8px',
-            fontSize: 11,
+            fontSize: 12,
             color: 'var(--xp-text-muted)',
             background: 'none',
             border: 'none',
@@ -301,7 +301,7 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
                   </div>
                 ))}
                 {entry.files.length > 3 && (
-                  <span style={{ fontSize: 11, color: 'var(--xp-text-muted)' }}>
+                  <span style={{ fontSize: 12, color: 'var(--xp-text-muted)' }}>
                     {t('clipboardHistory.moreFiles', { count: entry.files.length - 3 })}
                   </span>
                 )}
@@ -310,10 +310,10 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
               {/* Timestamp */}
               <div
                 style={{
-                  fontSize: 10,
+                  fontSize: 12,
                   color: 'var(--xp-text-muted)',
                   marginTop: 2,
-                  opacity: 0.7,
+                  opacity: 1,
                 }}
               >
                 {formatTimestamp(entry.timestamp, t)}
@@ -327,7 +327,7 @@ const ClipboardHistoryPanel = ({ onPaste }: ClipboardHistoryPanelProps) => {
               style={{
                 flexShrink: 0,
                 padding: '3px 10px',
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: 500,
                 color: 'var(--ds-link)',
                 backgroundColor: 'rgb(var(--xp-blue-rgb) / 0.1)',

@@ -8,10 +8,10 @@
 
 Cross-platform. AI-integrated. Extensible. One app for all your files.
 
-[![LICENSE](https://img.shields.io/github/license/kimlimjustin/xplorer.svg?style=flat-square)](https://github.com/kimlimjustin/xplorer/blob/next/LICENSE) [![Downloads](https://img.shields.io/github/downloads/kimlimjustin/xplorer/total.svg?style=flat-square)](https://github.com/kimlimjustin/xplorer/releases) [![Stars](https://img.shields.io/github/stars/kimlimjustin/xplorer.svg?style=flat-square)](https://github.com/kimlimjustin/xplorer/stargazers)
-[![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white)](https://github.com/kimlimjustin/xplorer/releases)[![macOS](https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white)](https://github.com/kimlimjustin/xplorer/releases)[![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black)](https://github.com/kimlimjustin/xplorer/releases)
+[![LICENSE](https://img.shields.io/github/license/xiixiixixi/wisp.svg?style=flat-square)](https://github.com/xiixiixixi/wisp/blob/main/LICENSE) [![Downloads](https://img.shields.io/github/downloads/xiixiixixi/wisp/total.svg?style=flat-square)](https://github.com/xiixiixixi/wisp/releases) [![Stars](https://img.shields.io/github/stars/xiixiixixi/wisp.svg?style=flat-square)](https://github.com/xiixiixixi/wisp/stargazers)
+[![macOS Apple Silicon](https://img.shields.io/badge/macOS-Apple%20Silicon-000000?style=flat-square&logo=apple&logoColor=white)](https://github.com/xiixiixixi/wisp/releases)
 
-[Website](https://xplorer.space) | [Documentation](https://xplorer.space/docs) | [Discussions](https://github.com/kimlimjustin/xplorer/discussions)
+[Releases](https://github.com/xiixiixixi/wisp/releases) | [Discussions](https://github.com/xiixiixixi/wisp/discussions)
 
 </div>
 
@@ -107,13 +107,11 @@ Command palette, vim keybindings, custom keyboard shortcuts, and per-folder view
 
 ## Installation
 
-Download the latest release for your platform from the [Releases page](https://github.com/kimlimjustin/xplorer/releases).
+Download the latest Apple silicon Mac release from the [Wisp releases page](https://github.com/xiixiixixi/wisp/releases).
 
 | Platform | Format |
 |---|---|
-| Windows | `.msi` / `.exe` |
-| macOS | `.dmg` |
-| Linux | `.deb` / `.AppImage` |
+| macOS (Apple silicon) | `.dmg` |
 
 ## Getting Started (Development)
 
@@ -126,7 +124,7 @@ Download the latest release for your platform from the [Releases page](https://g
 ### Setup
 
 ```bash
-git clone https://github.com/kimlimjustin/xplorer.git -b next
+git clone https://github.com/xiixiixixi/wisp.git
 cd wisp
 pnpm install
 pnpm dev:app

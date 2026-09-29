@@ -23,6 +23,7 @@ import { useFolderViewSettings } from '@/hooks/use-folder-view-settings';
 import { getDemoDirectory, isBrowserDemoMode } from '@/lib/browser-demo-files';
 import { ancestorPaths } from '@/lib/path-ancestry';
 import { useRecentDirectory } from '@/hooks/use-recent-directory';
+import { useSpringLoadedFolder } from '@/hooks/use-spring-loaded-folder';
 import { invoke } from '@tauri-apps/api/core';
 import { isTauri } from '@/lib/transport';
 import type { NativeWebPageState } from '@/lib/native-web-tab';
@@ -647,6 +648,7 @@ const EditorGroupPane = ({
   // the resulting navigation does NOT re-emit another sync event (prevents
   // infinite ping-pong loops).
   const syncGuardRef = useRef(false);
+  const consumeSpringLoad = useSpringLoadedFolder(group.id, currentPath, onNavigate);
 
   // Track the previous path so we can compute relative navigations.
   const prevPathRef2 = useRef(currentPath);
@@ -658,7 +660,17 @@ const EditorGroupPane = ({
   // the navigation was NOT triggered by an incoming sync event.
   const prevSyncEmitPathRef = useRef(currentPath);
   useEffect(() => {
-    if (!paneSyncEnabled) return;
+    if (!paneSyncEnabled) {
+      consumeSpringLoad(currentPath);
+      return;
+    }
+    if (consumeSpringLoad(currentPath)) {
+      // Entering a folder during a drag must not change the source pane,
+      // even when normal manual navigation synchronization is enabled.
+      syncGuardRef.current = false;
+      prevSyncEmitPathRef.current = currentPath;
+      return;
+    }
     if (syncGuardRef.current) {
       // This navigation was triggered by an incoming sync event — do not
       // re-emit.  Reset the guard so subsequent user-initiated navigations
@@ -681,7 +693,7 @@ const EditorGroupPane = ({
       previousPath,
       mode: paneSyncMode ?? 'mirror',
     });
-  }, [currentPath, paneSyncEnabled, paneSyncMode, group.id]);
+  }, [currentPath, paneSyncEnabled, paneSyncMode, group.id, consumeSpringLoad]);
 
   // Listen for sync events from other panes.
   useEffect(() => {
@@ -808,7 +820,7 @@ const EditorGroupPane = ({
         currentPath={currentPath}
         groupId={group.id}
         handleCreateFolder={() => handleCreateFolder(currentPath)}
-          onCreateFile={() => handleCreateFile(currentPath)}
+        onCreateFile={() => handleCreateFile(currentPath)}
         handleDelete={() =>
           handleDelete(sortedFiles.filter((file) => selectedFiles.has(file.path)))
         }

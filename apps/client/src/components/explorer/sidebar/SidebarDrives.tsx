@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { HardDrive, ArrowUpFromLine } from 'lucide-react';
 import { TauriAPI } from '@/lib/tauri-api';
-import { isWindows, ROOT_PATH } from '@/lib/constants';
+import { isWindows } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+
+import { currentNavigationLocation } from './navigation-path';
 
 interface Drive {
   letter: string;
@@ -14,31 +16,31 @@ interface Drive {
 }
 
 interface SidebarDrivesProps {
+  currentPath?: string;
   navigateToPath: (path: string) => void;
 }
 
-const SidebarDrives = ({ navigateToPath }: SidebarDrivesProps) => {
+const SidebarDrives = ({ currentPath = '/', navigateToPath }: SidebarDrivesProps) => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [drives, setDrives] = useState<Drive[]>([]);
 
+  const [failed, setFailed] = useState(false);
+  const activePath = currentNavigationLocation(
+    drives.map((drive) => drive.path),
+    currentPath,
+  );
+
   const loadDrives = useCallback(async () => {
+    setFailed(false);
     try {
       const list = await TauriAPI.listDrives();
       setDrives(list);
     } catch (error) {
       console.error('Failed to load drives:', error);
-      setDrives([
-        {
-          letter: isWindows ? 'C' : '',
-          label: isWindows ? t('sidebarDrives.localDisk') : 'Macintosh HD',
-          path: ROOT_PATH,
-          total_space: 0,
-          free_space: 0,
-        },
-      ]);
+      setFailed(true);
     }
-  }, [t]);
+  }, []);
 
   useEffect(() => {
     void loadDrives();
@@ -69,14 +71,22 @@ const SidebarDrives = ({ navigateToPath }: SidebarDrivesProps) => {
 
   return (
     <div
-      className="px-3 py-2"
+      className="wisp-nav-section"
       role="region"
       aria-label={t(isWindows ? 'sidebar.drives' : 'sidebar.volumes')}
       data-sidebar-section="drives"
     >
-      <div className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted">
+      <h3 className="wisp-nav-section-heading">
         {t(isWindows ? 'sidebar.drives' : 'sidebar.volumes')}
-      </div>
+      </h3>
+      {failed && (
+        <div className="wisp-nav-feedback" role="status">
+          <span>{t('sidebar.drivesFailed')}</span>
+          <button type="button" onClick={() => void loadDrives()}>
+            {t('sidebar.retry')}
+          </button>
+        </div>
+      )}
       <div className="space-y-1">
         {drives.map((drive) => {
           const totalGB =
@@ -88,49 +98,48 @@ const SidebarDrives = ({ navigateToPath }: SidebarDrivesProps) => {
               ? Math.round(((drive.total_space - drive.free_space) / drive.total_space) * 100)
               : 0;
           return (
-            <div key={drive.path} className="group relative">
+            <div key={drive.path} className="wisp-nav-row-group">
               <button
                 onClick={() => navigateToPath(drive.path)}
                 data-drop-target={drive.path}
                 data-is-folder="true"
-                className="wisp-sidebar-item w-full rounded-md px-2.5 py-[7px] text-left text-[13px] transition-colors"
+                className={`wisp-sidebar-item wisp-nav-row ${activePath === drive.path ? 'wisp-sidebar-item-active' : ''}`}
+                aria-current={activePath === drive.path ? 'location' : undefined}
+                title={drive.path}
                 aria-label={t('navigation.navigateTo', {
                   name: drive.letter ? `${drive.letter}:` : drive.label,
                 })}
               >
-                <div className="flex items-center">
-                  <HardDrive
-                    size={15}
-                    className="mr-2.5 flex-shrink-0 text-xp-text-muted"
-                    aria-hidden="true"
-                  />
-                  <span className="flex-1 truncate text-xp-text">
-                    {drive.letter ? `${drive.letter}:` : drive.label}
+                <HardDrive size={17} aria-hidden="true" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate">
+                    {drive.letter ? `${drive.letter}: ${drive.label}` : drive.label}
                   </span>
                   {totalGB > 0 && (
-                    <span className="ml-2 flex-shrink-0 pr-5 text-xp-text-muted">
-                      {t('sidebarDrives.freeSpace', { size: freeGB })}
-                    </span>
+                    <>
+                      <span className="wisp-drive-details">
+                        {t('sidebarDrives.freeSpace', { size: freeGB })}
+                      </span>
+                      <span
+                        className="wisp-drive-meter"
+                        data-full={usedPct > 90}
+                        aria-hidden="true"
+                      >
+                        <span style={{ width: `${Math.max(0, Math.min(100, usedPct))}%` }} />
+                      </span>
+                    </>
                   )}
-                </div>
-                {totalGB > 0 && (
-                  <div className="ml-[25px] mt-1 h-1 overflow-hidden rounded-md bg-xp-border">
-                    <div
-                      className={`h-full rounded-md transition-all ${usedPct > 90 ? 'bg-xp-red' : 'bg-xp-blue'}`}
-                      style={{ width: `${usedPct}%` }}
-                    />
-                  </div>
-                )}
+                </span>
               </button>
               {/* Eject button — only shown for non-root/removable volumes */}
               {drive.path !== '/' && drive.path !== 'C:\\' && (
                 <button
-                  className="absolute right-1 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-xp-text-muted opacity-0 transition-opacity hover:bg-xp-surface-light hover:text-xp-text group-hover:opacity-100"
+                  className="wisp-nav-row-action"
                   onClick={(e) => handleEjectVolume(drive.path, e)}
                   title={t('drives.eject')}
-                  aria-label={t('drives.eject')}
+                  aria-label={`${t('drives.eject')}: ${drive.label}`}
                 >
-                  <ArrowUpFromLine size={12} />
+                  <ArrowUpFromLine size={14} />
                 </button>
               )}
             </div>

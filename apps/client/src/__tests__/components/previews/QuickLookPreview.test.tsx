@@ -15,6 +15,9 @@ vi.mock('@/lib/transport', () => ({
   isTauri: vi.fn(() => true),
   convertAssetUrl: (path: string) => `asset://localhost${path}`,
 }));
+// These cases exercise the thumbnail/text fallback. Native macOS presentation
+// routing and lifecycle are covered by NativePresentationPreview.test.tsx.
+vi.mock('@/lib/shortcut-utils', () => ({ isMacPlatform: () => false }));
 
 const deferred = <T,>() => {
   let resolve!: (value: T) => void;

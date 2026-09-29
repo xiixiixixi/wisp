@@ -1,42 +1,42 @@
-/**
- * 微信机器人面板 —— 照抄 dsh-weixin-clawbot 管理弹窗（MIT）的结构与视觉：
- * 品牌头部（微信绿 logo 方块 + 标题/副标题）→ 状态点行 → 三 section
- * （关联机器人：白底二维码卡/已连接行；回复颗粒度：SettingRow+下拉；
- *  文件夹访问范围：勾选列表）。逻辑在 lib/weixin/bridge.ts，面板只是视图。
- */
+/** 微信机器人侧栏：连接状态、扫码操作和消息/文件夹设置。 */
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { RefreshCw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { SelectField, SettingRow } from '@/components/settings/shared';
+import { SelectField } from '@/components/settings/shared';
 import { weixinBridge } from '@/lib/weixin/bridge';
 import { isTauri } from '@/lib/transport';
+import { TauriAPI } from '@/lib/tauri-api';
+import { PanelConfirmation, PanelMessage } from './PanelFeedback';
 
-/** 微信 logo 描线图形（抄 dsh-weixin-clawbot WechatGlyph，白色，坐品牌绿底）。 */
-const WechatGlyph = () => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
-    <path d="M8.5 5.5c-3.6 0-6.5 2.4-6.5 5.4 0 1.7.9 3.2 2.4 4.2l-.6 2.1 2.4-1.2c.7.2 1.5.3 2.3.3h.4a5.5 5.5 0 0 1-.2-1.5c0-3 2.9-5.4 6.4-5.4h.5C15.9 7.2 12.5 5.5 8.5 5.5Z" />
-    <path d="M15.9 9.5c-3.3 0-6 2.2-6 4.9s2.7 4.9 6 4.9c.7 0 1.3-.1 1.9-.3l2.1 1-.5-1.8c1.3-.9 2.5-2.2 2.5-3.8 0-2.7-2.7-4.9-6-4.9Z" />
-  </svg>
-);
-
-/** 状态点（照 dsh StateDot：成功绿 / 错误红 / 等待灰）。 */
 const StateDot = ({ state }: { state: 'ok' | 'err' | 'wait' }) => (
   <span
     aria-hidden="true"
     className={`inline-block h-2 w-2 shrink-0 rounded-full ${
-      state === 'ok' ? 'bg-[#07c160]' : state === 'err' ? 'bg-xp-red' : 'bg-xp-border-strong bg-xp-text-muted'
+      state === 'ok'
+        ? 'bg-[#07c160]'
+        : state === 'err'
+          ? 'bg-xp-red'
+          : 'bg-xp-border-strong bg-xp-text-muted'
     }`}
   />
 );
 
-const Section = ({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) => (
-  <div className="rounded-lg border border-xp-border bg-xp-surface px-3 py-2.5">
-    <div className="text-[13px] font-semibold text-xp-text">{title}</div>
-    {desc && <div className="mt-0.5 text-[11px] leading-4 text-xp-text-muted">{desc}</div>}
-    <div className="mt-2 space-y-2">{children}</div>
-  </div>
+const Section = ({
+  title,
+  desc,
+  children,
+}: {
+  title: string;
+  desc?: string;
+  children: React.ReactNode;
+}) => (
+  <section className="wisp-panel-section">
+    <h3 className="wisp-panel-section-title">{title}</h3>
+    {desc && <p className="mt-1 text-xs leading-5 text-xp-text-secondary">{desc}</p>}
+    <div className="mt-3 space-y-3">{children}</div>
+  </section>
 );
 
 const WeixinBridgePanel = ({ currentPath }: { currentPath: string }) => {
@@ -44,6 +44,42 @@ const WeixinBridgePanel = ({ currentPath }: { currentPath: string }) => {
   const [, force] = useState(0);
   const [code, setCode] = useState('');
   const [folderDraft, setFolderDraft] = useState('');
+  const [scopeError, setScopeError] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<'unrestrict' | 'unbind' | null>(null);
+
+  const [saving, setSaving] = useState(false);
+  const saveSettings = async (next: Parameters<typeof weixinBridge.setPersisted>[0]) => {
+    setSaving(true);
+    setScopeError(null);
+    try {
+      await weixinBridge.setPersisted(next);
+      return true;
+    } catch (error) {
+      setScopeError(t('panelActions.saveFailed', { error: String(error) }));
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addFolder = async (folder: string) => {
+    const value = folder.trim();
+    if (!value.startsWith('/') && !/^[a-z]:[\\/]/i.test(value)) {
+      setScopeError(t('panelActions.absoluteFolder'));
+      return;
+    }
+    const folders = weixinBridge.getPersisted().folders;
+    if (await saveSettings({ folders: folders.includes(value) ? folders : [...folders, value] }))
+      {setFolderDraft('');}
+  };
+  const chooseFolder = async () => {
+    try {
+      const paths = await TauriAPI.showOpenDialog({ directory: true, multiple: false });
+      if (paths?.[0]) await addFolder(paths[0]);
+    } catch (error) {
+      setScopeError(String(error));
+    }
+  };
 
   useEffect(() => {
     const un = weixinBridge.subscribe(() => force((n) => n + 1));
@@ -59,6 +95,7 @@ const WeixinBridgePanel = ({ currentPath }: { currentPath: string }) => {
 
   const state = weixinBridge.state;
   const persisted = weixinBridge.getPersisted();
+  const desktopAvailable = isTauri();
   const dot: 'ok' | 'err' | 'wait' =
     state.status === 'connected'
       ? 'ok'
@@ -78,40 +115,51 @@ const WeixinBridgePanel = ({ currentPath }: { currentPath: string }) => {
     persisted.replyOn === 'turn' ? 'turn' : persisted.noticeTools ? 'full' : 'step';
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto px-3 py-3" data-testid="weixin-panel">
-      {/* 品牌头部（照 dsh header：绿 logo 方块 + 标题/副标题） */}
-      <div className="flex items-center gap-2.5">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#07c160] text-white">
-          <WechatGlyph />
-        </span>
-        <div className="min-w-0">
-          <div className="text-[15px] font-semibold leading-5 text-xp-text">{t('weixin.title')}</div>
-          <div className="text-[11px] leading-4 text-xp-text-secondary">{t('weixin.subtitle')}</div>
-        </div>
-      </div>
-
-      {/* 状态点行（照 dsh statusline） */}
-      <div className="flex items-center gap-1.5 text-[12px] text-xp-text-secondary">
-        <StateDot state={dot} />
-        <span>{statusText[state.status] ?? state.status}</span>
-        {state.botId && <span className="ml-auto font-mono text-[11px] text-xp-text-muted">{state.botId.slice(0, 10)}…</span>}
-      </div>
-
-      {!isTauri() && (
-        <div className="rounded-md border border-xp-border bg-xp-surface px-3 py-2 text-[11px] text-xp-text-muted">
-          {t('weixin.desktopOnly')}
-        </div>
-      )}
-
-      {/* Section 1 · 关联机器人 */}
-      <Section title={t('weixin.secPair')} desc={t('weixin.secPairDesc')}>
-        {!state.qrUrl && (state.status === 'idle' || state.status === 'expired' || state.status === 'error') && (
-          <div className="py-2 text-center text-[11px] text-xp-text-muted">{t('weixin.qrWaiting')}</div>
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto" data-testid="weixin-panel">
+      <div className="border-b border-xp-border px-4 pb-4 pt-4">
+        <p className="text-xs leading-5 text-xp-text-secondary">{t('weixin.intro')}</p>
+        {desktopAvailable && (
+          <div
+            role="status"
+            className="mt-3 flex min-w-0 items-center gap-2 text-xs font-medium text-xp-text"
+          >
+            <StateDot state={dot} />
+            <span>{statusText[state.status] ?? state.status}</span>
+          </div>
         )}
-        {state.qrUrl && (state.status === 'qr' || state.status === 'need-code' || state.status === 'connecting') && (
+      </div>
+
+      <Section
+        title={t(desktopAvailable ? 'weixin.secPair' : 'weixin.browserHeading')}
+        desc={
+          desktopAvailable && state.status !== 'connected' ? t('weixin.secPairDesc') : undefined
+        }
+      >
+        {!desktopAvailable && (
           <>
-            {/* 二维码卡：白底圆角 16（可扫性，照 dsh qr-card）+ 角上刷新换新码 */}
-            <div className="relative mx-auto w-fit rounded-2xl bg-white p-3 shadow-sm">
+            <p className="text-xs leading-5 text-xp-text-secondary">{t('weixin.desktopOnly')}</p>
+            <p className="text-xs leading-5 text-xp-text-secondary">
+              {t('weixin.desktopSettingsHint')}
+            </p>
+          </>
+        )}
+        {desktopAvailable && (state.status === 'error' || state.status === 'expired') && (
+          <>
+            <PanelMessage error>{state.error || statusText[state.status]}</PanelMessage>
+            <Button variant="outline" size="sm" onClick={() => void weixinBridge.beginPairing()}>
+              {t('panelActions.retryPairing')}
+            </Button>
+          </>
+        )}
+        {desktopAvailable && !state.qrUrl && state.status === 'idle' && (
+          <p className="text-xs text-xp-text-secondary">{t('weixin.qrWaiting')}</p>
+        )}
+        {desktopAvailable &&
+          state.qrUrl &&
+          (state.status === 'qr' ||
+            state.status === 'need-code' ||
+            state.status === 'connecting') && (
+            <div className="relative mx-auto w-fit rounded-xl bg-white p-2">
               <img src={state.qrUrl} alt={t('weixin.qrAlt')} className="h-40 w-40" />
               <button
                 type="button"
@@ -119,19 +167,15 @@ const WeixinBridgePanel = ({ currentPath }: { currentPath: string }) => {
                 title={t('weixin.refreshQr')}
                 onClick={() => void weixinBridge.beginPairing()}
                 data-testid="weixin-refresh-qr"
-                className="absolute right-1.5 top-1.5 rounded-md bg-black/5 p-1.5 text-xp-text-muted transition-colors hover:bg-black/10 hover:text-xp-text"
+                className="absolute right-1 top-1 rounded-md bg-black/5 p-1.5 text-xp-text-muted transition-colors hover:bg-black/10 hover:text-xp-text"
               >
                 <RefreshCw size={13} />
               </button>
             </div>
-            <div className="text-center text-[11px] text-xp-text-secondary">
-              {statusText[state.status]}
-            </div>
-          </>
-        )}
-        {state.status === 'need-code' && (
+          )}
+        {desktopAvailable && state.status === 'need-code' && (
           <div className="flex items-center gap-1.5">
-            <span className="shrink-0 text-[11px] text-xp-text-secondary">{t('weixin.codeLabel')}</span>
+            <span className="shrink-0 text-xs text-xp-text-secondary">{t('weixin.codeLabel')}</span>
             <Input
               value={code}
               onChange={(e) => setCode(e.target.value)}
@@ -153,122 +197,175 @@ const WeixinBridgePanel = ({ currentPath }: { currentPath: string }) => {
             </Button>
           </div>
         )}
-        {state.status === 'connected' && (
+        {desktopAvailable && state.status === 'connected' && (
           <>
-            <div className="flex items-center gap-2 rounded-md border border-xp-border px-2.5 py-2">
-              <StateDot state="ok" />
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-medium text-xp-text">{t('weixin.connectedTitle')}</div>
-                <div className="truncate text-[11px] text-xp-text-muted">
-                  {state.botId ? `bot ${state.botId}` : ''}
-                </div>
-              </div>
-              <Button variant="outline" size="sm" onClick={() => void weixinBridge.unbind()}>
+            <div className="flex items-center justify-between gap-3">
+              <span
+                className="min-w-0 truncate font-mono text-xs text-xp-text-secondary"
+                title={state.botId}
+              >
+                {state.botId || t('weixin.connectedTitle')}
+              </span>
+              <Button variant="outline" size="sm" onClick={() => setConfirmAction('unbind')}>
                 {t('weixin.unbind')}
               </Button>
             </div>
-            <div className="flex items-start gap-1.5 text-[11px] leading-4 text-xp-text-muted">
-              <span aria-hidden="true">ⓘ</span>
-              <span>{t('weixin.firstMsgNote')}</span>
-            </div>
+            <p className="text-xs leading-5 text-xp-text-secondary">{t('weixin.firstMsgNote')}</p>
           </>
         )}
       </Section>
 
-      {/* Section 2 · 回复颗粒度（照 dsh：SettingRow + 下拉） */}
-      <Section title={t('weixin.granularity')}>
-        <SettingRow label={t('weixin.granLabel')} description={t('weixin.granDesc')}>
-          <SelectField
-            value={granularity}
-            onChange={(v) =>
-              void weixinBridge.setPersisted(
-                v === 'full'
-                  ? { replyOn: 'step', noticeTools: true }
-                  : v === 'step'
-                    ? { replyOn: 'step', noticeTools: false }
-                    : { replyOn: 'turn', noticeTools: false },
-              )
+      {scopeError && (
+        <div className="px-4">
+          <PanelMessage error>{scopeError}</PanelMessage>
+        </div>
+      )}
+      {desktopAvailable && (
+        <>
+          <Section title={t('weixin.granularity')} desc={t('weixin.granDesc')}>
+            <div className="w-full [&_button]:!w-full">
+              <SelectField
+                value={granularity}
+                label={t('weixin.granularity')}
+                onChange={(v) =>
+                  void saveSettings(
+                    v === 'full'
+                      ? { replyOn: 'step', noticeTools: true }
+                      : v === 'step'
+                        ? { replyOn: 'step', noticeTools: false }
+                        : { replyOn: 'turn', noticeTools: false },
+                  )
+                }
+                options={[
+                  { value: 'full', label: t('weixin.granFull') },
+                  { value: 'step', label: t('weixin.granStep') },
+                  { value: 'turn', label: t('weixin.granTurn') },
+                ]}
+              />
+            </div>
+          </Section>
+
+          <Section title={t('weixin.scope')} desc={t('weixin.scopeDesc')}>
+            <p className="text-xs font-medium leading-5 text-xp-text">
+              {t(persisted.folders.length ? 'panelActions.scopeRestricted' : 'weixin.scopeAll')}
+            </p>
+            <ul className="space-y-1" aria-label={t('weixin.scope')}>
+              {persisted.folders.map((folder) => (
+                <li
+                  key={folder}
+                  className="flex items-center gap-2 border-b border-xp-border py-2 last:border-b-0"
+                >
+                  <span className="min-w-0 flex-1 break-all text-xs text-xp-text">{folder}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={saving || persisted.folders.length === 1}
+                    aria-label={t('panelActions.removeFolder', { folder })}
+                    title={t('panelActions.removeFolder', { folder })}
+                    onClick={() =>
+                      void saveSettings({
+                        folders: persisted.folders.filter((item) => item !== folder),
+                      })
+                    }
+                  >
+                    <Trash2 size={14} aria-hidden="true" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            {persisted.folders.length > 0 && (
+              <p className="text-xs leading-5 text-xp-text-secondary">
+                {t('panelActions.keepFolderScope')}
+              </p>
+            )}
+            <div className="wisp-panel-actions">
+              <Button variant="outline" size="sm" onClick={() => void chooseFolder()}>
+                {t('panelActions.chooseFolder')}
+              </Button>
+              {currentPath?.startsWith('/') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  title={currentPath}
+                  onClick={() => void addFolder(currentPath)}
+                >
+                  {t('chatgptBridge.addCurrentRoot')}
+                </Button>
+              )}
+              {persisted.folders.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={() => setConfirmAction('unrestrict')}>
+                  {t('panelActions.allowAllFolders')}
+                </Button>
+              )}
+            </div>
+            <details>
+              <summary className="cursor-pointer py-2 text-xs text-xp-text-secondary">
+                {t('panelActions.enterFolderPath')}
+              </summary>
+              <div className="flex gap-2">
+                <Input
+                  value={folderDraft}
+                  onChange={(e) => setFolderDraft(e.target.value)}
+                  placeholder={t('weixin.scopePlaceholder')}
+                  aria-label={t('weixin.scopePlaceholder')}
+                />
+                <Button
+                  size="sm"
+                  disabled={!folderDraft.trim()}
+                  onClick={() => void addFolder(folderDraft)}
+                >
+                  {t('weixin.scopeAdd')}
+                </Button>
+              </div>
+            </details>
+          </Section>
+        </>
+      )}
+
+      <PanelConfirmation
+        open={confirmAction !== null}
+        title={t(
+          confirmAction === 'unbind' ? 'panelActions.unbindTitle' : 'panelActions.unrestrictTitle',
+        )}
+        description={t(
+          confirmAction === 'unbind'
+            ? 'panelActions.unbindDescription'
+            : 'panelActions.unrestrictDescription',
+        )}
+        confirmLabel={t(
+          confirmAction === 'unbind' ? 'weixin.unbind' : 'panelActions.allowAllFolders',
+        )}
+        busy={saving}
+        onCancel={() => setConfirmAction(null)}
+        onConfirm={() => {
+          void (async () => {
+            setSaving(true);
+            try {
+              if (confirmAction === 'unbind') await weixinBridge.unbind();
+              else await saveSettings({ folders: [] });
+              setConfirmAction(null);
+            } catch (error) {
+              setScopeError(t('panelActions.saveFailed', { error: String(error) }));
+              setConfirmAction(null);
+            } finally {
+              setSaving(false);
             }
-            options={[
-              { value: 'full', label: t('weixin.granFull') },
-              { value: 'step', label: t('weixin.granStep') },
-              { value: 'turn', label: t('weixin.granTurn') },
-            ]}
-          />
-        </SettingRow>
-      </Section>
-
-      {/* Section 3 · 文件夹访问范围（照 dsh 勾选列表；全不勾 = 不限制） */}
-      <Section title={t('weixin.scope')} desc={t('weixin.scopeDesc')}>
-        <div role="group" aria-label={t('weixin.scope')} className="space-y-1">
-          {persisted.folders.length === 0 && (
-            <div className="rounded-md px-1 py-1 text-[11px] text-xp-text-muted">{t('weixin.scopeAll')}</div>
-          )}
-          {persisted.folders.map((f) => (
-            <button
-              key={f}
-              type="button"
-              role="menuitemcheckbox"
-              aria-checked
-              className="group flex w-full items-center gap-2 rounded-md px-1.5 py-1.5 text-left hover:bg-xp-surface-light"
-              onClick={() =>
-                void weixinBridge.setPersisted({ folders: persisted.folders.filter((x) => x !== f) })
-              }
-              title={t('weixin.scopeRemove')}
-            >
-              <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded border border-xp-accent bg-xp-accent text-white">
-                <svg viewBox="0 0 20 20" className="h-3 w-3" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-8 8a1 1 0 01-1.4 0l-4-4a1 1 0 111.4-1.4L8 12.6l7.3-7.3a1 1 0 011.4 0z" clipRule="evenodd" />
-                </svg>
-              </span>
-              <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-xp-text" title={f}>
-                {f}
-              </span>
-              <Trash2 size={12} className="shrink-0 text-xp-text-muted opacity-0 group-hover:opacity-100" />
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-1.5">
-          <Input
-            value={folderDraft}
-            onChange={(e) => setFolderDraft(e.target.value)}
-            placeholder={t('weixin.scopePlaceholder')}
-            aria-label={t('weixin.scopePlaceholder')}
-            className="h-7"
-          />
-          {currentPath?.startsWith('/') && (
-            <Button variant="outline" size="sm" className="h-7" title={currentPath} onClick={() => setFolderDraft(currentPath)}>
-              {t('weixin.scopeCurrent')}
-            </Button>
-          )}
-          <Button
-            size="sm"
-            className="h-7"
-            disabled={!folderDraft.trim()}
-            onClick={() => {
-              const f = folderDraft.trim();
-              if (f && !persisted.folders.includes(f)) {
-                void weixinBridge.setPersisted({ folders: [...persisted.folders, f] });
-              }
-              setFolderDraft('');
-            }}
-          >
-            <Plus size={11} />
-            {t('weixin.scopeAdd')}
-          </Button>
-        </div>
-      </Section>
-
-      {/* 日志（排障折叠，不抢 DSH 结构的戏） */}
+          })();
+        }}
+      />
       {weixinBridge.getLogs().length > 0 && (
-        <details className="mt-auto overflow-hidden rounded-md border border-xp-border">
-          <summary className="cursor-pointer px-3 py-1.5 text-[11px] text-xp-text-muted hover:bg-xp-surface-light">
+        <details className="mt-auto border-t border-xp-border px-4 py-3">
+          <summary className="cursor-pointer text-xs text-xp-text-secondary">
             {t('weixin.logs')}（{weixinBridge.getLogs().length}）
           </summary>
-          <div className="max-h-36 space-y-0.5 overflow-y-auto border-t border-xp-border px-3 py-2 font-mono text-[11px] leading-4 text-xp-text-muted">
-            {weixinBridge.getLogs().slice(-15).reverse().map((l, i) => (
-              <div key={i}>{l}</div>
-            ))}
+          <div className="mt-2 max-h-36 space-y-0.5 overflow-y-auto font-mono text-xs leading-4 text-xp-text-muted">
+            {weixinBridge
+              .getLogs()
+              .slice(-15)
+              .reverse()
+              .map((l, i) => (
+                <div key={i}>{l}</div>
+              ))}
           </div>
         </details>
       )}

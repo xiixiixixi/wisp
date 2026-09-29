@@ -155,8 +155,7 @@ describe('FileGridItem', () => {
       render(<FileGridItem {...defaultProps} isSelected={true} />);
       const item = screen.getByRole('option');
       expect(item).toHaveAttribute('aria-selected', 'true');
-      expect(item.className).toContain('bg-xp-selection');
-      expect(item.className).toContain('border-xp-blue');
+      expect(item).toHaveAttribute('data-file-path', defaultProps.file.path);
     });
 
     it('does not apply selected styling when isSelected is false', () => {

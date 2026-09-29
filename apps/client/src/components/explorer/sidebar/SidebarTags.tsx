@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getTagPalette, ensureTagPalette } from '@/lib/file-tags-cache';
-import { displayTagName, hexA } from '@/lib/finder-tags';
+import { displayTagName } from '@/lib/finder-tags';
 import type { FileTag } from '@/lib/tauri-api';
 
 const CUSTOM_TAGS_KEY = 'wisp:custom-finder-tags';
@@ -49,14 +49,8 @@ const SidebarTags = ({ currentPath, navigateToPath }: SidebarTagsProps) => {
   }, []);
 
   return (
-    <div
-      className="border-b border-xp-border px-3 py-2"
-      role="region"
-      aria-label={t('sidebar.tags')}
-    >
-      <h4 className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted">
-        {t('sidebar.tags')}
-      </h4>
+    <div className="wisp-nav-section" role="region" aria-label={t('sidebar.tags')}>
+      <h3 className="wisp-nav-section-heading">{t('sidebar.tags')}</h3>
       <div className="space-y-0.5">
         {tags.map((tag) => {
           const target = `wisp://tag/${encodeURIComponent(tag.name)}`;
@@ -67,13 +61,10 @@ const SidebarTags = ({ currentPath, navigateToPath }: SidebarTagsProps) => {
               onClick={() => navigateToPath(target)}
               title={t('sidebar.showTagged', { name: displayTagName(tag.name) })}
               aria-current={isActive ? 'page' : undefined}
-              className={`wisp-sidebar-item flex min-h-7 w-full items-center gap-2 rounded-md px-2.5 py-[7px] text-left text-[13px] transition-colors ${
-                isActive ? 'text-xp-text' : 'text-xp-text-secondary hover:text-xp-text'
-              }`}
-              style={isActive ? { backgroundColor: hexA(tag.color, 0.12) } : undefined}
+              className={`wisp-sidebar-item wisp-nav-row ${isActive ? 'wisp-sidebar-item-active' : ''}`}
             >
               <span
-                className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                className="h-3 w-3 flex-shrink-0 rounded-full"
                 style={{
                   backgroundColor: tag.color,
                 }}

@@ -1,0 +1,100 @@
+/* Panel contents share the same clear plane as the file browser. */
+.wisp-panel-workspace {
+  --xp-text: var(--ds-label-primary);
+  --xp-text-secondary: var(--ds-label-secondary);
+  --xp-text-muted: var(--ds-label-secondary);
+  --xp-bg: var(--ds-canvas);
+  --xp-surface: var(--ds-canvas);
+  --xp-surface-light: var(--ds-hover);
+  color: var(--ds-label-primary);
+}
+.wisp-panel-workspace .wisp-panel-body {
+  background: transparent;
+  container-type: inline-size;
+}
+.wisp-panel-workspace .wisp-panel-purpose {
+  margin: 3px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ds-label-secondary);
+}
+.wisp-panel-section {
+  padding: 16px;
+  border-bottom: 1px solid var(--xp-border);
+}
+.wisp-panel-section:last-child {
+  border-bottom: 0;
+}
+.wisp-panel-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--ds-label-primary);
+}
+.wisp-panel-help {
+  margin: 5px 0 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ds-label-secondary);
+  overflow-wrap: anywhere;
+}
+.wisp-panel-message {
+  margin-block: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--ds-fill);
+  color: var(--ds-label-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.wisp-panel-message-error {
+  color: var(--xp-red);
+}
+.wisp-panel-workspace .wisp-panel-body :where(button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--ds-focus);
+  outline-offset: 2px;
+}
+.wisp-panel-workspace
+  .wisp-panel-body
+  :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  background-color: var(--ds-canvas);
+  color: var(--ds-label-primary);
+  min-height: 32px;
+  font-size: 12px;
+}
+.wisp-panel-workspace .wisp-panel-body :where(input, textarea)::placeholder {
+  color: var(--ds-label-secondary);
+}
+.wisp-panel-workspace .wisp-panel-body :where(button):disabled {
+  cursor: default;
+}
+.wisp-panel-workspace .wisp-panel-body :where(button) {
+  scroll-margin-block: 12px;
+}
+.wisp-panel-fields {
+  display: grid;
+  gap: 12px;
+}
+.wisp-panel-fields label {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--ds-label-secondary);
+}
+.wisp-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.wisp-panel-path {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: var(--ds-label-secondary);
+}
+@container (min-width: 390px) {
+  .wisp-panel-fields-pair {
+    grid-template-columns: 1fr 1fr;
+  }
+}

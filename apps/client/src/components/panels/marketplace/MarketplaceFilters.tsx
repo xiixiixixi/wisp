@@ -1,34 +1,15 @@
 import { useTranslation } from 'react-i18next';
-import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown } from 'lucide-react';
+import React from 'react';
 
 type SortOption = 'popular' | 'recent' | 'rating';
-
-interface MarketplaceCategory {
-  id: string;
-  name: string;
-  slug: string;
-}
-
-interface PaginationInfo {
-  total: number;
-}
-
 interface MarketplaceFiltersProps {
-  categories: MarketplaceCategory[];
+  categories: Array<{ id: string; name: string; slug: string }>;
   selectedCategory: string;
-  setSelectedCategory: (cat: string) => void;
+  setSelectedCategory: (category: string) => void;
   sortBy: SortOption;
   setSortBy: (sort: SortOption) => void;
-  pagination: PaginationInfo;
+  pagination: { total: number };
 }
-
-const SORT_LABELS: Record<SortOption, string> = {
-  popular: 'Popular',
-  recent: 'Recent',
-  rating: 'Highest Rated',
-};
-
 const MarketplaceFilters = React.memo(
   ({
     categories,
@@ -38,90 +19,52 @@ const MarketplaceFilters = React.memo(
     setSortBy,
     pagination,
   }: MarketplaceFiltersProps) => {
-    const { t: tUi } = useTranslation();
-    const [showSortDropdown, setShowSortDropdown] = useState(false);
-    const sortRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-      if (!showSortDropdown) return;
-      const onMouseDown = (e: MouseEvent) => {
-        if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
-          setShowSortDropdown(false);
-        }
-      };
-      document.addEventListener('mousedown', onMouseDown);
-      return () => document.removeEventListener('mousedown', onMouseDown);
-    }, [showSortDropdown]);
-
+    const { t } = useTranslation();
     return (
-      <div className="space-y-2 border-b border-xp-border px-3 py-2">
+      <div className="space-y-3 border-b border-xp-border px-4 py-3">
         {categories.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              onClick={() => setSelectedCategory('')}
-              className={`rounded-md border px-2.5 py-1 text-xs transition-colors ${
-                selectedCategory === ''
-                  ? 'border-xp-blue bg-xp-blue text-xp-on-accent'
-                  : 'border-xp-border bg-xp-surface text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
-              }`}
-            >
-              {tUi('eventsPanel.filterAll')}
-            </button>
-            {categories.map((cat) => (
+          <div
+            className="flex flex-wrap gap-1.5"
+            aria-label={t('panelActions.extensionCategories')}
+          >
+            {[
+              { slug: '', name: t('eventsPanel.filterAll') },
+              ...categories.filter((category) => category.slug !== 'all'),
+            ].map((category) => (
               <button
-                key={cat.slug}
-                onClick={() => setSelectedCategory(cat.slug)}
-                className={`rounded-md border px-2.5 py-1 text-xs transition-colors ${
-                  selectedCategory === cat.slug
-                    ? 'border-xp-blue bg-xp-blue text-xp-on-accent'
-                    : 'border-xp-border bg-xp-surface text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
-                }`}
+                key={category.slug}
+                aria-pressed={selectedCategory === category.slug}
+                onClick={() => setSelectedCategory(category.slug)}
+                className={`min-h-8 rounded-md px-2.5 py-1 text-xs transition-colors ${selectedCategory === category.slug ? 'bg-[var(--ds-accent)] text-white' : 'bg-[var(--ds-fill)] text-xp-text-secondary hover:bg-[var(--ds-hover)]'}`}
               >
-                {cat.name}
+                {category.slug
+                  ? t(`panelActions.category.${category.slug}`, { defaultValue: category.name })
+                  : category.name}
               </button>
             ))}
           </div>
         )}
-
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-xp-text-muted">
-            {tUi('counts.extensions', { count: pagination.total })}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-xs text-xp-text-secondary">
+            {t('counts.extensions', { count: pagination.total })}
           </span>
-          <div className="relative" ref={sortRef}>
-            <button
-              onClick={() => setShowSortDropdown(!showSortDropdown)}
-              className="flex items-center gap-1 rounded-md border border-xp-border bg-xp-surface px-2 py-1 text-xs text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+          <label className="flex items-center gap-2 text-xs text-xp-text-secondary">
+            {t('interface.sortLabel')}
+            <select
+              className="rounded-md border border-xp-border px-2 text-xp-text"
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value as SortOption)}
             >
-              {tUi('interface.sortLabel')} {SORT_LABELS[sortBy]}
-              <ChevronDown className="h-3 w-3" />
-            </button>
-            {showSortDropdown && (
-              <>
-                <div className="absolute right-0 top-full z-20 mt-1 min-w-[140px] rounded-md border border-xp-border bg-xp-popover py-1">
-                  {(Object.keys(SORT_LABELS) as SortOption[]).map((option) => (
-                    <button
-                      key={option}
-                      onClick={() => {
-                        setSortBy(option);
-                        setShowSortDropdown(false);
-                      }}
-                      className={`w-full px-3 py-1.5 text-left text-xs transition-colors ${
-                        sortBy === option
-                          ? 'bg-xp-blue/10 text-xp-blue'
-                          : 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text'
-                      }`}
-                    >
-                      {SORT_LABELS[option]}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+              {(['popular', 'recent', 'rating'] as const).map((sort) => (
+                <option key={sort} value={sort}>
+                  {t(`panelActions.sort.${sort}`)}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
     );
   },
 );
-
 export default MarketplaceFilters;

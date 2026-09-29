@@ -31,19 +31,30 @@ describe('GeneralSettings', () => {
     expect(
       await screen.findByRole('button', { name: 'Customize keyboard shortcuts' }),
     ).toBeVisible();
-    expect(screen.getByText(/Mac shortcut conventions/)).toBeVisible();
     await user.click(summary);
     await waitFor(() =>
       expect(screen.queryByRole('button', { name: 'Customize keyboard shortcuts' })).toBeNull(),
     );
   });
 
-  it('shows reset directly and preserves the existing reset callback', async () => {
+  it('confirms the reset scope and retains service credentials and unrelated preferences', async () => {
     const user = userEvent.setup();
-    render(<GeneralSettings {...props} />);
+    const settings = {
+      ...props.settings,
+      aiCustomApiKey: 'keep-key',
+      weatherCity: 'keep-city',
+      showHiddenFiles: true,
+      defaultView: 'grid',
+    };
+    render(<GeneralSettings {...props} settings={settings} />);
     expect(screen.queryByText('Advanced')).toBeNull();
-    await user.click(screen.getByRole('button', { name: 'Reset all settings to defaults' }));
-    expect(props.setSettings).toHaveBeenCalledWith(DEFAULT_SETTINGS);
+    await user.click(screen.getByRole('button', { name: 'Restore default preferences' }));
+    expect(props.setSettings).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: 'Restore defaults', exact: true }));
+    expect(props.setSettings).toHaveBeenCalledWith({
+      ...settings,
+      defaultView: DEFAULT_SETTINGS.defaultView,
+    });
   });
 
   it('retains appearance and language controls with About in the same view', async () => {

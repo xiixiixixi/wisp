@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { createRef } from 'react';
 import LeftSidebar, { type LeftSidebarHandle } from '@/components/explorer/LeftSidebar';
@@ -85,6 +85,7 @@ vi.mock('@/lib/tauri-api', () => ({
       ]),
     ),
     getBookmarks: vi.fn(() => Promise.resolve([])),
+    openFile: vi.fn(() => Promise.resolve()),
     removeBookmark: vi.fn(() => Promise.resolve()),
     getRecentFiles: vi.fn(() => Promise.resolve([])),
     getFileIcon: vi.fn(() => '📄'),
@@ -137,7 +138,7 @@ describe('LeftSidebar', () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('QUICK ACCESS')).toBeInTheDocument();
+        expect(screen.getByText('Places')).toBeInTheDocument();
       });
     });
 
@@ -231,15 +232,17 @@ describe('LeftSidebar', () => {
   });
 
   describe('Quick Access Bookmarks', () => {
-    it('does not render a duplicate favorites section', async () => {
+    it('keeps favorites in Places without a duplicate section or add action', async () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('QUICK ACCESS')).toBeInTheDocument();
+        expect(screen.getByText('Places')).toBeInTheDocument();
       });
 
-      expect(screen.queryByText('FAVORITES')).not.toBeInTheDocument();
-      expect(screen.queryByText('No bookmarks yet')).not.toBeInTheDocument();
+      expect(screen.queryByRole('region', { name: 'Favorites' })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Add current folder to favorites' }),
+      ).not.toBeInTheDocument();
     });
 
     it('renders bookmark items when bookmarks exist', async () => {
@@ -282,7 +285,7 @@ describe('LeftSidebar', () => {
         expect(screen.getByText('MyFolder')).toBeInTheDocument();
       });
 
-      const removeButton = screen.getByRole('button', { name: /MyFolder/ });
+      const removeButton = screen.getByRole('button', { name: /Remove.*MyFolder/i });
       fireEvent.click(removeButton);
 
       expect(TauriAPI.removeBookmark).toHaveBeenCalledWith('C:\\Users\\Test\\MyFolder');
@@ -294,7 +297,7 @@ describe('LeftSidebar', () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('DRIVES')).toBeInTheDocument();
+        expect(screen.getByText('Drives')).toBeInTheDocument();
       });
     });
 
@@ -303,8 +306,8 @@ describe('LeftSidebar', () => {
 
       await waitFor(() => {
         // Component renders drive.letter ? `${drive.letter}:` : drive.label
-        expect(screen.getByText('C:')).toBeInTheDocument();
-        expect(screen.getByText('D:')).toBeInTheDocument();
+        expect(screen.getByText('C: Local Disk')).toBeInTheDocument();
+        expect(screen.getByText('D: Data')).toBeInTheDocument();
       });
     });
 
@@ -312,11 +315,11 @@ describe('LeftSidebar', () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('C:')).toBeInTheDocument();
+        expect(screen.getByText('C: Local Disk')).toBeInTheDocument();
       });
 
       // The drive button wraps the text; click the text element
-      fireEvent.click(screen.getByText('C:'));
+      fireEvent.click(screen.getByText('C: Local Disk'));
       expect(mockProps.navigateToPath).toHaveBeenCalledWith('C:\\');
     });
   });
@@ -326,7 +329,7 @@ describe('LeftSidebar', () => {
       render(<LeftSidebar {...mockProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('QUICK ACCESS')).toBeInTheDocument();
+        expect(screen.getByText('Places')).toBeInTheDocument();
       });
 
       expect(screen.queryByText('FILTERS')).not.toBeInTheDocument();
@@ -372,18 +375,80 @@ describe('LeftSidebar', () => {
     });
   });
 
+  describe('Navigation interactions', () => {
+    it('opens a file favorite with the file action instead of navigating to it as a folder', async () => {
+      vi.mocked(TauriAPI.getBookmarks).mockResolvedValueOnce([
+        { name: 'notes.txt', path: 'C:\\notes.txt', is_dir: false },
+      ]);
+      const open = vi.fn();
+      render(<LeftSidebar {...mockProps} handleFileOpen={open} />);
+      fireEvent.click(await screen.findByRole('button', { name: 'notes.txt' }));
+      expect(open).toHaveBeenCalledWith(
+        expect.objectContaining({ path: 'C:\\notes.txt', is_dir: false }),
+      );
+      expect(mockProps.navigateToPath).not.toHaveBeenCalled();
+    });
+
+    it('shows a recoverable failure and keeps the favorite when removal fails', async () => {
+      vi.mocked(TauriAPI.getBookmarks).mockResolvedValueOnce([
+        { name: 'Notes', path: 'C:\\Notes', is_dir: true },
+      ]);
+      vi.mocked(TauriAPI.removeBookmark).mockRejectedValueOnce(new Error('Access denied'));
+      render(<LeftSidebar {...mockProps} />);
+      fireEvent.click(await screen.findByRole('button', { name: /Remove.*Notes/i }));
+      expect(await screen.findByRole('alert')).toHaveTextContent('Could not remove this favorite');
+      expect(screen.getByRole('button', { name: 'Notes', exact: true })).toBeInTheDocument();
+    });
+
+    it('marks only the closest common location, with the containing drive also identified', async () => {
+      render(<LeftSidebar {...mockProps} currentPath={'C:\\Users\\Test\\Documents\\Reports'} />);
+      expect(
+        await screen.findByRole('button', { name: 'Navigate to Documents folder' }),
+      ).toHaveAttribute('aria-current', 'location');
+      expect(
+        screen.getByRole('button', { name: 'Navigate to User Folder folder' }),
+      ).not.toHaveAttribute('aria-current');
+      expect(screen.getByRole('button', { name: 'Navigate to C:' })).toHaveAttribute(
+        'aria-current',
+        'location',
+      );
+    });
+
+    it('retries failed locations without offering fabricated paths', async () => {
+      vi.mocked(TauriAPI.getUserDirectories).mockRejectedValueOnce(new Error('Unavailable'));
+      render(<LeftSidebar {...mockProps} />);
+      const places = screen.getByRole('region', { name: 'Places' });
+      fireEvent.click(await within(places).findByRole('button', { name: 'Try again' }));
+      expect(
+        await within(places).findByRole('button', { name: 'Navigate to Documents folder' }),
+      ).toBeInTheDocument();
+      expect(TauriAPI.getUserDirectories).toHaveBeenCalledTimes(2);
+    });
+
+    it('switches extension tabs with arrow keys and keeps their visible names', () => {
+      vi.mocked(extensionHost.getSidebarTabs).mockReturnValue([
+        { id: 'notes', title: 'Notes', icon: <span>N</span> },
+      ]);
+      vi.mocked(extensionHost.getSidebarTabRenderer).mockReturnValue(() => (
+        <div>Notes extension</div>
+      ));
+      render(<LeftSidebar {...mockProps} />);
+      const explorer = screen.getByRole('tab', { name: 'File explorer' });
+      explorer.focus();
+      fireEvent.keyDown(explorer, { key: 'ArrowRight' });
+      expect(screen.getByRole('tab', { name: 'Notes' })).toHaveFocus();
+      expect(screen.getByRole('tab', { name: 'Notes' })).toHaveAttribute('aria-selected', 'true');
+      expect(screen.getByText('Notes extension')).toBeInTheDocument();
+    });
+  });
+
   describe('Layout', () => {
     it('applies correct container styles', () => {
       const { container } = render(<LeftSidebar {...mockProps} />);
 
       const sidebar = container.firstChild as HTMLElement;
-      expect(sidebar).toHaveClass(
-        'bg-xp-surface',
-        'border-r',
-        'border-xp-border',
-        'flex',
-        'flex-col',
-      );
+      expect(sidebar).not.toHaveClass('bg-xp-surface');
+      expect(sidebar).toHaveClass('border-r', 'border-xp-border', 'flex', 'flex-col');
     });
 
     it('applies default width when width prop not provided', () => {
@@ -421,7 +486,7 @@ describe('LeftSidebar', () => {
 
       expect(() => render(<LeftSidebar {...mockProps} />)).not.toThrow();
 
-      // Should still render with fallback directories
+      // Home remains usable while actual folders can be retried.
       await waitFor(() => {
         expect(screen.getByText('Home')).toBeInTheDocument();
       });

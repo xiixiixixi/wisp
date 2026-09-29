@@ -1,19 +1,13 @@
-/**
- * MCP 设置页 —— 照 ZCode 的服务器管理方式：
- * 服务器列表（类型徽章 + 启用开关 + 测连接 + 工具清单）+「添加服务器」
- * 内联表单（stdio：命令/参数/环境变量 JSON；http：地址/请求头 JSON）。
- * 配置落在 ~/.pi/agent/mcp.json（Claude Desktop 同款格式）。
- */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, Plug, Plus, RefreshCw, Trash2, X } from 'lucide-react';
+import { Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { SettingsSection, SettingRow, Toggle } from './shared';
+import { Dialog, DialogTitle } from '@/components/ui/dialog';
+import { SettingsSection, SettingRow, SettingsStatus, Toggle } from './shared';
+import type { SettingsEditorProps } from './draft-state';
 import { transport, isTauri } from '@/lib/transport';
-import { toast } from '@/hooks/use-toast';
 
-/** 单个服务器的编辑态（env/headers 用 JSON 文本编辑，高级用户语义）。 */
 interface McpEntry {
   type: 'stdio' | 'http';
   command?: string;
@@ -23,382 +17,448 @@ interface McpEntry {
   headers?: Record<string, string>;
   enabled: boolean;
 }
-
 const emptyEntry = (): McpEntry => ({ type: 'stdio', command: '', args: [], enabled: true });
-
-const describeEntry = (e: McpEntry): string =>
-  e.type === 'http' ? e.url || '' : [e.command, ...(e.args ?? [])].filter(Boolean).join(' ');
-
-/** 校验 JSON 文本框；空串视为未填。 */
+const describeEntry = (entry: McpEntry): string =>
+  entry.type === 'http'
+    ? entry.url || ''
+    : [entry.command, ...(entry.args ?? [])].filter(Boolean).join(' ');
 const parseJsonField = (text: string): Record<string, string> | undefined => {
-  const trimmed = text.trim();
-  if (!trimmed) return undefined;
-  const parsed: unknown = JSON.parse(trimmed);
-  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-    throw new Error('not an object');
+  if (!text.trim()) return undefined;
+  const value: unknown = JSON.parse(text);
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    Array.isArray(value) ||
+    Object.values(value).some((item) => typeof item !== 'string')
+  ) {
+    throw new Error('invalid configuration');
   }
-  return parsed as Record<string, string>;
+  return value as Record<string, string>;
 };
 
-const McpSettings = () => {
+const McpSettings = ({ onDraftChange }: SettingsEditorProps = {}) => {
   const { t } = useTranslation();
   const [servers, setServers] = useState<Record<string, McpEntry>>({});
   const [loaded, setLoaded] = useState(false);
-  const [editing, setEditing] = useState<string | null>(null); // 正在编辑/新增的服务器名；'__new' 表示新增
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [editing, setEditing] = useState<string | null>(null);
   const [draftName, setDraftName] = useState('');
   const [draft, setDraft] = useState<McpEntry>(emptyEntry());
   const [draftEnv, setDraftEnv] = useState('');
   const [draftHeaders, setDraftHeaders] = useState('');
-  const [testing, setTesting] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
+  const [testing, setTesting] = useState<Set<string>>(new Set());
   const [testResults, setTestResults] = useState<Record<string, { ok: boolean; text: string }>>({});
+  const initialDraft = useRef('');
+  const formRef = useRef<HTMLFormElement>(null);
+  const addRef = useRef<HTMLDivElement>(null);
+  const serializedDraft = JSON.stringify([draftName, draft, draftEnv, draftHeaders]);
+
+  useEffect(() => {
+    onDraftChange?.({
+      dirty: editing !== null && serializedDraft !== initialDraft.current,
+      busy: saving,
+    });
+  }, [editing, serializedDraft, saving, onDraftChange]);
 
   const reload = useCallback(async () => {
     if (!isTauri()) {
       setLoaded(true);
       return;
     }
+    setLoaded(false);
+    setLoadFailed(false);
     try {
-      const cfg = await transport<Record<string, McpEntry>>('mcp_config_get');
-      setServers(cfg);
-    } catch (e) {
-      toast({ title: t('settings.mcp.loadFailed'), description: String(e) });
+      setServers(await transport<Record<string, McpEntry>>('mcp_config_get'));
+    } catch {
+      setLoadFailed(true);
+    } finally {
+      setLoaded(true);
     }
-    setLoaded(true);
-  }, [t]);
-
+  }, []);
   useEffect(() => {
     void reload();
   }, [reload]);
-
-  // ZCode 同款：进页面自动探测全部服务器连通性（状态灯直接可见，不用逐个手点）
-  const probeAll = useCallback(async () => {
-    const names = Object.keys(servers);
-    for (const name of names) {
-      setTesting(name);
-      try {
-        const r = await transport<{ ok: boolean; toolCount?: number; error?: string }>(
-          'mcp_test_server',
-          { server: name },
-        );
-        setTestResults((prev) => ({
-          ...prev,
-          [name]: r.ok
-            ? { ok: true, text: t('settings.mcp.testOk', { count: r.toolCount ?? 0 }) }
-            : { ok: false, text: r.error ?? 'failed' },
-        }));
-      } catch (e) {
-        setTestResults((prev) => ({ ...prev, [name]: { ok: false, text: String(e) } }));
-      } finally {
-        setTesting(null);
-      }
-    }
-  }, [servers, t]);
-
-  const probedRef = useRef(false);
   useEffect(() => {
-    if (loaded && !probedRef.current && Object.keys(servers).length > 0) {
-      probedRef.current = true;
-      void probeAll();
-    }
-  }, [loaded, servers, probeAll]);
+    if (editing !== null) formRef.current?.querySelector<HTMLInputElement>('input')?.focus();
+  }, [editing]);
 
-  const persist = useCallback(
-    async (next: Record<string, McpEntry>) => {
+  const persist = async (next: Record<string, McpEntry>): Promise<boolean> => {
+    if (saving) return false;
+    setSaving(true);
+    setError('');
+    setSaved(false);
+    try {
+      await transport('mcp_config_set', { config: { mcpServers: next } });
       setServers(next);
-      try {
-        await transport('mcp_config_set', { config: { mcpServers: next } });
-      } catch (e) {
-        toast({ title: t('settings.mcp.saveFailed'), description: String(e) });
-      }
-    },
-    [t],
-  );
-
-  const toggleEnabled = (name: string) => {
-    const next = { ...servers, [name]: { ...servers[name], enabled: !servers[name].enabled } };
-    void persist(next);
+      setSaved(true);
+      return true;
+    } catch {
+      setError(t('settings.mcp.saveFailed'));
+      return false;
+    } finally {
+      setSaving(false);
+    }
   };
-
-  const removeServer = (name: string) => {
-    const next = { ...servers };
-    delete next[name];
-    void persist(next);
-    setTestResults((prev) => {
-      const copy = { ...prev };
-      delete copy[name];
-      return copy;
-    });
+  const startEdit = (name: string | null) => {
+    const entry = name === null ? emptyEntry() : { ...servers[name] };
+    const env = entry.env ? JSON.stringify(entry.env, null, 2) : '';
+    const headers = entry.headers ? JSON.stringify(entry.headers, null, 2) : '';
+    setDraftName(name ?? '');
+    setDraft(entry);
+    setDraftEnv(env);
+    setDraftHeaders(headers);
+    initialDraft.current = JSON.stringify([name ?? '', entry, env, headers]);
+    setError('');
+    setSaved(false);
+    setEditing(name ?? '__new');
   };
-
-  const startEdit = (name: string) => {
-    const entry = servers[name];
-    setEditing(name);
-    setDraftName(name);
-    setDraft({ ...entry });
-    setDraftEnv(entry.env ? JSON.stringify(entry.env, null, 2) : '');
-    setDraftHeaders(entry.headers ? JSON.stringify(entry.headers, null, 2) : '');
+  const finishEdit = () => {
+    setEditing(null);
+    setError('');
+    requestAnimationFrame(() => addRef.current?.querySelector('button')?.focus());
   };
-
-  const startAdd = () => {
-    setEditing('__new');
-    setDraftName('');
-    setDraft(emptyEntry());
-    setDraftEnv('');
-    setDraftHeaders('');
-  };
-
-  const saveEdit = () => {
+  const saveEdit = async () => {
     const name = draftName.trim();
-    if (!name) return;
+    if (!name) {
+      setError(t('settings.mcp.needName'));
+      return;
+    }
+    if (name !== editing && Object.hasOwn(servers, name)) {
+      setError(t('settings.mcp.duplicateName'));
+      return;
+    }
     let entry: McpEntry;
     try {
       entry = {
         ...draft,
-        env: parseJsonField(draftEnv),
+        env: draft.type === 'stdio' ? parseJsonField(draftEnv) : undefined,
         headers: draft.type === 'http' ? parseJsonField(draftHeaders) : undefined,
       };
     } catch {
-      toast({ title: t('settings.mcp.badJson') });
+      setError(t('settings.mcp.badJson'));
       return;
     }
     if (draft.type === 'stdio' && !entry.command?.trim()) {
-      toast({ title: t('settings.mcp.needCommand') });
+      setError(t('settings.mcp.needCommand'));
       return;
     }
-    if (draft.type === 'http' && !entry.url?.trim()) {
-      toast({ title: t('settings.mcp.needUrl') });
-      return;
+    if (draft.type === 'http') {
+      try {
+        if (!['http:', 'https:'].includes(new URL(entry.url ?? '').protocol)) throw new Error();
+      } catch {
+        setError(t('settings.mcp.needUrl'));
+        return;
+      }
+      entry = {
+        type: 'http',
+        url: entry.url?.trim(),
+        headers: entry.headers,
+        enabled: entry.enabled,
+      };
+    } else {
+      entry = {
+        type: 'stdio',
+        command: entry.command?.trim(),
+        args: entry.args?.filter((arg) => arg.trim().length > 0),
+        env: entry.env,
+        enabled: entry.enabled,
+      };
     }
     const next = { ...servers };
-    if (editing !== name) delete next[editing ?? ''];
+    if (editing !== '__new' && editing !== name && editing !== null) delete next[editing];
     next[name] = entry;
-    void persist(next);
-    setEditing(null);
+    if (await persist(next)) finishEdit();
   };
-
   const testServer = async (name: string) => {
-    setTesting(name);
+    setTesting((prev) => new Set(prev).add(name));
     try {
-      const r = await transport<{ ok: boolean; toolCount?: number; tools?: string[]; error?: string }>(
-        'mcp_test_server',
-        { server: name },
-      );
+      const result = await transport<{ ok: boolean; toolCount?: number }>('mcp_test_server', {
+        server: name,
+      });
       setTestResults((prev) => ({
         ...prev,
-        [name]: r.ok
-          ? { ok: true, text: t('settings.mcp.testOk', { count: r.toolCount ?? 0 }) }
-          : { ok: false, text: r.error ?? 'failed' },
+        [name]: {
+          ok: result.ok,
+          text: result.ok
+            ? t('settings.mcp.testOk', { count: result.toolCount ?? 0 })
+            : t('settings.mcp.testFailed'),
+        },
       }));
-    } catch (e) {
-      setTestResults((prev) => ({ ...prev, [name]: { ok: false, text: String(e) } }));
+    } catch {
+      setTestResults((prev) => ({
+        ...prev,
+        [name]: { ok: false, text: t('settings.mcp.testFailed') },
+      }));
     } finally {
-      setTesting(null);
+      setTesting((prev) => {
+        const next = new Set(prev);
+        next.delete(name);
+        return next;
+      });
+    }
+  };
+  const removeServer = async () => {
+    if (!removing) return;
+    const next = { ...servers };
+    delete next[removing];
+    if (await persist(next)) {
+      setRemoving(null);
+      requestAnimationFrame(() => addRef.current?.querySelector('button')?.focus());
     }
   };
 
-  const names = Object.keys(servers);
-
   return (
-    <SettingsSection title={t('settings.mcp.title')} description={t('settings.mcp.desc')}>
-      {!isTauri() && (
-        <div className="px-4 py-3 text-xs text-xp-text-muted">{t('settings.mcp.desktopOnly')}</div>
-      )}
-      {isTauri() && loaded && names.length === 0 && (
-        <div className="px-4 py-3 text-xs text-xp-text-muted">{t('settings.mcp.empty')}</div>
-      )}
-      {names.map((name) => {
-        const entry = servers[name];
-        const result = testResults[name];
-        const dot: 'ok' | 'err' | 'wait' | 'idle' = testing === name
-          ? 'wait'
-          : result
-            ? result.ok
-              ? 'ok'
-              : 'err'
-            : 'idle';
-        const dotCls =
-          dot === 'ok'
-            ? 'bg-xp-green'
-            : dot === 'err'
-              ? 'bg-xp-red'
-              : dot === 'wait'
-                ? 'bg-xp-yellow animate-pulse'
-                : 'bg-xp-border-strong bg-xp-text-muted opacity-50';
-        return (
-          <div key={name} data-testid={`mcp-server-row-${name}`}>
-            {editing === name ? null : (
-              <SettingRow
-                label={
-                  <span className="flex items-center gap-1.5">
-                    <span className={`h-2 w-2 shrink-0 rounded-full ${dotCls}`} aria-hidden="true" data-testid={`mcp-dot-${name}`} />
-                    {name}
-                  </span>
-                }
-                description={
-                  <span className="flex flex-col gap-0.5">
-                    <span className="font-mono text-[10px] text-xp-text-muted">
-                      {entry.type === 'http' ? 'http' : 'stdio'} · {describeEntry(entry)}
-                    </span>
-                    {result && (
-                      <span
-                        className={`text-[10px] ${result.ok ? 'text-xp-green' : 'text-xp-red'}`}
-                        data-testid={`mcp-test-result-${name}`}
-                      >
-                        {result.ok ? '✓ ' : '✗ '}
-                        {result.text}
-                      </span>
-                    )}
-                  </span>
-                }
-              >
-                <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => void testServer(name)}
-                      disabled={testing === name}
-                      title={t('settings.mcp.test')}
-                      className="rounded-md p-1.5 text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text"
-                      data-testid={`mcp-test-${name}`}
-                    >
-                      <RefreshCw size={13} className={testing === name ? 'animate-spin' : ''} />
-                    </button>
-                    <Toggle
-                      id={`mcp-toggle-${name}`}
-                      checked={entry.enabled}
-                      onChange={() => toggleEnabled(name)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => startEdit(name)}
-                      title={t('settings.mcp.edit')}
-                      className="rounded-md p-1.5 text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text"
-                    >
-                      <Plug size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeServer(name)}
-                      title={t('settings.mcp.remove')}
-                      className="rounded-md p-1.5 text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-red"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-              </SettingRow>
-            )}
-          </div>
-        );
-      })}
-
-      {/* 新增/编辑表单 */}
-      {editing !== null && (
-        <div
-          className="mx-4 my-2 rounded-lg border border-xp-border bg-xp-surface px-3 py-3"
-          data-testid="mcp-edit-form"
-        >
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-semibold text-xp-text">
-              {editing === '__new' ? t('settings.mcp.addTitle') : t('settings.mcp.editTitle')}
-            </span>
-            <button
-              type="button"
-              onClick={() => setEditing(null)}
-              className="rounded p-1 text-xp-text-muted hover:bg-xp-surface-light"
-              aria-label={t('common.cancel')}
-            >
-              <X size={13} />
-            </button>
-          </div>
-          <div className="space-y-2">
-            <Input
-              value={draftName}
-              onChange={(e) => setDraftName(e.target.value)}
-              placeholder={t('settings.mcp.namePlaceholder')}
-              aria-label={t('settings.mcp.namePlaceholder')}
-              data-testid="mcp-edit-name"
-            />
-            <div className="flex gap-1.5">
-              {(['stdio', 'http'] as const).map((tp) => (
-                <button
-                  key={tp}
-                  type="button"
-                  onClick={() => setDraft({ ...draft, type: tp })}
-                  className={`rounded-md border px-2.5 py-1 text-[11px] ${
-                    draft.type === tp
-                      ? 'border-xp-accent text-xp-accent'
-                      : 'border-xp-border text-xp-text-muted'
-                  }`}
-                >
-                  {tp}
-                </button>
-              ))}
+    <div className="space-y-4">
+      <SettingsSection title={t('settings.mcp.title')}>
+        {!isTauri() && <SettingsStatus>{t('settings.mcp.desktopOnly')}</SettingsStatus>}
+        {isTauri() && !loaded && <SettingsStatus>{t('settings.loading')}</SettingsStatus>}
+        {loadFailed && (
+          <div>
+            <SettingsStatus error>{t('settings.mcp.loadFailed')}</SettingsStatus>
+            <div className="wisp-settings-actions">
+              <Button variant="secondary" onClick={reload}>
+                {t('settings.retry')}
+              </Button>
             </div>
-            {draft.type === 'stdio' ? (
-              <>
-                <Input
-                  value={draft.command ?? ''}
-                  onChange={(e) => setDraft({ ...draft, command: e.target.value })}
-                  placeholder="npx"
-                  aria-label="command"
-                />
-                <Input
-                  value={(draft.args ?? []).join(' ')}
-                  onChange={(e) =>
-                    setDraft({ ...draft, args: e.target.value.split(/\s+/).filter(Boolean) })
+          </div>
+        )}
+        {isTauri() && loaded && !loadFailed && Object.keys(servers).length === 0 && (
+          <SettingsStatus>{t('settings.mcp.empty')}</SettingsStatus>
+        )}
+        {Object.entries(servers).map(([name, entry]) => (
+          <div key={name} data-testid={`mcp-server-row-${name}`}>
+            <SettingRow
+              label={name}
+              description={
+                <span className="break-words">
+                  {t(entry.type === 'http' ? 'settings.mcp.network' : 'settings.mcp.local')} ·{' '}
+                  {describeEntry(entry)}
+                </span>
+              }
+            >
+              <div className="wisp-settings-inline-actions">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => void testServer(name)}
+                  disabled={saving || testing.has(name)}
+                  aria-label={t('settings.mcp.testNamed', { name })}
+                  data-testid={`mcp-test-${name}`}
+                >
+                  <RefreshCw
+                    size={13}
+                    aria-hidden="true"
+                    className={testing.has(name) ? 'animate-spin' : ''}
+                  />
+                  {t('settings.mcp.test')}
+                </Button>
+                <Toggle
+                  id={`mcp-toggle-${name}`}
+                  label={t('settings.mcp.enableNamed', { name })}
+                  checked={entry.enabled}
+                  disabled={saving}
+                  onChange={() =>
+                    void persist({ ...servers, [name]: { ...entry, enabled: !entry.enabled } })
                   }
-                  placeholder="-y figma-developer-mcp --stdio"
-                  aria-label="args"
                 />
-                <textarea
-                  value={draftEnv}
-                  onChange={(e) => setDraftEnv(e.target.value)}
-                  placeholder={'{ "KEY": "value" }'}
-                  aria-label="env json"
-                  rows={2}
-                  className="w-full rounded-md border border-xp-border bg-xp-surface px-2 py-1.5 font-mono text-[11px] text-xp-text outline-none focus:border-xp-accent"
-                />
-              </>
-            ) : (
-              <>
+              </div>
+            </SettingRow>
+            <div className="wisp-settings-inline-actions px-3 pb-3">
+              <span
+                className="wisp-settings-hint flex-1"
+                role="status"
+                data-testid={`mcp-test-result-${name}`}
+              >
+                {testing.has(name)
+                  ? t('settings.mcp.testing')
+                  : (testResults[name]?.text ??
+                    t(entry.enabled ? 'settings.mcp.enabled' : 'settings.mcp.disabled'))}
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={saving || editing !== null}
+                onClick={() => startEdit(name)}
+                aria-label={t('settings.mcp.editNamed', { name })}
+              >
+                {t('settings.mcp.edit')}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={saving || editing !== null}
+                onClick={() => {
+                  setError('');
+                  setRemoving(name);
+                }}
+                aria-label={t('settings.mcp.removeNamed', { name })}
+              >
+                <Trash2 size={13} aria-hidden="true" />
+              </Button>
+            </div>
+          </div>
+        ))}
+        {editing === null && (
+          <div ref={addRef} className="wisp-settings-actions">
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={!isTauri() || !loaded || loadFailed || saving}
+              onClick={() => startEdit(null)}
+              data-testid="mcp-add"
+            >
+              <Plus size={13} aria-hidden="true" />
+              {t('settings.mcp.add')}
+            </Button>
+          </div>
+        )}
+      </SettingsSection>
+      {editing !== null && (
+        <SettingsSection
+          title={t(editing === '__new' ? 'settings.mcp.addTitle' : 'settings.mcp.editTitle')}
+        >
+          <form
+            ref={formRef}
+            onSubmit={(event) => {
+              event.preventDefault();
+              void saveEdit();
+            }}
+            data-testid="mcp-edit-form"
+          >
+            <fieldset disabled={saving} className="wisp-settings-form">
+              <label>
+                {t('settings.mcp.nameLabel')}
                 <Input
-                  value={draft.url ?? ''}
-                  onChange={(e) => setDraft({ ...draft, url: e.target.value })}
-                  placeholder="https://example.com/mcp"
-                  aria-label="url"
+                  value={draftName}
+                  onChange={(event) => setDraftName(event.target.value)}
+                  placeholder={t('settings.mcp.namePlaceholder')}
+                  data-testid="mcp-edit-name"
                 />
-                <textarea
-                  value={draftHeaders}
-                  onChange={(e) => setDraftHeaders(e.target.value)}
-                  placeholder={'{ "Authorization": "Bearer …" }'}
-                  aria-label="headers json"
-                  rows={2}
-                  className="w-full rounded-md border border-xp-border bg-xp-surface px-2 py-1.5 font-mono text-[11px] text-xp-text outline-none focus:border-xp-accent"
-                />
-              </>
-            )}
-            <div className="flex justify-end gap-1.5 pt-1">
-              <Button variant="outline" size="sm" onClick={() => setEditing(null)}>
+              </label>
+              <fieldset className="wisp-settings-type">
+                <legend>{t('settings.mcp.connectionType')}</legend>
+                {(['stdio', 'http'] as const).map((type) => (
+                  <label key={type}>
+                    <input
+                      type="radio"
+                      name="mcp-connection-type"
+                      value={type}
+                      checked={draft.type === type}
+                      onChange={() => setDraft({ ...draft, type })}
+                    />
+                    {t(type === 'http' ? 'settings.mcp.network' : 'settings.mcp.local')}
+                  </label>
+                ))}
+              </fieldset>
+              {draft.type === 'stdio' ? (
+                <>
+                  <label>
+                    {t('settings.mcp.commandLabel')}
+                    <Input
+                      value={draft.command ?? ''}
+                      onChange={(event) => setDraft({ ...draft, command: event.target.value })}
+                      placeholder="npx"
+                    />
+                  </label>
+                  <label>
+                    {t('settings.mcp.argsLabel')}
+                    <textarea
+                      value={(draft.args ?? []).join('\n')}
+                      onChange={(event) =>
+                        setDraft({ ...draft, args: event.target.value.split('\n') })
+                      }
+                      rows={3}
+                    />
+                    <span className="wisp-settings-hint">{t('settings.mcp.argsHint')}</span>
+                  </label>
+                  <details className="wisp-settings-advanced">
+                    <summary>{t('settings.mcp.advanced')}</summary>
+                    <label className="wisp-settings-field">
+                      {t('settings.mcp.envLabel')}
+                      <textarea
+                        value={draftEnv}
+                        onChange={(event) => setDraftEnv(event.target.value)}
+                        placeholder={'{ "KEY": "value" }'}
+                        rows={3}
+                      />
+                    </label>
+                  </details>
+                </>
+              ) : (
+                <>
+                  <label>
+                    {t('settings.mcp.urlLabel')}
+                    <Input
+                      value={draft.url ?? ''}
+                      onChange={(event) => setDraft({ ...draft, url: event.target.value })}
+                      placeholder="https://example.com/mcp"
+                    />
+                  </label>
+                  <details className="wisp-settings-advanced">
+                    <summary>{t('settings.mcp.advanced')}</summary>
+                    <label className="wisp-settings-field">
+                      {t('settings.mcp.headersLabel')}
+                      <textarea
+                        value={draftHeaders}
+                        onChange={(event) => setDraftHeaders(event.target.value)}
+                        placeholder={'{ "Authorization": "Bearer …" }'}
+                        rows={3}
+                      />
+                    </label>
+                  </details>
+                </>
+              )}
+            </fieldset>
+            {error && <SettingsStatus error>{error}</SettingsStatus>}
+            <div className="wisp-settings-actions">
+              <Button type="button" variant="secondary" disabled={saving} onClick={finishEdit}>
                 {t('common.cancel')}
               </Button>
-              <Button size="sm" onClick={saveEdit} data-testid="mcp-edit-save">
-                <Check size={12} />
-                {t('common.save')}
+              <Button type="submit" disabled={saving} data-testid="mcp-edit-save">
+                {t(saving ? 'settings.saving' : 'common.save')}
+              </Button>
+            </div>
+          </form>
+        </SettingsSection>
+      )}
+      {error && editing === null && removing === null && (
+        <SettingsStatus error>{error}</SettingsStatus>
+      )}
+      {saved && <SettingsStatus>{t('settings.mcp.saved')}</SettingsStatus>}
+      {removing && (
+        <Dialog
+          open
+          onOpenChange={(open) => {
+            if (!open && !saving) setRemoving(null);
+          }}
+          preventClose={saving}
+          maxWidth={420}
+        >
+          <div className="wisp-settings-confirm">
+            <DialogTitle>{t('settings.mcp.removeTitle', { name: removing })}</DialogTitle>
+            <p>{t('settings.mcp.removeDescription')}</p>
+            {error && <SettingsStatus error>{error}</SettingsStatus>}
+            <div className="wisp-settings-actions">
+              <Button
+                variant="secondary"
+                disabled={saving}
+                data-autofocus
+                onClick={() => setRemoving(null)}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button disabled={saving} onClick={removeServer}>
+                {t(saving ? 'settings.saving' : 'settings.mcp.remove')}
               </Button>
             </div>
           </div>
-        </div>
+        </Dialog>
       )}
-
-      {editing === null && (
-        <div className="px-4 pb-3 pt-1">
-          <Button variant="outline" size="sm" onClick={startAdd} data-testid="mcp-add">
-            <Plus size={12} />
-            {t('settings.mcp.add')}
-          </Button>
-        </div>
-      )}
-    </SettingsSection>
+    </div>
   );
 };
-
 export default McpSettings;

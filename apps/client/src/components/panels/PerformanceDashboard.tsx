@@ -51,6 +51,7 @@ const PerformanceDashboard = React.memo(
           <div>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <button
+                aria-expanded={metricsExpanded}
                 onClick={() => setMetricsExpanded((v) => !v)}
                 className="hover:bg-xp-surface-light"
                 style={sectionHeaderStyle}
@@ -65,7 +66,7 @@ const PerformanceDashboard = React.memo(
               <button
                 onClick={handleCollapseAll}
                 style={{
-                  fontSize: 10,
+                  fontSize: 12,
                   color: 'var(--xp-text-secondary)',
                   background: 'none',
                   border: 'none',
@@ -95,6 +96,7 @@ const PerformanceDashboard = React.memo(
           {/* File Organizer Section */}
           <div>
             <button
+              aria-expanded={organizerExpanded}
               onClick={() => setOrganizerExpanded((v) => !v)}
               className="hover:bg-xp-surface-light"
               style={sectionHeaderStyle}

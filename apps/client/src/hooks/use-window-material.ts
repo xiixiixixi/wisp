@@ -10,6 +10,14 @@ export const useWindowMaterial = (): void => {
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const previousX = root.style.getPropertyValue(POINTER_X);
     const previousY = root.style.getPropertyValue(POINTER_Y);
+    const previousWindowFocus = root.dataset.windowFocused;
+    const focus = () => {
+      root.dataset.windowFocused = 'true';
+    };
+    const blur = () => {
+      root.dataset.windowFocused = 'false';
+      reset();
+    };
     let frame: number | null = null;
     let clientX = 0;
     let clientY = 0;
@@ -43,9 +51,11 @@ export const useWindowMaterial = (): void => {
     };
 
     reset();
+    root.dataset.windowFocused = String(document.hasFocus());
     window.addEventListener('pointermove', move, { passive: true });
     root.addEventListener('pointerleave', reset, { passive: true });
-    window.addEventListener('blur', reset);
+    window.addEventListener('focus', focus);
+    window.addEventListener('blur', blur);
     motion.addEventListener('change', updateMotion);
     const observer = new MutationObserver(updateMotion);
     observer.observe(root, { attributes: true, attributeFilter: ['data-native-reduce-motion'] });
@@ -54,13 +64,16 @@ export const useWindowMaterial = (): void => {
       cancelFrame();
       window.removeEventListener('pointermove', move);
       root.removeEventListener('pointerleave', reset);
-      window.removeEventListener('blur', reset);
+      window.removeEventListener('focus', focus);
+      window.removeEventListener('blur', blur);
       motion.removeEventListener('change', updateMotion);
       observer.disconnect();
       if (previousX) root.style.setProperty(POINTER_X, previousX);
       else root.style.removeProperty(POINTER_X);
       if (previousY) root.style.setProperty(POINTER_Y, previousY);
       else root.style.removeProperty(POINTER_Y);
+      if (previousWindowFocus === undefined) delete root.dataset.windowFocused;
+      else root.dataset.windowFocused = previousWindowFocus;
     };
   }, []);
 };

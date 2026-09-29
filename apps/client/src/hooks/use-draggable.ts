@@ -70,7 +70,9 @@ export const useDraggable = ({ file, selectedFiles, allFiles }: UseDraggableOpti
     // Suppress the browser's selection gesture before it can begin. Waiting
     // until the movement threshold is crossed is one event too late: the
     // WebView may already have anchored a text selection on mousedown.
-    if (e.currentTarget instanceof HTMLElement && e.currentTarget.tabIndex >= 0) {
+    // Roving keyboard focus gives the other file rows tabindex=-1. They still
+    // need focus when clicked, before preventing the browser's default action.
+    if (e.currentTarget instanceof HTMLElement && e.currentTarget.hasAttribute('tabindex')) {
       e.currentTarget.focus({ preventScroll: true });
     }
     e.preventDefault();

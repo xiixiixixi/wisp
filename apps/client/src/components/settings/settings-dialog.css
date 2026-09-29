@@ -5,6 +5,15 @@
   max-height: min(660px, calc(90dvh - 4px), calc(100dvh - 44px));
   min-height: 0;
 }
+.wisp-settings-root {
+  height: 100%;
+  max-height: none;
+}
+/* Keep the sheet the same size while its category content changes. */
+.wisp-dialog-backdrop > [role="dialog"]:has(> .wisp-settings-root) {
+  height: min(520px, 90dvh, calc(100dvh - 40px));
+  overflow: hidden;
+}
 .wisp-settings-dialog-header {
   display: flex;
   align-items: center;
@@ -66,8 +75,8 @@
 .wisp-settings-dialog-footer {
   flex: 0 0 auto;
   padding: 8px 20px 12px;
-  color: var(--ds-label-tertiary);
-  font-size: 11px;
+  color: var(--ds-label-secondary);
+  font-size: 12px;
   border-top: 1px solid var(--ds-separator);
 }
 .wisp-settings-split {
@@ -149,4 +158,224 @@ html:root:is(.theme-light, .theme-fluid, .theme-rolex)
   border-top-width: 1px !important;
   border-top-style: solid !important;
   border-top-color: var(--ds-separator) !important;
+}
+
+/* Settings content uses stable surfaces; material belongs to its window/nav. */
+.wisp-settings-dialog .wisp-settings-section {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--ds-separator);
+  border-radius: 12px;
+  background: var(--ds-surface);
+}
+.wisp-settings-root .wisp-settings-section {
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.wisp-settings-root .wisp-settings-section > div:first-child {
+  padding: 10px 4px 7px;
+}
+.wisp-settings-root .wisp-setting-row {
+  min-height: 44px;
+  border-radius: 0 !important;
+  padding-inline: 4px;
+}
+.wisp-settings-section-rows > * + * {
+  border-top: 1px solid var(--ds-separator);
+}
+.wisp-settings-dialog .wisp-settings-dialog-body {
+  background: var(--ds-canvas);
+}
+.wisp-settings-category {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ds-label-secondary);
+  font-size: 13px;
+  font-weight: 400;
+  text-align: left;
+}
+.wisp-settings-category:hover:not([aria-selected="true"]) {
+  background: transparent;
+  color: var(--ds-label-primary);
+}
+.wisp-settings-category[aria-selected="true"] {
+  background: transparent;
+  color: var(--ds-label-primary);
+}
+.wisp-settings-category[aria-selected="true"] > svg {
+  color: var(--ds-accent);
+}
+/* Focus is a text cue so opening or changing tabs never stacks a blue ring
+   over the selected state. Keyboard users still get a distinct target. */
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-settings-dialog
+  .wisp-settings-category:focus {
+  outline: none !important;
+}
+.wisp-settings-category:focus-visible > span {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.wisp-settings-status {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ds-label-secondary);
+}
+.wisp-settings-status.is-error {
+  color: var(--ds-destructive, var(--ds-label-primary));
+}
+.wisp-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px;
+}
+.wisp-settings-confirm {
+  padding: 20px;
+}
+.wisp-settings-confirm > p {
+  margin: 12px 0;
+  color: var(--ds-label-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.wisp-settings-confirm .wisp-settings-actions {
+  padding: 12px 0 0;
+}
+.wisp-settings-form {
+  display: grid;
+  gap: 16px;
+  padding: 14px 12px;
+  border: 0;
+  margin: 0;
+  min-width: 0;
+}
+.wisp-settings-form > label,
+.wisp-settings-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--ds-label-primary);
+}
+.wisp-settings-form textarea {
+  width: 100%;
+  min-width: 0;
+  resize: vertical;
+  border: 1px solid var(--ds-separator);
+  border-radius: 7px;
+  padding: 8px 10px;
+  background: var(--ds-field);
+  color: var(--ds-label-primary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.wisp-settings-hint {
+  margin: 0;
+  color: var(--ds-label-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.wisp-settings-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.wisp-settings-type {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.wisp-settings-type legend {
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.wisp-settings-type label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+}
+.wisp-settings-type input {
+  accent-color: var(--ds-accent);
+}
+.wisp-settings-dialog .wisp-general-disclosure {
+  background: transparent;
+  border: 1px solid var(--ds-separator);
+}
+.wisp-settings-root .wisp-general-disclosure {
+  border: 0;
+  border-bottom: 1px solid var(--ds-separator);
+  border-radius: 0;
+}
+.wisp-settings-root .wisp-general-disclosure > summary {
+  min-height: 46px;
+  padding: 8px 4px;
+}
+.wisp-settings-dialog .wisp-general-disclosure-content {
+  padding: 0 12px 12px;
+}
+.wisp-settings-dialog .wisp-general-disclosure .wisp-settings-section {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.wisp-settings-dialog .wisp-general-preferences {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-separator);
+}
+.wisp-settings-root .wisp-general-preferences {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--ds-separator);
+  border-radius: 0;
+}
+.wisp-settings-dialog .wisp-general-preferences > * + * {
+  border-top: 1px solid var(--ds-separator);
+}
+.wisp-settings-root .wisp-settings-about {
+  padding: 8px 4px 4px;
+}
+.wisp-settings-root .wisp-settings-about-identity img {
+  width: 30px;
+  height: 30px;
+}
+.wisp-settings-dialog [role="tabpanel"] {
+  outline-offset: -2px;
+}
+@media (max-width: 600px) {
+  .wisp-settings-split {
+    flex-direction: column;
+  }
+  .wisp-settings-dialog .wisp-settings-nav {
+    width: auto;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: 0;
+    padding: 6px 12px;
+  }
+  .wisp-settings-category {
+    flex: 0 0 auto;
+  }
+  .wisp-settings-category > svg {
+    display: none;
+  }
+  .wisp-settings-dialog .wisp-setting-row {
+    flex-wrap: wrap;
+  }
 }

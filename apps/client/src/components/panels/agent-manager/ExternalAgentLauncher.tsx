@@ -128,6 +128,7 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
   const canLaunch =
     !launching &&
     currentPath.length > 0 &&
+    !currentPath.includes('://') &&
     (agentType !== 'custom-cli' || customCommand.trim().length > 0);
 
   const handleLaunch = async () => {
@@ -173,11 +174,16 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
     }
   };
 
-  const copyInstallCommand = () => {
+  const copyInstallCommand = async () => {
     if (!selectedDefinition) return;
-    navigator.clipboard.writeText(selectedDefinition.installCommand).catch(() => {});
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
+    try {
+      await navigator.clipboard.writeText(selectedDefinition.installCommand);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch (error) {
+      setCopied(false);
+      setError(t('panelActions.copyFailed', { error: String(error) }));
+    }
   };
 
   return (
@@ -185,7 +191,7 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
       <div className="flex items-center gap-2 rounded-md border border-xp-border bg-xp-bg px-2.5 py-2">
         <Folder size={13} className="shrink-0 text-xp-text-muted" aria-hidden="true" />
         <span
-          className="min-w-0 flex-1 truncate font-mono text-[11px] text-xp-text-secondary"
+          className="min-w-0 flex-1 truncate font-mono text-xs text-xp-text-secondary"
           title={currentPath}
         >
           {currentPath}
@@ -193,7 +199,7 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <div className="flex items-center justify-between gap-2 text-[11px] text-xp-text-muted">
+        <div className="flex items-center justify-between gap-2 text-xs text-xp-text-muted">
           <span>{t('agentManager.cockpit.toolTitle')}</span>
           <div className="flex items-center gap-1.5">
             <span>
@@ -250,7 +256,7 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
                 <span className="min-w-0 flex-1 truncate text-xs font-semibold text-xp-text">
                   {agent.label}
                 </span>
-                <span className="text-[10px] text-xp-text-muted">{status}</span>
+                <span className="text-xs text-xp-text-muted">{status}</span>
                 {selected && (
                   <Check size={12} className="shrink-0 text-xp-blue" aria-hidden="true" />
                 )}
@@ -274,7 +280,7 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
             <span className="min-w-0 flex-1 truncate text-xs font-semibold text-xp-text">
               {t('agentManager.newAgent.typeCustomCli')}
             </span>
-            <span className="text-[10px] text-xp-text-muted">
+            <span className="text-xs text-xp-text-muted">
               {t('agentManager.cockpit.statusCustom')}
             </span>
             {agentType === 'custom-cli' && (
@@ -283,14 +289,14 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
           </button>
         </div>
 
-        <div className="flex items-start gap-2 px-0.5 pt-1 text-[10px] leading-4 text-xp-text-muted">
+        <div className="flex items-start gap-2 px-0.5 pt-1 text-xs leading-4 text-xp-text-muted">
           <Terminal size={11} className="mt-0.5 shrink-0" aria-hidden="true" />
           <span>{t('agentManager.cockpit.externalOwnership')}</span>
         </div>
       </div>
 
       {agentType === 'custom-cli' && (
-        <label className="flex flex-col gap-1.5 text-[11px] text-xp-text-muted">
+        <label className="flex flex-col gap-1.5 text-xs text-xp-text-muted">
           <span>{t('agentManager.cockpit.commandLabel')}</span>
           <input
             aria-label={t('agentManager.cockpit.commandLabel')}
@@ -305,7 +311,7 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
         </label>
       )}
 
-      <label className="flex flex-col gap-1.5 text-[11px] text-xp-text-muted">
+      <label className="flex flex-col gap-1.5 text-xs text-xp-text-muted">
         <span>{t('agentManager.cockpit.promptLabel')}</span>
         <textarea
           aria-label={t('agentManager.cockpit.promptLabel')}
@@ -324,13 +330,13 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
       </label>
 
       {selectedMissing && selectedDefinition && (
-        <div className="flex items-center gap-2 rounded-md border border-xp-border bg-xp-bg px-2.5 py-2 text-[11px] text-xp-text-muted">
+        <div className="flex items-center gap-2 rounded-md border border-xp-border bg-xp-bg px-2.5 py-2 text-xs text-xp-text-muted">
           <span className="min-w-0 flex-1">
             {t('agentManager.newAgent.cliMissingHint', { command: selectedDefinition.command })}
           </span>
           <button
             type="button"
-            onClick={copyInstallCommand}
+            onClick={() => void copyInstallCommand()}
             className="inline-flex shrink-0 items-center gap-1 rounded-md border border-xp-border px-2 py-1 text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
           >
             {copied ? <Check size={11} /> : <Copy size={11} />}
@@ -341,13 +347,16 @@ const ExternalAgentLauncher = ({ currentPath, onLaunched }: ExternalAgentLaunche
 
       {error && (
         <div
-          className="rounded-md border border-xp-red/40 bg-xp-red/5 px-2.5 py-2 text-[11px] text-xp-red"
+          className="rounded-md border border-xp-red/40 bg-xp-red/5 px-2.5 py-2 text-xs text-xp-red"
           role="alert"
         >
           {error}
         </div>
       )}
 
+      {currentPath.includes('://') && (
+        <p className="wisp-panel-help">{t('panelActions.assistantChooseFolder')}</p>
+      )}
       <button
         type="button"
         onClick={() => void handleLaunch()}

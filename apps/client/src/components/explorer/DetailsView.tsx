@@ -7,6 +7,7 @@ import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
 import { ViewComponentProps } from './FileGridTypes';
 import { getDateGroupTranslationKey, type FileGroup } from '@/lib/utils';
 import { FileReferenceBadge, getFileReferenceLabel } from './FileReferenceBadge';
+import { resolveRenderedFileTabStop } from '@/hooks/use-file-tab-stop';
 import { InlineRenameInput } from './FileGridItem';
 import { TagDots } from './FileGridHelpers';
 
@@ -26,6 +27,7 @@ type FlatItem =
   | { type: 'file'; file: FileEntry };
 
 interface FileRowProps {
+  tabStopPath?: string;
   file: FileEntry;
   selectedFiles: Set<string>;
   allFiles: FileEntry[];
@@ -50,6 +52,7 @@ interface FileRowProps {
 const FileRow = React.memo(
   ({
     file,
+    tabStopPath,
     selectedFiles,
     allFiles,
     getFileIcon,
@@ -120,11 +123,11 @@ const FileRow = React.memo(
             ? `${file.name}, ${getFileReferenceLabel(file, t)}`
             : file.name
         }
-        tabIndex={0}
+        tabIndex={tabStopPath === file.path ? 0 : -1}
         data-file-path={file.path}
         data-drop-target={file.is_dir ? file.path : undefined}
         data-is-folder={file.is_dir ? 'true' : undefined}
-        className={`wisp-file-row grid cursor-pointer grid-cols-12 items-center gap-3 px-3 transition-colors hover:bg-xp-surface-light ${
+        className={`wisp-file-row wisp-file-item grid cursor-default grid-cols-12 items-center gap-3 px-3 transition-colors ${
           selectedFiles.has(file.path) ? 'file-selected' : ''
         } text-xp-text`}
         {...(renamingPath === file.path ? {} : dragHandlers)}
@@ -160,7 +163,7 @@ const FileRow = React.memo(
             />
           ) : (
             <div
-              className={`flex min-w-0 items-center font-normal ${isHiddenFile(file) ? 'text-xp-text-muted' : ''}`}
+              className={`wisp-file-name flex min-w-0 items-center font-normal ${isHiddenFile(file) ? 'text-xp-text-muted' : ''}`}
             >
               <span className="min-w-0 truncate">{file.name}</span>
               <TagDots tags={tags ?? []} />
@@ -175,7 +178,7 @@ const FileRow = React.memo(
             }
             return (
               <button
-                className="flex h-7 w-full justify-end text-xp-text-muted underline decoration-dotted transition-colors hover:text-xp-accent"
+                className="flex h-7 w-full items-center justify-end text-xp-text-muted underline decoration-dotted transition-colors hover:text-xp-accent"
                 onClick={handleCalculateClick}
                 title={t('explorer.details.calculateTitle')}
               >
@@ -208,7 +211,7 @@ const GroupHeader = React.memo(({ name, count }: { name: string; count: number }
     {/* Finder-parity group title: same size class as the file names (13px,
         medium ink), flush with the icon column, count trailing in muted gray.
         A section header must never render smaller than its content. */}
-    <span className="text-[13.5px] font-semibold leading-none text-xp-text">{name}</span>
+    <span className="text-[13px] font-semibold leading-none text-xp-text">{name}</span>
     <span className="text-xs leading-none text-xp-text-muted">{count}</span>
   </div>
 ));
@@ -368,7 +371,20 @@ const DetailsView = (props: DetailsViewProps) => {
     </div>
   );
 
+  const virtualRows = virtualizer.getVirtualItems();
+  const preferredTabStopPath =
+    props.tabStopPath ??
+    allFiles.find((file) => selectedFiles.has(file.path))?.path ??
+    allFiles[0]?.path;
+  const renderedFiles = needsVirtualization
+    ? virtualRows.flatMap((row) => {
+        const item = flatItems[row.index];
+        return item?.type === 'file' ? [item.file] : [];
+      })
+    : allFiles;
+  const tabStopPath = resolveRenderedFileTabStop(preferredTabStopPath, renderedFiles);
   const stableRowProps = {
+    tabStopPath,
     selectedFiles,
     allFiles,
     getFileIcon,
@@ -420,6 +436,7 @@ const DetailsView = (props: DetailsViewProps) => {
   return (
     <div
       ref={scrollRef}
+      tabIndex={tabStopPath ? -1 : 0}
       className="h-full select-none overflow-auto text-sm"
       role="table"
       aria-label={t('explorer.details.fileListAria')}
@@ -434,7 +451,7 @@ const DetailsView = (props: DetailsViewProps) => {
           position: 'relative',
         }}
       >
-        {virtualizer.getVirtualItems().map((virtualRow) => {
+        {virtualRows.map((virtualRow) => {
           const item = flatItems[virtualRow.index];
           return (
             <div

@@ -42,10 +42,7 @@ const ExtensionCard = React.memo(
   }: ExtensionCardProps) => {
     const { t: tUi } = useTranslation();
     return (
-      <div
-        className="border-xp-border/50 cursor-pointer border-b px-3 py-2.5 transition-colors hover:bg-xp-surface-light/50"
-        onClick={() => onSelect(extension)}
-      >
+      <div className="border-xp-border/50 cursor-pointer border-b px-3 py-2.5 transition-colors hover:bg-xp-surface-light/50">
         <div className="flex min-w-0 items-start gap-2">
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-xp-border bg-xp-surface text-xp-blue">
             {extension.icon ? (
@@ -67,11 +64,16 @@ const ExtensionCard = React.memo(
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2">
               <h4 className="truncate text-sm font-semibold text-xp-text">
-                {extension.displayName}
+                <button
+                  className="block max-w-full truncate text-left"
+                  onClick={() => onSelect(extension)}
+                >
+                  {extension.displayName}
+                </button>
               </h4>
               <div className="flex-shrink-0">
                 {isDev ? (
-                  <span className="rounded-md border border-xp-green/30 bg-xp-green/10 px-2 py-0.5 text-[10px] font-semibold text-xp-green">
+                  <span className="rounded-md border border-xp-green/30 bg-xp-green/10 px-2 py-0.5 text-xs font-semibold text-xp-green">
                     {tUi('interface.devMode')}
                   </span>
                 ) : isInstalled ? (
@@ -83,6 +85,7 @@ const ExtensionCard = React.memo(
                     disabled={isInstalling}
                     className="flex items-center rounded-md p-1 text-xp-text-muted transition-colors hover:bg-xp-red/10 hover:text-xp-red disabled:opacity-50"
                     title={tUi('interface.uninstall')}
+                    aria-label={tUi('interface.uninstall')}
                   >
                     {isInstalling ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -97,7 +100,7 @@ const ExtensionCard = React.memo(
                       onInstall(extension);
                     }}
                     disabled={isInstalling}
-                    className="flex items-center gap-1 rounded-md bg-xp-blue px-2 py-0.5 text-[11px] text-xp-on-accent transition-colors hover:bg-xp-blue/80 disabled:opacity-50"
+                    className="flex items-center gap-1 rounded-md bg-xp-blue px-2 py-0.5 text-xs text-xp-on-accent transition-colors hover:bg-xp-blue/80 disabled:opacity-50"
                   >
                     {isInstalling ? (
                       <>
@@ -105,25 +108,25 @@ const ExtensionCard = React.memo(
                         {tUi('interface.installing')}
                       </>
                     ) : (
-                      'Install'
+                      tUi('panelActions.install')
                     )}
                   </button>
                 )}
               </div>
             </div>
 
-            <p className="truncate text-[11px] text-xp-text-muted">
+            <p className="truncate text-xs text-xp-text-muted">
               {extension.author.name || extension.author.username} &middot; v{extension.version}
             </p>
 
             <p className="mt-1 line-clamp-2 text-xs text-xp-text-muted">{extension.description}</p>
 
             <div className="mt-1.5 flex items-center gap-3">
-              <span className="flex items-center gap-0.5 text-[11px] text-xp-text-muted">
+              <span className="flex items-center gap-0.5 text-xs text-xp-text-muted">
                 <Download className="h-3 w-3 flex-shrink-0" />
                 {extension.downloadCount.toLocaleString(getAppLocale())}
               </span>
-              <span className="flex items-center gap-0.5 text-[11px] text-xp-text-muted">
+              <span className="flex items-center gap-0.5 text-xs text-xp-text-muted">
                 {renderStars(extension.averageRating)}
                 <span className="ml-0.5">{extension.averageRating.toFixed(1)}</span>
               </span>

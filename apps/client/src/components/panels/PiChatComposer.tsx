@@ -1,16 +1,14 @@
-/**
- * 对话输入区 —— 照 ZCode 的两段式：情景条（模式+位置）在输入盒上方，
- * 输入盒内底部一行工具条（历史/新建 | 模型 ▾ | 思考 ▾ | 发送）。
- * Enter 发送，Shift+Enter 换行。颜色全部走 xp 令牌，两主题自动翻转。
- */
+/** 对话输入区：一个输入边界，底部一行图标操作。Enter 发送，Shift+Enter 换行。 */
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { PanelConfirmation } from './PanelFeedback';
 import {
   ArrowUp,
   Brain,
   Check,
-  ChevronDown,
+  FolderOpen,
   History,
+  MessageCircle,
   Plus,
   ShieldCheck,
   Square,
@@ -67,6 +65,7 @@ const PermissionPicker = ({
 }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [confirmFull, setConfirmFull] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -88,17 +87,15 @@ const PermissionPicker = ({
     <div ref={ref} className="relative shrink-0">
       <button
         type="button"
-        className={`flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] transition-colors hover:bg-xp-surface-light ${
-          value === 'full' ? 'text-xp-orange' : 'text-xp-text-muted'
-        }`}
+        className={`pi-composer-tool ${value === 'full' ? 'text-xp-orange' : ''}`}
         onClick={() => setOpen((v) => !v)}
         title={current.desc}
+        aria-label={current.label}
+        aria-expanded={open}
+        aria-haspopup="menu"
         data-testid="pi-permission-picker"
       >
-        <ShieldCheck size={12} />
-        {/* 容器查询：窄列（画布 300px 对话列）只留图标，宽了再显字 */}
-        <span className="pi-composer-label">{current.label}</span>
-        <ChevronDown size={10} className="opacity-60" />
+        <ShieldCheck size={16} />
       </button>
       {open && (
         <div
@@ -110,13 +107,14 @@ const PermissionPicker = ({
               key={m.value}
               type="button"
               role="menuitem"
-              className={`flex w-full flex-col gap-0.5 rounded px-2 py-1.5 text-left text-[11px] ${
+              className={`flex w-full flex-col gap-0.5 rounded px-2 py-1.5 text-left text-xs ${
                 m.value === value
                   ? 'bg-xp-blue font-medium text-xp-on-accent'
                   : 'text-xp-text hover:bg-xp-blue hover:text-xp-on-accent'
               }`}
               onClick={() => {
-                onChange(m.value);
+                if (m.value === 'full' && value !== 'full') setConfirmFull(true);
+                else onChange(m.value);
                 setOpen(false);
               }}
             >
@@ -125,11 +123,22 @@ const PermissionPicker = ({
                 <span className="min-w-0 flex-1">{m.label}</span>
                 {m.value === value && <Check size={11} className="shrink-0 text-xp-on-accent" />}
               </span>
-              <span className="text-[10px] leading-3 text-xp-text-muted">{m.desc}</span>
+              <span className="text-xs leading-3 text-xp-text-muted">{m.desc}</span>
             </button>
           ))}
         </div>
       )}
+      <PanelConfirmation
+        open={confirmFull}
+        title={t('panelActions.fullAccessTitle')}
+        description={t('panelActions.fullAccessDescription')}
+        confirmLabel={t('piChat.permFull')}
+        onCancel={() => setConfirmFull(false)}
+        onConfirm={() => {
+          onChange('full');
+          setConfirmFull(false);
+        }}
+      />
     </div>
   );
 };
@@ -168,16 +177,15 @@ const ThinkingPicker = ({
     <div ref={ref} className="relative shrink-0">
       <button
         type="button"
-        className={`flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] transition-colors hover:bg-xp-surface-light ${
-          value === 'auto' ? 'text-xp-text-muted' : 'text-xp-text'
-        }`}
+        className={`pi-composer-tool ${value !== 'auto' ? 'text-xp-accent' : ''}`}
         onClick={() => setOpen((v) => !v)}
-        title={t('piChat.thinkLabel')}
+        title={`${t('piChat.thinkLabel')}：${current?.label ?? ''}`}
+        aria-label={`${t('piChat.thinkLabel')}：${current?.label ?? ''}`}
+        aria-expanded={open}
+        aria-haspopup="menu"
         data-testid="pi-thinking-picker"
       >
-        <Brain size={12} className={value !== 'auto' ? 'text-xp-accent' : ''} />
-        <span className="pi-composer-label">{current?.label}</span>
-        <ChevronDown size={10} className="opacity-60" />
+        <Brain size={16} />
       </button>
       {open && (
         <div
@@ -189,7 +197,7 @@ const ThinkingPicker = ({
               key={l.value}
               type="button"
               role="menuitem"
-              className={`flex w-full items-center gap-1.5 rounded px-2 py-1.5 text-left text-[11px] ${
+              className={`flex w-full items-center gap-1.5 rounded px-2 py-1.5 text-left text-xs ${
                 l.value === value
                   ? 'bg-xp-blue font-medium text-xp-on-accent'
                   : 'text-xp-text hover:bg-xp-blue hover:text-xp-on-accent'
@@ -201,7 +209,9 @@ const ThinkingPicker = ({
               }}
             >
               <span className="min-w-0 flex-1">{l.label}</span>
-              {l.value === value && <Check size={11} className="ml-1.5 shrink-0 text-xp-on-accent" />}
+              {l.value === value && (
+                <Check size={11} className="ml-1.5 shrink-0 text-xp-on-accent" />
+              )}
             </button>
           ))}
         </div>
@@ -268,15 +278,15 @@ const QuickActions = ({
     <div ref={ref} className="relative shrink-0">
       <button
         type="button"
-        className={`flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] transition-colors hover:bg-xp-surface-light ${
-          open ? 'bg-xp-surface-light text-xp-text' : 'text-xp-text-muted'
-        }`}
+        className={`pi-composer-tool ${open ? 'text-xp-accent' : ''}`}
         onClick={() => setOpen((v) => !v)}
         title={t('piChat.quickActions')}
+        aria-label={t('piChat.quickActions')}
+        aria-expanded={open}
+        aria-haspopup="menu"
         data-testid="pi-quick-actions"
       >
-        <Zap size={12} className="text-xp-accent" />
-        <ChevronDown size={10} className="opacity-60" />
+        <Zap size={16} />
       </button>
       {open && (
         <div
@@ -288,14 +298,91 @@ const QuickActions = ({
               key={key}
               type="button"
               role="menuitem"
-              className="group flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[11px] text-xp-text hover:bg-xp-blue hover:text-xp-on-accent"
+              className="group flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-xp-text hover:bg-xp-blue hover:text-xp-on-accent"
               onClick={() => {
                 onPick(t(key));
                 setOpen(false);
               }}
             >
-              <Zap size={10} className="shrink-0 text-xp-text-muted group-hover:text-xp-on-accent" />
+              <Zap
+                size={10}
+                className="shrink-0 text-xp-text-muted group-hover:text-xp-on-accent"
+              />
               <span className="min-w-0 flex-1">{t(key)}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/** 文件夹对话和速聊共用一个入口，当前模式由图标显示。 */
+const ModePicker = ({
+  mode,
+  anchorText,
+  onChange,
+}: {
+  mode: 'folder' | 'quick';
+  anchorText: string;
+  onChange: (mode: 'folder' | 'quick') => void;
+}) => {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+
+  const label = mode === 'folder' ? t('piChat.modeFolder') : t('piChat.modeQuick');
+  return (
+    <div ref={ref} className="relative shrink-0">
+      <button
+        type="button"
+        className="pi-composer-tool text-xp-accent"
+        onClick={() => setOpen((value) => !value)}
+        aria-label={`${label}：${mode === 'folder' ? anchorText : t('piChat.quickHint')}`}
+        title={`${label}：${mode === 'folder' ? anchorText : t('piChat.quickHint')}`}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        data-testid="pi-chat-mode"
+      >
+        {mode === 'folder' ? <FolderOpen size={16} /> : <MessageCircle size={16} />}
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute bottom-full left-0 z-50 mb-1 w-56 rounded-md border border-xp-border bg-xp-popover p-1 shadow-lg"
+        >
+          {(['folder', 'quick'] as const).map((item) => (
+            <button
+              key={item}
+              type="button"
+              role="menuitemradio"
+              aria-checked={mode === item}
+              data-testid={`pi-chat-mode-${item}`}
+              className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-xp-text hover:bg-xp-surface-light"
+              onClick={() => {
+                onChange(item);
+                setOpen(false);
+              }}
+            >
+              {item === 'folder' ? <FolderOpen size={14} /> : <MessageCircle size={14} />}
+              <span
+                className="min-w-0 flex-1 truncate"
+                title={item === 'folder' ? anchorText : undefined}
+              >
+                {item === 'folder'
+                  ? `${t('piChat.modeFolder')} · ${anchorText}`
+                  : t('piChat.modeQuick')}
+              </span>
+              {mode === item && <Check size={13} className="shrink-0 text-xp-accent" />}
             </button>
           ))}
         </div>
@@ -400,49 +487,9 @@ const PiChatComposer = ({
     ref.current?.focus();
   };
 
-  const iconBtn =
-    'flex h-6 w-6 items-center justify-center rounded-md text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text';
-
   return (
     <div className="pi-composer flex-shrink-0 px-3 pb-3 pt-1">
-      {/* 情景条：模式 + 位置 */}
-      <div className="mb-1 flex items-center gap-2 px-0.5">
-        <div className="flex items-center gap-0.5 text-[11px]">
-          <button
-            type="button"
-            className={`flex items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors ${
-              mode === 'folder'
-                ? 'bg-xp-surface-light font-medium text-xp-text'
-                : 'text-xp-text-muted hover:text-xp-text'
-            }`}
-            onClick={() => onModeChange('folder')}
-            data-testid="pi-chat-mode-folder"
-          >
-            {t('piChat.modeFolder')}
-          </button>
-          <button
-            type="button"
-            className={`flex items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors ${
-              mode === 'quick'
-                ? 'bg-xp-surface-light font-medium text-xp-text'
-                : 'text-xp-text-muted hover:text-xp-text'
-            }`}
-            onClick={() => onModeChange('quick')}
-            data-testid="pi-chat-mode-quick"
-          >
-            {t('piChat.modeQuick')}
-          </button>
-        </div>
-        <div
-          className="min-w-0 flex-1 truncate text-[11px] text-xp-text-muted"
-          title={mode === 'folder' ? anchorText : undefined}
-        >
-          {mode === 'folder' ? anchorText : t('piChat.quickHint')}
-        </div>
-      </div>
-
-      {/* 输入盒 */}
-      <div className="relative rounded-[10px] border border-xp-border bg-xp-surface px-2.5 py-2 transition-colors focus-within:border-xp-accent">
+      <div className="pi-composer-box relative rounded-[10px] border border-xp-border bg-xp-surface px-2.5 py-2 transition-colors focus-within:border-xp-accent">
         {/* 斜杠命令菜单：输入 / 唤出，↑↓ 选择，回车执行，Esc 关闭 */}
         {slashItems.length > 0 && (
           <div
@@ -458,7 +505,7 @@ const PiChatComposer = ({
                 role="option"
                 aria-selected={i === slashActive}
                 data-testid="pi-slash-item"
-                className={`group flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[11px] ${
+                className={`group flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs ${
                   i === slashActive
                     ? 'bg-xp-blue font-medium text-xp-on-accent'
                     : 'text-xp-text hover:bg-xp-blue hover:text-xp-on-accent'
@@ -485,6 +532,7 @@ const PiChatComposer = ({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={(e) => {
+            if (e.nativeEvent.isComposing || e.keyCode === 229) return;
             if (slashItems.length > 0) {
               if (e.key === 'ArrowDown') {
                 e.preventDefault();
@@ -515,19 +563,18 @@ const PiChatComposer = ({
           placeholder={placeholder ?? t('aiChat.input.sendMessage')}
           aria-label={t('aiChat.input.sendMessage')}
           rows={2}
-          className="w-full resize-none bg-transparent text-sm leading-5 text-xp-text outline-none placeholder:text-xp-text-muted"
+          className="pi-composer-input w-full resize-none text-sm leading-5 text-xp-text placeholder:text-xp-text-muted"
         />
-        <div className="flex items-center gap-1 pt-1.5">
-          {/* 新建会话 — 最左端（ZCode/Cursor 同位） */}
+        <div className="pi-composer-toolbar flex items-center gap-0.5 pt-1.5">
           <button
             type="button"
             aria-label={t('piChat.newChat')}
             title={t('piChat.newChat')}
             onClick={onNewChat}
             data-testid="pi-chat-new"
-            className={iconBtn}
+            className="pi-composer-tool"
           >
-            <Plus size={13} />
+            <Plus size={16} />
           </button>
           <button
             type="button"
@@ -535,10 +582,12 @@ const PiChatComposer = ({
             title={t('piChat.history')}
             onClick={onToggleHistory}
             data-testid="pi-chat-history"
-            className={`${iconBtn} ${historyOpen ? 'bg-xp-surface-light text-xp-text' : ''}`}
+            className={`pi-composer-tool ${historyOpen ? 'text-xp-accent' : ''}`}
+            aria-pressed={historyOpen}
           >
-            <History size={13} />
+            <History size={16} />
           </button>
+          <ModePicker mode={mode} anchorText={anchorText} onChange={onModeChange} />
           {/* 快捷功能（pi agent 常用任务） */}
           {onQuickPrompt && <QuickActions mode={mode} onPick={onQuickPrompt} />}
           {/* 画布模式开关（点亮=文档列+对话列同屏），图标=左右分屏 */}
@@ -549,10 +598,10 @@ const PiChatComposer = ({
               title={canvasOn ? t('piChat.canvasOff') : t('piChat.canvasOn')}
               onClick={() => onCanvasToggle(!canvasOn)}
               data-testid="pi-canvas-toggle"
-              className={`${iconBtn} ${canvasOn ? 'bg-xp-surface-light text-xp-accent' : ''}`}
+              className={`pi-composer-tool ${canvasOn ? 'text-xp-accent' : ''}`}
               aria-pressed={canvasOn}
             >
-              <SquareSplitHorizontal size={13} />
+              <SquareSplitHorizontal size={16} />
             </button>
           )}
           {/* 权限模式（ZCode「完全访问」对应物） */}
@@ -561,12 +610,7 @@ const PiChatComposer = ({
           <div className="min-w-0 flex-1" />
 
           {/* 模型 ▾（纯文字，ZCode 式） */}
-          <PiModelPicker
-            models={models}
-            value={modelValue}
-            onChange={onModelChange}
-            compact
-          />
+          <PiModelPicker models={models} value={modelValue} onChange={onModelChange} compact />
 
           {/* 思考 ▾ */}
           <ThinkingPicker value={thinking} onChange={onThinkingChange} />
@@ -577,9 +621,9 @@ const PiChatComposer = ({
               type="button"
               aria-label={t('aiChat.input.stop')}
               onClick={onStop}
-              className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-md bg-xp-accent text-xp-on-accent hover:bg-xp-accent-hover"
+              className="pi-composer-tool text-xp-accent"
             >
-              <Square size={11} fill="currentColor" />
+              <Square size={14} fill="currentColor" />
             </button>
           ) : (
             <button
@@ -588,13 +632,9 @@ const PiChatComposer = ({
               disabled={!value.trim()}
               onClick={onSend}
               data-testid="pi-chat-send"
-              className={`flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-md transition-colors ${
-                value.trim()
-                  ? 'bg-xp-accent text-xp-on-accent hover:bg-xp-accent-hover'
-                  : 'bg-xp-surface-light text-xp-text-muted'
-              }`}
+              className={`pi-composer-tool ${value.trim() ? 'text-xp-accent' : ''}`}
             >
-              <ArrowUp size={14} />
+              <ArrowUp size={17} />
             </button>
           )}
         </div>

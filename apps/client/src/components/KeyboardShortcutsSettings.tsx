@@ -47,7 +47,7 @@ const categoryLabel = (t: (k: string) => string, cat: string): string => {
   return key ? t(`settings.shortcuts.categories.${key}`) : cat;
 };
 
-const KeyboardShortcutsSettings = () => {
+const KeyboardShortcutsSettings = ({ active = true }: { active?: boolean }) => {
   const { t } = useTranslation();
   const [shortcuts, setShortcuts] = useState<ShortcutBinding[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -76,7 +76,7 @@ const KeyboardShortcutsSettings = () => {
 
   // Key capture handler
   useEffect(() => {
-    if (!editingId) return;
+    if (!editingId || !active) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       e.preventDefault();
@@ -110,7 +110,7 @@ const KeyboardShortcutsSettings = () => {
 
     document.addEventListener('keydown', handleKeyDown, true);
     return () => document.removeEventListener('keydown', handleKeyDown, true);
-  }, [editingId, shortcuts]);
+  }, [editingId, shortcuts, active]);
 
   const handleConfirmEdit = async () => {
     if (!editingId || !capturedCombo) return;
@@ -218,10 +218,12 @@ const KeyboardShortcutsSettings = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={t('settings.shortcuts.searchPlaceholder')}
+          aria-label={t('settings.shortcuts.searchLabel')}
           className="placeholder:text-xp-text-secondary/50 h-9 w-full rounded-md border border-xp-border bg-xp-bg pl-9 pr-3 text-sm text-xp-text transition-colors focus:border-xp-text-secondary focus:outline-none"
         />
         {searchQuery && (
           <button
+            aria-label={t('settings.shortcuts.clearSearch')}
             onClick={() => setSearchQuery('')}
             className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-xp-text-secondary hover:text-xp-text"
           >
@@ -249,6 +251,7 @@ const KeyboardShortcutsSettings = () => {
             <div key={cat} className="border-xp-border/50 overflow-hidden rounded-md border">
               {/* Category header */}
               <button
+                aria-expanded={!isCollapsed}
                 onClick={() => toggleCategory(cat)}
                 className="flex w-full items-center gap-2 bg-xp-surface/50 px-4 py-2.5 text-left transition-colors hover:bg-xp-surface"
               >
@@ -289,7 +292,7 @@ const KeyboardShortcutsSettings = () => {
                               })()}
                             </span>
                             {isExtension && (
-                              <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-xp-purple/15 px-1.5 py-0.5 text-[10px] font-semibold text-xp-purple">
+                              <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-xp-purple/15 px-1.5 py-0.5 text-xs font-semibold text-xp-purple">
                                 <Puzzle size={10} />
                                 {extensionName}
                               </span>
@@ -310,6 +313,9 @@ const KeyboardShortcutsSettings = () => {
                               setConflict(null);
                             }
                           }}
+                          aria-label={t('settings.shortcuts.editNamed', {
+                            name: getLabelForAction(shortcut.action),
+                          })}
                           title={
                             isEditing
                               ? t('settings.shortcuts.cancelEditing')
@@ -359,7 +365,8 @@ const KeyboardShortcutsSettings = () => {
                             <button
                               onClick={() => handleResetSingle(shortcut.id)}
                               title={t('settings.shortcuts.resetToDefault')}
-                              className="text-xp-text-secondary/40 shrink-0 rounded-md p-1 transition-colors hover:text-xp-text-secondary"
+                              aria-label={`${t('settings.shortcuts.resetToDefault')}: ${getLabelForAction(shortcut.action)}`}
+                              className="shrink-0 rounded-md p-1 text-xp-text-secondary transition-colors hover:text-xp-text-secondary"
                             >
                               <RotateCcw size={13} />
                             </button>

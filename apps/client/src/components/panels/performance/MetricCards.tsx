@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RotateCw, Trash2 } from 'lucide-react';
+import { ExternalLink, RotateCw, Trash2 } from 'lucide-react';
 import { formatFileSize } from '@/lib/utils';
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
+import { isWindows, isMac } from '@/lib/constants';
+import { Button } from '@/components/ui/button';
 import type { CleanupSuggestion } from '@/hooks/use-performance-stats';
-import { smallBtnStyle } from '../performance-dashboard-helpers';
+import { PanelConfirmation, PanelMessage } from '../PanelFeedback';
 import BatchRename from './BatchRename';
 
 interface MetricCardsProps {
@@ -13,62 +15,87 @@ interface MetricCardsProps {
   isLoading: boolean;
   onRefresh: () => void;
 }
-
 const MetricCards = ({ suggestions, allFiles, isLoading, onRefresh }: MetricCardsProps) => {
   const { t } = useTranslation();
-  const [emptying, setEmptying] = useState(false);
-
-  const trashSuggestion = suggestions.find((s) => s.id === 'trash');
-
-  const handleEmptyTrash = async () => {
-    setEmptying(true);
+  const [busy, setBusy] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<string | null>(null);
+  const trash = suggestions.find((item) => item.id === 'trash');
+  const handleTrash = async () => {
+    setBusy(true);
+    setError(null);
+    setResult(null);
     try {
-      await TauriAPI.emptyTrash();
-    } catch {
-      // silently fail — refresh still runs
+      if (isWindows) {
+        const count = await TauriAPI.emptyTrash();
+        setResult(t('panelActions.trashEmptied', { count }));
+      } else {
+        const directories = await TauriAPI.getUserDirectories();
+        await TauriAPI.openFile(
+          `${directories.home}/${isMac ? '.Trash' : '.local/share/Trash/files'}`,
+        );
+      }
+      setConfirming(false);
+      onRefresh();
+    } catch (err) {
+      setError(t('panelActions.trashFailed', { error: String(err) }));
+      setConfirming(false);
+    } finally {
+      setBusy(false);
     }
-    setEmptying(false);
-    onRefresh();
   };
-
   return (
-    <div className="flex flex-col gap-3 px-3 pb-4 pt-1">
-      {/* Quick actions */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          {trashSuggestion && (
-            <button
-              onClick={handleEmptyTrash}
-              disabled={emptying}
-              className="flex items-center gap-1.5 rounded-md border border-xp-border bg-xp-surface px-3 py-1.5 text-[11px] font-semibold text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
-            >
-              <Trash2 size={11} aria-hidden="true" />
-              {emptying ? t('performanceDashboard.refreshing') : trashSuggestion.actionLabel}
-              {trashSuggestion.estimatedSize > 0 && (
-                <span className="text-[10px] text-xp-text-secondary">
-                  {formatFileSize(trashSuggestion.estimatedSize)}
-                </span>
-              )}
-            </button>
-          )}
+    <div className="px-4 pb-4">
+      <section className="wisp-panel-section !px-0">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="wisp-panel-section-title">{t('navigation.trash')}</h3>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onRefresh}
+            disabled={isLoading}
+            aria-label={t('performanceDashboard.refresh')}
+          >
+            <RotateCw size={14} aria-hidden="true" />
+          </Button>
         </div>
-        <button
-          onClick={onRefresh}
-          disabled={isLoading}
-          style={{ ...smallBtnStyle, opacity: isLoading ? 0.5 : 1 }}
-          title={t('performanceDashboard.refresh')}
+        <p className="wisp-panel-help">
+          {t(isWindows ? 'panelActions.trashWindows' : 'panelActions.trashSystem')}
+        </p>
+        {trash && (
+          <p className="mb-3 text-xs text-xp-text-secondary">
+            {trash.description}
+            {trash.estimatedSize > 0 ? ` · ${formatFileSize(trash.estimatedSize)}` : ''}
+          </p>
+        )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => (isWindows ? setConfirming(true) : void handleTrash())}
+          disabled={busy || (isWindows && !trash)}
         >
-          <span className="flex items-center gap-1">
-            <RotateCw size={10} aria-hidden="true" />
-            {isLoading ? t('performanceDashboard.refreshing') : t('performanceDashboard.refresh')}
-          </span>
-        </button>
-      </div>
-
-      {/* Batch rename */}
+          {isWindows ? (
+            <Trash2 size={14} aria-hidden="true" />
+          ) : (
+            <ExternalLink size={14} aria-hidden="true" />
+          )}
+          {t(isWindows ? 'performance.suggestions.emptyTrash' : 'panelActions.openSystemTrash')}
+        </Button>
+        {error && <PanelMessage error>{error}</PanelMessage>}
+        {result && <PanelMessage>{result}</PanelMessage>}
+      </section>
       <BatchRename files={allFiles} onDone={onRefresh} />
+      <PanelConfirmation
+        open={confirming}
+        title={t('panelActions.emptyTrashTitle')}
+        description={t('panelActions.emptyTrashDescription')}
+        confirmLabel={t('performance.suggestions.emptyTrash')}
+        busy={busy}
+        onCancel={() => setConfirming(false)}
+        onConfirm={() => void handleTrash()}
+      />
     </div>
   );
 };
-
 export default MetricCards;

@@ -1,73 +1,60 @@
-import React from 'react';
+import { useRef, type ReactNode } from 'react';
 import { FolderTree } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-
 interface SidebarTab {
   id: string;
   title: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }
-
 interface SidebarTabBarProps {
   activeTabId: string;
   onTabClick: (tabId: string) => void;
   extensionTabs: SidebarTab[];
 }
-
-const TAB_CLASS_ACTIVE = 'bg-xp-blue/15 text-xp-blue';
-const TAB_CLASS_INACTIVE = 'text-xp-text-muted hover:bg-xp-surface-light hover:text-xp-text';
-
 const SidebarTabBar = ({ activeTabId, onTabClick, extensionTabs }: SidebarTabBarProps) => {
   const { t } = useTranslation();
-  const tabClass = (tabId: string) =>
-    `wisp-sidebar-tab flex items-center justify-center rounded-md transition-colors ${
-      activeTabId === tabId ? TAB_CLASS_ACTIVE : TAB_CLASS_INACTIVE
-    }`;
-
+  const listRef = useRef<HTMLDivElement>(null);
+  const tabs = [
+    { id: '__explorer__', title: t('sidebar.fileExplorer'), icon: <FolderTree size={16} /> },
+    ...extensionTabs,
+  ];
   return (
     <div
-      className="border-b border-xp-border"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        height: '36px',
-        padding: '0 8px',
-        gap: '2px',
-        flexShrink: 0,
-      }}
+      ref={listRef}
+      className="wisp-sidebar-tablist"
       role="tablist"
       aria-label={t('sidebar.tabs')}
     >
-      {/* Explorer tab */}
-      <button
-        role="tab"
-        onClick={() => onTabClick('__explorer__')}
-        className={tabClass('__explorer__')}
-        style={{ width: 28, height: 28, padding: 0 }}
-        aria-label={t('sidebar.fileExplorer')}
-        aria-selected={activeTabId === '__explorer__'}
-        title={t('sidebar.fileExplorer')}
-      >
-        <FolderTree size={15} />
-      </button>
-
-      {/* Extension-registered sidebar tabs */}
-      {extensionTabs.map((tab) => (
+      {tabs.map((tab, index) => (
         <button
           key={tab.id}
+          type="button"
           role="tab"
           onClick={() => onTabClick(tab.id)}
-          className={tabClass(tab.id)}
-          style={{ width: 28, height: 28, padding: 0 }}
-          aria-label={tab.title}
+          className="wisp-sidebar-tab"
+          tabIndex={activeTabId === tab.id ? 0 : -1}
           aria-selected={activeTabId === tab.id}
+          aria-label={tab.title}
           title={tab.title}
+          onKeyDown={(event) => {
+            let next: number;
+            if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+            else if (event.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length;
+            else if (event.key === 'Home') next = 0;
+            else if (event.key === 'End') next = tabs.length - 1;
+            else return;
+            event.preventDefault();
+            onTabClick(tabs[next].id);
+            listRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+          }}
         >
-          {tab.icon}
+          <span aria-hidden="true" className="shrink-0">
+            {tab.icon}
+          </span>
+          <span className="truncate">{tab.title}</span>
         </button>
       ))}
     </div>
   );
 };
-
 export default SidebarTabBar;

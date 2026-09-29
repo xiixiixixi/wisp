@@ -17,6 +17,10 @@ export const previewConvertImage = async (path: string, maxDim = 2048): Promise<
 export const previewDocHtml = async (path: string): Promise<string | null> =>
   await transport('preview_doc_html', { path });
 
+/** Whether the file is inside the asset protocol scope used by iframe previews. */
+export const previewAssetAllowed = async (path: string): Promise<boolean> =>
+  await transport('preview_asset_allowed', { path });
+
 /** XML/binary plist (and .strings) → XML text. */
 export const previewPlistXml = async (path: string): Promise<string> =>
   await transport('preview_plist_xml', { path });
@@ -74,3 +78,30 @@ export const previewOpenQlPreview = async (path: string): Promise<void> =>
 /** Host the system Quick Look panel inside Wisp (in-process, full document). */
 export const previewOpenQlPanel = async (path: string): Promise<void> =>
   await transport('preview_open_ql_panel', { path });
+
+/** CSS viewport coordinates; the native host maps these to AppKit points. */
+export interface QuickLookFrame {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  viewportWidth: number;
+  viewportHeight: number;
+}
+
+/** Attach the full system document preview to the calling window's sidebar. */
+export const previewMountQlView = async (
+  path: string,
+  sessionId: string,
+  frame: QuickLookFrame,
+  visible: boolean,
+): Promise<void> => await transport('preview_mount_ql_view', { path, sessionId, frame, visible });
+
+export const previewUpdateQlView = async (
+  sessionId: string,
+  frame: QuickLookFrame,
+  visible: boolean,
+): Promise<void> => await transport('preview_update_ql_view', { sessionId, frame, visible });
+
+export const previewCloseQlView = async (sessionId: string): Promise<void> =>
+  await transport('preview_close_ql_view', { sessionId });

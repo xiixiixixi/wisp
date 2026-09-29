@@ -17,6 +17,13 @@ use tauri::Manager;
 const CACHE_DIR_NAME: &str = "preview-cache";
 const MAX_SNIFF_BYTES: usize = 64 * 1024;
 
+/// Match the asset protocol's own scope before embedding an HTML file in a
+/// webview. Files outside that scope can still use the source-based preview.
+#[tauri::command]
+pub fn preview_asset_allowed(app: tauri::AppHandle, path: String) -> bool {
+    app.asset_protocol_scope().is_allowed(path)
+}
+
 fn cache_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let dir = app
         .path()
@@ -129,7 +136,7 @@ pub async fn preview_doc_html(app: tauri::AppHandle, path: String) -> Result<Opt
             return Ok(None);
         }
         let dir = cache_dir(&app)?;
-        let key = cache_key(&path, "dochtml", "");
+        let key = cache_key(&path, "dochtml", "quiet-scroll-v1");
         let out = dir.join(format!("{key}.html"));
         if out.exists() {
             return Ok(Some(out.to_string_lossy().into_owned()));
@@ -148,6 +155,18 @@ pub async fn preview_doc_html(app: tauri::AppHandle, path: String) -> Result<Opt
         .unwrap_or(false);
 
         if ok && out.exists() {
+            // This fallback runs in a sandboxed iframe, so the outer sidebar's
+            // CSS cannot hide its scrollbar. Keep scrolling, omit only the rails.
+            let html = std::fs::read_to_string(&out)
+                .map_err(|error| format!("could not read converted document: {error}"))?;
+            let quiet_scroll = "<style>html,body{scrollbar-width:none}::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}</style>";
+            let html = if html.contains("</head>") {
+                html.replacen("</head>", &format!("{quiet_scroll}</head>"), 1)
+            } else {
+                format!("{quiet_scroll}{html}")
+            };
+            std::fs::write(&out, html)
+                .map_err(|error| format!("could not style converted document: {error}"))?;
             // Drop stale artefacts from previous conversions of other files so
             // the cache directory cannot grow without bound.
             cleanup_cache(&dir, 200);

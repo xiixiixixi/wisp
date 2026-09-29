@@ -1,8 +1,10 @@
-import { useState, useEffect, useId, useRef, type KeyboardEvent } from 'react';
+import { useState, useEffect, useId, useRef, useCallback, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Settings2, FolderOpen, Bot, X, Plug } from 'lucide-react';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import { Dialog, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import type { SettingsDraftState } from '@/components/settings/draft-state';
 import GeneralSettings from '@/components/settings/GeneralSettings';
 import ExplorerSettings from '@/components/settings/ExplorerSettings';
 import AiModelSettings from '@/components/settings/AiModelSettings';
@@ -27,6 +29,24 @@ interface SettingsProps {
 const Settings = ({ onClose }: SettingsProps) => {
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
+  const [visitedTabs, setVisitedTabs] = useState<SettingsTab[]>(['general']);
+  const [drafts, setDrafts] = useState<Record<string, SettingsDraftState>>({});
+  const [confirmClose, setConfirmClose] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+  const hasDraft = Object.values(drafts).some((draft) => draft.dirty);
+  const busy = Object.values(drafts).some((draft) => draft.busy);
+  const updateAiDraft = useCallback(
+    (state: SettingsDraftState) => setDrafts((prev) => ({ ...prev, ai: state })),
+    [],
+  );
+  const updateMcpDraft = useCallback(
+    (state: SettingsDraftState) => setDrafts((prev) => ({ ...prev, mcp: state })),
+    [],
+  );
+  const requestClose = () => {
+    if (hasDraft || busy || saveError) setConfirmClose(true);
+    else onClose?.();
+  };
   const id = useId();
   const contentRef = useRef<HTMLDivElement>(null);
   const tabs = [
@@ -37,12 +57,15 @@ const Settings = ({ onClose }: SettingsProps) => {
   ];
   const selectTab = (tab: SettingsTab) => {
     setActiveTab(tab);
+    setVisitedTabs((prev) => (prev.includes(tab) ? prev : [...prev, tab]));
     if (contentRef.current) contentRef.current.scrollTop = 0;
   };
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
     let next: number | null = null;
-    if (event.key === 'ArrowDown') next = (index + 1) % tabs.length;
-    if (event.key === 'ArrowUp') next = (index - 1 + tabs.length) % tabs.length;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+    if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+      next = (index - 1 + tabs.length) % tabs.length;
+    }
     if (event.key === 'Home') next = 0;
     if (event.key === 'End') next = tabs.length - 1;
     if (next === null) return;
@@ -91,11 +114,12 @@ const Settings = ({ onClose }: SettingsProps) => {
       if (localStorage.getItem(SETTINGS_KEY) !== serialized) {
         localStorage.setItem(SETTINGS_KEY, serialized);
       }
+      setSaveError(false);
+      // Only announce persisted preferences; a failed write must not reload stale values.
+      window.dispatchEvent(new CustomEvent('wisp-settings-changed'));
     } catch {
-      /* Keep in-memory preferences usable when storage is unavailable. */
+      setSaveError(true);
     }
-    // Let the explorer (e.g. hidden-file visibility, ⌘⇧.) follow along live
-    window.dispatchEvent(new CustomEvent('wisp-settings-changed'));
   }, [settings]);
 
   useEffect(() => {
@@ -142,7 +166,7 @@ const Settings = ({ onClose }: SettingsProps) => {
         JSON.stringify({ ...current, theme: settings.theme }),
       );
     } catch {
-      localStorage.setItem(STORAGE_KEYS.UI_STATE, JSON.stringify({ theme: settings.theme }));
+      // The preference status already reports unavailable device storage.
     }
   }, [settings.theme]);
 
@@ -158,89 +182,126 @@ const Settings = ({ onClose }: SettingsProps) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
-  return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose?.();
-      }}
-      maxWidth={720}
-    >
-      <div className="wisp-settings-dialog elevated-glass">
-        <header className="wisp-settings-dialog-header">
-          <DialogTitle>{t('settings.title')}</DialogTitle>
-          <button
-            type="button"
-            className="wisp-control-icon wisp-settings-close"
-            aria-label={t('settings.close')}
-            onClick={onClose}
-          >
-            <X size={14} aria-hidden="true" />
-          </button>
-        </header>
-        <div className="wisp-settings-split flex min-h-0 flex-1">
-          {/* 左侧导航列 —— macOS 系统设置同款：图标+文字行，选中 = 实心 accent + 白字 */}
-          <nav
-            className="wisp-settings-nav wisp-no-select flex w-[188px] shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-xp-border px-2 pb-3 pt-1"
-            role="tablist"
-            aria-label={t('settings.categories')}
-            aria-orientation="vertical"
-          >
-            {tabs.map(({ id: tab, label, icon: Icon }, index) => (
-              <button
-                type="button"
-                key={tab}
-                id={`${id}-tab-${tab}`}
-                role="tab"
-                aria-selected={activeTab === tab}
-                aria-controls={`${id}-panel-${tab}`}
-                tabIndex={activeTab === tab ? 0 : -1}
-                data-autofocus={activeTab === tab ? '' : undefined}
-                onClick={() => selectTab(tab)}
-                onKeyDown={(event) => handleTabKeyDown(event, index)}
-                className={`flex items-center gap-2.5 rounded-[7px] px-2.5 py-[7px] text-left text-[13px] transition-colors ${
-                  activeTab === tab
-                    ? 'bg-xp-blue font-medium text-white'
-                    : 'text-xp-text-secondary hover:bg-xp-surface-light hover:text-xp-text'
-                }`}
-                data-settings-nav={tab}
-              >
-                <Icon size={16} aria-hidden="true" className="shrink-0" />
-                <span className="min-w-0 truncate">{label}</span>
-              </button>
-            ))}
-          </nav>
+  const panels = {
+    general: (
+      <GeneralSettings
+        active={activeTab === 'general' && !confirmClose}
+        settings={settings}
+        updateSetting={updateSetting}
+        setSettings={setSettings}
+      />
+    ),
+    explorer: <ExplorerSettings settings={settings} updateSetting={updateSetting} />,
+    mcp: <McpSettings onDraftChange={updateMcpDraft} />,
+    ai: <AiModelSettings onDraftChange={updateAiDraft} />,
+  };
+  let statusKey: string | null = null;
+  if (hasDraft) statusKey = 'settings.unsavedDraft';
+  if (busy) statusKey = 'settings.saving';
+  if (saveError) statusKey = 'settings.saveFailed';
 
-          {/* 右侧内容区：分组卡片（现有 SettingsSection 体系） */}
-          <div
-            ref={contentRef}
-            className="wisp-settings-dialog-body min-w-0 flex-1"
-            id={`${id}-panel-${activeTab}`}
-            role="tabpanel"
-            aria-labelledby={`${id}-tab-${activeTab}`}
-            tabIndex={0}
-          >
-            <h2 className="px-1 pb-3 pt-1 text-[15px] font-semibold text-xp-text">
-              {tabs.find((x) => x.id === activeTab)?.label}
-            </h2>
-            {activeTab === 'general' ? (
-              <GeneralSettings
-                settings={settings}
-                updateSetting={updateSetting}
-                setSettings={setSettings}
-              />
-            ) : activeTab === 'explorer' ? (
-              <ExplorerSettings settings={settings} updateSetting={updateSetting} />
-            ) : activeTab === 'mcp' ? (
-              <McpSettings />
-            ) : (
-              <AiModelSettings />
-            )}
+  return (
+    <>
+      <Dialog
+        open
+        onOpenChange={(open) => {
+          if (!open) requestClose();
+        }}
+        maxWidth={720}
+      >
+        <div className="wisp-settings-dialog wisp-settings-root elevated-glass">
+          <header className="wisp-settings-dialog-header">
+            <DialogTitle>{t('settings.title')}</DialogTitle>
+            <button
+              type="button"
+              className="wisp-control-icon wisp-settings-close"
+              aria-label={t('settings.close')}
+              onClick={requestClose}
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
+          </header>
+          <div className="wisp-settings-split flex min-h-0 flex-1">
+            {/* Settings navigation stays separate from the grouped form content. */}
+            <nav
+              className="wisp-settings-nav wisp-no-select flex w-[188px] shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-xp-border px-2 pb-3 pt-1"
+              role="tablist"
+              aria-label={t('settings.categories')}
+              aria-orientation="vertical"
+            >
+              {tabs.map(({ id: tab, label, icon: Icon }, index) => (
+                <button
+                  type="button"
+                  key={tab}
+                  id={`${id}-tab-${tab}`}
+                  role="tab"
+                  aria-selected={activeTab === tab}
+                  aria-controls={`${id}-panel-${tab}`}
+                  tabIndex={activeTab === tab ? 0 : -1}
+                  data-autofocus={activeTab === tab ? '' : undefined}
+                  onClick={() => selectTab(tab)}
+                  onKeyDown={(event) => handleTabKeyDown(event, index)}
+                  className="wisp-settings-category"
+                  data-settings-nav={tab}
+                >
+                  <Icon size={16} aria-hidden="true" className="shrink-0" />
+                  <span className="min-w-0 truncate">{label}</span>
+                </button>
+              ))}
+            </nav>
+
+            <div ref={contentRef} className="wisp-settings-dialog-body min-w-0 flex-1">
+              {visitedTabs.map((tab) => (
+                <div
+                  key={tab}
+                  hidden={activeTab !== tab}
+                  id={`${id}-panel-${tab}`}
+                  role="tabpanel"
+                  aria-labelledby={`${id}-tab-${tab}`}
+                  tabIndex={0}
+                >
+                  {panels[tab]}
+                </div>
+              ))}
+            </div>
           </div>
+          {statusKey && (
+            <footer className="wisp-settings-dialog-footer" role={saveError ? 'alert' : 'status'}>
+              {t(statusKey)}
+              {saveError && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setSettings((prev) => ({ ...prev }))}
+                >
+                  {t('settings.retry')}
+                </Button>
+              )}
+            </footer>
+          )}
         </div>
-        <footer className="wisp-settings-dialog-footer">{t('settings.savedAutomatically')}</footer>
-      </div>
-    </Dialog>
+      </Dialog>
+      {confirmClose && (
+        <Dialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setConfirmClose(false);
+          }}
+          maxWidth={420}
+        >
+          <div className="wisp-settings-confirm">
+            <DialogTitle>{t(busy ? 'settings.saving' : 'settings.discardTitle')}</DialogTitle>
+            <p>{t(busy ? 'settings.waitForSave' : 'settings.discardDescription')}</p>
+            <div className="wisp-settings-actions">
+              <Button variant="secondary" onClick={() => setConfirmClose(false)} data-autofocus>
+                {t('settings.keepEditing')}
+              </Button>
+              {!busy && <Button onClick={onClose}>{t('settings.discardAndClose')}</Button>}
+            </div>
+          </div>
+        </Dialog>
+      )}
+    </>
   );
 };
 

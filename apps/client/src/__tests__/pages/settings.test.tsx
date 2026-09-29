@@ -34,12 +34,11 @@ describe('Settings dialog', () => {
     expect(dialog.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
       'General',
       'File Explorer',
-      'AI',
-      'MCP servers',
+      'Assistant',
+      'Tool connections',
     ]);
     expect(dialog.getByRole('tab', { name: 'General' })).toHaveAttribute('aria-selected', 'true');
     expect(dialog.getByRole('tabpanel', { name: 'General' })).toBeInTheDocument();
-    expect(dialog.getByText('Changes are saved automatically')).toBeInTheDocument();
     expect(dialog.queryByRole('link', { name: 'Back to Home' })).not.toBeInTheDocument();
   });
 
@@ -106,7 +105,8 @@ describe('Settings dialog', () => {
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({ appearance: 'dark' }));
     render(<Settings />);
     expect(screen.queryByText('Advanced')).not.toBeInTheDocument();
-    await user.click(await screen.findByRole('button', { name: 'Reset all settings to defaults' }));
+    await user.click(await screen.findByRole('button', { name: 'Restore default preferences' }));
+    await user.click(screen.getByRole('button', { name: 'Restore defaults', exact: true }));
     expect(screen.getByRole('radio', { name: 'Follow system' })).toBeChecked();
     expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS)!).appearance).toBe('system');
   });

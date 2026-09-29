@@ -49,6 +49,7 @@ describe('window material pointer response', () => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth });
     Object.defineProperty(window, 'innerHeight', { configurable: true, value: originalHeight });
     root.removeAttribute('data-native-reduce-motion');
+    root.removeAttribute('data-window-focused');
     root.style.removeProperty('--wisp-glass-pointer-x');
     root.style.removeProperty('--wisp-glass-pointer-y');
   });
@@ -83,8 +84,11 @@ describe('window material pointer response', () => {
     paint();
     expect(pointerX()).toBe('10.00%');
     window.dispatchEvent(new Event('blur'));
+    expect(root.dataset.windowFocused).toBe('false');
     expect(pointerX()).toBe('50%');
     expect(pointerY()).toBe('50%');
+    window.dispatchEvent(new Event('focus'));
+    expect(root.dataset.windowFocused).toBe('true');
   });
 
   it('does no pointer work while system motion is reduced and cancels work on a live change', () => {
@@ -119,14 +123,17 @@ describe('window material pointer response', () => {
 
   it('cancels work, removes listeners and restores prior variables on unmount', async () => {
     root.style.setProperty('--wisp-glass-pointer-x', '30%');
+    root.dataset.windowFocused = 'original';
     const { unmount } = renderHook(() => useWindowMaterial());
     move(100, 100);
     unmount();
+    expect(root.dataset.windowFocused).toBe('original');
     expect(frames.size).toBe(0);
     expect(pointerX()).toBe('30%');
     expect(pointerY()).toBe('');
     move(200, 200);
     window.dispatchEvent(new Event('blur'));
+    expect(root.dataset.windowFocused).toBe('original');
     root.dispatchEvent(new Event('pointerleave'));
     reduced = true;
     motion.dispatchEvent(new Event('change'));

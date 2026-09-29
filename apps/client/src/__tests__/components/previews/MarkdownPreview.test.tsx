@@ -67,6 +67,7 @@ vi.mock('@/lib/tauri-api', () => ({
   TauriAPI: {
     readTextFile: vi.fn(() => Promise.resolve('# Hello World\n\nThis is a test.')),
     saveTextFile: vi.fn(() => Promise.resolve()),
+    previewAssetAllowed: vi.fn(() => Promise.resolve(true)),
   },
   FileEntry: {},
 }));
@@ -375,9 +376,7 @@ describe('MarkdownPreview', () => {
     vi.mocked(TauriAPI.readTextFile).mockResolvedValueOnce('<h1>Original</h1>');
     const file = { ...mockFile, name: 'index.html', path: '/index.html' };
     const { container } = render(<HtmlPreview {...mockProps} file={file} />);
-    await waitFor(() =>
-      expect(container.querySelector('iframe')).toHaveAttribute('srcdoc', '<h1>Original</h1>'),
-    );
+    await waitFor(() => expect(container.querySelector('iframe')).toHaveAttribute('src'));
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
     const editor = screen.getByTestId('cm-editor');
     const preview = editor.closest('[data-preview-editing]');

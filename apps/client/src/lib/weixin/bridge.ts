@@ -106,12 +106,18 @@ class WeixinBridge {
     return this.persisted;
   }
 
-  async setPersisted(next: Partial<PersistedState>): Promise<void> {
-    this.persisted = { ...this.persisted, ...next };
-    if (isTauri()) {
-      await transport('weixin_state_set', { state: this.persisted }).catch(() => undefined);
-    }
-    this.emit();
+  private persistQueue: Promise<void> = Promise.resolve();
+
+  setPersisted(next: Partial<PersistedState>): Promise<void> {
+    const save = this.persistQueue.then(async () => {
+      const state = { ...this.persisted, ...next };
+      if (isTauri()) await transport('weixin_state_set', { state });
+      this.persisted = state;
+      this.emit();
+    });
+    // A failed write must keep the previous settings and allow a later retry.
+    this.persistQueue = save.catch(() => undefined);
+    return save;
   }
 
   /** 应用启动时调用：恢复状态与凭据，已绑定则直接进入消息循环。 */
@@ -322,7 +328,10 @@ class WeixinBridge {
       await this.reply(m, '⏳ 上一条还在处理，/stop 可中止');
       return;
     }
-    if (this.persisted.dmPolicy === 'allowlist' && !this.persisted.allowFrom.includes(m.fromUserId)) {
+    if (
+      this.persisted.dmPolicy === 'allowlist' &&
+      !this.persisted.allowFrom.includes(m.fromUserId)
+    ) {
       return; // 白名单外静默丢弃
     }
     rt.busy = true;

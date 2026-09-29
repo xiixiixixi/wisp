@@ -6,6 +6,7 @@ import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
 import { requestAdjacentFile } from '@/lib/file-navigation';
 import type { FileGroup } from '@/lib/utils';
 import * as locale from '@/lib/locale';
+import userEvent from '@testing-library/user-event';
 
 // Mock the drag/drop hooks
 vi.mock('@/hooks/use-draggable', () => ({
@@ -36,10 +37,12 @@ vi.mock('@tauri-apps/api/core', () => ({
   convertFileSrc: vi.fn((path: string) => `asset://localhost/${path}`),
 }));
 
+const virtualRows = vi.hoisted(() => ({ indices: [] as number[] }));
 vi.mock('@tanstack/react-virtual', () => ({
   useVirtualizer: () => ({
     getTotalSize: () => 0,
-    getVirtualItems: () => [],
+    getVirtualItems: () =>
+      virtualRows.indices.map((index) => ({ key: index, index, start: index * 32, size: 32 })),
     scrollToIndex: vi.fn(),
   }),
 }));
@@ -105,7 +108,79 @@ describe('FileGrid', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    virtualRows.indices = [];
   });
+
+  it('keeps one visible keyboard entry when the preferred file is outside the virtual window', async () => {
+    const user = userEvent.setup();
+    const files = Array.from({ length: 220 }, (_, index) => ({
+      ...mockFiles[1],
+      path: `/files/${index}.txt`,
+      name: `${index}.txt`,
+    }));
+    virtualRows.indices = [150, 151, 152];
+    const content = () => (
+      <>
+        <button>Before files</button>
+        <FileGrid
+          {...mockProps}
+          files={files}
+          selectedFiles={new Set([files[0].path])}
+          viewMode="list"
+        />
+        <button>After files</button>
+      </>
+    );
+    const { container, rerender } = render(content());
+    const entries = () =>
+      Array.from(container.querySelectorAll<HTMLElement>('[data-file-path]')).filter(
+        (row) => row.tabIndex === 0,
+      );
+    expect(entries().map((row) => row.dataset.filePath)).toEqual(['/files/150.txt']);
+    screen.getByRole('button', { name: 'Before files' }).focus();
+    await user.tab();
+    expect(entries()[0]).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'After files' })).toHaveFocus();
+    virtualRows.indices = [0, 1, 2];
+    rerender(content());
+    expect(entries().map((row) => row.dataset.filePath)).toEqual(['/files/0.txt']);
+  });
+
+  it.each(['medium', 'details'])(
+    'keeps %s multi-selection at one Tab stop and allows leaving the files',
+    async (viewMode) => {
+      const user = userEvent.setup();
+      const selectedFiles = new Set(mockFiles.map((file) => file.path));
+      const { container, rerender } = render(
+        <>
+          <FileGrid {...mockProps} viewMode={viewMode} selectedFiles={selectedFiles} />
+          <button>After files</button>
+        </>,
+      );
+      const rows = Array.from(container.querySelectorAll<HTMLElement>('[data-file-path]'));
+      expect(rows.filter((row) => row.tabIndex === 0)).toEqual([rows[0]]);
+      act(() => rows[2].focus());
+      expect(rows.filter((row) => row.tabIndex === 0)).toEqual([rows[2]]);
+      await user.tab();
+      expect(screen.getByRole('button', { name: 'After files' })).toHaveFocus();
+      await user.tab({ shift: true });
+      expect(rows[2]).toHaveFocus();
+      rerender(
+        <>
+          <FileGrid
+            {...mockProps}
+            files={mockFiles.slice(0, 2)}
+            viewMode={viewMode}
+            selectedFiles={selectedFiles}
+          />
+          <button>After files</button>
+        </>,
+      );
+      const remaining = Array.from(container.querySelectorAll<HTMLElement>('[data-file-path]'));
+      expect(remaining.filter((row) => row.tabIndex === 0)).toEqual([remaining[0]]);
+    },
+  );
 
   describe('Loading and Empty States', () => {
     it('shows loading state', () => {
@@ -446,22 +521,6 @@ describe('FileGrid', () => {
 
       // Should show loading state
       expect(screen.getByText('Loading...')).toBeInTheDocument();
-    });
-  });
-
-  describe('Accessibility', () => {
-    it('has proper cursor styles for interactive elements', () => {
-      render(<FileGrid {...mockProps} />);
-
-      const fileElements = document.querySelectorAll('[class*="cursor-pointer"]');
-      expect(fileElements.length).toBeGreaterThan(0);
-    });
-
-    it('provides hover states', () => {
-      render(<FileGrid {...mockProps} />);
-
-      const fileElements = document.querySelectorAll('[class*="hover:bg-xp-surface-light"]');
-      expect(fileElements.length).toBeGreaterThan(0);
     });
   });
 
