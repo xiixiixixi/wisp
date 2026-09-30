@@ -20,10 +20,10 @@
     },
     {
       "id": "agent-tools",
-      "title": "读取工具与写入批准",
+      "title": "读取工具与写入记录",
       "path": "agent-tools.png",
       "crop": null,
-      "note": "真实资料读取、目录检查与待批准的写文件请求。"
+      "note": "真实任务完成后的资料读取、目录检查与文件写入记录。"
     },
     {
       "id": "agent-canvas",
