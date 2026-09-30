@@ -1,0 +1,71 @@
+{
+  "port": 5188,
+  "sourceDirectory": "../../images/readme/source",
+  "outputWidth": 1600,
+  "paddingRatio": 0.022,
+  "screenshots": [
+    {
+      "id": "workspace-overview",
+      "title": "工作区总览",
+      "path": "workspace-overview.png",
+      "note": "实际应用截图的连续矩形局部。",
+      "crop": null
+    },
+    {
+      "id": "agent-tools",
+      "title": "读取工具与写入批准",
+      "path": "agent-tools.png",
+      "crop": null,
+      "note": "真实资料读取、目录检查与待批准的写文件请求。"
+    },
+    {
+      "id": "agent-canvas",
+      "title": "文件代理与文档画布",
+      "path": "agent-canvas.png",
+      "note": "实际应用截图的连续矩形局部。",
+      "crop": null
+    },
+    {
+      "id": "skills",
+      "title": "助手技能",
+      "path": "skills.png",
+      "note": "实际应用截图的连续矩形局部。",
+      "crop": null
+    },
+    {
+      "id": "mcp",
+      "title": "工具服务连接",
+      "path": "mcp.png",
+      "note": "实际应用截图的连续矩形局部。",
+      "crop": null
+    },
+    {
+      "id": "wechat",
+      "title": "微信工作设置",
+      "path": "wechat.png",
+      "crop": null,
+      "note": "实际应用截图的连续矩形局部。"
+    },
+    {
+      "id": "chatgpt-bridge",
+      "title": "只读文件桥",
+      "path": "chatgpt-bridge.png",
+      "crop": null,
+      "note": "实际应用截图的连续矩形局部。"
+    },
+    {
+      "id": "memory",
+      "title": "可选云记忆",
+      "path": "memory.png",
+      "crop": null,
+      "note": "实际应用截图的连续矩形局部。"
+    },
+    {
+      "id": "document-preview",
+      "title": "演示文稿的完整页面预览",
+      "path": "document-preview.png",
+      "crop": null,
+      "note": "实际系统预览中的两张完整演示页面。"
+    }
+  ]
+}
