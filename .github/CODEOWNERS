@@ -1,16 +1,16 @@
 # Security-critical files require maintainer review
-.github/workflows/ @kimlimjustin
-apps/src-tauri/src/extensions/signing.rs @kimlimjustin
-apps/src-tauri/tauri.conf.json @kimlimjustin
-apps/src-tauri/Cargo.toml @kimlimjustin
+.github/workflows/ @xiixiixixi
+apps/src-tauri/src/extensions/signing.rs @xiixiixixi
+apps/src-tauri/tauri.conf.json @xiixiixixi
+apps/src-tauri/Cargo.toml @xiixiixixi
 
 # AI agent and security-sensitive operations
-apps/src-tauri/src/agent/ @kimlimjustin
-apps/src-tauri/src/operations/encryption_ops.rs @kimlimjustin
-apps/src-tauri/src/operations/secure_delete_ops.rs @kimlimjustin
+apps/src-tauri/src/agent/ @xiixiixixi
+apps/src-tauri/src/operations/encryption_ops.rs @xiixiixixi
+apps/src-tauri/src/operations/secure_delete_ops.rs @xiixiixixi
 
 # Extension SDK
-packages/extension-sdk/src/ @kimlimjustin
+packages/extension-sdk/src/ @xiixiixixi
 
 # Marketplace
-apps/web/ @kimlimjustin
+apps/web/ @xiixiixixi

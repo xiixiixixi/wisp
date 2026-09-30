@@ -1,25 +1,24 @@
-## Summary
+## 问题与结果
 
-<!-- Brief description of what this PR does and why. -->
+<!-- 说明原有问题、改后行为和修改原因。 -->
 
-## Changes
+## 改动内容
 
-<!-- Bullet list of notable changes. -->
+<!-- 列出影响使用或维护的主要改动。 -->
 
 -
 
-## Test Plan
+## 验证
 
-<!-- How were these changes verified? -->
+<!-- 说明验证方法、实际结果与尚未验证的部分。 -->
 
-- [ ] Manual testing steps described below
-- [ ] New/updated unit tests
-- [ ] New/updated E2E tests
+- [ ] 已说明必要的实际操作检查及结果
+- [ ] 已运行与本次改动有关的测试，或说明不适用的原因
 
-## Checklist
+## 检查清单
 
-- [ ] `npx tsc --noEmit` passes
-- [ ] `pnpm run lint` is clean
-- [ ] Tests pass (`npx vitest run`)
-- [ ] No breaking changes (or documented in Summary)
-- [ ] New strings added to all 4 locale files (if applicable)
+- [ ] 代码改动通过 `pnpm exec tsc --noEmit`
+- [ ] 代码改动通过 `pnpm run lint`
+- [ ] 相关测试通过（使用 `pnpm exec vitest run <测试文件>` 等按范围检查）
+- [ ] 已说明兼容性影响
+- [ ] 新增界面文字已补齐 `en`（英文）和 `zh`（中文）资源，如适用

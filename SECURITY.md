@@ -1,48 +1,27 @@
-# Security Policy
+# 安全问题反馈
 
-## Supported Versions
+请优先使用[最新发布版本](https://github.com/xiixiixixi/wisp/releases/latest)。报告问题时注明应用版本、操作系统和复现条件。
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 0.1.x   | :white_check_mark: |
+## 私下报告漏洞
 
-Only the latest release on the `next` branch receives security updates.
+公开的问题反馈、评论和附件中不要包含漏洞利用步骤、密钥或私人文件。
 
-## Reporting a Vulnerability
+如需报告安全漏洞，请先在[当前仓库的问题反馈入口](https://github.com/xiixiixixi/wisp/issues/new)提交一条题为“请求安全问题的私密联系方式”的请求，只写需要私下联系维护者，不附漏洞细节。维护者提供私密联系方式后，再通过该渠道发送：
 
-**Do not open a public issue for security vulnerabilities.**
+- 问题描述与潜在影响。
+- 应用版本、复现条件和必要步骤。
+- 移除了密钥与私人内容的最小示例。
+- 已知的临时规避方法或修复建议。
 
-Email **kimlimjustin@gmail.com** with:
+## 安全问题范围
 
-- A clear description of the vulnerability
-- Steps to reproduce
-- Potential impact
-- Suggested fix (if any)
+- 扩展访问超出授权范围的接口、文件或数据。
+- 文件名、路径或扩展输入造成的命令注入。
+- 界面脚本注入或本机命令引起的权限提升。
+- 凭据、令牌、私人文件或连接信息泄露。
 
-### Response Timeline
+## 更新与使用
 
-- **48 hours** — initial acknowledgment
-- **7 days** — triage and severity assessment
-- **30 days** — target for a fix or mitigation (critical issues faster)
+安全问题经确认后，在修复版本的发布说明中记录必要信息；避免在修复前公开可利用的细节。
 
-## What Counts as a Security Issue
-
-- Extension sandbox escapes (accessing APIs or data outside granted permissions)
-- File system access beyond what the user has permitted
-- Command injection through file names, paths, or extension inputs
-- Cross-site scripting (XSS) in the webview layer
-- Privilege escalation via Tauri commands
-- Sensitive data exposure (credentials, tokens, file contents leaking to extensions)
-
-## Security Update Process
-
-1. The report is triaged and a severity is assigned (Critical / High / Medium / Low).
-2. A fix is developed on a private branch.
-3. A new patch release is published with a changelog entry describing the issue at a high level.
-4. The reporter is credited (unless they prefer anonymity).
-
-## General Guidance
-
-- Keep your Wisp installation up to date.
-- Review extension permissions before granting access.
-- Do not install extensions from untrusted sources.
+安装更新、检查扩展权限，并只安装可信来源的扩展。

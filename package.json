@@ -11,7 +11,6 @@
     "frontend:dev": "vite dev",
     "frontend:build": "vite build",
     "frontend:preview": "vite preview",
-    "docs": "pnpm --filter docs run start",
     "dev": "concurrently \"pnpm run frontend:dev\" \"pnpm run tauri:dev\" \"pnpm run marketplace:dev\"",
     "dev:app": "concurrently \"pnpm run frontend:dev\" \"pnpm run tauri:dev\"",
     "extensions:build": "node scripts/build-extensions.mjs",

@@ -36,6 +36,7 @@ apps/web/_publish-update.mjs
 .idea
 
 # Test artifacts
+coverage/
 playwright-report/
 test-results/
 e2e/screenshots/
@@ -50,9 +51,39 @@ e2e/screenshots/
 *.bak
 *.swp
 
-CLAUDE.md
+/CLAUDE.md
 .orchestrate/
-apps/src-tauri/shortcuts/
+/apps/src-tauri/shortcuts/
 packages/extensions/*/native/target/
 *.dylib
-docs/
+/docs/
+
+# Local design plans, reviews and tool settings
+/.impeccable/
+/.local-artifacts/
+/.zcodeignore
+/design-qa*
+/DESIGN.md
+/DESIGN-SYSTEM.md
+/PRODUCT.md
+/I18N_COVERAGE.md
+/CHANGELOG.md
+/apps/src-tauri/icons/concepts/
+/apps/web/public/screenshots/CAPTURE_GUIDE.md
+
+# Generated development state and copied dependency assets
+/apps/src-tauri/data/
+/apps/client/public/pdf.worker.min.*
+package-lock.json
+
+# Superseded homepage artwork
+/images/demo*.png
+/images/wisp*.png
+
+# Retired, local-only migration helpers
+/scripts/audit-anthropic-ui.js
+/scripts/audit-contrast.js
+/scripts/figma-extract-tokens.mjs
+/scripts/flatten-glass-css.py
+/scripts/wait-for-db.mjs
+/scripts/warm-cool-colors.py

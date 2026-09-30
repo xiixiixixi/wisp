@@ -371,8 +371,6 @@ pnpm build
 界面与本机功能分别在 `apps/client/` 和 `apps/src-tauri/`，扩展接口见 `packages/extension-sdk/`。
 
 ```bash
-# 需要开发上游扩展时拉取子模块
-git submodule update --init packages/extensions
 # 生成扩展项目、构建或监听变化
 node packages/create-extension/bin/index.js my-extension
 pnpm extensions:build
@@ -387,5 +385,5 @@ pnpm extensions:dev
 ## 上游与许可
 
 Wisp 基于 [Xplorer（上游文件管理器）](https://github.com/kimlimjustin/xplorer) 分支开发，上游由 Justin Maximillian Kimlim（上游作者）及贡献者创建。
-扩展子模块来自 [xplorer-extensions（上游扩展仓库）](https://github.com/kimlimjustin/xplorer-extensions)。
+扩展代码来自 [xplorer-extensions（上游扩展仓库）](https://github.com/kimlimjustin/xplorer-extensions)，已随当前仓库维护。
 主项目遵循 [AGPL-3.0（开源许可证）](LICENSE)，各包与第三方依赖保留相应许可和作者声明。
