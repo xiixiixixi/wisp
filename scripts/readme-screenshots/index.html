@@ -20,6 +20,9 @@
     :focus-visible { outline: 2px solid #1c6ac9; outline-offset: 3px; }
     #source-note { margin: 12px 0 0; font-size: 13px; }
     .composition { width: 100%; padding: 2.2%; overflow: hidden; background: var(--slate); border-radius: 0; }
+    .composition[data-layout="side-by-side"] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--composition-gap, 1.6%); }
+    .composition[data-background="cool-gray"] { background: #e7edf3; }
+    .composition[data-background="cool-gray"] .screenshot-frame { box-shadow: 0 7px 20px rgba(28, 47, 67, .17), 0 1px 4px rgba(28, 47, 67, .11); }
     .screenshot-frame { position: relative; width: 100%; margin: 0; padding: 0; overflow: hidden; border-radius: 0; background: transparent; box-shadow: 0 12px 30px rgba(3, 12, 25, .28), 0 1px 4px rgba(3, 12, 25, .2); }
     .screenshot-frame img { display: block; width: 100%; height: auto; max-width: none; border: 0; border-radius: 0; filter: none; }
     .screenshot-frame[data-cropped="true"] img { position: absolute; top: 0; left: 0; height: auto; }
@@ -35,7 +38,7 @@
 <body>
   <header class="preview-header">
     <h1>真实截图排版</h1>
-    <p>深石板蓝实体背景。原图只做连续矩形裁切和等比例显示，成图没有文字、圆圈或渐变。</p>
+    <p>主图并排展示真实浅色与深色截图；其他功能图保留单张矩形画面。成图没有文字、圆圈或渐变。</p>
     <div class="preview-controls">
       <label for="screenshot-selector">截图</label>
       <select id="screenshot-selector"></select>
@@ -53,7 +56,7 @@
     const config = JSON.parse(document.getElementById('page-config').textContent);
     const params = new URLSearchParams(location.search);
     const captureMatch = location.pathname.match(/^\/capture\/([a-z0-9-]+)\/slate$/);
-    const configured = config.screenshots.filter(shot => shot.path);
+    const configured = config.screenshots.filter(shot => shot.path || shot.images?.length);
     const assetId = captureMatch?.[1] || params.get('asset') || configured[0]?.id;
     const selected = configured.find(shot => shot.id === assetId);
     const selector = document.getElementById('screenshot-selector');
@@ -78,33 +81,49 @@
       document.documentElement.style.setProperty('--capture-width', outputWidth + 'px');
       document.documentElement.style.setProperty('--capture-padding', padding + 'px');
       const composition = document.querySelector('.composition');
+      composition.dataset.background = selected.background || 'slate';
+      if (selected.layout === 'side-by-side') {
+        composition.dataset.layout = 'side-by-side';
+        composition.style.setProperty('--composition-gap', ((selected.gapRatio ?? .016) * 100) + '%');
+      }
       if (captureMatch) {
         document.body.classList.add('capture');
         document.title = selected.title + ' · 真实截图';
       } else {
         composition.style.padding = (paddingRatio * 100) + '%';
       }
-      const frame = composition.querySelector('.screenshot-frame');
-      const img = frame.querySelector('img');
-      img.alt = selected.title + '，真实应用截图';
-      img.onload = async () => {
-        try {
-          const crop = selected.crop;
-          if (crop) {
-            if (crop.x + crop.width > img.naturalWidth || crop.y + crop.height > img.naturalHeight) throw new Error('裁切坐标超出了真实截图范围。');
-            frame.dataset.cropped = 'true';
-            frame.style.aspectRatio = crop.width + ' / ' + crop.height;
-            img.style.width = (img.naturalWidth / crop.width * 100) + '%';
-            img.style.left = (-crop.x / crop.width * 100) + '%';
-            img.style.top = (-crop.y / crop.height * 100) + '%';
-          }
-          await document.fonts.ready;
-          window.__WISP_CAPTURE_SIZE__ = { width: composition.offsetWidth, height: composition.offsetHeight };
-          window.__WISP_CAPTURE_READY__ = true;
-        } catch (error) { fail(error); }
-      };
-      img.onerror = () => fail(new Error('截图加载失败，请检查配置路径。'));
-      img.src = '/media/' + selected.id + '?t=' + Date.now();
+      composition.replaceChildren();
+      const imageSources = selected.images || [selected];
+      const loadedImages = imageSources.map((source, index) => new Promise((resolve, reject) => {
+        const frame = document.createElement('figure');
+        frame.className = 'screenshot-frame';
+        const img = document.createElement('img');
+        img.alt = (source.title || selected.title) + '，真实应用截图';
+        img.decoding = 'sync';
+        frame.append(img);
+        composition.append(frame);
+        img.onload = () => {
+          try {
+            const crop = source.crop;
+            if (crop) {
+              if (crop.x + crop.width > img.naturalWidth || crop.y + crop.height > img.naturalHeight) throw new Error('裁切坐标超出了真实截图范围。');
+              frame.dataset.cropped = 'true';
+              frame.style.aspectRatio = crop.width + ' / ' + crop.height;
+              img.style.width = (img.naturalWidth / crop.width * 100) + '%';
+              img.style.left = (-crop.x / crop.width * 100) + '%';
+              img.style.top = (-crop.y / crop.height * 100) + '%';
+            }
+            resolve();
+          } catch (error) { reject(error); }
+        };
+        img.onerror = () => reject(new Error('截图加载失败，请检查配置路径。'));
+        img.src = '/media/' + selected.id + (selected.images ? '/' + index : '') + '?t=' + Date.now();
+      }));
+      Promise.all(loadedImages).then(async () => {
+        await document.fonts.ready;
+        window.__WISP_CAPTURE_SIZE__ = { width: composition.offsetWidth, height: composition.offsetHeight };
+        window.__WISP_CAPTURE_READY__ = true;
+      }).catch(fail);
     }
   </script>
 </body>

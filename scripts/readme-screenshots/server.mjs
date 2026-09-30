@@ -35,6 +35,8 @@ function dimensions(data) {
 function validWidth(value) { return Number.isInteger(value) && value >= 600 && value <= 6000; }
 function validPadding(value) { return typeof value === 'number' && value >= .01 && value <= .08; }
 
+function sources(shot) { return shot.images || (shot.path ? [shot] : []); }
+
 async function readConfig(configPath, sourceOverride) {
   const config = JSON.parse(await readFile(configPath, 'utf8'));
   config.outputWidth ??= 1600;
@@ -49,18 +51,26 @@ async function readConfig(configPath, sourceOverride) {
     ids.add(shot.id);
     if (shot.outputWidth !== undefined && !validWidth(shot.outputWidth)) throw new Error(`${shot.id} 的成图宽度无效。`);
     if (shot.paddingRatio !== undefined && !validPadding(shot.paddingRatio)) throw new Error(`${shot.id} 的留白比例无效。`);
-    if (shot.crop && (!['x', 'y', 'width', 'height'].every(key => Number.isInteger(shot.crop[key])) || shot.crop.x < 0 || shot.crop.y < 0 || shot.crop.width <= 0 || shot.crop.height <= 0)) throw new Error(`${shot.id} 的裁切坐标必须是原图像素的有效整数。`);
-    if (shot.path) {
-      shot.path = resolve(sourceDirectory, shot.path);
-      if (!types[extname(shot.path).toLowerCase()]) throw new Error('请使用截图的 PNG（无损图片）或 JPEG（照片图片）格式。');
+    if (shot.gapRatio !== undefined && !(typeof shot.gapRatio === 'number' && shot.gapRatio >= .005 && shot.gapRatio <= .05)) throw new Error(`${shot.id} 的图片间距比例无效。`);
+    if (shot.background !== undefined && !['slate', 'cool-gray'].includes(shot.background)) throw new Error(`${shot.id} 的背景无效。`);
+    if (shot.images && (shot.layout !== 'side-by-side' || !Array.isArray(shot.images) || shot.images.length !== 2 || shot.images.some(image => !image.path))) throw new Error(`${shot.id} 的双主题图需要两份真实截图。`);
+    if (shot.layout === 'side-by-side' && !shot.images) throw new Error(`${shot.id} 的双主题图缺少截图配置。`);
+    for (const image of sources(shot)) {
+      if (image.crop && (!['x', 'y', 'width', 'height'].every(key => Number.isInteger(image.crop[key])) || image.crop.x < 0 || image.crop.y < 0 || image.crop.width <= 0 || image.crop.height <= 0)) throw new Error(`${shot.id} 的裁切坐标必须是原图像素的有效整数。`);
+      image.path = resolve(sourceDirectory, image.path);
+      if (!types[extname(image.path).toLowerCase()]) throw new Error('请使用截图的 PNG（无损图片）或 JPEG（照片图片）格式。');
       let info;
-      try { info = await stat(shot.path); } catch (error) {
-        if (error.code === 'ENOENT') throw new Error(`未找到截图：${shot.path}\n调试时可用 --source-dir 指向实际截图目录。`);
+      try { info = await stat(image.path); } catch (error) {
+        if (error.code === 'ENOENT') throw new Error(`未找到截图：${image.path}\n调试时可用 --source-dir 指向实际截图目录。`);
         throw error;
       }
-      if (!info.isFile()) throw new Error(`截图路径不是文件：${shot.path}`);
-      shot.size = dimensions(await readFile(shot.path));
-      if (shot.crop && (shot.crop.x + shot.crop.width > shot.size.width || shot.crop.y + shot.crop.height > shot.size.height)) throw new Error(`${shot.id} 的裁切超出原图 ${shot.size.width} × ${shot.size.height} 范围。`);
+      if (!info.isFile()) throw new Error(`截图路径不是文件：${image.path}`);
+      image.size = dimensions(await readFile(image.path));
+      if (image.crop && (image.crop.x + image.crop.width > image.size.width || image.crop.y + image.crop.height > image.size.height)) throw new Error(`${shot.id} 的裁切超出原图 ${image.size.width} × ${image.size.height} 范围。`);
+    }
+    if (shot.images) {
+      const [left, right] = shot.images.map(image => image.crop || image.size);
+      if (left.width * right.height !== right.width * left.height) throw new Error(`${shot.id} 的两张截图比例不同，请使用相同构图或真实矩形裁切。`);
     }
   }
   return config;
@@ -74,7 +84,9 @@ try {
     const sourceOverride = argument('--source-dir', null);
     const initialConfig = await readConfig(configPath, sourceOverride);
     if (args.includes('--check')) {
-      for (const shot of initialConfig.screenshots.filter(item => item.path)) process.stdout.write(`${shot.id}：原图 ${shot.size.width} × ${shot.size.height}，裁切 ${shot.crop ? `${shot.crop.width} × ${shot.crop.height}` : '完整原图'}，配置有效。\n`);
+      for (const shot of initialConfig.screenshots.filter(item => sources(item).length)) {
+        for (const [index, image] of sources(shot).entries()) process.stdout.write(`${shot.id}${shot.images ? `，第 ${index + 1} 张` : ''}：原图 ${image.size.width} × ${image.size.height}，裁切 ${image.crop ? `${image.crop.width} × ${image.crop.height}` : '完整原图'}，配置有效。\n`);
+      }
     } else {
       const port = Number(argument('--port', initialConfig.port ?? 5187));
       if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('端口无效。');
@@ -85,7 +97,7 @@ try {
           const config = await readConfig(configPath, sourceOverride);
           const captureMatch = url.pathname.match(/^\/capture\/([a-z0-9-]+)\/slate$/);
           if (url.pathname === '/' || url.pathname === '/index.html' || captureMatch) {
-            if (captureMatch && !config.screenshots.some(shot => shot.id === captureMatch[1] && shot.path)) {
+            if (captureMatch && !config.screenshots.some(shot => shot.id === captureMatch[1] && sources(shot).length)) {
               response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); response.end('此截图尚未配置。'); return;
             }
             if (url.searchParams.has('width') && !validWidth(Number(url.searchParams.get('width')))) {
@@ -96,12 +108,13 @@ try {
             response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
             response.end(template.replace('__CONFIG__', safeConfig)); return;
           }
-          const mediaMatch = url.pathname.match(/^\/media\/([a-z0-9-]+)$/);
+          const mediaMatch = url.pathname.match(/^\/media\/([a-z0-9-]+)(?:\/(\d+))?$/);
           if (mediaMatch) {
-            const shot = config.screenshots.find(item => item.id === mediaMatch[1] && item.path);
-            if (shot) {
-              const image = await readFile(shot.path);
-              response.writeHead(200, { 'Content-Type': types[extname(shot.path).toLowerCase()] }); response.end(image); return;
+            const shot = config.screenshots.find(item => item.id === mediaMatch[1]);
+            const source = shot?.images ? shot.images[Number(mediaMatch[2] ?? 0)] : shot?.path && mediaMatch[2] === undefined ? shot : null;
+            if (source) {
+              const image = await readFile(source.path);
+              response.writeHead(200, { 'Content-Type': types[extname(source.path).toLowerCase()] }); response.end(image); return;
             }
           }
           response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); response.end('未找到页面或截图。');

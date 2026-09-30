@@ -6,10 +6,17 @@
   "screenshots": [
     {
       "id": "workspace-overview",
-      "title": "工作区总览",
-      "path": "workspace-overview.png",
-      "note": "实际应用截图的连续矩形局部。",
-      "crop": null
+      "title": "浅色与深色文件浏览",
+      "layout": "side-by-side",
+      "background": "cool-gray",
+      "outputWidth": 2400,
+      "paddingRatio": 0.014,
+      "gapRatio": 0.016,
+      "note": "同一公开示例目录的真实浅色与深色界面，保留正常左导航栏和单一文件目录。",
+      "images": [
+        { "path": "browser-light.png", "title": "浅色主题", "crop": null },
+        { "path": "browser-dark.png", "title": "深色主题", "crop": null }
+      ]
     },
     {
       "id": "agent-tools",
