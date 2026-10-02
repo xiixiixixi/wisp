@@ -171,7 +171,6 @@ export const useLayoutState = (): LayoutState => {
     clampToWindow();
     window.addEventListener('resize', clampToWindow);
     return () => window.removeEventListener('resize', clampToWindow);
-     
   }, []);
   const handleBottomResize = useCallback((delta: number) => {
     setBottomPanelHeight((h) => Math.min(500, Math.max(120, h - delta)));

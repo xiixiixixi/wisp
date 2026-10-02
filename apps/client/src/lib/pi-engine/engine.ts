@@ -248,8 +248,9 @@ export class PiEngine {
         const inner = (event as { assistantMessageEvent?: { type: string; delta?: string } })
           .assistantMessageEvent;
         if (inner?.type === 'text_delta' && inner.delta) opts.callbacks.onTextDelta(inner.delta);
-        if (inner?.type === 'thinking_delta' && inner.delta)
-          {opts.callbacks.onThinkingDelta(inner.delta);}
+        if (inner?.type === 'thinking_delta' && inner.delta) {
+          opts.callbacks.onThinkingDelta(inner.delta);
+        }
       }
     });
 
