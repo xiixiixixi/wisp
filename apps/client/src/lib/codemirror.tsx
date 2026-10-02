@@ -17,8 +17,14 @@ import {
   highlightActiveLineGutter,
   lineNumbers,
 } from '@codemirror/view';
-import { EditorState, Compartment, type Extension } from '@codemirror/state';
-import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+import {
+  Annotation,
+  EditorState,
+  Compartment,
+  Transaction,
+  type Extension,
+} from '@codemirror/state';
+import { defaultKeymap, history, historyField, historyKeymap } from '@codemirror/commands';
 import {
   foldGutter,
   foldKeymap,
@@ -32,6 +38,9 @@ import { highlightSelectionMatches, searchKeymap } from '@codemirror/search';
 import { tags as t } from '@lezer/highlight';
 import { languages } from '@codemirror/language-data';
 import '@/styles/code-preview.css';
+
+const externalDocSync = Annotation.define<boolean>();
+const emptyHistory = EditorState.create({ extensions: history() }).field(historyField);
 
 /** Stable semantic classes work with both Lezer and legacy stream grammars. */
 export const wispHighlightStyle = HighlightStyle.define([
@@ -231,6 +240,7 @@ export function WispCodeMirror({
   const saveComp = useRef(new Compartment());
   const labelComp = useRef(new Compartment());
   const wrapComp = useRef(new Compartment());
+  const historyResetComp = useRef(new Compartment());
   const onSaveRef = useRef(onSave);
   onSaveRef.current = onSave;
   const onDocChangedRef = useRef(onDocChanged);
@@ -246,6 +256,7 @@ export function WispCodeMirror({
         doc,
         extensions: [
           ...baseExtensions(),
+          historyResetComp.current.of([]),
           langComp.current.of([]),
           roComp.current.of(readonlyExtensions(readOnly)),
           wrapComp.current.of(lineWrapping ? EditorView.lineWrapping : []),
@@ -262,7 +273,13 @@ export function WispCodeMirror({
             ]),
           ),
           EditorView.updateListener.of((update) => {
-            if (update.docChanged) onDocChangedRef.current?.();
+            if (
+              update.transactions.some(
+                (transaction) => transaction.docChanged && !transaction.annotation(externalDocSync),
+              )
+            ) {
+              onDocChangedRef.current?.();
+            }
           }),
           labelComp.current.of(
             EditorView.contentAttributes.of({ 'aria-label': ariaLabel ?? '代码内容' }),
@@ -287,7 +304,12 @@ export function WispCodeMirror({
     if (!view) return;
     const current = view.state.doc.toString();
     if (doc !== current) {
-      view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: doc } });
+      // Disk replacement starts a new baseline; old undo/redo edits cannot cross it.
+      view.dispatch({
+        changes: { from: 0, to: view.state.doc.length, insert: doc },
+        annotations: [externalDocSync.of(true), Transaction.addToHistory.of(false)],
+        effects: historyResetComp.current.reconfigure(historyField.init(() => emptyHistory)),
+      });
     }
   }, [doc]);
 

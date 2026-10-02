@@ -13,6 +13,7 @@ import PreviewUnavailable, {
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useTranslation } from 'react-i18next';
 import { requestAdjacentFile } from '@/lib/file-navigation';
+import { FILE_CONTENT_CHANGED_EVENT } from '@/lib/file-change-events';
 
 // Module-level cache for preview components by file type, avoiding redundant dynamic imports
 const previewComponentCache = new Map<PreviewType, React.ComponentType<PreviewProps>>();
@@ -421,6 +422,18 @@ const PreviewPanel = ({
   // Lazy preview: debounce the selected file so quick navigation skips heavy loads
   const [confirmedFile, setConfirmedFile] = useState<FileEntry | null>(selectedFile);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const confirmedPath = confirmedFile?.path;
+  const [contentRevision, setContentRevision] = useState(0);
+
+  useEffect(() => {
+    const refreshContent = (event: Event) => {
+      if ((event as CustomEvent<{ path?: string }>).detail?.path === selectedFile?.path) {
+        setContentRevision((revision) => revision + 1);
+      }
+    };
+    window.addEventListener(FILE_CONTENT_CHANGED_EVENT, refreshContent);
+    return () => window.removeEventListener(FILE_CONTENT_CHANGED_EVENT, refreshContent);
+  }, [selectedFile?.path]);
 
   useEffect(() => {
     // Clear any pending timer when selectedFile changes
@@ -435,8 +448,9 @@ const PreviewPanel = ({
       return;
     }
 
-    // If the confirmed file is already the same path, no need to debounce
-    if (confirmedFile && confirmedFile.path === selectedFile.path) {
+    // Refresh same-path edits immediately; debounce only a new selection.
+    if (confirmedPath === selectedFile.path) {
+      setConfirmedFile(selectedFile);
       return;
     }
 
@@ -452,9 +466,7 @@ const PreviewPanel = ({
         debounceTimerRef.current = null;
       }
     };
-    // Debounce only on path change; confirmedFile check is a guard inside the effect
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFile?.path]);
+  }, [selectedFile, confirmedPath]);
 
   // Whether we are in the debounce waiting period (selected != confirmed)
   const isDebouncing =
@@ -500,6 +512,11 @@ const PreviewPanel = ({
   // confirmedFile for the heavy preview content area (debounced).
   const previewFile = isDebouncing ? null : confirmedFile;
   const category = defaultPreviewFactory.getFileType(selectedFile);
+  // Reload document renderers without resetting editable text drafts.
+  const previewKey =
+    previewFile && ['pdf', 'document', 'quicklook', 'iwork'].includes(category)
+      ? JSON.stringify([previewFile.path, previewFile.modified, previewFile.size, contentRevision])
+      : previewFile?.path;
 
   return (
     <div
@@ -532,7 +549,7 @@ const PreviewPanel = ({
             return (
               <div className="h-full">
                 <EnhancedFilePreview
-                  key={previewFile.path}
+                  key={previewKey}
                   file={previewFile}
                   category={category}
                   currentPath={currentPath}

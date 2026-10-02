@@ -1,10 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useState } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import PreviewPanel from '@/components/panels/PreviewPanel';
 import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
 import i18n from '@/i18n';
 import { requestAdjacentFile } from '@/lib/file-navigation';
+import { defaultPreviewFactory } from '@/lib/preview-factory';
+import { FILE_CONTENT_CHANGED_EVENT } from '@/lib/file-change-events';
 
 vi.mock('@/lib/file-navigation', () => ({
   requestAdjacentFile: vi.fn(() => null),
@@ -495,6 +498,123 @@ describe('PreviewPanel', () => {
         'data-file-preview',
         newFile.path,
       );
+    });
+
+    it('refreshes preview metadata when the selected file is modified at the same path', async () => {
+      const file: FileEntry = {
+        ...mockFile,
+        name: 'metadata-refresh.pdf',
+        path: '/fixtures/metadata-refresh.pdf',
+        modified: 1000,
+        file_type: 'pdf',
+      };
+      let mountCount = 0;
+      const MockPreview = ({ file: previewFile }: { file: FileEntry }) => {
+        const [instance] = useState(() => ++mountCount);
+        return (
+          <div
+            data-testid="version-preview"
+            data-modified={previewFile.modified}
+            data-size={previewFile.size}
+            data-instance={instance}
+          />
+        );
+      };
+      vi.mocked(defaultPreviewFactory.canPreview).mockReturnValue(true);
+      vi.mocked(defaultPreviewFactory.getPreviewComponent).mockResolvedValue(MockPreview);
+
+      try {
+        const { rerender } = render(<PreviewPanel {...mockProps} selectedFile={file} />);
+        expect(await screen.findByTestId('version-preview')).toHaveAttribute(
+          'data-modified',
+          '1000',
+        );
+        expect(screen.getByTestId('version-preview')).toHaveAttribute('data-size', '1024');
+
+        const updatedFile: FileEntry = { ...file, modified: 2000, size: 2048 };
+        rerender(<PreviewPanel {...mockProps} selectedFile={updatedFile} />);
+
+        expect(screen.getByRole('button', { name: 'Show file properties' })).toHaveTextContent(
+          '2048 B',
+        );
+        await waitFor(() =>
+          expect(screen.getByTestId('version-preview')).toHaveAttribute('data-modified', '2000'),
+        );
+        expect(screen.getByTestId('version-preview')).toHaveAttribute('data-size', '2048');
+        const previousInstance = screen
+          .getByTestId('version-preview')
+          .getAttribute('data-instance');
+        fireEvent(
+          window,
+          new CustomEvent(FILE_CONTENT_CHANGED_EVENT, { detail: { path: '/other.pdf' } }),
+        );
+        expect(screen.getByTestId('version-preview')).toHaveAttribute(
+          'data-instance',
+          previousInstance,
+        );
+        fireEvent(
+          window,
+          new CustomEvent(FILE_CONTENT_CHANGED_EVENT, { detail: { path: file.path } }),
+        );
+        await waitFor(() =>
+          expect(screen.getByTestId('version-preview').getAttribute('data-instance')).not.toBe(
+            previousInstance,
+          ),
+        );
+      } finally {
+        vi.mocked(defaultPreviewFactory.canPreview).mockReturnValue(false);
+        vi.mocked(defaultPreviewFactory.getPreviewComponent).mockResolvedValue(null);
+      }
+    });
+
+    it('preserves unsaved text preview state when same-path metadata changes', async () => {
+      const file: FileEntry = {
+        ...mockFile,
+        name: 'metadata-draft.txt',
+        path: '/fixtures/metadata-draft.txt',
+        modified: 1000,
+      };
+      const MockEditablePreview = ({ file: previewFile }: { file: FileEntry }) => {
+        const [draft, setDraft] = useState('Original content');
+        return (
+          <input
+            aria-label="Preview draft"
+            data-preview-editing="true"
+            data-modified={previewFile.modified}
+            data-size={previewFile.size}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+          />
+        );
+      };
+      vi.mocked(defaultPreviewFactory.canPreview).mockReturnValue(true);
+      vi.mocked(defaultPreviewFactory.getPreviewComponent).mockResolvedValue(MockEditablePreview);
+
+      try {
+        const { rerender } = render(<PreviewPanel {...mockProps} selectedFile={file} />);
+        const editor = await screen.findByRole('textbox', { name: 'Preview draft' });
+        fireEvent.change(editor, { target: { value: 'Unsaved draft' } });
+        expect(editor).toHaveValue('Unsaved draft');
+
+        const updatedFile: FileEntry = { ...file, modified: 2000, size: 2048 };
+        rerender(<PreviewPanel {...mockProps} selectedFile={updatedFile} />);
+
+        await waitFor(() => {
+          const currentEditor = screen.getByRole('textbox', { name: 'Preview draft' });
+          expect(currentEditor).toHaveAttribute('data-modified', '2000');
+          expect(currentEditor).toHaveAttribute('data-size', '2048');
+          expect(currentEditor).toHaveValue('Unsaved draft');
+        });
+        fireEvent(
+          window,
+          new CustomEvent(FILE_CONTENT_CHANGED_EVENT, { detail: { path: file.path } }),
+        );
+        expect(screen.getByRole('textbox', { name: 'Preview draft' })).toBe(editor);
+        expect(editor).toHaveValue('Unsaved draft');
+      } finally {
+        vi.mocked(defaultPreviewFactory.canPreview).mockReturnValue(false);
+        vi.mocked(defaultPreviewFactory.getPreviewComponent).mockResolvedValue(null);
+      }
     });
   });
 });

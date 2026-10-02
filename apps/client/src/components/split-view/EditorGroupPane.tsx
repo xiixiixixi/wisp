@@ -23,6 +23,9 @@ import { useFolderViewSettings } from '@/hooks/use-folder-view-settings';
 import { getDemoDirectory, isBrowserDemoMode } from '@/lib/browser-demo-files';
 import { ancestorPaths } from '@/lib/path-ancestry';
 import { useRecentDirectory } from '@/hooks/use-recent-directory';
+import { useDirectoryWatch } from '@/hooks/use-directory-watch';
+import { dispatchFileContentChanged } from '@/lib/file-change-events';
+import { parentDirectory } from '@/lib/recent-entry-actions';
 import { useSpringLoadedFolder } from '@/hooks/use-spring-loaded-folder';
 import { invoke } from '@tauri-apps/api/core';
 import { isTauri } from '@/lib/transport';
@@ -254,6 +257,15 @@ const EditorGroupPane = ({
   // Web tabs render a live page in a native child webview — no fs querying.
   const isWebPath = /^https?:\/\//i.test(currentPath);
   const isNativeWebPath = isWebPath && isTauri();
+  const isRealDirPath =
+    activeTab?.type !== 'editor' &&
+    !isWebPath &&
+    !currentPath.startsWith('wisp://') &&
+    !currentPath.startsWith('gdrive://') &&
+    !currentPath.startsWith('ssh://') &&
+    !currentPath.startsWith('comparison://') &&
+    !currentPath.startsWith('collection://') &&
+    !isBrowserDemoMode();
   const navigateWebHistory = (direction: 'back' | 'forward') => {
     if (!activeTab) return;
     void invoke('web_tab_history', { id: activeTab.id, direction }).catch((error) => {
@@ -313,6 +325,8 @@ const EditorGroupPane = ({
     // instant without hiding external changes for long. Watchers and explicit
     // file-operation events still refetch immediately.
     staleTime: 5_000,
+    // Native notifications are primary; periodic reads recover missed events.
+    refetchInterval: isRealDirPath ? 5_000 : false,
     enabled:
       activeTab?.type !== 'editor' &&
       currentPath !== 'wisp://home' &&
@@ -431,66 +445,21 @@ const EditorGroupPane = ({
   // changes — editor saves, agent CLI writes, deletions — refresh the listing,
   // and a deleted current folder navigates to a surviving ancestor instead of
   // showing stale contents.
-  const isRealDirPath =
-    activeTab?.type !== 'editor' &&
-    !isWebPath &&
-    !currentPath.startsWith('wisp://') &&
-    !currentPath.startsWith('gdrive://') &&
-    !currentPath.startsWith('ssh://') &&
-    !currentPath.startsWith('comparison://') &&
-    !currentPath.startsWith('collection://') &&
-    !isBrowserDemoMode();
-  const navigateToSurvivingAncestorRef = useRef(navigateToSurvivingAncestor);
-  navigateToSurvivingAncestorRef.current = navigateToSurvivingAncestor;
-  useEffect(() => {
-    if (!isRealDirPath) return;
-    let disposed = false;
-    let watcherId: string | null = null;
-    let unlisten: (() => void) | undefined;
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-
-    const scheduleRefetch = () => {
-      // Trailing debounce: always re-read after the last event settles, so a
-      // burst of writes can never leave the listing half-applied.
-      if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        debounceTimer = null;
-        void refetch();
-      }, 400);
-    };
-
-    (async () => {
-      try {
-        // Listen before watching so no event can slip through the gap between
-        // registering the watcher and registering the listener.
-        unlisten = await TauriAPI.listenToEvent<{
-          watcher_id: string;
-          path: string;
-          event_type: string;
-        }>('fs-change', (event) => {
-          if (!watcherId || event.watcher_id !== watcherId) return;
-          if (event.event_type === 'file-deleted' && event.path === currentPath) {
-            void navigateToSurvivingAncestorRef.current();
-            return;
-          }
-          scheduleRefetch();
-        });
-        if (disposed) return;
-        watcherId = await TauriAPI.watchDirectory(currentPath, false);
-      } catch (err) {
-        console.warn('[pane] Failed to watch directory:', err);
+  useDirectoryWatch({
+    path: currentPath,
+    enabled: isRealDirPath,
+    onChange: () => void refetch(),
+    onReconcile: () => {
+      if (!isActive || !_selectedFile || _selectedFile.is_dir) return;
+      const inCurrentDirectory =
+        parentDirectory(_selectedFile.path).replace(/[/\\]+$/, '') ===
+        currentPath.replace(/[/\\]+$/, '');
+      if (inCurrentDirectory || files.some((file) => file.path === _selectedFile.path)) {
+        dispatchFileContentChanged(_selectedFile.path);
       }
-    })();
-
-    return () => {
-      disposed = true;
-      if (debounceTimer) clearTimeout(debounceTimer);
-      unlisten?.();
-      if (watcherId) {
-        TauriAPI.unwatchDirectory(watcherId).catch(() => undefined);
-      }
-    };
-  }, [isRealDirPath, currentPath, refetch]);
+    },
+    onDirectoryRemoved: () => void navigateToSurvivingAncestor(),
+  });
 
   // Per-pane "go up a level" for the navigation bar next to the breadcrumbs —
   // scoped to THIS pane's path, not the active group's.

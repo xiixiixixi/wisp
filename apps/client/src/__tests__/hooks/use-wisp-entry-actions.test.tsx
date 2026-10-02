@@ -56,6 +56,78 @@ const dependencies = (currentPath: string, files: FileEntry[] = []) =>
 beforeEach(() => vi.clearAllMocks());
 
 describe('shared inspector preview integration', () => {
+  it('updates the selected preview metadata when its directory refreshes', () => {
+    const deps = dependencies('/', [file]);
+    const updatedFile = { ...file, size: 48, modified: 2 };
+    const nextRefetch = vi.fn();
+    const { result } = renderHook(() => {
+      const [selectedFile, setSelectedFile] = useState<FileEntry | null>(file);
+      const [paneFiles, setPaneFiles] = useState([file]);
+      const actions = useWispActions({ ...deps, setSelectedFile, setPaneFiles });
+      return { actions, selectedFile, paneFiles };
+    });
+
+    act(() => result.current.actions.sharedActions.onFilesChange?.([updatedFile], nextRefetch));
+
+    expect(result.current.paneFiles).toEqual([updatedFile]);
+    expect(result.current.selectedFile).toBe(updatedFile);
+    expect(deps.paneRefetchRef.current).toBe(nextRefetch);
+    expect(deps.setSelectedFiles).not.toHaveBeenCalled();
+  });
+
+  it('does not replace the current preview with a same-named file from another pane', () => {
+    const deps = dependencies('/Main', [file]);
+    const selected = { ...file, path: '/Main/notes.txt' };
+    const otherPaneFile = { ...file, path: '/Other/notes.txt', size: 60, modified: 3 };
+    const { result } = renderHook(() => {
+      const [selectedFile, setSelectedFile] = useState<FileEntry | null>(selected);
+      const [, setPaneFiles] = useState<FileEntry[]>([]);
+      const actions = useWispActions({ ...deps, setSelectedFile, setPaneFiles });
+      return { actions, selectedFile };
+    });
+
+    act(() => result.current.actions.sharedActions.onFilesChange?.([otherPaneFile], vi.fn()));
+
+    expect(result.current.selectedFile).toBe(selected);
+    expect(deps.setSelectedFiles).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { label: 'empty', files: [] },
+    { label: 'unrelated', files: [{ ...file, path: '/other.txt', name: 'other.txt' }] },
+  ])(
+    'preserves a preview not included in the refreshed directory ($label)',
+    ({ files: directoryFiles }) => {
+      const deps = dependencies('/Projects');
+      const { result } = renderHook(() => {
+        const [selectedFile, setSelectedFile] = useState<FileEntry | null>(file);
+        const [, setPaneFiles] = useState<FileEntry[]>([]);
+        const actions = useWispActions({ ...deps, setSelectedFile, setPaneFiles });
+        return { actions, selectedFile };
+      });
+
+      act(() => result.current.actions.sharedActions.onFilesChange?.(directoryFiles, vi.fn()));
+
+      expect(result.current.selectedFile).toBe(file);
+      expect(deps.setSelectedFiles).not.toHaveBeenCalled();
+    },
+  );
+
+  it('does not select a preview merely because a directory refresh finishes', () => {
+    const deps = dependencies('/');
+    const { result } = renderHook(() => {
+      const [selectedFile, setSelectedFile] = useState<FileEntry | null>(null);
+      const [, setPaneFiles] = useState<FileEntry[]>([]);
+      const actions = useWispActions({ ...deps, setSelectedFile, setPaneFiles });
+      return { actions, selectedFile };
+    });
+
+    act(() => result.current.actions.sharedActions.onFilesChange?.([file], vi.fn()));
+
+    expect(result.current.selectedFile).toBeNull();
+    expect(deps.setSelectedFiles).not.toHaveBeenCalled();
+  });
+
   it('keeps toolbar and home previews open while replacing the file without navigating or opening externally', () => {
     const deps = dependencies('/Projects');
     const nextFile = { ...file, name: 'other.txt', path: '/Elsewhere/other.txt' };

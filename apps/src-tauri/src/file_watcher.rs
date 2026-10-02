@@ -1,5 +1,7 @@
 use notify::RecursiveMode;
-use notify_debouncer_full::{new_debouncer, DebounceEventResult, DebouncedEvent};
+use notify_debouncer_full::{
+    new_debouncer, DebounceEventHandler, DebounceEventResult, DebouncedEvent,
+};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::path::Path;
@@ -58,7 +60,7 @@ fn set_primary_id(id: String) {
 }
 
 /// Stop the current primary watcher (if any). Safe to call even if nothing is
-/// watching.  Used from the synchronous `on_window_event` close handler.
+/// watching. Used from the synchronous application exit callback.
 pub fn stop_primary_watcher() {
     if let Some(id) = take_primary_id() {
         let _ = std::thread::spawn(move || {
@@ -107,22 +109,41 @@ fn generate_watcher_id() -> String {
     format!("watcher-{ts}-{r:08x}")
 }
 
-fn map_event_kind(kind: &notify::EventKind) -> &'static str {
+fn map_event_kind(kind: &notify::EventKind) -> Option<&'static str> {
     use notify::event::{ModifyKind, RenameMode};
     use notify::EventKind::*;
     match kind {
-        Create(_) => "file-created",
-        Remove(_) => "file-deleted",
-        Modify(ModifyKind::Name(RenameMode::Both)) => "file-renamed",
-        Modify(ModifyKind::Name(RenameMode::From)) => "file-deleted",
-        Modify(ModifyKind::Name(RenameMode::To)) => "file-created",
-        Modify(_) => "file-modified",
-        _ => "file-modified",
+        Access(_) => None,
+        Create(_) => Some("file-created"),
+        Remove(_) => Some("file-deleted"),
+        Modify(ModifyKind::Name(RenameMode::Both)) => Some("file-renamed"),
+        Modify(ModifyKind::Name(RenameMode::From)) => Some("file-deleted"),
+        Modify(ModifyKind::Name(RenameMode::To)) => Some("file-created"),
+        Modify(_) => Some("file-modified"),
+        _ => Some("file-modified"),
     }
 }
 
 fn now_millis() -> i64 {
     chrono::Utc::now().timestamp_millis()
+}
+
+fn create_directory_watcher(
+    path: &Path,
+    recursive: bool,
+    handler: impl DebounceEventHandler,
+) -> Result<WatcherHandle, String> {
+    let mut debouncer = new_debouncer(Duration::from_millis(200), None, handler)
+        .map_err(|error| format!("Failed to create file watcher: {error}"))?;
+    let mode = if recursive {
+        RecursiveMode::Recursive
+    } else {
+        RecursiveMode::NonRecursive
+    };
+    debouncer
+        .watch(path, mode)
+        .map_err(|error| format!("Failed to watch directory {}: {error}", path.display()))?;
+    Ok(debouncer)
 }
 
 #[command]
@@ -143,14 +164,16 @@ pub async fn watch_directory(
     let id_for_callback = watcher_id.clone();
     let handle = app_handle.clone();
 
-    let mut debouncer = new_debouncer(
-        Duration::from_millis(200),
-        None,
+    let debouncer = create_directory_watcher(
+        dir,
+        recursive,
         move |result: DebounceEventResult| match result {
             Ok(events) => {
                 for event in events {
                     let DebouncedEvent { event: ev, .. } = &event;
-                    let event_type = map_event_kind(&ev.kind);
+                    let Some(event_type) = map_event_kind(&ev.kind) else {
+                        continue;
+                    };
                     for p in &ev.paths {
                         let payload = FileChangeEvent {
                             watcher_id: id_for_callback.clone(),
@@ -168,18 +191,7 @@ pub async fn watch_directory(
                 }
             }
         },
-    )
-    .map_err(|e| format!("Failed to create file watcher: {e}"))?;
-
-    let mode = if recursive {
-        RecursiveMode::Recursive
-    } else {
-        RecursiveMode::NonRecursive
-    };
-
-    debouncer
-        .watch(dir, mode)
-        .map_err(|e| format!("Failed to watch directory {path}: {e}"))?;
+    )?;
 
     info!(
         "[file_watcher] Started watcher '{}' on '{}' (recursive={})",
@@ -235,5 +247,142 @@ pub fn stop_all_watchers() {
     guard.clear();
     if count > 0 {
         info!("[file_watcher] Stopped all {} watchers on shutdown", count);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use notify::event::{AccessKind, AccessMode, DataChange, ModifyKind, RenameMode};
+    use notify::EventKind;
+    use std::sync::mpsc::{channel, Receiver};
+    use std::time::Instant;
+
+    fn wait_for_path_event(
+        receiver: &Receiver<DebounceEventResult>,
+        path: &Path,
+        accepts: impl Fn(&EventKind) -> bool,
+    ) -> EventKind {
+        let deadline = Instant::now() + Duration::from_secs(10);
+        let mut seen = Vec::new();
+        loop {
+            let remaining = deadline
+                .checked_duration_since(Instant::now())
+                .expect("timed out waiting for a directory change");
+            let events = receiver
+                .recv_timeout(remaining)
+                .unwrap_or_else(|error| {
+                    panic!("directory change timed out: {error}; seen: {seen:?}")
+                })
+                .expect("directory watcher reported an error");
+            for event in events {
+                seen.push(format!("{:?}", event.event));
+                if event.paths.iter().any(|changed| changed == path) && accepts(&event.kind) {
+                    return event.event.kind;
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn non_recursive_watcher_observes_existing_file_overwrites() {
+        let directory = tempfile::tempdir().unwrap();
+        let root = std::fs::canonicalize(directory.path()).unwrap();
+        let path = root.join("document.txt");
+        let (sender, receiver) = channel();
+        let _watcher = create_directory_watcher(&root, false, sender).unwrap();
+
+        // Wait for a delivered event before the next write, so an earlier
+        // notification cannot accidentally satisfy the overwrite assertion.
+        std::fs::write(&path, "original").unwrap();
+        wait_for_path_event(&receiver, &path, |kind| {
+            matches!(kind, EventKind::Create(_))
+        });
+
+        std::fs::write(&path, "updated content").unwrap();
+
+        let kind = wait_for_path_event(&receiver, &path, |kind| {
+            matches!(kind, EventKind::Create(_) | EventKind::Modify(_))
+        });
+        // FSEvents may report a fresh file's later write as another Create.
+        // Either event refreshes the directory listing.
+        assert!(matches!(
+            map_event_kind(&kind),
+            Some("file-modified" | "file-created")
+        ));
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "updated content");
+    }
+
+    #[test]
+    fn non_recursive_watcher_observes_atomic_file_replacements() {
+        let directory = tempfile::tempdir().unwrap();
+        let root = std::fs::canonicalize(directory.path()).unwrap();
+        let path = root.join("document.txt");
+        let staging = root.join(".document.txt.tmp");
+        let (sender, receiver) = channel();
+        let _watcher = create_directory_watcher(&root, false, sender).unwrap();
+
+        std::fs::write(&path, "original").unwrap();
+        wait_for_path_event(&receiver, &path, |kind| {
+            matches!(kind, EventKind::Create(_))
+        });
+        std::fs::write(&staging, "replacement").unwrap();
+        wait_for_path_event(&receiver, &staging, |kind| {
+            matches!(kind, EventKind::Create(_))
+        });
+
+        std::fs::rename(&staging, &path).unwrap();
+
+        wait_for_path_event(&receiver, &path, |kind| {
+            matches!(
+                kind,
+                EventKind::Create(_)
+                    | EventKind::Remove(_)
+                    | EventKind::Modify(ModifyKind::Name(_))
+            )
+        });
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "replacement");
+    }
+
+    #[test]
+    fn rename_and_content_changes_keep_the_refresh_event_contract() {
+        for (mode, expected) in [
+            (RenameMode::Both, "file-renamed"),
+            (RenameMode::From, "file-deleted"),
+            (RenameMode::To, "file-created"),
+            (RenameMode::Any, "file-modified"),
+        ] {
+            assert_eq!(
+                map_event_kind(&EventKind::Modify(ModifyKind::Name(mode))),
+                Some(expected)
+            );
+        }
+        assert_eq!(
+            map_event_kind(&EventKind::Modify(ModifyKind::Data(DataChange::Any))),
+            Some("file-modified")
+        );
+        assert_eq!(map_event_kind(&EventKind::Any), Some("file-modified"));
+        assert_eq!(map_event_kind(&EventKind::Other), Some("file-modified"));
+    }
+
+    #[test]
+    fn access_events_do_not_notify_content_changes() {
+        for kind in [
+            AccessKind::Any,
+            AccessKind::Read,
+            AccessKind::Other,
+            AccessKind::Open(AccessMode::Any),
+            AccessKind::Open(AccessMode::Execute),
+            AccessKind::Open(AccessMode::Read),
+            AccessKind::Open(AccessMode::Write),
+            AccessKind::Open(AccessMode::Other),
+            AccessKind::Close(AccessMode::Any),
+            AccessKind::Close(AccessMode::Execute),
+            AccessKind::Close(AccessMode::Read),
+            AccessKind::Close(AccessMode::Write),
+            AccessKind::Close(AccessMode::Other),
+        ] {
+            assert_eq!(map_event_kind(&EventKind::Access(kind)), None);
+        }
     }
 }

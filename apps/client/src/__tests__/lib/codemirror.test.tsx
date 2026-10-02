@@ -2,7 +2,7 @@ import { act, cleanup, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
-import { undo } from '@codemirror/commands';
+import { redo, redoDepth, undo, undoDepth } from '@codemirror/commands';
 import { language as languageFacet } from '@codemirror/language';
 import { languages } from '@codemirror/language-data';
 import { highlightTree } from '@lezer/highlight';
@@ -140,6 +140,73 @@ describe('CodeMirror language detection', () => {
 });
 
 describe('CodeMirror view lifecycle', () => {
+  it.each([true, false])(
+    'does not report consecutive external document updates as edits when readOnly is %s',
+    (readOnly) => {
+      vi.spyOn(window, 'requestAnimationFrame').mockReturnValue(1);
+      const editorRef = { current: null as EditorView | null };
+      const onDocChanged = vi.fn();
+      const props = { doc: 'VERSION ONE', readOnly: true, editorRef, onDocChanged };
+      const { rerender } = render(<WispCodeMirror {...props} readOnly={readOnly} />);
+      const view = editorRef.current!;
+
+      rerender(<WispCodeMirror {...props} readOnly={readOnly} doc="VERSION TWO" />);
+      expect(editorRef.current).toBe(view);
+      expect(view.state.doc.toString()).toBe('VERSION TWO');
+      rerender(<WispCodeMirror {...props} readOnly={readOnly} doc="VERSION THREE" />);
+      expect(view.state.doc.toString()).toBe('VERSION THREE');
+      expect(onDocChanged).not.toHaveBeenCalled();
+      expect(undoDepth(view.state)).toBe(0);
+      act(() => expect(undo(view)).toBe(false));
+
+      act(() => view.dispatch({ changes: { from: view.state.doc.length, insert: ' edited' } }));
+      expect(onDocChanged).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it('starts a new undo baseline after external replacement of previously saved edits', () => {
+    vi.spyOn(window, 'requestAnimationFrame').mockReturnValue(1);
+    const editorRef = { current: null as EditorView | null };
+    const onDocChanged = vi.fn();
+    const props = { doc: 'original', readOnly: false, editorRef, onDocChanged };
+    const { rerender } = render(<WispCodeMirror {...props} />);
+    const view = editorRef.current!;
+
+    act(() => view.dispatch({ changes: { from: view.state.doc.length, insert: ' saved' } }));
+    rerender(<WispCodeMirror {...props} doc="original saved" />);
+    expect(undoDepth(view.state)).toBe(1);
+    expect(onDocChanged).toHaveBeenCalledTimes(1);
+
+    rerender(<WispCodeMirror {...props} doc="new disk content" />);
+    expect(editorRef.current).toBe(view);
+    expect(undoDepth(view.state)).toBe(0);
+    expect(redoDepth(view.state)).toBe(0);
+    act(() => expect(undo(view)).toBe(false));
+    expect(view.state.doc.toString()).toBe('new disk content');
+    expect(onDocChanged).toHaveBeenCalledTimes(1);
+
+    act(() => view.dispatch({ changes: { from: view.state.doc.length, insert: ' draft' } }));
+    act(() => expect(undo(view)).toBe(true));
+    expect(view.state.doc.toString()).toBe('new disk content');
+    expect(onDocChanged).toHaveBeenCalledTimes(3);
+  });
+
+  it('discards redo entries that belong to the previous disk baseline', () => {
+    vi.spyOn(window, 'requestAnimationFrame').mockReturnValue(1);
+    const editorRef = { current: null as EditorView | null };
+    const props = { doc: 'original', readOnly: false, editorRef };
+    const { rerender } = render(<WispCodeMirror {...props} />);
+    const view = editorRef.current!;
+    act(() => view.dispatch({ changes: { from: view.state.doc.length, insert: ' draft' } }));
+    act(() => expect(undo(view)).toBe(true));
+    expect(redoDepth(view.state)).toBe(1);
+
+    rerender(<WispCodeMirror {...props} doc="new disk content" />);
+    expect(redoDepth(view.state)).toBe(0);
+    act(() => expect(redo(view)).toBe(false));
+    expect(view.state.doc.toString()).toBe('new disk content');
+  });
+
   it('preserves the editor, draft, selection and undo history across appearance changes', async () => {
     vi.spyOn(window, 'requestAnimationFrame').mockReturnValue(1);
     const editorRef = { current: null as EditorView | null };

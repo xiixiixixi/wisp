@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { EditorView } from '@codemirror/view';
 import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
+import { FILE_CONTENT_CHANGED_EVENT } from '@/lib/file-change-events';
 
 /**
  * Load-a-text-file + dirty-tracking + ⌘S-save state shared by the
@@ -18,17 +19,119 @@ export function useTextFileEditor(
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dirty, setDirty] = useState(false);
+  const [dirty, setDirtyState] = useState(false);
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
   const loadedPathRef = useRef<string | null>(null);
   const dirtyRef = useRef(false);
-  dirtyRef.current = dirty;
+  const mountedRef = useRef(false);
+  const initialReadPendingRef = useRef(false);
+  const readGenerationRef = useRef(0);
+  const reloadAfterLoadRef = useRef(false);
+  const selectedPathRef = useRef(file.path);
+  selectedPathRef.current = file.path;
+  const previousVersionRef = useRef({ path: file.path, modified: file.modified, size: file.size });
   const callbacksRef = useRef(callbacks);
   callbacksRef.current = callbacks;
 
+  const setDirty = useCallback((next: boolean | ((previous: boolean) => boolean)) => {
+    const value = typeof next === 'function' ? next(dirtyRef.current) : next;
+    dirtyRef.current = value;
+    if (value) readGenerationRef.current += 1;
+    setDirtyState(value);
+  }, []);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      readGenerationRef.current += 1;
+    };
+  }, []);
+
+  const reload = useCallback(
+    async (path: string) => {
+      const loadedPath = loadedPathRef.current;
+      if (
+        !mountedRef.current ||
+        selectedPathRef.current !== path ||
+        (loadedPath !== null && loadedPath !== path) ||
+        dirtyRef.current ||
+        savingRef.current
+      )
+        {return;}
+      const recovering = loadedPath === null;
+      if (recovering) {
+        initialReadPendingRef.current = true;
+        setLoading(true);
+        setError(null);
+      }
+      const generation = ++readGenerationRef.current;
+      const view = editorRef.current;
+      const document = view?.state.doc.toString();
+      try {
+        const text = await TauriAPI.readTextFile(path);
+        if (
+          !mountedRef.current ||
+          generation !== readGenerationRef.current ||
+          selectedPathRef.current !== path ||
+          loadedPathRef.current !== loadedPath ||
+          dirtyRef.current ||
+          savingRef.current ||
+          (view && (editorRef.current !== view || view.state.doc.toString() !== document))
+        )
+          {return;}
+        loadedPathRef.current = path;
+        setContent(text);
+        if (recovering) callbacksRef.current?.onLoad?.();
+      } catch (err) {
+        // Keep the last readable content when a concurrent save briefly replaces the file.
+        if (
+          recovering &&
+          mountedRef.current &&
+          generation === readGenerationRef.current &&
+          selectedPathRef.current === path
+        ) {
+          setError(err instanceof Error ? err.message : 'Failed to load file');
+        }
+      } finally {
+        if (recovering && mountedRef.current && selectedPathRef.current === path) {
+          initialReadPendingRef.current = false;
+          setLoading(false);
+          const pending = reloadAfterLoadRef.current;
+          reloadAfterLoadRef.current = false;
+          if (pending) requestReloadRef.current(path);
+        }
+      }
+    },
+    [editorRef],
+  );
+
+  const requestReload = useCallback(
+    (path: string) => {
+      if (
+        !mountedRef.current ||
+        selectedPathRef.current !== path ||
+        dirtyRef.current ||
+        savingRef.current
+      )
+        {return;}
+      if (initialReadPendingRef.current) {
+        reloadAfterLoadRef.current = true;
+        return;
+      }
+      void reload(path);
+    },
+    [reload],
+  );
+  const requestReloadRef = useRef(requestReload);
+  requestReloadRef.current = requestReload;
+
   useEffect(() => {
     let cancelled = false;
+    const generation = ++readGenerationRef.current;
+    initialReadPendingRef.current = false;
+    reloadAfterLoadRef.current = false;
     const load = async () => {
       try {
         if (dirtyRef.current) {
@@ -43,52 +146,69 @@ export function useTextFileEditor(
         setError(null);
         setDirty(false);
         loadedPathRef.current = null;
+        initialReadPendingRef.current = true;
         const text = await TauriAPI.readTextFile(file.path);
-        if (cancelled) return;
+        if (
+          cancelled ||
+          !mountedRef.current ||
+          selectedPathRef.current !== file.path ||
+          generation !== readGenerationRef.current
+        )
+          {return;}
         loadedPathRef.current = file.path;
         setContent(text);
         callbacksRef.current?.onLoad?.();
       } catch (err) {
-        if (cancelled) return;
+        if (
+          cancelled ||
+          !mountedRef.current ||
+          selectedPathRef.current !== file.path ||
+          generation !== readGenerationRef.current
+        )
+          {return;}
         const message = err instanceof Error ? err.message : 'Failed to load file';
         setError(message);
         callbacksRef.current?.onError?.(err instanceof Error ? err : new Error(message));
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled && mountedRef.current && selectedPathRef.current === file.path) {
+          initialReadPendingRef.current = false;
+          setLoading(false);
+          const pending = reloadAfterLoadRef.current;
+          reloadAfterLoadRef.current = false;
+          if (pending) requestReloadRef.current(file.path);
+        }
       }
     };
     void load();
     return () => {
       cancelled = true;
+      readGenerationRef.current += 1;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file.path]);
 
-  // 文件被改写（AI 工具/其他窗口）→ 重读内容，画布"改完即见"。
-  // 有未保存手改时不覆盖，避免吃掉用户的草稿。
+  useEffect(() => {
+    const previous = previousVersionRef.current;
+    previousVersionRef.current = { path: file.path, modified: file.modified, size: file.size };
+    if (
+      previous.path === file.path &&
+      (previous.modified !== file.modified || previous.size !== file.size)
+    )
+      {requestReload(file.path);}
+  }, [file.path, file.modified, file.size, requestReload]);
+
   useEffect(() => {
     const onWritten = (event: Event) => {
       const detail = (event as CustomEvent<{ path?: string }>).detail;
-      if (!detail?.path || detail.path !== file.path) return;
-      if (dirtyRef.current || savingRef.current) return;
-      let stale = false;
-      const reload = async () => {
-        try {
-          const text = await TauriAPI.readTextFile(file.path);
-          if (stale || dirtyRef.current) return;
-          setContent(text);
-        } catch {
-          // 读失败保留现有内容
-        }
-      };
-      void reload();
-      return () => {
-        stale = true;
-      };
+      if (detail?.path) requestReload(detail.path);
     };
     window.addEventListener('wisp-file-written', onWritten);
-    return () => window.removeEventListener('wisp-file-written', onWritten);
-  }, [file.path]);
+    window.addEventListener(FILE_CONTENT_CHANGED_EVENT, onWritten);
+    return () => {
+      window.removeEventListener('wisp-file-written', onWritten);
+      window.removeEventListener(FILE_CONTENT_CHANGED_EVENT, onWritten);
+    };
+  }, [requestReload]);
 
   const save = useCallback(async () => {
     const view = editorRef.current;
@@ -96,11 +216,13 @@ export function useTextFileEditor(
     if (!view || !path || savingRef.current) return;
     try {
       savingRef.current = true;
+      readGenerationRef.current += 1;
       setSaving(true);
       const doc = view.state.doc.toString();
       await TauriAPI.saveTextFile(path, doc);
       // An in-flight save must not overwrite newer keystrokes or another file's buffer.
       if (
+        mountedRef.current &&
         editorRef.current === view &&
         loadedPathRef.current === path &&
         view.state.doc.toString() === doc
@@ -110,12 +232,12 @@ export function useTextFileEditor(
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      window.alert(t('preview.saveFailed', { message }));
+      if (mountedRef.current) window.alert(t('preview.saveFailed', { message }));
     } finally {
       savingRef.current = false;
-      setSaving(false);
+      if (mountedRef.current) setSaving(false);
     }
-  }, [editorRef, t]);
+  }, [editorRef, setDirty, t]);
 
   return { content, loading, error, dirty, setDirty, saving, save };
 }

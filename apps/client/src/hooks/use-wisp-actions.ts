@@ -480,6 +480,10 @@ export const useWispActions = (deps: WispActionsDeps) => {
       renameFileInline: fileOps.renameFileInline,
       onFilesChange: (newFiles: FileEntry[], newRefetch: () => void) => {
         setPaneFiles(newFiles);
+        setSelectedFile((selected) => {
+          if (!selected) return selected;
+          return newFiles.find((file) => file.path === selected.path) ?? selected;
+        });
         paneRefetchRef.current = newRefetch;
       },
       navigateBackInHistory: navigation.navigateBackInHistory,
@@ -497,6 +501,7 @@ export const useWispActions = (deps: WispActionsDeps) => {
       setBottomPanelTab,
       setPaneFiles,
       setSelectedFiles,
+      setSelectedFile,
       paneRefetchRef,
       handleGDriveFileSelect,
       navigation.navigateBackInHistory,

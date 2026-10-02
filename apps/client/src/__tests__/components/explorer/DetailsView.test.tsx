@@ -4,6 +4,7 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import DetailsView from '@/components/explorer/DetailsView';
 import type { FileEntry } from '@/lib/tauri-api';
+import { getAppLocale } from '@/lib/locale';
 
 // Mock @tanstack/react-virtual
 const virtualRows = vi.hoisted(() => ({ indices: [] as number[] }));
@@ -145,6 +146,40 @@ describe('DetailsView', () => {
     it('has correct aria-label on table', () => {
       render(<DetailsView {...defaultProps} />);
       expect(screen.getByRole('table')).toHaveAttribute('aria-label', 'File list');
+    });
+  });
+
+  describe('Modified Date', () => {
+    it('shows the local 24-hour modification time for a file modified today', () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date(2026, 9, 2, 14, 30));
+      try {
+        const file = { ...sampleFiles[0], modified: new Date(2026, 9, 2, 3, 7).getTime() / 1000 };
+        render(<DetailsView {...defaultProps} files={[file]} />);
+
+        expect(screen.getByText('03:07')).toBeInTheDocument();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('preserves the existing date style for a file modified before local midnight', () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date(2026, 9, 2, 0, 1));
+      try {
+        const previousDate = new Date(2026, 9, 1, 23, 59);
+        const file = { ...sampleFiles[0], modified: previousDate.getTime() / 1000 };
+        const expected = previousDate.toLocaleDateString(getAppLocale(), {
+          month: 'short',
+          day: 'numeric',
+        });
+        render(<DetailsView {...defaultProps} files={[file]} />);
+
+        expect(screen.getByText(expected)).toBeInTheDocument();
+        expect(screen.queryByText('23:59')).not.toBeInTheDocument();
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 

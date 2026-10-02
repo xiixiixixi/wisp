@@ -1,8 +1,11 @@
 import { isTauri } from '@/lib/transport';
 
 export const FILES_CHANGED_EVENT = 'files-changed';
+export const FILE_CONTENT_CHANGED_EVENT = 'wisp-file-content-changed';
 const GLOBAL_FILES_CHANGED_EVENT = 'wisp-files-changed';
 const windowSourceId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+const pendingContentChanges = new Set<string>();
+let contentChangeTimer: ReturnType<typeof setTimeout> | null = null;
 
 interface GlobalFilesChangedPayload {
   source: string;
@@ -11,6 +14,24 @@ interface GlobalFilesChangedPayload {
 /** Refresh every file pane in the current Wisp window. */
 export const dispatchLocalFilesChanged = () => {
   window.dispatchEvent(new CustomEvent(FILES_CHANGED_EVENT));
+};
+
+/** Refresh content even when size and whole-second timestamps are unchanged. */
+export const dispatchFileContentChanged = (path: string) => {
+  pendingContentChanges.add(path);
+  if (contentChangeTimer !== null) return;
+
+  contentChangeTimer = setTimeout(() => {
+    contentChangeTimer = null;
+    // Snapshot first so listeners can safely queue changes for the next batch.
+    const paths = [...pendingContentChanges];
+    pendingContentChanges.clear();
+    for (const changedPath of paths) {
+      window.dispatchEvent(
+        new CustomEvent(FILE_CONTENT_CHANGED_EVENT, { detail: { path: changedPath } }),
+      );
+    }
+  }, 250);
 };
 
 /**

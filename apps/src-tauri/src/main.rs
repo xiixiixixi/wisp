@@ -695,8 +695,6 @@ fn main() {
             }
             if let WindowEvent::CloseRequested { api, .. } = event {
                 duplicate_finder::cancel_current_scan();
-                file_watcher::stop_primary_watcher();
-                file_watcher::stop_all_watchers();
                 extensions::dev_watcher::stop_all_dev_watchers();
                 sync::stop_auto_sync_blocking();
                 let _ = pty::pty_kill_all();
@@ -720,9 +718,11 @@ fn main() {
                     let _ = window.set_focus();
                 }
             }
-            // Real quit (⌘Q): kill the tunnel-client child. Window close on
-            // macOS only hides, so the bridge keeps running in between.
+            // Global directory watchers belong to the running app: a macOS
+            // window close only hides its still-mounted panes.
             if let tauri::RunEvent::Exit = event {
+                file_watcher::stop_primary_watcher();
+                file_watcher::stop_all_watchers();
                 chatgpt_bridge::shutdown();
             }
         });

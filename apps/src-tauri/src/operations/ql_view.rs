@@ -83,14 +83,12 @@ mod native {
         NSBundle, NSPoint, NSRect, NSRunLoop, NSRunLoopCommonModes, NSSize, NSString, NSTimer,
         NSURL,
     };
-    use sha2::{Digest, Sha256};
     use std::cell::RefCell;
     use std::collections::HashMap;
-    use std::path::{Path, PathBuf};
+    use std::path::Path;
     use std::ptr::NonNull;
-    use std::sync::atomic::{AtomicU64, Ordering};
-    use std::time::{Duration, Instant, UNIX_EPOCH};
-    use tauri::{Manager, WebviewWindow};
+    use std::time::{Duration, Instant};
+    use tauri::WebviewWindow;
 
     // PDFKit restores hasVerticalScroller during scrolling. Use the documented
     // custom-scroller contract so that this preview's controls stay hidden even
@@ -121,11 +119,22 @@ mod native {
         last_attempt: Option<Instant>,
     }
 
-    #[derive(Clone, Copy, PartialEq)]
+    #[derive(Clone, Copy, Debug, PartialEq)]
     enum Renderer {
         QuickLook,
         Pdf,
-        SystemHtml,
+    }
+
+    impl Renderer {
+        fn for_extension(extension: &str) -> Self {
+            if extension.eq_ignore_ascii_case("pdf") {
+                Self::Pdf
+            } else {
+                // HTML exports can change presentation text layout. Keep the
+                // original file in Quick Look, as Finder does.
+                Self::QuickLook
+            }
+        }
     }
 
     struct NativePreview {
@@ -136,8 +145,6 @@ mod native {
         web_states: HashMap<usize, WebPreviewState>,
         last_pdf_width: f64,
         observer: Retained<NSTimer>,
-        // Keep exported attachments leased until the reader leaves the window.
-        _presentation: Option<PresentationFile>,
     }
 
     impl Drop for NativePreview {
@@ -154,10 +161,6 @@ mod native {
                     let _: () =
                         msg_send![&*self.view, setDocument: std::ptr::null_mut::<AnyObject>()];
                 }
-            } else {
-                unsafe {
-                    let _: () = msg_send![&*self.view, stopLoading];
-                }
             }
             self.view.removeFromSuperview();
         }
@@ -165,188 +168,6 @@ mod native {
 
     thread_local! {
         static PREVIEWS: RefCell<HashMap<String, NativePreview>> = RefCell::new(HashMap::new());
-    }
-
-    struct PresentationFile {
-        html: PathBuf,
-        resources: PathBuf,
-        _lease: std::fs::File,
-    }
-
-    // A complete export includes its relative image/font attachments. Publish the
-    // entire directory atomically so another selection never sees half an export.
-    struct ExportStaging(PathBuf);
-
-    impl Drop for ExportStaging {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_dir_all(&self.0);
-        }
-    }
-
-    fn presentation_key(path: &Path) -> Result<String, String> {
-        let metadata = std::fs::metadata(path).map_err(|error| error.to_string())?;
-        let modified = metadata
-            .modified()
-            .map_err(|error| error.to_string())?
-            .duration_since(UNIX_EPOCH)
-            .map_err(|error| error.to_string())?;
-        let mut hash = Sha256::new();
-        hash.update(path.as_os_str().as_encoded_bytes());
-        hash.update(metadata.len().to_le_bytes());
-        hash.update(modified.as_nanos().to_le_bytes());
-        Ok(format!("{:x}", hash.finalize()))
-    }
-
-    fn presentation_file(directory: &Path, source: &Path) -> Result<PresentationFile, String> {
-        let lease = std::fs::File::options()
-            .read(true)
-            .write(true)
-            .create(true)
-            .truncate(false)
-            .open(directory.join(".lease"))
-            .map_err(|error| error.to_string())?;
-        lease.lock_shared().map_err(|error| error.to_string())?;
-        let name = source
-            .file_name()
-            .ok_or("presentation filename is unavailable")?;
-        let mut bundle = name.to_os_string();
-        bundle.push(".qlpreview");
-        let resources = directory.join(bundle);
-        let html = resources.join("Preview.html");
-        if !html.is_file() {
-            return Err(
-                "system presentation preview did not provide a complete HTML document".into(),
-            );
-        }
-        Ok(PresentationFile {
-            html,
-            resources,
-            _lease: lease,
-        })
-    }
-
-    fn prune_presentation_cache(cache: &Path, limit: usize) {
-        let Ok(entries) = std::fs::read_dir(cache) else {
-            return;
-        };
-        let mut complete: Vec<_> = entries
-            .flatten()
-            .filter_map(|entry| {
-                let name = entry.file_name();
-                let name = name.to_str()?;
-                if name.len() != 64 || !name.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-                    return None;
-                }
-                if !entry.file_type().ok()?.is_dir() {
-                    return None;
-                }
-                Some((entry.metadata().ok()?.modified().ok()?, entry.path()))
-            })
-            .collect();
-        complete.sort_unstable_by_key(|(modified, _)| *modified);
-        let mut excess = complete.len().saturating_sub(limit);
-        for (_, directory) in complete {
-            if excess == 0 {
-                break;
-            }
-            let Ok(lease) = std::fs::File::options()
-                .read(true)
-                .write(true)
-                .create(true)
-                .truncate(false)
-                .open(directory.join(".lease"))
-            else {
-                continue;
-            };
-            // The shared reader lease protects lazy-loaded images across both
-            // windows and Wisp processes. Never wait for a currently open file.
-            if lease.try_lock().is_ok() && std::fs::remove_dir_all(&directory).is_ok() {
-                excess -= 1;
-            }
-        }
-    }
-
-    fn prepare_presentation_html(html: &str) -> Result<String, String> {
-        // Preserve the generator's quirks/standards mode and all slide layout.
-        // Only reader chrome and resource permissions are changed. Source-file
-        // scripts are also disabled by WKWebViewConfiguration below.
-        let head = html
-            .as_bytes()
-            .windows(6)
-            .take(4096)
-            .position(|bytes| bytes.eq_ignore_ascii_case(b"<head>"))
-            .ok_or("system presentation preview has no HTML document head")?
-            + "<head>".len();
-        let policy = r#"<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src file: data:; style-src 'unsafe-inline' file:; font-src file: data:; media-src file: data:; base-uri 'none'; form-action 'none'"><style id="wisp-native-preview-scrollbars">*{scrollbar-width:none!important}*::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}</style>"#;
-        let mut result = String::with_capacity(html.len() + policy.len());
-        result.push_str(&html[..head]);
-        result.push_str(policy);
-        result.push_str(&html[head..]);
-        Ok(result)
-    }
-
-    async fn export_presentation(
-        window: &WebviewWindow,
-        path: &str,
-    ) -> Result<PresentationFile, String> {
-        static EXPORT_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
-        static NEXT_EXPORT: AtomicU64 = AtomicU64::new(0);
-        let source = std::fs::canonicalize(path).map_err(|error| error.to_string())?;
-        let key = presentation_key(&source)?;
-        let cache = window
-            .app_handle()
-            .path()
-            .app_cache_dir()
-            .map_err(|error| error.to_string())?
-            .join("native-presentations-v1");
-        let complete = cache.join(&key);
-        // The short lock covers cache publication across windows as well as
-        // duplicate requests for the same presentation.
-        let _guard = EXPORT_LOCK.lock().await;
-        if complete.is_dir() {
-            let presentation = presentation_file(&complete, &source)?;
-            prune_presentation_cache(&cache, 32);
-            return Ok(presentation);
-        }
-        std::fs::create_dir_all(&cache).map_err(|error| error.to_string())?;
-        let staging = ExportStaging(cache.join(format!(
-            ".partial-{}-{}",
-            std::process::id(),
-            NEXT_EXPORT.fetch_add(1, Ordering::Relaxed)
-        )));
-        std::fs::create_dir(&staging.0).map_err(|error| error.to_string())?;
-        let mut command = tokio::process::Command::new("/usr/bin/qlmanage");
-        command
-            .args(["-p", "-o"])
-            .arg(&staging.0)
-            .arg(&source)
-            .stdin(std::process::Stdio::null())
-            .stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::null())
-            .kill_on_drop(true);
-        let status = tokio::time::timeout(Duration::from_secs(45), command.status())
-            .await
-            .map_err(|_| "system presentation preview timed out".to_string())?
-            .map_err(|error| format!("system presentation preview could not start: {error}"))?;
-        if !status.success() {
-            return Err("system presentation preview could not be generated".into());
-        }
-        let generated = presentation_file(&staging.0, &source)?;
-        let html = std::fs::read_to_string(&generated.html).map_err(|error| error.to_string())?;
-        std::fs::write(&generated.html, prepare_presentation_html(&html)?)
-            .map_err(|error| error.to_string())?;
-        if key != presentation_key(&source)? {
-            return Err("presentation changed while its preview was being generated".into());
-        }
-        if let Err(error) = std::fs::rename(&staging.0, &complete) {
-            // Another Wisp process may have completed the same immutable entry.
-            if !complete.is_dir() {
-                return Err(format!("presentation preview could not be cached: {error}"));
-            }
-        }
-        let presentation = presentation_file(&complete, &source)?;
-        prune_presentation_cache(&cache, 32);
-        Ok(presentation)
     }
 
     fn renderer_class(name: &std::ffi::CStr) -> Result<&'static AnyClass, String> {
@@ -598,14 +419,6 @@ mod native {
             .and_then(|value| value.to_str())
             .unwrap_or_default()
             .to_ascii_lowercase();
-        // QL's presentation renderer can host its scrolling content outside the
-        // public view tree. Export the same system-generated complete document
-        // into a local reader where scrollbars are controllable without cropping.
-        let presentation = if matches!(extension.as_str(), "ppt" | "pptx" | "pps" | "ppsx") {
-            Some(export_presentation(&window, &path).await?)
-        } else {
-            None
-        };
         let label = window.label().to_string();
         let (tx, rx) = tokio::sync::oneshot::channel();
         window
@@ -616,39 +429,20 @@ mod native {
                     // bounds exclude the title bar and already use AppKit points.
                     let parent = unsafe { &*platform.inner().cast::<NSView>() };
                     let native_frame = native_frame(parent, &frame);
-                    let renderer = if presentation.is_some() {
-                        Renderer::SystemHtml
-                    } else if extension == "pdf" {
-                        Renderer::Pdf
-                    } else {
-                        Renderer::QuickLook
-                    };
+                    let renderer = Renderer::for_extension(&extension);
                     let class = renderer_class(match renderer {
                         Renderer::Pdf => c"PDFView",
                         Renderer::QuickLook => c"QLPreviewView",
-                        Renderer::SystemHtml => c"WKWebView",
                     })?;
                     let allocated: Allocated<NSView> = unsafe { msg_send![class, alloc] };
                     // Normal style keeps the renderer's document navigation.
-                    let view: Option<Retained<NSView>> = if renderer == Renderer::SystemHtml {
-                        let configuration_class = renderer_class(c"WKWebViewConfiguration")?;
-                        let configuration: Retained<AnyObject> = unsafe { msg_send![configuration_class, new] };
-                        unsafe {
-                            let preferences: Retained<AnyObject> = msg_send![&*configuration, defaultWebpagePreferences];
-                            let _: () = msg_send![&*preferences, setAllowsContentJavaScript: false];
-                            let _: () = msg_send![&*configuration, setMediaTypesRequiringUserActionForPlayback: usize::MAX];
-                            let _: () = msg_send![&*configuration, setSuppressesIncrementalRendering: true];
-                            let store_class = renderer_class(c"WKWebsiteDataStore")?;
-                            let store: Retained<AnyObject> = msg_send![store_class, nonPersistentDataStore];
-                            let _: () = msg_send![&*configuration, setWebsiteDataStore: &*store];
-                            msg_send![allocated, initWithFrame: rect(native_frame), configuration: &*configuration]
-                        }
-                    } else if renderer == Renderer::Pdf {
-                        unsafe { msg_send![allocated, initWithFrame: rect(native_frame)] }
-                    } else {
-                        unsafe {
+                    let view: Option<Retained<NSView>> = match renderer {
+                        Renderer::Pdf => unsafe {
+                            msg_send![allocated, initWithFrame: rect(native_frame)]
+                        },
+                        Renderer::QuickLook => unsafe {
                             msg_send![allocated, initWithFrame: rect(native_frame), style: 0usize]
-                        }
+                        },
                     };
                     let view = view.ok_or("native document preview could not be initialized")?;
                     view.setHidden(true);
@@ -669,14 +463,6 @@ mod native {
                     } else {
                         None
                     };
-                    if let Some(presentation) = &presentation {
-                        let html_url = NSURL::fileURLWithPath(&NSString::from_str(&presentation.html.to_string_lossy()));
-                        let resources_url = NSURL::fileURLWithPath(&NSString::from_str(&presentation.resources.to_string_lossy()));
-                        let navigation: Option<Retained<AnyObject>> = unsafe {
-                            msg_send![&*view, loadFileURL: &*html_url, allowingReadAccessToURL: &*resources_url]
-                        };
-                        navigation.ok_or("system presentation preview could not be loaded")?;
-                    }
                     parent.addSubview_positioned_relativeTo(
                         &view,
                         NSWindowOrderingMode::Above,
@@ -706,13 +492,12 @@ mod native {
                                 view,
                                 renderer,
                                 observer,
-                                fit_web_document: renderer == Renderer::SystemHtml || matches!(
+                                fit_web_document: matches!(
                                     extension.as_str(),
                                     "doc" | "docx" | "rtf" | "rtfd" | "odt"
                                 ),
                                 web_states: HashMap::new(),
                                 last_pdf_width: 0.0,
-                                _presentation: presentation,
                             })
                             .into_mut();
                         refresh_preview_chrome(&label, preview);
@@ -791,61 +576,17 @@ mod native {
     }
 
     #[cfg(test)]
-    mod presentation_tests {
+    mod renderer_tests {
         use super::*;
 
         #[test]
-        fn cache_cleanup_keeps_attachments_while_a_reader_holds_them() {
-            let temporary = tempfile::tempdir().unwrap();
-            let first = temporary.path().join("1".repeat(64));
-            let second = temporary.path().join("2".repeat(64));
-            for directory in [&first, &second] {
-                let bundle = directory.join("slides.pptx.qlpreview");
-                std::fs::create_dir_all(&bundle).unwrap();
-                std::fs::write(bundle.join("Preview.html"), "<html></html>").unwrap();
-                std::fs::write(bundle.join("Attachment1.png"), b"image bytes").unwrap();
+        fn presentations_use_original_quick_look_files_and_pdfs_keep_pdfkit() {
+            for extension in ["ppt", "pptx", "pps", "ppsx", "PPTX", "PPS"] {
+                assert_eq!(Renderer::for_extension(extension), Renderer::QuickLook);
             }
-            let reader = presentation_file(&first, Path::new("slides.pptx")).unwrap();
-            prune_presentation_cache(temporary.path(), 0);
-            assert!(reader.html.is_file());
-            assert!(reader.resources.join("Attachment1.png").is_file());
-            assert!(!second.exists());
-            drop(reader);
-            prune_presentation_cache(temporary.path(), 0);
-            assert!(!first.exists());
-        }
-
-        #[test]
-        fn cache_invalidates_for_same_size_edits_within_one_second() {
-            let temporary = tempfile::tempdir().unwrap();
-            let source = temporary.path().join("slides.pptx");
-            std::fs::write(&source, b"first").unwrap();
-            let file = std::fs::File::options().write(true).open(&source).unwrap();
-            file.set_times(
-                std::fs::FileTimes::new().set_modified(UNIX_EPOCH + Duration::new(10, 1)),
-            )
-            .unwrap();
-            let before = presentation_key(&source).unwrap();
-            std::fs::write(&source, b"later").unwrap();
-            file.set_times(
-                std::fs::FileTimes::new().set_modified(UNIX_EPOCH + Duration::new(10, 2)),
-            )
-            .unwrap();
-            assert_ne!(before, presentation_key(&source).unwrap());
-        }
-
-        #[test]
-        fn reader_policy_preserves_layout_mode_unicode_and_relative_attachments() {
-            let original = "<html><HEAD><meta charset='utf-8'><style>.slide{width:960;height:540}</style></HEAD><body><div class='slide'>第一页<img src='image001.png'></div><div class='slide'>末页</div></body></html>";
-            let prepared = prepare_presentation_html(original).unwrap();
-            assert!(prepared.starts_with("<html><HEAD><meta http-equiv="));
-            assert!(prepared.contains("default-src 'none'"));
-            assert!(prepared.contains("img-src file: data:"));
-            assert!(prepared.contains("scrollbar-width:none!important"));
-            // No doctype insertion or rewriting of the generator's original
-            // page/style/image content, including its legacy unitless geometry.
-            assert!(prepared.ends_with(original.split_once("<HEAD>").unwrap().1));
-            assert!(prepare_presentation_html("<body>incomplete export</body>").is_err());
+            assert_eq!(Renderer::for_extension("pdf"), Renderer::Pdf);
+            assert_eq!(Renderer::for_extension("PDF"), Renderer::Pdf);
+            assert_eq!(Renderer::for_extension("docx"), Renderer::QuickLook);
         }
     }
 }
