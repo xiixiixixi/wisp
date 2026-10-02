@@ -17,7 +17,6 @@ import {
 import { extensionHost } from '@/lib/extension-host';
 import { useShortcuts } from '@/hooks/use-shortcuts';
 import { useVimMode, isVimModeEnabled, type VimModeActions } from '@/hooks/use-vim-mode';
-import { AGENT_LAUNCH_REQUEST_EVENT } from '@/components/panels/agent-manager/agent-launch-request';
 import type { TabItem, EditorGroup } from '@/types/split-view';
 import type { BottomPanelTabId } from '@/hooks/use-layout-state';
 import type { SortField } from '@/lib/utils';
@@ -422,7 +421,7 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
       },
       onToggleAgentWorkspace: () => {
         setRightSidebarCollapsed(false);
-        setRightPanelTab('agent-manager');
+        setRightPanelTab('chat');
       },
     },
     'file-explorer',
@@ -740,11 +739,6 @@ export const useWispEffects = (deps: WispEffectsDeps) => {
   // NOTE the old 'wisp-ai-chat-request' bridge (which hijacked prompts into
   // the external Agent launcher) was removed when the built-in pi chat came
   // back — MainLayout's wisp-open-chat now routes prompts to PiChatPanel.
-
-  useWindowEvent(AGENT_LAUNCH_REQUEST_EVENT, () => {
-    setRightSidebarCollapsed(false);
-    setRightPanelTab('agent-manager');
-  }, [setRightSidebarCollapsed, setRightPanelTab]);
 
   // ── Spring-loaded folder navigation ──────────────────────────────────────
   // Drop targets inside a pane navigate in that pane itself. Sidebar targets

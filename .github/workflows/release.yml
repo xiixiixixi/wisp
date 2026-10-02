@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,7 +15,7 @@ concurrency:
 env:
   CARGO_INCREMENTAL: 0
   CARGO_TERM_COLOR: always
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
 
 jobs:
   # ─── Build release artifacts ───────────────────────────────────────
@@ -42,7 +42,7 @@ jobs:
         if: matrix.platform == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev unzip
 
       - name: Install Rust stable toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -68,24 +68,19 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Prepare bundled connection tools
+        run: pnpm bridge:prepare --target ${{ matrix.target }}
+
       - name: Cargo test
         run: cargo test --manifest-path apps/src-tauri/Cargo.toml
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0.5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: apps
-          tagName: ${{ github.ref_name }}
-          releaseName: 'Wisp ${{ github.ref_name }}'
-          releaseBody: 'See the changelog for details about this release.'
-          releaseDraft: true
-          prerelease: false
-          updaterJsonKeepUniversal: true
-          args: --target ${{ matrix.target }}
+          # The local release script owns publishing and updater signing.
+          # CI artifacts must not replace an already verified release bundle.
+          args: --target ${{ matrix.target }} --config ../.github/tauri.ci.conf.json
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

@@ -578,7 +578,7 @@ html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-global-selectionbar
   background: transparent !important;
 }
 html:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-navigationbar {
-  min-width: 150px;
+  min-width: 0;
   min-height: 36px;
   height: 36px;
   padding: 0 !important;
@@ -865,6 +865,8 @@ html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-pane-toolbar {
   flex: 0 0 auto;
   min-width: 0;
   min-height: 48px;
+  height: 48px;
+  flex-wrap: nowrap;
   gap: 12px;
   padding: 4px 16px 8px;
 }
@@ -874,6 +876,7 @@ html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-pane-toolbar-action
 }
 html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-operationbar-layout {
   gap: 8px;
+  flex-wrap: nowrap;
 }
 html:root:is(.theme-light, .theme-fluid, .theme-rolex)
   .wisp-navigationbar
@@ -960,14 +963,21 @@ html:root:is(.theme-light, .theme-fluid, .theme-rolex)
     display: none;
   }
 }
-/* Keep the folder name readable when the inspector leaves a narrow file pane. */
+/* Narrow panes trade secondary controls for menu entries, never a second row. */
 @container editor-pane (max-width: 600px) {
   html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-pane-toolbar {
-    flex-wrap: wrap;
-    gap: 4px;
+    gap: 8px;
   }
-  html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-pane-toolbar .wisp-navigationbar {
-    flex-basis: 100%;
+  html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-navigationbar .wisp-address-field {
+    min-width: 0;
+  }
+  html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-pane-toolbar .wisp-control {
+    padding-inline: 7px !important;
+  }
+  html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+    .wisp-pane-toolbar
+    .wisp-operationbar-layout {
+    gap: 6px;
   }
   html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-pane-toolbar-actions {
     margin-left: auto;

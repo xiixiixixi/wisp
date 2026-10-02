@@ -14,6 +14,7 @@
  * deltas, approval requests and lifecycle.
  */
 import { Agent, type AgentTool } from '@earendil-works/pi-agent-core';
+import type { UserMessage } from '@earendil-works/pi-ai';
 import { transport, isTauri } from '@/lib/transport';
 import { makeStreamFn, resolveModel, migrateLegacyProviderKeys } from './providers';
 import { buildPiTools, makeToolContext, requiresApproval } from './tools';
@@ -82,7 +83,8 @@ export class PiEngine {
 
   private agent: Agent;
   private persistedCount: number;
-  private readonly baseSystemPrompt: string;
+  private prePersistedUserMessage: UserMessage | null = null;
+  private recalledMemory: string | null = null;
   private readonly persist: boolean;
   private readonly gate: ReturnType<typeof makeToolContext>;
   private readonly callbacks: EngineCallbacks;
@@ -95,24 +97,18 @@ export class PiEngine {
     gate: ReturnType<typeof makeToolContext>,
   ) {
     this.agent = agent;
-    this.baseSystemPrompt = String(
-      (agent.state as unknown as { systemPrompt?: string }).systemPrompt ?? '',
-    );
     this.gate = gate;
     this.sessionId = gate.sessionId;
     this.anchor = opts.anchor;
     this.meta = meta;
     this.persist = opts.persist !== false;
-    this.persistedCount = opts.resume?.messages.length ?? 0;
+    this.persistedCount = agent.state.messages.length;
     this.callbacks = opts.callbacks;
     this.autoApprove = opts.autoApprove ?? new Set();
   }
 
   /** Assemble the full system prompt: base + AGENTS.md chain + skills + memory + cwd. */
-  static async buildSystemPrompt(
-    anchor: string | null,
-    skillsBlock = '',
-  ): Promise<string> {
+  static async buildSystemPrompt(anchor: string | null, skillsBlock = ''): Promise<string> {
     const parts: string[] = [BASE_SYSTEM_PROMPT];
     if (anchor) {
       parts.push(`Current folder: ${anchor}`);
@@ -185,14 +181,14 @@ export class PiEngine {
 
     const systemPrompt = await PiEngine.buildSystemPrompt(opts.anchor, skillsBlock);
     // 外部 MCP 工具（~/.pi/agent/mcp.json）：拉取失败静默降级，不阻塞对话
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let mcpTools: AgentTool<any>[] = [];
     try {
       mcpTools = await loadMcpTools();
     } catch {
       // MCP servers unavailable — continue with built-ins only
     }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tools: AgentTool<any>[] = [...buildPiTools(gate, skillLookup), ...mcpTools];
 
     // 思考档位：模型明确关闭 → off；面板显式指定 → 用它；否则模型默认档 → 全局开关。
@@ -203,8 +199,8 @@ export class PiEngine {
         ? 'off'
         : panelLevel !== 'auto'
           ? panelLevel
-          : (modelThinking as 'low' | 'medium' | 'high' | undefined) ??
-            (opts.thinkingEnabled ? 'medium' : 'off');
+          : ((modelThinking as 'low' | 'medium' | 'high' | undefined) ??
+            (opts.thinkingEnabled ? 'medium' : 'off'));
 
     const agent = new Agent({
       initialState: {
@@ -253,7 +249,7 @@ export class PiEngine {
           .assistantMessageEvent;
         if (inner?.type === 'text_delta' && inner.delta) opts.callbacks.onTextDelta(inner.delta);
         if (inner?.type === 'thinking_delta' && inner.delta)
-          opts.callbacks.onThinkingDelta(inner.delta);
+          {opts.callbacks.onThinkingDelta(inner.delta);}
       }
     });
 
@@ -283,31 +279,41 @@ export class PiEngine {
     // 自动召回：把与本次输入相关的云记忆并入系统提示（失败/超时静默跳过）。
     try {
       const hits = await mem0Recall(text);
-      if (hits.length > 0) {
-        const rendered = hits.map((h) => `- ${h.memory}`).join('\n');
-        (this.agent.state as unknown as { systemPrompt: string }).systemPrompt =
-          `${this.baseSystemPrompt}\n\nCloud long-term memory (auto-recalled, may be stale):\n${rendered}`;
-      } else {
-        (this.agent.state as unknown as { systemPrompt: string }).systemPrompt =
-          this.baseSystemPrompt;
+      const memory =
+        hits.length > 0
+          ? `Cloud long-term memory (auto-recalled, may be stale):\n${hits.map((h) => `- ${h.memory}`).join('\n')}`
+          : null;
+      if (memory !== this.recalledMemory) {
+        this.agent.state.messages = [
+          ...this.agent.state.messages,
+          {
+            role: 'system',
+            content: '',
+            sections: { wisp_memory: memory },
+            timestamp: Date.now(),
+          },
+        ];
+        this.recalledMemory = memory;
       }
     } catch {
       // recall is best-effort
     }
 
+    const userMessage: UserMessage = { role: 'user', content: text, timestamp: Date.now() };
     if (this.persist && isTauri()) {
       await transport('pi_session_append', {
         id: this.sessionId,
-        message: { role: 'user', content: text, timestamp: Date.now() },
+        message: userMessage,
       });
-      this.persistedCount += 1;
+      this.prePersistedUserMessage = userMessage;
     }
 
     let finalText = '';
     const unsubscribe = this.agent.subscribe((event) => {
       if (event.type === 'turn_end') {
-        const message = (event as { message?: { content?: Array<{ type: string; text?: string }> } })
-          .message;
+        const message = (
+          event as { message?: { content?: Array<{ type: string; text?: string }> } }
+        ).message;
         if (message?.content) {
           finalText = message.content
             .filter((b) => b.type === 'text')
@@ -318,7 +324,7 @@ export class PiEngine {
     });
 
     try {
-      await this.agent.prompt(text);
+      await this.agent.prompt(userMessage);
     } catch (e) {
       // 出错/中断的回合也要落盘已产生的内容（部分回答、工具轨迹），
       // 否则会话里只剩用户提问、没有回应。
@@ -341,11 +347,17 @@ export class PiEngine {
     if (!this.persist || !isTauri()) return;
     const messages = this.agent.state.messages as unknown[];
     for (const message of messages.slice(this.persistedCount)) {
-      const normalized = PiEngine.normalizeMessage(message);
-      if (normalized) {
-        await transport('pi_session_append', { id: this.sessionId, message: normalized });
+      // Pi includes runtime system updates; keep Wisp's saved history format unchanged.
+      if (message === this.prePersistedUserMessage) {
+        this.prePersistedUserMessage = null;
         this.persistedCount += 1;
+        continue;
       }
+      const normalized = PiEngine.normalizeMessage(message);
+      if (normalized && normalized.role !== 'system') {
+        await transport('pi_session_append', { id: this.sessionId, message: normalized });
+      }
+      this.persistedCount += 1;
     }
   }
 

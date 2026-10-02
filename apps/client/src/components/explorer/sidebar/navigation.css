@@ -44,24 +44,68 @@
 .wisp-sidebar .wisp-nav-row-action {
   position: absolute;
   right: 2px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
+  bottom: 0;
+  margin-block: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 30px;
+  min-width: 30px;
   height: 30px;
-  border-radius: 6px;
+  min-height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  box-shadow: none;
   color: var(--ds-label-secondary);
   opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--ds-motion-fast),
+    color var(--ds-motion-fast),
+    background-color var(--ds-motion-fast),
+    box-shadow var(--ds-motion-fast);
+}
+.wisp-sidebar .wisp-drive-eject {
+  opacity: 0.6;
+  pointer-events: auto;
 }
 .wisp-nav-row-group:hover .wisp-nav-row-action,
 .wisp-nav-row-group:focus-within .wisp-nav-row-action {
   opacity: 1;
+  pointer-events: auto;
 }
-.wisp-sidebar .wisp-nav-row-action:hover {
-  background: var(--ds-hover);
+.wisp-sidebar .wisp-nav-row-action:hover:not(:disabled),
+.wisp-sidebar .wisp-nav-row-action:focus-visible {
+  background: var(--ds-glass-sheen), var(--ds-control);
+  border-color: var(--ds-separator);
+  box-shadow: var(--ds-shadow-control);
   color: var(--ds-label-primary);
+}
+.wisp-sidebar .wisp-nav-row-action:active {
+  transform: none !important;
+  scale: none !important;
+}
+.wisp-sidebar .wisp-nav-row-group .wisp-nav-row-action[aria-busy="true"] {
+  opacity: 1 !important;
+  pointer-events: auto;
+  color: var(--ds-label-secondary);
+  cursor: wait;
+}
+.wisp-nav-action-spinner {
+  animation: wisp-nav-action-spin 900ms linear infinite;
+}
+@keyframes wisp-nav-action-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wisp-nav-action-spinner {
+    animation: none;
+  }
 }
 .wisp-sidebar .wisp-nav-add {
   display: flex;
@@ -217,8 +261,9 @@
   flex-direction: column;
   align-items: stretch;
 }
-@media (hover: none) {
+@media (hover: none), (pointer: coarse) {
   .wisp-sidebar .wisp-nav-row-action {
     opacity: 1;
+    pointer-events: auto;
   }
 }

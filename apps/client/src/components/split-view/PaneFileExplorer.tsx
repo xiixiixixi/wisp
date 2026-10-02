@@ -32,6 +32,9 @@ const loadUiStateHasViewMode = (): boolean => {
 interface PaneFileExplorerProps {
   /** Optional navigation-row outlet; state and callbacks remain owned by this pane. */
   toolbarTarget?: HTMLElement | null;
+  onRefresh?: () => void;
+  onNavigateUp?: () => void;
+  canNavigateUp?: boolean;
   viewMode: string;
   setViewMode: (mode: string) => void;
   sortBy: SortField;
@@ -75,6 +78,9 @@ interface PaneFileExplorerProps {
 const PaneFileExplorer = React.memo(
   ({
     toolbarTarget,
+    onRefresh,
+    onNavigateUp,
+    canNavigateUp,
     viewMode,
     setViewMode,
     sortBy,
@@ -223,8 +229,11 @@ const PaneFileExplorer = React.memo(
     }, [currentPath]);
 
     const operationBar =
-      isLoading || displayFiles.length > 0 || selectedFiles.size > 0 ? (
+      toolbarTarget || isLoading || displayFiles.length > 0 || selectedFiles.size > 0 ? (
         <OperationBar
+          onRefresh={onRefresh}
+          onNavigateUp={onNavigateUp}
+          canNavigateUp={canNavigateUp}
           viewMode={viewMode}
           setViewMode={handleSetViewMode}
           viewModes={viewModes}
@@ -270,6 +279,14 @@ const PaneFileExplorer = React.memo(
           onPaste={clipboardCtx.pasteFiles}
           hasClipboard={clipboardCtx.hasClipboard}
           onPreview={onQuickLook ? handlePreviewSelected : undefined}
+          overflowAccessory={
+            <FolderColorLegend
+              files={sortedFiles}
+              onFilterByColor={handleColorFilter}
+              activeColorFilter={colorFilter}
+              inMenu
+            />
+          }
           statusAccessory={
             <div className="mr-1 flex items-center gap-2">
               <FolderColorLegend

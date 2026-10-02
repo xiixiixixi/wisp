@@ -3,7 +3,7 @@
  * Verifies the approval gate end-to-end: denied calls never reach Rust,
  * allowed ones cross with approved=true, and read-only tools run freely.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('@/lib/transport', () => ({
   isTauri: vi.fn(() => false),
@@ -13,10 +13,12 @@ vi.mock('@/lib/transport', () => ({
 }));
 
 import { createFauxCore, fauxText, fauxToolCall } from '@earendil-works/pi-ai/providers/faux';
+import { getCurrentSystemPrompt, getCurrentTools } from '@earendil-works/pi-ai';
 import { PiEngine, type ApprovalDecision } from '@/lib/pi-engine/engine';
 import { requiresApproval, WRITE_TOOLS } from '@/lib/pi-engine/tools';
 import { transport, isTauri } from '@/lib/transport';
 import { invalidateMem0State } from '@/lib/pi-engine/mem0';
+import { invalidatePiConfig } from '@/lib/pi-engine/providers';
 
 const makeFaux = () => {
   const faux = createFauxCore({ api: 'faux-test', provider: 'faux', models: [{ id: 'faux-1' }] });
@@ -64,10 +66,13 @@ describe('pi-engine approval gate', () => {
     await engine.prompt('列一下');
 
     expect(approvals).toEqual([]);
-    expect(transport).toHaveBeenCalledWith('agent_execute_tool', expect.objectContaining({
-      toolName: 'list_directory',
-      approved: true, // read-only: backend does not gate it
-    }));
+    expect(transport).toHaveBeenCalledWith(
+      'agent_execute_tool',
+      expect.objectContaining({
+        toolName: 'list_directory',
+        approved: true, // read-only: backend does not gate it
+      }),
+    );
   });
 
   it('autoApprove all (full access) runs write tools without any approval prompt', async () => {
@@ -88,10 +93,13 @@ describe('pi-engine approval gate', () => {
     await engine.prompt('删掉它');
 
     expect(approvals).toEqual([]);
-    expect(transport).toHaveBeenCalledWith('agent_execute_tool', expect.objectContaining({
-      toolName: 'delete',
-      approved: true,
-    }));
+    expect(transport).toHaveBeenCalledWith(
+      'agent_execute_tool',
+      expect.objectContaining({
+        toolName: 'delete',
+        approved: true,
+      }),
+    );
 
     // 运行时切回 ask：下一次写工具恢复审批
     engine.setAutoApprove(new Set());
@@ -105,6 +113,7 @@ describe('pi-engine approval gate', () => {
 
   it('denied write tool never reaches Rust and the model sees the refusal', async () => {
     const faux = makeFaux();
+    const stream = vi.fn(faux.streamSimple.bind(faux));
     faux.setResponses([
       { content: [fauxToolCall('delete', { path: '/tmp/x/a.txt' })] },
       { content: [fauxText('好的，已取消。')] },
@@ -115,12 +124,14 @@ describe('pi-engine approval gate', () => {
       model: 'ollama:faux-test',
       callbacks: cb,
       persist: false,
-      streamFnOverride: faux.streamSimple.bind(faux) as never,
+      streamFnOverride: stream as never,
     });
     await engine.prompt('删掉它');
 
     expect(approvals).toEqual(['delete']);
     expect(transport).not.toHaveBeenCalled();
+    expect(stream).toHaveBeenCalledTimes(2);
+    expect(JSON.stringify(stream.mock.calls[1]?.[1])).toContain('用户拒绝了这次操作。');
   });
 
   it('allowed write tool crosses to Rust with approved=true', async () => {
@@ -141,10 +152,13 @@ describe('pi-engine approval gate', () => {
 
     expect(approvals).toEqual(['delete']);
     expect(transport).toHaveBeenCalledTimes(1);
-    expect(transport).toHaveBeenCalledWith('agent_execute_tool', expect.objectContaining({
-      toolName: 'delete',
-      approved: true,
-    }));
+    expect(transport).toHaveBeenCalledWith(
+      'agent_execute_tool',
+      expect.objectContaining({
+        toolName: 'delete',
+        approved: true,
+      }),
+    );
     expect(deltas.join('')).toContain('已删除');
   });
 
@@ -166,18 +180,28 @@ describe('pi-engine approval gate', () => {
     await engine.prompt('改名');
 
     expect(approvals).toEqual([]);
-    expect(transport).toHaveBeenCalledWith('agent_execute_tool', expect.objectContaining({
-      toolName: 'rename',
-      approved: true,
-    }));
+    expect(transport).toHaveBeenCalledWith(
+      'agent_execute_tool',
+      expect.objectContaining({
+        toolName: 'rename',
+        approved: true,
+      }),
+    );
   });
 });
 
 describe('pi-engine helpers', () => {
   it('requiresApproval matches the Rust write-tool set', () => {
     const expected = [
-      'write_file', 'create_directory', 'rename', 'delete', 'move_file',
-      'copy_file', 'execute_command', 'execute_plan', 'create_plan',
+      'write_file',
+      'create_directory',
+      'rename',
+      'delete',
+      'move_file',
+      'copy_file',
+      'execute_command',
+      'execute_plan',
+      'create_plan',
     ];
     expect([...WRITE_TOOLS].sort()).toEqual([...expected].sort());
     expect(requiresApproval('read_file')).toBe(false);
@@ -200,6 +224,259 @@ describe('pi-engine helpers', () => {
     const prompt = await PiEngine.buildSystemPrompt('/Users/x/Downloads');
     expect(prompt).toContain('/Users/x/Downloads');
   });
+});
+
+describe('pi-engine session persistence', () => {
+  beforeEach(() => {
+    vi.mocked(isTauri).mockReturnValue(true);
+    invalidatePiConfig();
+    invalidateMem0State();
+    vi.mocked(transport).mockReset();
+    vi.mocked(transport).mockImplementation(async (cmd: string) => {
+      switch (cmd) {
+        case 'pi_config_state':
+          return { models_json: { providers: {} }, auth_status: [] };
+        case 'pi_auth_keys':
+          return {};
+        case 'agent_load_context_chain':
+        case 'mcp_client_list_tools':
+          return [];
+        case 'mem0_config_state':
+          return { enabled: false, has_key: false, user_id: 'wisp', auto_capture: false };
+        case 'pi_session_create':
+          return {
+            id: 'new-session',
+            title: 'New session',
+            anchor: '/tmp/x',
+            model: 'ollama:faux-test',
+            origin: null,
+            created_at: 1,
+            updated_at: 1,
+            message_count: 0,
+          };
+        case 'pi_session_append':
+          return null;
+        default:
+          throw new Error(`unexpected transport call: ${cmd}`);
+      }
+    });
+  });
+
+  afterEach(() => {
+    vi.mocked(isTauri).mockReturnValue(false);
+    invalidatePiConfig();
+    invalidateMem0State();
+    vi.mocked(transport).mockReset();
+    vi.mocked(transport).mockImplementation(async () => {
+      throw new Error('transport must not be called in this test');
+    });
+  });
+
+  const appendedMessages = () =>
+    vi
+      .mocked(transport)
+      .mock.calls.filter(([cmd]) => cmd === 'pi_session_append')
+      .map(([, args]) => args as { id: string; message: Record<string, unknown> });
+
+  it('resumes legacy JSONL messages and persists only the continued round', async () => {
+    // This is the stored 0.85 message shape, including a completed tool round.
+    const legacyUsage = {
+      input: 10,
+      output: 5,
+      cacheRead: 0,
+      cacheWrite: 0,
+      totalTokens: 15,
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+    };
+    const legacyMessages = [
+      { role: 'user', content: 'List my folder.', timestamp: 1 },
+      {
+        role: 'assistant',
+        content: [
+          {
+            type: 'toolCall',
+            id: 'old-call',
+            name: 'list_directory',
+            arguments: { path: '/tmp/x' },
+          },
+        ],
+        api: 'faux-test',
+        provider: 'faux',
+        model: 'faux-1',
+        usage: legacyUsage,
+        stopReason: 'toolUse',
+        timestamp: 2,
+      },
+      {
+        role: 'toolResult',
+        toolCallId: 'old-call',
+        toolName: 'list_directory',
+        content: [{ type: 'text', text: 'report.txt' }],
+        details: { name: 'list_directory', status: 'completed' },
+        isError: false,
+        timestamp: 3,
+      },
+      {
+        role: 'assistant',
+        content: [{ type: 'text', text: 'Your folder contains report.txt.' }],
+        api: 'faux-test',
+        provider: 'faux',
+        model: 'faux-1',
+        usage: legacyUsage,
+        stopReason: 'stop',
+        timestamp: 4,
+      },
+    ];
+    const messages = legacyMessages.map((message) => JSON.parse(JSON.stringify(message)));
+    const faux = makeFaux();
+    const stream = vi.fn(faux.streamSimple.bind(faux));
+    faux.setResponses([{ content: [fauxText('The report is still available.')] }]);
+    const { cb } = callbacks('deny');
+    const engine = await PiEngine.start({
+      anchor: '/tmp/x',
+      model: 'ollama:faux-test',
+      callbacks: cb,
+      resume: { id: 'legacy-session', messages },
+      streamFnOverride: stream as never,
+    });
+
+    expect(await engine.prompt('What did you find?')).toBe('The report is still available.');
+
+    const transcript = JSON.stringify(stream.mock.calls[0]?.[1]);
+    expect(transcript).toContain('List my folder.');
+    expect(transcript).toContain('old-call');
+    expect(transcript).toContain('report.txt');
+    expect(transcript).toContain('What did you find?');
+    expect(messages).toEqual(legacyMessages);
+    expect(transport).not.toHaveBeenCalledWith('pi_session_create', expect.anything());
+    expect(transport).not.toHaveBeenCalledWith('agent_execute_tool', expect.anything());
+    expect(appendedMessages()).toEqual([
+      {
+        id: 'legacy-session',
+        message: expect.objectContaining({ role: 'user', content: 'What did you find?' }),
+      },
+      {
+        id: 'legacy-session',
+        message: expect.objectContaining({
+          role: 'assistant',
+          content: [{ type: 'text', text: 'The report is still available.' }],
+        }),
+      },
+    ]);
+  });
+
+  it('persists each new user and assistant message exactly once across prompt rounds', async () => {
+    const faux = makeFaux();
+    const { cb } = callbacks('deny');
+    const engine = await PiEngine.start({
+      anchor: '/tmp/x',
+      model: 'ollama:faux-test',
+      callbacks: cb,
+      streamFnOverride: faux.streamSimple.bind(faux) as never,
+    });
+
+    faux.setResponses([{ content: [fauxText('First answer.')] }]);
+    await engine.prompt('First question.');
+    const firstRound = appendedMessages();
+    expect(firstRound).toHaveLength(2);
+
+    faux.setResponses([{ content: [fauxText('Second answer.')] }]);
+    await engine.prompt('Second question.');
+
+    const saved = appendedMessages();
+    expect(saved).toHaveLength(4);
+    expect(saved.slice(0, 2)).toEqual(firstRound);
+    expect(saved.map(({ id }) => id)).toEqual(Array(4).fill('new-session'));
+    expect(saved.map(({ message }) => message.role)).toEqual([
+      'user',
+      'assistant',
+      'user',
+      'assistant',
+    ]);
+    expect(saved.slice(2).map(({ message }) => message.content)).toEqual([
+      'Second question.',
+      [{ type: 'text', text: 'Second answer.' }],
+    ]);
+    expect(
+      vi.mocked(transport).mock.calls.filter(([cmd]) => cmd === 'pi_session_create'),
+    ).toHaveLength(1);
+  });
+
+  it.each([
+    { action: 'clears', nextMemory: null },
+    { action: 'replaces', nextMemory: 'Second recalled preference' },
+  ])(
+    '$action recalled memory without changing the stored conversation format',
+    async ({ nextMemory }) => {
+      const defaultTransport = vi.mocked(transport).getMockImplementation()!;
+      const memories = ['First recalled preference', nextMemory];
+      vi.mocked(transport).mockImplementation(
+        async (cmd: string, args?: Record<string, unknown>) => {
+          if (cmd === 'mem0_config_state') {
+            return { enabled: true, has_key: true, user_id: 'wisp', auto_capture: false };
+          }
+          if (cmd === 'mem0_search') {
+            const memory = memories.shift();
+            return memory ? [{ id: 'remembered', memory, score: 0.9 }] : [];
+          }
+          return defaultTransport(cmd, args);
+        },
+      );
+      const faux = makeFaux();
+      const systemPrompts: string[] = [];
+      const toolNames: string[][] = [];
+      const stream = vi.fn((...args: Parameters<typeof faux.streamSimple>) => {
+        systemPrompts.push(getCurrentSystemPrompt(args[1].messages));
+        toolNames.push(getCurrentTools(args[1].messages).map((tool) => tool.name));
+        return faux.streamSimple(...args);
+      });
+      const { cb } = callbacks('deny');
+      const engine = await PiEngine.start({
+        anchor: '/tmp/x',
+        model: 'ollama:faux-test',
+        callbacks: cb,
+        streamFnOverride: stream as never,
+      });
+
+      faux.setResponses([{ content: [fauxText('First answer.')] }]);
+      await engine.prompt('First question.');
+      faux.setResponses([{ content: [fauxText('Second answer.')] }]);
+      await engine.prompt('Second question.');
+
+      expect(systemPrompts).toHaveLength(2);
+      expect(systemPrompts[0]).toContain('First recalled preference');
+      expect(systemPrompts[1]).not.toContain('First recalled preference');
+      if (nextMemory) {
+        expect(systemPrompts[1]).toContain(nextMemory);
+      } else {
+        expect(systemPrompts[1]).not.toContain('Cloud long-term memory');
+      }
+      for (const systemPrompt of systemPrompts) {
+        expect(systemPrompt).toContain('You are the Wisp AI agent');
+        expect(systemPrompt).toContain('Current folder: /tmp/x');
+      }
+      for (const names of toolNames) {
+        expect(names).toContain('list_directory');
+        expect(names).toContain('write_file');
+      }
+
+      const saved = appendedMessages();
+      expect(saved).toHaveLength(4);
+      expect(saved.map(({ message }) => message.role)).toEqual([
+        'user',
+        'assistant',
+        'user',
+        'assistant',
+      ]);
+      expect(saved.map(({ message }) => message.content)).toEqual([
+        'First question.',
+        [{ type: 'text', text: 'First answer.' }],
+        'Second question.',
+        [{ type: 'text', text: 'Second answer.' }],
+      ]);
+      expect(JSON.stringify(saved)).not.toContain('recalled preference');
+    },
+  );
 });
 
 describe('pi-engine mem0 auto memory hooks', () => {
@@ -228,23 +505,30 @@ describe('pi-engine mem0 auto memory hooks', () => {
   };
 
   it('captures the round to mem0 after completion and injects recalled memories before the next turn', async () => {
-    vi.mocked(transport).mockImplementation(async (cmd: string, _args?: Record<string, unknown>) => {
-      if (cmd === 'mem0_config_state') {
-        return { enabled: true, has_key: true, user_id: 'wisp', auto_capture: true };
-      }
-      if (cmd === 'mem0_search') {
-        return [
-          { id: 'm1', memory: 'User likes date-prefixed filenames', score: 0.4, categories: ['user_preferences'] },
-        ];
-      }
-      if (cmd === 'mem0_add') {
+    vi.mocked(transport).mockImplementation(
+      async (cmd: string, _args?: Record<string, unknown>) => {
+        if (cmd === 'mem0_config_state') {
+          return { enabled: true, has_key: true, user_id: 'wisp', auto_capture: true };
+        }
+        if (cmd === 'mem0_search') {
+          return [
+            {
+              id: 'm1',
+              memory: 'User likes date-prefixed filenames',
+              score: 0.4,
+              categories: ['user_preferences'],
+            },
+          ];
+        }
+        if (cmd === 'mem0_add') {
+          return null;
+        }
+        if (cmd === 'pi_config_state') {
+          return { models_json: { providers: {} }, auth_status: [] };
+        }
         return null;
-      }
-      if (cmd === 'pi_config_state') {
-        return { models_json: { providers: {} }, auth_status: [] };
-      }
-      return null;
-    });
+      },
+    );
     const engine = await mem0Faux();
     const before = engine.agent.state.systemPrompt;
     await engine.prompt('记住：我文件都用日期开头命名');

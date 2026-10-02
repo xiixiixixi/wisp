@@ -96,7 +96,9 @@ export const useLayoutState = (): LayoutState => {
   const [rightPanelTab, setRightPanelTab] = useState<string>(() => {
     const stored = loadUiState<string>('rightPanelTab', 'preview');
     // 'chat' is a live tab again (pi chat); only legacy removed panels migrate.
-    if (stored === 'tokenizer' || stored === 'extensions') return 'preview';
+    if (stored === 'tokenizer' || stored === 'extensions' || stored === 'agent-manager') {
+      return 'preview';
+    }
     return stored;
   });
   // Canvas mode is deliberately ephemeral: it never survives a relaunch.
@@ -169,7 +171,7 @@ export const useLayoutState = (): LayoutState => {
     clampToWindow();
     window.addEventListener('resize', clampToWindow);
     return () => window.removeEventListener('resize', clampToWindow);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
   const handleBottomResize = useCallback((delta: number) => {
     setBottomPanelHeight((h) => Math.min(500, Math.max(120, h - delta)));

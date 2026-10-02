@@ -12,7 +12,6 @@ import './side-panels.css';
 const PreviewPanel = React.lazy(() => import('./PreviewPanel'));
 const MarketplacePanel = React.lazy(() => import('./MarketplacePanel'));
 const PerformanceDashboard = React.lazy(() => import('./PerformanceDashboard'));
-const AgentManagerPanel = React.lazy(() => import('./AgentManagerPanel'));
 const PiChatPanel = React.lazy(() => import('./PiChatPanel'));
 const ChatgptBridgePanel = React.lazy(() => import('./ChatgptBridgePanel'));
 const WeixinBridgePanel = React.lazy(() => import('./WeixinBridgePanel'));
@@ -51,7 +50,7 @@ interface RightSidebarProps {
 const RightSidebar = ({
   rightSidebarCollapsed,
   setRightSidebarCollapsed,
-  rightPanelTab,
+  rightPanelTab: requestedPanelTab,
   width,
   canvasMode = false,
   setCanvasMode,
@@ -68,6 +67,7 @@ const RightSidebar = ({
   currentPath,
   navigateToPath,
 }: RightSidebarProps) => {
+  const rightPanelTab = requestedPanelTab === 'agent-manager' ? 'preview' : requestedPanelTab;
   const { t: tUi } = useTranslation();
   const outerRef = useRef<HTMLDivElement>(null);
   const panelContentRef = useRef<HTMLDivElement>(null);
@@ -230,7 +230,6 @@ const RightSidebar = ({
     if (showCompare) return i18n.t('dialogs.compareFiles.title');
     if (rightPanelTab === 'preview') return i18n.t('extensionsBar.preview');
     if (rightPanelTab === 'chat') return i18n.t('extensionsBar.chat');
-    if (rightPanelTab === 'agent-manager') return i18n.t('extensionsBar.externalAssistants');
     if (rightPanelTab === 'weixin-bridge') return i18n.t('extensionsBar.weixin');
     if (rightPanelTab === 'chatgpt-bridge') return i18n.t('extensionsBar.chatgptBridge');
     if (rightPanelTab === 'performance') return i18n.t('extensionsBar.performance');
@@ -390,13 +389,6 @@ const RightSidebar = ({
                       canvasMode={false}
                       onCanvasChange={setCanvasMode}
                     />
-                  </ErrorBoundary>
-                );
-              }
-              if (rightPanelTab === 'agent-manager') {
-                return (
-                  <ErrorBoundary>
-                    <AgentManagerPanel currentPath={currentPath} />
                   </ErrorBoundary>
                 );
               }

@@ -18,7 +18,6 @@ import {
   Plug,
   Smartphone,
   Check,
-  Sparkles,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import '@/components/explorer/sidebar/navigation.css';
@@ -79,11 +78,6 @@ const VerticalExtensionsBar = ({
         icon: <Bot size={16} />,
         label: t('extensionsBar.chat'),
         target: 'chat',
-      },
-      {
-        id: 'agent-manager',
-        icon: <Sparkles size={16} />,
-        label: t('extensionsBar.externalAssistants'),
       },
       { id: 'chatgpt-bridge', icon: <Plug size={16} />, label: t('extensionsBar.chatgptBridge') },
       {

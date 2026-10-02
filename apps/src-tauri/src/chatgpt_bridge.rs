@@ -53,7 +53,7 @@ pub struct BridgeConfig {
     pub version: u32,
     pub enabled: bool,
     pub tunnel_id: String,
-    /// Explicit `tunnel-client` path; `None` = auto-detect (PATH + Homebrew).
+    /// Explicit `tunnel-client` path; `None` prefers the app's bundled client.
     #[serde(default)]
     pub tunnel_client_path: Option<String>,
     /// Directory whitelist — absolute, canonicalized on load. Empty = the
@@ -247,6 +247,14 @@ impl BridgeToolResult {
 pub fn bridge_list_tools() -> Vec<mcp_host::McpToolSchema> {
     vec![
         mcp_host::McpToolSchema {
+            name: "list_shared_folders".to_string(),
+            description: "List the shared folders available on this computer. Call this first to discover the absolute paths accepted by the other file tools.".to_string(),
+            input_schema: json!({
+                "type": "object",
+                "properties": {}
+            }),
+        },
+        mcp_host::McpToolSchema {
             name: "read_file".to_string(),
             description: "Read the text content of a shared file (size-capped).".to_string(),
             input_schema: json!({
@@ -322,6 +330,21 @@ pub fn bridge_call_tool_with(
     arguments: &Value,
 ) -> BridgeToolResult {
     match name {
+        "list_shared_folders" => {
+            let mut roots: Vec<String> = policy
+                .roots
+                .iter()
+                .filter(|root| root.is_dir())
+                .filter_map(|root| policy.check(&root.to_string_lossy()).ok())
+                .map(|root| root.to_string_lossy().to_string())
+                .collect();
+            roots.sort();
+            roots.dedup();
+            if roots.is_empty() {
+                return BridgeToolResult::text("No shared folders are available.");
+            }
+            BridgeToolResult::text(roots.join("\n"))
+        }
         "read_file" => {
             let Some(path) = arg_str(arguments, "path") else {
                 return BridgeToolResult::error("Missing required parameter: path");
@@ -581,36 +604,121 @@ impl BridgeManager {
     }
 }
 
-/// Locate `tunnel-client`: PATH first, then the Homebrew prefixes (the
-/// officially supported install route on macOS is
-/// `brew install openai/tools/tunnel-client`).
-pub fn detect_tunnel_client() -> Option<PathBuf> {
-    let mut candidates: Vec<PathBuf> = Vec::new();
-    if let Some(path_var) = std::env::var_os("PATH") {
-        candidates.extend(
-            std::env::split_paths(&path_var).map(|dir| dir.join("tunnel-client")),
-        );
+fn executable_name(name: &str) -> String {
+    #[cfg(target_os = "windows")]
+    return format!("{name}.exe");
+    #[cfg(not(target_os = "windows"))]
+    name.to_string()
+}
+
+fn bundled_client_candidates(wisp_exe: &Path, dev_binary_dir: Option<&Path>) -> Vec<PathBuf> {
+    let mut candidates = Vec::new();
+    if let Some(dir) = wisp_exe.parent() {
+        candidates.push(dir.join(executable_name("tunnel-client")));
     }
-    candidates.push(PathBuf::from("/opt/homebrew/bin/tunnel-client"));
-    candidates.push(PathBuf::from("/usr/local/bin/tunnel-client"));
-    candidates.into_iter().find(|c| c.is_file())
+    if let (Some(dir), Some(target)) = (dev_binary_dir, option_env!("WISP_BRIDGE_TARGET")) {
+        candidates.push(dir.join(executable_name(&format!("tunnel-client-{target}"))));
+    }
+    candidates
+}
+
+fn development_binary_dir() -> Option<PathBuf> {
+    cfg!(debug_assertions).then(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("binaries"))
+}
+
+fn bundled_cloudflared_path(client_path: &Path) -> PathBuf {
+    let filename = client_path
+        .file_name()
+        .unwrap_or_default()
+        .to_string_lossy();
+    let suffix = filename.strip_prefix("tunnel-client").unwrap_or_default();
+    client_path.with_file_name(format!("cloudflared{suffix}"))
+}
+
+fn validate_client_executable(path: &Path) -> Result<(), String> {
+    let metadata = std::fs::metadata(path).map_err(|e| {
+        format!(
+            "The connection component could not be found at {}: {e}",
+            path.display()
+        )
+    })?;
+    if !metadata.is_file() {
+        return Err(format!(
+            "The connection component is not a file: {}",
+            path.display()
+        ));
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if metadata.permissions().mode() & 0o111 == 0 {
+            return Err(format!(
+                "The connection component cannot be executed: {}. Reinstall Wisp or choose an executable connection tool.",
+                path.display()
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn resolve_client_path_from(
+    explicit: Option<&str>,
+    bundled: &[PathBuf],
+    system: &[PathBuf],
+) -> Result<PathBuf, String> {
+    if let Some(path) = explicit.filter(|path| !path.trim().is_empty()) {
+        let path = PathBuf::from(path);
+        validate_client_executable(&path)?;
+        return Ok(path);
+    }
+    for path in bundled {
+        if path.exists() {
+            validate_client_executable(path)?;
+            validate_client_executable(&bundled_cloudflared_path(path))?;
+            return Ok(path.clone());
+        }
+    }
+    if let Some(path) = system
+        .iter()
+        .find(|path| validate_client_executable(path).is_ok())
+    {
+        return Ok(path.clone());
+    }
+    Err("Wisp's connection component is missing. Reinstall the complete Wisp app, or choose an already installed tunnel-client in the advanced connection settings.".to_string())
 }
 
 fn resolve_client_path(config: &BridgeConfig) -> Result<PathBuf, String> {
-    if let Some(explicit) = &config.tunnel_client_path {
-        let p = PathBuf::from(explicit);
-        if p.is_file() {
-            return Ok(p);
-        }
-        return Err(format!(
-            "tunnel-client not found at configured path: {explicit}"
-        ));
+    let wisp_exe =
+        std::env::current_exe().map_err(|e| format!("Cannot locate the Wisp application: {e}"))?;
+    let dev_binary_dir = development_binary_dir();
+    let bundled = bundled_client_candidates(&wisp_exe, dev_binary_dir.as_deref());
+    let mut system = Vec::new();
+    if let Some(path_var) = std::env::var_os("PATH") {
+        system.extend(
+            std::env::split_paths(&path_var).map(|dir| dir.join(executable_name("tunnel-client"))),
+        );
     }
-    detect_tunnel_client().ok_or_else(|| {
-        "tunnel-client not found — run `brew install openai/tools/tunnel-client` first, \
-         or set its path in the bridge panel"
-            .to_string()
-    })
+    #[cfg(target_os = "macos")]
+    {
+        system.push(PathBuf::from("/opt/homebrew/bin/tunnel-client"));
+        system.push(PathBuf::from("/usr/local/bin/tunnel-client"));
+    }
+    resolve_client_path_from(config.tunnel_client_path.as_deref(), &bundled, &system)
+}
+
+fn client_start_error(path: &Path, error: std::io::Error) -> String {
+    if matches!(error.raw_os_error(), Some(8 | 86 | 193 | 216)) {
+        return format!(
+            "The connection component at {} is not compatible with this computer ({} / {}). Reinstall Wisp for this computer's operating system and processor. Details: {error}",
+            path.display(),
+            std::env::consts::OS,
+            std::env::consts::ARCH
+        );
+    }
+    format!(
+        "Failed to start the connection component ({}): {error}",
+        path.display()
+    )
 }
 
 /// The command tunnel-client runs to get our stdio MCP server. Paths are
@@ -747,6 +855,11 @@ pub fn start_bridge() -> Result<(), String> {
     let _ = std::fs::remove_file(&health_url_file);
 
     let mut command = std::process::Command::new(&client_path);
+    let bundled = bundled_client_candidates(&wisp_exe, development_binary_dir().as_deref());
+    if bundled.contains(&client_path) {
+        // The developer build uses target-suffixed sidecars; installed apps use plain names.
+        command.env("CLOUDFLARED_PATH", bundled_cloudflared_path(&client_path));
+    }
     command
         .args([
             "run",
@@ -768,7 +881,7 @@ pub fn start_bridge() -> Result<(), String> {
 
     let mut child = command
         .spawn()
-        .map_err(|e| format!("Failed to start tunnel-client ({}): {e}", client_path.display()))?;
+        .map_err(|e| client_start_error(&client_path, e))?;
 
     let pid = child.id();
     let _ = std::fs::write(data_dir.join(PID_FILE), pid.to_string());
@@ -899,13 +1012,14 @@ pub fn start_bridge() -> Result<(), String> {
         if let Some(url) = url {
             let ready = probe_ready(&url);
             let mut inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
+            let state = state_for_readiness(&inner.state, ready).to_string();
             let changed =
-                inner.health_url.as_deref() != Some(url.as_str()) || inner.ready != ready;
+                inner.health_url.as_deref() != Some(url.as_str())
+                    || inner.ready != ready
+                    || inner.state != state;
             inner.health_url = Some(url);
             inner.ready = ready;
-            if ready == Some(true) && inner.state == "starting" {
-                inner.state = "running".to_string();
-            }
+            inner.state = state;
             if changed {
                 drop(inner);
                 MANAGER.emit_status();
@@ -915,6 +1029,14 @@ pub fn start_bridge() -> Result<(), String> {
     });
 
     Ok(())
+}
+
+fn state_for_readiness(state: &str, ready: Option<bool>) -> &str {
+    match (state, ready) {
+        ("starting" | "running", Some(true)) => "running",
+        ("starting" | "running", _) => "starting",
+        _ => state,
+    }
 }
 
 fn probe_ready(base_url: &str) -> Option<bool> {
@@ -970,10 +1092,13 @@ fn state_response() -> BridgeStateResponse {
         let inner = MANAGER.inner.lock().unwrap_or_else(|e| e.into_inner());
         (inner.config.clone(), inner.data_dir.clone())
     };
+    let detected_client_path = resolve_client_path(&config)
+        .ok()
+        .map(|p| p.display().to_string());
     BridgeStateResponse {
         config,
         status: MANAGER.status(),
-        detected_client_path: detect_tunnel_client().map(|p| p.display().to_string()),
+        detected_client_path,
         has_api_key: secure_credentials::get_secret(API_KEYCHAIN_KEY)
             .ok()
             .flatten()
@@ -1081,6 +1206,15 @@ mod tests {
         }
     }
 
+    fn executable_fixture(path: &Path) {
+        std::fs::write(path, "#!/bin/sh\nexit 0\n").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
+    }
+
     #[test]
     fn policy_allows_inside_root_and_denies_outside() {
         let root = temp_root("allow");
@@ -1156,10 +1290,176 @@ mod tests {
         let names: Vec<&str> = tools.iter().map(|t| t.name.as_str()).collect();
         assert_eq!(
             names,
-            ["read_file", "list_directory", "search_files", "get_file_info"]
+            [
+                "list_shared_folders",
+                "read_file",
+                "list_directory",
+                "search_files",
+                "get_file_info"
+            ]
         );
         assert!(!names.contains(&"write_file"));
         assert!(!names.contains(&"run_command"));
+    }
+
+    #[test]
+    fn shared_folders_lists_only_allowed_accessible_directories() {
+        let root = temp_root("shared-folders");
+        let visible = root.join("documents");
+        let sensitive = root.join(".ssh");
+        let file = root.join("note.txt");
+        std::fs::create_dir(&visible).unwrap();
+        std::fs::create_dir(&sensitive).unwrap();
+        std::fs::write(&file, "not a folder").unwrap();
+        let policy = AccessPolicy::from_config(&BridgeConfig {
+            allowed_roots: vec![
+                visible.to_string_lossy().to_string(),
+                visible.to_string_lossy().to_string(),
+                sensitive.to_string_lossy().to_string(),
+                file.to_string_lossy().to_string(),
+                root.join("missing").to_string_lossy().to_string(),
+            ],
+            ..BridgeConfig::default()
+        });
+        let result = bridge_call_tool_with(&policy, "list_shared_folders", &json!({}));
+        assert!(!result.is_error);
+        assert_eq!(
+            result.content[0]["text"].as_str().unwrap(),
+            std::fs::canonicalize(visible).unwrap().to_string_lossy()
+        );
+    }
+
+    #[test]
+    fn shared_folders_handles_empty_or_removed_roots() {
+        let root = temp_root("removed-shared-folder");
+        let policy = policy_for(&root, 1024);
+        std::fs::remove_dir(&root).unwrap();
+        let result = bridge_call_tool_with(&policy, "list_shared_folders", &json!({}));
+        assert!(!result.is_error);
+        assert_eq!(
+            result.content[0]["text"],
+            "No shared folders are available."
+        );
+    }
+
+    #[test]
+    fn client_resolution_prefers_explicit_then_bundled_then_system() {
+        let root = tempfile::tempdir().unwrap();
+        let explicit = root.path().join("custom-client");
+        let bundled = root.path().join(executable_name("tunnel-client"));
+        let system = root.path().join("system-client");
+        for path in [
+            &explicit,
+            &bundled,
+            &system,
+            &bundled_cloudflared_path(&bundled),
+        ] {
+            executable_fixture(path);
+        }
+        let bundles = vec![bundled.clone()];
+        let systems = vec![system.clone()];
+        assert_eq!(
+            resolve_client_path_from(explicit.to_str(), &bundles, &systems).unwrap(),
+            explicit
+        );
+        assert_eq!(
+            resolve_client_path_from(None, &bundles, &systems).unwrap(),
+            bundled
+        );
+        assert_eq!(
+            resolve_client_path_from(None, &[], &systems).unwrap(),
+            system
+        );
+    }
+
+    #[test]
+    fn bundled_client_resolves_without_path_or_homebrew() {
+        let root = tempfile::tempdir().unwrap();
+        let app_exe = root.path().join(executable_name("wisp"));
+        let bundled = root.path().join(executable_name("tunnel-client"));
+        executable_fixture(&bundled);
+        executable_fixture(&bundled_cloudflared_path(&bundled));
+        let candidates = bundled_client_candidates(&app_exe, None);
+        let resolved = resolve_client_path_from(None, &candidates, &[]).unwrap();
+        assert_eq!(resolved, bundled);
+        #[cfg(unix)]
+        assert!(std::process::Command::new(resolved)
+            .env("PATH", "")
+            .status()
+            .unwrap()
+            .success());
+    }
+
+    #[test]
+    fn client_resolution_reports_missing_explicit_path_without_falling_back() {
+        let root = tempfile::tempdir().unwrap();
+        let missing = root.path().join("missing-client");
+        let system = root.path().join("system-client");
+        executable_fixture(&system);
+        let error = resolve_client_path_from(missing.to_str(), &[], &[system]).unwrap_err();
+        assert!(error.contains("could not be found"));
+        assert!(error.contains("missing-client"));
+        assert!(resolve_client_path_from(None, &[], &[])
+            .unwrap_err()
+            .contains("Reinstall"));
+    }
+
+    #[test]
+    fn bundled_client_requires_its_transport_component() {
+        let root = tempfile::tempdir().unwrap();
+        let bundled = root.path().join(executable_name("tunnel-client"));
+        executable_fixture(&bundled);
+        let error = resolve_client_path_from(None, &[bundled], &[]).unwrap_err();
+        assert!(error.contains("cloudflared"));
+        assert!(error.contains("could not be found"));
+    }
+
+    #[test]
+    fn bundled_transport_matches_the_clients_target_suffix() {
+        let path = Path::new("/app/tunnel-client-aarch64-apple-darwin");
+        assert_eq!(
+            bundled_cloudflared_path(path),
+            PathBuf::from("/app/cloudflared-aarch64-apple-darwin")
+        );
+        assert_eq!(
+            bundled_cloudflared_path(Path::new("/app/tunnel-client-x86_64-pc-windows-msvc.exe")),
+            PathBuf::from("/app/cloudflared-x86_64-pc-windows-msvc.exe")
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn client_resolution_rejects_non_executable_component() {
+        let root = tempfile::tempdir().unwrap();
+        let path = root.path().join("client");
+        std::fs::write(&path, "not executable").unwrap();
+        let error = resolve_client_path_from(path.to_str(), &[], &[]).unwrap_err();
+        assert!(error.contains("cannot be executed"));
+    }
+
+    #[test]
+    fn client_start_reports_incompatible_architecture() {
+        let error = client_start_error(
+            Path::new("/app/tunnel-client"),
+            std::io::Error::from_raw_os_error(86),
+        );
+        assert!(error.contains("not compatible with this computer"));
+        assert!(error.contains(std::env::consts::ARCH));
+    }
+
+    #[test]
+    fn connection_state_requires_confirmed_readiness_and_recovers() {
+        assert_eq!(state_for_readiness("starting", Some(true)), "running");
+        assert_eq!(state_for_readiness("running", Some(true)), "running");
+        assert_eq!(state_for_readiness("running", Some(false)), "starting");
+        assert_eq!(state_for_readiness("running", None), "starting");
+        assert_eq!(state_for_readiness("starting", Some(false)), "starting");
+        assert_eq!(state_for_readiness("starting", None), "starting");
+        for state in ["stopped", "error"] {
+            assert_eq!(state_for_readiness(state, Some(true)), state);
+            assert_eq!(state_for_readiness(state, Some(false)), state);
+            assert_eq!(state_for_readiness(state, None), state);
+        }
     }
 
     #[test]

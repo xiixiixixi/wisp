@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { TauriAPI } from '@/lib/tauri-api';
 import '@testing-library/jest-dom';
 import NavigationBar from '@/components/explorer/NavigationBar';
@@ -145,6 +145,200 @@ describe('NavigationBar', () => {
 
       fireEvent.click(screen.getByRole('button', { name: 'Navigate to C:' }));
       expect(mockNavigateToPath).toHaveBeenCalledWith(expect.stringContaining('C:'));
+    });
+  });
+
+  describe('responsive toolbar paths', () => {
+    const paneWidths = new Map<string, number>();
+    const observers: Array<{ callback: () => void; targets: Set<Element> }> = [];
+    const restoreMeasurements: Array<() => void> = [];
+
+    beforeEach(() => {
+      paneWidths.clear();
+      paneWidths.set('left', 500);
+      paneWidths.set('right', 500);
+      observers.length = 0;
+      const clientWidth = vi
+        .spyOn(HTMLElement.prototype, 'clientWidth', 'get')
+        .mockImplementation(function () {
+          if (!this.classList.contains('wisp-breadcrumb-trail')) return 0;
+          const pane = this.closest<HTMLElement>('[data-test-pane]');
+          return paneWidths.get(pane?.dataset.testPane ?? 'left') ?? 0;
+        });
+      const boundingRect = vi
+        .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        .mockImplementation(function () {
+          const width = this.classList.contains('wisp-editor-pane')
+            ? (paneWidths.get(this.dataset.testPane ?? 'left') ?? 0)
+            : 64;
+          return {
+            width,
+            height: 28,
+            x: 0,
+            y: 0,
+            top: 0,
+            bottom: 28,
+            left: 0,
+            right: width,
+            toJSON: () => ({}),
+          };
+        });
+      restoreMeasurements.push(
+        () => clientWidth.mockRestore(),
+        () => boundingRect.mockRestore(),
+      );
+      vi.stubGlobal(
+        'ResizeObserver',
+        class {
+          record: (typeof observers)[number];
+
+          constructor(callback: () => void) {
+            this.record = { callback, targets: new Set() };
+            observers.push(this.record);
+          }
+
+          observe(target: Element) {
+            this.record.targets.add(target);
+          }
+
+          disconnect() {
+            this.record.targets.clear();
+          }
+        },
+      );
+    });
+
+    afterEach(() => {
+      for (const restore of restoreMeasurements.splice(0)) restore();
+      vi.unstubAllGlobals();
+    });
+
+    const resizePane = (pane: string, width: number) => {
+      act(() => {
+        paneWidths.set(pane, width);
+        for (const observer of observers) {
+          if (
+            [...observer.targets].some(
+              (target) =>
+                target.closest<HTMLElement>('[data-test-pane]')?.dataset.testPane === pane,
+            )
+          ) {
+            observer.callback();
+          }
+        }
+      });
+    };
+
+    it.each([
+      [601, true, true],
+      [600, true, false],
+      [360, true, false],
+      [360, false, true],
+    ])(
+      'retains back and forward while navigation extras adapt at %ipx (overflow enabled: %s)',
+      (width, compactActionsInMenu, extrasVisible) => {
+        paneWidths.set('left', width);
+        const onNavigateBack = vi.fn();
+        const onNavigateForward = vi.fn();
+        const onNavigateUp = vi.fn();
+        render(
+          <section className="wisp-editor-pane" data-test-pane="left">
+            <NavigationBar
+              {...defaultProps}
+              compactActionsInMenu={compactActionsInMenu}
+              onNavigateBack={onNavigateBack}
+              onNavigateForward={onNavigateForward}
+              canNavigateBack
+              canNavigateForward
+              onNavigateUp={onNavigateUp}
+              canNavigateUp
+            />
+          </section>,
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Go back in history' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Go forward in history' }));
+        expect(onNavigateBack).toHaveBeenCalledOnce();
+        expect(onNavigateForward).toHaveBeenCalledOnce();
+        if (extrasVisible) {
+          fireEvent.click(screen.getByRole('button', { name: 'Go up one level' }));
+          fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+          expect(onNavigateUp).toHaveBeenCalledOnce();
+          expect(mockRefetch).toHaveBeenCalledOnce();
+        } else {
+          expect(screen.queryByRole('button', { name: 'Go up one level' })).not.toBeInTheDocument();
+          expect(screen.queryByRole('button', { name: 'Refresh' })).not.toBeInTheDocument();
+          expect(onNavigateUp).not.toHaveBeenCalled();
+          expect(mockRefetch).not.toHaveBeenCalled();
+        }
+      },
+    );
+
+    it('collapses each pane path independently and restores parents when the pane grows', () => {
+      render(
+        <>
+          <section aria-label="Left pane" data-test-pane="left">
+            <NavigationBar {...defaultProps} />
+          </section>
+          <section aria-label="Right pane" data-test-pane="right">
+            <NavigationBar {...defaultProps} />
+          </section>
+        </>,
+      );
+      const left = within(screen.getByRole('region', { name: 'Left pane' }));
+      const right = within(screen.getByRole('region', { name: 'Right pane' }));
+
+      resizePane('left', 140);
+
+      expect(left.queryByRole('button', { name: 'Navigate to Users' })).not.toBeInTheDocument();
+      expect(left.getByRole('button', { name: 'Navigate to Documents' })).toHaveAttribute(
+        'aria-current',
+        'location',
+      );
+      expect(right.getByRole('button', { name: 'Navigate to Users' })).toBeInTheDocument();
+      expect(right.queryByRole('button', { name: 'Show parent folders' })).not.toBeInTheDocument();
+
+      resizePane('left', 500);
+
+      expect(left.getByRole('button', { name: 'Navigate to Users' })).toBeInTheDocument();
+      expect(left.queryByRole('button', { name: 'Show parent folders' })).not.toBeInTheDocument();
+    });
+
+    it('keeps hidden parent folders navigable without entering path editing', () => {
+      paneWidths.set('left', 140);
+      render(
+        <section data-test-pane="left">
+          <NavigationBar {...defaultProps} />
+        </section>,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Show parent folders' }));
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Users' }));
+
+      expect(mockNavigateToPath).toHaveBeenCalledWith('C:\\Users\\');
+      expect(screen.queryByLabelText('File path')).not.toBeInTheDocument();
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    });
+
+    it('opens the full editable path from a collapsed trail and still submits it', async () => {
+      paneWidths.set('left', 140);
+      render(
+        <section data-test-pane="left">
+          <NavigationBar {...defaultProps} />
+        </section>,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Show parent folders' }));
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Show full path' }));
+
+      const input = screen.getByLabelText('File path');
+      expect(input).toHaveValue(defaultProps.currentPath);
+      expect(input).toHaveFocus();
+      expect(mockNavigateToPath).not.toHaveBeenCalled();
+      fireEvent.change(input, { target: { value: 'C:\\OtherFolder' } });
+      fireEvent.keyDown(input, { key: 'Enter' });
+
+      await waitFor(() => expect(mockNavigateToPath).toHaveBeenCalledWith('C:\\OtherFolder'));
     });
   });
 

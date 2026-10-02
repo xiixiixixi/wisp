@@ -1,11 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { HardDrive, ArrowUpFromLine } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { HardDrive, LoaderCircle, createLucideIcon } from 'lucide-react';
 import { TauriAPI } from '@/lib/tauri-api';
 import { isWindows } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 
 import { currentNavigationLocation } from './navigation-path';
+
+const Eject = createLucideIcon('Eject', [
+  ['path', { d: 'm5 13 7-8 7 8Z', key: 'triangle' }],
+  ['path', { d: 'M5 17h14v3H5z', key: 'base' }],
+]);
 
 interface Drive {
   letter: string;
@@ -24,6 +29,8 @@ const SidebarDrives = ({ currentPath = '/', navigateToPath }: SidebarDrivesProps
   const { t } = useTranslation();
   const { toast } = useToast();
   const [drives, setDrives] = useState<Drive[]>([]);
+  const ejectingPathsRef = useRef(new Set<string>());
+  const [ejectingPaths, setEjectingPaths] = useState<Set<string>>(() => new Set());
 
   const [failed, setFailed] = useState(false);
   const activePath = currentNavigationLocation(
@@ -53,6 +60,9 @@ const SidebarDrives = ({ currentPath = '/', navigateToPath }: SidebarDrivesProps
   const handleEjectVolume = useCallback(
     async (path: string, e: React.MouseEvent) => {
       e.stopPropagation();
+      if (ejectingPathsRef.current.has(path)) return;
+      ejectingPathsRef.current.add(path);
+      setEjectingPaths(new Set(ejectingPathsRef.current));
       try {
         await TauriAPI.ejectVolume(path);
         toast({ title: t('drives.ejectSuccess') });
@@ -64,6 +74,9 @@ const SidebarDrives = ({ currentPath = '/', navigateToPath }: SidebarDrivesProps
           variant: 'destructive',
         });
         console.error('Eject volume failed:', error);
+      } finally {
+        ejectingPathsRef.current.delete(path);
+        setEjectingPaths(new Set(ejectingPathsRef.current));
       }
     },
     [loadDrives, t, toast],
@@ -89,6 +102,8 @@ const SidebarDrives = ({ currentPath = '/', navigateToPath }: SidebarDrivesProps
       )}
       <div className="space-y-1">
         {drives.map((drive) => {
+          const ejecting = ejectingPaths.has(drive.path);
+          const ejectLabel = t(ejecting ? 'drives.ejecting' : 'drives.eject');
           const totalGB =
             drive.total_space > 0 ? Math.round(drive.total_space / (1024 * 1024 * 1024)) : 0;
           const freeGB =
@@ -134,12 +149,23 @@ const SidebarDrives = ({ currentPath = '/', navigateToPath }: SidebarDrivesProps
               {/* Eject button — only shown for non-root/removable volumes */}
               {drive.path !== '/' && drive.path !== 'C:\\' && (
                 <button
-                  className="wisp-nav-row-action"
+                  type="button"
+                  className="wisp-nav-row-action wisp-drive-eject"
                   onClick={(e) => handleEjectVolume(drive.path, e)}
-                  title={t('drives.eject')}
-                  aria-label={`${t('drives.eject')}: ${drive.label}`}
+                  disabled={ejecting}
+                  aria-busy={ejecting}
+                  title={ejectLabel}
+                  aria-label={`${ejectLabel}: ${drive.label}`}
                 >
-                  <ArrowUpFromLine size={14} />
+                  {ejecting ? (
+                    <LoaderCircle
+                      size={16}
+                      className="wisp-nav-action-spinner"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <Eject size={16} aria-hidden="true" />
+                  )}
                 </button>
               )}
             </div>

@@ -35,8 +35,12 @@ describe('VerticalExtensionsBar', () => {
     expect(screen.getByRole('button', { name: 'File Preview' })).toHaveTextContent('');
     expect(screen.getByRole('button', { name: 'More tools' })).toHaveTextContent('');
     openTools();
-    for (const name of ['Chat', 'ChatGPT Bridge', 'WeChat bot'])
-      {expect(screen.getByRole('menuitemradio', { name })).toBeInTheDocument();}
+    for (const name of ['Chat', 'ChatGPT Bridge', 'WeChat bot']) {
+      expect(screen.getByRole('menuitemradio', { name })).toBeInTheDocument();
+    }
+    expect(
+      screen.queryByRole('menuitemradio', { name: 'External assistants' }),
+    ).not.toBeInTheDocument();
     // 活动面板已移除；显示隐藏文件提升为 rail 独立按钮
     expect(screen.queryByRole('menuitemradio', { name: 'Activity' })).not.toBeInTheDocument();
     expect(
@@ -96,16 +100,16 @@ describe('VerticalExtensionsBar', () => {
     expect(props.setRightPanelTab).not.toHaveBeenCalled();
   });
 
-  it('switches from external assistants to chat without closing the sidebar', () => {
+  it('switches from the bridge to chat without closing the sidebar', () => {
     render(
       <VerticalExtensionsBar
         {...props}
-        rightPanelTab="agent-manager"
+        rightPanelTab="chatgpt-bridge"
         rightSidebarCollapsed={false}
       />,
     );
     openTools();
-    expect(screen.getByRole('menuitemradio', { name: 'External assistants' })).toHaveAttribute(
+    expect(screen.getByRole('menuitemradio', { name: 'ChatGPT Bridge' })).toHaveAttribute(
       'aria-checked',
       'true',
     );
@@ -142,7 +146,7 @@ describe('VerticalExtensionsBar', () => {
     const chat = await screen.findByRole('menuitemradio', { name: 'Chat' });
     await waitFor(() => expect(chat).toHaveFocus());
     fireEvent.keyDown(chat, { key: 'ArrowDown' });
-    expect(screen.getByRole('menuitemradio', { name: 'External assistants' })).toHaveFocus();
+    expect(screen.getByRole('menuitemradio', { name: 'ChatGPT Bridge' })).toHaveFocus();
     fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' });
     await waitFor(() => expect(trigger).toHaveFocus());
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();

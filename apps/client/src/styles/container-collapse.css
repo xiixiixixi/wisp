@@ -3,7 +3,7 @@
  *
  * 适用两处 ——
  *  · .wisp-operationbar-layout（文件面板工具条）：面板被分屏/画布挤压时
- *    排序·视图文字（<420px）与动作文字（<560px）逐级隐藏，只留图标。
+ *    排序·视图文字在宽栏展开，窄分栏保留图标并收纳次要操作。
  * 容器宽度恢复后标签自动回来。
  */
 
@@ -64,7 +64,7 @@ html:is(.theme-light, .theme-fluid, .theme-rolex) .pi-composer textarea.pi-compo
 .ob-label-md {
   display: none;
 }
-@container operationbar (min-width: 420px) {
+@container operationbar (min-width: 760px) {
   .ob-label-md {
     display: inline;
   }

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Check } from 'lucide-react';
 import {
   FOLDER_COLORS,
   colorName,
@@ -18,12 +19,13 @@ interface FolderColorLegendProps {
   onFilterByColor?: (colorId: string | null) => void;
   /** Currently active color filter, if any. */
   activeColorFilter?: string | null;
+  inMenu?: boolean;
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
 
 const FolderColorLegend = React.memo(
-  ({ files, onFilterByColor, activeColorFilter }: FolderColorLegendProps) => {
+  ({ files, onFilterByColor, activeColorFilter, inMenu = false }: FolderColorLegendProps) => {
     const { t: tUi } = useTranslation();
     // Re-read folder colors whenever they change
     const [allColors, setAllColors] = useState<FolderColor[]>(() => getAllFolderColors());
@@ -77,6 +79,35 @@ const FolderColorLegend = React.memo(
       if (count && count > 0) {
         entries.push({ def: c, count });
       }
+    }
+
+    if (inMenu) {
+      return (
+        <div role="group" aria-label={tUi('interface.folderColorLegend')}>
+          <div role="separator" className="my-1 border-t border-xp-border" />
+          {entries.map(({ def, count }) => (
+            <button
+              key={def.id}
+              type="button"
+              role="menuitemcheckbox"
+              tabIndex={-1}
+              aria-checked={activeColorFilter === def.id}
+              onClick={() => handleClick(def.id)}
+              className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs hover:bg-xp-surface-light"
+            >
+              <span
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: def.hex }}
+                aria-hidden="true"
+              />
+              <span className="flex-1">
+                {tUi('messages.colorFolders', { color: colorName(def.id), count })}
+              </span>
+              {activeColorFilter === def.id && <Check size={14} aria-hidden="true" />}
+            </button>
+          ))}
+        </div>
+      );
     }
 
     return (

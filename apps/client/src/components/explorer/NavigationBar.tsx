@@ -7,6 +7,7 @@ import { renderIcon } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import PathBreadcrumbs from './PathBreadcrumbs';
 import { addressToWebUrl } from '@/lib/address-url';
+import { usePaneWidth } from '@/hooks/use-pane-width';
 
 interface NavigationBarProps {
   currentPath: string;
@@ -21,6 +22,7 @@ interface NavigationBarProps {
   canNavigateForward?: boolean;
   onNavigateUp?: () => void;
   canNavigateUp?: boolean;
+  compactActionsInMenu?: boolean;
 }
 
 interface PathSegment {
@@ -154,11 +156,15 @@ const NavigationBar = ({
   canNavigateForward = false,
   onNavigateUp,
   canNavigateUp = false,
+  compactActionsInMenu = false,
 }: NavigationBarProps) => {
   const { t } = useTranslation();
   const [isEditingPath, setIsEditingPath] = useState(false);
   const [editPathValue, setEditPathValue] = useState(currentPath);
   const pathInputRef = useRef<HTMLInputElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+  const paneWidth = usePaneWidth(barRef);
+  const hideSecondaryNavigation = compactActionsInMenu && paneWidth <= 600;
 
   // Autocomplete state
   const [suggestions, setSuggestions] = useState<AutocompleteSuggestion[]>([]);
@@ -500,7 +506,10 @@ const NavigationBar = ({
   }, [currentPath, t]);
 
   return (
-    <div className="wisp-navigationbar wisp-no-select flex h-9 items-center gap-1.5 border-b border-xp-border bg-xp-surface px-3">
+    <div
+      ref={barRef}
+      className="wisp-navigationbar wisp-no-select flex h-9 items-center gap-1.5 border-b border-xp-border bg-xp-surface px-3"
+    >
       {/* Per-pane navigation — kept right next to the path it acts on */}
       {(onNavigateBack || onNavigateForward || onNavigateUp || refetch) && (
         <div className="wisp-control-group flex flex-shrink-0 items-center gap-0.5">
@@ -538,7 +547,7 @@ const NavigationBar = ({
               </svg>
             </button>
           )}
-          {onNavigateUp && (
+          {onNavigateUp && !hideSecondaryNavigation && (
             <button
               onClick={onNavigateUp}
               disabled={!canNavigateUp}
@@ -549,7 +558,7 @@ const NavigationBar = ({
               <ChevronUp size={16} />
             </button>
           )}
-          {refetch && (
+          {refetch && !hideSecondaryNavigation && (
             <button
               onClick={refetch}
               className="wisp-control-icon rounded-md p-1 transition-colors"

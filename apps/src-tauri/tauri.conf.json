@@ -1,9 +1,13 @@
 {
   "productName": "Wisp",
-  "version": "0.99.39",
+  "version": "0.99.40",
   "identifier": "com.wisp.app",
   "build": {
-    "beforeBuildCommand": "pnpm -w frontend:build",
+    "beforeBuildCommand": "pnpm -w bridge:prepare && pnpm -w frontend:build",
+    "beforeDevCommand": {
+      "script": "pnpm -w bridge:prepare",
+      "wait": true
+    },
     "frontendDist": "../client/dist",
     "devUrl": "http://localhost:5174"
   },
@@ -65,8 +69,13 @@
     "active": true,
     "targets": "all",
     "createUpdaterArtifacts": true,
+    "externalBin": [
+      "binaries/tunnel-client",
+      "binaries/cloudflared"
+    ],
     "resources": {
-      "../../packages/cli/bin/wisp.mjs": "wisp.mjs"
+      "../../packages/cli/bin/wisp.mjs": "wisp.mjs",
+      "bridge-runtime/": "bridge-runtime/"
     },
     "icon": [
       "icons/32x32.png",

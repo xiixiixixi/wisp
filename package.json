@@ -5,7 +5,7 @@
   "type": "module",
   "license": "AGPL-3.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.19.0"
   },
   "scripts": {
     "frontend:dev": "vite dev",
@@ -16,6 +16,8 @@
     "extensions:build": "node scripts/build-extensions.mjs",
     "extensions:sign": "node scripts/sign-all-extensions.mjs",
     "extensions:dev": "node scripts/build-extensions.mjs --watch",
+    "bridge:prepare": "node scripts/prepare-tunnel-client.mjs",
+    "test:bridge-package": "node --test scripts/prepare-tunnel-client.test.mjs",
     "marketplace:dev": "pnpm --filter wisp-web run dev",
     "marketplace:db": "docker compose -f infra/docker-compose.yml up -d postgres",
     "build": "pnpm frontend:build && pnpm tauri:build",
@@ -28,7 +30,7 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:tauri": "cd apps/src-tauri && cargo test",
+    "test:tauri": "pnpm bridge:prepare && cd apps/src-tauri && cargo test",
     "test:e2e": "playwright test",
     "test:all": "pnpm test:run && pnpm test:tauri",
     "ci:local": "npx tsc --noEmit && pnpm lint && pnpm test:run && pnpm test:tauri",
@@ -51,8 +53,8 @@
     "@codemirror/state": "^6.6.0",
     "@codemirror/view": "^6.40.0",
     "@crabnebula/tauri-plugin-drag": "^2.1.0",
-    "@earendil-works/pi-agent-core": "0.85.1",
-    "@earendil-works/pi-ai": "0.85.1",
+    "@earendil-works/pi-agent-core": "0.99.2",
+    "@earendil-works/pi-ai": "0.99.2",
     "@lezer/highlight": "^1.2.3",
     "@radix-ui/react-checkbox": "^1.1.5",
     "@radix-ui/react-select": "^2.1.7",

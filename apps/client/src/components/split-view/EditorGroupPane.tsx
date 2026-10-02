@@ -804,6 +804,9 @@ const EditorGroupPane = ({
     return (
       <PaneFileExplorer
         toolbarTarget={toolbarTarget}
+        onRefresh={refetch}
+        onNavigateUp={handlePaneNavigateUp}
+        canNavigateUp={canNavigateUp}
         viewMode={localViewMode}
         setViewMode={localSetViewMode}
         sortBy={localSortBy}
@@ -919,6 +922,7 @@ const EditorGroupPane = ({
       {!isEditorTab && !isHomeTab && (
         <div className="wisp-pane-toolbar">
           <NavigationBar
+            compactActionsInMenu={!isWebPath}
             currentPath={isNativeWebPath ? activeWebPage?.url || currentPath : currentPath}
             navigateToPath={sharedActions.navigateToPath}
             refetch={

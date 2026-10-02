@@ -12,6 +12,11 @@ import {
   PackageOpen,
   Terminal,
   Clipboard,
+  MoreHorizontal,
+  ChevronUp,
+  RefreshCw,
+  Check,
+  Radio,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { SortField } from '@/lib/utils';
@@ -19,6 +24,7 @@ import { AnchoredMenu } from '@/components/ui/AnchoredMenu';
 import { openAirDrop } from '@/lib/tauri-api/airdrop';
 import { isTauri } from '@/lib/transport';
 import { toast } from '@/hooks/use-toast';
+import { usePaneWidth } from '@/hooks/use-pane-width';
 
 interface ViewMode {
   id: string;
@@ -32,7 +38,7 @@ interface SortOption {
   icon: React.ReactNode;
 }
 
-type OperationMenu = 'sort' | 'view';
+type OperationMenu = 'sort' | 'view' | 'more';
 
 interface OperationBarProps {
   viewMode: string;
@@ -72,6 +78,10 @@ interface OperationBarProps {
   hasClipboard?: boolean;
   onPreview?: () => void;
   statusAccessory?: React.ReactNode;
+  overflowAccessory?: React.ReactNode;
+  onRefresh?: () => void;
+  onNavigateUp?: () => void;
+  canNavigateUp?: boolean;
 }
 
 const OperationBar = ({
@@ -106,6 +116,10 @@ const OperationBar = ({
   hasClipboard,
   onPreview: _onPreview,
   statusAccessory,
+  overflowAccessory,
+  onRefresh,
+  onNavigateUp,
+  canNavigateUp = false,
 }: OperationBarProps) => {
   const { t } = useTranslation();
   const hasSelection = selectedFiles.size > 0;
@@ -115,19 +129,49 @@ const OperationBar = ({
   const barRef = useRef<HTMLDivElement>(null);
   const sortTriggerRef = useRef<HTMLButtonElement>(null);
   const viewTriggerRef = useRef<HTMLButtonElement>(null);
+  const moreTriggerRef = useRef<HTMLButtonElement>(null);
   const sortMenuRef = useRef<HTMLDivElement>(null);
   const viewMenuRef = useRef<HTMLDivElement>(null);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
+  const focusedControlRef = useRef<HTMLElement | null>(null);
+  const paneWidth = usePaneWidth(barRef);
+  const compact = paneWidth <= 600;
+  const hideCreateFolder = paneWidth <= 480;
+  const collapseBrowse = paneWidth <= 360;
 
-  const triggerFor = (menu: OperationMenu) =>
-    menu === 'sort' ? sortTriggerRef.current : viewTriggerRef.current;
+  const triggerFor = (menu: OperationMenu) => {
+    if (menu === 'sort') return sortTriggerRef.current;
+    if (menu === 'view') return viewTriggerRef.current;
+    return moreTriggerRef.current;
+  };
 
-  const menuFor = (menu: OperationMenu) =>
-    menu === 'sort' ? sortMenuRef.current : viewMenuRef.current;
+  const menuFor = (menu: OperationMenu) => {
+    if (menu === 'sort') return sortMenuRef.current;
+    if (menu === 'view') return viewMenuRef.current;
+    return moreMenuRef.current;
+  };
+
+  useEffect(() => {
+    const focused = focusedControlRef.current;
+    const focusWasInMenu = Boolean(
+      focused &&
+      [sortMenuRef.current, viewMenuRef.current, moreMenuRef.current].some((menu) =>
+        menu?.contains(focused),
+      ),
+    );
+    setOpenMenu(null);
+    if (!focused || (!focusWasInMenu && focused.isConnected)) return;
+    const frame = requestAnimationFrame(() => {
+      if (document.activeElement !== document.body && document.activeElement !== focused) return;
+      (moreTriggerRef.current ?? sortTriggerRef.current)?.focus();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [compact, collapseBrowse, hideCreateFolder]);
 
   const closeMenu = (restoreFocus = false) => {
     const menu = openMenu;
     setOpenMenu(null);
-    if (restoreFocus && menu) requestAnimationFrame(() => triggerFor(menu)?.focus());
+    if (restoreFocus && menu) triggerFor(menu)?.focus();
   };
 
   const toggleMenu = (menu: OperationMenu, keyboardActivated = false) => {
@@ -149,7 +193,7 @@ const OperationBar = ({
       menuFor(menu)?.querySelectorAll<HTMLElement>(
         '[role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]',
       ) ?? [],
-    );
+    ).filter((item) => !item.matches(':disabled'));
 
   const focusMenuItem = (menu: OperationMenu, position: 'first' | 'last' | 'next' | 'previous') => {
     const items = menuItems(menu);
@@ -235,7 +279,8 @@ const OperationBar = ({
       if (
         !barRef.current?.contains(target) &&
         !sortMenuRef.current?.contains(target) &&
-        !viewMenuRef.current?.contains(target)
+        !viewMenuRef.current?.contains(target) &&
+        !moreMenuRef.current?.contains(target)
       ) {
         setOpenMenu(null);
       }
@@ -245,8 +290,7 @@ const OperationBar = ({
         const menu = openMenu;
         setOpenMenu(null);
         requestAnimationFrame(() => {
-          if (menu === 'sort') sortTriggerRef.current?.focus();
-          else viewTriggerRef.current?.focus();
+          triggerFor(menu)?.focus();
         });
       }
     };
@@ -255,7 +299,8 @@ const OperationBar = ({
       if (
         !barRef.current?.contains(target) &&
         !sortMenuRef.current?.contains(target) &&
-        !viewMenuRef.current?.contains(target)
+        !viewMenuRef.current?.contains(target) &&
+        !moreMenuRef.current?.contains(target)
       ) {
         setOpenMenu(null);
       }
@@ -342,172 +387,237 @@ const OperationBar = ({
     </button>
   );
 
+  const sortItems = (
+    <>
+      {Object.values(sortOptions).map((option) => (
+        <button
+          key={option.id}
+          type="button"
+          role="menuitemradio"
+          aria-checked={sortBy === option.id}
+          tabIndex={-1}
+          onClick={() => {
+            if (sortBy === option.id) toggleSortOrder();
+            else setSortBy(option.id);
+            closeMenu(true);
+          }}
+          className={`flex w-full items-center justify-between px-3 py-1.5 text-left transition-colors hover:bg-xp-surface-light ${sortBy === option.id ? 'text-xp-blue' : ''}`}
+        >
+          <span className="text-xs">{getSortLabel(option.id)}</span>
+          {sortBy === option.id &&
+            (sortOrder === 'asc' ? <ArrowUp size={11} /> : <ArrowDown size={11} />)}
+        </button>
+      ))}
+      {setGroupByDate && (
+        <>
+          <div role="separator" className="my-1 border-t border-xp-border" />
+          <button
+            type="button"
+            role="menuitemcheckbox"
+            aria-checked={Boolean(groupByDate)}
+            tabIndex={-1}
+            onClick={() => {
+              setGroupByDate(!groupByDate);
+              closeMenu(true);
+            }}
+            className={`flex w-full items-center justify-between px-3 py-1.5 text-left transition-colors hover:bg-xp-surface-light ${groupByDate ? 'text-xp-blue' : ''}`}
+          >
+            <span className="flex items-center gap-2 text-xs">
+              <Rows3 size={13} aria-hidden="true" />
+              {t('operationBar.groupByDate')}
+            </span>
+            {groupByDate && <Check size={14} aria-hidden="true" />}
+          </button>
+        </>
+      )}
+    </>
+  );
+
+  const viewItems = Object.values(viewModes).map((mode) => (
+    <button
+      key={mode.id}
+      type="button"
+      role="menuitemradio"
+      aria-checked={viewMode === mode.id}
+      tabIndex={-1}
+      onClick={() => {
+        setViewMode(mode.id);
+        closeMenu(true);
+      }}
+      className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left transition-colors hover:bg-xp-surface-light ${viewMode === mode.id ? 'text-xp-blue' : ''}`}
+    >
+      <span className="text-sm">{mode.icon}</span>
+      <span className="flex-1 text-xs">{getViewLabel(mode.id)}</span>
+      {viewMode === mode.id && <Check size={14} aria-hidden="true" />}
+    </button>
+  ));
+
+  const moreActions = [
+    ...(onNavigateUp
+      ? [
+          {
+            id: 'up',
+            label: t('topBar.goUp'),
+            icon: ChevronUp,
+            run: onNavigateUp,
+            disabled: !canNavigateUp,
+          },
+        ]
+      : []),
+    ...(onRefresh
+      ? [{ id: 'refresh', label: t('topBar.refresh'), icon: RefreshCw, run: onRefresh }]
+      : []),
+    ...(hideCreateFolder
+      ? [
+          {
+            id: 'folder',
+            label: t('operationBar.createFolder'),
+            icon: FolderPlus,
+            run: handleCreateFolder,
+          },
+        ]
+      : []),
+    ...(onCreateFile
+      ? [{ id: 'file', label: t('operationBar.createFile'), icon: FilePlus, run: onCreateFile }]
+      : []),
+    ...(onPaste && hasClipboard
+      ? [{ id: 'paste', label: t('contextMenu.paste'), icon: Clipboard, run: onPaste }]
+      : []),
+    ...(hasSelection && onCompress && selectedFiles.size > 1
+      ? [{ id: 'compress', label: t('operationBar.compress'), icon: Package, run: onCompress }]
+      : []),
+    ...(hasSelection && onExtract && selectedFiles.size === 1
+      ? [{ id: 'extract', label: t('operationBar.extract'), icon: PackageOpen, run: onExtract }]
+      : []),
+    {
+      id: 'airdrop',
+      label: 'AirDrop',
+      icon: Radio,
+      run: () => void handleAirDrop(),
+      disabled: airDropOpening,
+    },
+    {
+      id: 'terminal',
+      label: t('operationBar.openTerminal'),
+      icon: Terminal,
+      run: () => {
+        setBottomPanelCollapsed(false);
+        setBottomPanelTab('terminal');
+      },
+    },
+  ];
+
   return (
     <div
       ref={barRef}
+      onFocusCapture={(event) => {
+        focusedControlRef.current = event.target as HTMLElement;
+      }}
+      onBlurCapture={(event) => {
+        const next = event.relatedTarget;
+        if (
+          next instanceof Node &&
+          !barRef.current?.contains(next) &&
+          !sortMenuRef.current?.contains(next) &&
+          !viewMenuRef.current?.contains(next) &&
+          !moreMenuRef.current?.contains(next)
+        ) {
+          focusedControlRef.current = null;
+        }
+      }}
+      data-compact={compact || undefined}
       className="wisp-operationbar wisp-component-toolbar wisp-no-select relative z-30 border-b border-xp-border bg-xp-surface px-3 py-1.5"
     >
       <div className="wisp-operationbar-layout flex items-center justify-between gap-4">
-        <div className="wisp-toolbar-controls wisp-toolbar-controls-primary flex min-w-0 items-center">
-          {/* Sort Dropdown */}
-          <div className="relative">
-            <button
-              ref={sortTriggerRef}
-              type="button"
-              onClick={(e) => toggleMenu('sort', e.detail === 0)}
-              onKeyDown={(event) => handleMenuTriggerKeyDown('sort', event)}
-              className="wisp-control flex items-center gap-1 rounded-md px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:text-xp-text"
-              aria-label={t('operationBar.sortBy', {
-                name: currentSortLabel,
-                order: currentSortOrder,
-              })}
-              aria-haspopup="menu"
-              aria-expanded={openMenu === 'sort'}
-            >
-              <ArrowUpDown size={14} aria-hidden="true" />
-              <span className="whitespace-nowrap ob-label-md">{currentSortLabel}</span>
-              <ChevronDown size={12} className="opacity-60" />
-            </button>
-
-            {openMenu === 'sort' && sortOptions && (
-              <AnchoredMenu
-                menuRef={sortMenuRef}
-                anchorRef={sortTriggerRef}
-                role="menu"
+        {!collapseBrowse && (
+          <div className="wisp-toolbar-controls wisp-toolbar-controls-primary flex min-w-0 items-center">
+            {/* Sort Dropdown */}
+            <div className="relative">
+              <button
+                ref={sortTriggerRef}
+                type="button"
+                onClick={(e) => toggleMenu('sort', e.detail === 0)}
+                onKeyDown={(event) => handleMenuTriggerKeyDown('sort', event)}
+                className="wisp-control flex items-center gap-1 rounded-md px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:text-xp-text"
                 aria-label={t('operationBar.sortBy', {
                   name: currentSortLabel,
                   order: currentSortOrder,
                 })}
-                onKeyDown={(event) => handleMenuKeyDown('sort', event)}
-                className="wisp-popover-menu border-xp-border/60 min-w-[180px] rounded-xl border bg-xp-popover py-1 shadow-xl"
+                aria-haspopup="menu"
+                aria-expanded={openMenu === 'sort'}
               >
-                {Object.values(sortOptions).map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked={sortBy === option.id}
-                    tabIndex={-1}
-                    onClick={() => {
-                      if (sortBy === option.id) {
-                        toggleSortOrder();
-                      } else {
-                        setSortBy(option.id);
-                      }
-                      closeMenu(true);
-                    }}
-                    className={`flex w-full items-center justify-between px-3 py-1.5 text-left transition-colors hover:bg-xp-surface-light ${
-                      sortBy === option.id ? 'text-xp-blue' : ''
-                    }`}
-                  >
-                    <span className="text-xs">{getSortLabel(option.id)}</span>
-                    {sortBy === option.id &&
-                      (sortOrder === 'asc' ? <ArrowUp size={11} /> : <ArrowDown size={11} />)}
-                  </button>
-                ))}
+                <ArrowUpDown size={14} aria-hidden="true" />
+                <span className="ob-label-md whitespace-nowrap">{currentSortLabel}</span>
+                <ChevronDown size={12} className="opacity-60" />
+              </button>
 
-                {/* Group by Date toggle inside sort dropdown */}
-                {setGroupByDate && (
-                  <>
-                    <div role="separator" className="my-1 border-t border-xp-border" />
-                    <button
-                      type="button"
-                      role="menuitemcheckbox"
-                      aria-checked={Boolean(groupByDate)}
-                      tabIndex={-1}
-                      onClick={() => {
-                        setGroupByDate(!groupByDate);
-                        closeMenu(true);
-                      }}
-                      className={`flex w-full items-center justify-between px-3 py-1.5 text-left transition-colors hover:bg-xp-surface-light ${
-                        groupByDate ? 'text-xp-blue' : ''
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Rows3 size={13} className="inline-block" />
-                        <span className="text-xs">{t('operationBar.groupByDate')}</span>
-                      </div>
-                      {groupByDate && (
-                        <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      )}
-                    </button>
-                  </>
-                )}
-              </AnchoredMenu>
-            )}
-          </div>
+              {openMenu === 'sort' && sortOptions && (
+                <AnchoredMenu
+                  menuRef={sortMenuRef}
+                  anchorRef={sortTriggerRef}
+                  role="menu"
+                  aria-label={t('operationBar.sortBy', {
+                    name: currentSortLabel,
+                    order: currentSortOrder,
+                  })}
+                  onKeyDown={(event) => handleMenuKeyDown('sort', event)}
+                  className="wisp-popover-menu border-xp-border/60 min-w-[180px] rounded-xl border bg-xp-popover py-1 shadow-xl"
+                >
+                  {sortItems}
+                </AnchoredMenu>
+              )}
+            </div>
 
-          {/* View Mode Dropdown */}
-          <div className="relative flex items-center gap-1">
-            <button
-              ref={viewTriggerRef}
-              type="button"
-              onClick={(e) => toggleMenu('view', e.detail === 0)}
-              onKeyDown={(event) => handleMenuTriggerKeyDown('view', event)}
-              className="wisp-control flex items-center gap-1 rounded-md px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:text-xp-text"
-              aria-label={t('operationBar.viewMode', {
-                name: currentViewLabel,
-              })}
-              aria-haspopup="menu"
-              aria-expanded={openMenu === 'view'}
-            >
-              <span className="text-sm">{viewModes[viewMode]?.icon}</span>
-              <span className="whitespace-nowrap ob-label-md">{currentViewLabel}</span>
-              <ChevronDown size={12} className="opacity-60" />
-            </button>
-
-            {openMenu === 'view' && (
-              <AnchoredMenu
-                menuRef={viewMenuRef}
-                anchorRef={viewTriggerRef}
-                role="menu"
-                aria-label={t('operationBar.viewMode', { name: currentViewLabel })}
-                onKeyDown={(event) => handleMenuKeyDown('view', event)}
-                className="wisp-popover-menu border-xp-border/60 min-w-[180px] rounded-xl border bg-xp-popover py-1 shadow-xl"
+            {/* View Mode Dropdown */}
+            <div className="relative flex items-center gap-1">
+              <button
+                ref={viewTriggerRef}
+                type="button"
+                onClick={(e) => toggleMenu('view', e.detail === 0)}
+                onKeyDown={(event) => handleMenuTriggerKeyDown('view', event)}
+                className="wisp-control flex items-center gap-1 rounded-md px-2.5 py-1 text-xs text-xp-text-secondary transition-colors hover:text-xp-text"
+                aria-label={t('operationBar.viewMode', {
+                  name: currentViewLabel,
+                })}
+                aria-haspopup="menu"
+                aria-expanded={openMenu === 'view'}
               >
-                {Object.values(viewModes).map((mode) => (
-                  <button
-                    key={mode.id}
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked={viewMode === mode.id}
-                    tabIndex={-1}
-                    onClick={() => {
-                      setViewMode(mode.id);
-                      closeMenu(true);
-                    }}
-                    className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left transition-colors hover:bg-xp-surface-light ${
-                      viewMode === mode.id ? 'text-xp-blue' : ''
-                    }`}
-                  >
-                    <span className="text-sm">{mode.icon}</span>
-                    <span className="text-xs">{getViewLabel(mode.id)}</span>
-                  </button>
-                ))}
-              </AnchoredMenu>
-            )}
+                <span className="text-sm">{viewModes[viewMode]?.icon}</span>
+                <span className="ob-label-md whitespace-nowrap">{currentViewLabel}</span>
+                <ChevronDown size={12} className="opacity-60" />
+              </button>
+
+              {openMenu === 'view' && (
+                <AnchoredMenu
+                  menuRef={viewMenuRef}
+                  anchorRef={viewTriggerRef}
+                  role="menu"
+                  aria-label={t('operationBar.viewMode', { name: currentViewLabel })}
+                  onKeyDown={(event) => handleMenuKeyDown('view', event)}
+                  className="wisp-popover-menu border-xp-border/60 min-w-[180px] rounded-xl border bg-xp-popover py-1 shadow-xl"
+                >
+                  {viewItems}
+                </AnchoredMenu>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="flex min-w-0 items-center gap-2">
-          {statusAccessory && <div className="wisp-toolbar-accessory">{statusAccessory}</div>}
+          {!compact && statusAccessory && (
+            <div className="wisp-toolbar-accessory">{statusAccessory}</div>
+          )}
 
           <div
-            className={`wisp-toolbar-controls wisp-toolbar-controls-secondary flex flex-shrink-0 items-center${
-              hasSelection ? ' wisp-selection-actions' : ''
+            className={`wisp-toolbar-controls wisp-toolbar-controls-secondary flex flex-shrink-0 items-center ${
+              hasSelection ? 'wisp-selection-actions' : ''
             }`}
             role={hasSelection ? 'toolbar' : undefined}
             aria-label={hasSelection ? t('operationBar.selectionActions') : undefined}
           >
             {/* Action Buttons */}
-            {airDropButton}
-            {hasSelection && onCompress && selectedFiles.size > 1 && (
+            {!compact && airDropButton}
+            {!compact && hasSelection && onCompress && selectedFiles.size > 1 && (
               <button
                 type="button"
                 onClick={onCompress}
@@ -516,10 +626,9 @@ const OperationBar = ({
                 aria-label={t('operationBar.compress')}
               >
                 <Package size={15} aria-hidden="true" />
-                
               </button>
             )}
-            {hasSelection && onExtract && selectedFiles.size === 1 && (
+            {!compact && hasSelection && onExtract && selectedFiles.size === 1 && (
               <button
                 type="button"
                 onClick={onExtract}
@@ -528,18 +637,19 @@ const OperationBar = ({
                 aria-label={t('operationBar.extract')}
               >
                 <PackageOpen size={15} aria-hidden="true" />
-                
               </button>
             )}
-            <button
-              onClick={handleCreateFolder}
-              className="wisp-control-icon flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:text-xp-text"
-              title={t('operationBar.createFolder')}
-              aria-label={t('operationBar.createFolder')}
-            >
-              <FolderPlus size={16} />
-            </button>
-            {onCreateFile && (
+            {!hideCreateFolder && (
+              <button
+                onClick={handleCreateFolder}
+                className="wisp-control-icon flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:text-xp-text"
+                title={t('operationBar.createFolder')}
+                aria-label={t('operationBar.createFolder')}
+              >
+                <FolderPlus size={16} />
+              </button>
+            )}
+            {!compact && onCreateFile && (
               <button
                 onClick={onCreateFile}
                 className="wisp-control-icon flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:text-xp-text"
@@ -549,7 +659,7 @@ const OperationBar = ({
                 <FilePlus size={16} />
               </button>
             )}
-            {onPaste && hasClipboard && (
+            {!compact && onPaste && hasClipboard && (
               <button
                 onClick={onPaste}
                 className="wisp-control-icon flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:text-xp-text"
@@ -561,20 +671,99 @@ const OperationBar = ({
               </button>
             )}
 
-            <button
-              onClick={() => {
-                setBottomPanelCollapsed(false);
-                setBottomPanelTab('terminal');
-              }}
-              className="wisp-control-icon flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:text-xp-text"
-              title={t('operationBar.openTerminal')}
-              aria-label={t('operationBar.openTerminal')}
-            >
-              <Terminal size={16} />
-            </button>
+            {!compact && (
+              <button
+                onClick={() => {
+                  setBottomPanelCollapsed(false);
+                  setBottomPanelTab('terminal');
+                }}
+                className="wisp-control-icon flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:text-xp-text"
+                title={t('operationBar.openTerminal')}
+                aria-label={t('operationBar.openTerminal')}
+              >
+                <Terminal size={16} />
+              </button>
+            )}
+            {compact && (
+              <button
+                ref={moreTriggerRef}
+                type="button"
+                className="wisp-control-icon flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:text-xp-text"
+                title={t('contextMenu.more')}
+                aria-label={t('contextMenu.more')}
+                aria-haspopup="menu"
+                aria-expanded={openMenu === 'more'}
+                onClick={(event) => toggleMenu('more', event.detail === 0)}
+                onKeyDown={(event) => handleMenuTriggerKeyDown('more', event)}
+              >
+                <MoreHorizontal size={16} aria-hidden="true" />
+              </button>
+            )}
           </div>
         </div>
       </div>
+      {openMenu === 'more' && compact && (
+        <AnchoredMenu
+          menuRef={moreMenuRef}
+          anchorRef={moreTriggerRef}
+          role="menu"
+          aria-label={t('contextMenu.more')}
+          onKeyDown={(event) => handleMenuKeyDown('more', event)}
+          className="border-xp-border/60 min-w-[200px] rounded-xl border bg-xp-popover py-1 shadow-xl"
+        >
+          {moreActions.map((action) => (
+            <button
+              key={action.id}
+              type="button"
+              role="menuitem"
+              tabIndex={-1}
+              disabled={'disabled' in action && action.disabled}
+              onClick={() => {
+                closeMenu(true);
+                action.run();
+              }}
+              className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs hover:bg-xp-surface-light disabled:opacity-40"
+            >
+              <action.icon size={14} className="shrink-0" aria-hidden="true" />
+              <span>{action.label}</span>
+            </button>
+          ))}
+          {overflowAccessory && (
+            <div
+              className="wisp-toolbar-accessory"
+              onClick={(event) => {
+                if ((event.target as HTMLElement).closest('button')) closeMenu(true);
+              }}
+            >
+              {overflowAccessory}
+            </div>
+          )}
+          {collapseBrowse && (
+            <>
+              <div role="separator" className="my-1 border-t border-xp-border" />
+              <div
+                role="group"
+                aria-label={t('operationBar.sortBy', {
+                  name: currentSortLabel,
+                  order: currentSortOrder,
+                })}
+              >
+                <div className="px-3 py-1 text-xs text-xp-text-muted">
+                  {t('operationBar.sortBy', { name: currentSortLabel, order: currentSortOrder })}
+                </div>
+                {sortItems}
+              </div>
+              <div role="separator" className="my-1 border-t border-xp-border" />
+              <div role="group" aria-label={t('operationBar.viewMode', { name: currentViewLabel })}>
+                <div className="px-3 py-1 text-xs text-xp-text-muted">
+                  {t('operationBar.viewMode', { name: currentViewLabel })}
+                </div>
+                {viewItems}
+              </div>
+            </>
+          )}
+        </AnchoredMenu>
+      )}
     </div>
   );
 };

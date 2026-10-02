@@ -199,19 +199,6 @@ html .wisp-pane-tab-list::-webkit-scrollbar {
   right: -2px;
 }
 
-@container pane-tabs (max-width: 360px) {
-  .wisp-pane-tab-action {
-    width: 24px;
-    height: 24px;
-  }
-  .wisp-pane-tab-sync {
-    min-width: 24px;
-  }
-  .wisp-pane-tab-sync-mode {
-    display: none;
-  }
-}
-
 @media (hover: none) {
   .wisp-pane-tab-close {
     opacity: 1;

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { migrateLegacyDefaultView, DEFAULT_VIEW } from '@/lib/view-default';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 
@@ -89,6 +89,69 @@ describe('explorer default view', () => {
     expect(result.current.sortBy).toBe('name');
     expect(result.current.sortOrder).toBe('asc');
   });
+});
+
+describe('retired external assistant panel migration', () => {
+  let originalWindowWidth: number;
+
+  beforeEach(() => {
+    vi.resetModules();
+    localStorage.clear();
+    originalWindowWidth = window.innerWidth;
+    window.innerWidth = 1600;
+  });
+
+  afterEach(() => {
+    window.innerWidth = originalWindowWidth;
+  });
+
+  it('falls back to preview without clearing unrelated saved state', async () => {
+    const savedUiState = {
+      rightPanelTab: 'agent-manager',
+      viewMode: 'gallery',
+      sortBy: 'name',
+      sortOrder: 'asc',
+      rightSidebarCollapsed: false,
+      rightSidebarWidth: 340,
+    };
+    const savedSettings = { language: 'zh', showHiddenFiles: true };
+    localStorage.setItem(STORAGE_KEYS.UI_STATE, JSON.stringify(savedUiState));
+    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(savedSettings));
+
+    const { useLayoutState } = await import('@/hooks/use-layout-state');
+    const { renderHook } = await import('@testing-library/react');
+    const { result } = renderHook(() => useLayoutState());
+
+    expect(result.current.rightPanelTab).toBe('preview');
+    expect(result.current.viewMode).toBe('gallery');
+    expect(result.current.sortBy).toBe('name');
+    expect(result.current.sortOrder).toBe('asc');
+    expect(result.current.rightSidebarCollapsed).toBe(false);
+    expect(result.current.rightSidebarWidth).toBe(340);
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.UI_STATE)!)).toMatchObject({
+      viewMode: 'gallery',
+      sortBy: 'name',
+      sortOrder: 'asc',
+      rightSidebarCollapsed: false,
+      rightSidebarWidth: 340,
+    });
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS)!)).toEqual(savedSettings);
+  });
+
+  it.each(['chatgpt-bridge', 'chat', 'custom-extension-panel'])(
+    'preserves the supported or custom panel %s',
+    async (rightPanelTab) => {
+      localStorage.setItem(STORAGE_KEYS.UI_STATE, JSON.stringify({ rightPanelTab }));
+      const { useLayoutState } = await import('@/hooks/use-layout-state');
+      const { renderHook } = await import('@testing-library/react');
+      const { result } = renderHook(() => useLayoutState());
+
+      expect(result.current.rightPanelTab).toBe(rightPanelTab);
+      expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.UI_STATE)!).rightPanelTab).toBe(
+        rightPanelTab,
+      );
+    },
+  );
 });
 
 describe('explorer initial sorting and grouping', () => {

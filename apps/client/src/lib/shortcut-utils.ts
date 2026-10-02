@@ -308,7 +308,7 @@ export const ACTION_LABELS: Record<string, string> = {
 
   OpenTerminal: 'Open Terminal',
   ToggleAgentLauncher: 'Open Agent',
-  ToggleAgentWorkspace: 'Open Agent',
+  ToggleAgentWorkspace: 'Open Chat',
   OpenAIAssistant: 'AI Assistant',
   OpenExtensions: 'Extensions',
 };

@@ -73,6 +73,8 @@ packages/extensions/*/native/target/
 
 # Generated development state and copied dependency assets
 /apps/src-tauri/data/
+/apps/src-tauri/binaries/
+/apps/src-tauri/bridge-runtime/
 /apps/client/public/pdf.worker.min.*
 package-lock.json
 

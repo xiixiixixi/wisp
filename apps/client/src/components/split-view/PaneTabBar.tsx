@@ -1,7 +1,18 @@
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus, X, Columns, Rows, Pin, Maximize2, Minimize2, Link, Unlink } from 'lucide-react';
+import {
+  Plus,
+  X,
+  Columns,
+  Rows,
+  Pin,
+  Maximize2,
+  Minimize2,
+  Link,
+  Unlink,
+  MoreHorizontal,
+} from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import type { TabItem } from '@/types/split-view';
 import type { CrossTabSelection } from '@/hooks/use-cross-tab-selection';
@@ -9,6 +20,7 @@ import { useCrossTabSelectionContext } from '@/contexts/CrossTabSelectionContext
 import { getTabIcon } from '@/lib/tab-utils';
 import type { PaneSyncMode } from '@/hooks/use-pane-sync';
 import ContextMenu, { type ContextMenuItem } from '@/components/ui/ContextMenu';
+import { usePaneWidth } from '@/hooks/use-pane-width';
 import '@/styles/pane-tabs.css';
 
 interface PaneTabBarProps {
@@ -182,6 +194,42 @@ const PaneTabBar = ({
   hasMultiplePanes,
 }: PaneTabBarProps) => {
   const { t } = useTranslation();
+  const barRef = useRef<HTMLDivElement>(null);
+  const addTabRef = useRef<HTMLButtonElement>(null);
+  const moreRef = useRef<HTMLButtonElement>(null);
+  const paneMenuRef = useRef<HTMLDivElement>(null);
+  const focusedActionRef = useRef<HTMLElement | null>(null);
+  const paneWidth = usePaneWidth(barRef);
+  const compact = paneWidth <= 480;
+  const [paneMenu, setPaneMenu] = useState<{ x: number; y: number } | null>(null);
+  const closePaneMenu = useCallback(() => setPaneMenu(null), []);
+
+  useLayoutEffect(() => {
+    closePaneMenu();
+    if (
+      focusedActionRef.current &&
+      !focusedActionRef.current.isConnected &&
+      document.activeElement === document.body
+    ) {
+      (compact ? moreRef.current : addTabRef.current)?.focus();
+    }
+  }, [paneWidth, compact, closePaneMenu]);
+
+  const openPaneMenu = (last = false) => {
+    const trigger = moreRef.current;
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    setContextMenu(null);
+    setPaneMenu({ x: rect.left, y: rect.bottom + 4 });
+    if (last) {
+      requestAnimationFrame(() => {
+        const items = paneMenuRef.current?.querySelectorAll<HTMLElement>(
+          '[data-menu-item]:not([aria-disabled="true"])',
+        );
+        items?.[items.length - 1]?.focus();
+      });
+    }
+  };
 
   // Maximize/restore toggle
   const handleToggleMaximize = useCallback(() => {
@@ -256,6 +304,7 @@ const PaneTabBar = ({
   const handleContextMenu = useCallback((e: React.MouseEvent, tabId: string) => {
     e.preventDefault();
     e.stopPropagation();
+    setPaneMenu(null);
     e.currentTarget.querySelector<HTMLButtonElement>('[role="tab"]')?.focus();
     setContextMenu({ tabId, x: e.clientX, y: e.clientY });
   }, []);
@@ -343,6 +392,7 @@ const PaneTabBar = ({
     if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
       event.preventDefault();
       event.stopPropagation();
+      setPaneMenu(null);
       const rect = event.currentTarget.getBoundingClientRect();
       setContextMenu({ tabId: sortedTabs[index].id, x: rect.left, y: rect.bottom + 4 });
       return;
@@ -360,9 +410,10 @@ const PaneTabBar = ({
     tabRefs.current[next]?.focus();
   };
 
-  const switchSyncMode = () => {
+  const switchSyncMode = (mode?: PaneSyncMode) => {
     if (!onSwitchPaneSyncMode) return;
-    const next = paneSyncMode === 'mirror' ? 'relative' : 'mirror';
+    const next = mode ?? (paneSyncMode === 'mirror' ? 'relative' : 'mirror');
+    if (next === paneSyncMode) return;
     onSwitchPaneSyncMode(next);
     toast({
       title:
@@ -394,8 +445,73 @@ const PaneTabBar = ({
     );
   };
 
+  const paneActions: ContextMenuItem[] = [
+    ...(hasMultiplePanes && onTogglePaneSync
+      ? [
+          {
+            id: 'sync-navigation',
+            label: t('splitView.syncNavigation'),
+            icon: <Link size={14} aria-hidden="true" />,
+            checked: !!paneSyncEnabled,
+            action: onTogglePaneSync,
+          },
+          ...(onSwitchPaneSyncMode
+            ? [
+                {
+                  id: 'sync-mirror',
+                  label: t('splitView.syncModeMirror'),
+                  checked: paneSyncMode === 'mirror',
+                  action: () => switchSyncMode('mirror'),
+                },
+                {
+                  id: 'sync-relative',
+                  label: t('splitView.syncModeRelative'),
+                  checked: paneSyncMode !== 'mirror',
+                  action: () => switchSyncMode('relative'),
+                },
+              ]
+            : []),
+          { id: 'before-split', label: '', separator: true },
+        ]
+      : []),
+    {
+      id: 'split-right',
+      label: t('splitView.splitRight'),
+      icon: <Columns size={15} aria-hidden="true" />,
+      action: onSplitHorizontal,
+    },
+    {
+      id: 'split-down',
+      label: t('splitView.splitDown'),
+      icon: <Rows size={15} aria-hidden="true" />,
+      action: onSplitVertical,
+    },
+    ...(canClose
+      ? [
+          { id: 'before-pane', label: '', separator: true },
+          {
+            id: 'maximize',
+            label: isMaximized ? t('splitView.restorePane') : t('splitView.maximizePane'),
+            icon: isMaximized ? (
+              <Minimize2 size={14} aria-hidden="true" />
+            ) : (
+              <Maximize2 size={14} aria-hidden="true" />
+            ),
+            action: handleToggleMaximize,
+          },
+          {
+            id: 'close-pane',
+            label: t('splitView.closePane'),
+            icon: <X size={14} aria-hidden="true" />,
+            action: onCloseGroup,
+          },
+        ]
+      : []),
+  ];
+
   return (
     <div
+      ref={barRef}
       className="wisp-pane-tabbar"
       onMouseDown={onFocus}
       onFocus={onFocus}
@@ -506,8 +622,14 @@ const PaneTabBar = ({
           );
         })}
       </div>
-      <div className="wisp-pane-tab-actions">
+      <div
+        className="wisp-pane-tab-actions"
+        onFocusCapture={(event) => {
+          focusedActionRef.current = event.target as HTMLElement;
+        }}
+      >
         <button
+          ref={addTabRef}
           type="button"
           className="wisp-pane-tab-action"
           onClick={onAddTab}
@@ -516,87 +638,130 @@ const PaneTabBar = ({
         >
           <Plus size={15} aria-hidden="true" />
         </button>
-        {hasMultiplePanes && onTogglePaneSync && (
+        {compact ? (
           <button
+            ref={moreRef}
             type="button"
-            className="wisp-pane-tab-action wisp-pane-tab-sync"
-            onClick={onTogglePaneSync}
-            onContextMenu={(event) => {
+            className="wisp-pane-tab-action"
+            title={t('contextMenu.more')}
+            aria-label={t('contextMenu.more')}
+            aria-haspopup="menu"
+            aria-expanded={!!paneMenu}
+            onMouseDown={(event) => {
+              event.stopPropagation();
+              onFocus();
+            }}
+            onClick={() => (paneMenu ? closePaneMenu() : openPaneMenu())}
+            onKeyDown={(event) => {
+              if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
               event.preventDefault();
               event.stopPropagation();
-              switchSyncMode();
+              openPaneMenu(event.key === 'ArrowUp');
             }}
-            onKeyDown={(event) => {
-              if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
-                event.preventDefault();
-                event.stopPropagation();
-                switchSyncMode();
-              }
-            }}
-            aria-pressed={!!paneSyncEnabled}
-            aria-label={syncTitle}
-            title={syncTitle}
           >
-            {paneSyncEnabled ? (
-              <Link size={14} aria-hidden="true" />
-            ) : (
-              <Unlink size={14} aria-hidden="true" />
-            )}
-            {paneSyncEnabled && (
-              <span className="wisp-pane-tab-sync-mode">
-                {paneSyncMode === 'mirror'
-                  ? t('splitView.syncModeMirrorShort')
-                  : t('splitView.syncModeRelativeShort')}
-              </span>
-            )}
+            <MoreHorizontal size={16} aria-hidden="true" />
           </button>
-        )}
-        <button
-          type="button"
-          className="wisp-pane-tab-action"
-          onClick={onSplitHorizontal}
-          title={t('splitView.splitRight')}
-          aria-label={t('splitView.splitRight')}
-        >
-          <Columns size={15} aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          className="wisp-pane-tab-action"
-          onClick={onSplitVertical}
-          title={t('splitView.splitDown')}
-          aria-label={t('splitView.splitDown')}
-        >
-          <Rows size={15} aria-hidden="true" />
-        </button>
-        {canClose && (
+        ) : (
           <>
+            {hasMultiplePanes && onTogglePaneSync && (
+              <button
+                type="button"
+                className="wisp-pane-tab-action wisp-pane-tab-sync"
+                onClick={onTogglePaneSync}
+                onContextMenu={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  switchSyncMode();
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    switchSyncMode();
+                  }
+                }}
+                aria-pressed={!!paneSyncEnabled}
+                aria-label={syncTitle}
+                title={syncTitle}
+              >
+                {paneSyncEnabled ? (
+                  <Link size={14} aria-hidden="true" />
+                ) : (
+                  <Unlink size={14} aria-hidden="true" />
+                )}
+                {paneSyncEnabled && (
+                  <span className="wisp-pane-tab-sync-mode">
+                    {paneSyncMode === 'mirror'
+                      ? t('splitView.syncModeMirrorShort')
+                      : t('splitView.syncModeRelativeShort')}
+                  </span>
+                )}
+              </button>
+            )}
             <button
               type="button"
               className="wisp-pane-tab-action"
-              onClick={handleToggleMaximize}
-              aria-pressed={!!isMaximized}
-              title={isMaximized ? t('splitView.restorePane') : t('splitView.maximizePane')}
-              aria-label={isMaximized ? t('splitView.restorePane') : t('splitView.maximizePane')}
+              onClick={onSplitHorizontal}
+              title={t('splitView.splitRight')}
+              aria-label={t('splitView.splitRight')}
             >
-              {isMaximized ? (
-                <Minimize2 size={14} aria-hidden="true" />
-              ) : (
-                <Maximize2 size={14} aria-hidden="true" />
-              )}
+              <Columns size={15} aria-hidden="true" />
             </button>
             <button
               type="button"
-              className="wisp-pane-tab-action wisp-pane-tab-action-close"
-              onClick={onCloseGroup}
-              title={t('splitView.closePane')}
-              aria-label={t('splitView.closePane')}
+              className="wisp-pane-tab-action"
+              onClick={onSplitVertical}
+              title={t('splitView.splitDown')}
+              aria-label={t('splitView.splitDown')}
             >
-              <X size={14} aria-hidden="true" />
+              <Rows size={15} aria-hidden="true" />
             </button>
+            {canClose && (
+              <>
+                <button
+                  type="button"
+                  className="wisp-pane-tab-action"
+                  onClick={handleToggleMaximize}
+                  aria-pressed={!!isMaximized}
+                  title={isMaximized ? t('splitView.restorePane') : t('splitView.maximizePane')}
+                  aria-label={
+                    isMaximized ? t('splitView.restorePane') : t('splitView.maximizePane')
+                  }
+                >
+                  {isMaximized ? (
+                    <Minimize2 size={14} aria-hidden="true" />
+                  ) : (
+                    <Maximize2 size={14} aria-hidden="true" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="wisp-pane-tab-action wisp-pane-tab-action-close"
+                  onClick={onCloseGroup}
+                  title={t('splitView.closePane')}
+                  aria-label={t('splitView.closePane')}
+                >
+                  <X size={14} aria-hidden="true" />
+                </button>
+              </>
+            )}
           </>
         )}
       </div>
+      {compact &&
+        paneMenu &&
+        createPortal(
+          <div ref={paneMenuRef}>
+            <ContextMenu
+              isOpen
+              x={paneMenu.x}
+              y={paneMenu.y}
+              onClose={closePaneMenu}
+              items={paneActions}
+            />
+          </div>,
+          document.body,
+        )}
       {contextMenu && ctxTab && (
         <TabContextMenu
           menu={contextMenu}

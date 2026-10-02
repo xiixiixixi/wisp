@@ -1,6 +1,6 @@
 import { useState, type ComponentProps } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { House, FolderClosed } from 'lucide-react';
 import PaneTabBar from '@/components/split-view/PaneTabBar';
@@ -192,5 +192,218 @@ describe('PaneTabBar interactions', () => {
     await user.click(screen.getByRole('button', { name: 'Restore pane' }));
     expect(props.onRestorePane).toHaveBeenCalledOnce();
     expect(props.onSwitchTab).not.toHaveBeenCalled();
+  });
+});
+
+describe('PaneTabBar narrow panes', () => {
+  const resizeCallbacks = new Map<Element, () => void>();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resizeCallbacks.clear();
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const width = Number(this.dataset.paneWidth) || 0;
+      return {
+        x: 0,
+        y: 0,
+        top: 0,
+        left: 0,
+        right: width,
+        bottom: 30,
+        width,
+        height: 30,
+        toJSON: () => ({}),
+      };
+    });
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(private callback: ResizeObserverCallback) {}
+        observe(target: Element) {
+          resizeCallbacks.set(target, () => this.callback([], this as unknown as ResizeObserver));
+        }
+        unobserve(target: Element) {
+          resizeCallbacks.delete(target);
+        }
+        disconnect() {}
+      },
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  const renderPane = (overrides: Partial<Props> = {}, width = 400) =>
+    render(
+      <div className="wisp-editor-pane" data-pane-width={width}>
+        <PaneTabBar {...props} {...overrides} />
+      </div>,
+    );
+
+  const resizePane = (pane: HTMLElement, width: number) => {
+    pane.dataset.paneWidth = String(width);
+    act(() => resizeCallbacks.get(pane)?.());
+  };
+
+  it('uses each pane width and keeps only new-tab and more controls at 480px or less', () => {
+    const { container } = render(
+      <>
+        <div className="wisp-editor-pane" data-pane-width={480}>
+          <PaneTabBar {...props} />
+        </div>
+        <div className="wisp-editor-pane" data-pane-width={481}>
+          <PaneTabBar {...props} groupId="second" />
+        </div>
+      </>,
+    );
+    const actions = container.querySelectorAll<HTMLElement>('.wisp-pane-tab-actions');
+    expect(
+      within(actions[0])
+        .getAllByRole('button')
+        .map((button) => button.title),
+    ).toEqual(['New tab', 'More']);
+    expect(within(actions[1]).queryByRole('button', { name: 'More' })).not.toBeInTheDocument();
+    expect(within(actions[1]).getByRole('button', { name: 'Split right' })).toBeInTheDocument();
+    expect(screen.getAllByRole('tab')).toHaveLength(6);
+  });
+
+  it('keeps all pane commands reachable and closes the menu after invoking them', async () => {
+    const user = userEvent.setup();
+    const { rerender } = renderPane();
+    const more = screen.getByRole('button', { name: 'More' });
+    await user.click(screen.getByRole('button', { name: 'New tab' }));
+    const actions = [
+      ['Split right', props.onSplitHorizontal],
+      ['Split down', props.onSplitVertical],
+      ['Maximize pane', props.onMaximizePane],
+      ['Close pane', props.onCloseGroup],
+    ] as const;
+    for (const [label, callback] of actions) {
+      await user.click(more);
+      await user.click(screen.getByRole('menuitem', { name: label }));
+      expect(callback).toHaveBeenCalledOnce();
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      expect(more).toHaveFocus();
+    }
+    expect(props.onAddTab).toHaveBeenCalledOnce();
+    rerender(
+      <div className="wisp-editor-pane" data-pane-width={400}>
+        <PaneTabBar {...props} isMaximized />
+      </div>,
+    );
+    await user.click(more);
+    await user.click(screen.getByRole('menuitem', { name: 'Restore pane' }));
+    expect(props.onRestorePane).toHaveBeenCalledOnce();
+  });
+
+  it('preserves sync toggling and both sync modes inside the menu', async () => {
+    const user = userEvent.setup();
+    const onTogglePaneSync = vi.fn();
+    const onSwitchPaneSyncMode = vi.fn();
+    const { rerender } = renderPane({
+      hasMultiplePanes: true,
+      paneSyncEnabled: true,
+      paneSyncMode: 'mirror',
+      onTogglePaneSync,
+      onSwitchPaneSyncMode,
+    });
+    const more = screen.getByRole('button', { name: 'More' });
+    await user.click(more);
+    const sync = screen.getByRole('menuitemcheckbox', { name: 'Sync navigation' });
+    expect(sync).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Mirror' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Relative' })).toHaveAttribute(
+      'aria-checked',
+      'false',
+    );
+    await user.click(sync);
+    expect(onTogglePaneSync).toHaveBeenCalledOnce();
+    await user.click(more);
+    await user.click(screen.getByRole('menuitemcheckbox', { name: 'Relative' }));
+    expect(onSwitchPaneSyncMode).toHaveBeenCalledWith('relative');
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    rerender(
+      <div className="wisp-editor-pane" data-pane-width={400}>
+        <PaneTabBar
+          {...props}
+          hasMultiplePanes
+          paneSyncEnabled={false}
+          paneSyncMode="relative"
+          onTogglePaneSync={onTogglePaneSync}
+          onSwitchPaneSyncMode={onSwitchPaneSyncMode}
+        />
+      </div>,
+    );
+    await user.click(more);
+    expect(screen.getByRole('menuitemcheckbox', { name: 'Sync navigation' })).toHaveAttribute(
+      'aria-checked',
+      'false',
+    );
+    await user.click(screen.getByRole('menuitemcheckbox', { name: 'Mirror' }));
+    expect(onSwitchPaneSyncMode).toHaveBeenLastCalledWith('mirror');
+  });
+
+  it('omits unavailable sync and close/maximize commands', async () => {
+    const user = userEvent.setup();
+    renderPane({ canClose: false, hasMultiplePanes: false });
+    await user.click(screen.getByRole('button', { name: 'More' }));
+    expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+      'Split right',
+      'Split down',
+    ]);
+    expect(screen.queryByRole('menuitemcheckbox')).not.toBeInTheDocument();
+  });
+
+  it('supports keyboard opening, navigation, Escape, and outside dismissal', async () => {
+    const user = userEvent.setup();
+    renderPane();
+    const more = screen.getByRole('button', { name: 'More' });
+    more.focus();
+    await user.keyboard('{ArrowDown}');
+    expect(screen.getByRole('menuitem', { name: 'Split right' })).toHaveFocus();
+    await user.keyboard('{ArrowDown}{Enter}');
+    expect(props.onSplitVertical).toHaveBeenCalledOnce();
+    expect(more).toHaveFocus();
+    await user.keyboard('{ArrowUp}');
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Close pane' })).toHaveFocus());
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(more).toHaveFocus();
+    await user.click(more);
+    await user.keyboard('{Tab}');
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    await user.click(more);
+    await user.click(more);
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    await user.click(more);
+    await user.click(screen.getByRole('tab', { name: 'Research' }));
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(props.onSwitchTab).toHaveBeenCalledWith('research');
+  });
+
+  it('closes an open menu when resized and restores focus to a visible control', async () => {
+    const user = userEvent.setup();
+    const { container } = renderPane();
+    const pane = container.firstElementChild as HTMLElement;
+    await user.click(screen.getByRole('button', { name: 'More' }));
+    resizePane(pane, 700);
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'More' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'New tab' })).toHaveFocus();
+    const split = screen.getByRole('button', { name: 'Split right' });
+    split.focus();
+    resizePane(pane, 400);
+    expect(screen.getByRole('button', { name: 'More' })).toHaveFocus();
+    await user.click(screen.getByRole('button', { name: 'More' }));
+    resizePane(pane, 350);
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'More' })).toHaveFocus();
   });
 });

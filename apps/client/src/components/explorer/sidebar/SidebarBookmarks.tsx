@@ -1,5 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { FolderClosed, File, ChevronDown, ChevronRight, GripHorizontal } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  FolderClosed,
+  File,
+  ChevronDown,
+  ChevronRight,
+  GripHorizontal,
+  X,
+  LoaderCircle,
+} from 'lucide-react';
 import { TauriAPI, BookmarkEntry, FileEntry } from '@/lib/tauri-api';
 import { getFolderColorHex } from '@/lib/folder-colors';
 import { useWindowEvent } from '@/hooks/use-window-event';
@@ -34,6 +42,8 @@ export const SidebarBookmarkItems = ({
   const { t } = useTranslation();
   const [bookmarks, setBookmarks] = useState<BookmarkEntry[]>([]);
   const [removeError, setRemoveError] = useState(false);
+  const removingPathsRef = useRef(new Set<string>());
+  const [removingPaths, setRemovingPaths] = useState<Set<string>>(() => new Set());
 
   const asFileEntry = (bookmark: BookmarkEntry): FileEntry => ({
     name: bookmark.name,
@@ -63,6 +73,9 @@ export const SidebarBookmarkItems = ({
 
   const handleRemoveBookmark = async (path: string, event: React.MouseEvent) => {
     event.stopPropagation();
+    if (removingPathsRef.current.has(path)) return;
+    removingPathsRef.current.add(path);
+    setRemovingPaths(new Set(removingPathsRef.current));
     setRemoveError(false);
     try {
       await TauriAPI.removeBookmark(path);
@@ -70,6 +83,9 @@ export const SidebarBookmarkItems = ({
     } catch (error) {
       console.error('Failed to remove bookmark:', error);
       setRemoveError(true);
+    } finally {
+      removingPathsRef.current.delete(path);
+      setRemovingPaths(new Set(removingPathsRef.current));
     }
   };
 
@@ -89,10 +105,12 @@ export const SidebarBookmarkItems = ({
       {bookmarks.map((bookmark) => {
         const bookmarkColor = bookmark.is_dir ? getFolderColorHex(bookmark.path) : null;
         const isActive = currentPath === bookmark.path;
+        const removing = removingPaths.has(bookmark.path);
+        const removeLabel = t(removing ? 'sidebarBookmarks.removing' : 'sidebarBookmarks.remove');
         return (
           <div
             key={bookmark.path}
-            className="wisp-sidebar-item group flex w-full items-center rounded-md text-[13px]"
+            className="wisp-nav-row-group"
             data-drop-target={bookmark.is_dir ? bookmark.path : undefined}
             data-is-folder={bookmark.is_dir ? 'true' : undefined}
             onContextMenu={(e) => {
@@ -103,7 +121,7 @@ export const SidebarBookmarkItems = ({
           >
             <button
               type="button"
-              className={`flex min-w-0 flex-1 items-center rounded-md px-2.5 py-[7px] text-left transition-colors ${
+              className={`wisp-sidebar-item wisp-nav-row rounded-md transition-colors ${
                 isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
               }`}
               onClick={() => {
@@ -130,22 +148,28 @@ export const SidebarBookmarkItems = ({
               {bookmark.is_dir ? (
                 <FolderClosed
                   size={14}
-                  className="mr-2 flex-shrink-0 text-xp-text-secondary"
+                  className="flex-shrink-0 text-xp-text-secondary"
                   style={bookmarkColor ? { color: bookmarkColor } : undefined}
                 />
               ) : (
-                <File size={14} className="mr-2 flex-shrink-0 text-xp-text-secondary" />
+                <File size={14} className="flex-shrink-0 text-xp-text-secondary" />
               )}
               <span className="min-w-0 flex-1 truncate">{bookmark.name}</span>
             </button>
             <button
               type="button"
               onClick={(e) => handleRemoveBookmark(bookmark.path, e)}
-              className="mr-2 flex-shrink-0 text-xp-text-muted opacity-0 transition-opacity hover:text-xp-red focus:opacity-100 group-hover:opacity-100"
-              title={t('sidebarBookmarks.remove')}
-              aria-label={`${t('sidebarBookmarks.remove')}: ${bookmark.name}`}
+              className="wisp-nav-row-action wisp-bookmark-remove"
+              disabled={removing}
+              aria-busy={removing}
+              title={removeLabel}
+              aria-label={`${removeLabel}: ${bookmark.name}`}
             >
-              <span aria-hidden="true">×</span>
+              {removing ? (
+                <LoaderCircle size={16} className="wisp-nav-action-spinner" aria-hidden="true" />
+              ) : (
+                <X size={16} aria-hidden="true" />
+              )}
             </button>
           </div>
         );
