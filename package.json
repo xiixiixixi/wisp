@@ -89,7 +89,7 @@
     "react-markdown": "^10.1.0",
     "react-pdf": "^10.0.1",
     "remark-gfm": "^4.0.1",
-    "shiki": "^1.29.2",
+    "shiki": "^4.5.0",
     "tailwind-merge": "^2.6.0",
     "wouter": "^3.3.5",
     "xlsx": "^0.18.5"
