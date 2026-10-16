@@ -1,0 +1,2762 @@
+use tauri::command;
+use tauri::Emitter;
+#[cfg(target_os = "macos")]
+use tauri::Manager;
+
+#[cfg(windows)]
+use crate::operations::get_disk_space;
+use crate::operations::validate_file_path;
+
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
+use std::path::PathBuf;
+
+#[derive(serde::Serialize)]
+pub struct CommandExecutionResult {
+    pub stdout: String,
+    pub stderr: String,
+    pub exit_code: i32,
+}
+
+#[derive(serde::Serialize, Clone)]
+pub struct DriveInfo {
+    pub letter: String,
+    pub label: String,
+    pub path: String,
+    pub total_space: u64,
+    pub free_space: u64,
+}
+
+#[command]
+pub async fn list_drives() -> Result<Vec<DriveInfo>, String> {
+    #[cfg(windows)]
+    {
+        let mut drives = Vec::new();
+        // Use GetLogicalDrives bitmask
+        let bitmask = unsafe { windows_drives_bitmask() };
+        for i in 0..26u32 {
+            if bitmask & (1 << i) != 0 {
+                let letter = (b'A' + i as u8) as char;
+                let path = format!("{}:\\", letter);
+                let label = get_volume_label(&path).unwrap_or_default();
+                let display_label = if label.is_empty() {
+                    match letter {
+                        'C' => "Local Disk".to_string(),
+                        _ => "Local Disk".to_string(),
+                    }
+                } else {
+                    label
+                };
+                let (total, free) = get_disk_space(std::path::Path::new(&path)).unwrap_or((0, 0));
+                drives.push(DriveInfo {
+                    letter: letter.to_string(),
+                    label: display_label,
+                    path,
+                    total_space: total,
+                    free_space: free,
+                });
+            }
+        }
+        Ok(drives)
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let mut drives = Vec::new();
+        // Root volume
+        drives.push(DriveInfo {
+            letter: String::new(),
+            label: "Macintosh HD".to_string(),
+            path: "/".to_string(),
+            total_space: 0,
+            free_space: 0,
+        });
+        // List /Volumes for external drives. Finder 同款：系统维护卷
+        // （Recovery/Preboot/VM）不展示——它们既不可推出也不该被误点。
+        const SYSTEM_VOLUME_NAMES: &[&str] = &["Recovery", "Preboot", "VM"];
+        if let Ok(entries) = std::fs::read_dir("/Volumes") {
+            for entry in entries.flatten() {
+                let name = entry.file_name().to_string_lossy().to_string();
+                if name == "Macintosh HD" || SYSTEM_VOLUME_NAMES.contains(&name.as_str()) {
+                    continue;
+                }
+                let path = entry.path().to_string_lossy().to_string();
+                drives.push(DriveInfo {
+                    letter: String::new(),
+                    label: name,
+                    path,
+                    total_space: 0,
+                    free_space: 0,
+                });
+            }
+        }
+        Ok(drives)
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let drives = vec![DriveInfo {
+            letter: String::new(),
+            label: "Root".to_string(),
+            path: "/".to_string(),
+            total_space: 0,
+            free_space: 0,
+        }];
+        Ok(drives)
+    }
+}
+
+/// Eject / unmount a volume by its mount path.
+///
+/// - macOS: `diskutil unmount <path>`
+/// - Linux: `umount <path>`
+/// - Windows: Uses the DeviceIoControl IOCTL_STORAGE_EJECT_MEDIA API
+#[command]
+pub async fn eject_volume(path: String) -> Result<(), String> {
+    // Validate that the path exists
+    let mount_path = std::path::Path::new(&path);
+    if !mount_path.exists() {
+        return Err(format!("Path '{}' does not exist", path));
+    }
+
+    // Validate that the path is an actual mount point or drive
+    #[cfg(target_os = "macos")]
+    {
+        if !path.starts_with("/Volumes/") {
+            return Err(format!(
+                "Path '{}' is not a valid mount point (must be under /Volumes/)",
+                path
+            ));
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        if !path.starts_with("/dev/") && !path.starts_with("/mnt/") && !path.starts_with("/media/")
+        {
+            return Err(format!(
+                "Path '{}' is not a valid mount point (must be under /dev/, /mnt/, or /media/)",
+                path
+            ));
+        }
+    }
+
+    #[cfg(windows)]
+    {
+        let path_bytes = path.as_bytes();
+        if path_bytes.len() < 2
+            || !path_bytes[0].is_ascii_alphabetic()
+            || path_bytes[1] != b':'
+            || (path_bytes.len() > 2 && path_bytes[2] != b'\\')
+        {
+            return Err(format!(
+                "Path '{}' is not a valid drive (must match drive letter pattern like D:\\)",
+                path
+            ));
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let output = std::process::Command::new("diskutil")
+            .arg("unmount")
+            .arg(&path)
+            .output()
+            .map_err(|e| format!("Failed to run diskutil: {}", e))?;
+        if output.status.success() {
+            Ok(())
+        } else {
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+            Err(format!("diskutil unmount failed: {}", stderr.trim()))
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let output = std::process::Command::new("umount")
+            .arg(&path)
+            .output()
+            .map_err(|e| format!("Failed to run umount: {}", e))?;
+        if output.status.success() {
+            Ok(())
+        } else {
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+            Err(format!("umount failed: {}", stderr.trim()))
+        }
+    }
+
+    #[cfg(windows)]
+    {
+        use std::ffi::OsStr;
+        use std::iter::once;
+        use std::os::windows::ffi::OsStrExt;
+
+        // Derive the drive letter root (e.g. "D:\") from the path
+        let root = if path.len() >= 2 && path.as_bytes()[1] == b':' {
+            format!("{}:\\", &path[..1])
+        } else {
+            path.clone()
+        };
+
+        // Open the volume with GENERIC_READ | GENERIC_WRITE access
+        let volume_path = format!("\\\\.\\{}", root.trim_end_matches('\\'));
+        let wide: Vec<u16> = OsStr::new(&volume_path)
+            .encode_wide()
+            .chain(once(0))
+            .collect();
+
+        #[link(name = "kernel32")]
+        extern "system" {
+            fn CreateFileW(
+                lpFileName: *const u16,
+                dwDesiredAccess: u32,
+                dwShareMode: u32,
+                lpSecurityAttributes: *mut std::ffi::c_void,
+                dwCreationDisposition: u32,
+                dwFlagsAndAttributes: u32,
+                hTemplateFile: *mut std::ffi::c_void,
+            ) -> *mut std::ffi::c_void;
+
+            fn DeviceIoControl(
+                hDevice: *mut std::ffi::c_void,
+                dwIoControlCode: u32,
+                lpInBuffer: *mut std::ffi::c_void,
+                nInBufferSize: u32,
+                lpOutBuffer: *mut std::ffi::c_void,
+                nOutBufferSize: u32,
+                lpBytesReturned: *mut u32,
+                lpOverlapped: *mut std::ffi::c_void,
+            ) -> i32;
+
+            fn CloseHandle(hObject: *mut std::ffi::c_void) -> i32;
+        }
+
+        const GENERIC_READ: u32 = 0x80000000;
+        const GENERIC_WRITE: u32 = 0x40000000;
+        const FILE_SHARE_READ: u32 = 0x00000001;
+        const FILE_SHARE_WRITE: u32 = 0x00000002;
+        const OPEN_EXISTING: u32 = 3;
+        const IOCTL_STORAGE_EJECT_MEDIA: u32 = 0x2D4808;
+        const INVALID_HANDLE_VALUE: *mut std::ffi::c_void = usize::MAX as *mut std::ffi::c_void;
+
+        let handle = unsafe {
+            CreateFileW(
+                wide.as_ptr(),
+                GENERIC_READ | GENERIC_WRITE,
+                FILE_SHARE_READ | FILE_SHARE_WRITE,
+                std::ptr::null_mut(),
+                OPEN_EXISTING,
+                0,
+                std::ptr::null_mut(),
+            )
+        };
+
+        if handle == INVALID_HANDLE_VALUE {
+            return Err(format!("Failed to open volume handle for '{}'", root));
+        }
+
+        let mut bytes_returned: u32 = 0;
+        let ok = unsafe {
+            DeviceIoControl(
+                handle,
+                IOCTL_STORAGE_EJECT_MEDIA,
+                std::ptr::null_mut(),
+                0,
+                std::ptr::null_mut(),
+                0,
+                &mut bytes_returned,
+                std::ptr::null_mut(),
+            )
+        };
+        unsafe { CloseHandle(handle) };
+
+        if ok != 0 {
+            Ok(())
+        } else {
+            Err(format!("Failed to eject volume '{}'", root))
+        }
+    }
+}
+
+#[cfg(windows)]
+unsafe fn windows_drives_bitmask() -> u32 {
+    #[link(name = "kernel32")]
+    extern "system" {
+        fn GetLogicalDrives() -> u32;
+    }
+    GetLogicalDrives()
+}
+
+#[cfg(windows)]
+fn get_volume_label(root: &str) -> Option<String> {
+    use std::ffi::OsStr;
+    use std::iter::once;
+    use std::os::windows::ffi::OsStrExt;
+
+    #[link(name = "kernel32")]
+    extern "system" {
+        fn GetVolumeInformationW(
+            lpRootPathName: *const u16,
+            lpVolumeNameBuffer: *mut u16,
+            nVolumeNameSize: u32,
+            lpVolumeSerialNumber: *mut u32,
+            lpMaximumComponentLength: *mut u32,
+            lpFileSystemFlags: *mut u32,
+            lpFileSystemNameBuffer: *mut u16,
+            nFileSystemNameSize: u32,
+        ) -> i32;
+    }
+
+    let root_wide: Vec<u16> = OsStr::new(root).encode_wide().chain(once(0)).collect();
+    let mut name_buf = [0u16; 256];
+
+    let ok = unsafe {
+        GetVolumeInformationW(
+            root_wide.as_ptr(),
+            name_buf.as_mut_ptr(),
+            name_buf.len() as u32,
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+            0,
+        )
+    };
+
+    if ok != 0 {
+        let len = name_buf
+            .iter()
+            .position(|&c| c == 0)
+            .unwrap_or(name_buf.len());
+        let label = String::from_utf16_lossy(&name_buf[..len]);
+        if label.is_empty() {
+            None
+        } else {
+            Some(label)
+        }
+    } else {
+        None
+    }
+}
+
+#[derive(serde::Serialize)]
+pub struct FileSearchMatch {
+    pub file: String,
+    pub line: usize,
+    pub content: String,
+}
+
+/// Allowlist of commands considered safe to run without full path restrictions.
+/// NOTE: `env` and `find` were intentionally removed — `env` can execute arbitrary
+/// commands (e.g. `env /bin/sh -c …`), and `find` can execute via `-exec`.
+const SAFE_COMMANDS: &[&str] = &[
+    // Shell basics
+    "ls",
+    "dir",
+    "cat",
+    "head",
+    "tail",
+    "echo",
+    "pwd",
+    "cd",
+    "whoami",
+    "hostname",
+    "uname",
+    "date",
+    "which",
+    "where",
+    "type",
+    "grep",
+    "wc",
+    "sort",
+    "uniq",
+    "file",
+    "stat",
+    "df",
+    "du",
+    "printenv",
+    "set",
+    "mkdir",
+    "cp",
+    "mv",
+    "rm",
+    "touch",
+    "chmod",
+    "chown",
+    "ln",
+    "basename",
+    "dirname",
+    "realpath",
+    "readlink",
+    "tr",
+    "cut",
+    "sed",
+    "awk",
+    "diff",
+    "patch",
+    "tar",
+    "zip",
+    "unzip",
+    "gzip",
+    "gunzip",
+    "curl",
+    "wget",
+    // Dev tools (user-approved via AI chat permission card)
+    "git",
+    "npm",
+    "npx",
+    "pnpm",
+    "yarn",
+    "bun",
+    "bunx",
+    "node",
+    "deno",
+    "python",
+    "python3",
+    "pip",
+    "pip3",
+    "uv",
+    "uvx",
+    "cargo",
+    "rustc",
+    "rustup",
+    "rustfmt",
+    "go",
+    "make",
+    "cmake",
+    "gcc",
+    "g++",
+    "clang",
+    "docker",
+    "docker-compose",
+    "kubectl",
+    "ssh",
+    "scp",
+    "rsync",
+    "java",
+    "javac",
+    "mvn",
+    "gradle",
+    "ruby",
+    "gem",
+    "bundle",
+    "swift",
+    "xcodebuild",
+    "dotnet",
+    "nuget",
+    "terraform",
+    "ansible",
+    "gh",
+    "jq",
+    "yq",
+    "tree",
+    "bat",
+    "rg",
+    "fd",
+    "fzf",
+    "htop",
+    "top",
+    "ps",
+    "kill",
+    "open",
+    "xdg-open",
+    "start",
+];
+
+/// Shell metacharacters that indicate chaining, piping, or injection.
+/// These are ALWAYS rejected, even for allowlisted commands.
+const SHELL_METACHARACTERS: &[char] = &['`', ';', '|', '&', '$', '>', '<', '\n'];
+
+/// Validate a command string before passing it to a shell.
+///
+/// Security invariant: shell metacharacter checks ALWAYS run first,
+/// regardless of whether the command is on the allowlist. The allowlist
+/// only controls whether a command binary that is not on the list is
+/// permitted — it does NOT skip safety checks.
+/// Regex that matches safe stderr/stdout redirect patterns like
+/// `2>/dev/null`, `2>&1`, `>/dev/null`, `1>/dev/null`.
+/// These are stripped before the metacharacter check so they don't
+/// trigger false positives.
+fn strip_safe_redirects(command: &str) -> String {
+    // Match patterns: 2>/dev/null, 2>&1, >/dev/null, 1>/dev/null, 2>>/dev/null
+    // with optional whitespace around >
+    let mut result = command.to_string();
+    // Order matters: strip the FD-prefixed redirects first, then bare ones
+    // Pattern: [12]>>[&/]... or [12]>[&/]...
+    loop {
+        let before = result.clone();
+        // Handle: 2>/dev/null, 1>/dev/null, 2>>/dev/null
+        result = result
+            .replace("2>/dev/null", " ")
+            .replace("1>/dev/null", " ")
+            .replace("2>>/dev/null", " ")
+            .replace("1>>/dev/null", " ");
+        // Handle: 2>&1, 2>&2, 1>&2
+        result = result
+            .replace("2>&1", " ")
+            .replace("2>&2", " ")
+            .replace("1>&2", " ");
+        // Handle: >/dev/null (bare, no FD prefix) — but NOT "> somefile"
+        // We only strip >/dev/null specifically
+        result = result.replace(">/dev/null", " ");
+        if result == before {
+            break;
+        }
+    }
+    result
+}
+
+fn sanitize_command(command: &str) -> Result<(), String> {
+    let trimmed = command.trim();
+    if trimmed.is_empty() {
+        return Err("Empty command".to_string());
+    }
+
+    // Extract the first token (the binary name) — kept for future allowlist use
+    let _first_token = trimmed.split_whitespace().next().unwrap_or("");
+
+    // ── STEP 1: ALWAYS reject shell metacharacters ──────────────────────
+    // This check must run unconditionally — even for allowlisted commands
+    // — to prevent shell chaining attacks like `ls ; rm -rf /`.
+    // Strip safe redirect patterns (2>/dev/null, 2>&1, etc.) first so
+    // they don't trigger false positives on '>' and '&'.
+    let cleaned = strip_safe_redirects(trimmed);
+    for &mc in SHELL_METACHARACTERS {
+        if cleaned.contains(mc) {
+            return Err(format!(
+                "Command contains a disallowed shell metacharacter '{}'",
+                mc
+            ));
+        }
+    }
+
+    // Allowlist removed — authorization is handled by the frontend's
+    // AI chat permission card before this function is ever called.
+    // The metacharacter check above is still enforced for injection safety.
+
+    Ok(())
+}
+
+fn build_shell_command(command: &str) -> std::process::Command {
+    #[cfg(windows)]
+    {
+        let mut cmd = std::process::Command::new("cmd");
+        cmd.args(["/C", command]);
+        return cmd;
+    }
+
+    #[cfg(not(windows))]
+    {
+        let mut cmd = std::process::Command::new("sh");
+        cmd.args(["-c", command]);
+        cmd
+    }
+}
+
+fn walk_files(root: &PathBuf, out: &mut Vec<PathBuf>) -> Result<(), String> {
+    let entries = std::fs::read_dir(root)
+        .map_err(|e| format!("Failed to read directory {}: {}", root.display(), e))?;
+    for entry in entries {
+        let entry = entry.map_err(|e| format!("Failed to read directory entry: {}", e))?;
+        let path = entry.path();
+        if path.is_dir() {
+            walk_files(&path, out)?;
+        } else if path.is_file() {
+            out.push(path);
+        }
+    }
+    Ok(())
+}
+
+#[command]
+pub async fn open_url(url: String) -> Result<(), String> {
+    // Only allow http/https URLs
+    if !url.starts_with("http://") && !url.starts_with("https://") {
+        return Err("Only http and https URLs are allowed".to_string());
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("cmd")
+            .args(["/C", "start", "", &url])
+            .spawn()
+            .map_err(|e| format!("Failed to open URL: {}", e))?;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(&url)
+            .spawn()
+            .map_err(|e| format!("Failed to open URL: {}", e))?;
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(&url)
+            .spawn()
+            .map_err(|e| format!("Failed to open URL: {}", e))?;
+    }
+
+    Ok(())
+}
+
+#[command]
+pub async fn open_file(path: String) -> Result<(), String> {
+    validate_file_path(&path)?;
+    let path = std::path::Path::new(&path);
+
+    if !path.exists() {
+        return Err("File does not exist".to_string());
+    }
+
+    // Use the OS default application to open the file
+    #[cfg(windows)]
+    {
+        std::process::Command::new("explorer")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| format!("Failed to open file: {}", e))?;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(path)
+            .spawn()
+            .map_err(|e| format!("Failed to open file: {}", e))?;
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(path)
+            .spawn()
+            .map_err(|e| format!("Failed to open file: {}", e))?;
+    }
+
+    Ok(())
+}
+
+#[command]
+pub async fn open_in_terminal(path: String) -> Result<(), String> {
+    validate_file_path(&path)?;
+    let path = std::path::Path::new(&path);
+
+    if !path.exists() {
+        return Err("Path does not exist".to_string());
+    }
+
+    let dir_path = if path.is_dir() {
+        path
+    } else {
+        path.parent().unwrap_or(path)
+    };
+
+    #[cfg(windows)]
+    {
+        // Use Command::new with proper args array to prevent injection via directory names
+        let dir_str = dir_path.to_string_lossy().to_string();
+        std::process::Command::new("cmd")
+            .args(&[
+                "/C",
+                "start",
+                "cmd",
+                "/K",
+                &format!("cd /D \"{}\"", dir_str.replace('"', "")),
+            ])
+            .creation_flags(0x08000000) // CREATE_NO_WINDOW
+            .spawn()
+            .map_err(|e| format!("Failed to open terminal: {}", e))?;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .args(["-a", "Terminal", &dir_path.to_string_lossy()])
+            .spawn()
+            .map_err(|e| format!("Failed to open terminal: {}", e))?;
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        // Try different terminal emulators
+        let terminals = ["gnome-terminal", "konsole", "xterm", "alacritty", "kitty"];
+        let mut success = false;
+
+        for terminal in &terminals {
+            if std::process::Command::new(terminal)
+                .arg("--working-directory")
+                .arg(dir_path)
+                .spawn()
+                .is_ok()
+            {
+                success = true;
+                break;
+            }
+        }
+
+        if !success {
+            return Err("No suitable terminal emulator found".to_string());
+        }
+    }
+
+    Ok(())
+}
+
+// Security consideration: This command is intentionally unrestricted because it backs
+// the integrated terminal feature (execute_command_stream), which requires full shell
+// access including pipes, chaining, and subshells. Access control should be enforced
+// at the Tauri permission layer (capabilities) to restrict which frontends can invoke
+// this command. Do NOT expose this to untrusted or sandboxed extension contexts.
+#[command]
+pub async fn execute_command(
+    command: String,
+    working_dir: String,
+) -> Result<CommandExecutionResult, String> {
+    let working_dir_path = std::path::Path::new(&working_dir);
+    if !working_dir_path.exists() || !working_dir_path.is_dir() {
+        return Err("Working directory does not exist or is not a directory".to_string());
+    }
+
+    // Validate command against allowlist / metacharacter rules
+    sanitize_command(&command)?;
+
+    let output = build_shell_command(&command)
+        .current_dir(working_dir_path)
+        .output()
+        .map_err(|e| format!("Failed to execute command: {}", e))?;
+
+    Ok(CommandExecutionResult {
+        stdout: String::from_utf8_lossy(&output.stdout).to_string(),
+        stderr: String::from_utf8_lossy(&output.stderr).to_string(),
+        exit_code: output.status.code().unwrap_or(-1),
+    })
+}
+
+#[command]
+pub async fn execute_command_stream(
+    app_handle: tauri::AppHandle,
+    command: String,
+    working_dir: String,
+) -> Result<(), String> {
+    let result = execute_command(command, working_dir).await?;
+    if !result.stdout.is_empty() {
+        app_handle
+            .emit("terminal-output", result.stdout)
+            .map_err(|e| format!("Failed to emit terminal output: {}", e))?;
+    }
+    if !result.stderr.is_empty() {
+        app_handle
+            .emit("terminal-output", result.stderr)
+            .map_err(|e| format!("Failed to emit terminal output: {}", e))?;
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn test_get_file_icon_real_world_files() {
+        // Regression: real-world files (Quick Look enabled types like pptx)
+        // must also produce 64x64 ghosts.
+        for path in [
+            "/Users/weixili/工作/资料/neu/客服/营销材料-jackery.pptx",
+        ] {
+            if !std::path::Path::new(path).exists() {
+                eprintln!("skip missing {}", path);
+                continue;
+            }
+            let icon_path =
+                get_file_icon_sync(path, &icon_cache_dir(), 64).expect("icon extraction");
+            let bytes = std::fs::read(&icon_path).expect("read icon png");
+            eprintln!("{} -> {} bytes", path, bytes.len());
+            let img = image::load_from_memory(&bytes).expect("decode png");
+            eprintln!("dims {}x{}", img.width(), img.height());
+            assert_eq!(img.width(), 64);
+            assert_eq!(img.height(), 64);
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn test_get_file_icon_is_64x64() {
+        let cargo_toml = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
+        let icon_path = get_file_icon_sync(&cargo_toml.to_string_lossy(), &icon_cache_dir(), 64)
+            .expect("icon extraction");
+        let bytes = std::fs::read(&icon_path).expect("read icon png");
+        let img = image::load_from_memory(&bytes).expect("decode png");
+        assert_eq!(img.width(), 64, "drag icon must be 64px wide");
+        assert_eq!(img.height(), 64, "drag icon must be 64px tall");
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn test_get_file_icon_renders_display_tiers_without_upscaling() {
+        let cargo_toml = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
+        let path = cargo_toml.to_string_lossy().to_string();
+        for tier in [16_u32, 128, 256] {
+            let icon_path =
+                get_file_icon_sync(&path, &icon_cache_dir(), tier).expect("icon extraction");
+            let bytes = std::fs::read(&icon_path).expect("read icon png");
+            let img = image::load_from_memory(&bytes).expect("decode png");
+            assert_eq!(img.width(), tier, "icon must render at the {tier}px tier");
+            assert_eq!(img.height(), tier, "icon must render at the {tier}px tier");
+        }
+        // Out-of-range sizes clamp onto the Finder ladder instead of writing
+        // meaningless rasters.
+        let clamped =
+            get_file_icon_sync(&path, &icon_cache_dir(), 4_096).expect("icon extraction");
+        let clamped_name = std::path::Path::new(&clamped)
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or_default()
+            .to_string();
+        assert!(clamped_name.ends_with("-512.png"), "size clamps to 512: {clamped_name}");
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn test_file_thumbnail_cache_key_tracks_file_content() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let file = dir.path().join("cover.txt");
+        std::fs::write(&file, "first").expect("write fixture");
+        let first = file_thumbnail_cache_key(&file, 96).expect("first key");
+        std::fs::write(&file, "a longer second version").expect("update fixture");
+        let second = file_thumbnail_cache_key(&file, 96).expect("second key");
+        assert_ne!(first, second, "content metadata must invalidate the cache");
+    }
+
+    #[cfg(target_os = "macos")]
+    #[tokio::test]
+    async fn test_quicklook_thumbnail_is_cached_as_png() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let cache = dir.path().join("cache");
+        let file = dir.path().join("Finder thumbnail.txt");
+        std::fs::write(&file, "Quick Look thumbnail fixture").expect("write fixture");
+
+        let first = get_file_thumbnail_with_cache_dir(&file, 72, &cache)
+            .await
+            .expect("generate thumbnail");
+        let second = get_file_thumbnail_with_cache_dir(&file, 72, &cache)
+            .await
+            .expect("reuse thumbnail");
+
+        assert_eq!(first, second, "the metadata cache key should be stable");
+        let bytes = std::fs::read(&first).expect("read thumbnail");
+        let image = image::load_from_memory(&bytes).expect("valid PNG thumbnail");
+        assert!(image.width() > 0);
+        assert!(image.height() > 0);
+        assert!(std::path::Path::new(&first).starts_with(&cache));
+    }
+    use super::*;
+
+    // ─── sanitize_command tests ──────────────────────────────────────────
+
+    #[test]
+    fn test_sanitize_allows_whitelisted_commands() {
+        assert!(sanitize_command("ls -la").is_ok());
+        assert!(sanitize_command("dir").is_ok());
+        assert!(sanitize_command("cat file.txt").is_ok());
+        assert!(sanitize_command("head -n 10 file.txt").is_ok());
+        assert!(sanitize_command("echo hello").is_ok());
+        assert!(sanitize_command("pwd").is_ok());
+        assert!(sanitize_command("whoami").is_ok());
+        assert!(sanitize_command("grep pattern file").is_ok());
+        assert!(sanitize_command("wc -l file.txt").is_ok());
+        assert!(sanitize_command("sort data.csv").is_ok());
+        assert!(sanitize_command("uniq lines.txt").is_ok());
+        assert!(sanitize_command("file document.pdf").is_ok());
+        assert!(sanitize_command("stat info.txt").is_ok());
+        assert!(sanitize_command("df -h").is_ok());
+        assert!(sanitize_command("du -sh .").is_ok());
+        assert!(sanitize_command("printenv HOME").is_ok());
+        assert!(sanitize_command("hostname").is_ok());
+        assert!(sanitize_command("uname -a").is_ok());
+        assert!(sanitize_command("date").is_ok());
+        assert!(sanitize_command("which python").is_ok());
+        assert!(sanitize_command("where cmd").is_ok());
+        assert!(sanitize_command("type bash").is_ok());
+        assert!(sanitize_command("tail -f log.txt").is_ok());
+        assert!(sanitize_command("set").is_ok());
+    }
+
+    #[test]
+    fn test_sanitize_rejects_shell_metacharacters_on_unknown_commands() {
+        // Non-whitelisted commands with metacharacters should be rejected
+        assert!(sanitize_command("unknown_cmd ; rm -rf /").is_err());
+        assert!(sanitize_command("unknown_cmd | cat /etc/passwd").is_err());
+        assert!(sanitize_command("unknown_cmd & background").is_err());
+        assert!(sanitize_command("unknown_cmd $(whoami)").is_err());
+        assert!(sanitize_command("unknown_cmd `whoami`").is_err());
+        assert!(sanitize_command("unknown_cmd > output.txt").is_err());
+        assert!(sanitize_command("unknown_cmd < input.txt").is_err());
+        assert!(sanitize_command("unknown_cmd\necho pwned").is_err());
+    }
+
+    #[test]
+    fn test_sanitize_rejects_metacharacters_even_for_allowlisted_commands() {
+        // MED-01 fix: metacharacter checks ALWAYS run, even for allowlisted commands.
+        // This prevents shell chaining attacks like `ls ; rm -rf /`.
+        assert!(sanitize_command("echo hello | grep h").is_err());
+        assert!(sanitize_command("ls > output.txt").is_err());
+        assert!(sanitize_command("cat file.txt | head").is_err());
+        assert!(sanitize_command("grep pattern ; echo done").is_err());
+        assert!(sanitize_command("echo $(date)").is_err());
+        assert!(sanitize_command("ls && rm -rf /").is_err());
+        assert!(sanitize_command("cat file.txt `rm -rf /`").is_err());
+        assert!(sanitize_command("echo hello\nrm -rf /").is_err());
+    }
+
+    #[test]
+    fn test_sanitize_rejects_empty_command() {
+        assert!(sanitize_command("").is_err());
+        assert!(sanitize_command("   ").is_err());
+    }
+
+    #[test]
+    fn test_sanitize_allows_any_binary_without_metacharacters() {
+        // The allowlist was removed — authorization happens in the frontend
+        // permission card; here only injection safety (metacharacters) applies.
+        assert!(sanitize_command("mycustomtool --version").is_ok());
+        assert!(sanitize_command("cargo build").is_ok());
+        assert!(sanitize_command("npm install").is_ok());
+    }
+
+    #[test]
+    fn test_sanitize_strips_path_prefix_from_binary_name() {
+        // Even if the whitelisted command is given with a full path
+        assert!(sanitize_command("/usr/bin/ls -la").is_ok());
+        assert!(sanitize_command("/bin/cat file.txt").is_ok());
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn test_sanitize_strips_exe_suffix_on_windows() {
+        assert!(sanitize_command("whoami.exe").is_ok());
+        assert!(sanitize_command("C:\\Windows\\System32\\whoami.exe").is_ok());
+    }
+
+    #[test]
+    fn test_sanitize_rejects_dollar_sign_in_unknown_command() {
+        assert!(sanitize_command("custom_tool $HOME").is_err());
+    }
+
+    #[test]
+    fn test_sanitize_env_and_find_removed_from_allowlist() {
+        // S-8 fix: `env` and `find` were removed from the safe command allowlist
+        // because they can be abused for arbitrary command execution.
+        //
+        // Without metacharacters they still pass through (needed for terminal),
+        // but the critical fix is that they can no longer bypass metacharacter
+        // checks. Previously, `find . -exec rm {} ; echo pwned` would pass
+        // because `find` was on the allowlist and the allowlist skipped ALL
+        // metacharacter checks. Now the semicolon is always caught.
+        // No allowlist anymore: plain find/env pass (authorization is the
+        // frontend card's job); only the chaining forms below are blocked.
+        assert!(sanitize_command("find . -name test").is_ok());
+        assert!(sanitize_command("env HOME=/tmp myapp").is_ok());
+
+        // Shell chaining via find/env is now blocked:
+        assert!(sanitize_command("find . -exec rm {} ;").is_err()); // contains ';'
+        assert!(sanitize_command("find . -name '*.txt' | xargs rm").is_err()); // contains '|'
+        assert!(sanitize_command("env VAR=val sh -c 'cmd' && evil").is_err()); // contains '&'
+        assert!(sanitize_command("env $SHELL").is_err()); // contains '$'
+    }
+
+    #[test]
+    fn test_sanitize_allows_safe_stderr_redirects() {
+        // 2>/dev/null is a standard stderr suppression — not a security risk
+        assert!(sanitize_command("git log main..HEAD --oneline 2>/dev/null").is_ok());
+        assert!(sanitize_command("ls -la 2>/dev/null").is_ok());
+        assert!(sanitize_command("cat file.txt 2>&1").is_ok());
+        assert!(sanitize_command("grep pattern file 2>/dev/null").is_ok());
+        assert!(sanitize_command("ls >/dev/null").is_ok());
+        assert!(sanitize_command("du -sh . 2>/dev/null").is_ok());
+    }
+
+    #[test]
+    fn test_sanitize_still_rejects_dangerous_redirects() {
+        // Redirecting to actual files (not /dev/null) is still blocked
+        assert!(sanitize_command("ls > output.txt").is_err());
+        assert!(sanitize_command("echo data > /tmp/evil.sh").is_err());
+        // Piping is still blocked
+        assert!(sanitize_command("cat file.txt | head 2>/dev/null").is_err());
+        // Shell chaining is still blocked even with safe redirects mixed in
+        assert!(sanitize_command("ls 2>/dev/null ; rm -rf /").is_err());
+        assert!(sanitize_command("echo hello 2>&1 && rm -rf /").is_err());
+    }
+
+    // ─── walk_files tests ────────────────────────────────────────────────
+
+    #[test]
+    fn test_walk_files_collects_files_recursively() {
+        let temp = tempfile::tempdir().expect("create temp dir");
+        let root = temp.path();
+
+        // Create nested directory structure
+        std::fs::create_dir_all(root.join("a/b")).unwrap();
+        std::fs::write(root.join("top.txt"), "top").unwrap();
+        std::fs::write(root.join("a/mid.txt"), "mid").unwrap();
+        std::fs::write(root.join("a/b/deep.txt"), "deep").unwrap();
+
+        let mut files = Vec::new();
+        walk_files(&root.to_path_buf(), &mut files).unwrap();
+
+        assert_eq!(files.len(), 3, "should find all 3 files");
+        let names: Vec<String> = files
+            .iter()
+            .map(|p| p.file_name().unwrap().to_string_lossy().to_string())
+            .collect();
+        assert!(names.contains(&"top.txt".to_string()));
+        assert!(names.contains(&"mid.txt".to_string()));
+        assert!(names.contains(&"deep.txt".to_string()));
+    }
+
+    #[test]
+    fn test_walk_files_empty_directory() {
+        let temp = tempfile::tempdir().expect("create temp dir");
+        let mut files = Vec::new();
+        walk_files(&temp.path().to_path_buf(), &mut files).unwrap();
+        assert!(files.is_empty());
+    }
+
+    #[test]
+    fn test_walk_files_nonexistent_dir_returns_error() {
+        let fake = std::path::PathBuf::from("/nonexistent_test_dir_12345");
+        let mut files = Vec::new();
+        let result = walk_files(&fake, &mut files);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_find_files_bounded_skips_hidden_and_noisy_directories() {
+        let temp = tempfile::tempdir().expect("create temp dir");
+        let root = temp.path();
+        std::fs::create_dir_all(root.join("visible/nested")).unwrap();
+        std::fs::create_dir_all(root.join(".git")).unwrap();
+        std::fs::create_dir_all(root.join("node_modules/pkg")).unwrap();
+        std::fs::write(root.join("visible/needle-one.txt"), "one").unwrap();
+        std::fs::write(root.join("visible/nested/needle-two.txt"), "two").unwrap();
+        std::fs::write(root.join(".git/needle-hidden.txt"), "hidden").unwrap();
+        std::fs::write(root.join("node_modules/pkg/needle-vendor.txt"), "vendor").unwrap();
+
+        let results = find_files_bounded(&root.to_path_buf(), "needle", 10, 100).unwrap();
+
+        assert_eq!(results.len(), 2);
+        assert!(results.iter().all(|path| !path.contains(".git")));
+        assert!(results.iter().all(|path| !path.contains("node_modules")));
+    }
+
+    #[test]
+    fn test_find_files_bounded_stops_at_result_limit() {
+        let temp = tempfile::tempdir().expect("create temp dir");
+        for index in 0..10 {
+            std::fs::write(temp.path().join(format!("needle-{index}.txt")), "match").unwrap();
+        }
+
+        let results = find_files_bounded(&temp.path().to_path_buf(), "needle", 3, 100).unwrap();
+
+        assert_eq!(results.len(), 3);
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn test_empty_spotlight_fallback_is_limited_to_unreliable_locations() {
+        assert!(should_fallback_after_empty_spotlight(&PathBuf::from(
+            "/Users/test/.hidden/files"
+        )));
+        assert!(should_fallback_after_empty_spotlight(&PathBuf::from(
+            "/Volumes/External"
+        )));
+        assert!(!should_fallback_after_empty_spotlight(&PathBuf::from(
+            "/Users/test/Documents"
+        )));
+    }
+
+    // ─── build_shell_command tests ───────────────────────────────────────
+
+    #[test]
+    fn test_build_shell_command_returns_command() {
+        let cmd = build_shell_command("echo hello");
+        // Just verify it doesn't panic; the returned Command is opaque
+        // but we can check the program
+        let program = cmd.get_program().to_string_lossy().to_string();
+        #[cfg(windows)]
+        assert!(program.contains("cmd"), "should use cmd on Windows");
+        #[cfg(not(windows))]
+        assert!(program.contains("sh"), "should use sh on non-Windows");
+    }
+}
+
+#[command]
+pub async fn get_current_shell() -> Result<String, String> {
+    #[cfg(windows)]
+    {
+        Ok(std::env::var("COMSPEC").unwrap_or_else(|_| "cmd".to_string()))
+    }
+    #[cfg(not(windows))]
+    {
+        Ok(std::env::var("SHELL").unwrap_or_else(|_| "sh".to_string()))
+    }
+}
+
+#[command]
+pub async fn find_files(pattern: String, search_path: String) -> Result<Vec<String>, String> {
+    validate_file_path(&search_path)?;
+    let root = PathBuf::from(&search_path);
+    if !root.exists() || !root.is_dir() {
+        return Err("Search path does not exist or is not a directory".to_string());
+    }
+
+    tokio::task::spawn_blocking(move || find_files_fast(&root, &pattern))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+const FILE_SEARCH_MAX_RESULTS: usize = 1_000;
+const FILE_SEARCH_MAX_SCANNED_ENTRIES: usize = 50_000;
+
+/// Search file names without allowing one query to walk an unlimited tree.
+/// macOS delegates to Spotlight's central metadata store; other platforms and
+/// Spotlight launch failures use a bounded filesystem fallback.
+fn find_files_fast(root: &PathBuf, pattern: &str) -> Result<Vec<String>, String> {
+    if pattern.trim().is_empty() {
+        return Ok(Vec::new());
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        match find_files_with_spotlight(root, pattern, FILE_SEARCH_MAX_RESULTS) {
+            Ok(results)
+                if !results.is_empty() || !should_fallback_after_empty_spotlight(root) =>
+            {
+                return Ok(results);
+            }
+            Ok(_) | Err(_) => {
+                // Spotlight commonly excludes hidden directories and may be
+                // disabled on external volumes. Only those locations get the
+                // bounded fallback when Spotlight returns no matches.
+            }
+        }
+    }
+
+    find_files_bounded(
+        root,
+        pattern,
+        FILE_SEARCH_MAX_RESULTS,
+        FILE_SEARCH_MAX_SCANNED_ENTRIES,
+    )
+}
+
+#[cfg(target_os = "macos")]
+fn should_fallback_after_empty_spotlight(root: &PathBuf) -> bool {
+    use std::path::Component;
+
+    if root.starts_with("/Volumes") {
+        return true;
+    }
+
+    root.components().any(|component| match component {
+        Component::Normal(name) => name.to_string_lossy().starts_with('.'),
+        _ => false,
+    })
+}
+
+#[cfg(target_os = "macos")]
+fn find_files_with_spotlight(
+    root: &PathBuf,
+    pattern: &str,
+    max_results: usize,
+) -> Result<Vec<String>, String> {
+    use std::io::{BufRead, BufReader};
+    use std::process::{Command, Stdio};
+
+    // Arguments are passed directly to mdfind (no shell), so file names and
+    // paths cannot be interpreted as shell syntax.
+    //
+    // Finder-parity matching: `-name` only matches whole word prefixes, so
+    // "appt-notes.txt" / "app.trace" are invisible to a "ppt" query. Finder's
+    // own search box compiles to a case/diacritic-insensitive substring match
+    // on the file name — replicate that exact query. Quotes and backslashes
+    // in user input are escaped; everything else is inert inside the string.
+    let escaped = pattern.replace('\\', "\\\\").replace('"', "\\\"");
+    let query = format!("(kMDItemFSName = '*{escaped}*'cd)");
+    let mut child = Command::new("/usr/bin/mdfind")
+        .arg("-0")
+        .arg("-onlyin")
+        .arg(root)
+        .arg(&query)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .map_err(|e| format!("Failed to start Spotlight search: {e}"))?;
+
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| "Failed to read Spotlight search output".to_string())?;
+    let mut reader = BufReader::new(stdout);
+    let mut record = Vec::new();
+    let mut results = Vec::new();
+    let mut reached_limit = false;
+
+    loop {
+        record.clear();
+        let bytes_read = match reader.read_until(0, &mut record) {
+            Ok(bytes_read) => bytes_read,
+            Err(error) => {
+                drop(reader);
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err(format!("Failed to read Spotlight search output: {error}"));
+            }
+        };
+        if bytes_read == 0 {
+            break;
+        }
+        if record.last() == Some(&0) {
+            record.pop();
+        }
+        if record.is_empty() {
+            continue;
+        }
+
+        let path = PathBuf::from(String::from_utf8_lossy(&record).into_owned());
+        // Finder-style name search includes both files and folders. Drop stale
+        // metadata records whose paths no longer exist.
+        if path.exists() {
+            results.push(path.to_string_lossy().to_string());
+        }
+        if results.len() >= max_results {
+            reached_limit = true;
+            break;
+        }
+    }
+
+    drop(reader);
+    if reached_limit {
+        let _ = child.kill();
+    }
+    let status = child
+        .wait()
+        .map_err(|e| format!("Failed to finish Spotlight search: {e}"))?;
+    if !reached_limit && !status.success() {
+        return Err(format!("Spotlight search exited with status {status}"));
+    }
+
+    Ok(results)
+}
+
+fn find_files_bounded(
+    root: &PathBuf,
+    pattern: &str,
+    max_results: usize,
+    max_scanned_entries: usize,
+) -> Result<Vec<String>, String> {
+    let pattern_lower = pattern.to_lowercase();
+    let mut pending = vec![root.clone()];
+    let mut results = Vec::new();
+    let mut scanned_entries = 0usize;
+
+    while let Some(directory) = pending.pop() {
+        let entries = match std::fs::read_dir(&directory) {
+            Ok(entries) => entries,
+            Err(error) if directory == *root => {
+                return Err(format!(
+                    "Failed to read directory {}: {}",
+                    directory.display(),
+                    error
+                ));
+            }
+            // A single protected/unmounted child should not fail the whole search.
+            Err(_) => continue,
+        };
+
+        for entry in entries.flatten() {
+            if results.len() >= max_results || scanned_entries >= max_scanned_entries {
+                return Ok(results);
+            }
+            scanned_entries += 1;
+
+            let path = entry.path();
+            let name = entry.file_name().to_string_lossy().to_string();
+            let Ok(file_type) = entry.file_type() else {
+                continue;
+            };
+
+            if file_type.is_dir() {
+                if name.starts_with('.') || GREP_SKIP_DIRS.contains(&name.as_str()) {
+                    continue;
+                }
+                if name.to_lowercase().contains(&pattern_lower) {
+                    results.push(path.to_string_lossy().to_string());
+                    if results.len() >= max_results {
+                        return Ok(results);
+                    }
+                }
+                pending.push(path);
+                continue;
+            }
+
+            // Keep symlink entries as results, but never traverse through them.
+            let is_searchable_file =
+                file_type.is_file() || (file_type.is_symlink() && path.exists());
+            if is_searchable_file
+                && !name.starts_with('.')
+                && name.to_lowercase().contains(&pattern_lower)
+            {
+                results.push(path.to_string_lossy().to_string());
+            }
+        }
+    }
+
+    Ok(results)
+}
+
+#[command]
+pub async fn search_in_files(
+    pattern: String,
+    search_path: String,
+) -> Result<Vec<FileSearchMatch>, String> {
+    validate_file_path(&search_path)?;
+    let root = PathBuf::from(&search_path);
+    if !root.exists() || !root.is_dir() {
+        return Err("Search path does not exist or is not a directory".to_string());
+    }
+
+    const MAX_RESULTS: usize = 200;
+
+    tokio::task::spawn_blocking(move || {
+        let mut files = Vec::new();
+        walk_files(&root, &mut files)?;
+
+        let pattern_lower = pattern.to_lowercase();
+        let mut matches = Vec::new();
+
+        'outer: for file_path in files {
+            let Ok(metadata) = std::fs::metadata(&file_path) else {
+                continue;
+            };
+            if metadata.len() > 1_000_000 {
+                continue;
+            }
+            let Ok(content) = std::fs::read_to_string(&file_path) else {
+                continue;
+            };
+            for (index, line) in content.lines().enumerate() {
+                if line.to_lowercase().contains(&pattern_lower) {
+                    matches.push(FileSearchMatch {
+                        file: file_path.to_string_lossy().to_string(),
+                        line: index + 1,
+                        content: line.to_string(),
+                    });
+                    if matches.len() >= MAX_RESULTS {
+                        break 'outer;
+                    }
+                }
+            }
+        }
+
+        Ok(matches)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+/// Directory names to skip during grep search — common large/irrelevant dirs.
+const GREP_SKIP_DIRS: &[&str] = &[
+    ".git",
+    "node_modules",
+    "target",
+    ".next",
+    ".nuxt",
+    "dist",
+    "build",
+    ".cache",
+    "__pycache__",
+    ".venv",
+    "venv",
+    ".tox",
+    "vendor",
+    ".svn",
+    ".hg",
+    ".DS_Store",
+    "coverage",
+    ".idea",
+    ".vscode",
+];
+
+/// Walk files recursively, skipping directories in GREP_SKIP_DIRS and hidden dirs.
+fn walk_files_filtered(
+    root: &PathBuf,
+    out: &mut Vec<PathBuf>,
+    max_files: usize,
+) -> Result<(), String> {
+    if out.len() >= max_files {
+        return Ok(());
+    }
+    let entries = std::fs::read_dir(root)
+        .map_err(|e| format!("Failed to read directory {}: {}", root.display(), e))?;
+    for entry in entries {
+        if out.len() >= max_files {
+            return Ok(());
+        }
+        let entry = entry.map_err(|e| format!("Failed to read directory entry: {}", e))?;
+        let path = entry.path();
+        if path.is_dir() {
+            let dir_name = path
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_default();
+            // Skip hidden directories and known noisy directories
+            if dir_name.starts_with('.') || GREP_SKIP_DIRS.contains(&dir_name.as_str()) {
+                continue;
+            }
+            walk_files_filtered(&path, out, max_files)?;
+        } else if path.is_file() {
+            out.push(path);
+        }
+    }
+    Ok(())
+}
+
+#[derive(serde::Serialize)]
+pub struct GrepSearchMatch {
+    /// Absolute path to the file
+    pub file: String,
+    /// 1-based line number
+    pub line: usize,
+    /// The matching line content (trimmed to reasonable length)
+    pub content: String,
+    /// File name only (for display)
+    pub filename: String,
+}
+
+#[command]
+pub async fn grep_search(
+    query: String,
+    search_path: String,
+    max_results: Option<usize>,
+) -> Result<Vec<GrepSearchMatch>, String> {
+    validate_file_path(&search_path)?;
+    let root = PathBuf::from(&search_path);
+    if !root.exists() || !root.is_dir() {
+        return Err("Search path does not exist or is not a directory".to_string());
+    }
+
+    let limit = max_results.unwrap_or(1000).min(2000);
+
+    tokio::task::spawn_blocking(move || {
+        // Cap file discovery to avoid walking enormous trees forever
+        const MAX_FILES: usize = 50_000;
+        const MAX_FILE_SIZE: u64 = 5 * 1024 * 1024; // 5 MB
+
+        let mut files = Vec::new();
+        walk_files_filtered(&root, &mut files, MAX_FILES)?;
+
+        let query_lower = query.to_lowercase();
+        let mut matches: Vec<GrepSearchMatch> = Vec::new();
+
+        'outer: for file_path in files {
+            let Ok(metadata) = std::fs::metadata(&file_path) else {
+                continue;
+            };
+            // Skip files larger than 5 MB
+            if metadata.len() > MAX_FILE_SIZE {
+                continue;
+            }
+            // Skip binary files: try reading as UTF-8, skip if it fails
+            let Ok(content) = std::fs::read_to_string(&file_path) else {
+                continue;
+            };
+
+            let filename = file_path
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_default();
+
+            for (index, line) in content.lines().enumerate() {
+                if line.to_lowercase().contains(&query_lower) {
+                    // Trim very long lines for display
+                    let trimmed = if line.len() > 500 {
+                        format!("{}...", &line[..500])
+                    } else {
+                        line.to_string()
+                    };
+                    matches.push(GrepSearchMatch {
+                        file: file_path.to_string_lossy().to_string(),
+                        line: index + 1,
+                        content: trimmed,
+                        filename,
+                    });
+                    if matches.len() >= limit {
+                        break 'outer;
+                    }
+                    // Break after finding first match in this file to avoid
+                    // flooding results from a single file — but only if we
+                    // already have enough breadth. If < 50 results, keep scanning
+                    // the same file for more matches.
+                    break;
+                }
+            }
+        }
+
+        Ok(matches)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[command]
+pub async fn get_app_version(app_handle: tauri::AppHandle) -> Result<String, String> {
+    Ok(app_handle.package_info().version.to_string())
+}
+
+#[command]
+pub async fn show_in_folder(path: String) -> Result<(), String> {
+    validate_file_path(&path)?;
+    let path = std::path::Path::new(&path);
+    if !path.exists() {
+        return Err("Path does not exist".to_string());
+    }
+
+    #[cfg(windows)]
+    {
+        let mut args = vec!["/select,".to_string()];
+        args[0].push_str(&path.to_string_lossy());
+        std::process::Command::new("explorer")
+            .arg(args[0].as_str())
+            .spawn()
+            .map_err(|e| format!("Failed to show in folder: {}", e))?;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .args(["-R", &path.to_string_lossy()])
+            .spawn()
+            .map_err(|e| format!("Failed to show in folder: {}", e))?;
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let dir = if path.is_dir() {
+            path.to_path_buf()
+        } else {
+            path.parent().unwrap_or(path).to_path_buf()
+        };
+        std::process::Command::new("xdg-open")
+            .arg(dir)
+            .spawn()
+            .map_err(|e| format!("Failed to show in folder: {}", e))?;
+    }
+
+    Ok(())
+}
+
+// ─── Directory Diagnostics ──────────────────────────────────────────────────
+
+#[derive(serde::Serialize, Clone)]
+pub struct DirectoryProblem {
+    pub path: String,
+    pub name: String,
+    pub severity: String, // "error", "warning", "info"
+    pub category: String, // "empty", "large", "broken", "naming", "permission", "junk"
+    pub message: String,
+    pub size: Option<u64>,
+}
+
+#[derive(serde::Serialize, Clone)]
+pub struct DiagnosisResult {
+    pub problems: Vec<DirectoryProblem>,
+    pub scanned_files: u64,
+    pub scanned_dirs: u64,
+}
+
+#[command]
+pub async fn diagnose_directory(
+    path: String,
+    skip_hidden: Option<bool>,
+    skip_gitignored: Option<bool>,
+) -> Result<DiagnosisResult, String> {
+    let root = PathBuf::from(&path);
+    if !root.exists() || !root.is_dir() {
+        return Err("Path does not exist or is not a directory".to_string());
+    }
+
+    let skip_hidden = skip_hidden.unwrap_or(true);
+    let skip_gitignored = skip_gitignored.unwrap_or(true);
+
+    let result = tokio::task::spawn_blocking(move || {
+        let mut problems: Vec<DirectoryProblem> = Vec::new();
+        let mut scanned_files: u64 = 0;
+        let mut scanned_dirs: u64 = 0;
+
+        // Track names for case-collision detection
+        let mut seen_names: std::collections::HashMap<String, String> =
+            std::collections::HashMap::new();
+
+        let junk_files: std::collections::HashSet<&str> = [
+            "thumbs.db",
+            "desktop.ini",
+            ".ds_store",
+            ".spotlight-v100",
+            ".trashes",
+            ".fseventsd",
+            "pagefile.sys",
+            "hiberfil.sys",
+            "swapfile.sys",
+        ]
+        .iter()
+        .copied()
+        .collect();
+
+        let junk_extensions: std::collections::HashSet<&str> =
+            ["tmp", "temp", "bak", "old", "orig", "swp", "swo"]
+                .iter()
+                .copied()
+                .collect();
+
+        // Use the `ignore` crate walker — respects .gitignore and hidden files
+        let walker = ignore::WalkBuilder::new(&path)
+            .max_depth(Some(5))
+            .follow_links(false)
+            .hidden(skip_hidden) // skip hidden files/dirs by default
+            .git_ignore(skip_gitignored) // respect .gitignore by default
+            .git_global(skip_gitignored)
+            .git_exclude(skip_gitignored)
+            .build();
+
+        for entry_result in walker {
+            let entry = match entry_result {
+                Ok(e) => e,
+                Err(err) => {
+                    let msg = format!("{}", err);
+                    problems.push(DirectoryProblem {
+                        path: msg.clone(),
+                        name: msg,
+                        severity: "error".to_string(),
+                        category: "permission".to_string(),
+                        message: format!("Access error: {}", err),
+                        size: None,
+                    });
+                    continue;
+                }
+            };
+
+            if entry.depth() == 0 {
+                continue;
+            }
+
+            let entry_path = entry.path();
+            let p = entry_path.to_string_lossy().to_string();
+            let name = entry_path
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_default();
+
+            let ft = match entry.file_type() {
+                Some(ft) => ft,
+                None => continue,
+            };
+
+            // Broken symlinks
+            if ft.is_symlink() {
+                if !entry_path.exists() {
+                    problems.push(DirectoryProblem {
+                        path: p,
+                        name,
+                        severity: "error".to_string(),
+                        category: "broken".to_string(),
+                        message: "Broken symlink — target does not exist".to_string(),
+                        size: None,
+                    });
+                }
+                continue;
+            }
+
+            if ft.is_dir() {
+                scanned_dirs += 1;
+
+                // Empty directories
+                if let Ok(mut rd) = std::fs::read_dir(entry_path) {
+                    if rd.next().is_none() {
+                        problems.push(DirectoryProblem {
+                            path: p.clone(),
+                            name: name.clone(),
+                            severity: "info".to_string(),
+                            category: "empty".to_string(),
+                            message: "Empty directory".to_string(),
+                            size: None,
+                        });
+                    }
+                }
+
+                // Case collision for dirs
+                let name_lower = name.to_lowercase();
+                if let Some(existing) = seen_names.get(&name_lower) {
+                    if existing != &name {
+                        problems.push(DirectoryProblem {
+                            path: p,
+                            name: name.clone(),
+                            severity: "warning".to_string(),
+                            category: "naming".to_string(),
+                            message: format!(
+                                "Name collision (case-insensitive): \"{}\" vs \"{}\"",
+                                name, existing
+                            ),
+                            size: None,
+                        });
+                    }
+                } else {
+                    seen_names.insert(name_lower, name);
+                }
+                continue;
+            }
+
+            // File
+            scanned_files += 1;
+            let metadata = match entry.metadata() {
+                Ok(m) => m,
+                Err(_) => continue,
+            };
+            let size = metadata.len();
+
+            // Empty files
+            if size == 0 {
+                problems.push(DirectoryProblem {
+                    path: p.clone(),
+                    name: name.clone(),
+                    severity: "info".to_string(),
+                    category: "empty".to_string(),
+                    message: "Empty file (0 bytes)".to_string(),
+                    size: Some(0),
+                });
+            }
+
+            // Very large files (>500MB)
+            if size > 500 * 1024 * 1024 {
+                let size_mb = size / (1024 * 1024);
+                problems.push(DirectoryProblem {
+                    path: p.clone(),
+                    name: name.clone(),
+                    severity: "warning".to_string(),
+                    category: "large".to_string(),
+                    message: format!("Very large file ({} MB)", size_mb),
+                    size: Some(size),
+                });
+            }
+
+            // Junk/temporary files
+            let name_lower = name.to_lowercase();
+            let is_junk = junk_files.contains(name_lower.as_str());
+            let ext_lower = entry_path
+                .extension()
+                .map(|e| e.to_string_lossy().to_lowercase())
+                .unwrap_or_default();
+            let is_junk_ext = junk_extensions.contains(ext_lower.as_str());
+
+            if is_junk || is_junk_ext {
+                problems.push(DirectoryProblem {
+                    path: p.clone(),
+                    name: name.clone(),
+                    severity: "info".to_string(),
+                    category: "junk".to_string(),
+                    message: if is_junk {
+                        "System/junk file".to_string()
+                    } else {
+                        format!("Temporary/backup file (.{})", ext_lower)
+                    },
+                    size: Some(size),
+                });
+            }
+
+            // Long file names (>200 chars)
+            if name.len() > 200 {
+                problems.push(DirectoryProblem {
+                    path: p.clone(),
+                    name: name.clone(),
+                    severity: "warning".to_string(),
+                    category: "naming".to_string(),
+                    message: format!("Very long filename ({} chars)", name.len()),
+                    size: Some(size),
+                });
+            }
+
+            // Special characters in filename
+            let has_special = name
+                .chars()
+                .any(|c| matches!(c, '<' | '>' | ':' | '"' | '|' | '?' | '*') || (c as u32) < 32);
+            if has_special {
+                problems.push(DirectoryProblem {
+                    path: p.clone(),
+                    name: name.clone(),
+                    severity: "warning".to_string(),
+                    category: "naming".to_string(),
+                    message: "Filename contains special characters that may cause issues"
+                        .to_string(),
+                    size: Some(size),
+                });
+            }
+
+            // ── Filename grammar / style checks ──
+            let stem = entry_path
+                .file_stem()
+                .map(|s| s.to_string_lossy().to_string())
+                .unwrap_or_default();
+
+            // Leading or trailing spaces/dots
+            if (name != name.trim()
+                || stem.ends_with('.')
+                || stem.starts_with('.') && stem.len() > 1 && (stem.chars().nth(1) == Some(' ')))
+                && name != name.trim()
+            {
+                problems.push(DirectoryProblem {
+                    path: p.clone(),
+                    name: name.clone(),
+                    severity: "warning".to_string(),
+                    category: "naming".to_string(),
+                    message: "Filename has leading or trailing spaces".to_string(),
+                    size: Some(size),
+                });
+            }
+
+            // Consecutive spaces
+            if name.contains("  ") {
+                problems.push(DirectoryProblem {
+                    path: p.clone(),
+                    name: name.clone(),
+                    severity: "info".to_string(),
+                    category: "naming".to_string(),
+                    message: "Filename contains consecutive spaces".to_string(),
+                    size: Some(size),
+                });
+            }
+
+            // Mixed separators (both hyphens and underscores in same stem)
+            if stem.contains('-') && stem.contains('_') {
+                problems.push(DirectoryProblem {
+                    path: p.clone(),
+                    name: name.clone(),
+                    severity: "info".to_string(),
+                    category: "naming".to_string(),
+                    message: "Mixed separators (both - and _ in filename)".to_string(),
+                    size: Some(size),
+                });
+            }
+
+            // Inconsistent casing — MiXeD CaSe (has uppercase in the middle after lowercase)
+            {
+                let chars: Vec<char> = stem.chars().collect();
+                let mut saw_lower = false;
+                let mut has_upper_after_lower = false;
+                for ch in &chars {
+                    if ch.is_lowercase() {
+                        saw_lower = true;
+                    } else if ch.is_uppercase() && saw_lower {
+                        has_upper_after_lower = true;
+                        break;
+                    }
+                }
+                // Only flag if it also has spaces (e.g. "My file Name.txt")
+                // camelCase/PascalCase in code files is normal, so only flag if spaces present
+                if has_upper_after_lower && stem.contains(' ') {
+                    problems.push(DirectoryProblem {
+                        path: p.clone(),
+                        name: name.clone(),
+                        severity: "info".to_string(),
+                        category: "naming".to_string(),
+                        message: "Inconsistent casing in filename".to_string(),
+                        size: Some(size),
+                    });
+                }
+            }
+
+            // Double extensions (e.g. "file.tar.gz.bak", "report.pdf.tmp")
+            // Count dots in the name; flag if 3+ parts (2+ dots beyond the main extension)
+            {
+                let dot_count = name.chars().filter(|&c| c == '.').count();
+                if dot_count >= 3 {
+                    problems.push(DirectoryProblem {
+                        path: p.clone(),
+                        name: name.clone(),
+                        severity: "info".to_string(),
+                        category: "naming".to_string(),
+                        message: format!("Multiple extensions ({} dots in filename)", dot_count),
+                        size: Some(size),
+                    });
+                }
+            }
+
+            // Copy-style names: "file (1).txt", "file - Copy.txt", "file copy 2.txt"
+            {
+                let stem_lower = stem.to_lowercase();
+                let is_copy_pattern =
+                    // "file (1)", "file (2)", etc.
+                    stem.ends_with(')') && stem.contains(" (") && {
+                        let inner = stem.rsplit(" (").next().unwrap_or("");
+                        let inner = &inner[..inner.len().saturating_sub(1)];
+                        inner.chars().all(|c| c.is_ascii_digit())
+                    }
+                    // "file - Copy", "file - Copy (2)"
+                    || stem_lower.contains(" - copy")
+                    // "file copy", "file copy 2"
+                    || stem_lower.ends_with(" copy")
+                    || stem_lower.contains(" copy ");
+                if is_copy_pattern {
+                    problems.push(DirectoryProblem {
+                        path: p.clone(),
+                        name: name.clone(),
+                        severity: "info".to_string(),
+                        category: "naming".to_string(),
+                        message: "Looks like a duplicate/copy filename".to_string(),
+                        size: Some(size),
+                    });
+                }
+            }
+
+            // Case collision for files
+            if let Some(existing) = seen_names.get(&name_lower) {
+                if existing != &name {
+                    problems.push(DirectoryProblem {
+                        path: p,
+                        name: name.clone(),
+                        severity: "warning".to_string(),
+                        category: "naming".to_string(),
+                        message: format!(
+                            "Name collision (case-insensitive): \"{}\" vs \"{}\"",
+                            name, existing
+                        ),
+                        size: Some(size),
+                    });
+                }
+            } else {
+                seen_names.insert(name_lower, name);
+            }
+        }
+
+        // Sort: errors first, then warnings, then info
+        problems.sort_by(|a, b| {
+            let severity_order = |s: &str| match s {
+                "error" => 0,
+                "warning" => 1,
+                "info" => 2,
+                _ => 3,
+            };
+            severity_order(&a.severity).cmp(&severity_order(&b.severity))
+        });
+
+        DiagnosisResult {
+            problems,
+            scanned_files,
+            scanned_dirs,
+        }
+    })
+    .await
+    .map_err(|e| format!("Diagnosis task failed: {}", e))?;
+
+    Ok(result)
+}
+
+/// Install the `wisp` CLI command to the system PATH.
+/// macOS/Linux: /usr/local/bin/wisp (shell script)
+/// Windows: %LOCALAPPDATA%\Wisp\wisp.cmd (batch file + add to PATH via registry)
+#[command]
+pub async fn install_cli() -> Result<String, String> {
+    tokio::task::spawn_blocking(|| {
+        #[cfg(target_os = "windows")]
+        {
+            use std::path::PathBuf;
+
+            let local_app_data = std::env::var("LOCALAPPDATA")
+                .map_err(|_| "LOCALAPPDATA not set".to_string())?;
+            let cli_dir = PathBuf::from(&local_app_data).join("Wisp");
+            std::fs::create_dir_all(&cli_dir)
+                .map_err(|e| format!("Failed to create CLI directory: {}", e))?;
+
+            // Write wisp.cmd
+            let cmd_path = cli_dir.join("wisp.cmd");
+            let script = r#"@echo off
+where node >nul 2>nul
+if %errorlevel% equ 0 (
+    node "%~dp0wisp.mjs" %*
+) else (
+    if "%~1"=="" (
+        start "" "wisp://"
+    ) else (
+        start "" "wisp://%~1"
+    )
+)
+"#;
+            std::fs::write(&cmd_path, script)
+                .map_err(|e| format!("Failed to write CLI script: {}", e))?;
+
+            // Copy the CLI JS if available
+            let exe_dir = std::env::current_exe()
+                .ok()
+                .and_then(|p| p.parent().map(|d| d.to_path_buf()));
+            if let Some(ref exe) = exe_dir {
+                let src_mjs = exe.join("resources").join("wisp.mjs");
+                if src_mjs.exists() {
+                    let _ = std::fs::copy(&src_mjs, cli_dir.join("wisp.mjs"));
+                }
+            }
+
+            // Add to PATH via registry (user-level, no admin needed)
+            let cli_dir_str = cli_dir.to_string_lossy().to_string();
+            let output = std::process::Command::new("reg")
+                .args([
+                    "query", "HKCU\\Environment", "/v", "Path"
+                ])
+                .output()
+                .map_err(|e| format!("Failed to read PATH: {}", e))?;
+
+            let current_path = String::from_utf8_lossy(&output.stdout);
+            if !current_path.contains(&cli_dir_str) {
+                // Extract current PATH value
+                let path_val = current_path
+                    .lines()
+                    .find(|l| l.contains("Path") || l.contains("PATH"))
+                    .and_then(|l| l.split("REG_EXPAND_SZ").nth(1).or_else(|| l.split("REG_SZ").nth(1)))
+                    .map(|v| v.trim().to_string())
+                    .unwrap_or_default();
+
+                let new_path = if path_val.is_empty() {
+                    cli_dir_str.clone()
+                } else {
+                    format!("{};{}", path_val, cli_dir_str)
+                };
+
+                let _ = std::process::Command::new("reg")
+                    .args([
+                        "add", "HKCU\\Environment", "/v", "Path", "/t", "REG_EXPAND_SZ", "/d", &new_path, "/f"
+                    ])
+                    .status();
+
+                // Broadcast environment change
+                let _ = std::process::Command::new("cmd")
+                    .args(["/c", "setx", "WISP_CLI_INSTALLED", "1"])
+                    .status();
+            }
+
+            Ok(format!("CLI installed to {}\nRestart your terminal for PATH changes.", cmd_path.display()))
+        }
+
+        #[cfg(target_os = "macos")]
+        {
+            let target = std::path::Path::new("/usr/local/bin/wisp");
+
+            let script = r#"#!/bin/bash
+APP_PATH="/Applications/Wisp.app"
+CLI_SCRIPT="$APP_PATH/Contents/Resources/wisp.mjs"
+if [ -f "$CLI_SCRIPT" ] && command -v node &>/dev/null; then
+    exec node "$CLI_SCRIPT" "$@"
+fi
+if [ $# -eq 0 ]; then open "$APP_PATH"
+elif [ -d "$1" ] || [ -f "$1" ]; then open -a Wisp "$1"
+else echo "Node.js required for full CLI features."; exit 1; fi
+"#;
+
+            let tmp = std::env::temp_dir().join("wisp-cli-install.sh");
+            std::fs::write(&tmp, script)
+                .map_err(|e| format!("Failed to write temp script: {}", e))?;
+
+            let status = std::process::Command::new("sh")
+                .args(["-c", &format!(
+                    "cp '{}' '{}' && chmod +x '{}' 2>/dev/null || osascript -e 'do shell script \"cp \\'{}\\' \\'{}\\' && chmod +x \\'{}\\'\" with administrator privileges'",
+                    tmp.display(), target.display(), target.display(),
+                    tmp.display(), target.display(), target.display()
+                )])
+                .status()
+                .map_err(|e| format!("Failed to install CLI: {}", e))?;
+
+            let _ = std::fs::remove_file(&tmp);
+
+            if status.success() {
+                Ok("CLI installed to /usr/local/bin/wisp".to_string())
+            } else {
+                Err("Failed to install CLI — admin permission denied.".to_string())
+            }
+        }
+
+        #[cfg(target_os = "linux")]
+        {
+            let target = std::path::Path::new("/usr/local/bin/wisp");
+
+            // On Linux, the app could be in various locations
+            let script = r#"#!/bin/bash
+CLI_LOCATIONS=(
+    "/opt/Wisp/resources/wisp.mjs"
+    "$HOME/.local/share/Wisp/wisp.mjs"
+    "/usr/share/wisp/wisp.mjs"
+)
+for loc in "${CLI_LOCATIONS[@]}"; do
+    if [ -f "$loc" ] && command -v node &>/dev/null; then
+        exec node "$loc" "$@"
+    fi
+done
+if [ $# -eq 0 ]; then xdg-open "wisp://" 2>/dev/null || echo "Wisp not found"
+elif [ -d "$1" ] || [ -f "$1" ]; then xdg-open "wisp://$(realpath "$1")" 2>/dev/null
+else echo "Node.js required for full CLI features."; exit 1; fi
+"#;
+
+            let tmp = std::env::temp_dir().join("wisp-cli-install.sh");
+            std::fs::write(&tmp, script)
+                .map_err(|e| format!("Failed to write temp script: {}", e))?;
+
+            let status = std::process::Command::new("sh")
+                .args(["-c", &format!(
+                    "cp '{}' '{}' && chmod +x '{}' 2>/dev/null || pkexec cp '{}' '{}' && pkexec chmod +x '{}'",
+                    tmp.display(), target.display(), target.display(),
+                    tmp.display(), target.display(), target.display()
+                )])
+                .status()
+                .map_err(|e| format!("Failed to install CLI: {}", e))?;
+
+            let _ = std::fs::remove_file(&tmp);
+
+            if status.success() {
+                Ok("CLI installed to /usr/local/bin/wisp".to_string())
+            } else {
+                Err("Failed to install CLI — admin permission denied.".to_string())
+            }
+        }
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+// ─── macOS file icon extraction (drag ghost preview) ─────────────────────────
+
+/// Disk budgets for the two webview-facing icon caches (Finder's stale-entry
+/// discipline, #10): evict oldest-first past either the entry count or the
+/// total-bytes ceiling, whichever trips first. Tunable constants, mirroring
+/// the preview-cache pattern (200 entries / 8 GiB).
+#[cfg(target_os = "macos")]
+const FILE_ICON_CACHE_MAX_ENTRIES: usize = 4_000;
+#[cfg(target_os = "macos")]
+const FILE_ICON_CACHE_MAX_BYTES: u64 = 1024 * 1024 * 1024; // 1 GiB
+#[cfg(target_os = "macos")]
+const THUMBNAIL_CACHE_MAX_ENTRIES: usize = 2_000;
+#[cfg(target_os = "macos")]
+const THUMBNAIL_CACHE_MAX_BYTES: u64 = 2 * 1024 * 1024 * 1024; // 2 GiB
+
+/// Best-effort eviction shared by the icon and thumbnail caches: keep the
+/// newest `keep` regular files while staying under `max_total_bytes`.
+/// Same shape as preview_ops::cleanup_cache, parameterized per cache.
+#[cfg(target_os = "macos")]
+fn cleanup_cache_dir(dir: &std::path::Path, keep: usize, max_total_bytes: u64) {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+    let mut files: Vec<(std::time::SystemTime, u64, std::path::PathBuf)> = entries
+        .flatten()
+        .filter_map(|e| {
+            let p = e.path();
+            let meta = e.metadata().ok()?;
+            if !meta.is_file() {
+                return None;
+            }
+            let mtime = meta.modified().ok()?;
+            Some((mtime, meta.len(), p))
+        })
+        .collect();
+    let total_now: u64 = files.iter().map(|(_, len, _)| len).sum();
+    if files.len() <= keep && total_now <= max_total_bytes {
+        return;
+    }
+    files.sort_by(|a, b| b.0.cmp(&a.0)); // newest first
+    // Evict from the OLDEST end until both budgets hold.
+    let mut total = total_now;
+    let mut count = files.len();
+    let mut idx = files.len();
+    while idx > 0 && (count > keep || total > max_total_bytes) {
+        idx -= 1;
+        let (_, len, path) = &files[idx];
+        total = total.saturating_sub(*len);
+        count -= 1;
+        let _ = std::fs::remove_file(path);
+    }
+}
+
+/// Legacy scratch cache for icon PNGs nobody serves to the webview (drag
+/// ghosts, Quick Look fallback copies). Frontend-facing icon reads go through
+/// `get_file_icon`, which caches inside the app data dir instead.
+#[cfg(target_os = "macos")]
+fn icon_cache_dir() -> std::path::PathBuf {
+    std::env::temp_dir().join("wisp-drag-icons")
+}
+
+/// Icon cache key over path + size + mtime. The mtime is what made the old
+/// path-only key a bug: a file that changes type (say `.png` → `.sh`) kept
+/// serving the stale icon forever. Mirrors the thumbnail key's staleness
+/// discipline without the length term (Finder recomputes type icons from the
+/// path alone, so only mtime can invalidate).
+#[cfg(target_os = "macos")]
+fn file_icon_cache_key(path: &str, size: u32, modified_nanos: u128) -> u64 {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    let mut hasher = DefaultHasher::new();
+    path.hash(&mut hasher);
+    size.hash(&mut hasher);
+    modified_nanos.hash(&mut hasher);
+    hasher.finish()
+}
+
+/// Where the pre-mtime (path-only) builds wrote this file's icon. Kept only
+/// for the one-time migration: read-side hits delete the stale entry so the
+/// mtime-keyed name takes over.
+#[cfg(target_os = "macos")]
+fn legacy_file_icon_cache_path(
+    cache_dir: &std::path::Path,
+    path: &str,
+    size: u32,
+) -> std::path::PathBuf {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    let mut hasher = DefaultHasher::new();
+    path.hash(&mut hasher);
+    cache_dir.join(format!("{:x}-{size}.png", hasher.finish()))
+}
+
+#[cfg(target_os = "macos")]
+fn get_file_icon_sync(path: &str, cache_dir: &std::path::Path, size: u32) -> Result<String, String> {
+    // Cache one PNG per file path + mtime + size. The cache lives in the app
+    // data dir (NOT the system temp dir): the webview loads these PNGs through
+    // Tauri's asset protocol, whose scope covers app data but not /var/folders.
+    std::fs::create_dir_all(cache_dir)
+        .map_err(|e| format!("Failed to create icon cache dir: {}", e))?;
+    // Include the icon size in the cache key so entries written by older
+    // (full-resolution) builds can never be served again.
+    let size = size.clamp(16, 512);
+    let modified_nanos = std::fs::metadata(path)
+        .ok()
+        .and_then(|meta| meta.modified().ok())
+        .and_then(|mtime| mtime.duration_since(std::time::SystemTime::UNIX_EPOCH).ok())
+        .map(|duration| duration.as_nanos())
+        .unwrap_or(0);
+    let out_path = cache_dir.join(format!(
+        "{:016x}-{size}.png",
+        file_icon_cache_key(path, size, modified_nanos)
+    ));
+    if out_path.exists() {
+        return Ok(out_path.to_string_lossy().to_string());
+    }
+    // One-time migration (#10): the legacy path-only entry is stale by
+    // construction once mtime joins the key — purge it on sight.
+    let legacy_path = legacy_file_icon_cache_path(cache_dir, path, size);
+    if legacy_path.exists() {
+        let _ = std::fs::remove_file(&legacy_path);
+    }
+
+    unsafe {
+        use objc2_app_kit::NSWorkspace;
+        use objc2_foundation::NSString;
+
+        let workspace = NSWorkspace::sharedWorkspace();
+        let ns_path = NSString::from_str(path);
+        let icon = workspace.iconForFile(&ns_path);
+
+        use objc2_app_kit::{NSBitmapImageFileType, NSBitmapImageRep};
+        use objc2_foundation::NSDictionary;
+        let tiff = icon
+            .TIFFRepresentation()
+            .ok_or_else(|| "Failed to get TIFF representation".to_string())?;
+        let rep = NSBitmapImageRep::imageRepWithData(&tiff)
+            .ok_or_else(|| "Failed to create bitmap representation".to_string())?;
+        let props = NSDictionary::<NSString>::new();
+        let png = rep
+            .representationUsingType_properties(NSBitmapImageFileType::PNG, &props)
+            .ok_or_else(|| "Failed to encode icon as PNG".to_string())?;
+        // NSWorkspace hands out full-resolution icons (often 512px); render at
+        // the caller's display tier so the webview never upscales a small
+        // raster (Finder's 16/32/64/128/256/512 ladder).
+        let img = image::load_from_memory(&png.to_vec())
+            .map_err(|e| format!("Failed to decode icon: {}", e))?;
+        let resized = img.resize_exact(size, size, image::imageops::FilterType::Lanczos3);
+        let mut out_bytes: Vec<u8> = Vec::new();
+        resized
+            .write_to(
+                &mut std::io::Cursor::new(&mut out_bytes),
+                image::ImageFormat::Png,
+            )
+            .map_err(|e| format!("Failed to re-encode icon: {}", e))?;
+        std::fs::write(&out_path, out_bytes).map_err(|e| format!("Failed to write icon: {}", e))?;
+    }
+
+    // Evict on write (newest-first) so neither budget drifts; read hits skip
+    // this entirely. We already run on a blocking thread.
+    cleanup_cache_dir(
+        cache_dir,
+        FILE_ICON_CACHE_MAX_ENTRIES,
+        FILE_ICON_CACHE_MAX_BYTES,
+    );
+
+    Ok(out_path.to_string_lossy().to_string())
+}
+
+/// Extract the macOS system icon for a file as a PNG, cached in the temp dir.
+/// Returns the PNG path, used as the native drag ghost preview. `size` picks
+/// the render tier (clamped 16–512); older callers that omit it get 64.
+#[cfg(target_os = "macos")]
+#[command]
+pub async fn get_file_icon(
+    app: tauri::AppHandle,
+    path: String,
+    size: Option<u32>,
+) -> Result<String, String> {
+    let cache_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to locate app data directory: {}", e))?
+        .join("file-type-icons");
+    let size = size.unwrap_or(64);
+    tokio::task::spawn_blocking(move || get_file_icon_sync(&path, &cache_dir, size))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[cfg(not(target_os = "macos"))]
+#[command]
+pub async fn get_file_icon(_path: String, _size: Option<u32>) -> Result<String, String> {
+    Err("Not supported on this platform".to_string())
+}
+
+// ─── macOS Finder-style file thumbnails ───────────────────────────────────
+
+/// Hash every value that can make a Finder/Quick Look thumbnail stale. Using
+/// file metadata instead of the path alone means editing a photo, PDF, or book
+/// produces a fresh cache entry immediately.
+#[cfg(target_os = "macos")]
+fn file_thumbnail_cache_key(path: &std::path::Path, size: u32) -> Result<u64, String> {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    let metadata =
+        std::fs::metadata(path).map_err(|e| format!("Failed to read thumbnail metadata: {}", e))?;
+    let modified = metadata
+        .modified()
+        .unwrap_or(std::time::SystemTime::UNIX_EPOCH)
+        .duration_since(std::time::SystemTime::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos();
+
+    let mut hasher = DefaultHasher::new();
+    path.hash(&mut hasher);
+    metadata.len().hash(&mut hasher);
+    modified.hash(&mut hasher);
+    size.hash(&mut hasher);
+    Ok(hasher.finish())
+}
+
+/// Fire-and-forget eviction on the async thumbnail path (#10): oldest-first
+/// past 2000 entries / 2 GiB, off the async runtime.
+#[cfg(target_os = "macos")]
+fn spawn_thumbnail_cache_cleanup(cache_dir: &std::path::Path) {
+    let dir = cache_dir.to_path_buf();
+    tokio::task::spawn_blocking(move || {
+        cleanup_cache_dir(&dir, THUMBNAIL_CACHE_MAX_ENTRIES, THUMBNAIL_CACHE_MAX_BYTES)
+    });
+}
+
+/// Generate the icon-mode representation Finder asks Quick Look for. Quick
+/// Look provides content thumbnails for images, PDFs, books, media, and every
+/// installed thumbnail provider; unsupported types fall back to NSWorkspace.
+#[cfg(target_os = "macos")]
+async fn get_file_thumbnail_with_cache_dir(
+    path: &std::path::Path,
+    requested_size: u32,
+    cache_dir: &std::path::Path,
+) -> Result<String, String> {
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    static WORK_ID: AtomicU64 = AtomicU64::new(1);
+
+    let size = requested_size.clamp(24, 512);
+    let metadata = std::fs::metadata(path)
+        .map_err(|e| format!("Cannot thumbnail '{}': {}", path.display(), e))?;
+    let cache_key = file_thumbnail_cache_key(path, size)?;
+    std::fs::create_dir_all(cache_dir)
+        .map_err(|e| format!("Failed to create thumbnail cache: {}", e))?;
+
+    let output_path = cache_dir.join(format!("{:016x}-{}.png", cache_key, size));
+    if output_path.is_file() {
+        return Ok(output_path.to_string_lossy().to_string());
+    }
+
+    let mut quicklook_error: Option<String> = None;
+
+    // qlmanage can block on directories and volumes. Finder renders those as
+    // system icons anyway, so only regular files go through Quick Look.
+    if metadata.is_file() {
+        let work_id = WORK_ID.fetch_add(1, Ordering::Relaxed);
+        let staging_dir = cache_dir.join(format!(
+            ".quicklook-{:016x}-{}-{}",
+            cache_key,
+            std::process::id(),
+            work_id
+        ));
+        std::fs::create_dir_all(&staging_dir)
+            .map_err(|e| format!("Failed to create Quick Look staging directory: {}", e))?;
+
+        let mut command = tokio::process::Command::new("/usr/bin/qlmanage");
+        command
+            .kill_on_drop(true)
+            .arg("-t")
+            .arg("-i")
+            .arg("-s")
+            .arg(size.to_string())
+            .arg("-o")
+            .arg(&staging_dir)
+            .arg(path);
+
+        match tokio::time::timeout(std::time::Duration::from_secs(12), command.output()).await {
+            Ok(Ok(output)) if output.status.success() => {
+                let generated = std::fs::read_dir(&staging_dir).ok().and_then(|entries| {
+                    entries
+                        .flatten()
+                        .map(|entry| entry.path())
+                        .find(|candidate| {
+                            candidate
+                                .extension()
+                                .and_then(|ext| ext.to_str())
+                                .is_some_and(|ext| ext.eq_ignore_ascii_case("png"))
+                        })
+                });
+
+                if let Some(generated) = generated {
+                    if let Err(rename_error) = std::fs::rename(&generated, &output_path) {
+                        // A concurrent request may have won the race. Otherwise
+                        // copy across and surface a real I/O failure.
+                        if !output_path.is_file() {
+                            std::fs::copy(&generated, &output_path).map_err(|copy_error| {
+                                format!(
+                                    "Failed to store Quick Look thumbnail (rename: {}; copy: {})",
+                                    rename_error, copy_error
+                                )
+                            })?;
+                        }
+                    }
+                } else {
+                    quicklook_error = Some("Quick Look returned no PNG thumbnail".to_string());
+                }
+            }
+            Ok(Ok(output)) => {
+                quicklook_error = Some(format!(
+                    "Quick Look failed: {}",
+                    String::from_utf8_lossy(&output.stderr).trim()
+                ));
+            }
+            Ok(Err(error)) => quicklook_error = Some(format!("Quick Look failed: {}", error)),
+            Err(_) => quicklook_error = Some("Quick Look thumbnail timed out".to_string()),
+        }
+
+        let _ = std::fs::remove_dir_all(&staging_dir);
+        if output_path.is_file() {
+            spawn_thumbnail_cache_cleanup(cache_dir);
+            return Ok(output_path.to_string_lossy().to_string());
+        }
+    }
+
+    // The drag-icon cache lives in the OS temp directory, which the webview
+    // cannot read. Copy the system icon into APPDATA, already present in the
+    // asset-protocol allowlist, before returning it to React.
+    let fallback_path = path.to_string_lossy().to_string();
+    let system_icon = tokio::task::spawn_blocking(move || {
+        get_file_icon_sync(&fallback_path, &icon_cache_dir(), size)
+    })
+        .await
+        .map_err(|e| format!("System icon task failed: {}", e))??;
+    std::fs::copy(&system_icon, &output_path).map_err(|e| {
+        format!(
+            "{}; system icon copy failed: {}",
+            quicklook_error.unwrap_or_else(|| "Quick Look unavailable".to_string()),
+            e
+        )
+    })?;
+    spawn_thumbnail_cache_cleanup(cache_dir);
+
+    Ok(output_path.to_string_lossy().to_string())
+}
+
+/// Return a Finder-style icon/thumbnail PNG beneath APPDATA so the webview can
+/// load it through Tauri's existing asset protocol scope.
+#[cfg(target_os = "macos")]
+#[command]
+pub async fn get_file_thumbnail(
+    app_handle: tauri::AppHandle,
+    path: String,
+    size: Option<u32>,
+) -> Result<String, String> {
+    validate_file_path(&path)?;
+    let cache_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to locate app data directory: {}", e))?
+        .join("finder-thumbnails");
+    get_file_thumbnail_with_cache_dir(std::path::Path::new(&path), size.unwrap_or(96), &cache_dir)
+        .await
+}
+
+#[cfg(not(target_os = "macos"))]
+#[command]
+pub async fn get_file_thumbnail(
+    _app_handle: tauri::AppHandle,
+    _path: String,
+    _size: Option<u32>,
+) -> Result<String, String> {
+    Err("Finder thumbnails are only available on macOS".to_string())
+}
+
+/// Check which CLI binaries are installed (found on PATH).
+/// Used by the agent launcher to badge Claude Code / Codex / Gemini CLI etc.
+#[command]
+pub async fn check_cli_installed(
+    commands: Vec<String>,
+) -> Result<std::collections::HashMap<String, bool>, String> {
+    #[cfg(windows)]
+    let path_sep = ';';
+    #[cfg(not(windows))]
+    let path_sep = ':';
+
+    let path_var = std::env::var("PATH").unwrap_or_default();
+    let dirs: Vec<std::path::PathBuf> = path_var
+        .split(path_sep)
+        .filter(|s| !s.is_empty())
+        .map(std::path::PathBuf::from)
+        .collect();
+
+    #[cfg(windows)]
+    let extensions: Vec<String> = std::env::var("PATHEXT")
+        .unwrap_or_else(|_| ".COM;.EXE;.BAT;.CMD".to_string())
+        .split(';')
+        .map(|s| s.to_lowercase())
+        .collect();
+
+    let mut result = std::collections::HashMap::new();
+    for cmd in commands {
+        let installed = if cmd.contains('/') || cmd.contains('\\') {
+            std::path::Path::new(&cmd).is_file()
+        } else {
+            // Official installer locations that are not on PATH by default
+            // (e.g. opencode lives at ~/.opencode/bin/opencode and is often
+            // reached through a shell alias instead).
+            let home_bins = [
+                std::env::var("HOME")
+                    .ok()
+                    .map(|h| std::path::PathBuf::from(h).join(".opencode/bin")),
+            ];
+            let in_home_bin = home_bins.iter().flatten().any(|dir| {
+                let candidate = dir.join(&cmd);
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::PermissionsExt;
+                    std::fs::metadata(&candidate)
+                        .map(|m| m.is_file() && m.permissions().mode() & 0o111 != 0)
+                        .unwrap_or(false)
+                }
+                #[cfg(not(unix))]
+                {
+                    candidate.is_file()
+                }
+            });
+            in_home_bin
+                || dirs.iter().any(|dir| {
+                #[cfg(windows)]
+                {
+                    extensions.iter().any(|ext| {
+                        let candidate = dir.join(format!("{cmd}.{ext}"));
+                        candidate.is_file()
+                    })
+                }
+                #[cfg(not(windows))]
+                {
+                    let candidate = dir.join(&cmd);
+                    candidate.is_file()
+                }
+            })
+        };
+        result.insert(cmd, installed);
+    }
+    Ok(result)
+}
+
+#[cfg(test)]
+mod cli_detect_tests {
+    use super::check_cli_installed;
+
+    /// Live check on this machine: claude is on PATH, opencode lives at
+    /// ~/.opencode/bin (reached via a shell alias, not on PATH).
+    #[tokio::test]
+    #[ignore]
+    async fn detects_path_and_home_bin_installs() {
+        let result = check_cli_installed(vec![
+            "claude".to_string(),
+            "opencode".to_string(),
+            "definitely-not-installed-xyz".to_string(),
+        ])
+        .await
+        .expect("check succeeds");
+        assert_eq!(result.get("claude"), Some(&true), "claude found on PATH");
+        assert_eq!(
+            result.get("opencode"),
+            Some(&true),
+            "opencode found in ~/.opencode/bin"
+        );
+        assert_eq!(result.get("definitely-not-installed-xyz"), Some(&false));
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod icon_cache_tests {
+    use super::{
+        cleanup_cache_dir, file_icon_cache_key, get_file_icon_sync, legacy_file_icon_cache_path,
+    };
+    use std::fs::File;
+    use std::path::Path;
+    use std::time::{Duration, SystemTime};
+    use tempfile::tempdir;
+
+    #[test]
+    fn icon_cache_key_tracks_mtime_and_size() {
+        let base = file_icon_cache_key("/tmp/a.txt", 64, 1_000);
+        assert_eq!(base, file_icon_cache_key("/tmp/a.txt", 64, 1_000));
+        // The #10 bug: same path must not map to the same entry forever.
+        assert_ne!(base, file_icon_cache_key("/tmp/a.txt", 64, 2_000));
+        assert_ne!(base, file_icon_cache_key("/tmp/a.txt", 128, 1_000));
+        assert_ne!(base, file_icon_cache_key("/tmp/b.txt", 64, 1_000));
+    }
+
+    #[test]
+    fn legacy_icon_entries_are_purged_on_read() {
+        let dir = tempdir().expect("temp dir");
+        let cache = dir.path().join("file-type-icons");
+        std::fs::create_dir_all(&cache).expect("cache dir");
+        let file = dir.path().join("report.txt");
+        std::fs::write(&file, "hello").expect("write file");
+
+        // Simulate an old build's path-only entry for this file.
+        let legacy = legacy_file_icon_cache_path(&cache, &file.to_string_lossy(), 64);
+        std::fs::write(&legacy, b"stale icon").expect("write legacy entry");
+        assert!(legacy.exists());
+
+        let resolved = get_file_icon_sync(&file.to_string_lossy(), &cache, 64)
+            .expect("extract icon (NSWorkspace fallback)");
+
+        assert!(!legacy.exists(), "stale path-only entry removed on read");
+        let stored = Path::new(&resolved);
+        assert!(stored.is_file());
+        assert_ne!(stored, legacy);
+        // New-key shape: fixed-width 16 hex digits + size, unlike the legacy
+        // unpadded `{:x}` names.
+        let stem = stored
+            .file_name()
+            .and_then(|n| n.to_str())
+            .and_then(|n| n.strip_suffix("-64.png"))
+            .expect("new-key file name");
+        assert_eq!(stem.len(), 16);
+        assert!(stem.chars().all(|c| c.is_ascii_hexdigit()));
+    }
+
+    #[test]
+    fn icon_cache_regenerates_after_mtime_change() {
+        let dir = tempdir().expect("temp dir");
+        let cache = dir.path().join("file-type-icons");
+        let file = dir.path().join("notes.md");
+        std::fs::write(&file, "v1").expect("write file");
+
+        let first = get_file_icon_sync(&file.to_string_lossy(), &cache, 64).expect("icon v1");
+        // Touch the file: editing content must invalidate the cached icon.
+        File::options()
+            .append(true)
+            .open(&file)
+            .expect("open for append")
+            .set_modified(SystemTime::now() + Duration::from_secs(1))
+            .expect("bump mtime");
+        let second = get_file_icon_sync(&file.to_string_lossy(), &cache, 64).expect("icon v2");
+
+        assert_ne!(first, second, "mtime change produces a fresh cache entry");
+    }
+
+    #[test]
+    fn cleanup_cache_dir_evicts_oldest_beyond_entry_budget() {
+        let dir = tempdir().expect("temp dir");
+        let base = SystemTime::UNIX_EPOCH;
+        for index in 0..5 {
+            let path = dir.path().join(format!("icon-{index}.png"));
+            std::fs::write(&path, vec![0u8; 10]).expect("write entry");
+            File::options()
+                .append(true)
+                .open(&path)
+                .expect("open")
+                .set_modified(base + Duration::from_secs(index as u64))
+                .expect("set mtime");
+        }
+
+        cleanup_cache_dir(dir.path(), 2, 1024);
+
+        let mut remaining: Vec<String> = std::fs::read_dir(dir.path())
+            .expect("read dir")
+            .flatten()
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .collect();
+        remaining.sort();
+        // Newest two survive; the three oldest are gone.
+        assert_eq!(remaining, vec!["icon-3.png".to_string(), "icon-4.png".to_string()]);
+    }
+
+    #[test]
+    fn cleanup_cache_dir_evicts_oldest_beyond_byte_budget() {
+        let dir = tempdir().expect("temp dir");
+        let base = SystemTime::UNIX_EPOCH;
+        // Two old 8-byte entries plus one new big entry: the byte budget must
+        // eat the old small ones before the new big one.
+        for index in 0..2 {
+            let path = dir.path().join(format!("old-{index}.png"));
+            std::fs::write(&path, vec![0u8; 8]).expect("write entry");
+            File::options()
+                .append(true)
+                .open(&path)
+                .expect("open")
+                .set_modified(base + Duration::from_secs(index as u64))
+                .expect("set mtime");
+        }
+        let big = dir.path().join("new-big.png");
+        std::fs::write(&big, vec![0u8; 40]).expect("write big entry");
+        File::options()
+            .append(true)
+            .open(&big)
+            .expect("open")
+            .set_modified(base + Duration::from_secs(10))
+            .expect("set mtime");
+
+        // 8 + 8 + 40 = 56 bytes over a 40-byte budget: dropping the two
+        // oldest leaves exactly the new big entry within budget.
+        cleanup_cache_dir(dir.path(), 10, 40);
+
+        let remaining: Vec<String> = std::fs::read_dir(dir.path())
+            .expect("read dir")
+            .flatten()
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .collect();
+        assert_eq!(remaining, vec!["new-big.png".to_string()]);
+    }
+
+    #[test]
+    fn cleanup_cache_dir_leaves_small_caches_and_directories_alone() {
+        let dir = tempdir().expect("temp dir");
+        std::fs::write(dir.path().join("a.png"), b"x").expect("write entry");
+        std::fs::create_dir_all(dir.path().join(".quicklook-staging")).expect("staging dir");
+
+        cleanup_cache_dir(dir.path(), 10, 1024);
+
+        assert!(dir.path().join("a.png").exists());
+        assert!(dir.path().join(".quicklook-staging").exists());
+    }
+}

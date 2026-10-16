@@ -1,0 +1,246 @@
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useLocation } from 'wouter';
+import { queryClient } from './lib/queryClient';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import ExplorerUnified from '@/pages/wisp';
+import NotFound from '@/pages/not-found';
+import { TauriAPI } from '@/lib/tauri-api';
+import { extensionHost } from '@/lib/extension-host';
+import { useToast } from '@/hooks/use-toast';
+import XtensionInstallDialog from '@/components/dialogs/XtensionInstallDialog';
+import { weixinBridge } from '@/lib/weixin/bridge';
+import UpdateBanner from '@/components/UpdateBanner';
+import { isTauri } from '@/lib/transport';
+import type { SettingsTab } from '@/pages/settings';
+import type { AirDropErrorCode } from '@/lib/tauri-api/airdrop';
+import {
+  isShelfRevealNavigation,
+  requestShelfRevealNavigation,
+  type ShelfNavigation,
+} from '@/lib/shelf-reveal-navigation';
+
+// Keep the explorer mounted beneath settings, including legacy /settings links.
+const Settings = React.lazy(() => import('@/pages/settings'));
+
+export const AppWorkspace = () => {
+  const [location, setLocation] = useLocation();
+  const [settingsOpen, setSettingsOpen] = useState(location === '/settings');
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>('general');
+  const { toast } = useToast();
+  const { t } = useTranslation();
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const locationRef = useRef(location);
+  locationRef.current = location;
+
+  useEffect(() => {
+    const openSettings = (event: Event) => {
+      // Capture before inert blurs the workspace or the menu unmounts.
+      const detail = (event as CustomEvent<{ returnFocus?: HTMLElement; tab?: SettingsTab }>)
+        .detail;
+      const trigger = detail?.returnFocus;
+      const active = document.activeElement;
+      if (!active?.closest('[role="dialog"]')) {
+        returnFocusRef.current = trigger ?? (active instanceof HTMLElement ? active : null);
+      }
+      setSettingsTab(detail?.tab ?? 'general');
+      setSettingsOpen(true);
+    };
+    window.addEventListener('wisp-open-settings', openSettings);
+    return () => window.removeEventListener('wisp-open-settings', openSettings);
+  }, []);
+
+  useEffect(() => {
+    if (!isTauri()) return;
+    let disposed = false;
+    const stops: Array<() => void> = [];
+    const subscribe = <T,>(name: string, callback: (payload: T) => void) => {
+      void TauriAPI.listenToEvent<T>(name, callback)
+        .then((stop) => {
+          if (disposed) {
+            stop();
+            return;
+          }
+          stops.push(stop);
+          if (name === 'shelf-navigate') {
+            return import('@tauri-apps/api/event').then(({ emit }) => {
+              if (!disposed) return emit('shelf-frontend-ready');
+            });
+          }
+        })
+        .catch(console.error);
+    };
+    subscribe<ShelfNavigation>('shelf-navigate', (target) => {
+      if (target === 'settings') {
+        window.dispatchEvent(new CustomEvent('wisp-open-settings', { detail: { tab: 'shelf' } }));
+      } else if (target === 'shelves') {
+        setSettingsOpen(false);
+        window.dispatchEvent(new CustomEvent('wisp-open-shelves'));
+      } else if (isShelfRevealNavigation(target)) {
+        setSettingsOpen(false);
+        if (!['/', '/explorer', '/settings'].includes(locationRef.current)) setLocation('/');
+        requestShelfRevealNavigation(target);
+      }
+    });
+    subscribe<string>('shelf-exit-blocked', (error) => {
+      toast({ title: t('shelf.exitBlocked'), description: error, variant: 'destructive' });
+    });
+    subscribe<string>('shelf-intake-failed', (error) => {
+      toast({ title: t('shelf.collectionFailed'), description: error, variant: 'destructive' });
+    });
+    subscribe<string>('shelf-reveal-failed', (error) => {
+      toast({ title: t('shelf.revealFailed'), description: error, variant: 'destructive' });
+    });
+    subscribe<{ code: AirDropErrorCode; message: string }>('shelf-airdrop-failed', (error) => {
+      const descriptions: Partial<Record<AirDropErrorCode, string>> = {
+        unsupported: 'operationBar.airDrop.desktopOnly',
+        invalid_paths: 'operationBar.airDrop.invalidPaths',
+        unavailable: 'operationBar.airDrop.unavailable',
+      };
+      toast({
+        title: t('operationBar.airDrop.openFailed'),
+        description: t(descriptions[error?.code] || 'operationBar.airDrop.tryAgain'),
+        variant: 'destructive',
+      });
+    });
+    return () => {
+      disposed = true;
+      stops.forEach((stop) => stop());
+    };
+  }, [t, toast, setLocation]);
+
+  // 微信桥：应用启动即恢复凭据并进入消息循环（不依赖面板打开）
+  useEffect(() => {
+    void weixinBridge.init();
+  }, []);
+
+  useEffect(() => {
+    if (location === '/settings') setSettingsOpen(true);
+  }, [location]);
+
+  const closeSettings = () => {
+    setSettingsOpen(false);
+    const previous = returnFocusRef.current;
+    returnFocusRef.current = null;
+    requestAnimationFrame(() => {
+      if (previous?.isConnected) previous.focus({ preventScroll: true });
+    });
+    if (location === '/settings') setLocation(`/${window.location.search}`, { replace: true });
+  };
+
+  const explorerVisible = ['/', '/explorer', '/settings'].includes(location);
+
+  return (
+    <>
+      <div inert={settingsOpen ? true : undefined} aria-hidden={settingsOpen ? true : undefined}>
+        {explorerVisible ? <ExplorerUnified /> : <NotFound />}
+      </div>
+      {settingsOpen && (
+        <React.Suspense fallback={null}>
+          <Settings onClose={closeSettings} initialTab={settingsTab} />
+        </React.Suspense>
+      )}
+    </>
+  );
+};
+
+const XtensionFileHandler = () => {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  const [pendingXtension, setPendingXtension] = useState<{
+    path: string;
+    manifest: {
+      id: string;
+      name: string;
+      display_name?: string;
+      description?: string;
+      version: string;
+      author: string;
+      permissions?: string[];
+    } | null;
+  } | null>(null);
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    TauriAPI.listenToEvent<string>('xtension-file-opened', async (xtensionPath) => {
+      try {
+        const manifest = await TauriAPI.inspectXtensionFile(xtensionPath);
+        setPendingXtension({ path: xtensionPath, manifest });
+      } catch (err) {
+        toast({
+          title: t('toast.invalidExtension'),
+          description: String(err),
+          variant: 'destructive',
+        });
+      }
+    })
+      .then((fn) => {
+        unlisten = fn;
+      })
+      .catch(console.error);
+    return () => {
+      unlisten?.();
+    };
+  }, [t, toast]);
+
+  const handleInstall = useCallback(async () => {
+    if (!pendingXtension) return;
+    try {
+      const pkg = await TauriAPI.installXtensionFile(pendingXtension.path);
+      await extensionHost.loadExtension(pkg);
+      await extensionHost.activateExtension(pkg.manifest.id);
+      toast({
+        title: t('toast.extensionInstalled'),
+        description: t('toast.extensionInstalledDesc', {
+          name: pkg.manifest.display_name || pkg.manifest.name,
+          version: pkg.manifest.version,
+        }),
+      });
+    } catch (err) {
+      toast({
+        title: t('toast.installFailed'),
+        description: String(err),
+        variant: 'destructive',
+      });
+    } finally {
+      setPendingXtension(null);
+    }
+  }, [pendingXtension, t, toast]);
+
+  if (!pendingXtension) return null;
+
+  return (
+    <XtensionInstallDialog
+      isOpen={!!pendingXtension}
+      onClose={() => setPendingXtension(null)}
+      manifest={pendingXtension.manifest}
+      onInstall={handleInstall}
+    />
+  );
+};
+
+const App = () => {
+  useEffect(() => {
+    // Signal to the Rust backend that the frontend is ready to receive events.
+    // The backend defers CLI-triggered events (xtension-file-opened, folder-opened)
+    // until this signal arrives, avoiding race conditions with sleep-based timing.
+    import('@tauri-apps/api/event')
+      .then(({ emit }) => emit('frontend-ready'))
+      .catch(() => {
+        // Not running in Tauri (e.g. web mode) -- ignore silently
+      });
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <UpdateBanner />
+      <ErrorBoundary>
+        <AppWorkspace />
+      </ErrorBoundary>
+      <XtensionFileHandler />
+    </QueryClientProvider>
+  );
+};
+
+export default App;

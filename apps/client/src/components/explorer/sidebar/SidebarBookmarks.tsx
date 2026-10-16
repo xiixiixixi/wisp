@@ -1,0 +1,248 @@
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  FolderClosed,
+  File,
+  ChevronDown,
+  ChevronRight,
+  GripHorizontal,
+  X,
+  LoaderCircle,
+} from 'lucide-react';
+import { TauriAPI, BookmarkEntry, FileEntry } from '@/lib/tauri-api';
+import { getFolderColorHex } from '@/lib/folder-colors';
+import { useWindowEvent } from '@/hooks/use-window-event';
+import { useTranslation } from 'react-i18next';
+
+interface SidebarBookmarksProps {
+  currentPath: string;
+  navigateToPath: (path: string) => void;
+  handleFileRightClick?: (file: FileEntry, event: React.MouseEvent) => void;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  sectionHeight: number | undefined;
+  onResizeStart: (sectionId: string, e: React.MouseEvent) => void;
+}
+
+interface SidebarBookmarkItemsProps {
+  currentPath: string;
+  navigateToPath: (path: string) => void;
+  handleFileRightClick?: (file: FileEntry, event: React.MouseEvent) => void;
+  handleFileOpen?: (file: FileEntry) => void;
+  showEmpty?: boolean;
+  /** The one bookmark allowed to highlight, decided across the whole sidebar. */
+  activeBookmarkPath?: string | null;
+  /** Reports the current bookmark targets so Quick Access can pick a single winner. */
+  onPathsChange?: (paths: string[]) => void;
+}
+
+/** Bookmark rows shared by the legacy section and Quick Access. */
+export const SidebarBookmarkItems = ({
+  navigateToPath,
+  handleFileRightClick,
+  handleFileOpen,
+  showEmpty = false,
+  activeBookmarkPath = null,
+  onPathsChange,
+}: SidebarBookmarkItemsProps) => {
+  const { t } = useTranslation();
+  const [bookmarks, setBookmarks] = useState<BookmarkEntry[]>([]);
+  const [removeError, setRemoveError] = useState(false);
+  const removingPathsRef = useRef(new Set<string>());
+  const [removingPaths, setRemovingPaths] = useState<Set<string>>(() => new Set());
+
+  const asFileEntry = (bookmark: BookmarkEntry): FileEntry => ({
+    name: bookmark.name,
+    path: bookmark.path,
+    size: 0,
+    modified: 0,
+    is_dir: bookmark.is_dir,
+    file_type: bookmark.is_dir ? 'folder' : bookmark.name.split('.').pop() || '',
+    is_readonly: false,
+  });
+
+  const loadBookmarks = () => {
+    TauriAPI.getBookmarks()
+      .then((items) => setBookmarks(items))
+      .catch((error) => console.error('Failed to load bookmarks:', error));
+  };
+
+  useEffect(() => {
+    loadBookmarks();
+  }, []);
+
+  useWindowEvent('bookmarks-changed', loadBookmarks);
+
+  useEffect(() => {
+    onPathsChange?.(bookmarks.map((bookmark) => bookmark.path));
+  }, [bookmarks, onPathsChange]);
+
+  // Re-render when folder colors change
+  const [_folderColorVersion, setFolderColorVersion] = useState(0);
+  useWindowEvent('folder-colors-changed', () => setFolderColorVersion((v) => v + 1));
+
+  const handleRemoveBookmark = async (path: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (removingPathsRef.current.has(path)) return;
+    removingPathsRef.current.add(path);
+    setRemovingPaths(new Set(removingPathsRef.current));
+    setRemoveError(false);
+    try {
+      await TauriAPI.removeBookmark(path);
+      setBookmarks((prev) => prev.filter((b) => b.path !== path));
+    } catch (error) {
+      console.error('Failed to remove bookmark:', error);
+      setRemoveError(true);
+    } finally {
+      removingPathsRef.current.delete(path);
+      setRemovingPaths(new Set(removingPathsRef.current));
+    }
+  };
+
+  if (bookmarks.length === 0) {
+    return showEmpty ? (
+      <p className="py-1 text-xs text-xp-text-secondary">{t('sidebar.noBookmarks')}</p>
+    ) : null;
+  }
+
+  return (
+    <div className="space-y-0.5">
+      {removeError && (
+        <p className="wisp-nav-feedback" role="alert">
+          {t('sidebar.removeBookmarkFailed')}
+        </p>
+      )}
+      {bookmarks.map((bookmark) => {
+        const bookmarkColor = bookmark.is_dir ? getFolderColorHex(bookmark.path) : null;
+        const isActive = activeBookmarkPath === bookmark.path;
+        const removing = removingPaths.has(bookmark.path);
+        const removeLabel = t(removing ? 'sidebarBookmarks.removing' : 'sidebarBookmarks.remove');
+        return (
+          <div
+            key={bookmark.path}
+            className="wisp-nav-row-group"
+            data-drop-target={bookmark.is_dir ? bookmark.path : undefined}
+            data-is-folder={bookmark.is_dir ? 'true' : undefined}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleFileRightClick?.(asFileEntry(bookmark), e);
+            }}
+          >
+            <button
+              type="button"
+              className={`wisp-sidebar-item wisp-nav-row rounded-md transition-colors ${
+                isActive ? 'wisp-sidebar-item-active' : 'text-xp-text hover:bg-xp-surface-light'
+              }`}
+              onClick={() => {
+                if (bookmark.is_dir) navigateToPath(bookmark.path);
+                else handleFileOpen?.(asFileEntry(bookmark));
+              }}
+              title={bookmark.path}
+              aria-current={isActive ? 'location' : undefined}
+            >
+              {bookmarkColor && (
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    backgroundColor: bookmarkColor,
+                    flexShrink: 0,
+                    marginRight: 4,
+                  }}
+                  aria-hidden="true"
+                />
+              )}
+              {bookmark.is_dir ? (
+                <FolderClosed
+                  size={14}
+                  className="flex-shrink-0 text-xp-text-secondary"
+                  style={bookmarkColor ? { color: bookmarkColor } : undefined}
+                />
+              ) : (
+                <File size={14} className="flex-shrink-0 text-xp-text-secondary" />
+              )}
+              <span className="min-w-0 flex-1 truncate">{bookmark.name}</span>
+            </button>
+            <button
+              type="button"
+              onClick={(e) => handleRemoveBookmark(bookmark.path, e)}
+              className="wisp-nav-row-action wisp-bookmark-remove"
+              disabled={removing}
+              aria-busy={removing}
+              title={removeLabel}
+              aria-label={`${removeLabel}: ${bookmark.name}`}
+            >
+              {removing ? (
+                <LoaderCircle size={16} className="wisp-nav-action-spinner" aria-hidden="true" />
+              ) : (
+                <X size={16} aria-hidden="true" />
+              )}
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const SidebarBookmarks = ({
+  currentPath,
+  navigateToPath,
+  handleFileRightClick,
+  collapsed,
+  onToggleCollapsed,
+  sectionHeight,
+  onResizeStart,
+}: SidebarBookmarksProps) => {
+  const { t } = useTranslation();
+
+  return (
+    <div
+      className="border-b border-xp-border"
+      role="region"
+      aria-label={t('sidebar.favorites')}
+      data-sidebar-section="favorites"
+      data-drop-target=""
+      data-drop-action="bookmark-add"
+    >
+      <button
+        className="flex w-full items-center px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-xp-text-muted transition-colors hover:bg-xp-surface-light/50"
+        onClick={onToggleCollapsed}
+        aria-expanded={!collapsed}
+      >
+        {collapsed ? (
+          <ChevronRight className="mr-1 h-3 w-3 flex-shrink-0" />
+        ) : (
+          <ChevronDown className="mr-1 h-3 w-3 flex-shrink-0" />
+        )}
+        {t('sidebar.favorites')}
+      </button>
+      {!collapsed && (
+        <div
+          className="space-y-0.5 overflow-y-auto px-3 pb-2"
+          style={sectionHeight ? { maxHeight: sectionHeight } : undefined}
+        >
+          <SidebarBookmarkItems
+            currentPath={currentPath}
+            navigateToPath={navigateToPath}
+            handleFileRightClick={handleFileRightClick}
+            showEmpty
+          />
+        </div>
+      )}
+      {/* Resize handle */}
+      {!collapsed && (
+        <div
+          className="group flex h-2 cursor-row-resize items-center justify-center transition-colors hover:bg-xp-surface-light"
+          onMouseDown={(e) => onResizeStart('favorites', e)}
+        >
+          <GripHorizontal className="text-xp-text-muted/20 group-hover:text-xp-text-muted/60 h-3 w-4 transition-colors" />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default SidebarBookmarks;

@@ -1,0 +1,65 @@
+.wisp-memory-manage {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--ds-label-secondary);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.wisp-memory-manage:hover,
+.wisp-memory-manage[aria-expanded="true"] {
+  color: var(--ds-label-primary);
+}
+.wisp-memory-manage[aria-expanded="true"] > svg {
+  transform: rotate(180deg);
+}
+.wisp-memory-manage:focus-visible {
+  outline: 1px solid var(--ds-label-secondary) !important;
+  outline-offset: 2px;
+}
+.wisp-memory-manage:focus:not(:focus-visible) {
+  outline: none !important;
+}
+.wisp-memory-key-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 270px;
+  max-width: 100%;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  :is(.wisp-memory-key-field input, input.wisp-memory-profile-input):is(:focus, :focus-visible) {
+  outline: none !important;
+  outline-offset: 0 !important;
+  border: 1px solid var(--ds-label-secondary) !important;
+  box-shadow: none !important;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  :is(.wisp-memory-key-field input, input.wisp-memory-profile-input)[aria-invalid="true"] {
+  border-color: var(--ds-destructive, var(--xp-red)) !important;
+}
+.wisp-memory-setup-hint {
+  margin: 0;
+  padding: 12px 4px 0;
+  color: var(--ds-label-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.wisp-memory-records {
+  padding: 12px 4px 0;
+}
+.wisp-memory-record-list {
+  max-height: 240px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+@media (max-width: 640px) {
+  .wisp-memory-key-field {
+    width: 240px;
+  }
+}

@@ -1,0 +1,843 @@
+import { getAppLocale } from '@/lib/locale';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
+import React from 'react';
+import FinderFileIcon from '@/components/explorer/FinderFileIcon';
+import i18n from '@/i18n';
+import {
+  FolderClosed,
+  FolderOpen,
+  FileText,
+  FileCode,
+  Globe,
+  FileJson,
+  Image as ImageIcon,
+  Film,
+  Music,
+  BookOpen,
+  Package,
+  Settings,
+  File as FileIcon,
+  Zap,
+  FileSpreadsheet,
+  Presentation,
+  ArrowDownAZ,
+  Calendar,
+  HardDrive,
+  Tag,
+  LayoutGrid,
+  Grid3X3,
+  Grid2X2,
+  LayoutPanelTop,
+  List,
+  Table,
+  FolderTree,
+  GalleryHorizontal,
+  Columns,
+  MessageSquare,
+  Star,
+  Wrench,
+  Clapperboard,
+  BarChart3,
+  PenLine,
+  Laptop,
+  Clock,
+  Disc,
+  SlidersHorizontal,
+  Headphones,
+  Volume2,
+  Mic,
+  BookOpenText,
+  Search,
+  SearchCheck,
+  Monitor,
+  Pencil,
+  Trash2,
+  ArrowRight,
+  ClipboardList,
+  Play,
+  Save,
+  MessageCircle,
+  Link,
+  Lock,
+  MailOpen,
+  ArchiveX,
+  CalendarDays,
+  Tags,
+  ClipboardCopy,
+  // Additional icons for extension marketplace
+  AlertTriangle,
+  Archive,
+  Box,
+  Braces,
+  Cloud,
+  Code,
+  Database,
+  Fingerprint,
+  GitBranch,
+  Hash,
+  Layout,
+  Palette,
+  Target,
+  Terminal,
+  Shield,
+  Eye,
+  Cpu,
+  Plug,
+  type LucideIcon,
+} from 'lucide-react';
+
+export const cn = (...inputs: ClassValue[]) => {
+  return twMerge(clsx(inputs));
+};
+
+// File icons intentionally retain their existing palette while the surrounding
+// interface adopts Liquid Glass. Keeping these colors on dedicated tokens
+// prevents UI accent/theme changes from recoloring the user's file cues.
+const FILE_ICON_COLORS: Record<string, string> = {
+  'text-xp-text-muted': 'var(--file-icon-muted)',
+  'text-xp-yellow': 'var(--file-icon-yellow)',
+  'text-xp-green': 'var(--file-icon-green)',
+  'text-xp-orange': 'var(--file-icon-orange)',
+  'text-xp-cyan': 'var(--file-icon-cyan)',
+  'text-xp-red': 'var(--file-icon-red)',
+  'text-xp-purple': 'var(--file-icon-purple)',
+  'text-xp-blue': 'var(--file-icon-blue)',
+};
+
+const icon = (Icon: LucideIcon, color: string): React.ReactNode =>
+  React.createElement(Icon, {
+    size: '1em',
+    className: 'inline-block',
+    style: { color: FILE_ICON_COLORS[color] ?? 'var(--file-icon-muted)' },
+  });
+
+// 資料夾 — solid, filled, in its own indigo. Finder's strongest cue: the
+// container reads as an OBJECT, distinct from every thin-stroked file.
+const folderIcon = (): React.ReactNode =>
+  React.createElement(FolderClosed, {
+    size: '1em',
+    fill: 'currentColor',
+    strokeWidth: 1,
+    className: 'inline-block',
+    style: { color: 'var(--file-icon-folder)' },
+  });
+
+// Immediate fallback shown while macOS resolves the real Finder/Quick Look
+// visual. Keeping it synchronous prevents list rows from shifting or flashing.
+const getFallbackFileIcon = (fileEntry: FileEntry): React.ReactNode => {
+  if (fileEntry.is_dir) return folderIcon();
+
+  const ext = fileEntry.name.split('.').pop()?.toLowerCase();
+  switch (ext) {
+    case 'txt':
+    case 'md':
+    case 'log':
+      return icon(FileText, 'text-xp-text-muted');
+    case 'js':
+    case 'ts':
+    case 'jsx':
+    case 'tsx':
+      return icon(FileCode, 'text-xp-yellow');
+    case 'py':
+    case 'rb':
+    case 'go':
+    case 'rs':
+    case 'java':
+    case 'c':
+    case 'cpp':
+    case 'cs':
+      return icon(FileCode, 'text-xp-green');
+    case 'html':
+    case 'css':
+    case 'scss':
+    case 'sass':
+      return icon(Globe, 'text-xp-orange');
+    case 'json':
+    case 'xml':
+    case 'yaml':
+    case 'yml':
+    case 'toml':
+      return icon(FileJson, 'text-xp-green');
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'gif':
+    case 'svg':
+    case 'webp':
+    case 'ico':
+      return icon(ImageIcon, 'text-xp-cyan');
+    case 'mp4':
+    case 'avi':
+    case 'mkv':
+    case 'mov':
+    case 'webm':
+      return icon(Film, 'text-xp-red');
+    case 'mp3':
+    case 'wav':
+    case 'flac':
+    case 'ogg':
+    case 'aac':
+      return icon(Music, 'text-xp-purple');
+    case 'pdf':
+      return icon(BookOpen, 'text-xp-red');
+    case 'doc':
+    case 'docx':
+      return icon(FileText, 'text-xp-blue');
+    case 'xls':
+    case 'xlsx':
+    case 'csv':
+      return icon(FileSpreadsheet, 'text-xp-green');
+    case 'ppt':
+    case 'pptx':
+      return icon(Presentation, 'text-xp-orange');
+    case 'zip':
+    case 'rar':
+    case '7z':
+    case 'tar':
+    case 'gz':
+    case 'bz2':
+      return icon(Package, 'text-xp-orange');
+    case 'exe':
+    case 'msi':
+    case 'dmg':
+    case 'app':
+      return icon(Settings, 'text-xp-text-muted');
+    case 'sh':
+    case 'bash':
+    case 'zsh':
+    case 'bat':
+    case 'cmd':
+      return icon(Zap, 'text-xp-yellow');
+    case 'chat':
+      return icon(MessageSquare, 'text-xp-purple');
+    default:
+      return icon(FileIcon, 'text-xp-text-muted');
+  }
+};
+
+// File icon mapping utility. The public signature stays synchronous so every
+// explorer view can keep using getFileIcon(file), while FinderFileIcon handles
+// native thumbnail resolution and caching internally.
+export const getFileIcon = (fileEntry: FileEntry): React.ReactNode =>
+  React.createElement(FinderFileIcon, {
+    file: fileEntry,
+    fallback: getFallbackFileIcon(fileEntry),
+  });
+
+// ── Icon Name Registry ────────────────────────────────────────────────────────
+// Maps string icon names to lucide-react components. Used by collections,
+// filter presets, tool call icons, and anywhere an icon is stored as a string.
+
+const ICON_REGISTRY: Record<string, LucideIcon> = {
+  // File types
+  Folder: FolderClosed,
+  FolderOpen,
+  File: FileIcon,
+  FileText,
+  FileCode,
+  FileJson,
+  FileSpreadsheet,
+  Image: ImageIcon,
+  Film,
+  Music,
+  Headphones,
+  Volume2,
+  Mic,
+  BookOpen,
+  Presentation,
+  Package,
+  Disc,
+  Globe,
+  Archive,
+  Code,
+
+  // Actions / tools
+  Search,
+  SearchCheck,
+  Pencil,
+  PenLine,
+  Trash2,
+  ArrowRight,
+  ClipboardList,
+  ClipboardCopy,
+  Play,
+  Save,
+  MessageCircle,
+  MessageSquare,
+  Monitor,
+  Laptop,
+  Zap,
+  Settings,
+  Terminal,
+  Eye,
+  Cpu,
+  Plug,
+
+  // Categories / metadata
+  Star,
+  Tag,
+  Tags,
+  Lock,
+  Link,
+  Calendar,
+  CalendarDays,
+  Clock,
+  BarChart3,
+  Clapperboard,
+  Wrench,
+  SlidersHorizontal,
+  MailOpen,
+  ArchiveX,
+  AlertTriangle,
+  Shield,
+  Fingerprint,
+  Hash,
+  Target,
+  Database,
+  Box,
+  Braces,
+  Cloud,
+  Palette,
+  GitBranch,
+
+  // Layout
+  LayoutGrid,
+  Layout,
+  Grid3X3,
+  Grid2X2,
+  LayoutPanelTop,
+  List,
+  Table,
+  FolderTree,
+  GalleryHorizontal,
+  Columns,
+  HardDrive,
+  ArrowDownAZ,
+  BookOpenText,
+};
+
+/**
+ * Render a lucide-react icon by its string name.
+ * Falls back to FileIcon when the name is not found in the registry.
+ *
+ * @param name  The icon name string (e.g. "Folder", "Music", "Star")
+ * @param size  Icon size in pixels or CSS units (default: "1em")
+ * @param className  Additional CSS classes
+ */
+/**
+ * Convert a kebab-case icon name to PascalCase for registry lookup.
+ * e.g. "file-text" → "FileText", "git-branch" → "GitBranch", "alert-triangle" → "AlertTriangle"
+ */
+const normalizeIconName = (name: string): string => {
+  if (name.includes('-')) {
+    return name
+      .split('-')
+      .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+      .join('');
+  }
+  return name;
+};
+
+export const renderIcon = (
+  name: string,
+  size: number | string = '1em',
+  className?: string,
+): React.ReactNode => {
+  // Try exact match first, then kebab-case → PascalCase conversion
+  const Icon = ICON_REGISTRY[name] ?? ICON_REGISTRY[normalizeIconName(name)] ?? FileIcon;
+  return React.createElement(Icon, { size, className: className ?? 'inline-block' });
+};
+
+/**
+ * Check whether a string is a valid icon name in the registry.
+ */
+export const isValidIconName = (name: string): boolean => {
+  return name in ICON_REGISTRY || normalizeIconName(name) in ICON_REGISTRY;
+};
+
+/**
+ * All available icon names for use in icon-picker UIs.
+ */
+export const ICON_NAMES = Object.keys(ICON_REGISTRY);
+
+// Video file extension check
+const VIDEO_EXTENSIONS = ['mp4', 'webm', 'mkv', 'avi', 'mov', 'm4v', 'ogv'];
+export const isVideoFile = (fileName: string): boolean => {
+  const ext = fileName.split('.').pop()?.toLowerCase() || '';
+  return VIDEO_EXTENSIONS.includes(ext);
+};
+
+// Audio file extension check
+const AUDIO_EXTENSIONS = ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac', 'wma', 'opus', 'aiff'];
+export const isAudioFile = (fileName: string): boolean => {
+  const ext = fileName.split('.').pop()?.toLowerCase() || '';
+  return AUDIO_EXTENSIONS.includes(ext);
+};
+
+// File size formatting utility — Finder's decimal units: 141402 B shows as
+// "141 KB" (1000-based steps, integers at 100+, one truncated decimal below).
+export const formatFileSize = (bytes: number, isCalculating?: boolean): string => {
+  if (isCalculating) return i18n.t('interface.calculatingSize');
+  if (!bytes || bytes <= 0 || !isFinite(bytes)) return '0 B';
+  const k = 1000;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
+  const value = bytes / Math.pow(k, i);
+  const display = value >= 100 ? Math.floor(value) : Math.floor(value * 10) / 10;
+  return `${display} ${sizes[i]}`;
+};
+
+// Format folder size with additional info
+export const formatFolderSize = (
+  folderSizeInfo: FolderSizeInfo | null,
+  isCalculating?: boolean,
+): string => {
+  if (isCalculating) return i18n.t('interface.calculatingSize');
+  if (!folderSizeInfo) return '—';
+
+  const sizeStr = formatFileSize(folderSizeInfo.total_size);
+  const itemCount = folderSizeInfo.file_count + folderSizeInfo.dir_count;
+
+  if (itemCount === 0) return i18n.t('interface.empty');
+  // 大小列只显示体积（Finder 同款），项目数不再拼进括号
+  return i18n.t('messages.folderSize', { size: sizeStr });
+};
+
+// Date formatting utility
+export const formatDate = (timestamp: number): string => {
+  if (!timestamp || !isFinite(timestamp)) return '—';
+  const date = new Date(timestamp * 1000);
+  if (isNaN(date.getTime())) return '—';
+  return date.toLocaleString(getAppLocale());
+};
+
+/** Compact "8月21日 17:40" — no year, for chips and info bars. */
+export const formatDateTimeShort = (timestamp: number): string => {
+  if (!timestamp || !isFinite(timestamp)) return '—';
+  const date = new Date(timestamp * 1000);
+  if (isNaN(date.getTime())) return '—';
+  return `${date.toLocaleDateString(getAppLocale(), { month: 'long', day: 'numeric' })} ${date.toLocaleTimeString(
+    getAppLocale(),
+    { hour: '2-digit', minute: '2-digit', hour12: false },
+  )}`;
+};
+
+// Natural-sort collator: "file2" before "file10", case-insensitive. The locale
+// is pinned to the app language (zh→zh-CN pinyin order, en→en-US) instead of
+// the host webview's default, so Chinese names never drift into codepoint
+// order on a non-Chinese system.
+let naturalCollatorCache: { locale: string; collator: Intl.Collator } | null = null;
+export const getNaturalCollator = (): Intl.Collator => {
+  const locale = getAppLocale();
+  if (!naturalCollatorCache || naturalCollatorCache.locale !== locale) {
+    naturalCollatorCache = {
+      locale,
+      collator: new Intl.Collator(locale, { numeric: true, sensitivity: 'base' }),
+    };
+  }
+  return naturalCollatorCache.collator;
+};
+
+export type SortField =
+  | 'name'
+  | 'dateModified'
+  | 'size'
+  | 'dateCreated'
+  | 'type'
+  | 'extension'
+  | 'dateAdded'
+  | 'lastOpened';
+
+export interface SortOptions {
+  /** Keep directories above files regardless of the sort dimension. Wisp's
+   * default (on); the explorer setting turns it off for Finder's pure total
+   * order in list view. */
+  foldersFirst?: boolean;
+}
+
+// File sorting utility
+export const sortFiles = (
+  files: FileEntry[],
+  sortBy: SortField,
+  sortOrder: 'asc' | 'desc',
+  { foldersFirst = true }: SortOptions = {},
+): FileEntry[] => {
+  return [...files].sort((a, b) => {
+    // Put directories first regardless of sort criteria (default behavior;
+    // the folders-first setting opts into Finder's mixed ordering instead).
+    if (foldersFirst) {
+      if (a.is_dir && !b.is_dir) return -1;
+      if (!a.is_dir && b.is_dir) return 1;
+    }
+
+    let comparison: number;
+
+    switch (sortBy) {
+      case 'name':
+        comparison = getNaturalCollator().compare(a.name, b.name);
+        break;
+
+      case 'dateModified':
+        comparison = a.modified - b.modified;
+        break;
+
+      case 'size': {
+        const aExt = a as FileEntry & { folder_size?: { total_size: number } };
+        const bExt = b as FileEntry & { folder_size?: { total_size: number } };
+        const aSize = a.is_dir && aExt.folder_size ? aExt.folder_size.total_size : a.size;
+        const bSize = b.is_dir && bExt.folder_size ? bExt.folder_size.total_size : b.size;
+        comparison = aSize - bSize;
+        break;
+      }
+
+      case 'dateCreated': {
+        const aCreated = (a as FileEntry & { created?: number }).created ?? a.modified;
+        const bCreated = (b as FileEntry & { created?: number }).created ?? b.modified;
+        comparison = aCreated - bCreated || a.modified - b.modified;
+        break;
+      }
+
+      case 'type': {
+        const aType = a.file_type || '';
+        const bType = b.file_type || '';
+        comparison = getNaturalCollator().compare(aType, bType);
+        if (comparison === 0) {
+          comparison = getNaturalCollator().compare(a.name, b.name);
+        }
+        break;
+      }
+
+      case 'extension': {
+        const aExt = a.name.includes('.') ? a.name.split('.').pop()?.toLowerCase() || '' : '';
+        const bExt = b.name.includes('.') ? b.name.split('.').pop()?.toLowerCase() || '' : '';
+        comparison = getNaturalCollator().compare(aExt, bExt);
+        if (comparison === 0) {
+          comparison = getNaturalCollator().compare(a.name, b.name);
+        }
+        break;
+      }
+
+      case 'dateAdded': {
+        // Rust fills date_added with Spotlight's kMDItemDateAdded or the
+        // filesystem birthtime; older payloads fall back to created/modified.
+        const aAdded = a.date_added ?? (a as FileEntry & { created?: number }).created ?? a.modified;
+        const bAdded = b.date_added ?? (b as FileEntry & { created?: number }).created ?? b.modified;
+        comparison = aAdded - bAdded || a.modified - b.modified;
+        break;
+      }
+
+      case 'lastOpened': {
+        // Spotlight only answers for files that were opened; never-opened
+        // entries carry no value and sort as oldest (bottom in the Finder
+        // default descending order).
+        comparison = (a.last_opened ?? 0) - (b.last_opened ?? 0);
+        break;
+      }
+
+      default:
+        comparison = getNaturalCollator().compare(a.name, b.name);
+    }
+
+    return sortOrder === 'desc' ? -comparison : comparison;
+  });
+};
+
+// ── Date-based file grouping (Windows Explorer–style) ───────────────────────
+
+export type DateGroup =
+  | 'Today'
+  | 'Yesterday'
+  | 'Earlier This Week'
+  | 'Last Week'
+  | 'Earlier This Month'
+  | 'Last Month'
+  | 'Older';
+
+const DATE_GROUP_I18N_KEYS: Record<DateGroup, string> = {
+  Today: 'today',
+  Yesterday: 'yesterday',
+  'Earlier This Week': 'earlierThisWeek',
+  'Last Week': 'lastWeek',
+  'Earlier This Month': 'earlierThisMonth',
+  'Last Month': 'lastMonth',
+  Older: 'older',
+};
+
+export const getDateGroupTranslationKey = (group: DateGroup): string =>
+  `fileGrid.dateGroups.${DATE_GROUP_I18N_KEYS[group]}`;
+
+const DATE_GROUP_ORDER: DateGroup[] = [
+  'Today',
+  'Yesterday',
+  'Earlier This Week',
+  'Last Week',
+  'Earlier This Month',
+  'Last Month',
+  'Older',
+];
+
+export const getDateGroup = (modifiedTimestamp: number): DateGroup => {
+  const now = new Date();
+  const modified = new Date(modifiedTimestamp * 1000);
+
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const yesterdayStart = todayStart - 86_400_000;
+
+  const modifiedMs = modified.getTime();
+
+  if (modifiedMs >= todayStart) return 'Today';
+  if (modifiedMs >= yesterdayStart) return 'Yesterday';
+
+  // Start of the week (Monday-based for consistency)
+  const dayOfWeek = (now.getDay() + 6) % 7; // 0=Mon, 6=Sun
+  const weekStart = todayStart - dayOfWeek * 86_400_000;
+  if (modifiedMs >= weekStart) return 'Earlier This Week';
+
+  const lastWeekStart = weekStart - 7 * 86_400_000;
+  if (modifiedMs >= lastWeekStart) return 'Last Week';
+
+  // Same month but before last week
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  if (modifiedMs >= monthStart) return 'Earlier This Month';
+
+  // Previous month
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
+  if (modifiedMs >= lastMonthStart) return 'Last Month';
+
+  return 'Older';
+};
+
+
+export const groupFilesByDate = (files: FileEntry[]): FileGroup[] => {
+  const groups: Record<DateGroup, FileEntry[]> = {
+    Today: [],
+    Yesterday: [],
+    'Earlier This Week': [],
+    'Last Week': [],
+    'Earlier This Month': [],
+    'Last Month': [],
+    Older: [],
+  };
+
+  for (const file of files) {
+    const group = getDateGroup(file.modified);
+    groups[group].push(file);
+  }
+
+  return DATE_GROUP_ORDER.filter((g) => groups[g].length > 0).map((g) => ({
+    group: g,
+    files: groups[g],
+  }));
+};
+
+// ── Kind grouping (Finder's GroupByKind.plist semantics) ────────────────────
+// The bucket table lives in its own zero-dependency module so search chips
+// and preview actions share the exact grouping source without pulling this
+// bundle's import graph.
+export {
+  getKindBucketByName,
+  getFileKindBucket,
+  getKindGroupTranslationKey,
+  groupFilesByKind,
+} from '@/lib/kind-groups';
+export type { KindGroup } from '@/lib/kind-groups';
+import { getKindGroupTranslationKey, type KindGroup } from '@/lib/kind-groups';
+
+export interface FileGroup {
+  group: DateGroup | KindGroup;
+  files: FileEntry[];
+}
+
+/** Shared label key for either grouping mode (date or kind). */
+export const getFileGroupTranslationKey = (group: DateGroup | KindGroup): string =>
+  typeof group === 'string' && group in DATE_GROUP_I18N_KEYS
+    ? `fileGrid.dateGroups.${DATE_GROUP_I18N_KEYS[group as DateGroup]}`
+    : getKindGroupTranslationKey(group as KindGroup);
+
+export { ICON_SIZE_TIERS, pickNativeIconTier } from '@/lib/icon-tiers';
+
+// Built-in theme configurations. The legacy keys stay stable so existing
+// preferences and extension integrations continue to work, while the visible
+// themes share one calm Wisp workbench language.
+export interface ThemeDef {
+  name: string;
+  primary: string;
+  bg: string;
+  surface: string;
+  text: string;
+}
+
+export const themes: Record<string, ThemeDef> = {
+  auto: {
+    name: 'Wisp',
+    primary: '#4a6fa5',
+    bg: '#e9e8e4',
+    surface: '#ffffff',
+    text: '#1d1c1a',
+  },
+  // Legacy keys resolve to the same adaptive theme.
+  rolex: { name: 'Wisp', primary: '#4a6fa5', bg: '#e9e8e4', surface: '#ffffff', text: '#1d1c1a' },
+  glass: { name: 'Wisp', primary: '#4a6fa5', bg: '#e9e8e4', surface: '#ffffff', text: '#1d1c1a' },
+  light: { name: 'Wisp', primary: '#4a6fa5', bg: '#e9e8e4', surface: '#ffffff', text: '#1d1c1a' },
+};
+
+// Helper to create a config icon
+const cfgIcon = (Icon: LucideIcon): React.ReactNode =>
+  React.createElement(Icon, { size: '1em', className: 'inline-block' });
+
+// Sort options configuration
+export const sortOptions: Record<
+  SortField,
+  { id: SortField; name: string; icon: React.ReactNode }
+> = {
+  name: {
+    id: 'name',
+    get name() {
+      return i18n.t('sort.name');
+    },
+    icon: cfgIcon(ArrowDownAZ),
+  },
+  dateModified: {
+    id: 'dateModified',
+    get name() {
+      return i18n.t('sort.dateModified');
+    },
+    icon: cfgIcon(Calendar),
+  },
+  dateCreated: {
+    id: 'dateCreated',
+    get name() {
+      return i18n.t('sort.dateCreated');
+    },
+    icon: cfgIcon(Calendar),
+  },
+  dateAdded: {
+    id: 'dateAdded',
+    get name() {
+      return i18n.t('sort.dateAdded');
+    },
+    icon: cfgIcon(CalendarDays),
+  },
+  lastOpened: {
+    id: 'lastOpened',
+    get name() {
+      return i18n.t('sort.lastOpened');
+    },
+    icon: cfgIcon(Clock),
+  },
+  size: {
+    id: 'size',
+    get name() {
+      return i18n.t('sort.size');
+    },
+    icon: cfgIcon(HardDrive),
+  },
+  type: {
+    id: 'type',
+    get name() {
+      return i18n.t('sort.type');
+    },
+    icon: cfgIcon(Tag),
+  },
+  extension: {
+    id: 'extension',
+    get name() {
+      return i18n.t('sort.extension');
+    },
+    icon: cfgIcon(FileText),
+  },
+};
+
+// View modes configuration
+export const viewModes = {
+  large: {
+    id: 'large',
+    get name() {
+      return i18n.t('viewMode.large');
+    },
+    icon: cfgIcon(LayoutGrid),
+  },
+  medium: {
+    id: 'medium',
+    get name() {
+      return i18n.t('viewMode.medium');
+    },
+    icon: cfgIcon(Grid3X3),
+  },
+  small: {
+    id: 'small',
+    get name() {
+      return i18n.t('viewMode.small');
+    },
+    icon: cfgIcon(Grid2X2),
+  },
+  tiles: {
+    id: 'tiles',
+    get name() {
+      return i18n.t('viewMode.tiles');
+    },
+    icon: cfgIcon(LayoutPanelTop),
+  },
+  content: {
+    id: 'content',
+    get name() {
+      return i18n.t('viewMode.content');
+    },
+    icon: cfgIcon(FileText),
+  },
+  list: {
+    id: 'list',
+    get name() {
+      return i18n.t('viewMode.list');
+    },
+    icon: cfgIcon(List),
+  },
+  details: {
+    id: 'details',
+    get name() {
+      return i18n.t('viewMode.details');
+    },
+    icon: cfgIcon(Table),
+  },
+  tree: {
+    id: 'tree',
+    get name() {
+      return i18n.t('viewMode.tree');
+    },
+    icon: cfgIcon(FolderTree),
+  },
+  gallery: {
+    id: 'gallery',
+    get name() {
+      return i18n.t('viewMode.gallery');
+    },
+    icon: cfgIcon(GalleryHorizontal),
+  },
+  column: {
+    id: 'column',
+    get name() {
+      return i18n.t('viewMode.column');
+    },
+    icon: cfgIcon(Columns),
+  },
+};
+
+// SkySync owns the system light/dark appearance and shared material classes.
+// Keep accepting historical keys for settings and extension compatibility.
+// Do not clear the material when
+// the settings page or an extension reapplies a historical theme key.
+export const applyTheme = (_themeKey: string) => {
+  const root = document.documentElement;
+  root.classList.forEach((cls) => {
+    if (
+      cls.startsWith('theme-') &&
+      cls !== 'theme-fluid' &&
+      cls !== 'theme-light' &&
+      cls !== 'theme-rolex'
+    ) {
+      root.classList.remove(cls);
+    }
+  });
+};

@@ -1,0 +1,407 @@
+import { useEffect, useCallback, useRef } from 'react';
+import { TauriAPI, ShortcutAction, ShortcutBinding } from '@/lib/tauri-api';
+import { listenToEvent } from '@/lib/transport';
+import { getKeyString } from '@/lib/shortcut-utils';
+import { isBrowserDemoMode } from '@/lib/browser-demo-files';
+import { DEMO_DEFAULT_SHORTCUTS } from '@/hooks/demo-default-shortcuts';
+import { hasSelectedText, isTextEditingTarget } from '@/lib/text-editing';
+import { terminalOwnsKey } from '@/lib/terminal-input';
+
+export interface ShortcutHandlers {
+  // File operations
+  onCopy?: () => void;
+  onCopyPath?: () => void;
+  onCut?: () => void;
+  onPaste?: () => void;
+  onPasteMove?: () => void;
+  onDelete?: () => void;
+  onRename?: () => void;
+  onNewFolder?: () => void;
+  onNewFile?: () => void;
+  onDuplicate?: () => void;
+  onOpen?: () => void;
+  onProperties?: () => void;
+  onQuickLook?: () => void;
+  onRefresh?: () => void;
+  onSelectAll?: () => void;
+
+  // History
+  onUndo?: () => void;
+  onRedo?: () => void;
+
+  // Navigation
+  onNavigateUp?: () => void;
+  onNavigateBack?: () => void;
+  onNavigateForward?: () => void;
+  onGoHome?: () => void;
+  onGoToPath?: () => void;
+  onGoToSpecial?: (folder: string) => void;
+  onToggleHiddenFiles?: () => void;
+
+  // View operations
+  onTogglePreview?: () => void;
+  onToggleLeftSidebar?: () => void;
+  onToggleRightSidebar?: () => void;
+  onToggleBottomPanel?: () => void;
+  onSwitchViewMode?: () => void;
+  onSetViewMode?: (mode: string) => void;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
+
+  // Search and selection
+  onSearch?: () => void;
+  onQuickSearch?: () => void;
+  onNaturalLanguageSearch?: () => void;
+  onFilterFiles?: () => void;
+  onClearSelection?: () => void;
+  onInvertSelection?: () => void;
+
+  // Application
+  onOpenSettings?: () => void;
+  onToggleFullscreen?: () => void;
+  onQuit?: () => void;
+  onNewWindow?: () => void;
+  onCloseTab?: () => void;
+  onNextTab?: () => void;
+  onPreviousTab?: () => void;
+
+  // Dialogs & split panes
+  onToggleShortcutsDialog?: () => void;
+  onToggleWorkspaceLayoutDialog?: () => void;
+  onToggleBookmarksDialog?: () => void;
+  onSplitPaneVertical?: () => void;
+  onSplitPaneHorizontal?: () => void;
+
+  // Terminal / AI
+  onOpenTerminal?: () => void;
+  onToggleAgentWorkspace?: () => void;
+
+  // Extension actions
+  onExtensionAction?: (
+    extensionId: string,
+    actionId: string,
+    params?: Record<string, string>,
+  ) => void;
+}
+
+// ── Module-level shortcut cache ───────────────────────────────────────────
+// Loaded once, shared across all instances of useShortcuts.
+// Map: "key_combination" → ShortcutBinding (for matching context + enabled)
+
+let shortcutMap: Map<string, ShortcutBinding[]> = new Map();
+let shortcutsLoaded = false;
+let loadPromise: Promise<void> | null = null;
+
+const buildMap = (bindings: ShortcutBinding[]) => {
+  const map = new Map<string, ShortcutBinding[]>();
+  for (const b of bindings) {
+    if (!b.enabled) continue;
+    const key = b.key_combination;
+    const list = map.get(key);
+    if (list) list.push(b);
+    else map.set(key, [b]);
+  }
+  shortcutMap = map;
+  shortcutsLoaded = true;
+};
+
+async function ensureLoaded() {
+  if (shortcutsLoaded) return;
+  if (!loadPromise) {
+    loadPromise = TauriAPI.getShortcuts()
+      .then(buildMap)
+      .catch((err) => {
+        console.error('Failed to load shortcuts:', err);
+        // Browser demo has no backend — fall back to the default bindings so
+        // keyboard shortcuts stay testable at ?demo=1.
+        if (isBrowserDemoMode()) buildMap(DEMO_DEFAULT_SHORTCUTS);
+      })
+      .finally(() => {
+        loadPromise = null;
+      });
+  }
+  await loadPromise;
+}
+
+/** Reload the shortcut map (e.g. after settings change). */
+export const reloadShortcuts = () => {
+  shortcutsLoaded = false;
+  loadPromise = null;
+  ensureLoaded();
+};
+
+/** Synchronous lookup — returns the action if a binding matches. */
+const resolveAction = (keyCombo: string, context: string): ShortcutAction | null => {
+  const bindings = shortcutMap.get(keyCombo);
+  if (!bindings) return null;
+  for (const b of bindings) {
+    if (b.context === null || b.context === context) {
+      return b.action;
+    }
+  }
+  return null;
+};
+
+/** Actions the terminal owns when its textarea has focus — the app must not
+ *  hijack ⌘C/⌘V/⌘Z/⌘A away from the PTY and its selection copy behavior. */
+const isTerminalOwnedAction = (action: ShortcutAction): boolean =>
+  typeof action === 'string' &&
+  ['Copy', 'Cut', 'Paste', 'PasteMove', 'CopyPath', 'SelectAll', 'Undo', 'Redo'].includes(action);
+
+// ── Hook ──────────────────────────────────────────────────────────────────
+
+export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file-explorer') => {
+  const handlersRef = useRef(handlers);
+  handlersRef.current = handlers;
+
+  const executeAction = useCallback((action: ShortcutAction) => {
+    const h = handlersRef.current;
+    switch (action) {
+      case 'Copy':
+        h.onCopy?.();
+        break;
+      case 'CopyPath':
+        h.onCopyPath?.();
+        break;
+      case 'Cut':
+        h.onCut?.();
+        break;
+      case 'Paste':
+        h.onPaste?.();
+        break;
+      case 'PasteMove':
+        h.onPasteMove?.();
+        break;
+      case 'Delete':
+        h.onDelete?.();
+        break;
+      case 'Rename':
+        h.onRename?.();
+        break;
+      case 'NewFolder':
+        h.onNewFolder?.();
+        break;
+      case 'NewFile':
+        h.onNewFile?.();
+        break;
+      case 'Duplicate':
+        h.onDuplicate?.();
+        break;
+      case 'QuickLook':
+        h.onQuickLook?.();
+        break;
+      case 'Open':
+        h.onOpen?.();
+        break;
+      case 'Properties':
+        h.onProperties?.();
+        break;
+      case 'Undo':
+        h.onUndo?.();
+        break;
+      case 'Redo':
+        h.onRedo?.();
+        break;
+      case 'Refresh':
+        h.onRefresh?.();
+        break;
+      case 'SelectAll':
+        h.onSelectAll?.();
+        break;
+      case 'NavigateUp':
+        h.onNavigateUp?.();
+        break;
+      case 'NavigateBack':
+        h.onNavigateBack?.();
+        break;
+      case 'NavigateForward':
+        h.onNavigateForward?.();
+        break;
+      case 'GoHome':
+        h.onGoHome?.();
+        break;
+      case 'GoToPath':
+        h.onGoToPath?.();
+        break;
+      case 'ToggleShortcutsDialog':
+        h.onToggleShortcutsDialog?.();
+        break;
+      case 'ToggleWorkspaceLayoutDialog':
+        h.onToggleWorkspaceLayoutDialog?.();
+        break;
+      case 'ToggleBookmarksDialog':
+        h.onToggleBookmarksDialog?.();
+        break;
+      case 'SplitPaneVertical':
+        h.onSplitPaneVertical?.();
+        break;
+      case 'SplitPaneHorizontal':
+        h.onSplitPaneHorizontal?.();
+        break;
+      case 'ToggleAgentWorkspace':
+        h.onToggleAgentWorkspace?.();
+        break;
+      case 'ToggleHiddenFiles':
+        h.onToggleHiddenFiles?.();
+        break;
+      case 'TogglePreview':
+        h.onTogglePreview?.();
+        break;
+      case 'ToggleLeftSidebar':
+        h.onToggleLeftSidebar?.();
+        break;
+      case 'ToggleRightSidebar':
+        h.onToggleRightSidebar?.();
+        break;
+      case 'ToggleBottomPanel':
+        h.onToggleBottomPanel?.();
+        break;
+      case 'SwitchViewMode':
+        h.onSwitchViewMode?.();
+        break;
+      case 'ZoomIn':
+        h.onZoomIn?.();
+        break;
+      case 'ZoomOut':
+        h.onZoomOut?.();
+        break;
+      case 'Search':
+        h.onSearch?.();
+        break;
+      case 'QuickSearch':
+        h.onQuickSearch?.();
+        break;
+      case 'NaturalLanguageSearch':
+        h.onNaturalLanguageSearch?.();
+        break;
+      case 'FilterFiles':
+        h.onFilterFiles?.();
+        break;
+      case 'ClearSelection':
+        h.onClearSelection?.();
+        break;
+      case 'InvertSelection':
+        h.onInvertSelection?.();
+        break;
+      case 'OpenSettings':
+        h.onOpenSettings?.();
+        break;
+      case 'ToggleFullscreen':
+        h.onToggleFullscreen?.();
+        break;
+      case 'Quit':
+        h.onQuit?.();
+        break;
+      case 'NewWindow':
+        h.onNewWindow?.();
+        break;
+      case 'CloseTab':
+        h.onCloseTab?.();
+        break;
+      case 'NextTab':
+        h.onNextTab?.();
+        break;
+      case 'PreviousTab':
+        h.onPreviousTab?.();
+        break;
+      case 'OpenTerminal':
+        h.onOpenTerminal?.();
+        break;
+      default:
+        if (typeof action === 'object' && 'ExtensionAction' in action) {
+          const ea = action.ExtensionAction;
+          h.onExtensionAction?.(ea.extension_id, ea.action_id, ea.params);
+        } else if (typeof action === 'object' && 'SetViewMode' in action) {
+          h.onSetViewMode?.(action.SetViewMode.mode);
+        } else if (typeof action === 'object' && 'GoToSpecial' in action) {
+          h.onGoToSpecial?.(action.GoToSpecial.folder);
+        }
+        break;
+    }
+  }, []);
+
+  useEffect(() => {
+    // Ensure shortcuts are loaded before keydown events fire
+    ensureLoaded();
+
+    // Capture phase: xterm's textarea keydown handler stops propagation on
+    // keys it consumes, which would hide terminal-panel ⌘J/⌘1-4 from a
+    // bubble-phase document listener. Capture runs before it.
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.isComposing) return;
+      // Ignore if typing in input fields
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const inEditable = isTextEditingTarget(target);
+      // xterm owns Ctrl/Option shell editing and terminal clipboard, clear,
+      // selection and font shortcuts. Keep unrelated app commands (e.g. ⌘J).
+      if (target.closest('.xterm') && terminalOwnsKey(event)) return;
+      // Ignore if a modal dialog or command palette is open
+      if (target.closest('[role="dialog"]') || document.querySelector('[data-command-palette]')) {
+        return;
+      }
+
+      // Native controls own unmodified activation/navigation keys. In capture
+      // phase, file Open/Quick Look must not swallow a button's Enter/Space or
+      // a menu's Escape before the control can handle them.
+      if (!event.metaKey && !event.ctrlKey && !event.altKey) {
+        const inComposite = target.closest('[role="menu"], [role="tablist"], select');
+        const activatingControl =
+          (event.key === 'Enter' || event.key === ' ') &&
+          target.closest('button, a[href], [role="button"], [role="tab"], [role="switch"]');
+        if (inComposite || activatingControl) return;
+      }
+
+      // The integrated terminal's xterm textarea grabs focus the moment the
+      // panel opens — a blanket input exemption here would kill EVERY app
+      // shortcut while the panel is visible. Inside xterm, modifier combos
+      // (⌘J, ⌘1-4…) still reach app bindings. Terminal-owned editing keys
+      // are filtered above; remaining text-edit actions stay local below.
+      if (inEditable) {
+        const inTerminal = !!target.closest('.xterm');
+        if (!inTerminal || !(event.metaKey || event.ctrlKey)) return;
+      }
+
+      const keyString = getKeyString(event);
+      if (!keyString) return;
+
+      // Synchronous lookup — no IPC roundtrip
+      const action = resolveAction(keyString, context);
+      if (action) {
+        // A selection in a preview/help panel belongs to the user, even if
+        // files remain selected in the explorer behind it.
+        if (action === 'Copy' && hasSelectedText()) return;
+        if (inEditable && isTerminalOwnedAction(action)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        executeAction(action);
+      }
+    };
+
+    // Listen for global shortcuts from the backend
+    const unlistenGlobal = listenToEvent<ShortcutAction>('global_shortcut_triggered', (action) => {
+      if (
+        document.querySelector(
+          '[role="dialog"][aria-modal="true"], [role="alertdialog"][aria-modal="true"]',
+        )
+      ) {
+        return;
+      }
+      if (isTerminalOwnedAction(action) && isTextEditingTarget(document.activeElement)) return;
+      if (action === 'Copy' && hasSelectedText()) return;
+      executeAction(action);
+    });
+
+    // Reload map when shortcuts are changed from settings
+    const handleShortcutsChanged = () => reloadShortcuts();
+    window.addEventListener('shortcuts-changed', handleShortcutsChanged);
+
+    document.addEventListener('keydown', handleKeyDown, { capture: true });
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown, { capture: true });
+      window.removeEventListener('shortcuts-changed', handleShortcutsChanged);
+      unlistenGlobal.then((unlisten) => unlisten()).catch(console.error);
+    };
+  }, [context, executeAction]);
+};

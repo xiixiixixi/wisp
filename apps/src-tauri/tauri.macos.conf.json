@@ -1,0 +1,21 @@
+{
+  "build": {
+    "beforeDevCommand": {
+      "script": "pnpm -w bridge:prepare && pnpm -w shelf:prepare --dev",
+      "wait": true
+    },
+    "beforeBuildCommand": "pnpm -w bridge:prepare && pnpm -w shelf:prepare && pnpm -w frontend:build",
+    "beforeBundleCommand": "pnpm -w shelf:widget:ensure"
+  },
+  "bundle": {
+    "resources": {
+      "shelf-engine/WispShelf.app/": "shelf-engine/WispShelf.app/"
+    },
+    "macOS": {
+      "files": {
+        "PlugIns/WispShelfWidget.appex": "shelf-engine/WispShelfWidget.appex",
+        "PlugIns/WispShelfShare.appex": "shelf-engine/WispShelfShare.appex"
+      }
+    }
+  }
+}

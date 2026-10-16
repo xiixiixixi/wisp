@@ -1,0 +1,195 @@
+/* GitHub Light / GitHub Dark syntax colors, independent of interface accents. */
+:root {
+  --code-background: #f7f7f9;
+  --code-foreground: #24292f;
+  --code-comment: #57606a;
+  --code-keyword: #cf222e;
+  --code-string: #0a3069;
+  --code-constant: #0550ae;
+  --code-function: #8250df;
+  --code-type: #953800;
+  --code-property: #0550ae;
+  --code-tag: #116329;
+  --code-punctuation: #24292f;
+  --code-invalid: #cf222e;
+  --code-gutter: #57606a;
+  --code-cursor: #0969da;
+  --code-selection: #b6d7ff;
+  --code-active-line: #eaeef280;
+  --code-bracket: #b6d7ff99;
+  --code-search-match: #fff1a8;
+  --code-border: #d8dee4;
+  --code-panel: #fff;
+}
+
+html.theme-rolex {
+  --code-background: #202127;
+  --code-foreground: #c9d1d9;
+  --code-comment: #8b949e;
+  --code-keyword: #ff7b72;
+  --code-string: #a5d6ff;
+  --code-constant: #79c0ff;
+  --code-function: #d2a8ff;
+  --code-type: #ffa657;
+  --code-property: #79c0ff;
+  --code-tag: #7ee787;
+  --code-punctuation: #c9d1d9;
+  --code-invalid: #ff7b72;
+  --code-gutter: #8b949e;
+  --code-cursor: #79c0ff;
+  --code-selection: #26476d;
+  --code-active-line: #ffffff08;
+  --code-bracket: #388bfd40;
+  --code-search-match: #634b16;
+  --code-border: #3a3d45;
+  --code-panel: #272931;
+}
+
+.wisp-code-editor .code-token-comment {
+  color: var(--code-comment);
+}
+.wisp-code-editor .code-token-keyword {
+  color: var(--code-keyword);
+}
+.wisp-code-editor .code-token-string {
+  color: var(--code-string);
+}
+.wisp-code-editor .code-token-constant {
+  color: var(--code-constant);
+}
+.wisp-code-editor .code-token-function {
+  color: var(--code-function);
+}
+.wisp-code-editor .code-token-type {
+  color: var(--code-type);
+}
+.wisp-code-editor .code-token-property {
+  color: var(--code-property);
+}
+.wisp-code-editor .code-token-variable {
+  color: var(--code-foreground);
+}
+.wisp-code-editor .code-token-punctuation {
+  color: var(--code-punctuation);
+}
+.wisp-code-editor .code-token-tag {
+  color: var(--code-tag);
+}
+.wisp-code-editor .code-token-link {
+  color: var(--code-constant);
+  text-decoration: underline;
+}
+.wisp-code-editor .code-token-heading {
+  color: var(--code-foreground);
+  font-weight: 600;
+}
+.wisp-code-editor .code-token-emphasis {
+  font-style: italic;
+}
+.wisp-code-editor .code-token-strong {
+  font-weight: 700;
+}
+.wisp-code-editor .code-token-invalid {
+  color: var(--code-invalid);
+  text-decoration: underline wavy;
+}
+
+.wisp-code-preview {
+  min-height: 0;
+}
+.wisp-code-preview .wisp-code-surface {
+  background: var(--code-background);
+  border-color: var(--code-border);
+}
+.wisp-code-language {
+  color: var(--code-comment);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 18px;
+}
+.wisp-code-wrap {
+  display: inline-flex;
+  width: 28px;
+  height: 26px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--code-comment);
+}
+.wisp-code-wrap:hover {
+  background: var(--code-active-line);
+  color: var(--code-foreground);
+}
+.wisp-code-wrap[aria-pressed="true"] {
+  background: var(--code-bracket);
+  color: var(--code-foreground);
+}
+
+/* Markdown fences share the code surface, while Shiki supplies token colors. */
+.md-preview .md-code-block {
+  margin: 16px 0;
+  overflow: hidden;
+  border: 1px solid var(--code-border);
+  border-radius: 10px;
+  background: var(--code-background);
+  color: var(--code-foreground);
+}
+.md-preview .md-code-toolbar {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 10px 4px 14px;
+  border-bottom: 1px solid var(--code-border);
+  color: var(--code-comment);
+  font-size: 11px;
+  line-height: 18px;
+}
+.md-preview .md-code-language {
+  font-weight: 500;
+}
+.md-preview .md-code-copy {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-left: auto;
+  padding: 2px 7px;
+  border: 0;
+  border-radius: 5px;
+  color: var(--code-comment);
+  background: transparent;
+  font-size: 11px;
+}
+.md-preview .md-code-copy:hover {
+  color: var(--code-foreground);
+  background: var(--code-active-line);
+}
+.md-preview .md-code-copy-status {
+  color: var(--code-comment);
+  font-size: 11px;
+}
+.md-preview .md-code-body {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+.md-preview .md-code-block .md-code-body pre {
+  margin: 0;
+  padding: 12px 14px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  color: var(--code-foreground);
+  font-family: "SF Mono", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  tab-size: 4;
+}
+.md-preview .md-code-block .md-code-fallback code {
+  color: var(--code-foreground);
+}

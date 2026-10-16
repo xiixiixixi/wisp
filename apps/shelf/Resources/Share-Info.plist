@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>zh_CN</string>
+	<key>CFBundleExecutable</key>
+	<string>WispShelfShare</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.wisp.app.shelfshare</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>WispShelfShare</string>
+	<key>CFBundleDisplayName</key>
+	<string>Wisp 收集架</string>
+	<key>CFBundlePackageType</key>
+	<string>XPC!</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.4.4</string>
+	<key>CFBundleVersion</key>
+	<string>10</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>13.0</string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>NSExtension</key>
+	<dict>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.share-services-manager</string>
+		<key>NSExtensionPrincipalClass</key>
+		<string>WispShelfShare.ShareViewController</string>
+		<key>NSExtensionAttributes</key>
+		<dict>
+			<!-- 与 ShareIntake.activationRule 一一对应（测试看守两处不漂移）：
+			     文件 ≤256、图片数据 ≤256、纯文本、网页链接。 -->
+			<key>NSExtensionActivationRule</key>
+			<dict>
+				<key>NSExtensionActivationSupportsFileWithMaxCount</key>
+				<integer>256</integer>
+				<key>NSExtensionActivationSupportsImageWithMaxCount</key>
+				<integer>256</integer>
+				<key>NSExtensionActivationSupportsTextWithMaxCount</key>
+				<integer>1</integer>
+				<key>NSExtensionActivationSupportsWebURLWithMaxCount</key>
+				<integer>1</integer>
+			</dict>
+		</dict>
+	</dict>
+</dict>
+</plist>

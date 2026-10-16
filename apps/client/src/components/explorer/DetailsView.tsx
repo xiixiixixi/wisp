@@ -1,0 +1,511 @@
+import { formatFileListDate } from '@/lib/file-date-format';
+import React, { useRef, useMemo, useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { useDraggable } from '@/hooks/use-draggable';
+import { FileEntry, FolderSizeInfo } from '@/lib/tauri-api';
+import { ViewComponentProps } from './FileGridTypes';
+import { getFileGroupTranslationKey, type FileGroup } from '@/lib/utils';
+import { FileReferenceBadge, getFileReferenceLabel } from './FileReferenceBadge';
+import { resolveRenderedFileTabStop } from '@/hooks/use-file-tab-stop';
+import { useFileRevealScroll } from '@/hooks/use-file-reveal-scroll';
+import { useLabelRename } from '@/hooks/use-label-rename';
+import { InlineRenameInput } from './FileGridItem';
+import { TagDots } from './FileGridHelpers';
+
+// Kept inline (not from FileGridHelpers) so tests don't pull the real i18n singleton.
+const isHiddenFile = (file: FileEntry): boolean => file.name.startsWith('.');
+
+interface DetailsViewProps extends ViewComponentProps {
+  fileGroups?: FileGroup[] | null;
+}
+
+const DETAILS_ROW_HEIGHT = 40;
+const GROUP_HEADER_HEIGHT = 26;
+const DETAILS_VIRTUALIZATION_THRESHOLD = 200;
+
+type FlatItem =
+  | { type: 'header'; group: { name: string; count: number } }
+  | { type: 'file'; file: FileEntry };
+
+interface FileRowProps {
+  tabStopPath?: string;
+  file: FileEntry;
+  selectedFiles: Set<string>;
+  allFiles: FileEntry[];
+  getFileIcon: (file: FileEntry) => React.ReactNode;
+  formatFileSize: (bytes: number) => string;
+  formatFolderSize: (folderSizeInfo: FolderSizeInfo | null, isCalculating?: boolean) => string;
+  formatDate?: (timestamp: number) => string;
+  onFileClick: (filePath: string, event: React.MouseEvent) => void;
+  onFileDoubleClick: (filePath: string) => void;
+  onFileRightClick: (filePath: string, event: React.MouseEvent) => void;
+  getFolderSize: (path: string) => FolderSizeInfo | null;
+  isCalculatingSize: (path: string) => boolean;
+  onCalculateFolderSize?: (path: string) => void;
+  tags?: import('@/lib/tauri-api').FileTag[];
+  renamingPath?: string | null;
+  onRenameConfirm?: (oldPath: string, newName: string) => void;
+  onRenameCancel?: () => void;
+  onRenameFile?: (oldPath: string, newName: string) => Promise<boolean>;
+  onQuickLook?: (file: FileEntry) => void;
+}
+
+const FileRow = React.memo(
+  ({
+    file,
+    tabStopPath,
+    selectedFiles,
+    allFiles,
+    getFileIcon,
+    formatFileSize,
+    formatFolderSize,
+    formatDate: _formatDate,
+    onFileClick,
+    onFileDoubleClick,
+    onFileRightClick,
+    getFolderSize,
+    isCalculatingSize,
+    onCalculateFolderSize,
+    tags,
+    renamingPath,
+    onRenameConfirm,
+    onRenameCancel,
+    onRenameFile,
+    onQuickLook,
+  }: FileRowProps) => {
+    const { t } = useTranslation();
+    const dragHandlers = useDraggable({ file, selectedFiles, allFiles });
+    // Finder: a slow click on the name cell of the already-selected row starts
+    // an inline rename through the same window event the Enter key dispatches.
+    const startLabelRename = useCallback(
+      (caretOffset: number | undefined) => {
+        window.dispatchEvent(
+          new CustomEvent('start-inline-rename', { detail: { path: file.path, caretOffset } }),
+        );
+      },
+      [file.path],
+    );
+    const { onLabelPointerDown, onLabelClick, noteRowClick } = useLabelRename(
+      selectedFiles.has(file.path),
+      startLabelRename,
+    );
+    const labelClickHandlers = onRenameFile
+      ? { onPointerDown: onLabelPointerDown, onClick: onLabelClick }
+      : {};
+    const handleClick = useCallback(
+      (e: React.MouseEvent) => {
+        noteRowClick();
+        onFileClick(file.path, e);
+      },
+      [noteRowClick, onFileClick, file.path],
+    );
+    const handleDoubleClick = useCallback(
+      () => onFileDoubleClick(file.path),
+      [onFileDoubleClick, file.path],
+    );
+    const handleContextMenu = useCallback(
+      (e: React.MouseEvent) => onFileRightClick(file.path, e),
+      [onFileRightClick, file.path],
+    );
+    const handleKeyDown = useCallback(
+      (e: React.KeyboardEvent) => {
+        // Enter renames (Finder behaviour; open with ⌘O/⌘↓ via the shortcut system)
+        if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          window.dispatchEvent(
+            new CustomEvent('start-inline-rename', { detail: { path: file.path } }),
+          );
+        }
+        // Space previews (Finder behaviour). Consume the event so the
+        // document-level shortcut system doesn't fire a second time.
+        if (e.key === ' ') {
+          e.preventDefault();
+          e.stopPropagation();
+          onQuickLook?.(file);
+        }
+      },
+      [onQuickLook, file],
+    );
+    const handleCalculateClick = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onCalculateFolderSize?.(file.path);
+      },
+      [onCalculateFolderSize, file.path],
+    );
+
+    return (
+      <div
+        role="row"
+        aria-selected={selectedFiles.has(file.path)}
+        aria-label={
+          getFileReferenceLabel(file, t)
+            ? `${file.name}, ${getFileReferenceLabel(file, t)}`
+            : file.name
+        }
+        tabIndex={tabStopPath === file.path ? 0 : -1}
+        data-file-path={file.path}
+        data-drop-target={file.is_dir ? file.path : undefined}
+        data-is-folder={file.is_dir ? 'true' : undefined}
+        className={`wisp-file-row wisp-file-item grid cursor-default grid-cols-12 items-center gap-3 px-3 transition-colors ${
+          selectedFiles.has(file.path) ? 'file-selected' : ''
+        } text-xp-text`}
+        {...(renamingPath === file.path ? {} : dragHandlers)}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+        onContextMenu={handleContextMenu}
+        onKeyDown={handleKeyDown}
+      >
+        <div className="col-span-1 flex justify-center" role="gridcell">
+          {/* macOS 参考图：行内大号类型图标 */}
+          <span className={`text-[26px] leading-none ${isHiddenFile(file) ? 'opacity-60' : ''}`}>
+            <FileReferenceBadge file={file} compact>
+              {getFileIcon(file)}
+            </FileReferenceBadge>
+          </span>
+        </div>
+        <div className="col-span-5 min-w-0" role="gridcell">
+          {renamingPath === file.path && onRenameFile ? (
+            <InlineRenameInput
+              fileName={file.name}
+              isDir={file.is_dir}
+              isListView
+              existingNames={allFiles.map((f) => f.name)}
+              filePath={file.path}
+              onConfirm={(oldPath, newName) => {
+                onRenameConfirm?.(oldPath, newName);
+              }}
+              onCancel={() => onRenameCancel?.()}
+              onTab={(oldPath, newName) => {
+                // Details rows have no Tab-hop flow of their own; commit only.
+                if (newName) onRenameConfirm?.(oldPath, newName);
+              }}
+            />
+          ) : (
+            <div
+              className={`wisp-file-name flex min-w-0 items-center font-normal ${isHiddenFile(file) ? 'text-xp-text-muted' : ''}`}
+            >
+              <span className="min-w-0 truncate" {...labelClickHandlers}>
+                {file.name}
+              </span>
+              <TagDots tags={tags ?? []} />
+            </div>
+          )}
+        </div>
+        <div className="col-span-2 truncate text-right text-xs text-xp-text-muted" role="gridcell">
+          {(() => {
+            if (!file.is_dir) return formatFileSize(file.size);
+            if (getFolderSize(file.path) || isCalculatingSize(file.path)) {
+              return formatFolderSize(getFolderSize(file.path), isCalculatingSize(file.path));
+            }
+            return (
+              <button
+                className="flex h-7 w-full items-center justify-end text-xp-text-muted underline decoration-dotted transition-colors hover:text-xp-accent"
+                onClick={handleCalculateClick}
+                title={t('explorer.details.calculateTitle')}
+              >
+                {t('explorer.details.calculate')}
+              </button>
+            );
+          })()}
+        </div>
+        <div className="col-span-2 text-center text-xs text-xp-text-muted" role="gridcell">
+          <span className="text-xs capitalize">
+            {file.is_dir && file.file_type !== 'app-library'
+              ? t('common.folder')
+              : fileTypeLabel(file.file_type, t)}
+          </span>
+        </div>
+        <div className="col-span-2 truncate text-right text-xs text-xp-text-muted" role="gridcell">
+          {formatFileListDate(file.modified)}
+        </div>
+      </div>
+    );
+  },
+);
+
+const GroupHeader = React.memo(({ name, count }: { name: string; count: number }) => (
+  <div
+    className="wisp-file-group-header flex items-center gap-2.5 px-3"
+    style={{ height: GROUP_HEADER_HEIGHT }}
+  >
+    {/* Finder-parity group title: same size class as the file names (13px,
+        medium ink), flush with the icon column, count trailing in muted gray.
+        A section header must never render smaller than its content. */}
+    <span className="text-[13px] font-semibold leading-none text-xp-text">{name}</span>
+    <span className="text-xs leading-none text-xp-text-muted">{count}</span>
+  </div>
+));
+
+const DetailsView = (props: DetailsViewProps) => {
+  const { t } = useTranslation();
+  const {
+    files,
+    selectedFiles,
+    getFileIcon,
+    formatFileSize,
+    formatFolderSize,
+    formatDate: _formatDate,
+    handleFileClick,
+    handleFileDoubleClick,
+    handleFileRightClick,
+    handleBackgroundRightClick,
+    getFolderSize,
+    isCalculatingSize,
+    calculateFolderSize,
+    fileGroups,
+    allTags,
+    renamingPath,
+    onRenameConfirm,
+    onRenameCancel,
+    onRenameFile,
+    onQuickLook,
+  } = props;
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
+
+  const filesByPath = useMemo(() => {
+    const map = new Map<string, FileEntry>();
+    for (const file of files) {
+      map.set(file.path, file);
+    }
+    if (fileGroups && fileGroups.length > 0) {
+      for (const group of fileGroups) {
+        for (const file of group.files) {
+          map.set(file.path, file);
+        }
+      }
+    }
+    return map;
+  }, [files, fileGroups]);
+
+  const allFiles = useMemo(() => Array.from(filesByPath.values()), [filesByPath]);
+
+  const onFileClick = useCallback(
+    (filePath: string, event: React.MouseEvent) => {
+      const file = filesByPath.get(filePath);
+      if (file) handleFileClick(file, event);
+    },
+    [filesByPath, handleFileClick],
+  );
+
+  const onFileDoubleClick = useCallback(
+    (filePath: string) => {
+      const file = filesByPath.get(filePath);
+      if (file) handleFileDoubleClick(file);
+    },
+    [filesByPath, handleFileDoubleClick],
+  );
+
+  const onFileRightClick = useCallback(
+    (filePath: string, event: React.MouseEvent) => {
+      const file = filesByPath.get(filePath);
+      if (file) handleFileRightClick(file, event);
+    },
+    [filesByPath, handleFileRightClick],
+  );
+
+  const flatItems = useMemo<FlatItem[]>(() => {
+    if (fileGroups && fileGroups.length > 0) {
+      const items: FlatItem[] = [];
+      for (const group of fileGroups) {
+        items.push({
+          type: 'header',
+          group: { name: t(getFileGroupTranslationKey(group.group)), count: group.files.length },
+        });
+        for (const file of group.files) {
+          items.push({ type: 'file', file });
+        }
+      }
+      return items;
+    }
+    return files.map((file) => ({ type: 'file' as const, file }));
+  }, [fileGroups, files, t]);
+
+  const needsVirtualization = flatItems.length >= DETAILS_VIRTUALIZATION_THRESHOLD;
+
+  useEffect(() => {
+    const scrollElement = needsVirtualization
+      ? scrollRef.current
+      : scrollRef.current?.closest<HTMLElement>('.wisp-file-scroll');
+
+    if (!scrollElement) {
+      setIsHeaderScrolled(false);
+      return;
+    }
+
+    let wasScrolled: boolean | undefined;
+    const updateHeader = () => {
+      const isScrolled = scrollElement.scrollTop > 0;
+      if (isScrolled !== wasScrolled) {
+        wasScrolled = isScrolled;
+        setIsHeaderScrolled(isScrolled);
+      }
+    };
+
+    updateHeader();
+    scrollElement.addEventListener('scroll', updateHeader, { passive: true });
+    return () => scrollElement.removeEventListener('scroll', updateHeader);
+  }, [needsVirtualization, props.currentPath]);
+
+  const estimateSize = useCallback(
+    (index: number) => {
+      const item = flatItems[index];
+      return item?.type === 'header' ? GROUP_HEADER_HEIGHT : DETAILS_ROW_HEIGHT;
+    },
+    [flatItems],
+  );
+
+  const virtualizer = useVirtualizer({
+    count: needsVirtualization ? flatItems.length : 0,
+    getScrollElement: () => scrollRef.current,
+    estimateSize,
+    overscan: 10,
+    enabled: needsVirtualization,
+  });
+
+  useFileRevealScroll({
+    groupId: props.groupId,
+    currentPath: props.currentPath,
+    paths: flatItems.map((item) => (item.type === 'file' ? item.file.path : null)),
+    containerRef: scrollRef,
+    scrollToIndex: needsVirtualization
+      ? (index) => virtualizer.scrollToIndex(index, { align: 'center' })
+      : undefined,
+  });
+
+  const header = (
+    <div
+      className={`wisp-list-header sticky top-0 z-20 ${isHeaderScrolled ? 'wisp-list-header-scrolled' : ''}`}
+      role="row"
+    >
+      <div className="grid h-[30px] grid-cols-12 items-center gap-3 px-3 text-xs font-semibold text-xp-text-muted">
+        <div
+          className="col-span-1"
+          role="columnheader"
+          aria-label={t('explorer.details.iconCol')}
+        />
+        <div className="col-span-5" role="columnheader">
+          {t('explorer.details.nameCol')}
+        </div>
+        <div className="col-span-2 text-right" role="columnheader">
+          {t('explorer.details.sizeCol')}
+        </div>
+        <div className="col-span-2 text-center" role="columnheader">
+          {t('explorer.details.typeCol')}
+        </div>
+        <div className="col-span-2 text-right" role="columnheader">
+          {t('explorer.details.modifiedCol')}
+        </div>
+      </div>
+    </div>
+  );
+
+  const virtualRows = virtualizer.getVirtualItems();
+  const preferredTabStopPath =
+    props.tabStopPath ??
+    allFiles.find((file) => selectedFiles.has(file.path))?.path ??
+    allFiles[0]?.path;
+  const renderedFiles = needsVirtualization
+    ? virtualRows.flatMap((row) => {
+        const item = flatItems[row.index];
+        return item?.type === 'file' ? [item.file] : [];
+      })
+    : allFiles;
+  const tabStopPath = resolveRenderedFileTabStop(preferredTabStopPath, renderedFiles);
+  const stableRowProps = {
+    tabStopPath,
+    selectedFiles,
+    allFiles,
+    getFileIcon,
+    formatFileSize,
+    formatFolderSize,
+    onFileClick,
+    onFileDoubleClick,
+    onFileRightClick,
+    getFolderSize,
+    isCalculatingSize,
+    onCalculateFolderSize: calculateFolderSize,
+    renamingPath,
+    onRenameConfirm,
+    onRenameCancel,
+    onRenameFile,
+    onQuickLook,
+  };
+
+  const renderFlatItem = (item: FlatItem) => {
+    if (item.type === 'header') {
+      return <GroupHeader name={item.group.name} count={item.group.count} />;
+    }
+    return (
+      <FileRow file={item.file} {...stableRowProps} tags={allTags?.get(item.file.path) ?? []} />
+    );
+  };
+
+  if (!needsVirtualization) {
+    return (
+      <div
+        ref={scrollRef}
+        className="select-none text-sm"
+        role="table"
+        aria-label={t('explorer.details.fileListAria')}
+        onContextMenu={handleBackgroundRightClick || undefined}
+      >
+        {header}
+        <div className="wisp-file-rows" role="rowgroup">
+          {flatItems.map((item) => (
+            <div key={item.type === 'header' ? `group-${item.group.name}` : item.file.path}>
+              {renderFlatItem(item)}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={scrollRef}
+      tabIndex={tabStopPath ? -1 : 0}
+      className="h-full select-none overflow-auto text-sm"
+      role="table"
+      aria-label={t('explorer.details.fileListAria')}
+      onContextMenu={handleBackgroundRightClick || undefined}
+    >
+      {header}
+      <div
+        role="rowgroup"
+        style={{
+          height: `${virtualizer.getTotalSize()}px`,
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        {virtualRows.map((virtualRow) => {
+          const item = flatItems[virtualRow.index];
+          return (
+            <div
+              key={virtualRow.key}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: `${virtualRow.size}px`,
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              {renderFlatItem(item)}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export default DetailsView;
+import { fileTypeLabel } from '@/lib/file-type-label';

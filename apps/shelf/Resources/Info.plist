@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleExecutable</key>
+	<string>WispShelf</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.wisp.shelf.dev</string>
+	<key>CFBundleName</key>
+	<string>WispShelf</string>
+	<key>CFBundleDisplayName</key>
+	<string>Wisp 收集架组件</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.4.4</string>
+	<key>CFBundleVersion</key>
+	<string>10</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>13.0</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.wisp.shelf.collect</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>wisp-shelf</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+		</dict>
+	</array>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>收集内容</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.data</string>
+				<string>public.folder</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSServices</key>
+	<array>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>加入 Wisp 收集架</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>collectService</string>
+			<key>NSPortName</key>
+			<string>WispShelf</string>
+			<key>NSSendTypes</key>
+			<array>
+				<string>public.file-url</string>
+				<string>public.utf8-plain-text</string>
+				<string>public.url</string>
+				<string>public.png</string>
+				<string>NSRTFDPboardType</string>
+				<string>NSFileContentsPboardType</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.15",
+  "target": "aarch64-apple-darwin",
+  "release": "https://github.com/openai/tunnel-client/releases/tag/v0.0.15",
+  "archive": "tunnel-client-v0.0.15-darwin-arm64.zip",
+  "archiveSha256": "b2cae3aa9df45b4c2fe9b1d700ebacce39f9feb6a6b46b86e6499f9a51bf72ff",
+  "cloudflaredVersion": "2026.8.2",
+  "files": {
+    "binaries/tunnel-client-aarch64-apple-darwin": "f534872593a60b12560b6c74cbbf94adf6f7e1d9fdd67a3f59b8268ff8a8249c",
+    "binaries/cloudflared-aarch64-apple-darwin": "4cf6ca3f4dde4266cd5a61c55f3fe4d8e752914e9d6187a10bd0daf80d0440a1",
+    "bridge-runtime/cloudflared-manifest.json": "80003d8a8f38d6a0bd74aabc096e9f99a6e8fad8ed4da699e26a8231fa453aa1",
+    "bridge-runtime/licenses/LICENSE": "f4c1d7ba32ef5bcf5cf03e2eefec5825ebafedf50fa330a36700a49c605c1ef4",
+    "bridge-runtime/licenses/NOTICE": "1364c020d86ecf948b78b7c655175032068203d13aece70fb0bfe112d7802dc2",
+    "bridge-runtime/licenses/third-party-licenses.txt": "d3bd91adcf6ffb18a8ab21fbe71890aef72d93a58dce0368482dbd689064e320",
+    "bridge-runtime/licenses/dependencies.spdx.json": "f4a5366e3bea7d58c710f60aa552677a43e53c4155f377bc8c5b585657a92294"
+  }
+}

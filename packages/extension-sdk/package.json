@@ -1,0 +1,46 @@
+{
+  "name": "@wisp/extension-sdk",
+  "version": "1.0.0",
+  "description": "SDK for creating Wisp file manager extensions",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "wisp-sdk": "bin/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "wisp",
+    "file-manager",
+    "extension",
+    "sdk",
+    "theme"
+  ],
+  "author": "Wisp Team",
+  "license": "MIT",
+  "dependencies": {
+    "@types/react": "^19.0.0",
+    "archiver": "^7.0.1",
+    "react": "^19.0.0",
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.0.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.0.0",
+    "@types/react-dom": "^19.0.0",
+    "jest": "^29.0.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "react-dom": "^19.0.0",
+    "ts-jest": "^29.0.0"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "templates"
+  ]
+}

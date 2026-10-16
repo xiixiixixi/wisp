@@ -1,0 +1,6 @@
+.build/
+dist/
+.swiftpm/
+verification/
+.impeccable/review/
+.local-share-data/

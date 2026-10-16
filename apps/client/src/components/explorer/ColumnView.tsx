@@ -1,0 +1,582 @@
+import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { FileEntry, TauriAPI } from '@/lib/tauri-api';
+import { ViewComponentProps } from './FileGridTypes';
+import { FileReferenceBadge } from './FileReferenceBadge';
+import { getFileDisplayName } from '@/lib/file-display-name';
+import { useFileExtensions } from '@/hooks/use-file-extensions';
+import { useGridKeyboardNav } from '@/hooks/use-grid-keyboard-nav';
+import { useFileRevealScroll } from '@/hooks/use-file-reveal-scroll';
+import { useFileTabStop } from '@/hooks/use-file-tab-stop';
+import { useLabelRename } from '@/hooks/use-label-rename';
+import { InlineRenameInput } from './FileGridItem';
+
+interface ColumnData {
+  path: string;
+  files: FileEntry[];
+  selectedFile: string | null;
+}
+
+const COLUMN_ROW_HEIGHT = 30;
+const COLUMN_VIRTUALIZATION_THRESHOLD = 200;
+
+const ColumnFileRow = React.memo(
+  ({
+    file,
+    isActive,
+    isSelected,
+    tabStopPath,
+    getFileIcon,
+    onQuickLook,
+    onClick,
+    onDoubleClick,
+    onRightClick,
+    renamingPath,
+    existingNames,
+    onRenameConfirm,
+    onRenameCancel,
+    onRenameFile,
+  }: {
+    file: FileEntry;
+    isActive: boolean;
+    isSelected: boolean;
+    tabStopPath?: string;
+    getFileIcon: (file: FileEntry) => React.ReactNode;
+    onQuickLook?: (file: FileEntry) => void;
+    onClick: (e: React.MouseEvent) => void;
+    onDoubleClick: () => void;
+    onRightClick: (e: React.MouseEvent) => void;
+    renamingPath?: string | null;
+    existingNames?: string[];
+    onRenameConfirm?: (oldPath: string, newName: string) => void;
+    onRenameCancel?: () => void;
+    onRenameFile?: (oldPath: string, newName: string) => Promise<boolean>;
+  }) => {
+    const showFileExtensions = useFileExtensions();
+    // Finder: a slow click on the name text of the already-selected row starts
+    // an inline rename through the same window event the Enter key dispatches.
+    const startLabelRename = useCallback(
+      (caretOffset: number | undefined) => {
+        window.dispatchEvent(
+          new CustomEvent('start-inline-rename', { detail: { path: file.path, caretOffset } }),
+        );
+      },
+      [file.path],
+    );
+    const { onLabelPointerDown, onLabelClick, noteRowClick } = useLabelRename(
+      isSelected,
+      startLabelRename,
+    );
+    const isRenaming = renamingPath === file.path && Boolean(onRenameFile);
+    const labelClickHandlers = onRenameFile
+      ? { onPointerDown: onLabelPointerDown, onClick: onLabelClick }
+      : {};
+    return (
+      <div
+        role="option"
+        aria-selected={isActive || isSelected}
+        data-file-path={file.path}
+        tabIndex={tabStopPath === file.path ? 0 : -1}
+        className="wisp-file-item"
+        onClick={(e) => {
+          noteRowClick();
+          onClick(e);
+        }}
+        onDoubleClick={onDoubleClick}
+        onContextMenu={onRightClick}
+        onKeyDown={(e) => {
+          // Enter renames (Finder behaviour); open with ⌘O/⌘↓ via the shortcut system
+          if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.dispatchEvent(
+              new CustomEvent('start-inline-rename', { detail: { path: file.path } }),
+            );
+          }
+          // Space previews (Finder behaviour)
+          if (e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            onQuickLook?.(file);
+          }
+        }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '4px 12px',
+          cursor: 'default',
+          fontSize: '13px',
+          color: 'var(--xp-text)',
+          height: `${COLUMN_ROW_HEIGHT}px`,
+          boxSizing: 'border-box',
+        }}
+      >
+        <span
+          style={{
+            flexShrink: 0,
+            width: '16px',
+            height: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <FileReferenceBadge file={file} compact>
+            {getFileIcon(file)}
+          </FileReferenceBadge>
+        </span>
+        {isRenaming ? (
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <InlineRenameInput
+              fileName={file.name}
+              isDir={file.is_dir}
+              isListView
+              existingNames={existingNames ?? []}
+              filePath={file.path}
+              onConfirm={(oldPath, newName) => onRenameConfirm?.(oldPath, newName)}
+              onCancel={() => onRenameCancel?.()}
+              onTab={(oldPath, newName) => {
+                // Column rows have no Tab-hop flow of their own; commit only.
+                if (newName) onRenameConfirm?.(oldPath, newName);
+              }}
+            />
+          </div>
+        ) : (
+          <span
+            style={{
+              flex: 1,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {/* Inner inline span shrinks to the text so only the name itself is
+                a rename hit target (Finder: the rest of the row only selects). */}
+            <span {...labelClickHandlers} style={onRenameFile ? { cursor: 'text' } : undefined}>
+              {getFileDisplayName(file.name, showFileExtensions)}
+            </span>
+          </span>
+        )}
+        {!isRenaming && file.is_dir && (
+          <span
+            style={{
+              color: 'var(--xp-text-secondary)',
+              fontSize: '14px',
+              lineHeight: 1,
+              flexShrink: 0,
+            }}
+          >
+            ›
+          </span>
+        )}
+      </div>
+    );
+  },
+);
+
+ColumnFileRow.displayName = 'ColumnFileRow';
+
+const VirtualizedColumnPane = ({
+  column,
+  colIndex,
+  groupId,
+  selectedFiles,
+  getFileIcon,
+  onQuickLook,
+  handleColumnFileClick,
+  handleFileDoubleClick,
+  handleFileRightClick,
+  renamingPath,
+  onRenameConfirm,
+  onRenameCancel,
+  onRenameFile,
+}: {
+  column: ColumnData;
+  colIndex: number;
+  groupId: string;
+  selectedFiles: Set<string>;
+  getFileIcon: (file: FileEntry) => React.ReactNode;
+  onQuickLook?: (file: FileEntry) => void;
+  handleColumnFileClick: (file: FileEntry, colIndex: number, e: React.MouseEvent) => void;
+  handleFileDoubleClick: (file: FileEntry) => void;
+  handleFileRightClick: (file: FileEntry, e: React.MouseEvent) => void;
+  renamingPath?: string | null;
+  onRenameConfirm?: (oldPath: string, newName: string) => void;
+  onRenameCancel?: () => void;
+  onRenameFile?: (oldPath: string, newName: string) => Promise<boolean>;
+}) => {
+  const { t: tUi } = useTranslation();
+  const columnScrollRef = useRef<HTMLDivElement>(null);
+  const needsVirtualization = column.files.length >= COLUMN_VIRTUALIZATION_THRESHOLD;
+  // Conflict detection for inline renames: names of this column's siblings.
+  const existingNames = useMemo(() => column.files.map((f) => f.name), [column.files]);
+
+  const virtualizer = useVirtualizer({
+    count: needsVirtualization ? column.files.length : 0,
+    getScrollElement: () => columnScrollRef.current,
+    estimateSize: () => COLUMN_ROW_HEIGHT,
+    overscan: 10,
+    enabled: needsVirtualization,
+  });
+  const virtualRows = virtualizer.getVirtualItems();
+  useFileRevealScroll({
+    groupId,
+    currentPath: column.path,
+    paths: column.files.map((file) => file.path),
+    containerRef: columnScrollRef,
+    enabled: colIndex === 0,
+    scrollToIndex: needsVirtualization
+      ? (index) => virtualizer.scrollToIndex(index, { align: 'center' })
+      : undefined,
+  });
+  const renderedFiles = needsVirtualization
+    ? virtualRows.flatMap((row) => (column.files[row.index] ? [column.files[row.index]] : []))
+    : column.files;
+  const { tabStopPath, rememberFileFocus } = useFileTabStop(
+    column.files,
+    selectedFiles,
+    renderedFiles,
+  );
+  const selectColumnFile = useCallback(
+    (file: FileEntry, event: React.MouseEvent) => handleColumnFileClick(file, colIndex, event),
+    [colIndex, handleColumnFileClick],
+  );
+  const { handleKeyDown } = useGridKeyboardNav({
+    files: column.files,
+    selectedFiles,
+    columns: 1,
+    viewMode: 'column',
+    getColumnsCount: () => 1,
+    handleFileClick: selectColumnFile,
+    handleFileDoubleClick,
+    needsVirtualization,
+    virtualizer,
+    containerRef: columnScrollRef,
+    onQuickLook,
+  });
+
+  if (!needsVirtualization) {
+    return (
+      <div
+        key={`${column.path}-${colIndex}`}
+        ref={columnScrollRef}
+        onKeyDown={handleKeyDown}
+        tabIndex={tabStopPath ? -1 : 0}
+        role="listbox"
+        aria-label={column.path}
+        aria-multiselectable={true}
+        className="wisp-file-selection-surface"
+        onFocusCapture={rememberFileFocus}
+        style={{
+          minWidth: '220px',
+          maxWidth: '280px',
+          width: '280px',
+          height: '100%',
+          borderRight: '1px solid var(--xp-border)',
+          overflowY: 'auto',
+          flexShrink: 0,
+        }}
+      >
+        {column.files.map((file) => (
+          <ColumnFileRow
+            key={file.path}
+            file={file}
+            tabStopPath={tabStopPath}
+            isActive={column.selectedFile === file.path}
+            isSelected={selectedFiles.has(file.path)}
+            getFileIcon={getFileIcon}
+            onQuickLook={onQuickLook}
+            onClick={(e) => handleColumnFileClick(file, colIndex, e)}
+            onDoubleClick={() => handleFileDoubleClick(file)}
+            onRightClick={(e) => handleFileRightClick(file, e)}
+            renamingPath={renamingPath}
+            existingNames={existingNames}
+            onRenameConfirm={onRenameConfirm}
+            onRenameCancel={onRenameCancel}
+            onRenameFile={onRenameFile}
+          />
+        ))}
+        {column.files.length === 0 && (
+          <div
+            style={{
+              padding: '20px',
+              textAlign: 'center',
+              color: 'var(--xp-text-secondary)',
+              fontSize: '12px',
+            }}
+          >
+            {tUi('interface.emptyFolder')}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={columnScrollRef}
+      onKeyDown={handleKeyDown}
+      tabIndex={tabStopPath ? -1 : 0}
+      role="listbox"
+      aria-label={column.path}
+      aria-multiselectable={true}
+      className="wisp-file-selection-surface"
+      onFocusCapture={rememberFileFocus}
+      style={{
+        minWidth: '220px',
+        maxWidth: '280px',
+        width: '280px',
+        height: '100%',
+        borderRight: '1px solid var(--xp-border)',
+        overflowY: 'auto',
+        flexShrink: 0,
+      }}
+    >
+      <div
+        style={{
+          height: `${virtualizer.getTotalSize()}px`,
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        {virtualRows.map((virtualRow) => {
+          const file = column.files[virtualRow.index];
+          return (
+            <div
+              key={virtualRow.key}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: `${virtualRow.size}px`,
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              <ColumnFileRow
+                file={file}
+                tabStopPath={tabStopPath}
+                isActive={column.selectedFile === file.path}
+                isSelected={selectedFiles.has(file.path)}
+                getFileIcon={getFileIcon}
+                onQuickLook={onQuickLook}
+                onClick={(e) => handleColumnFileClick(file, colIndex, e)}
+                onDoubleClick={() => handleFileDoubleClick(file)}
+                onRightClick={(e) => handleFileRightClick(file, e)}
+                renamingPath={renamingPath}
+                existingNames={existingNames}
+                onRenameConfirm={onRenameConfirm}
+                onRenameCancel={onRenameCancel}
+                onRenameFile={onRenameFile}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const ColumnView = ({
+  files,
+  currentPath,
+  groupId,
+  selectedFiles,
+  handleFileClick,
+  handleFileDoubleClick,
+  handleFileRightClick,
+  handleBackgroundRightClick,
+  getFileIcon,
+  onQuickLook,
+  formatFileSize,
+  formatDate,
+  renamingPath,
+  onRenameConfirm,
+  onRenameCancel,
+  onRenameFile,
+}: ViewComponentProps) => {
+  const { t: tUi } = useTranslation();
+  const [columns, setColumns] = useState<ColumnData[]>([
+    { path: currentPath, files, selectedFile: null },
+  ]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setColumns([{ path: currentPath, files, selectedFile: null }]);
+    // Only reset columns on path change; file updates handled by next effect
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPath]);
+
+  useEffect(() => {
+    setColumns((prev) => {
+      const updated = [...prev];
+      if (updated.length > 0 && updated[0].path === currentPath) {
+        updated[0] = { ...updated[0], files };
+      }
+      return updated;
+    });
+  }, [files, currentPath]);
+
+  const handleColumnFileClick = useCallback(
+    async (file: FileEntry, columnIndex: number, event: React.MouseEvent) => {
+      handleFileClick(file, event);
+
+      // Finder parity：.app 是目录但不钻入栏视图下一级——单击仅选中，
+      // 双击由上层 handleFileDoubleClick 启动应用（特判见 recent-entry-actions）。
+      if (file.is_dir && !file.path.endsWith('.app')) {
+        setColumns((prev) => {
+          const updated = prev.slice(0, columnIndex + 1);
+          updated[columnIndex] = { ...updated[columnIndex], selectedFile: file.path };
+          return updated;
+        });
+
+        try {
+          const dirFiles = await TauriAPI.readDirectory(file.path);
+          setColumns((prev) => {
+            // Repeated arrow presses may select a different folder before this
+            // request finishes. Only append to the selection that requested it.
+            if (prev[columnIndex]?.selectedFile !== file.path) return prev;
+            return [
+              ...prev.slice(0, columnIndex + 1),
+              { path: file.path, files: dirFiles, selectedFile: null },
+            ];
+          });
+          setTimeout(() => {
+            scrollRef.current?.scrollTo({
+              left: scrollRef.current.scrollWidth,
+              behavior: 'auto',
+            });
+          }, 50);
+        } catch (err) {
+          console.error('Failed to load directory:', err);
+        }
+      } else {
+        setColumns((prev) => {
+          const updated = prev.slice(0, columnIndex + 1);
+          updated[columnIndex] = { ...updated[columnIndex], selectedFile: file.path };
+          return updated;
+        });
+      }
+    },
+    [handleFileClick],
+  );
+
+  const getExtension = (name: string): string | null => {
+    const dotIndex = name.lastIndexOf('.');
+    if (dotIndex > 0 && dotIndex < name.length - 1) {
+      return name.substring(dotIndex + 1);
+    }
+    return null;
+  };
+
+  const selectedFileForPreview = columns.reduce<FileEntry | null>((acc, col) => {
+    if (col.selectedFile) {
+      const file = col.files.find((f) => f.path === col.selectedFile);
+      if (file && !file.is_dir) return file;
+    }
+    return acc;
+  }, null);
+
+  return (
+    <div
+      ref={scrollRef}
+      onContextMenu={handleBackgroundRightClick || undefined}
+      style={{
+        display: 'flex',
+        height: '100%',
+        overflowX: 'auto',
+        overflowY: 'hidden',
+      }}
+    >
+      {columns.map((column, colIndex) => (
+        <VirtualizedColumnPane
+          key={column.path}
+          column={column}
+          colIndex={colIndex}
+          groupId={groupId}
+          selectedFiles={selectedFiles}
+          getFileIcon={getFileIcon}
+          onQuickLook={onQuickLook}
+          handleColumnFileClick={handleColumnFileClick}
+          handleFileDoubleClick={handleFileDoubleClick}
+          handleFileRightClick={handleFileRightClick}
+          renamingPath={renamingPath}
+          onRenameConfirm={onRenameConfirm}
+          onRenameCancel={onRenameCancel}
+          onRenameFile={onRenameFile}
+        />
+      ))}
+
+      {selectedFileForPreview && (
+        <div
+          style={{
+            minWidth: '280px',
+            width: '300px',
+            height: '100%',
+            padding: '16px',
+            overflowY: 'auto',
+            flexShrink: 0,
+            borderRight: '1px solid var(--xp-border)',
+          }}
+        >
+          <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+            <div
+              style={{
+                fontSize: '48px',
+                marginBottom: '8px',
+                display: 'flex',
+                justifyContent: 'center',
+              }}
+            >
+              {getFileIcon(selectedFileForPreview)}
+            </div>
+            <div
+              style={{
+                fontSize: '14px',
+                fontWeight: 600,
+                color: 'var(--xp-text)',
+                wordBreak: 'break-all',
+              }}
+            >
+              {selectedFileForPreview.name}
+            </div>
+          </div>
+          <div
+            style={{
+              fontSize: '12px',
+              color: 'var(--xp-text-secondary)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>{tUi('interface.sizeLabel')}</span>
+              <span>{formatFileSize(selectedFileForPreview.size)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>{tUi('interface.modifiedLabel')}</span>
+              <span>{formatDate(selectedFileForPreview.modified)}</span>
+            </div>
+            {selectedFileForPreview.file_type && (
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>{tUi('interface.typeLabel')}</span>
+                <span>{selectedFileForPreview.file_type}</span>
+              </div>
+            )}
+            {getExtension(selectedFileForPreview.name) && (
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>{tUi('interface.extensionLabel')}</span>
+                <span>.{getExtension(selectedFileForPreview.name)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ColumnView;

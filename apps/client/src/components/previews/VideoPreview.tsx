@@ -1,0 +1,277 @@
+import { Slider } from '@/components/ui/slider';
+import { useTranslation } from 'react-i18next';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { PreviewProps } from '@/lib/preview-factory';
+import { convertAssetUrl, isTauri } from '@/lib/transport';
+import { loadMediaSource } from '@/lib/preview-media';
+import { formatTime } from '@/lib/format-utils';
+import { TauriAPI } from '@/lib/tauri-api';
+
+const VideoPreview = ({ file, onError, onLoad }: PreviewProps) => {
+  const { t: tUi } = useTranslation();
+  const [videoError, setVideoError] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [videoSrc, setVideoSrc] = useState<string>('');
+  const [posterSrc, setPosterSrc] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    // Reset states when file changes
+    setLoading(true);
+    setVideoError(false);
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+    let cancelled = false;
+    let dispose: () => void = () => undefined;
+
+    // WKWebView refuses range-less asset URLs in <video> — load the bytes as
+    // a Blob URL instead (see lib/preview-media.ts).
+    void loadMediaSource(file.path, file.name, 'video', file.size).then((media) => {
+      if (cancelled) {
+        media.dispose();
+        return;
+      }
+      dispose = media.dispose;
+      setVideoSrc(media.url);
+    });
+
+    return () => {
+      cancelled = true;
+      dispose();
+    };
+  }, [file.path, file.name, file.size]);
+
+  const handleLoadedData = useCallback(() => {
+    const video = videoRef.current;
+    if (video) {
+      const dur = isNaN(video.duration) ? 0 : video.duration;
+      setDuration(dur);
+      setCurrentTime(video.currentTime);
+    }
+    setLoading(false);
+    onLoad?.();
+  }, [onLoad]);
+
+  // With preload="metadata" the player settles at readyState 1 and
+  // loadeddata never fires until playback starts — clear the spinner on
+  // metadata too (same WKWebView quirk AudioPreview hit).
+  const handleLoadedMetadata = useCallback(() => {
+    const video = videoRef.current;
+    if (video && !isNaN(video.duration)) {
+      setDuration(video.duration);
+    }
+    setLoading(false);
+    onLoad?.();
+  }, [onLoad]);
+
+  const handleError = useCallback(() => {
+    setVideoError(true);
+    setLoading(false);
+    onError?.(new Error('Failed to load video'));
+    // WebKit lacks the codec (mkv/avi/…) — Finder still shows a frame, so ask
+    // Quick Look for a poster instead of giving up.
+    if (isTauri()) {
+      TauriAPI.previewQlThumbnail(file.path, 1024)
+        .then((thumb) => {
+          if (thumb) setPosterSrc(convertAssetUrl(thumb));
+        })
+        .catch(() => undefined);
+    }
+  }, [onError, file.path]);
+
+  const handleTimeUpdate = useCallback(() => {
+    const video = videoRef.current;
+    if (video) {
+      setCurrentTime(video.currentTime);
+    }
+  }, []);
+
+  const handleEnded = useCallback(() => {
+    setIsPlaying(false);
+  }, []);
+
+  const togglePlay = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video.paused) {
+      video.play();
+      setIsPlaying(true);
+    } else {
+      video.pause();
+      setIsPlaying(false);
+    }
+  }, []);
+
+  const handleProgressChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const video = videoRef.current;
+    if (video) {
+      const time = parseFloat(e.target.value);
+      video.currentTime = time;
+      setCurrentTime(time);
+    }
+  }, []);
+
+  const handleVolumeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const video = videoRef.current;
+    if (video) {
+      const vol = parseFloat(e.target.value);
+      video.volume = vol;
+      setVolume(vol);
+    }
+  }, []);
+
+  const safeDuration = isNaN(duration) ? 0 : duration;
+  const progressPercent = safeDuration > 0 ? (currentTime / safeDuration) * 100 : 0;
+
+  return (
+    <div className="flex h-full flex-col">
+      {loading && (
+        <div className="flex flex-1 items-center justify-center rounded-md border border-xp-border bg-xp-surface">
+          <div className="text-center text-xp-text-muted">
+            <div className="animate-pulse">
+              <div className="mx-auto mb-2 h-16 w-16 rounded-md bg-xp-bg" />
+              <p className="text-xs">{tUi('interface.loadingVideo')}</p>
+            </div>
+          </div>
+        </div>
+      )}
+      {!videoError && (
+        <>
+          <div
+            className={`flex flex-1 items-center justify-center overflow-hidden bg-black ${loading ? 'hidden' : ''}`}
+          >
+            <video
+              ref={videoRef}
+              src={videoSrc}
+              preload="metadata"
+              className="max-h-full max-w-full object-contain"
+              onLoadedData={handleLoadedData}
+              onLoadedMetadata={handleLoadedMetadata}
+              onError={handleError}
+              onTimeUpdate={handleTimeUpdate}
+              onEnded={handleEnded}
+            />
+          </div>
+          {/* Custom Controls */}
+          {!loading && (
+            <div className="space-y-2 border-t border-xp-border bg-xp-surface px-3 py-2">
+              {/* Progress bar */}
+              <div className="flex items-center space-x-2 text-xs text-xp-text">
+                <span>{formatTime(currentTime)}</span>
+                <Slider
+                  aria-label={tUi('previews.audio.playbackPosition')}
+                  aria-valuetext={`${formatTime(currentTime)} / ${formatTime(safeDuration)}`}
+                  min="0"
+                  max={String(safeDuration)}
+                  step="0.1"
+                  value={currentTime}
+                  onChange={handleProgressChange}
+                  className="flex-1"
+                  style={{
+                    background: `linear-gradient(to right, var(--xp-lime) 0%, var(--xp-lime) ${progressPercent}%, var(--xp-border) ${progressPercent}%, var(--xp-border) 100%)`,
+                  }}
+                />
+                <span>{formatTime(safeDuration)}</span>
+              </div>
+              {/* Play/Pause + Volume */}
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={togglePlay}
+                  title={
+                    isPlaying ? tUi('agentManager.workspace.pause') : tUi('previews.audio.play')
+                  }
+                  className="rounded-md p-1.5 text-xp-text hover:bg-xp-surface-light"
+                >
+                  {isPlaying ? (
+                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  )}
+                </button>
+                <div className="flex items-center space-x-1">
+                  <svg className="h-4 w-4 text-xp-text" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217z"
+                      clipRule="evenodd"
+                    />
+                    {volume > 0 && (
+                      <path d="M14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414z" />
+                    )}
+                    {volume > 0.5 && (
+                      <path d="M12.828 4.929a1 1 0 011.414 0A5.983 5.983 0 0116 10a5.984 5.984 0 01-1.758 4.243 1 1 0 01-1.414-1.414A3.984 3.984 0 0014 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.414z" />
+                    )}
+                  </svg>
+                  <Slider
+                    aria-label={tUi('previews.audio.volume')}
+                    aria-valuetext={`${Math.round(volume * 100)}%`}
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={volume}
+                    onChange={handleVolumeChange}
+                    className="w-20"
+                    style={{
+                      background: `linear-gradient(to right, var(--xp-text-muted) 0%, var(--xp-text-muted) ${volume * 100}%, var(--xp-border) ${volume * 100}%, var(--xp-border) 100%)`,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+      {videoError && (
+        <div className="flex flex-1 flex-col items-center justify-center rounded-md border border-xp-border bg-xp-surface">
+          {posterSrc ? (
+            <img
+              src={posterSrc}
+              alt={file.name}
+              className="max-h-[80%] max-w-full object-contain"
+            />
+          ) : (
+            <svg
+              className="mb-2 h-12 w-12 text-xp-text-muted"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+          <div className="mt-3 text-center text-xp-text-muted">
+            <p className="text-sm">{tUi('interface.cannotPreviewVideo')}</p>
+            <p className="mt-1 text-xs opacity-70">
+              {posterSrc
+                ? tUi('previewPanel.posterOnlyHint')
+                : tUi('interface.theVideoFormatMayNotBeSupported')}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default React.memo(VideoPreview);

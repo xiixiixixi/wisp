@@ -1,0 +1,521 @@
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { type FileEntry, type ConflictFileInfo } from '@/lib/tauri-api';
+import { notifyFilesChanged, ICLOUD_FILE_DOWNLOADED_EVENT } from '@/lib/file-change-events';
+import { isTauri } from '@/lib/transport';
+import { useToast } from '@/hooks/use-toast';
+import { sortFiles } from '@/lib/utils';
+import { useHiddenFiles } from '@/hooks/use-hidden-files';
+import type { ConflictResolution } from '@/components/dialogs/FileConflictDialog';
+
+import { useFolderSizes } from '@/hooks/use-folder-sizes';
+import { useFileComparison } from '@/hooks/use-file-comparison';
+import { useWindowEvent } from '@/hooks/use-window-event';
+
+// Extracted hooks
+import { useFileOperations } from '@/hooks/use-file-operations';
+import { useContextMenu } from '@/hooks/use-context-menu';
+import { useDialogManager } from '@/hooks/use-dialog-manager';
+import { useTerminal } from '@/hooks/use-terminal';
+import { useThemeManager } from '@/hooks/use-theme-manager';
+import { useFocusChangeTracker } from '@/hooks/use-focus-change-tracker';
+import { useLayoutState } from '@/hooks/use-layout-state';
+import { useWispActions } from '@/hooks/use-wisp-actions';
+import { useWispEffects } from '@/hooks/use-wisp-effects';
+import { useShelfRevealNavigation } from '@/hooks/use-shelf-reveal-navigation';
+import { navigateShelfDirectory } from '@/lib/shelf-reveal-navigation';
+
+// Components
+import { TopBarHandle } from '@/components/explorer/TopBar';
+import type { LeftSidebarHandle } from '@/components/explorer/LeftSidebar';
+import MainLayout from '@/components/explorer/MainLayout';
+import { useSplitLayout } from '@/hooks/use-split-layout';
+import { useCrossTabSelection } from '@/hooks/use-cross-tab-selection';
+import { usePaneSync } from '@/hooks/use-pane-sync';
+import { ExtensionChangeDialog } from '@/components/dialogs/ExtensionChangeDialog';
+
+// ── Component ────────────────────────────────────────────────────────────────
+
+const ExplorerUnified = () => {
+  const { toast } = useToast();
+
+  // Refs
+  const topBarRef = useRef<TopBarHandle>(null);
+  const leftSidebarRef = useRef<LeftSidebarHandle>(null);
+  const pendingSelectRef = useRef<string | null>(null);
+
+  // ── Split layout ──────────────────────────────────────────────────────────
+  const splitLayout = useSplitLayout();
+  const { state: layoutState, activeGroup } = splitLayout;
+  const paneSync = usePaneSync();
+
+  const currentPath = activeGroup.currentPath;
+  const tabs = activeGroup.tabs;
+  const activeTab = activeGroup.activeTabId;
+
+  // Per-pane selection
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
+
+  // ── Layout state ────────────────────────────────────────────────────────────
+  const layout = useLayoutState();
+
+  // File conflict dialog state
+  const [fileConflict, setFileConflict] = useState<{
+    fileName: string;
+    isDir: boolean;
+    destination: string;
+    remaining: number;
+    sourceInfo?: ConflictFileInfo | null;
+    destInfo?: ConflictFileInfo | null;
+    resolve: (resolution: ConflictResolution, applyToAll: boolean) => void;
+  } | null>(null);
+
+  // Expose for E2E testing
+  if (
+    typeof window !== 'undefined' &&
+    (window as unknown as Record<string, unknown>).__WISP_E2E__
+  ) {
+    (window as unknown as Record<string, unknown>).__setFileConflict__ = setFileConflict;
+  }
+
+  // Selected file for preview
+  const [selectedFile, setSelectedFile] = useState<FileEntry | null>(null);
+
+  // Finder's extension-change guard for inline renames
+  const [extensionChange, setExtensionChange] = useState<{
+    oldName: string;
+    oldExt: string;
+    newExt: string;
+    resolve: (choice: 'use-new' | 'keep-old') => void;
+  } | null>(null);
+  const confirmExtensionChange = useCallback(
+    (oldName: string, oldExt: string, newExt: string) =>
+      new Promise<'use-new' | 'keep-old'>((resolve) => {
+        setExtensionChange({ oldName, oldExt, newExt, resolve });
+      }),
+    [],
+  );
+
+  // ── Dependent hooks ───────────────────────────────────────────────────────
+  const { changes: fileChanges, dismissChanges: dismissFileChanges } =
+    useFocusChangeTracker(currentPath);
+  const crossTabSelection = useCrossTabSelection();
+  const { themes, theme, setTheme, handleApplyTheme } = useThemeManager();
+  const fileComparison = useFileComparison();
+
+  // Files from active pane
+  const [paneFiles, setPaneFiles] = useState<FileEntry[]>([]);
+  const paneRefetchRef = useRef<() => void>(() => {});
+  const files = paneFiles;
+  const refetch = useCallback(() => {
+    // The shared event reaches every EditorGroupPane, including the active
+    // pane. Calling its refetch directly as well duplicated the same request.
+    void notifyFilesChanged();
+  }, []);
+
+  // Dialog manager
+  const dialogManager = useDialogManager({
+    splitLayout,
+    activeGroupId: activeGroup.id,
+    fileComparison,
+    refetch: () => refetch(),
+  });
+
+  // Terminal
+  const terminal = useTerminal({
+    currentPath,
+    setCurrentPath: (path: string) => {
+      splitLayout.navigate(activeGroup.id, path, path.split(/[/\\]/).pop() || path);
+    },
+    refetch: () => refetch(),
+  });
+
+  // Hidden-file visibility (Finder's ⌘⇧.) — shared with split panes and the
+  // settings page via the useHiddenFiles hook.
+  const { showHiddenFiles, toggleHiddenFiles } = useHiddenFiles();
+
+  // Sorted + filtered files
+  const sortedFiles = useMemo(
+    () => sortFiles(files, layout.sortBy, layout.sortOrder),
+    [files, layout.sortBy, layout.sortOrder],
+  );
+  const filteredFiles = useMemo(
+    () => (showHiddenFiles ? sortedFiles : sortedFiles.filter((f) => !f.name.startsWith('.'))),
+    [sortedFiles, showHiddenFiles],
+  );
+
+  const handleGDriveFileSelect = useCallback((file: FileEntry) => {
+    setSelectedFiles(new Set([file.path]));
+  }, []);
+
+  // ── File operations ───────────────────────────────────────────────────────
+  // #12/#20: use-wisp-actions is created after this hook; its preview and
+  // reveal-in-folder handlers flow into the context-menu bag through this
+  // late-bound ref pair so the memoized actions never go stale.
+  const latePaneActionsRef = useRef<{
+    quickLook?: (file: FileEntry) => void;
+    reveal?: (path: string) => void;
+  }>({});
+
+  const fileOps = useFileOperations({
+    visibleFiles: filteredFiles,
+    currentPath,
+    selectedFiles,
+    setSelectedFiles,
+    files,
+    refetch,
+    toast,
+    confirmExtensionChange,
+    splitLayout,
+    activeGroupId: activeGroup.id,
+    fileComparison,
+    dialogs: {
+      openPropertiesDialog: dialogManager.openPropertiesDialog,
+      openOpenWithDialog: dialogManager.openOpenWithDialog,
+      openCompressDialog: dialogManager.openCompressDialog,
+      openBulkRenameDialog: dialogManager.openBulkRenameDialog,
+      openExtractDialog: dialogManager.openExtractDialog,
+      openFileTagsDialog: dialogManager.openFileTagsDialog,
+      openFileDetailsDialog: dialogManager.openFileDetailsDialog,
+      openEncryptionDialog: dialogManager.openEncryptionDialog,
+      openSecureDeleteDialog: dialogManager.openSecureDeleteDialog,
+      openSymlinkDialog: dialogManager.openSymlinkDialog,
+      openPasteRenameDialog: dialogManager.openPasteRenameDialog,
+      openTemplatePicker: () => dialogManager.setTemplatePickerOpen(true),
+      openFolderCompare: (leftPath: string, rightPath: string) => {
+        dialogManager.setFolderComparePaths({ left: leftPath, right: rightPath });
+        dialogManager.setFolderCompareOpen(true);
+      },
+      setShowAdvancedSelect: dialogManager.setShowAdvancedSelect,
+      openBatchConfirmDialog: dialogManager.openBatchConfirmDialog,
+      openBatchMetadataDialog: dialogManager.openBatchMetadataDialog,
+    },
+    setBottomPanelCollapsed: layout.setBottomPanelCollapsed,
+    setBottomPanelTab: layout.setBottomPanelTab,
+    setTerminalCwd: terminal.setTerminalCwd,
+    setViewMode: layout.setViewMode,
+    setSortBy: layout.setSortBy,
+    setSortOrder: layout.setSortOrder,
+    navigateToPath: (path: string) => {
+      splitLayout.navigate(activeGroup.id, path, path.split(/[/\\]/).pop() || path);
+    },
+    resolveConflict: (fileName, isDir, destination, remaining, sourceInfo, destInfo) => {
+      return new Promise((resolve) => {
+        setFileConflict({
+          fileName,
+          isDir,
+          destination,
+          remaining,
+          sourceInfo: sourceInfo ?? null,
+          destInfo: destInfo ?? null,
+          resolve: (resolution, applyToAll) => {
+            setFileConflict(null);
+            resolve({ resolution, applyToAll });
+          },
+        });
+      });
+    },
+    quickLookFile: (file) => latePaneActionsRef.current.quickLook?.(file),
+    revealPathInFolder: (path) => latePaneActionsRef.current.reveal?.(path),
+  });
+
+  // ── Context menu ──────────────────────────────────────────────────────────
+  const ctxMenu = useContextMenu({
+    contextMenuFactoryRef: fileOps.contextMenuFactoryRef,
+    selectedFiles,
+    clipboard: fileOps.clipboard,
+    currentPath,
+    markedFile: fileComparison.markedFile,
+  });
+
+  // ── Folder sizes ──────────────────────────────────────────────────────────
+  // 可见的文件网格由 EditorGroupPane 的 hook 实例供给（含自动计算门控），
+  // 这里只保留缓存读取给预览等处，避免两份状态重复计算。
+  const { getFolderSize, isCalculatingSize, calculateFolderSize } = useFolderSizes(files);
+
+  // ── iCloud 占位下载完成（#26）─────────────────────────────────────────────
+  // Rust 在物化成功时广播；刷新走共享通道，让每个展示该目录的窗格都拿到
+  // is_cloud_placeholder=false 的新列表（FinderFileIcon 随之换出占位视觉）。
+  useEffect(() => {
+    if (!isTauri()) return;
+    let unlisten: (() => void) | null = null;
+    let cancelled = false;
+    import('@tauri-apps/api/event')
+      .then(({ listen }) =>
+        listen<{ path: string; materialized: boolean }>(ICLOUD_FILE_DOWNLOADED_EVENT, (event) => {
+          if (event.payload?.materialized) void notifyFilesChanged();
+        }),
+      )
+      .then((fn) => {
+        if (cancelled) fn();
+        else unlisten = fn;
+      })
+      .catch((error) => {
+        console.warn('Failed to listen for iCloud downloads:', error);
+      });
+    return () => {
+      cancelled = true;
+      unlisten?.();
+    };
+  }, []);
+
+  // ── Actions ───────────────────────────────────────────────────────────────
+  const actions = useWispActions({
+    currentPath,
+    splitLayout,
+    activeGroup,
+    selectedFiles,
+    setSelectedFiles,
+    setSelectedFile,
+    files,
+    refetch,
+    toast,
+    fileOps,
+    ctxMenu,
+    dialogManager,
+    crossTabSelection,
+    theme,
+    setTheme,
+    handleGDriveFileSelect,
+    setPaneFiles,
+    paneRefetchRef,
+    pendingSelectRef,
+    topBarRef,
+    leftSidebarRef,
+    dismissFileChanges,
+    viewMode: layout.viewMode,
+    leftSidebarCollapsed: layout.leftSidebarCollapsed,
+    rightSidebarCollapsed: layout.rightSidebarCollapsed,
+    bottomPanelCollapsed: layout.bottomPanelCollapsed,
+    setLeftSidebarCollapsed: layout.setLeftSidebarCollapsed,
+    setRightSidebarCollapsed: layout.setRightSidebarCollapsed,
+    setRightPanelTab: layout.setRightPanelTab,
+    setBottomPanelCollapsed: layout.setBottomPanelCollapsed,
+    setBottomPanelTab: layout.setBottomPanelTab,
+    setViewMode: layout.setViewMode,
+    setShowChangeSummaryToast: dialogManager.setShowChangeSummaryToast,
+    setFileConflict,
+    setTemplatePickerOpen: dialogManager.setTemplatePickerOpen,
+    setFolderCompareOpen: dialogManager.setFolderCompareOpen,
+    setFolderComparePaths: dialogManager.setFolderComparePaths,
+    setCommandPaletteOpen: dialogManager.setCommandPaletteOpen,
+    setPathBookmarksDialogOpen: dialogManager.setPathBookmarksDialogOpen,
+    setWorkspaceLayoutDialogOpen: dialogManager.setWorkspaceLayoutDialogOpen,
+    setCrossTabDialogOpen: dialogManager.setCrossTabDialogOpen,
+    setShortcutsDialogOpen: dialogManager.setShortcutsDialogOpen,
+    setCollectionEditorOpen: dialogManager.setCollectionEditorOpen,
+    setEditingCollection: dialogManager.setEditingCollection,
+  });
+
+  const navigateToShelfPath = actions.navigateToPath;
+  useEffect(() => {
+    const openShelves = () => navigateToShelfPath('wisp://shelves');
+    window.addEventListener('wisp-open-shelves', openShelves);
+    return () => window.removeEventListener('wisp-open-shelves', openShelves);
+  }, [navigateToShelfPath]);
+
+  const onShelfDirectoryReady = useShelfRevealNavigation({
+    currentPath,
+    groupId: activeGroup.id,
+    navigateToPath: (path) =>
+      navigateShelfDirectory(path, activeGroup, actions, splitLayout.switchTab),
+    refetch,
+    setSelectedFiles,
+    setSelectedFile,
+    toast,
+  });
+  // Bind the late-bound context-menu channels now that actions exist (#12/#20).
+  latePaneActionsRef.current = {
+    quickLook: actions.handlePreviewFile,
+    reveal: (path: string) => {
+      void actions.handleCommandPaletteFileSelect(path, undefined, 'reveal');
+    },
+  };
+  const sharedActions = useMemo(
+    () => ({
+      ...actions.sharedActions,
+      onDirectoryReady: (path: string, directoryFiles: FileEntry[], succeeded: boolean) => {
+        actions.sharedActions.onDirectoryReady?.(path, directoryFiles, succeeded);
+        onShelfDirectoryReady(path, directoryFiles, succeeded);
+      },
+    }),
+    [actions.sharedActions, onShelfDirectoryReady],
+  );
+
+  // ── Effects ───────────────────────────────────────────────────────────────
+  const effects = useWispEffects({
+    currentPath,
+    files,
+    selectedFiles,
+    setSelectedFiles,
+    selectedFile,
+    setSelectedFile,
+    filteredFiles,
+    refetch,
+    toast,
+    pendingSelectRef,
+    topBarRef,
+    leftSidebarRef,
+    // 空格 = toggle 右侧预览面板（用户定稿：不再是 Quick Look 弹窗）
+    toggleQuickLook: (file) => {
+      const showing = !layout.rightSidebarCollapsed && layout.rightPanelTab === 'preview';
+      if (showing && selectedFile?.path === file.path) layout.setRightSidebarCollapsed(true);
+      else actions.handlePreviewFile(file);
+    },
+    toggleHiddenFiles,
+    navigateWithHistory: actions.navigateWithHistory,
+    navigateUp: actions.navigateUp,
+    navigateBackInHistory: actions.navigateBackInHistory,
+    navigateForwardInHistory: actions.navigateForwardInHistory,
+    setCurrentPath: actions.setCurrentPath,
+    handleFileDoubleClick: actions.handleFileDoubleClick,
+    splitLayoutRef: actions.splitLayoutRef,
+    activeGroupRef: actions.activeGroupRef,
+    navigateToPathRef: actions.navigateToPathRef,
+    splitLayout,
+    activeGroup,
+    tabs,
+    activeTab,
+    viewMode: layout.viewMode,
+    setViewMode: layout.setViewMode,
+    leftSidebarCollapsed: layout.leftSidebarCollapsed,
+    setLeftSidebarCollapsed: layout.setLeftSidebarCollapsed,
+    rightSidebarCollapsed: layout.rightSidebarCollapsed,
+    setRightSidebarCollapsed: layout.setRightSidebarCollapsed,
+    bottomPanelCollapsed: layout.bottomPanelCollapsed,
+    setBottomPanelCollapsed: layout.setBottomPanelCollapsed,
+    rightPanelTab: layout.rightPanelTab,
+    setRightPanelTab: layout.setRightPanelTab,
+    bottomPanelTab: layout.bottomPanelTab,
+    setBottomPanelTab: layout.setBottomPanelTab,
+    leftSidebarWidth: layout.leftSidebarWidth,
+    rightSidebarWidth: layout.rightSidebarWidth,
+    bottomPanelHeight: layout.bottomPanelHeight,
+    searchPanelOpen: layout.searchPanelOpen,
+    setSearchPanelOpen: layout.setSearchPanelOpen,
+    sortBy: layout.sortBy,
+    sortOrder: layout.sortOrder,
+    theme,
+    setCommandPaletteOpen: dialogManager.setCommandPaletteOpen,
+    commandPaletteOpen: dialogManager.commandPaletteOpen,
+    setWorkspaceLayoutDialogOpen: dialogManager.setWorkspaceLayoutDialogOpen,
+    setPathBookmarksDialogOpen: dialogManager.setPathBookmarksDialogOpen,
+    setShortcutsDialogOpen: dialogManager.setShortcutsDialogOpen,
+    setShowChangeSummaryToast: dialogManager.setShowChangeSummaryToast,
+    fileOps,
+    fileChanges,
+    openGDriveTab: actions.openGDriveTab,
+    openGDriveManager: actions.openGDriveManager,
+    vimActions: actions.vimActions,
+  });
+
+  // ── Extension: compare-files event ────────────────────────────────────────
+  useWindowEvent(
+    'wisp-compare-files',
+    (e: Event) => {
+      const { path } = (e as CustomEvent<{ path: string }>).detail;
+      if (!path) return;
+      fileComparison.compareFiles({
+        path,
+        name: path.split(/[/\\]/).pop() || path,
+        is_dir: false,
+      } as FileEntry);
+    },
+    [fileComparison],
+  );
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
+  return (
+    <>
+      <MainLayout
+        topBarRef={topBarRef}
+        leftSidebarRef={leftSidebarRef}
+        pendingSelectRef={pendingSelectRef}
+        currentPath={currentPath}
+        files={files}
+        filteredFiles={filteredFiles}
+        selectedFiles={selectedFiles}
+        setSelectedFiles={setSelectedFiles}
+        selectedFile={selectedFile}
+        setSelectedFile={setSelectedFile}
+        refetch={refetch}
+        toast={toast}
+        splitLayout={splitLayout}
+        layoutState={layoutState}
+        activeGroup={activeGroup}
+        sharedActions={sharedActions}
+        {...layout}
+        navigateWithHistory={actions.navigateWithHistory}
+        navigateUp={actions.navigateUp}
+        navigateToPath={actions.navigateToPath}
+        navigateBackInHistory={actions.navigateBackInHistory}
+        navigateForwardInHistory={actions.navigateForwardInHistory}
+        canNavigateBackInHistory={actions.canNavigateBackInHistory}
+        canNavigateForwardInHistory={actions.canNavigateForwardInHistory}
+        handleFileClick={actions.handleFileClick}
+        handleFileDoubleClick={actions.handleFileDoubleClick}
+        ctxMenu={ctxMenu}
+        dialogManager={dialogManager}
+        fileComparison={fileComparison}
+        fileConflict={fileConflict}
+        terminal={terminal}
+        themes={themes}
+        theme={theme}
+        handleApplyTheme={handleApplyTheme}
+        getFolderSize={getFolderSize}
+        isCalculatingSize={isCalculatingSize}
+        calculateFolderSize={calculateFolderSize}
+        vimState={effects.vimState}
+        crossTabSelection={crossTabSelection}
+        setCrossTabDialogOpen={dialogManager.setCrossTabDialogOpen}
+        paneSync={paneSync}
+        fileOps={fileOps}
+        templatePickerOpen={dialogManager.templatePickerOpen}
+        handleCloseTemplatePicker={actions.handleCloseTemplatePicker}
+        folderCompareOpen={dialogManager.folderCompareOpen}
+        handleCloseFolderCompare={actions.handleCloseFolderCompare}
+        folderComparePaths={dialogManager.folderComparePaths}
+        commandPaletteOpen={dialogManager.commandPaletteOpen}
+        handleCloseCommandPalette={actions.handleCloseCommandPalette}
+        handleCommandPaletteFileSelect={actions.handleCommandPaletteFileSelect}
+        showChangeSummaryToast={dialogManager.showChangeSummaryToast}
+        fileChanges={fileChanges}
+        handleDismissChangesToast={actions.handleDismissChangesToast}
+        handleReviewChanges={actions.handleReviewChanges}
+        pathBookmarksDialogOpen={dialogManager.pathBookmarksDialogOpen}
+        handleClosePathBookmarks={actions.handleClosePathBookmarks}
+        workspaceLayoutDialogOpen={dialogManager.workspaceLayoutDialogOpen}
+        handleCloseWorkspaceLayout={actions.handleCloseWorkspaceLayout}
+        workspaceUiState={actions.workspaceUiState}
+        handleApplyLayout={actions.handleApplyLayout}
+        crossTabDialogOpen={dialogManager.crossTabDialogOpen}
+        handleCloseCrossTabDialog={actions.handleCloseCrossTabDialog}
+        handleCrossTabMoveAll={actions.handleCrossTabMoveAll}
+        handleCrossTabCopyAll={actions.handleCrossTabCopyAll}
+        handleCrossTabCompressAll={actions.handleCrossTabCompressAll}
+        handleCrossTabDeleteAll={actions.handleCrossTabDeleteAll}
+        handleCrossTabPickFolder={actions.handleCrossTabPickFolder}
+        shortcutsDialogOpen={dialogManager.shortcutsDialogOpen}
+        handleCloseShortcutsDialog={actions.handleCloseShortcutsDialog}
+        handleOpenSettings={actions.handleOpenSettings}
+        collectionEditorOpen={dialogManager.collectionEditorOpen}
+        handleCloseCollectionEditor={actions.handleCloseCollectionEditor}
+        editingCollection={dialogManager.editingCollection}
+        handleDismissAllChanges={actions.handleDismissAllChanges}
+      />
+      {extensionChange && (
+        <ExtensionChangeDialog
+          oldName={extensionChange.oldName}
+          oldExt={extensionChange.oldExt}
+          newExt={extensionChange.newExt}
+          onChoose={(choice) => {
+            extensionChange.resolve(choice);
+            setExtensionChange(null);
+          }}
+        />
+      )}
+    </>
+  );
+};
+
+export default ExplorerUnified;

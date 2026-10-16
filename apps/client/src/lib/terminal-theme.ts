@@ -1,0 +1,87 @@
+import type { ITheme } from '@xterm/xterm';
+import type { ISearchDecorationOptions } from '@xterm/addon-search';
+
+/** Transparent canvases share the drawer material. Keep representative RGB
+ * channels for xterm's ANSI contrast calculations, which ignore alpha. */
+export const TERMINAL_THEMES = {
+  light: {
+    background: '#f7f7f900',
+    foreground: '#25262b',
+    cursor: '#005fc4',
+    cursorAccent: '#f7f7f9',
+    selectionBackground: '#cddff8',
+    selectionInactiveBackground: '#dce2ec',
+    selectionForeground: '#25262b',
+    black: '#25262b',
+    red: '#b42332',
+    green: '#216b39',
+    yellow: '#856300',
+    blue: '#245fc4',
+    magenta: '#9041a8',
+    cyan: '#006b7a',
+    white: '#626878',
+    brightBlack: '#626878',
+    brightRed: '#c03432',
+    brightGreen: '#25713e',
+    brightYellow: '#886600',
+    brightBlue: '#2666c7',
+    brightMagenta: '#9850ab',
+    brightCyan: '#087482',
+    brightWhite: '#353a46',
+  },
+  dark: {
+    background: '#20212700',
+    foreground: '#ececf0',
+    cursor: '#8bbbff',
+    cursorAccent: '#202127',
+    selectionBackground: '#344d70',
+    selectionInactiveBackground: '#394252',
+    selectionForeground: '#f7f8fa',
+    black: '#1b1d23',
+    red: '#ff8c8c',
+    green: '#93d9a3',
+    yellow: '#e3c583',
+    blue: '#91baff',
+    magenta: '#d8a3ef',
+    cyan: '#83d2d9',
+    white: '#c1c6d1',
+    brightBlack: '#9299a8',
+    brightRed: '#ffa4a4',
+    brightGreen: '#b0e9be',
+    brightYellow: '#f2d793',
+    brightBlue: '#afd0ff',
+    brightMagenta: '#e8bdf6',
+    brightCyan: '#a0e4e9',
+    brightWhite: '#ffffff',
+  },
+} satisfies Record<'light' | 'dark', ITheme>;
+
+/** Use the resolved app appearance, including system changes applied by the theme manager. */
+export const getTerminalTheme = (
+  root: HTMLElement | undefined = typeof document === 'undefined'
+    ? undefined
+    : document.documentElement,
+) => (root?.classList.contains('theme-rolex') ? TERMINAL_THEMES.dark : TERMINAL_THEMES.light);
+
+/** Find-bar highlight colors follow the resolved appearance. xterm search
+ *  decorations take #RRGGBB hex only — no alpha channel. */
+const SEARCH_DECORATIONS = {
+  light: {
+    matchBackground: '#b7cdef',
+    matchOverviewRuler: '#6f9bd8',
+    activeMatchBackground: '#e3b33c',
+    activeMatchColorOverviewRuler: '#a97e12',
+  },
+  dark: {
+    matchBackground: '#33517e',
+    matchOverviewRuler: '#6f9bd8',
+    activeMatchBackground: '#7d6425',
+    activeMatchColorOverviewRuler: '#d9a441',
+  },
+} satisfies Record<'light' | 'dark', ISearchDecorationOptions>;
+
+export const getTerminalSearchDecorations = (
+  root: HTMLElement | undefined = typeof document === 'undefined'
+    ? undefined
+    : document.documentElement,
+) => (root?.classList.contains('theme-rolex') ? SEARCH_DECORATIONS.dark : SEARCH_DECORATIONS.light);

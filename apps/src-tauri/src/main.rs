@@ -1,0 +1,766 @@
+// Prevents additional console window on Windows in release, DO NOT REMOVE!!
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
+use tauri::{Emitter, Listener, Manager, WindowEvent};
+
+// All modules are declared in lib.rs (the `wisp` library crate).
+// Import them here so the binary can register Tauri commands.
+use wisp::agent;
+use wisp::mem0;
+use wisp::pi_bridge;
+use wisp::ai;
+use wisp::duplicate_finder;
+use wisp::extensions;
+use wisp::file_organizer;
+use wisp::file_watcher;
+use wisp::git;
+use wisp::google_drive;
+use wisp::mcp_host;
+use wisp::mcp_server;
+use wisp::mouse_navigation;
+use wisp::operations;
+use wisp::project_memory;
+use wisp::pty;
+use wisp::shortcuts;
+use wisp::storage;
+use wisp::weather;
+use wisp::webview_tabs;
+// git_integration is consolidated into git module
+use wisp::backup;
+use wisp::chatgpt_bridge;
+use wisp::shelf;
+use wisp::sync;
+
+use tracing::warn;
+
+fn main() {
+    // Load environment variables from .env file
+    dotenvy::dotenv().ok();
+
+    // Initialize structured logging. In MCP stdio modes the protocol itself
+    // lives on stdout, so logs MUST go to stderr or they corrupt JSON-RPC.
+    tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("wisp=info,warn")),
+        )
+        .with_target(true)
+        .init();
+
+    // ── MCP Server mode ──────────────────────────────────────────────
+    // When launched with `--mcp-server`, run a headless MCP JSON-RPC
+    // server over stdio instead of the full Tauri GUI.
+    if std::env::args().any(|a| a == "--mcp-server") {
+        mcp_server::run_mcp_server();
+        return;
+    }
+
+    // ── ChatGPT Bridge MCP mode ──────────────────────────────────────
+    // Spawned by tunnel-client (`--mcp-command`) per OpenAI's Secure MCP
+    // Tunnel: read-only, whitelist-restricted tools for ChatGPT web.
+    if std::env::args().any(|a| a == "--chatgpt-bridge-mcp") {
+        mcp_server::run_mcp_server_with(mcp_server::McpProfile::ChatgptReadonly);
+        return;
+    }
+
+    let builder = wisp::operations::media_protocol::register_media_protocol(
+        tauri::Builder::default(),
+    );
+    builder
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_drag::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
+        .on_page_load(|webview, payload| {
+            #[cfg(target_os = "macos")]
+            {
+                if webview.label() == "main" && payload.event() == tauri::webview::PageLoadEvent::Started {
+                    shelf::frontend_loading();
+                }
+                let _ = webview.app_handle()
+                    .run_on_main_thread(wisp::native_material::publish_frontend_state);
+            }
+        })
+        .setup(|app| {
+            #[cfg(target_os = "macos")]
+            if let Err(error) = wisp::native_material::install(app.handle()) {
+                warn!("Native window material could not be installed: {error}");
+            }
+            // macOS menu bar: Tauri's DEFAULT menu ships an Edit submenu whose
+            // Cut/Copy/Paste/SelectAll/Undo/Redo items claim ⌘C/⌘X/⌘V/⌘A/⌘Z as
+            // native key equivalents — they are consumed by AppKit BEFORE the
+            // WKWebView sees them, which silently killed every ⌘ shortcut in
+            // the web UI (users fell back to Ctrl+… Windows-style). Replace it
+            // with a lean menu whose only key equivalents are ones we want
+            // native: ⌘, (Settings, forwarded to the web UI) and ⌘Q (Quit).
+            // Everything else reaches the webview. File shortcuts stay in JS;
+            // text-editing shortcuts explicitly call text_editing's AppKit
+            // responder bridge so input fields retain native clipboard/undo.
+            #[cfg(target_os = "macos")]
+            wisp::app_menu::install(app.handle(), "zh")?;
+
+            #[cfg(target_os = "macos")]
+            {
+                let handle = app.handle().clone();
+                app.listen("shelf-frontend-ready", move |_| shelf::frontend_ready(&handle));
+            }
+
+            app.on_menu_event(move |handle, event| {
+                if shelf::handle_menu_event(handle, event.id().as_ref()) {
+                    return;
+                }
+                if event.id() == "open-settings" {
+                    // Same channel the frontend shortcut hook already listens
+                    // to for backend-triggered actions.
+                    let _ = handle.emit("global_shortcut_triggered", "OpenSettings");
+                }
+            });
+
+            // Mouse side buttons (back/forward) → frontend navigation events
+            mouse_navigation::install_mouse_navigation(app.handle().clone());
+
+            // Initialize progress manager
+            let progress_manager =
+                operations::ProgressManager::new().with_app_handle(app.handle().clone());
+            app.manage(std::sync::Arc::new(progress_manager));
+
+            // Initialize extension manager using app data directory
+            let app_data_dir = app
+                .path()
+                .app_data_dir()
+                .unwrap_or_else(|_| std::path::PathBuf::from("./data"));
+            std::fs::create_dir_all(&app_data_dir).unwrap_or_default();
+
+            // Initialize shortcuts manager in app data dir (NOT source tree)
+            let shortcuts_dir = app_data_dir.join("shortcuts");
+            std::fs::create_dir_all(&shortcuts_dir).unwrap_or_default();
+            shortcuts::init_shortcuts_manager(shortcuts_dir.to_str().unwrap_or("shortcuts"));
+            let extensions_dir = app_data_dir.join("extensions");
+            std::fs::create_dir_all(&extensions_dir).unwrap_or_default();
+
+            // Migration: rename old-style seeded directories whose directory name
+            // differs from their manifest.id (e.g. "code-editor-extension" → "code-editor").
+            // If a correctly-named copy already exists, remove the old-named duplicate.
+            // Skip if the migration has already been completed (flag file present).
+            let migration_flag = extensions_dir.join(".migration-v2-done");
+            if !migration_flag.exists() {
+                if let Ok(entries) = std::fs::read_dir(&extensions_dir) {
+                    let mut actions: Vec<(std::path::PathBuf, String)> = Vec::new(); // (old_path, manifest_id)
+                    for entry in entries.flatten() {
+                        let path = entry.path();
+                        if !path.is_dir() {
+                            continue;
+                        }
+                        let dir_name = entry.file_name().to_string_lossy().to_string();
+                        let pkg_path = path.join("package.json");
+                        if let Ok(raw) = std::fs::read_to_string(&pkg_path) {
+                            if let Ok(pkg) = serde_json::from_str::<serde_json::Value>(&raw) {
+                                if let Some(id) = pkg
+                                    .get("wisp")
+                                    .and_then(|x| x.get("id"))
+                                    .and_then(|v| v.as_str())
+                                {
+                                    if dir_name != id {
+                                        actions.push((path.clone(), id.to_string()));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    for (old_path, manifest_id) in actions {
+                        let correct_path = extensions_dir.join(&manifest_id);
+                        if correct_path.exists() {
+                            // Correctly-named copy already exists — remove the misnamed duplicate
+                            let _ = std::fs::remove_dir_all(&old_path);
+                        } else {
+                            // Rename the misnamed directory to use manifest.id
+                            let _ = std::fs::rename(&old_path, &correct_path);
+                        }
+                    }
+                }
+                // Write flag file so this migration is not re-run on subsequent launches
+                let _ = std::fs::write(&migration_flag, "v2");
+            }
+
+            extensions::init_extension_manager(app_data_dir.to_str().unwrap_or("./data"));
+
+            // ChatGPT Bridge (Secure MCP Tunnel): resume sharing if enabled.
+            {
+                let bridge_handle = app.handle().clone();
+                std::thread::spawn(move || {
+                    chatgpt_bridge::auto_start(&bridge_handle);
+                });
+            }
+
+            // Start extension dev mode watcher
+            {
+                let shelf_handle = app.handle().clone();
+                std::thread::spawn(move || shelf::auto_start(&shelf_handle));
+            }
+            {
+                let dev_extensions_dir = extensions_dir.clone();
+                let dev_handle = app.handle().clone();
+                std::thread::spawn(move || {
+                    extensions::dev_watcher::start_dev_watcher(dev_handle, dev_extensions_dir);
+                });
+            }
+
+            // Collect deferred CLI events (xtension file opens, folder opens)
+            // to emit once the frontend signals readiness via "frontend-ready".
+            let handle = app.handle().clone();
+            let args: Vec<String> = std::env::args().collect();
+            let mut deferred_events: Vec<(&str, String)> = Vec::new();
+
+            // Check CLI args for .xtension file association opens
+            for arg in &args[1..] {
+                if arg.ends_with(".xtension") && std::path::Path::new(arg).exists() {
+                    deferred_events.push(("xtension-file-opened", arg.to_string()));
+                    break; // Only handle the first .xtension file
+                }
+            }
+
+            // Check CLI args for folder path (opened via "Open with Wisp" or set-as-default)
+            for arg in &args[1..] {
+                let path = std::path::Path::new(arg);
+                if path.is_dir() {
+                    deferred_events.push(("folder-opened", arg.to_string()));
+                    break;
+                }
+            }
+
+            // Wait for the frontend to signal readiness before emitting deferred events.
+            // Falls back to a timeout if the frontend never signals (e.g. older builds).
+            if !deferred_events.is_empty() {
+                let owned_events: Vec<(String, String)> = deferred_events
+                    .into_iter()
+                    .map(|(name, payload)| (name.to_string(), payload))
+                    .collect();
+                let handle_for_listener = handle.clone();
+                let handle_for_emit = handle.clone();
+
+                let (tx, rx) = std::sync::mpsc::channel::<()>();
+
+                let listener_id = handle_for_listener.listen("frontend-ready", move |_| {
+                    let _ = tx.send(());
+                });
+
+                tauri::async_runtime::spawn(async move {
+                    // Wait up to 5 seconds for frontend-ready, then proceed anyway
+                    let _ = tokio::task::spawn_blocking(move || {
+                        let _ = rx.recv_timeout(std::time::Duration::from_secs(5));
+                    })
+                    .await;
+
+                    handle_for_emit.unlisten(listener_id);
+
+                    for (event_name, payload) in owned_events {
+                        let _ = handle_for_emit.emit(&event_name, &payload);
+                    }
+                });
+            }
+
+            #[cfg(all(debug_assertions, not(feature = "custom-protocol")))]
+            {
+                if let Some(window) = app.get_webview_window("main") {
+                    window.open_devtools();
+                } else {
+                    warn!("[Wisp] could not find 'main' webview window to open devtools");
+                }
+            }
+            // Auto-install CLI on first launch
+            #[cfg(not(target_os = "windows"))]
+            {
+                let cli_target = std::path::Path::new("/usr/local/bin/wisp");
+                if !cli_target.exists() {
+                    if let Ok(exe) = std::env::current_exe() {
+                        let cli_src = exe.parent().map(|p| {
+                            // In .app bundle: Contents/MacOS/wisp → Contents/Resources/wisp.mjs
+                            let resources =
+                                p.parent().unwrap_or(p).join("Resources").join("wisp.mjs");
+                            if resources.exists() {
+                                resources
+                            } else {
+                                p.join("wisp.mjs")
+                            }
+                        });
+                        if let Some(src) = cli_src {
+                            if src.exists() {
+                                let src_str = src.to_string_lossy().to_string();
+                                let script =
+                                    format!("#!/bin/bash\nexec node '{}' \"$@\"\n", src_str);
+                                let tmp = std::env::temp_dir().join("wisp-cli-auto.sh");
+                                if std::fs::write(&tmp, &script).is_ok() {
+                                    let _ = std::process::Command::new("sh")
+                                        .args([
+                                            "-c",
+                                            &format!(
+                                                "cp '{}' '{}' && chmod +x '{}' 2>/dev/null",
+                                                tmp.display(),
+                                                cli_target.display(),
+                                                cli_target.display()
+                                            ),
+                                        ])
+                                        .status();
+                                    let _ = std::fs::remove_file(&tmp);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![
+            shelf::shelf_request,
+            wisp::airdrop::open_airdrop,
+            wisp::text_editing::perform_native_edit_action,
+            wisp::app_menu::set_app_menu_language,
+            // File system operations (modular)
+            webview_tabs::web_tab_create,
+            webview_tabs::web_tab_navigate,
+            webview_tabs::web_tab_reload,
+            webview_tabs::web_tab_state,
+            webview_tabs::web_tab_history,
+            webview_tabs::web_tab_bounds,
+            webview_tabs::web_tab_visibility,
+            webview_tabs::web_tab_destroy,
+            operations::read_directory,
+            operations::read_text_file,
+            operations::write_text_file,
+            operations::extract_document_text,
+            operations::preview_convert_image,
+            operations::preview_asset_allowed,
+            operations::preview_doc_html,
+            operations::preview_plist_xml,
+            operations::preview_ql_thumbnail,
+            operations::preview_open_ql_preview,
+            operations::preview_open_ql_panel,
+            operations::preview_mount_ql_view,
+            operations::preview_update_ql_view,
+            operations::preview_close_ql_view,
+            operations::preview_iwork_pdf,
+            operations::preview_epub,
+            operations::preview_remux_media,
+            operations::preview_read_media,
+            operations::preview_sniff_text,
+            operations::read_binary_file,
+            weather::get_weather,
+            weather::geocode_city,
+            operations::get_file_properties,
+            operations::get_file_meta_data,
+            operations::copy,
+            operations::copy_files_to_clipboard,
+            operations::copy_with_progress,
+            operations::cancel_file_operation,
+            operations::accelerated_copy_file,
+            operations::accelerated_copy_directory,
+            operations::move_file,
+            operations::move_with_progress,
+            operations::rename,
+            operations::remove_dir,
+            operations::remove_file,
+            operations::move_to_trash,
+            operations::open_recycle_bin,
+            operations::get_trash_items,
+            operations::restore_trash_item,
+            operations::empty_recycle_bin,
+            operations::permanently_delete_trash_item,
+            // Properties operations
+            operations::get_detailed_file_properties,
+            operations::get_directory_size,
+            operations::get_directory_item_count,
+            operations::set_file_permissions,
+            operations::get_system_stats,
+            operations::get_top_processes,
+            // AI Agent operations
+            operations::agent_read_file_tree,
+            operations::agent_request_write_permission,
+            operations::agent_write_file_with_permission,
+            operations::is_dir,
+            operations::get_files_in_directory,
+            operations::open_url,
+            operations::open_file,
+            operations::file_exist,
+            operations::create_dir_recursive,
+            operations::create_file,
+            operations::create_file_with_content,
+            operations::write_binary_file,
+            operations::bulk_rename,
+            operations::open_in_terminal,
+            operations::get_file_icon,
+            operations::get_file_thumbnail,
+            operations::execute_command,
+            operations::execute_command_stream,
+            operations::check_cli_installed,
+            operations::get_current_shell,
+            operations::find_files,
+            operations::search_in_files,
+            operations::grep_search,
+            operations::get_app_version,
+            operations::install_cli,
+            operations::show_in_folder,
+            operations::list_drives,
+            operations::eject_volume,
+            operations::get_dir_size,
+            // AI operations
+            ai::get_ai_models,
+            ai::check_ollama_status,
+            ai::chat_with_ai,
+            operations::folder_ops::calculate_folder_size,
+            operations::folder_ops::get_cached_folder_sizes,
+            operations::folder_ops::clear_folder_size_cache,
+            // iCloud placeholder materialization (Finder's 立即下载)
+            operations::download_icloud_file,
+            ai::get_user_directories,
+            ai::get_recent_folders,
+            ai::add_to_recent_folders,
+            ai::get_system_info,
+            // Undo/Redo
+            operations::undo_redo::undo_operation,
+            operations::undo_redo::redo_operation,
+            operations::undo_redo::get_undo_history,
+            operations::undo_redo::clear_undo_history,
+            // File templates
+            operations::file_ops::get_file_templates,
+            operations::file_ops::create_from_template,
+            // Conflict resolution
+            operations::file_ops::check_conflicts,
+            operations::file_ops::get_rename_destination,
+            // Disk usage treemap
+            operations::file_ops::get_directory_sizes,
+            // Symlink creation
+            operations::file_ops::create_symlink,
+            // Cross-volume detection (drag & drop semantics)
+            operations::file_ops::same_volume,
+            // Merge-copy for drag & drop conflict resolution
+            operations::file_ops::copy_dir_merge,
+            // Native plugin invoke (for extensions with native code)
+            extensions::native_plugin_invoke,
+            // Shortcut operations
+            shortcuts::get_shortcuts,
+            shortcuts::get_shortcuts_by_category,
+            shortcuts::add_shortcut,
+            shortcuts::update_shortcut,
+            shortcuts::remove_shortcut,
+            shortcuts::get_shortcut_profiles,
+            shortcuts::switch_shortcut_profile,
+            shortcuts::get_shortcut_settings,
+            shortcuts::update_shortcut_settings,
+            shortcuts::execute_shortcut_action,
+            shortcuts::register_extension_shortcut,
+            shortcuts::unregister_extension_shortcuts,
+            shortcuts::register_global_shortcuts,
+            shortcuts::unregister_global_shortcuts,
+            shortcuts::toggle_global_shortcuts,
+            shortcuts::reset_shortcuts,
+            shortcuts::reset_single_shortcut,
+            // Duplicate finder operations
+            duplicate_finder::find_duplicates,
+            duplicate_finder::cancel_duplicate_scan,
+            duplicate_finder::delete_duplicate_files,
+            duplicate_finder::move_duplicate_files_to_trash,
+            // Extension operations (from extensions module)
+            extensions::get_installed_extensions,
+            extensions::install_extension_from_path,
+            extensions::uninstall_extension_by_id,
+            extensions::activate_extension,
+            extensions::deactivate_extension,
+            extensions::get_extension_permissions,
+            extensions::get_active_extension_ids,
+            extensions::validate_extension_path,
+            extensions::download_and_install_extension,
+            extensions::check_for_extension_updates,
+            extensions::download_extension,
+            extensions::check_extension_updates,
+            extensions::pack_extension,
+            extensions::marketplace_proxy,
+            extensions::install_xtension_file,
+            extensions::inspect_xtension_file,
+            // WASM backend operations
+            extensions::extension_backend_call,
+            extensions::extension_backend_status,
+            // Git history operations
+            git::status::find_git_repository,
+            git::status::get_repository_info,
+            git::history::get_file_history,
+            git::history::get_file_blame,
+            git::history::get_file_diff,
+            git::history::get_commit_diff,
+            git::status::get_file_status,
+            git::branch_ops::get_branches,
+            git::branch_ops::create_branch,
+            git::branch_ops::switch_branch,
+            git::branch_ops::delete_branch,
+            git::staging::stage_file,
+            git::staging::unstage_file,
+            git::staging::commit_changes,
+            git::stash_ops::get_stashes,
+            git::stash_ops::create_stash,
+            git::stash_ops::apply_stash,
+            git::stash_ops::drop_stash,
+            git::history::get_all_commits,
+            // Git remote operations
+            git::remote_ops::git_pull,
+            git::remote_ops::git_push,
+            git::remote_ops::git_fetch,
+            git::remote_ops::git_get_remotes,
+            // File comparison operations
+            operations::compute_file_hash,
+            operations::compare_files,
+            // File association operations
+            operations::get_file_associations,
+            operations::open_file_with_application,
+            operations::get_system_applications,
+            operations::set_default_application,
+            // Compression operations
+            operations::compress_files,
+            operations::get_compression_info,
+            // Extraction operations
+            operations::extract_archive,
+            operations::extract_selected_entries,
+            operations::get_archive_info,
+            operations::is_archive,
+            // File organizer operations
+            file_organizer::analyze_directory,
+            file_organizer::preview_organization,
+            file_organizer::execute_organization,
+            // Agent settings (read-only, legacy model source for extension ai API)
+            agent::get_agent_settings,
+            agent::get_agent_permissions,
+            agent::update_agent_permissions,
+            // MCP Host — tool provider for external AI clients
+            mcp_host::mcp_list_tools,
+            mcp_host::mcp_call_tool,
+            chatgpt_bridge::chatgpt_bridge_get_state,
+            chatgpt_bridge::chatgpt_bridge_get_status,
+            chatgpt_bridge::chatgpt_bridge_save_config,
+            chatgpt_bridge::chatgpt_bridge_set_api_key,
+            chatgpt_bridge::chatgpt_bridge_delete_api_key,
+            chatgpt_bridge::chatgpt_bridge_restart,
+            chatgpt_bridge::chatgpt_bridge_stop,
+            project_memory::project_memory_sessions,
+            mem0::mem0_config_state,
+            mem0::mem0_save_config,
+            mem0::mem0_add,
+            mem0::mem0_search,
+            mem0::mem0_list,
+            mem0::mem0_delete,
+            mem0::mem0_delete_all,
+            operations::weixin_ops::weixin_state_get,
+            operations::weixin_ops::weixin_state_set,
+            operations::weixin_ops::weixin_creds_get,
+            operations::weixin_ops::weixin_creds_set,
+            operations::weixin_ops::weixin_creds_clear,
+            operations::weixin_ops::weixin_http,
+            operations::weixin_ops::weixin_log,
+            operations::mcp_ops::mcp_config_get,
+            operations::mcp_ops::mcp_config_set,
+            operations::mcp_ops::mcp_test_server,
+            operations::mcp_ops::mcp_client_servers,
+            operations::mcp_ops::mcp_client_list_tools,
+            operations::mcp_ops::mcp_client_call_tool,
+            pi_bridge::agent_execute_tool,
+            pi_bridge::pi_config_state,
+            pi_bridge::pi_config_write_models,
+            pi_bridge::pi_config_set_auth_key,
+            pi_bridge::pi_config_remove_auth_key,
+            pi_bridge::pi_auth_keys,
+            pi_bridge::agent_load_context_chain,
+            pi_bridge::pi_session_create,
+            pi_bridge::pi_session_list,
+            pi_bridge::pi_session_read,
+            pi_bridge::pi_session_append,
+            pi_bridge::pi_session_delete,
+            pi_bridge::pi_session_rename,
+            pi_bridge::pi_session_fork,
+            pi_bridge::pi_session_relink,
+            // Recent files operations
+            storage::add_recent_file,
+            storage::get_recent_files,
+            storage::clear_recent_files,
+            storage::remove_recent_file,
+            // Bookmark operations
+            storage::get_bookmarks,
+            storage::add_bookmark,
+            storage::remove_bookmark,
+            storage::update_bookmark_name,
+            // File tags operations
+            storage::get_file_tags,
+            storage::set_file_tags,
+            storage::get_all_file_tags,
+            storage::get_file_tags_batch,
+            storage::remove_all_tags_from_file,
+            storage::remove_tag_globally,
+            storage::find_files_by_tag,
+            // Batch tag operations
+            storage::batch_add_tags,
+            storage::batch_remove_tags,
+            // Notes operations
+            storage::get_file_notes,
+            storage::add_file_note,
+            storage::update_file_note,
+            storage::delete_file_note,
+            storage::get_all_notes,
+            storage::search_notes,
+            // Batch notes operations
+            storage::batch_set_notes,
+            // Annotation operations
+            storage::get_file_annotations,
+            storage::add_file_annotation,
+            storage::toggle_annotation_resolved,
+            storage::delete_file_annotation,
+            storage::get_all_annotations,
+            // Custom metadata operations
+            storage::get_file_metadata,
+            storage::set_file_metadata,
+            storage::get_all_metadata_keys,
+            // Extension-scoped storage operations
+            storage::get_extension_storage,
+            storage::set_extension_storage,
+            storage::delete_extension_storage,
+            // Storage analytics operations
+            operations::analyze_storage,
+            // Directory diagnostics
+            operations::diagnose_directory,
+            // Encryption operations
+            operations::encrypt_file,
+            operations::decrypt_file,
+            operations::is_encrypted_file,
+            // Secure delete operations
+            operations::secure_delete,
+            // Image processing operations
+            operations::resize_image,
+            operations::convert_image,
+            operations::get_image_info,
+            operations::batch_process_images,
+            operations::rotate_image,
+            operations::flip_image,
+            operations::crop_image,
+            operations::adjust_brightness,
+            operations::adjust_contrast,
+            operations::grayscale_image,
+            // Google Drive operations
+            google_drive::gdrive_authenticate,
+            google_drive::gdrive_disconnect,
+            google_drive::gdrive_list_accounts,
+            google_drive::gdrive_list_files,
+            google_drive::gdrive_download_file,
+            google_drive::gdrive_upload_file,
+            google_drive::gdrive_delete_file,
+            google_drive::gdrive_rename_file,
+            google_drive::gdrive_move_file,
+            google_drive::gdrive_create_folder,
+            google_drive::gdrive_get_file_content,
+            google_drive::get_gdrive_settings,
+            google_drive::update_gdrive_settings,
+            // File watcher operations (primary + multi-watcher)
+            file_watcher::start_watching,
+            file_watcher::stop_watching,
+            file_watcher::watch_directory,
+            file_watcher::unwatch_directory,
+            file_watcher::get_active_watchers,
+            // SQLite database operations
+            operations::database_ops::list_sqlite_tables,
+            operations::database_ops::get_sqlite_table_columns,
+            operations::database_ops::query_sqlite_table,
+            operations::database_ops::execute_sqlite_query,
+            // Git integration (consolidated into git module)
+            git::status::get_git_status,
+            git::status::get_git_repo_info,
+            // Backup operations
+            backup::create_backup,
+            backup::list_backups,
+            backup::restore_backup,
+            backup::delete_backup,
+            // Docker operations
+            operations::docker_ops::docker_is_available,
+            operations::docker_ops::docker_list_containers,
+            operations::docker_ops::docker_list_images,
+            operations::docker_ops::docker_start_container,
+            operations::docker_ops::docker_stop_container,
+            operations::docker_ops::docker_remove_container,
+            operations::docker_ops::docker_remove_image,
+            operations::docker_ops::docker_container_logs,
+            // Shell integration operations (Windows registry)
+            operations::set_default_folder_handler,
+            operations::add_context_menu_entry,
+            operations::remove_context_menu_entry,
+            operations::get_shell_integration_status,
+            // PTY (interactive terminal) operations
+            pty::pty_spawn,
+            pty::pty_write,
+            pty::pty_resize,
+            pty::pty_kill,
+            pty::pty_kill_all,
+            pty::pty_login_shell,
+            // Cloud sync operations
+            sync::sync_bookmarks_to_cloud,
+            sync::sync_tags_to_cloud,
+            sync::fetch_cloud_bookmarks,
+            sync::fetch_cloud_tags,
+            sync::set_last_sync_time,
+            sync::get_last_sync_time,
+            sync::sync_all,
+            sync::auto_sync_on_startup,
+            sync::start_auto_sync,
+            sync::stop_auto_sync,
+            sync::get_auto_sync_status,
+        ])
+        .on_window_event(|window, event| {
+            if let WindowEvent::Destroyed = event {
+                operations::close_ql_view_for_window(window.label());
+            }
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                duplicate_finder::cancel_current_scan();
+                extensions::dev_watcher::stop_all_dev_watchers();
+                sync::stop_auto_sync_blocking();
+                let _ = pty::pty_kill_all();
+                // macOS convention: closing the window hides it and keeps the
+                // app alive in the Dock (⌘Q / 右键 Dock 退出 才真正退出程序).
+                #[cfg(target_os = "macos")]
+                {
+                    let _ = window.hide();
+                    api.prevent_close();
+                }
+            }
+        })
+        .build(tauri::generate_context!())
+        .expect("error while running tauri application")
+        .run(|_app, event| {
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Opened { urls } = &event {
+                shelf::collect_opened(_app, urls);
+            }
+            if let tauri::RunEvent::ExitRequested { api, .. } = &event {
+                if let Err(error) = shelf::request_shutdown() {
+                    api.prevent_exit();
+                    if let Some(window) = _app.get_webview_window("main") {
+                        let _ = window.show();
+                        let _ = window.set_focus();
+                    }
+                    let _ = _app.emit("shelf-exit-blocked", error);
+                }
+            }
+            // Dock icon click re-opens (unhides) the main window.
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen { .. } = event {
+                if let Some(window) = _app.get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
+            }
+            // Global directory watchers belong to the running app: a macOS
+            // window close only hides its still-mounted panes.
+            if let tauri::RunEvent::Exit = event {
+                file_watcher::stop_primary_watcher();
+                file_watcher::stop_all_watchers();
+                chatgpt_bridge::shutdown();
+                shelf::shutdown();
+            }
+        });
+}

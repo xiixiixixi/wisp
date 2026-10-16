@@ -1,0 +1,56 @@
+# ── 构建产物 ──
+node_modules/
+dist/
+build/
+target/
+apps/shelf/.build/
+apps/src-tauri/shelf-engine/
+apps/src-tauri/target/
+apps/client/dist/
+*.tsbuildinfo
+*.DS_Store
+
+# ── 测试与覆盖率（不入库）──
+**/__tests__/
+apps/src-tauri/tests/
+apps/shelf/Tests/
+**/*.test.ts
+**/*.test.tsx
+**/*.test.mjs
+**/*.test.js
+coverage/
+
+# ── 文档与过程产物 ──
+docs/
+design-qa*.png
+design-qa.md
+DESIGN.md
+DESIGN-SYSTEM.md
+I18N_COVERAGE.md
+PRODUCT.md
+CONTRIBUTING.md
+
+# ── AI/agent 工具配置（不入库）──
+CLAUDE.md
+AGENTS.md
+.claude/
+.zcode/
+.cursor/
+.codex/
+.impeccable
+.zcodeignore
+.vscode/
+
+# ── 本地运行产物 ──
+.local-artifacts/
+.env
+.env.local
+*.log
+
+# ── 既有保留的本地迁移助手 ──
+/scripts/audit-anthropic-ui.js
+/scripts/audit-contrast.js
+/scripts/figma-extract-tokens.mjs
+/scripts/flatten-glass-css.py
+/scripts/wait-for-db.mjs
+/scripts/warm-cool-colors.py

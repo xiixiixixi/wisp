@@ -1,0 +1,243 @@
+.wisp-mcp-settings {
+  min-width: 0;
+}
+.wisp-mcp-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-bottom: 20px;
+}
+.wisp-mcp-heading h3 {
+  margin: 0;
+  color: var(--ds-label-primary);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.wisp-mcp-heading p {
+  margin: 5px 0 0;
+  color: var(--ds-label-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.wisp-mcp-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.wisp-mcp-heading-actions > button {
+  white-space: nowrap;
+}
+.wisp-mcp-list {
+  min-width: 0;
+}
+.wisp-mcp-server-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 66px;
+  border-bottom: 1px solid var(--ds-separator);
+}
+.wisp-mcp-server-open {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  padding: 13px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ds-label-primary);
+  text-align: left;
+  cursor: pointer;
+}
+.wisp-mcp-server-copy {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 3px;
+}
+.wisp-mcp-server-name,
+.wisp-mcp-server-description {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wisp-mcp-server-name {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.wisp-mcp-server-description {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ds-label-secondary);
+}
+.wisp-mcp-server-open > svg {
+  flex-shrink: 0;
+  color: var(--ds-label-secondary);
+}
+.wisp-mcp-server-open:hover .wisp-mcp-server-name,
+.wisp-mcp-server-open:focus-visible .wisp-mcp-server-name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+html:root .wisp-mcp-settings :is(.wisp-mcp-server-open, .wisp-mcp-back):focus-visible {
+  outline: 1px solid var(--ds-label-secondary) !important;
+  outline-offset: 3px;
+  border-radius: 4px;
+  box-shadow: none !important;
+}
+.wisp-mcp-settings :is(.wisp-mcp-server-open, .wisp-mcp-back):focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.wisp-mcp-server-open:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+.wisp-mcp-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ds-label-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+  cursor: pointer;
+}
+.wisp-mcp-back:hover {
+  color: var(--ds-label-primary);
+}
+.wisp-mcp-detail-heading {
+  flex: 0 0 auto;
+}
+.wisp-mcp-detail-heading .wisp-mcp-heading {
+  margin-bottom: 16px;
+}
+.wisp-mcp-detail .wisp-settings-form {
+  padding: 0 0 8px;
+  gap: 20px;
+}
+.wisp-mcp-detail .wisp-settings-type {
+  margin: 0;
+}
+.wisp-mcp-connection-test {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 18px;
+}
+.wisp-mcp-connection-test > span,
+.wisp-mcp-editor-actions > span {
+  color: var(--ds-label-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.wisp-mcp-editor-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 14px 0 0;
+  background: var(--ds-canvas);
+}
+.wisp-mcp-detail > .wisp-mcp-editor-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  padding-bottom: 16px;
+  border-top: 1px solid var(--ds-separator);
+}
+.wisp-mcp-editor-actions > .wisp-mcp-remove {
+  justify-self: start;
+  color: var(--ds-label-secondary);
+}
+.wisp-mcp-editor-actions > .wisp-mcp-remove:hover {
+  color: var(--ds-destructive);
+}
+.wisp-settings-dialog-body > [role="tabpanel"]:has(> .wisp-mcp-settings[data-view="json"]) {
+  height: 100%;
+}
+.wisp-mcp-settings[data-view="json"] {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.wisp-mcp-json {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+.wisp-mcp-json textarea {
+  display: block;
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 160px;
+  resize: none;
+  padding: 14px;
+  border: 1px solid var(--ds-separator);
+  border-radius: 6px;
+  background: var(--ds-field);
+  color: var(--ds-label-primary);
+  font:
+    13px/1.65 "SF Mono",
+    ui-monospace,
+    Menlo,
+    Consolas,
+    monospace;
+  tab-size: 2;
+  white-space: pre;
+  overflow: auto;
+  caret-color: var(--ds-label-primary);
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-mcp-settings
+  :is(input:not([type="radio"]):not([type="checkbox"]), textarea):is(:focus, :focus-visible) {
+  outline: none !important;
+  outline-offset: 0 !important;
+  border: 1px solid var(--ds-label-secondary) !important;
+  box-shadow: none !important;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-mcp-settings
+  :is(input:not([type="radio"]):not([type="checkbox"]), textarea)[aria-invalid="true"] {
+  border-color: var(--ds-destructive, var(--xp-red)) !important;
+  outline-color: var(--ds-destructive, var(--xp-red)) !important;
+}
+.wisp-mcp-json > p {
+  flex: 0 0 auto;
+  margin: 9px 0 0;
+  line-height: 1.5;
+}
+.wisp-mcp-json > .wisp-settings-status,
+.wisp-mcp-list > .wisp-settings-status {
+  padding-inline: 0;
+}
+.wisp-mcp-load-error > .wisp-settings-status {
+  padding-left: 0;
+}
+@media (max-width: 640px) {
+  .wisp-mcp-heading-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .wisp-mcp-heading {
+    gap: 10px;
+  }
+  .wisp-mcp-connection-test {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .wisp-mcp-editor-actions > span:empty {
+    min-width: 0;
+  }
+}

@@ -1,0 +1,78 @@
+import React from 'react';
+import i18n from '@/i18n';
+
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  private refreshLanguage = () => this.forceUpdate();
+
+  componentDidMount() {
+    i18n.on('languageChanged', this.refreshLanguage);
+  }
+
+  componentWillUnmount() {
+    i18n.off('languageChanged', this.refreshLanguage);
+  }
+
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('[ErrorBoundary] Caught error:', error, errorInfo);
+    this.props.onError?.(error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+      return (
+        <div className="flex flex-col items-center justify-center gap-3 p-6 text-center">
+          <svg
+            className="h-10 w-10 text-xp-red opacity-60"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.5}
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+            />
+          </svg>
+          <p className="text-sm text-xp-text-muted">{i18n.t('common.error.somethingWentWrong')}</p>
+          <p
+            className="max-w-xs truncate text-xs text-xp-text-secondary"
+            title={this.state.error?.message}
+          >
+            {this.state.error?.message}
+          </p>
+          <button
+            className="rounded-md border border-xp-border bg-xp-surface px-3 py-1.5 text-xs transition-colors hover:bg-xp-surface-light"
+            onClick={() => this.setState({ hasError: false, error: null })}
+          >
+            {i18n.t('common.error.tryAgain')}
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}

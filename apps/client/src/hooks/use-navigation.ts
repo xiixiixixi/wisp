@@ -1,0 +1,125 @@
+import { useCallback } from 'react';
+import { extensionHost } from '@/lib/extension-host';
+import { PATH_SEPARATOR } from '@/lib/constants';
+import type { TabItem } from '@/types/split-view';
+
+interface UseNavigationDeps {
+  currentPath: string;
+  splitLayout: {
+    navigate: (groupId: string, path: string, name: string) => void;
+    navigateBack: (groupId: string) => void;
+    navigateForward: (groupId: string) => void;
+    addTab: (groupId: string, tab: TabItem, activate: boolean) => void;
+    switchTab: (groupId: string, tabId: string) => void;
+  };
+  activeGroup: {
+    id: string;
+    tabs: TabItem[];
+    activeTabId: string | null;
+    pathHistory: string[];
+    historyIndex: number;
+  };
+}
+
+export const useNavigation = ({ currentPath, splitLayout, activeGroup }: UseNavigationDeps) => {
+  const navigateWithHistory = useCallback(
+    (newPath: string, _addToHistory: boolean = true) => {
+      if (newPath === currentPath) return;
+
+      const activeTabObj = activeGroup.tabs.find((t) => t.id === activeGroup.activeTabId);
+      const isExtensionTab = activeTabObj?.type
+        ? extensionHost.getTabRenderer(activeTabObj.type) !== null
+        : false;
+      const isLocalPath =
+        !extensionHost.isExtensionScheme(newPath) && !newPath.startsWith('wisp://');
+
+      if (isExtensionTab && isLocalPath) {
+        const folderTab = activeGroup.tabs.find((t) => t.type === 'folder' || t.type === undefined);
+        if (folderTab) {
+          splitLayout.switchTab(activeGroup.id, folderTab.id);
+          setTimeout(
+            () =>
+              splitLayout.navigate(
+                activeGroup.id,
+                newPath,
+                newPath.split(/[/\\]/).pop() || newPath,
+              ),
+            0,
+          );
+        } else {
+          const newTab: TabItem = {
+            id: `tab-folder-${Date.now()}`,
+            name: newPath.split(/[/\\]/).pop() || newPath,
+            path: newPath,
+            type: 'folder',
+          };
+          splitLayout.addTab(activeGroup.id, newTab, true);
+        }
+      } else {
+        splitLayout.navigate(activeGroup.id, newPath, newPath.split(/[/\\]/).pop() || newPath);
+      }
+    },
+    [currentPath, splitLayout, activeGroup],
+  );
+
+  const navigateUp = useCallback(() => {
+    if (currentPath === 'wisp://home') return;
+    if (extensionHost.isExtensionScheme(currentPath)) return;
+    if (currentPath.startsWith('/')) {
+      const parts = currentPath.split('/').filter(Boolean);
+      if (parts.length <= 1) return;
+      const parentPath = `/${parts.slice(0, -1).join('/')}`;
+      navigateWithHistory(parentPath);
+      return;
+    }
+    const pathParts = currentPath.split(/[\\/]/).filter((p) => p);
+    if (pathParts.length <= 1) return;
+    const parentPath = pathParts.slice(0, -1).join(PATH_SEPARATOR) + PATH_SEPARATOR;
+    navigateWithHistory(parentPath);
+  }, [currentPath, navigateWithHistory]);
+
+  const navigateToPath = useCallback(
+    (path: string) => {
+      navigateWithHistory(path);
+    },
+    [navigateWithHistory],
+  );
+
+  const navigateToHome = useCallback(() => {
+    navigateWithHistory('wisp://home');
+  }, [navigateWithHistory]);
+
+  const navigateFromHome = useCallback(
+    (path: string) => {
+      const tabId = path;
+      const tabName = path.split(/[\\/]/).pop() || path;
+      const newTab: TabItem = { id: tabId, name: tabName, path, type: 'folder' };
+      splitLayout.addTab(activeGroup.id, newTab, true);
+    },
+    [splitLayout, activeGroup.id],
+  );
+
+  const navigateBackInHistory = useCallback(() => {
+    splitLayout.navigateBack(activeGroup.id);
+  }, [splitLayout, activeGroup.id]);
+
+  const navigateForwardInHistory = useCallback(() => {
+    splitLayout.navigateForward(activeGroup.id);
+  }, [splitLayout, activeGroup.id]);
+
+  const canNavigateBackInHistory = () => activeGroup.historyIndex > 0;
+  const canNavigateForwardInHistory = () =>
+    activeGroup.historyIndex < activeGroup.pathHistory.length - 1;
+
+  return {
+    navigateWithHistory,
+    navigateUp,
+    navigateToPath,
+    navigateToHome,
+    navigateFromHome,
+    navigateBackInHistory,
+    navigateForwardInHistory,
+    canNavigateBackInHistory,
+    canNavigateForwardInHistory,
+  };
+};

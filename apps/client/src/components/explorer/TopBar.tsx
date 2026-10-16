@@ -1,0 +1,572 @@
+import React, { useCallback, useRef, useState, useEffect, forwardRef } from 'react';
+import { isTauri } from '@/lib/transport';
+import { Minus, Square, Copy, X, Columns, Rows, Search, CloudSun } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import WeatherGlyph from '@/components/weather/WeatherGlyph';
+import { useWeather } from '@/hooks/use-weather';
+import { setWeatherLocation } from '@/lib/weather-location';
+import { geocodeWeatherCity } from '@/lib/weather-geocoding';
+import { describeWeatherCode } from '@/lib/weather';
+import wispLogo from '../../../../src-tauri/icons/icon.png';
+
+export interface TopBarHandle {
+  // Retained for API compatibility — search now lives in the sidebar
+}
+interface TopBarProps {
+  leftSidebarCollapsed: boolean;
+  setLeftSidebarCollapsed: (collapsed: boolean) => void;
+  // Split actions
+  onSplitRight?: () => void;
+  onSplitDown?: () => void;
+  // Cross-tab selection
+  crossTabTotalCount?: number;
+  crossTabTabCount?: number;
+  hasMultiTabSelection?: boolean;
+  onOpenBatchActions?: () => void;
+  onClearCrossTabSelection?: () => void;
+  rightActions?: React.ReactNode;
+}
+
+const TopBar = React.memo(
+  forwardRef<TopBarHandle, TopBarProps>(
+    (
+      {
+        leftSidebarCollapsed,
+        setLeftSidebarCollapsed,
+        onSplitRight,
+        onSplitDown,
+        crossTabTotalCount = 0,
+        crossTabTabCount = 0,
+        hasMultiTabSelection = false,
+        onOpenBatchActions,
+        onClearCrossTabSelection,
+        rightActions,
+      },
+      _ref,
+    ) => {
+      const { t } = useTranslation();
+      const [isMaximized, setIsMaximized] = useState(false);
+      const [isEditingWeatherCity, setIsEditingWeatherCity] = useState(false);
+      const [weatherCityDraft, setWeatherCityDraft] = useState('');
+      const [weatherCityStatus, setWeatherCityStatus] = useState<
+        'idle' | 'saving' | 'not-found' | 'error'
+      >('idle');
+      const weatherCityTriggerRef = useRef<HTMLButtonElement>(null);
+      const weatherCityFocusReturnRef = useRef<HTMLButtonElement | null>(null);
+      const weatherCityInputRef = useRef<HTMLInputElement>(null);
+      const weatherCityRequestRef = useRef(0);
+      const weatherCitySavingRef = useRef(false);
+      const appWindowRef = useRef<Awaited<
+        ReturnType<typeof import('@tauri-apps/api/window').getCurrentWindow>
+      > | null>(null);
+      const isMac = navigator.platform.toUpperCase().includes('MAC');
+      const { report, city, loading: weatherLoading } = useWeather();
+      const descriptor = report ? describeWeatherCode(report.weather_code) : null;
+      let weatherSummary = city;
+      if (descriptor) weatherSummary = `${t(descriptor.labelKey)} · ${city}`;
+      else if (weatherLoading) weatherSummary = `${t('topBar.weatherLoading')} · ${city}`;
+
+      useEffect(() => {
+        if (!isEditingWeatherCity) setWeatherCityDraft(city);
+      }, [city, isEditingWeatherCity]);
+
+      useEffect(() => {
+        if (!isEditingWeatherCity) return;
+        weatherCityInputRef.current?.focus();
+        weatherCityInputRef.current?.select();
+      }, [isEditingWeatherCity]);
+
+      useEffect(
+        () => () => {
+          weatherCityRequestRef.current += 1;
+        },
+        [],
+      );
+
+      const restoreWeatherCityTriggerFocus = useCallback(() => {
+        if (!weatherCityFocusReturnRef.current) return;
+        requestAnimationFrame(() => {
+          weatherCityTriggerRef.current?.focus();
+          weatherCityFocusReturnRef.current = null;
+        });
+      }, []);
+
+      const restoreWeatherCityInputFocus = useCallback(() => {
+        requestAnimationFrame(() => weatherCityInputRef.current?.focus());
+      }, []);
+
+      const startEditingWeatherCity = useCallback(() => {
+        weatherCityFocusReturnRef.current = weatherCityTriggerRef.current;
+        setWeatherCityDraft(city);
+        setWeatherCityStatus('idle');
+        setIsEditingWeatherCity(true);
+      }, [city]);
+
+      const cancelEditingWeatherCity = useCallback(() => {
+        weatherCityRequestRef.current += 1;
+        weatherCitySavingRef.current = false;
+        setWeatherCityDraft(city);
+        setWeatherCityStatus('idle');
+        setIsEditingWeatherCity(false);
+        restoreWeatherCityTriggerFocus();
+      }, [city, restoreWeatherCityTriggerFocus]);
+
+      const saveWeatherCity = useCallback(async () => {
+        const nextCity = weatherCityDraft.trim();
+        if (weatherCitySavingRef.current) return;
+        if (!nextCity) {
+          setWeatherCityStatus('not-found');
+          return;
+        }
+        if (nextCity === city) {
+          setWeatherCityStatus('idle');
+          setIsEditingWeatherCity(false);
+          restoreWeatherCityTriggerFocus();
+          return;
+        }
+
+        weatherCitySavingRef.current = true;
+        const requestId = ++weatherCityRequestRef.current;
+        setWeatherCityStatus('saving');
+        try {
+          const places = await geocodeWeatherCity(nextCity);
+          if (requestId !== weatherCityRequestRef.current) return;
+          const place = places[0];
+          if (!place) {
+            setWeatherCityStatus('not-found');
+            restoreWeatherCityInputFocus();
+            return;
+          }
+          setWeatherLocation({
+            city: place.name,
+            latitude: place.latitude,
+            longitude: place.longitude,
+          });
+          setWeatherCityDraft(place.name);
+          setWeatherCityStatus('idle');
+          setIsEditingWeatherCity(false);
+          restoreWeatherCityTriggerFocus();
+        } catch {
+          if (requestId === weatherCityRequestRef.current) {
+            setWeatherCityStatus('error');
+            restoreWeatherCityInputFocus();
+          }
+        } finally {
+          if (requestId === weatherCityRequestRef.current) weatherCitySavingRef.current = false;
+        }
+      }, [city, restoreWeatherCityInputFocus, restoreWeatherCityTriggerFocus, weatherCityDraft]);
+
+      useEffect(() => {
+        if (!isTauri()) return;
+        let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+        let cancelled = false;
+        const cleanupRef = { current: null as (() => void) | null };
+        (async () => {
+          const { getCurrentWindow } = await import('@tauri-apps/api/window');
+          const win = getCurrentWindow();
+          if (cancelled) return;
+          appWindowRef.current = win;
+          win
+            .isMaximized()
+            .then(setIsMaximized)
+            .catch((err: unknown) => console.warn('Failed to check maximized state:', err));
+          const unlisten = win.onResized(() => {
+            if (debounceTimer) clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+              win
+                .isMaximized()
+                .then(setIsMaximized)
+                .catch((err: unknown) => console.warn('Failed to check maximized state:', err));
+            }, 150);
+          });
+          // Store unlisten for cleanup
+          if (!cancelled) {
+            cleanupRef.current = async () => {
+              if (debounceTimer) clearTimeout(debounceTimer);
+              (await unlisten)();
+            };
+          }
+        })();
+        return () => {
+          cancelled = true;
+          if (debounceTimer) clearTimeout(debounceTimer);
+          cleanupRef.current?.();
+        };
+      }, []);
+
+      return (
+        <div className="wisp-titlebar wisp-no-select flex-none border-b border-xp-border bg-xp-surface">
+          {/* Single title row (draggable): toggle, brand, search, split
+              actions, window controls. */}
+          <div
+            className="relative flex h-11 items-center justify-between px-3"
+            onMouseDown={(e) => {
+              if (
+                !(e.target as HTMLElement).closest(
+                  'button, input, a, select, textarea, [role="button"]',
+                )
+              ) {
+                e.preventDefault();
+                appWindowRef.current?.startDragging();
+              }
+            }}
+            onDoubleClick={(e) => {
+              if (
+                !(e.target as HTMLElement).closest(
+                  'button, input, a, select, textarea, [role="button"]',
+                )
+              ) {
+                appWindowRef.current?.toggleMaximize();
+              }
+            }}
+          >
+            <div
+              className="wisp-titlebar-left flex items-center gap-2"
+              style={isMac && isTauri() ? { paddingLeft: '80px' } : undefined}
+            >
+              <div className="wisp-brand-cluster flex items-center gap-2.5">
+                <button
+                  onClick={() => setLeftSidebarCollapsed(!leftSidebarCollapsed)}
+                  className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-md text-xp-text-secondary transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                  aria-label={t('topBar.toggleSidebar')}
+                  aria-expanded={!leftSidebarCollapsed}
+                  title={t('topBar.toggleSidebarShortcut')}
+                >
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+                <div className="flex items-center gap-2">
+                  <img src={wispLogo} alt="" className="h-6 w-6 rounded-lg" aria-hidden="true" />
+                  <h1 className="text-sm font-semibold tracking-tight">Wisp</h1>
+                </div>
+              </div>
+
+              {isEditingWeatherCity ? (
+                <div className="wisp-weather-editor flex min-w-0 items-center gap-1.5 text-xs text-xp-text-secondary">
+                  {report ? (
+                    <WeatherGlyph
+                      code={report.weather_code}
+                      isDay={report.is_day}
+                      size={14}
+                      className="shrink-0"
+                    />
+                  ) : (
+                    <CloudSun size={14} className="shrink-0" aria-hidden="true" />
+                  )}
+                  <input
+                    ref={weatherCityInputRef}
+                    value={weatherCityDraft}
+                    onChange={(event) => {
+                      setWeatherCityDraft(event.target.value);
+                      if (weatherCityStatus !== 'saving') setWeatherCityStatus('idle');
+                    }}
+                    onBlur={() => void saveWeatherCity()}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        void saveWeatherCity();
+                      } else if (event.key === 'Escape') {
+                        event.preventDefault();
+                        cancelEditingWeatherCity();
+                      }
+                    }}
+                    maxLength={80}
+                    disabled={weatherCityStatus === 'saving'}
+                    aria-label={t('topBar.weatherCityInput')}
+                    aria-describedby={
+                      weatherCityStatus === 'not-found' || weatherCityStatus === 'error'
+                        ? 'topbar-weather-city-error'
+                        : undefined
+                    }
+                    className="h-7 w-28 border-0 border-b border-xp-border bg-transparent px-0.5 text-xs text-xp-text outline-none transition-colors placeholder:text-xp-text-muted focus:border-primary disabled:cursor-wait disabled:opacity-60"
+                    placeholder={t('settings.general.weatherCityPlaceholder')}
+                  />
+                  {weatherCityStatus === 'saving' && (
+                    <span
+                      className="whitespace-nowrap text-[11px] text-xp-text-muted"
+                      role="status"
+                    >
+                      {t('common.saving')}
+                    </span>
+                  )}
+                  {(weatherCityStatus === 'not-found' || weatherCityStatus === 'error') && (
+                    <span
+                      id="topbar-weather-city-error"
+                      className="max-w-32 truncate text-[11px] text-xp-red"
+                      role="alert"
+                    >
+                      {t(
+                        weatherCityStatus === 'not-found'
+                          ? 'topBar.weatherCityNotFound'
+                          : 'topBar.weatherCitySaveFailed',
+                      )}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <button
+                  ref={weatherCityTriggerRef}
+                  type="button"
+                  onClick={startEditingWeatherCity}
+                  className="wisp-weather-summary flex min-w-0 flex-shrink items-center gap-1.5 border-0 bg-transparent p-0 text-left text-xs text-xp-text-secondary transition-colors hover:text-xp-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+                  aria-label={t('topBar.editWeatherCity', { city })}
+                  title={t('topBar.editWeatherCity', { city })}
+                >
+                  {report ? (
+                    <WeatherGlyph
+                      code={report.weather_code}
+                      isDay={report.is_day}
+                      size={14}
+                      className="shrink-0"
+                    />
+                  ) : (
+                    <CloudSun size={14} className="shrink-0" aria-hidden="true" />
+                  )}
+                  {report && (
+                    <span className="font-semibold text-xp-text">
+                      {Math.round(report.temperature)}°
+                    </span>
+                  )}
+                  <span className="max-w-40 truncate text-[11px]">{weatherSummary}</span>
+                </button>
+              )}
+            </div>
+
+            {/* One global entry point for files, commands, and actions. */}
+            <button
+              type="button"
+              data-command-palette-trigger
+              onClick={() => window.dispatchEvent(new CustomEvent('wisp-open-command-palette'))}
+              className="wisp-command-pill absolute left-1/2 hidden h-8 w-[min(38vw,420px)] -translate-x-1/2 items-center gap-2 rounded-md border border-xp-border bg-muted px-3 text-left text-xs text-xp-text-muted shadow-sm transition-all hover:border-primary hover:bg-xp-surface-light hover:text-xp-text min-[820px]:flex"
+              aria-label={t('commandPalette.trigger')}
+              title={t('commandPalette.trigger')}
+            >
+              <Search size={14} className="shrink-0" />
+              <span className="min-w-0 flex-1 truncate">{t('commandPalette.trigger')}</span>
+              <kbd className="wisp-keycap rounded-md border border-xp-border bg-xp-surface px-1.5 py-0.5 font-sans text-[10px] text-xp-text-secondary">
+                {isMac ? '⌘P' : 'Ctrl+P'}
+              </kbd>
+            </button>
+
+            <div className="flex-1" />
+
+            <button
+              type="button"
+              data-command-palette-trigger
+              onClick={() => window.dispatchEvent(new CustomEvent('wisp-open-command-palette'))}
+              className="wisp-icon-button mr-2 flex h-9 w-9 shrink-0 items-center justify-center text-xp-text-secondary min-[820px]:hidden"
+              aria-label={t('commandPalette.trigger')}
+              title={t('commandPalette.trigger')}
+            >
+              <Search size={17} aria-hidden="true" />
+            </button>
+
+            {rightActions}
+
+            {/* Split actions */}
+            {(onSplitRight || onSplitDown) && (
+              <div className="wisp-toolbar-group ml-1 flex flex-shrink-0 items-center gap-0.5">
+                {onSplitRight && (
+                  <button
+                    onClick={onSplitRight}
+                    className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-md text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                    title={t('topBar.splitRightShortcut')}
+                    aria-label={t('topBar.splitRight')}
+                  >
+                    <Columns size={14} />
+                  </button>
+                )}
+                {onSplitDown && (
+                  <button
+                    onClick={onSplitDown}
+                    className="wisp-icon-button flex h-8 w-8 items-center justify-center rounded-md text-xp-text-muted transition-colors hover:bg-xp-surface-light hover:text-xp-text"
+                    title={t('topBar.splitDownShortcut')}
+                    aria-label={t('topBar.splitDown')}
+                  >
+                    <Rows size={14} />
+                  </button>
+                )}
+              </div>
+            )}
+
+            {!isMac && (
+              <div
+                className="wisp-window-controls ml-2 flex items-center"
+                role="toolbar"
+                aria-label={t('interface.windowControls')}
+              >
+                <button
+                  onClick={() => appWindowRef.current?.minimize()}
+                  className="rounded-md p-2 transition-colors hover:bg-xp-surface-light"
+                  aria-label={t('topBar.minimize')}
+                >
+                  <Minus size={14} />
+                </button>
+                <button
+                  onClick={() => appWindowRef.current?.toggleMaximize()}
+                  className="rounded-md p-2 transition-colors hover:bg-xp-surface-light"
+                  aria-label={isMaximized ? t('topBar.restore') : t('topBar.maximize')}
+                >
+                  {isMaximized ? <Copy size={14} /> : <Square size={14} />}
+                </button>
+                <button
+                  onClick={() => appWindowRef.current?.close()}
+                  className="xp-close-btn rounded-md p-2 transition-colors"
+                  aria-label={t('topBar.closeWindow')}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Cross-tab selection floating action bar */}
+          {hasMultiTabSelection && crossTabTotalCount > 0 && (
+            <div
+              className="wisp-global-selectionbar"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '4px 12px',
+                background: 'color-mix(in srgb, var(--xp-blue) 12%, var(--xp-surface))',
+                borderTop: '1px solid color-mix(in srgb, var(--xp-blue) 25%, var(--xp-border))',
+                fontSize: 12,
+                color: 'var(--xp-text)',
+              }}
+            >
+              {/* Selection badge */}
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '2px 8px',
+                  borderRadius: 2,
+                  background: 'var(--xp-blue)',
+                  color: 'var(--xp-bg)',
+                  fontSize: 11,
+                  fontWeight: 500,
+                }}
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="9 11 12 14 22 4" />
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                </svg>
+                {crossTabTotalCount !== 1 || crossTabTabCount !== 1
+                  ? t('topBar.crossTabSelectionPlural', {
+                      fileCount: crossTabTotalCount,
+                      tabCount: crossTabTabCount,
+                    })
+                  : t('topBar.crossTabSelection', {
+                      fileCount: crossTabTotalCount,
+                      tabCount: crossTabTabCount,
+                    })}
+              </span>
+
+              <span style={{ color: 'var(--xp-text-muted)', fontSize: 11 }}>
+                {t('topBar.crossTabHint')}
+              </span>
+
+              {/* Spacer */}
+              <div style={{ flex: 1 }} />
+
+              {/* Batch Actions button */}
+              {onOpenBatchActions && (
+                <button
+                  onClick={onOpenBatchActions}
+                  style={{
+                    padding: '3px 10px',
+                    fontSize: 11,
+                    fontWeight: 500,
+                    borderRadius: 4,
+                    border: '1px solid var(--xp-blue)',
+                    background: 'var(--xp-blue)',
+                    color: 'var(--xp-bg)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    transition: 'opacity 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.opacity = '0.85';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.opacity = '1';
+                  }}
+                  title={t('topBar.batchActionsDesc')}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <line x1="3" y1="9" x2="21" y2="9" />
+                    <line x1="9" y1="21" x2="9" y2="9" />
+                  </svg>
+                  {t('topBar.batchActions')}
+                </button>
+              )}
+
+              {/* Clear Selection button */}
+              {onClearCrossTabSelection && (
+                <button
+                  onClick={onClearCrossTabSelection}
+                  style={{
+                    padding: '3px 10px',
+                    fontSize: 11,
+                    fontWeight: 500,
+                    borderRadius: 5,
+                    border: '1px solid var(--xp-border)',
+                    background: 'var(--xp-surface-light)',
+                    color: 'var(--xp-text-muted)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    transition: 'background 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = 'var(--xp-surface)';
+                    (e.currentTarget as HTMLElement).style.color = 'var(--xp-text)';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = 'var(--xp-surface-light)';
+                    (e.currentTarget as HTMLElement).style.color = 'var(--xp-text-muted)';
+                  }}
+                  title={t('topBar.clearSelectionDesc')}
+                >
+                  <X size={12} />
+                  {t('topBar.clearSelection')}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    },
+  ),
+);
+TopBar.displayName = 'TopBar';
+export default TopBar;

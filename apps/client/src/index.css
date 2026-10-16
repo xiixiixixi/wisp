@@ -1,0 +1,1445 @@
+@import "./styles/xp-utilities.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Full height chain — #root styles are inline in index.html */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+:root {
+  /* MUJI paper defaults — html boots light; SkySync refines polarity. */
+  --background: #efece3;
+  --foreground: #38352f;
+  --muted: rgba(56, 53, 47, 0.05);
+  --muted-foreground: #6e6a61;
+  --popover: rgba(247, 245, 239, 0.99);
+  --popover-foreground: #38352f;
+  --card: #f7f5ee;
+  --card-foreground: #38352f;
+  --border: rgba(56, 53, 47, 0.14);
+  --input: rgba(247, 245, 238, 0.9);
+  --primary: #45423c;
+  --primary-foreground: #f7f5ee;
+  --secondary: rgba(56, 53, 47, 0.06);
+  --secondary-foreground: #45423c;
+  --accent: rgba(56, 53, 47, 0.07);
+  --accent-foreground: #38352f;
+  --destructive: #a85646;
+  --destructive-foreground: #f7f5ee;
+  --ring: #8c8880;
+  --radius: 0.375rem;
+  --glass-well: rgba(56, 53, 47, 0.04);
+
+  --xp-bg: #efece3;
+  --xp-bg-gradient: #efece3;
+  --xp-surface: rgba(247, 245, 238, 0.97);
+  --xp-surface-light: rgba(251, 250, 245, 0.97);
+  --xp-sidebar: rgba(236, 233, 223, 0.97);
+  --xp-chrome: rgba(237, 234, 224, 0.97);
+  --xp-rail: rgba(235, 232, 221, 0.97);
+  --xp-inspector: rgba(242, 239, 231, 0.97);
+  --xp-popover: rgba(247, 245, 239, 0.99);
+  --fx-folder: #5878a0;
+  --xp-blue: #45423c;
+  --xp-blue-rgb: 69 66 60;
+  --xp-blue-dark: #33312c;
+  --xp-blue-dark-rgb: 51 49 44;
+  --xp-accent: #45423c;
+  --xp-accent-rgb: 69 66 60;
+  --xp-accent-hover: #5a564e;
+  --xp-accent-hover-rgb: 90 86 78;
+  --xp-purple: #7b7286;
+  --xp-purple-rgb: 123 114 134;
+  --xp-pink: #ab7d76;
+  --xp-pink-rgb: 171 125 118;
+  --xp-green: #6f7f57;
+  --xp-green-rgb: 111 127 87;
+  --xp-orange: #b0764a;
+  --xp-orange-rgb: 176 118 74;
+  --xp-yellow: #b39a5d;
+  --xp-yellow-rgb: 179 154 93;
+  --xp-red: #a85646;
+  --xp-red-rgb: 168 86 70;
+  --xp-cyan: #6a7f80;
+  --xp-cyan-rgb: 106 127 128;
+  --xp-text: #38352f;
+  --xp-text-secondary: #6e6a61;
+  --xp-text-muted: #66655d;
+  --xp-border: rgba(56, 53, 47, 0.14);
+  --xp-border-light: rgba(56, 53, 47, 0.24);
+  --xp-wash-green: rgba(111, 127, 87, 0.14);
+  --xp-wash-green-strong: rgba(111, 127, 87, 0.3);
+  --xp-wash-red: rgba(99, 43, 32, 0.12);
+  --xp-wash-red-strong: rgba(168, 86, 70, 0.3);
+  --xp-wash-yellow: rgba(179, 154, 93, 0.15);
+  --xp-wash-yellow-strong: rgba(179, 154, 93, 0.35);
+  --xp-selection-bg: rgba(200, 69, 46, 0.1);
+  --xp-selection-border: rgba(200, 69, 46, 0.28);
+  /* Ink that sits on a filled accent button — paper-white in both polarities */
+  --xp-on-accent: #f7f5ee;
+  --xp-shadow-popover: 0 0 0 1px rgba(56, 53, 47, 0.12), 0 12px 32px rgba(56, 53, 47, 0.12);
+  --glow-blue: none;
+  --glow-purple: none;
+  --glow-pink: none;
+  --glow-green: none;
+
+  /* 無印紅 — the single human accent (selection, slider dots, chips) */
+  --xp-lime: #c8452e;
+  --xp-lime-rgb: 200 69 46;
+
+  --xp-surface-rgb: 247 245 238;
+  --xp-surface-light-rgb: 251 250 245;
+}
+
+/* 基准字号 16px —— 全应用的 Tailwind rem 间距与字号都以它为基准。
+   早先写死 14px 会把每一处 h-/p-/gap-/text- 工具类整体缩放 0.875 倍：
+   按钮只有 35px 高、卡片内距 21px、text-xs 掉到 10.5px，与 design-system.css
+   里以 px 写死的字阶互相打架，间距也就没有统一节奏。16px 是设计系统
+   （DESIGN.md body-sans 16px）与可读性下限共同要求的基准。 */
+html {
+  font-size: 16px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   REDUCED MOTION
+   Collapses all animations/transitions for motion-sensitive users.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   ENHANCED FOCUS INDICATORS
+   Strong, visible outlines for keyboard navigation accessibility.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* The one theme has two polarities — kinari paper by day, sumi paper by
+   night — set by SkySync as html.theme-light / html.theme-rolex. No .dark. */
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+
+  /* Tokyo Night Custom Styles */
+  .xp-bg {
+    background-color: var(--xp-bg);
+  }
+
+  .xp-surface {
+    background-color: var(--xp-surface);
+  }
+
+  .xp-surface-light {
+    background-color: var(--xp-surface-light);
+  }
+
+  .xp-text {
+    color: var(--xp-text);
+  }
+
+  .xp-text-secondary {
+    color: var(--xp-text-secondary);
+  }
+
+  .xp-text-muted {
+    color: var(--xp-text-muted);
+  }
+
+  .xp-border {
+    border-color: var(--xp-border);
+  }
+
+  /* File Icons */
+  .file-icon-folder {
+    color: var(--xp-blue);
+  }
+
+  .file-icon-js {
+    color: var(--xp-orange);
+  }
+
+  .file-icon-ts {
+    color: var(--xp-blue);
+  }
+
+  .file-icon-json {
+    color: var(--xp-green);
+  }
+
+  .file-icon-html {
+    color: var(--xp-pink);
+  }
+
+  .file-icon-css {
+    color: var(--xp-purple);
+  }
+
+  .file-icon-md {
+    color: var(--xp-text);
+  }
+
+  .file-icon-image {
+    color: var(--xp-green);
+  }
+
+  .file-icon-video {
+    color: var(--xp-pink);
+  }
+
+  .file-icon-audio {
+    color: var(--xp-purple);
+  }
+
+  .file-icon-archive {
+    color: var(--xp-orange);
+  }
+
+  .file-icon-default {
+    color: var(--xp-text-secondary);
+  }
+
+  /* Syntax Highlighting */
+  .hljs {
+    background: var(--xp-surface-light) !important;
+    color: var(--xp-text) !important;
+  }
+
+  .hljs-keyword {
+    color: var(--xp-purple) !important;
+  }
+
+  .hljs-string {
+    color: var(--xp-green) !important;
+  }
+
+  .hljs-number {
+    color: var(--xp-orange) !important;
+  }
+
+  .hljs-comment {
+    color: var(--xp-text-muted) !important;
+  }
+
+  .hljs-function {
+    color: var(--xp-blue) !important;
+  }
+
+  .hljs-variable {
+    color: var(--xp-pink) !important;
+  }
+
+  /* Toast auto-dismiss countdown bar: width shrinks from 100% to 0.
+     Duration is set inline from TOAST_AUTO_DISMISS_DELAY / the toast's own timer. */
+  @keyframes toast-countdown {
+    from {
+      width: 100%;
+    }
+    to {
+      width: 0%;
+    }
+  }
+
+  /* Tactile feedback — every button physically presses in. */
+  :is(.theme-rolex, .theme-light) button:not(:disabled):active {
+    scale: 0.97;
+  }
+
+  /* One consistent keyboard focus ring across the app. */
+  :is(.theme-rolex, .theme-light)
+    :is(button, input, textarea, select, [role="button"]):focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--xp-blue) 55%, transparent);
+    outline-offset: 1px;
+  }
+
+  /* Except the palette's search field — the open dialog already carries the
+     focus context, so its ring stays a whisper (ChatGPT review: 蓝环略强). */
+  [data-command-palette] input:focus-visible {
+    outline: none;
+  }
+
+  /* Scrollbar Styling — auto-hide overlay bars: thumbs stay transparent
+     until the container actually scrolls (.is-scrolling is toggled by
+     lib/auto-scrollbars.ts), Finder-style. */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 4px;
+  }
+
+  .is-scrolling::-webkit-scrollbar-thumb {
+    background: var(--xp-border);
+  }
+
+  .is-scrolling::-webkit-scrollbar-thumb:hover {
+    background: var(--xp-blue);
+  }
+
+  /* Firefox: scrollbar-color is inherited, so one rule covers everything */
+  html {
+    scrollbar-color: transparent transparent;
+  }
+
+  .is-scrolling {
+    scrollbar-color: var(--xp-border) transparent;
+  }
+
+  /* Fully hidden scrollbars — container stays scrollable but reserves no
+     gutter (breadcrumb path bar, sheet tabs). */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 3D View Styles */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .perspective-1200 {
+    perspective: 1200px;
+  }
+
+  .transform-style-preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .rotate-x-12 {
+    transform: rotateX(12deg);
+  }
+
+  .rotate-y-12 {
+    transform: rotateY(12deg);
+  }
+
+  .rotate-x-15 {
+    transform: rotateX(15deg);
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateZ(var(--z-offset, 0px)) rotateY(var(--rotate-y, 0deg)) translateY(0px);
+    }
+    50% {
+      transform: translateZ(var(--z-offset, 0px)) rotateY(var(--rotate-y, 0deg)) translateY(-10px);
+    }
+  }
+
+  /* Skeleton placeholder — a stone wash that breathes, no shimmer sweep */
+  @keyframes xp-skeleton-breathe {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.55;
+    }
+  }
+
+  /* Voice input pulsing indicator */
+  @keyframes xp-voice-pulse {
+    0%,
+    100% {
+      opacity: 1;
+      box-shadow: 0 0 0 0 rgb(var(--xp-lime-rgb) / 0.4);
+    }
+    50% {
+      opacity: 0.85;
+      box-shadow: 0 0 0 4px rgb(var(--xp-lime-rgb) / 0);
+    }
+  }
+}
+
+/* Component Specific Styles */
+.file-item {
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.file-item:hover {
+  background-color: var(--xp-surface-light);
+}
+
+.file-item.selected {
+  background-color: rgba(167, 139, 250, 0.2);
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  color: white;
+}
+
+.sidebar-item {
+  transition: all 0.2s ease;
+}
+
+.sidebar-item:hover {
+  background-color: var(--xp-surface-light);
+}
+
+.sidebar-item.active {
+  background-color: var(--xp-blue);
+  color: white;
+}
+
+.tab-item {
+  transition: all 0.2s ease;
+}
+
+.tab-item:hover {
+  background-color: var(--xp-surface-light);
+}
+
+.tab-item.active {
+  background-color: var(--xp-bg);
+  border-bottom: 2px solid var(--xp-blue);
+}
+
+.extension-card {
+  transition: all 0.2s ease;
+}
+
+.extension-card:hover {
+  border-color: var(--xp-blue);
+  box-shadow: var(--glow-blue);
+}
+
+.chat-message {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Paper: no backdrop blur anywhere. The veil is the only atmosphere. ── */
+.backdrop-blur,
+.backdrop-blur-sm,
+.backdrop-blur-md,
+.backdrop-blur-lg,
+.backdrop-blur-xl,
+.backdrop-blur-2xl {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Custom Grid Layouts for File Explorer Views */
+.grid-cols-auto-fill-large {
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+}
+
+.grid-cols-auto-fill-medium {
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+}
+
+.grid-cols-auto-fill-small {
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+}
+
+.grid-cols-auto-fill-tiles {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+
+/* Gallery filmstrip — thin auto-hide scrollbar for the thumbnail strip */
+.gallery-filmstrip {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.gallery-filmstrip.is-scrolling {
+  scrollbar-color: var(--xp-border-light) transparent;
+}
+.gallery-filmstrip::-webkit-scrollbar {
+  height: 4px;
+}
+.gallery-filmstrip::-webkit-scrollbar-track {
+  background: transparent;
+}
+.gallery-filmstrip::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 2px;
+}
+.gallery-filmstrip.is-scrolling::-webkit-scrollbar-thumb {
+  background: var(--xp-border-light);
+}
+
+/* Context menu — thin auto-hide scrollbar matching glass theme */
+.context-menu-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.context-menu-scroll.is-scrolling {
+  scrollbar-color: var(--xp-border-light) transparent;
+}
+.context-menu-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.context-menu-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.context-menu-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 2px;
+}
+.context-menu-scroll.is-scrolling::-webkit-scrollbar-thumb {
+  background: var(--xp-border-light);
+}
+.context-menu-scroll.is-scrolling::-webkit-scrollbar-thumb:hover {
+  background: var(--xp-text-muted);
+}
+
+/* Preview navigation tab strip — hide scrollbar */
+.preview-nav-tab-strip {
+  scrollbar-width: none;
+}
+.preview-nav-tab-strip::-webkit-scrollbar {
+  display: none;
+}
+
+/* List View Styles */
+.grid-cols-auto-fill-list {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-auto-rows: min-content;
+  grid-auto-flow: row;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DRAG AND DROP (Native Tauri drag via data-drop-target attributes)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Valid drop target highlight — set by DragDropContext via elementFromPoint */
+[data-drop-hover="true"] {
+  outline: 2px solid rgba(122, 162, 247, 0.6) !important;
+  outline-offset: -2px;
+  background-color: rgba(122, 162, 247, 0.1) !important;
+  border-radius: 6px;
+}
+
+/* Invalid drop target highlight */
+[data-drop-invalid="true"] {
+  outline: 2px solid rgba(239, 68, 68, 0.4) !important;
+  outline-offset: -2px;
+  background-color: rgba(239, 68, 68, 0.05) !important;
+  border-radius: 6px;
+}
+
+/* Folder highlight when dragging over a drop-target folder */
+.xp-drop-folder-highlight {
+  outline: 2px solid var(--xp-blue) !important;
+  outline-offset: -2px;
+  background-color: rgba(99, 102, 241, 0.12) !important;
+  border-radius: 6px;
+  box-shadow:
+    0 0 12px rgba(99, 102, 241, 0.3),
+    inset 0 0 8px rgba(99, 102, 241, 0.08);
+}
+
+/* Drag overlay badge (positioned via inline styles, this adds the animation) */
+.xp-drag-overlay {
+  animation: xp-overlay-appear 0.15s ease-out;
+}
+
+/* Native file drags must never turn into text selection when the pointer
+   crosses toolbars or returns to Wisp after visiting another application. */
+html[data-wisp-dragging="true"],
+html[data-wisp-dragging="true"] * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+/* App chrome behaves like Finder chrome: labels, tabs, and navigation items
+   are controls rather than selectable document text. Explicit editing surfaces
+   remain selectable when they live inside one of these containers. */
+.wisp-no-select,
+.wisp-no-select * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+.wisp-no-select :is(input, textarea, [contenteditable="true"], [data-wisp-selectable="true"]),
+.wisp-no-select :is([contenteditable="true"], [data-wisp-selectable="true"]) * {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+@keyframes xp-overlay-appear {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DIALOG ANIMATIONS
+   Used by overlay dialogs (e.g. KeyboardShortcutsDialog).
+   ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   HIGH CONTRAST ACCESSIBILITY MODE
+   Applied to html element via .high-contrast class.
+   Also activated automatically via prefers-contrast: more media query.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Honour system preference automatically (without explicit toggle) */
+@media (prefers-contrast: more) {
+  :root {
+    --xp-border: rgba(255, 255, 255, 0.3);
+    --xp-border-light: rgba(255, 255, 255, 0.4);
+    --xp-text-muted: rgba(255, 255, 255, 0.7);
+    --xp-text-secondary: rgba(255, 255, 255, 0.85);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   WINDOW DRAG REGION
+   Dragging is handled via appWindow.startDragging() in TopBar.tsx.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   AI CHAT FEEDBACK BUTTONS
+   Show on hover of the parent message container.
+   ═══════════════════════════════════════════════════════════════════ */
+
+[data-msg-index] .chat-feedback-buttons {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+[data-msg-index]:hover .chat-feedback-buttons,
+[data-msg-index]:focus-within .chat-feedback-buttons,
+[data-msg-index] .chat-feedback-buttons.chat-feedback-given {
+  opacity: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   WISP LIQUID GLASS
+   One glass material language across all themes: translucent chrome
+   floating over a fixed ambient aurora. Legacy theme class names remain
+   for saved-preference compatibility.
+   ═══════════════════════════════════════════════════════════════════ */
+
+html.theme-rolex {
+  color-scheme: dark;
+  --background: #26231e;
+  --foreground: #e9e5da;
+  --muted: rgba(233, 229, 218, 0.06);
+  --muted-foreground: #b5b0a4;
+  --popover: #312e27;
+  --popover-foreground: #e9e5da;
+  --card: #2d2a24;
+  --card-foreground: #e9e5da;
+  --border: rgba(233, 229, 218, 0.14);
+  --input: rgba(233, 229, 218, 0.08);
+  --primary: #e6e1d6;
+  --primary-foreground: #26231e;
+  --secondary: rgba(233, 229, 218, 0.07);
+  --secondary-foreground: #ddd8cc;
+  --accent: rgba(233, 229, 218, 0.08);
+  --accent-foreground: #e9e5da;
+  --destructive: #c07a68;
+  --destructive-foreground: #26150f;
+  --ring: #b5b0a4;
+  --radius: 0.375rem;
+
+  /* Flat paper material — no glass, no blur, hairlines carry structure */
+  --glass-well: rgba(233, 229, 218, 0.05);
+
+  --xp-bg: #26231e;
+  --xp-bg-gradient: #26231e;
+  --xp-surface: rgba(45, 42, 36, 0.97);
+  --xp-surface-light: rgba(58, 54, 47, 0.97);
+  --xp-sidebar: rgba(41, 38, 33, 0.97);
+  --xp-chrome: rgba(41, 38, 32, 0.97);
+  --xp-rail: rgba(40, 37, 31, 0.97);
+  --xp-inspector: rgba(43, 40, 34, 0.97);
+  --xp-popover: rgba(49, 46, 39, 0.99);
+  /* 墨 accent: paper-white buttons on dark paper */
+  --fx-folder: #8fb0d6;
+  --xp-blue: #e6e1d6;
+  --xp-blue-rgb: 230 225 214;
+  --xp-blue-dark: #cfc9bc;
+  --xp-blue-dark-rgb: 207 201 188;
+  --xp-accent: #e6e1d6;
+  --xp-accent-rgb: 230 225 214;
+  --xp-accent-hover: #f0ece2;
+  --xp-accent-hover-rgb: 240 236 226;
+  --xp-purple: #a49bb0;
+  --xp-purple-rgb: 164 155 176;
+  --xp-pink: #c49a92;
+  --xp-pink-rgb: 196 154 146;
+  --xp-green: #9aa878;
+  --xp-green-rgb: 154 168 120;
+  --xp-orange: #c99268;
+  --xp-orange-rgb: 201 146 104;
+  --xp-yellow: #c7ae72;
+  --xp-yellow-rgb: 199 174 114;
+  --xp-red: #c07a68;
+  --xp-red-rgb: 192 122 104;
+  --xp-cyan: #93a8a8;
+  --xp-cyan-rgb: 147 168 168;
+  --xp-text: #e9e5da;
+  --xp-text-secondary: #b5b0a4;
+  --xp-text-muted: #918c80;
+  --xp-border: rgba(233, 229, 218, 0.14);
+  --xp-border-light: rgba(233, 229, 218, 0.24);
+  --xp-selection-bg: rgba(200, 69, 46, 0.3);
+  --xp-selection-border: rgba(214, 100, 74, 0.5);
+  --xp-on-accent: #26231e;
+  --xp-shadow-popover: 0 0 0 1px rgba(233, 229, 218, 0.12), 0 12px 32px rgba(15, 13, 10, 0.4);
+  --glow-blue: none;
+  --glow-purple: none;
+  --glow-pink: none;
+  --glow-green: none;
+  background: var(--xp-bg);
+}
+
+html.theme-light {
+  color-scheme: light;
+  --background: #efece3;
+  --foreground: #38352f;
+  --muted: rgba(56, 53, 47, 0.05);
+  --muted-foreground: #6e6a61;
+  --popover: #f7f5ef;
+  --popover-foreground: #38352f;
+  --card: #f7f5ee;
+  --card-foreground: #38352f;
+  --border: rgba(56, 53, 47, 0.14);
+  --input: rgba(247, 245, 238, 0.9);
+  --primary: #45423c;
+  --primary-foreground: #f7f5ee;
+  --secondary: rgba(56, 53, 47, 0.06);
+  --secondary-foreground: #45423c;
+  --accent: rgba(56, 53, 47, 0.07);
+  --accent-foreground: #38352f;
+  --destructive: #a85646;
+  --destructive-foreground: #f7f5ee;
+  --ring: #8c8880;
+  --radius: 0.375rem;
+  --glass-well: rgba(56, 53, 47, 0.04);
+
+  --xp-bg: #efece3;
+  --xp-bg-gradient: #efece3;
+  --xp-surface: rgba(247, 245, 238, 0.97);
+  --xp-surface-light: rgba(251, 250, 245, 0.97);
+  --xp-sidebar: rgba(236, 233, 223, 0.97);
+  --xp-chrome: rgba(237, 234, 224, 0.97);
+  --xp-rail: rgba(235, 232, 221, 0.97);
+  --xp-inspector: rgba(242, 239, 231, 0.97);
+  --xp-popover: rgba(247, 245, 239, 0.99);
+  /* 墨 accent: ink buttons on kinari paper */
+  --xp-blue: #45423c;
+  --xp-blue-rgb: 69 66 60;
+  --xp-blue-dark: #33312c;
+  --xp-blue-dark-rgb: 51 49 44;
+  --xp-accent: #45423c;
+  --xp-accent-rgb: 69 66 60;
+  --xp-accent-hover: #5a564e;
+  --xp-accent-hover-rgb: 90 86 78;
+  --xp-purple: #7b7286;
+  --xp-purple-rgb: 123 114 134;
+  --xp-pink: #ab7d76;
+  --xp-pink-rgb: 171 125 118;
+  --xp-green: #6f7f57;
+  --xp-green-rgb: 111 127 87;
+  --xp-orange: #b0764a;
+  --xp-orange-rgb: 176 118 74;
+  --xp-yellow: #b39a5d;
+  --xp-yellow-rgb: 179 154 93;
+  --xp-red: #a85646;
+  --xp-red-rgb: 168 86 70;
+  --xp-cyan: #6a7f80;
+  --xp-cyan-rgb: 106 127 128;
+  --xp-text: #38352f;
+  --xp-text-secondary: #6e6a61;
+  --xp-text-muted: #66655d;
+  --xp-border: rgba(56, 53, 47, 0.14);
+  --xp-border-light: rgba(56, 53, 47, 0.24);
+  --xp-wash-green: rgba(111, 127, 87, 0.14);
+  --xp-wash-green-strong: rgba(111, 127, 87, 0.3);
+  --xp-wash-red: rgba(99, 43, 32, 0.12);
+  --xp-wash-red-strong: rgba(168, 86, 70, 0.3);
+  --xp-wash-yellow: rgba(179, 154, 93, 0.15);
+  --xp-wash-yellow-strong: rgba(179, 154, 93, 0.35);
+  --xp-selection-bg: rgba(200, 69, 46, 0.1);
+  --xp-selection-border: rgba(200, 69, 46, 0.28);
+  --xp-on-accent: #f7f5ee;
+  --xp-shadow-popover: 0 0 0 1px rgba(56, 53, 47, 0.12), 0 12px 32px rgba(56, 53, 47, 0.12);
+  --glow-blue: none;
+  --glow-purple: none;
+  --glow-pink: none;
+  --glow-green: none;
+  background: var(--xp-bg);
+}
+
+:is(.theme-rolex, .theme-light) body {
+  background: transparent !important;
+  color: var(--xp-text);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable", "Segoe UI", sans-serif;
+  letter-spacing: -0.006em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PAPER COMPONENT VOCABULARY — 紙の設計
+   One sheet of paper the sky stains. The page canvas is transparent so
+   the sun-phase veil IS the ground; every surface is a flat paper cut
+   separated from its neighbours by a hairline or whitespace. A faint
+   fractal grain (feTurbulence) is printed on the shell so the sheet
+   reads as *paper*, not a blank screen. No blur, no component gradients,
+   no glow — anywhere.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Paper grain — one feTurbulence sheet, alpha-tuned per polarity */
+:is(.theme-light) .paper-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' seed='42' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23p)' opacity='0.42'/%3E%3C/svg%3E");
+  background-size: 240px 240px;
+}
+:is(.theme-rolex) .paper-grain,
+:is(.theme-light) .paper-grain {
+  background-blend-mode: soft-light;
+  background-repeat: repeat;
+  pointer-events: none;
+}
+:is(.theme-rolex) .paper-grain {
+  background-blend-mode: overlay;
+}
+
+/* Apply the grain to the shell chrome (titlebar/sidebar/rail/inspector)
+   as a whisper-light texture — the veil reads through, the grain sits. */
+:is(.theme-rolex, .theme-light) .wisp-titlebar,
+:is(.theme-rolex, .theme-light) .wisp-sidebar,
+:is(.theme-rolex, .theme-light) .wisp-panel-rail,
+:is(.theme-rolex, .theme-light) .wisp-inspector,
+:is(.theme-rolex, .theme-light) .wisp-operationbar {
+  position: relative;
+}
+:is(.theme-rolex, .theme-light) .wisp-titlebar::before,
+:is(.theme-rolex, .theme-light) .wisp-sidebar::before,
+:is(.theme-rolex, .theme-light) .wisp-panel-rail::before,
+:is(.theme-rolex, .theme-light) .wisp-inspector::before,
+:is(.theme-rolex, .theme-light) .wisp-operationbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' seed='42' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23p)' opacity='0.42'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+:is(.theme-light) .wisp-titlebar::before,
+:is(.theme-light) .wisp-sidebar::before,
+:is(.theme-light) .wisp-panel-rail::before,
+:is(.theme-light) .wisp-inspector::before,
+:is(.theme-light) .wisp-operationbar::before {
+  mix-blend-mode: soft-light;
+}
+
+/* The canvas recedes — dawn/day/dusk/night veils read through it */
+:is(.theme-rolex, .theme-light) .bg-xp-bg,
+:is(.theme-rolex, .theme-light) .bg-background {
+  background-color: transparent;
+}
+
+:is(.theme-rolex, .theme-light) .bg-xp-bg\/60 {
+  background-color: var(--glass-well);
+}
+
+:is(.theme-rolex, .theme-light) .bg-xp-surface {
+  background-color: var(--xp-surface);
+}
+
+/* Floating layers — menus, popovers, dialogs are thicker paper */
+:is(.theme-rolex, .theme-light) .bg-xp-popover,
+:is(.theme-rolex, .theme-light) .bg-popover {
+  background-color: var(--xp-popover) !important;
+  box-shadow: var(--xp-shadow-popover);
+}
+
+:is(.theme-rolex, .theme-light) .bg-card {
+  background-color: var(--xp-popover);
+  box-shadow: none;
+}
+
+/* Inputs — quiet paper wells, hairline edge */
+:is(.theme-rolex, .theme-light) input,
+:is(.theme-rolex, .theme-light) select,
+:is(.theme-rolex, .theme-light) textarea {
+  background-color: var(--xp-surface-light) !important;
+  border-color: var(--xp-border) !important;
+  color: var(--xp-text) !important;
+}
+
+:is(.theme-rolex, .theme-light) .file-item:hover,
+:is(.theme-rolex, .theme-light) .sidebar-item:hover {
+  background-color: var(--xp-surface-light);
+}
+
+/* Selection — the one 無印紅 moment */
+:is(.theme-rolex, .theme-light) .file-item.selected {
+  animation: none;
+  background-color: var(--xp-selection-bg);
+  border: 1px solid var(--xp-selection-border);
+  box-shadow: inset 2px 0 0 var(--xp-lime);
+  color: var(--xp-text);
+}
+
+:is(.theme-rolex, .theme-light) .sidebar-item.active {
+  background-color: var(--xp-surface-light);
+  box-shadow: none;
+  color: var(--xp-text);
+}
+
+:is(.theme-rolex, .theme-light) .extension-card:hover {
+  border-color: var(--xp-selection-border);
+  box-shadow: none;
+}
+
+:is(.theme-rolex, .theme-light) .tab-item.active {
+  background-color: var(--xp-selection-bg);
+  border-bottom-color: var(--xp-lime);
+  box-shadow: inset 0 -2px 0 var(--xp-lime);
+}
+
+:is(.theme-rolex, .theme-light) ::selection {
+  background-color: var(--xp-selection-border);
+  color: var(--xp-text);
+}
+
+.wisp-shell {
+  background: transparent !important;
+}
+
+/* Window chrome — flat paper panes with hairline edges */
+.wisp-titlebar,
+.wisp-sidebar,
+.wisp-panel-rail,
+.wisp-inspector,
+.wisp-operationbar {
+  background: var(--xp-surface) !important;
+}
+
+.wisp-titlebar {
+  box-shadow: inset 0 -1px 0 var(--xp-border) !important;
+}
+
+.wisp-sidebar {
+  box-shadow: inset -1px 0 0 var(--xp-border) !important;
+}
+
+.wisp-panel-rail {
+  box-shadow: inset -1px 0 0 var(--xp-border) !important;
+}
+
+.wisp-inspector {
+  box-shadow: inset 1px 0 0 var(--xp-border) !important;
+}
+
+.wisp-operationbar {
+  box-shadow: inset 0 1px 0 var(--xp-border) !important;
+}
+
+/* The status strip melts into the ground — no fill, no hairline */
+.wisp-statusbar {
+  background: transparent !important;
+  box-shadow: none !important;
+  min-height: 22px;
+}
+
+.wisp-sidebar button:focus {
+  outline: none;
+}
+
+.wisp-sidebar button:focus-visible {
+  background-color: var(--xp-surface-light);
+  outline: none;
+}
+
+.wisp-sidebar-item-active {
+  background: var(--xp-selection-bg) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: var(--xp-text) !important;
+  font-weight: 400;
+}
+
+.wisp-panel-button-active {
+  background: var(--xp-selection-bg) !important;
+  color: var(--xp-lime) !important;
+  box-shadow: none;
+}
+
+.wisp-home-icon {
+  background: var(--glass-well);
+  border: 1px solid var(--xp-border);
+  color: var(--xp-text);
+}
+
+.wisp-home-icon .text-white {
+  color: var(--xp-text);
+}
+
+/* Elevation collapses to ONE paper lift — a hairline ring plus a faint
+   haze. Every shadow utility means exactly this. */
+.shadow-xl,
+.shadow-2xl,
+.wisp-shell .shadow-xl,
+.wisp-shell .shadow-2xl {
+  box-shadow: var(--xp-shadow-popover);
+}
+
+/* .glass-card — now a flat paper cut. The frosted-pane machinery
+   (::before tint washes, dotted inset) is retired; the class stays so
+   existing markup keeps working. */
+.glass-card {
+  background: var(--xp-surface);
+  border: 1px solid var(--xp-border);
+  border-radius: 0.5rem;
+  box-shadow: none;
+}
+
+.glass-card::before,
+.glass-card::after {
+  content: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MARKDOWN PREVIEW TYPOGRAPHY (react-markdown output)
+   Sized for the inspector panel; colours come from the theme tokens.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.md-preview {
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--xp-text);
+}
+
+.md-preview > :first-child {
+  margin-top: 0;
+}
+
+.md-preview h1,
+.md-preview h2,
+.md-preview h3,
+.md-preview h4 {
+  color: var(--xp-text);
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.4em 0 0.5em;
+}
+
+.md-preview h1 {
+  font-size: 1.45em;
+  border-bottom: 1px solid var(--xp-border);
+  padding-bottom: 0.3em;
+}
+
+.md-preview h2 {
+  font-size: 1.25em;
+}
+
+.md-preview h3 {
+  font-size: 1.1em;
+}
+
+.md-preview p {
+  margin: 0.65em 0;
+}
+
+.md-preview a {
+  color: var(--xp-blue);
+  text-decoration: none;
+}
+
+.md-preview a:hover {
+  text-decoration: underline;
+}
+
+.md-preview ul,
+.md-preview ol {
+  padding-left: 1.4em;
+  margin: 0.6em 0;
+}
+
+.md-preview ul {
+  list-style: disc;
+}
+
+.md-preview ol {
+  list-style: decimal;
+}
+
+.md-preview li {
+  margin: 0.25em 0;
+}
+
+.md-preview li input[type="checkbox"] {
+  margin-right: 0.4em;
+  accent-color: var(--xp-blue);
+}
+
+.md-preview blockquote {
+  border-left: 2px solid var(--xp-border-light);
+  color: var(--xp-text-secondary);
+  padding: 0.1em 0.9em;
+  margin: 0.8em 0;
+}
+
+.md-preview hr {
+  border: none;
+  border-top: 1px solid var(--xp-border);
+  margin: 1.4em 0;
+}
+
+.md-preview table {
+  border-collapse: collapse;
+  margin: 0.8em 0;
+  font-size: 12px;
+  display: block;
+  overflow-x: auto;
+}
+
+.md-preview th,
+.md-preview td {
+  border: 1px solid var(--xp-border);
+  padding: 0.35em 0.7em;
+  text-align: left;
+}
+
+.md-preview th {
+  background: var(--glass-well);
+  font-weight: 600;
+}
+
+.md-preview img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.md-inline-code {
+  font-family: "SF Mono", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  background: var(--glass-well);
+  border: 1px solid var(--xp-border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  color: var(--xp-pink);
+}
+
+.md-code-fallback,
+.md-code.shiki {
+  font-family: "SF Mono", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.55;
+  background: var(--glass-well) !important;
+  border: 1px solid var(--xp-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  margin: 0.8em 0;
+}
+
+.md-code-fallback code {
+  color: var(--xp-text);
+}
+
+/* Shiki dual theme: light tokens by default, ink theme flips to dark */
+.code-highlight span {
+  color: var(--shiki-light);
+}
+
+html.theme-rolex .code-highlight span {
+  color: var(--shiki-dark);
+}
+
+:is(.theme-rolex, .theme-light) .transition-all {
+  transition-duration: 140ms;
+  transition-timing-function: ease-out;
+}
+
+:is(.theme-rolex, .theme-light) .transition-colors {
+  transition-duration: 120ms;
+  transition-timing-function: ease-out;
+}
+
+:is(.theme-rolex, .theme-light) .file-icon-hover:hover,
+:is(.theme-rolex, .theme-light) .file-selected {
+  transform: none;
+  animation: none;
+}
+
+:is(.theme-rolex, .theme-light) .dragging {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.theme-rolex, .theme-light) .transition-all,
+  :is(.theme-rolex, .theme-light) .transition-colors,
+  :is(.theme-rolex, .theme-light) .xp-drag-overlay,
+  :is(.theme-rolex, .theme-light) .file-selected {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   天气呈现收束为一枚芯片与主页卡片（2026-09-06 用户决定：删除全幅天气
+   色场层）。玻璃之下只垫一张稳定的纸底，亮/暗由主题极性决定。
+   ═══════════════════════════════════════════════════════════════════ */
+
+html {
+  background: var(--xp-bg);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   QUIET STRUCTURE — whitespace over hairlines
+   The list header and status strip sit directly on the stained ground;
+   stacked dividers dissolve so spacing carries the separation.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.wisp-list-header {
+  /* macOS 参考图：表头直接坐在玻璃上，透明即可（玻璃本身近实心） */
+  background-color: transparent !important;
+  border-bottom: none;
+}
+
+/* 工具行最小化 — the toolbar rests at a whisper and speaks on hover.
+   Everything stays where it is and clickable; it just stops shouting. */
+.wisp-operationbar > div,
+.wisp-operationbar > .flex {
+  opacity: 0.35;
+  transition: opacity 0.18s ease;
+}
+.wisp-operationbar:hover > div,
+.wisp-operationbar:hover > .flex,
+.wisp-operationbar:focus-within > div,
+.wisp-operationbar:focus-within > .flex {
+  opacity: 1;
+}
+
+html .divide-y > :not([hidden]) ~ :not([hidden]) {
+  border-top-width: 0;
+}
+
+/* Always invisible, including while scrolling. Keep overflow behavior intact.
+   This is an app preference, independent of the selected material/theme. */
+html,
+html * {
+  scrollbar-width: none !important;
+  scrollbar-gutter: auto !important;
+  -ms-overflow-style: none !important;
+}
+html::-webkit-scrollbar,
+html *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+/* Editors draw their own rails instead of using browser scrollbars. */
+.monaco-scrollable-element > .scrollbar,
+[data-radix-scroll-area-scrollbar] {
+  display: none !important;
+}
+
+/* ── File rows ──────────────────────────────────────────────────────
+   Both polarities share one gesture: the 無印紅 wash with a red spine.
+   Rows are divs with tabIndex, so the WebKit default blue focus outline
+   would paint over the wash — the selection state is feedback enough. */
+.wisp-file-row:hover {
+  background-color: var(--glass-well);
+}
+
+.wisp-file-row.file-selected {
+  /* macOS 参考图：浅蓝圆角选中行，無印红脊线退役 */
+  background-color: var(--xp-selection-bg);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--xp-selection-border);
+}
+
+.wisp-file-row:focus-visible {
+  outline: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MUJI — 紙の設計. The whole app is one sheet of kinari paper the sky
+   stains. Flat surfaces, hairline structure, ink type, one red accent.
+   No glass, no blur, no gradients on components, no glow.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Quiet geometry — squares, not bubbles */
+html .rounded-2xl {
+  border-radius: 0.5rem;
+}
+html .rounded-xl {
+  border-radius: 0.375rem;
+}
+html .rounded-lg {
+  border-radius: 0.25rem;
+}
+html .rounded-md {
+  border-radius: 0.25rem;
+}
+
+/* Ink typography everywhere — the dot-matrix face is retired */
+.font-dot {
+  font-family: inherit !important;
+  font-weight: 400;
+  font-variation-settings: normal;
+}
+
+/* Components rest on hairlines and type weight, not shadows */
+html .bg-card {
+  box-shadow: none !important;
+}
+
+/* Focus: a quiet sumi ring */
+:is(.theme-rolex, .theme-light)
+  :is(button, input, textarea, select, [role="button"]):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--xp-text) 45%, transparent);
+  outline-offset: 1px;
+}
+
+/* WKWebView autofill paints a neon yellow — force paper instead */
+html input:-webkit-autofill,
+html input:-webkit-autofill:hover,
+html input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--xp-surface) inset;
+  -webkit-text-fill-color: var(--xp-text);
+  caret-color: var(--xp-text);
+  transition: background-color 9999s ease-out;
+}
+
+/* Range sliders — squared ink bars with a 無印紅 thumb. The track is
+   painted inline (filled/unfilled halves), so only the thumb matters. */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--xp-lime);
+  border: none;
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--xp-lime);
+  border: none;
+  cursor: pointer;
+}
+
+/* ═══ DetailsView 自适应列 — 名称永远最后被压缩 ═══
+   窗格 ≥620px 五列全开；以下依次收起类型、时间；名称列最小 180px。
+   头部与文件行使用同一套模板，"名称"表头不换行。 */
+.wisp-pane-container {
+  container-type: inline-size;
+}
+
+@container (max-width: 640px) {
+  .wisp-pane-container :is(.wisp-file-row, .wisp-list-header > div) > :nth-child(4) {
+    display: none;
+  }
+}
+
+@container (max-width: 520px) {
+  .wisp-pane-container :is(.wisp-file-row, .wisp-list-header > div) > :nth-child(4),
+  .wisp-pane-container :is(.wisp-file-row, .wisp-list-header > div) > :nth-child(5) {
+    display: none;
+  }
+}
+
+/* 名称表头不换行 */
+.wisp-pane-container .wisp-list-header > :nth-child(2) {
+  white-space: nowrap;
+}
+
+/* ── 主页系统状态：降级为底部紧凑摘要（R2） ──
+   问候与文件导航是主角；仪表退为一行小卡，数字缩小、留白收紧。 */
+.home-status-compact .glass-card {
+  padding: 0.7rem 1rem;
+}
+.home-status-compact .glass-card .text-3xl {
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+.home-status-compact .glass-card .h-8 {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+.home-status-compact .glass-card .h-10 {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+.home-status-compact section > div:first-child {
+  margin-bottom: 0.4rem;
+}
+.home-status-compact section > div:first-child p {
+  font-size: 0.8rem;
+}
+.home-status-compact section .grid {
+  gap: 0.5rem;
+}
+
+/* 图标控件基线：所有 wisp-control-icon 必须是居中的 flex 容器
+   （a 标签默认 block，svg 会顶对齐 —— 曾在网页标签浮层里被抓包） */
+.wisp-control-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

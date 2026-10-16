@@ -1,0 +1,483 @@
+import { getAppLocale } from '@/lib/locale';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { TauriAPI } from '@/lib/tauri-api';
+import { getFileIcon, formatFileSize, formatDate } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { formatError } from '@/lib/file-operation-helpers';
+import { LoaderCircle } from 'lucide-react';
+
+interface FileProperties {
+  path: string;
+  name: string;
+  file_type: string;
+  size: number;
+  size_formatted: string;
+  created: number;
+  modified: number;
+  accessed: number;
+  created_formatted: string;
+  modified_formatted: string;
+  accessed_formatted: string;
+  permissions: FilePermissions;
+  is_directory: boolean;
+  is_hidden: boolean;
+  is_readonly: boolean;
+  extension?: string;
+  mime_type?: string;
+  attributes: FileAttributes;
+}
+
+interface FilePermissions {
+  readable: boolean;
+  writable: boolean;
+  executable: boolean;
+  permissions_string: string;
+  mode?: number;
+  attributes?: number;
+}
+
+interface FileAttributes {
+  item_count?: number;
+  total_size?: number;
+  symlink_target?: string;
+  device_id?: number;
+  inode?: number;
+  hard_links?: number;
+}
+
+interface PropertiesPanelProps {
+  filePath: string;
+}
+
+const PropertiesPanel = ({ filePath }: PropertiesPanelProps) => {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  const [properties, setProperties] = useState<FileProperties | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'general' | 'permissions' | 'details'>('general');
+  const [editingPermissions, setEditingPermissions] = useState(false);
+  const [permissionString, setPermissionString] = useState('');
+  const [saving, setSaving] = useState(false);
+  const requestRef = useRef(0);
+  const savingRef = useRef(false);
+  const currentPathRef = useRef(filePath);
+  currentPathRef.current = filePath;
+
+  const loadProperties = useCallback(async () => {
+    const request = ++requestRef.current;
+    if (!filePath) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const props = await TauriAPI.getDetailedFileProperties(filePath);
+      if (request !== requestRef.current || currentPathRef.current !== filePath) return;
+      setProperties(props);
+      setPermissionString(props.permissions.permissions_string);
+    } catch (err) {
+      if (request !== requestRef.current || currentPathRef.current !== filePath) return;
+      setError(formatError(err));
+      toast({
+        title: t('panels.properties.toastLoadErrorTitle'),
+        description: t('panels.properties.toastLoadErrorDesc', { error: formatError(err) }),
+        variant: 'destructive',
+      });
+    } finally {
+      if (request === requestRef.current) setLoading(false);
+    }
+  }, [filePath, toast, t]);
+
+  useEffect(() => {
+    if (filePath) {
+      setActiveTab('general');
+      setEditingPermissions(false);
+      loadProperties();
+    }
+    return () => {
+      requestRef.current += 1;
+    };
+  }, [filePath, loadProperties]);
+
+  const handleSavePermissions = async () => {
+    if (!properties || properties.path !== filePath || savingRef.current) return;
+    savingRef.current = true;
+    setSaving(true);
+    try {
+      await TauriAPI.setFilePermissions(filePath, permissionString);
+      if (currentPathRef.current === filePath) {
+        setEditingPermissions(false);
+        loadProperties();
+      }
+      toast({
+        title: t('panels.properties.toastPermUpdatedTitle'),
+        description: t('panels.properties.toastPermUpdatedDesc'),
+      });
+    } catch (err) {
+      toast({
+        title: t('panels.properties.toastPermErrorTitle'),
+        description: t('panels.properties.toastPermErrorDesc', { error: formatError(err) }),
+        variant: 'destructive',
+      });
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
+  };
+
+  if (!filePath) {
+    // Keep the field preview readable in the compact empty drawer.
+    return (
+      <div className="flex h-full min-h-0 flex-col items-start justify-center gap-1.5 px-4 py-3">
+        <svg
+          className="text-xp-text-muted"
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 16v-4M12 8h.01" />
+        </svg>
+        <div className="text-[13px] font-semibold text-xp-text">
+          {t('panels.properties.emptyTitle')}
+        </div>
+        <div className="text-[11.5px] leading-relaxed text-xp-text-muted">
+          {t('panels.properties.emptyDesc')}
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center text-xs text-xp-text-muted">
+        <LoaderCircle aria-hidden="true" className="mr-2 h-4 w-4 animate-spin text-xp-blue" />
+        {t('panels.properties.loadingProperties')}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-full items-center justify-center gap-2 text-xs text-xp-text-muted">
+        <span className="text-xp-red">{t('panels.properties.errorPrefix', { error })}</span>
+        <button
+          onClick={loadProperties}
+          className="rounded-md bg-xp-blue px-2 py-0.5 text-xs text-xp-on-accent hover:bg-xp-blue-dark"
+        >
+          {t('panels.properties.retry')}
+        </button>
+      </div>
+    );
+  }
+
+  if (!properties) return null;
+
+  return (
+    <div className="wisp-properties-panel flex h-full flex-col">
+      {/* Sub-tab bar */}
+      <div className="wisp-properties-toolbar wisp-bottom-subtoolbar flex items-center gap-0.5 px-3 py-1">
+        {(['general', 'permissions', 'details'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            aria-pressed={activeTab === tab}
+            className={`rounded-md px-2 py-0.5 text-xs font-semibold capitalize ${
+              activeTab === tab
+                ? 'bg-xp-blue/20 text-xp-blue'
+                : 'text-xp-text-muted hover:bg-xp-surface-light'
+            }`}
+          >
+            {t(`panels.properties.tab${tab.charAt(0).toUpperCase()}${tab.slice(1)}`)}
+          </button>
+        ))}
+        <div className="flex-1" />
+        <button
+          onClick={loadProperties}
+          className="rounded-md px-2 py-0.5 text-xs font-semibold text-xp-text-muted hover:bg-xp-surface-light"
+          title={t('panels.properties.refreshTitle')}
+          aria-label={t('panels.properties.refreshTitle')}
+        >
+          <svg
+            className="h-3 w-3"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto px-5 py-3">
+        {activeTab === 'general' && (
+          <div className="flex flex-wrap gap-6">
+            {/* Left: file identity */}
+            <div className="flex flex-shrink-0 items-start gap-2">
+              <span className="text-2xl leading-none">
+                {getFileIcon({
+                  name: properties.name,
+                  is_dir: properties.is_directory,
+                  path: properties.path,
+                  size: properties.size,
+                  modified: properties.modified,
+                  file_type: properties.file_type,
+                  is_readonly: properties.is_readonly,
+                })}
+              </span>
+              <div className="min-w-0">
+                <div
+                  className="max-w-[200px] truncate text-xs font-semibold text-xp-text"
+                  title={properties.name}
+                >
+                  {properties.name}
+                </div>
+                <div className="text-xs text-xp-text-muted">{properties.file_type}</div>
+                {/* Attribute badges */}
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {properties.is_hidden && (
+                    <span className="rounded-md bg-xp-yellow/20 px-1 py-0.5 text-xs text-xp-yellow">
+                      {t('panels.properties.hiddenBadge')}
+                    </span>
+                  )}
+                  {properties.is_readonly && (
+                    <span className="rounded-md bg-xp-red/20 px-1 py-0.5 text-xs text-xp-red">
+                      {t('panels.properties.readonlyBadge')}
+                    </span>
+                  )}
+                  {properties.is_directory && (
+                    <span className="rounded-md bg-xp-blue/20 px-1 py-0.5 text-xs text-xp-blue">
+                      {t('panels.properties.directoryBadge')}
+                    </span>
+                  )}
+                  {properties.attributes.symlink_target && (
+                    <span className="rounded-md bg-xp-purple/20 px-1 py-0.5 text-xs text-xp-purple">
+                      {t('panels.properties.symlinkBadge')}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right: properties grid */}
+            <div
+              className="grid min-w-0 flex-1 basis-[300px] gap-x-6 gap-y-0.5 text-xs"
+              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))' }}
+            >
+              <PropRow label={t('panels.properties.labelLocation')} value={properties.path} />
+              <PropRow label={t('panels.properties.labelSize')} value={properties.size_formatted} />
+              {properties.attributes.item_count != null && (
+                <PropRow
+                  label={t('panels.properties.labelContains')}
+                  value={t('panels.properties.containsValue', {
+                    count: properties.attributes.item_count,
+                  })}
+                />
+              )}
+              {properties.attributes.total_size != null && (
+                <PropRow
+                  label={t('panels.properties.labelDiskSize')}
+                  value={formatFileSize(properties.attributes.total_size)}
+                />
+              )}
+              <PropRow
+                label={t('panels.properties.labelCreated')}
+                value={formatDate(properties.created)}
+              />
+              <PropRow
+                label={t('panels.properties.labelModified')}
+                value={formatDate(properties.modified)}
+              />
+              <PropRow
+                label={t('panels.properties.labelAccessed')}
+                value={formatDate(properties.accessed)}
+              />
+              {properties.extension && (
+                <PropRow
+                  label={t('panels.properties.labelExtension')}
+                  value={properties.extension}
+                />
+              )}
+              {properties.mime_type && (
+                <PropRow label={t('panels.properties.labelMime')} value={properties.mime_type} />
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'permissions' && (
+          <div className="space-y-2 text-xs">
+            <div className="grid grid-cols-3 gap-2">
+              <PermBadge
+                label={t('panels.properties.labelRead')}
+                value={properties.permissions.readable}
+              />
+              <PermBadge
+                label={t('panels.properties.labelWrite')}
+                value={properties.permissions.writable}
+              />
+              <PermBadge
+                label={t('panels.properties.labelExecute')}
+                value={properties.permissions.executable}
+              />
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="w-20 text-xs font-semibold text-xp-text-muted">
+                {t('panels.properties.labelPermissions')}
+              </span>
+              <input
+                type="text"
+                aria-label={t('panels.properties.labelPermissions')}
+                value={
+                  editingPermissions ? permissionString : properties.permissions.permissions_string
+                }
+                onChange={(e) => setPermissionString(e.target.value)}
+                disabled={!editingPermissions || saving}
+                className="min-w-0 flex-1 rounded-md border border-xp-border bg-xp-bg px-2 py-1 text-xs text-xp-text disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder={t('panels.properties.permPlaceholder')}
+              />
+              {editingPermissions ? (
+                <>
+                  <button
+                    onClick={handleSavePermissions}
+                    disabled={saving}
+                    className="rounded-md bg-xp-blue px-2 py-1 text-xs text-xp-on-accent hover:bg-xp-blue-dark"
+                  >
+                    {t(saving ? 'common.saving' : 'common.save')}
+                  </button>
+                  <button
+                    disabled={saving}
+                    onClick={() => {
+                      setEditingPermissions(false);
+                      setPermissionString(properties.permissions.permissions_string);
+                    }}
+                    className="rounded-md bg-xp-surface-light px-2 py-1 text-xs text-xp-text hover:bg-xp-border"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setEditingPermissions(true)}
+                  className="rounded-md bg-xp-surface-light px-2 py-1 text-xs text-xp-text hover:bg-xp-border"
+                >
+                  {t('common.edit')}
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-xp-text-muted">{t('panels.properties.permHint')}</p>
+          </div>
+        )}
+
+        {activeTab === 'details' && (
+          <div className="grid grid-cols-2 gap-x-6 gap-y-0.5 text-xs">
+            {properties.attributes.device_id != null && (
+              <PropRow
+                label={t('panels.properties.labelDeviceId')}
+                value={String(properties.attributes.device_id)}
+              />
+            )}
+            {properties.attributes.inode != null && (
+              <PropRow
+                label={t('panels.properties.labelInode')}
+                value={String(properties.attributes.inode)}
+              />
+            )}
+            {properties.attributes.hard_links != null && (
+              <PropRow
+                label={t('panels.properties.labelHardLinks')}
+                value={String(properties.attributes.hard_links)}
+              />
+            )}
+            {properties.attributes.symlink_target && (
+              <PropRow
+                label={t('panels.properties.labelSymlinkTarget')}
+                value={properties.attributes.symlink_target}
+              />
+            )}
+            {properties.permissions.mode != null && (
+              <PropRow
+                label={t('panels.properties.labelMode')}
+                value={t('panels.properties.modeValue', {
+                  octal: Number(properties.permissions.mode).toString(8),
+                })}
+              />
+            )}
+            {properties.permissions.attributes != null && (
+              <PropRow
+                label={t('panels.properties.labelAttributes')}
+                value={t('panels.properties.attributesValue', {
+                  hex: `0x${Number(properties.permissions.attributes).toString(16)}`,
+                })}
+              />
+            )}
+            <PropRow
+              label={t('panels.properties.labelSizeBytes')}
+              value={(properties.size ?? 0).toLocaleString(getAppLocale())}
+            />
+            {properties.attributes.total_size != null && (
+              <PropRow
+                label={t('panels.properties.labelTotalBytes')}
+                value={properties.attributes.total_size.toLocaleString(getAppLocale())}
+              />
+            )}
+            <PropRow
+              label={t('panels.properties.labelCreatedUnix')}
+              value={String(properties.created ?? '')}
+            />
+            <PropRow
+              label={t('panels.properties.labelModifiedUnix')}
+              value={String(properties.modified ?? '')}
+            />
+            <PropRow
+              label={t('panels.properties.labelAccessedUnix')}
+              value={String(properties.accessed ?? '')}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const PropRow = ({ label, value }: { label: string; value: string }) => {
+  // ChatGPT R4 spec: fixed 88px label column, value ≥180px, 28px rows —
+  // reads as a field grid instead of a wrapped sentence.
+  return (
+    <div className="flex min-h-[28px] min-w-0 items-baseline gap-2">
+      <span className="w-[88px] flex-shrink-0 text-xs font-semibold text-xp-text-muted">
+        {label}
+      </span>
+      <span className="min-w-0 flex-1 truncate text-xs text-xp-text" title={value}>
+        {value}
+      </span>
+    </div>
+  );
+};
+
+const PermBadge = ({ label, value }: { label: string; value: boolean }) => {
+  return (
+    <div
+      className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold ${
+        value ? 'bg-xp-green/10 text-xp-green' : 'bg-xp-red/10 text-xp-red'
+      }`}
+    >
+      <span>{value ? '\u2713' : '\u2717'}</span>
+      <span>{label}</span>
+    </div>
+  );
+};
+
+export default PropertiesPanel;

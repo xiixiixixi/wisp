@@ -1,0 +1,288 @@
+/* The bottom panel owns the material; nested terminal surfaces must not
+   paint another opaque rectangle or stack the translucent drawer fill. */
+.wisp-terminal-panel,
+.wisp-terminal-sessions,
+.wisp-terminal-panel .xterm,
+.wisp-terminal-panel .xterm-viewport {
+  background-color: var(--wisp-terminal-bg);
+  color: var(--wisp-terminal-fg);
+}
+.wisp-terminal-sessions {
+  min-height: 0;
+  padding: 10px 16px;
+}
+.wisp-terminal-panel .xterm .composition-view {
+  background: var(--ds-surface);
+  color: var(--wisp-terminal-fg);
+  border-radius: 4px;
+  padding: 2px 4px;
+  outline: 1px solid var(--ds-separator);
+}
+
+.wisp-terminal-panel .wisp-terminal-tabbar {
+  display: flex;
+  align-items: center;
+  flex: 0 0 32px;
+  min-width: 0;
+  overflow: hidden;
+}
+.wisp-terminal-tablist {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+  overflow-x: auto;
+}
+.wisp-terminal-session-tab {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 2px;
+  border-bottom: 1px solid transparent;
+  color: var(--ds-label-secondary);
+}
+.wisp-terminal-session-tab[data-active="true"] {
+  color: var(--ds-label-primary);
+  border-bottom-color: var(--ds-label-secondary);
+}
+.wisp-terminal-session-tab [role="tab"] {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 5px 0 8px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.wisp-terminal-session-tab [aria-selected="true"] {
+  font-weight: 500;
+}
+.wisp-terminal-session-tab [role="tab"] span {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wisp-terminal-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 2px;
+}
+.wisp-terminal-panel .wisp-terminal-close,
+.wisp-terminal-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ds-label-secondary);
+  cursor: pointer;
+}
+.wisp-terminal-panel .wisp-terminal-close {
+  width: 24px;
+  height: 24px;
+  opacity: 0;
+}
+.wisp-terminal-session-tab:hover .wisp-terminal-close,
+.wisp-terminal-session-tab:focus-within .wisp-terminal-close {
+  opacity: 1;
+}
+.wisp-terminal-panel .wisp-terminal-close:hover,
+.wisp-terminal-actions button:not(:disabled):hover {
+  color: var(--ds-label-primary);
+  background: var(--ds-hover);
+}
+.wisp-terminal-session-tab [role="tab"]:hover {
+  color: var(--ds-label-primary);
+}
+.wisp-terminal-actions button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-terminal-tabbar
+  button:focus:not(:focus-visible) {
+  outline: none !important;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-terminal-tabbar button:focus-visible {
+  outline: 1px solid var(--ds-label-secondary) !important;
+  outline-offset: -2px !important;
+}
+.wisp-terminal-menu {
+  width: 196px;
+  padding: 4px;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex) .wisp-terminal-menu {
+  border-radius: 10px !important;
+  background: var(--ds-surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.wisp-terminal-menu [role="menuitem"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 0;
+  background: transparent;
+  color: var(--ds-label-primary);
+  text-align: left;
+  cursor: pointer;
+}
+.wisp-terminal-menu [role="menuitem"]:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.wisp-terminal-menu kbd {
+  color: var(--ds-label-secondary);
+  font: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-terminal-menu
+  [role="menuitem"]:is(:hover, :focus, :focus-visible):not([data-disabled]):not(:disabled):not(
+    [aria-disabled="true"]
+  ) {
+  background: var(--ds-hover) !important;
+  color: var(--ds-label-primary) !important;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-terminal-menu
+  [role="menuitem"]:focus:not(:focus-visible) {
+  outline: none !important;
+}
+html:root:is(.theme-light, .theme-fluid, .theme-rolex)
+  .wisp-terminal-menu
+  [role="menuitem"]:focus-visible:not(:disabled) {
+  outline: 1px solid var(--ds-label-secondary) !important;
+  outline-offset: -2px !important;
+}
+.wisp-terminal-panel .xterm {
+  height: 100%;
+  font-variant-ligatures: none;
+}
+/* Ligatures stay off by default (#4 — CJK output can misrender); the
+   settings toggle (#42) re-enables them on the panel root. */
+.wisp-terminal-panel.wisp-terminal-ligatures .xterm {
+  font-variant-ligatures: common-ligatures contextual;
+}
+.wisp-terminal-panel .xterm-viewport {
+  overscroll-behavior: contain;
+}
+
+/* Link hover preview — full href before the modifier click opens it. */
+.wisp-terminal-link-tooltip {
+  position: fixed;
+  z-index: 120;
+  max-width: min(520px, calc(100vw - 24px));
+  padding: 5px 9px;
+  border: 1px solid var(--ds-separator);
+  border-radius: 7px;
+  background: var(--ds-surface);
+  color: var(--ds-label-primary);
+  font-family: var(--ds-font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-size: 11px;
+  line-height: 1.45;
+  word-break: break-all;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 25%);
+}
+
+/* Tab badges: bell (unfocused tab rang) and read-only lock. */
+.wisp-terminal-session-tab [role="tab"] {
+  gap: 3px;
+}
+.wisp-terminal-tab-bell {
+  flex-shrink: 0;
+  color: var(--ds-accent);
+}
+.wisp-terminal-tab-lock {
+  flex-shrink: 0;
+  color: var(--ds-label-tertiary);
+}
+
+/* Inline find bar — overlays the terminal surface without resizing it. */
+.wisp-terminal-searchbar {
+  position: absolute;
+  top: 8px;
+  right: 20px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border: 1px solid var(--ds-separator);
+  border-radius: 9px;
+  background: var(--ds-surface);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 28%);
+}
+.wisp-terminal-searchbar input {
+  width: 180px;
+  min-height: 24px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ds-label-primary);
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+}
+.wisp-terminal-searchbar input:focus-visible {
+  outline: 1px solid var(--ds-label-secondary);
+  outline-offset: -1px;
+}
+.wisp-terminal-search-count {
+  min-width: 36px;
+  color: var(--ds-label-secondary);
+  font-size: 11px;
+  text-align: center;
+  white-space: nowrap;
+}
+.wisp-terminal-searchbar button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ds-label-secondary);
+  cursor: pointer;
+}
+.wisp-terminal-searchbar button:not(:disabled):hover {
+  color: var(--ds-label-primary);
+  background: var(--ds-hover);
+}
+.wisp-terminal-searchbar button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+@media (max-width: 600px) {
+  .wisp-terminal-sessions {
+    padding-inline: 12px;
+  }
+  .wisp-terminal-session-tab [role="tab"] span {
+    max-width: 100px;
+  }
+}
+@media (hover: none) {
+  .wisp-terminal-panel .wisp-terminal-close {
+    opacity: 1;
+  }
+}

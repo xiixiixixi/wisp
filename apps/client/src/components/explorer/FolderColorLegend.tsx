@@ -1,0 +1,172 @@
+import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Check } from 'lucide-react';
+import {
+  FOLDER_COLORS,
+  colorName,
+  getAllFolderColors,
+  type FolderColor,
+  type FolderColorDef,
+} from '@/lib/folder-colors';
+import type { FileEntry } from '@/lib/tauri-api';
+
+// ── Types ────────────────────────────────────────────────────────────────────
+
+interface FolderColorLegendProps {
+  /** All files in the current directory listing. */
+  files: FileEntry[];
+  /** When a color dot is clicked, emit the colorId (or null to clear filter). */
+  onFilterByColor?: (colorId: string | null) => void;
+  /** Currently active color filter, if any. */
+  activeColorFilter?: string | null;
+  inMenu?: boolean;
+}
+
+// ── Component ────────────────────────────────────────────────────────────────
+
+const FolderColorLegend = React.memo(
+  ({ files, onFilterByColor, activeColorFilter, inMenu = false }: FolderColorLegendProps) => {
+    const { t: tUi } = useTranslation();
+    // Re-read folder colors whenever they change
+    const [allColors, setAllColors] = useState<FolderColor[]>(() => getAllFolderColors());
+
+    useEffect(() => {
+      const handler = () => setAllColors(getAllFolderColors());
+      window.addEventListener('folder-colors-changed', handler);
+      return () => window.removeEventListener('folder-colors-changed', handler);
+    }, []);
+
+    // Build a set of folder paths in the current directory for quick lookup
+    const folderPaths = useMemo(() => {
+      const set = new Set<string>();
+      for (const f of files) {
+        if (f.is_dir) set.add(f.path);
+      }
+      return set;
+    }, [files]);
+
+    // Count how many folders in the current directory have each color
+    const colorCounts = useMemo(() => {
+      const counts = new Map<string, number>();
+      for (const entry of allColors) {
+        if (folderPaths.has(entry.path)) {
+          counts.set(entry.colorId, (counts.get(entry.colorId) || 0) + 1);
+        }
+      }
+      return counts;
+    }, [allColors, folderPaths]);
+
+    const handleClick = useCallback(
+      (colorId: string) => {
+        if (!onFilterByColor) return;
+        // Toggle: if already active, clear; otherwise set
+        if (activeColorFilter === colorId) {
+          onFilterByColor(null);
+        } else {
+          onFilterByColor(colorId);
+        }
+      },
+      [onFilterByColor, activeColorFilter],
+    );
+
+    // Only render when at least one folder in the current directory has a color
+    if (colorCounts.size === 0) return null;
+
+    // Build ordered entries (only colors that have at least 1 folder)
+    const entries: { def: FolderColorDef; count: number }[] = [];
+    for (const c of FOLDER_COLORS) {
+      const count = colorCounts.get(c.id);
+      if (count && count > 0) {
+        entries.push({ def: c, count });
+      }
+    }
+
+    if (inMenu) {
+      return (
+        <div role="group" aria-label={tUi('interface.folderColorLegend')}>
+          <div role="separator" className="my-1 border-t border-xp-border" />
+          {entries.map(({ def, count }) => (
+            <button
+              key={def.id}
+              type="button"
+              role="menuitemcheckbox"
+              tabIndex={-1}
+              aria-checked={activeColorFilter === def.id}
+              onClick={() => handleClick(def.id)}
+              className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs hover:bg-xp-surface-light"
+            >
+              <span
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: def.hex }}
+                aria-hidden="true"
+              />
+              <span className="flex-1">
+                {tUi('messages.colorFolders', { color: colorName(def.id), count })}
+              </span>
+              {activeColorFilter === def.id && <Check size={14} aria-hidden="true" />}
+            </button>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '0 4px',
+        }}
+        aria-label={tUi('interface.folderColorLegend')}
+      >
+        {entries.map(({ def, count }) => {
+          const isActive = activeColorFilter === def.id;
+          return (
+            <button
+              key={def.id}
+              onClick={() => handleClick(def.id)}
+              title={tUi(isActive ? 'messages.colorFoldersActive' : 'messages.colorFolders', {
+                color: colorName(def.id),
+                count,
+              })}
+              aria-label={tUi('messages.colorFolders', { color: colorName(def.id), count })}
+              aria-pressed={isActive}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 3,
+                padding: '1px 4px',
+                borderRadius: 4,
+                border: 'none',
+                background: isActive ? `${def.hex}25` : 'transparent',
+                cursor: onFilterByColor ? 'pointer' : 'default',
+                lineHeight: 1,
+                fontSize: 11,
+                color: 'var(--xp-text-muted)',
+                transition: 'background 0.15s ease',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  backgroundColor: def.hex,
+                  flexShrink: 0,
+                  boxShadow: isActive ? `0 0 0 2px ${def.hex}60` : undefined,
+                }}
+                aria-hidden="true"
+              />
+              <span>{count}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  },
+);
+FolderColorLegend.displayName = 'FolderColorLegend';
+
+export default FolderColorLegend;

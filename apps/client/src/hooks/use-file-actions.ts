@@ -1,0 +1,354 @@
+import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
+import { formatError } from '@/lib/file-operation-helpers';
+import { showConfirmationToast } from '@/components/ui/Toast';
+import { openRecentEntry } from '@/lib/recent-entry-actions';
+import type { TabItem, EditorGroup } from '@/types/split-view';
+import type { SplitLayoutHook } from '@/hooks/use-split-layout';
+import type { Toast } from '@/hooks/use-toast';
+import type { CrossTabSelectionState } from '@/hooks/use-cross-tab-selection';
+import {
+  type OpenHandler,
+  isCodeFile,
+  getFileExtension,
+  getOpenPreference,
+} from '@/hooks/use-open-with-prefs';
+
+export interface FileActionsDeps {
+  splitLayoutRef: React.MutableRefObject<SplitLayoutHook>;
+  activeGroupRef: React.MutableRefObject<EditorGroup>;
+  setSelectedFiles: React.Dispatch<React.SetStateAction<Set<string>>>;
+  setSelectedFile: React.Dispatch<React.SetStateAction<FileEntry | null>>;
+  toast: (opts: Toast) => void;
+  navigateWithHistory: (path: string) => void;
+  crossTabSelection: CrossTabSelectionState;
+  refetch: () => void;
+  openOpenWithDialog?: (path: string, onChoose?: (handler: OpenHandler) => void) => void;
+}
+
+export const useFileActions = (deps: FileActionsDeps) => {
+  const { t } = useTranslation();
+  const {
+    splitLayoutRef,
+    activeGroupRef,
+    setSelectedFiles,
+    setSelectedFile,
+    toast,
+    navigateWithHistory,
+    crossTabSelection,
+    refetch,
+    openOpenWithDialog,
+  } = deps;
+
+  const addTab = useCallback(
+    (file: FileEntry) => {
+      const newTab: TabItem = {
+        id: file.path,
+        name: file.name,
+        path: file.path,
+        type: file.is_dir ? 'folder' : 'file',
+      };
+      splitLayoutRef.current.addTab(activeGroupRef.current.id, newTab, true);
+    },
+    [splitLayoutRef, activeGroupRef],
+  );
+
+  const toggleFileSelection = useCallback(
+    (filePath: string) => {
+      setSelectedFiles((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(filePath)) {
+          newSet.delete(filePath);
+        } else {
+          newSet.add(filePath);
+        }
+        return newSet;
+      });
+    },
+    [setSelectedFiles],
+  );
+
+  const handleFileClick = useCallback(
+    (file: FileEntry, event?: React.MouseEvent) => {
+      setSelectedFile(file);
+      if (event && (event.ctrlKey || event.metaKey)) {
+        toggleFileSelection(file.path);
+        return;
+      }
+      setSelectedFiles(new Set([file.path]));
+    },
+    [setSelectedFile, setSelectedFiles, toggleFileSelection],
+  );
+
+  /** Execute a chosen open handler for a file. */
+  const executeOpenHandler = useCallback(
+    async (file: FileEntry, handler: OpenHandler) => {
+      try {
+        switch (handler) {
+          case 'wisp-editor': {
+            const editorTab: TabItem = {
+              id: `editor-${file.path}-${Date.now()}`,
+              name: file.name,
+              path: file.path,
+              type: 'editor',
+            };
+            splitLayoutRef.current.addTab(activeGroupRef.current.id, editorTab, true);
+            break;
+          }
+          case 'vscode': {
+            const dir = file.path.replace(/[/\\][^/\\]*$/, '');
+            await TauriAPI.executeCommand(`code "${file.path}"`, dir);
+            break;
+          }
+          case 'system':
+            await TauriAPI.openFile(file.path);
+            break;
+        }
+      } catch (error) {
+        console.error('Failed to open file:', error);
+        toast({
+          variant: 'destructive',
+          title: t('toast.openFileFailed'),
+          description: t('toast.openFileFailedDesc', {
+            name: file.name,
+            error: formatError(error),
+          }),
+        });
+      }
+    },
+    [splitLayoutRef, activeGroupRef, toast, t],
+  );
+
+  const handleFileDoubleClick = useCallback(
+    async (file: FileEntry) => {
+      // Finder parity：.app 在文件系统层是目录，但双击 = 启动应用（特判见
+      // recent-entry-actions 的 openRecentEntry，包内浏览走右键「显示包内容」）。
+      if (file.is_dir && !file.path.endsWith('.app')) {
+        navigateWithHistory(file.path);
+        return;
+      }
+
+      // Finder parity: double-click always opens with the system default
+      // application. Choosing a different app (one-off or system-wide default)
+      // lives in the 打开方式 context menu / dialog.
+      void isCodeFile;
+      void getFileExtension;
+      void getOpenPreference;
+      void executeOpenHandler;
+      void openOpenWithDialog;
+      try {
+        await openRecentEntry({ path: file.path, isDir: file.is_dir }, navigateWithHistory);
+      } catch (error) {
+        console.error('Failed to open file:', error);
+        toast({
+          variant: 'destructive',
+          title: t('toast.openFileFailed'),
+          description: t('toast.openFileFailedDesc', {
+            name: file.name,
+            error: formatError(error),
+          }),
+        });
+      }
+    },
+    [toast, navigateWithHistory, executeOpenHandler, openOpenWithDialog, t],
+  );
+
+  // ── Google Drive ───────────────────────────────────────────────────────────
+
+  const openGDriveTab = useCallback(
+    (accountId: string, accountName: string) => {
+      const ag = activeGroupRef.current;
+      const sl = splitLayoutRef.current;
+      const existingTab = ag.tabs.find(
+        (tab: TabItem) => tab.type === 'gdrive' && tab.gdriveData?.accountId === accountId,
+      );
+      if (existingTab) {
+        sl.switchTab(ag.id, existingTab.id);
+        return;
+      }
+      const gdriveTab: TabItem = {
+        id: `gdrive-${accountId}-${Date.now()}`,
+        name: `\u2601 ${accountName}`,
+        path: `gdrive://${accountId}/root`,
+        type: 'gdrive',
+        gdriveData: { accountId, folderId: 'root', folderName: 'My Drive' },
+      };
+      sl.addTab(ag.id, gdriveTab, true);
+    },
+    [splitLayoutRef, activeGroupRef],
+  );
+
+  const openGDriveManager = useCallback(() => {
+    const managerTab: TabItem = {
+      id: 'gdrive-manager',
+      name: 'Google Drive',
+      path: 'wisp://gdrive-manager',
+      type: 'gdrive-manager',
+    };
+    splitLayoutRef.current.addTab(activeGroupRef.current.id, managerTab, true);
+  }, [splitLayoutRef, activeGroupRef]);
+
+  // ── Cross-tab batch operation handlers ────────────────────────────────────
+
+  const handleCrossTabPickFolder = useCallback(async (): Promise<string | null> => {
+    const result = await TauriAPI.showOpenDialog({ directory: true });
+    return result && result.length > 0 ? result[0] : null;
+  }, []);
+
+  const handleCrossTabMoveAll = useCallback(
+    async (destination: string) => {
+      const allFiles = crossTabSelection.getAllSelectedFiles();
+      let moved = 0;
+      for (const { file } of allFiles) {
+        try {
+          const sep = destination.includes('/') ? '/' : '\\';
+          const destPath = `${destination}${sep}${file.name}`;
+          await TauriAPI.moveFile(file.path, destPath);
+          moved++;
+        } catch (err) {
+          toast({
+            variant: 'destructive',
+            title: t('toast.moveFailed'),
+            description: t('toast.moveFailedDesc', {
+              name: file.name,
+              error: formatError(err),
+            }),
+          });
+        }
+      }
+      if (moved > 0) {
+        toast({
+          title: t('toast.moved'),
+          description: t('toast.movedToDestinationDesc', { count: moved, destination }),
+        });
+        crossTabSelection.clearAll();
+        refetch();
+      }
+    },
+    [crossTabSelection, toast, refetch, t],
+  );
+
+  const handleCrossTabCopyAll = useCallback(
+    async (destination: string) => {
+      const allFiles = crossTabSelection.getAllSelectedFiles();
+      let copied = 0;
+      for (const { file } of allFiles) {
+        try {
+          const sep = destination.includes('/') ? '/' : '\\';
+          const destPath = `${destination}${sep}${file.name}`;
+          if (file.is_dir) {
+            await TauriAPI.acceleratedCopyDirectory(file.path, destPath);
+          } else {
+            await TauriAPI.acceleratedCopyFile(file.path, destPath);
+          }
+          copied++;
+        } catch (err) {
+          toast({
+            variant: 'destructive',
+            title: t('toast.copyFailed'),
+            description: t('toast.copyFailedDesc', {
+              name: file.name,
+              error: formatError(err),
+            }),
+          });
+        }
+      }
+      if (copied > 0) {
+        toast({
+          title: t('toast.copied'),
+          description: t('toast.copiedToDestinationDesc', { count: copied, destination }),
+        });
+        crossTabSelection.clearAll();
+        refetch();
+      }
+    },
+    [crossTabSelection, toast, refetch, t],
+  );
+
+  const handleCrossTabCompressAll = useCallback(
+    async (destination: string) => {
+      const allFiles = crossTabSelection.getAllSelectedFiles();
+      const filePaths = allFiles.map(({ file }: { file: FileEntry }) => file.path);
+      if (filePaths.length === 0) return;
+      try {
+        const sep = destination.includes('/') ? '/' : '\\';
+        const archiveName = `batch-${Date.now()}.zip`;
+        const outputPath = `${destination}${sep}${archiveName}`;
+        await TauriAPI.compressFiles(filePaths, outputPath, {
+          format: 'Zip',
+          compression_level: 6,
+          include_hidden: false,
+          follow_symlinks: false,
+        });
+        toast({
+          title: t('toast.compressed'),
+          description: t('toast.compressedDesc', {
+            archiveName,
+            count: filePaths.length,
+          }),
+        });
+        crossTabSelection.clearAll();
+        refetch();
+      } catch (err) {
+        toast({
+          variant: 'destructive',
+          title: t('toast.compressionFailed'),
+          description: formatError(err),
+        });
+      }
+    },
+    [crossTabSelection, toast, refetch, t],
+  );
+
+  const handleCrossTabDeleteAll = useCallback(async () => {
+    const allFiles = crossTabSelection.getAllSelectedFiles();
+    const confirmed = await showConfirmationToast({
+      title: t('toast.deleteCrossTabTitle'),
+      description: t('toast.deleteCrossTabDesc', {
+        count: allFiles.length,
+        tabCount: crossTabSelection.selectedTabCount,
+      }),
+      confirmText: t('toast.moveToRecycleBin'),
+    });
+    if (!confirmed) return;
+    let deleted = 0;
+    for (const { file } of allFiles) {
+      try {
+        await TauriAPI.moveToTrash(file.path);
+        deleted++;
+      } catch (err) {
+        toast({
+          variant: 'destructive',
+          title: t('toast.deleteFailed'),
+          description: t('toast.deleteFailedDesc', {
+            name: file.name,
+            error: formatError(err),
+          }),
+        });
+      }
+    }
+    if (deleted > 0) {
+      toast({
+        title: t('toast.deleted'),
+        description: t('toast.movedToRecycleBinDesc', { count: deleted }),
+      });
+      crossTabSelection.clearAll();
+      refetch();
+    }
+  }, [crossTabSelection, toast, refetch, t]);
+
+  return {
+    addTab,
+    toggleFileSelection,
+    handleFileClick,
+    handleFileDoubleClick,
+    openGDriveTab,
+    openGDriveManager,
+    handleCrossTabPickFolder,
+    handleCrossTabMoveAll,
+    handleCrossTabCopyAll,
+    handleCrossTabCompressAll,
+    handleCrossTabDeleteAll,
+  };
+};

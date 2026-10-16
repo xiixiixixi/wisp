@@ -1,0 +1,111 @@
+{
+  "productName": "Wisp",
+  "version": "0.99.41",
+  "identifier": "com.wisp.app",
+  "build": {
+    "beforeBuildCommand": "pnpm -w bridge:prepare && pnpm -w frontend:build",
+    "beforeDevCommand": {
+      "script": "pnpm -w bridge:prepare",
+      "wait": true
+    },
+    "frontendDist": "../client/dist",
+    "devUrl": "http://localhost:5174"
+  },
+  "app": {
+    "macOSPrivateApi": true,
+    "windows": [
+      {
+        "title": "Wisp - File Explorer",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600,
+        "resizable": true,
+        "transparent": true,
+        "fullscreen": false,
+        "decorations": true,
+        "hiddenTitle": true,
+        "titleBarStyle": "Overlay",
+        "trafficLightPosition": {
+          "x": 12,
+          "y": 20
+        },
+        "alwaysOnTop": false,
+        "center": true,
+        "acceptFirstMouse": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' asset: https://asset.localhost http://asset.localhost data:; connect-src 'self' ipc: asset: https://asset.localhost http://asset.localhost https://xplorer.space https://*.xplorer.space http://localhost:*; media-src 'self' asset: https://asset.localhost http://asset.localhost; frame-src 'self' asset: media: https://asset.localhost http://asset.localhost blob:; object-src 'none'; base-uri 'self'",
+      "capabilities": [
+        "default"
+      ],
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "$HOME/**",
+          "$APPDATA/**",
+          "$LOCALAPPDATA/**",
+          "$DOCUMENT/**",
+          "$DOWNLOAD/**",
+          "$DESKTOP/**",
+          "$PICTURE/**",
+          "$VIDEO/**",
+          "$AUDIO/**",
+          "../client/dist/**"
+        ]
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/xiixiixixi/wisp/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDgwNzg2OEJDQkUyODY0QzUKUldURlpDaSt2R2g0Z0doRkdlckpyUkFaejVlQ0V6Kzlsd1lSNVNDMHA1OFAyRUxyZ3Z2cFdBM0oK"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "createUpdaterArtifacts": true,
+    "externalBin": [
+      "binaries/tunnel-client",
+      "binaries/cloudflared"
+    ],
+    "resources": {
+      "../../packages/cli/bin/wisp.mjs": "wisp.mjs",
+      "bridge-runtime/": "bridge-runtime/"
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.png",
+      "icons/icon.ico"
+    ],
+    "publisher": "Wisp",
+    "copyright": "Copyright 2025 Wisp",
+    "category": "Utility",
+    "shortDescription": "Modern file explorer",
+    "longDescription": "A modern file explorer built with Tauri, React, and TypeScript",
+    "fileAssociations": [
+      {
+        "ext": [
+          "xtension"
+        ],
+        "mimeType": "application/x-wisp-extension",
+        "description": "Wisp Extension Package"
+      }
+    ],
+    "windows": {
+      "nsis": {
+        "installerHooks": "./windows/hooks.nsh"
+      }
+    },
+    "macOS": {
+      "signingIdentity": "wisp Local Developer"
+    }
+  }
+}

@@ -1,0 +1,388 @@
+import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { FileEntry } from '@/lib/tauri-api';
+import { useDraggable } from '@/hooks/use-draggable';
+import { useDroppable } from '@/hooks/use-droppable';
+import { useThumbnailCache } from '@/hooks/use-thumbnail-cache';
+import { isImageFile } from './FileGridHelpers';
+import { ViewComponentProps } from './FileGridTypes';
+import { FileReferenceBadge } from './FileReferenceBadge';
+import { formatDateTimeShort } from '@/lib/utils';
+import { useGridKeyboardNav } from '@/hooks/use-grid-keyboard-nav';
+import { useFileRevealScroll } from '@/hooks/use-file-reveal-scroll';
+import { useFileTabStop } from '@/hooks/use-file-tab-stop';
+
+// Filmstrip thumbnail item
+const GalleryStripThumb = React.memo(
+  ({
+    file,
+    tabStopPath,
+    isSelected,
+    selectedFiles,
+    allFiles,
+    getFileIcon,
+    thumbnailUrl,
+    onClick,
+    onDoubleClick,
+    onRightClick,
+  }: {
+    file: FileEntry;
+    tabStopPath?: string;
+    isSelected: boolean;
+    selectedFiles: Set<string>;
+    allFiles: FileEntry[];
+    getFileIcon: (file: FileEntry) => React.ReactNode;
+    thumbnailUrl?: string;
+    onClick: (e: React.MouseEvent) => void;
+    onDoubleClick: () => void;
+    onRightClick: (e: React.MouseEvent) => void;
+  }) => {
+    const { t: tUi } = useTranslation();
+    const [thumbError, setThumbError] = useState(false);
+    const [dimensions, setDimensions] = useState<{ w: number; h: number } | null>(null);
+    const isImage = isImageFile(file);
+    const dragHandlers = useDraggable({ file, selectedFiles, allFiles });
+    const dropRef = useDroppable(file.path, !file.is_dir, file.is_dir);
+
+    const dimensionOverlayStyle: React.CSSProperties = {
+      position: 'absolute',
+      bottom: 1,
+      right: 1,
+      fontSize: 12,
+      lineHeight: 1,
+      padding: '1px 3px',
+      borderRadius: 3,
+      background: 'rgba(0,0,0,0.6)',
+      color: '#fff',
+      pointerEvents: 'none',
+      whiteSpace: 'nowrap',
+    };
+
+    return (
+      <div
+        ref={dropRef}
+        {...dragHandlers}
+        role="option"
+        aria-selected={isSelected}
+        aria-label={tUi(file.is_dir ? 'messages.folderAria' : 'messages.fileAria', {
+          name: file.name,
+        })}
+        data-gallery-path={file.path}
+        data-file-path={file.path}
+        tabIndex={tabStopPath === file.path ? 0 : -1}
+        data-file-presentation="filmstrip"
+        className="wisp-file-item h-16 w-16 flex-shrink-0 cursor-default overflow-hidden rounded-md p-1"
+        style={{ position: 'relative' }}
+        onClick={onClick}
+        onDoubleClick={onDoubleClick}
+        onContextMenu={onRightClick}
+        title={file.name}
+      >
+        {isImage && !thumbError && thumbnailUrl ? (
+          <>
+            <img
+              src={thumbnailUrl}
+              alt={file.name}
+              className="h-full w-full object-cover"
+              loading="lazy"
+              draggable={false}
+              onLoad={(e) => {
+                const img = e.currentTarget;
+                setDimensions({ w: img.naturalWidth, h: img.naturalHeight });
+              }}
+              onError={() => setThumbError(true)}
+            />
+            {dimensions && (
+              <span style={dimensionOverlayStyle}>
+                {dimensions.w}x{dimensions.h}
+              </span>
+            )}
+          </>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-xp-surface-light">
+            <span className="text-xl opacity-60">
+              <FileReferenceBadge file={file}>{getFileIcon(file)}</FileReferenceBadge>
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  },
+);
+
+GalleryStripThumb.displayName = 'GalleryStripThumb';
+
+// Gallery View Component -- filmstrip style with large preview + thumbnail strip
+const GalleryView = ({
+  files,
+  selectedFiles,
+  currentPath,
+  groupId,
+  getFileIcon,
+  formatFileSize,
+  formatDate: _formatDate,
+  handleFileClick,
+  handleFileDoubleClick,
+  handleFileRightClick,
+  handleBackgroundRightClick,
+  onQuickLook,
+}: ViewComponentProps) => {
+  const [focusedFile, setFocusedFile] = useState<FileEntry | null>(null);
+  const [previewError, setPreviewError] = useState(false);
+  const [previewDimensions, setPreviewDimensions] = useState<{ w: number; h: number } | null>(null);
+  const { t } = useTranslation();
+  const stripRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { getThumbnailUrl, preloadThumbnails } = useThumbnailCache(100);
+
+  // Filmstrip virtualizer — each thumbnail is 64px wide + 4px gap = 68px per item
+  const THUMB_SIZE = 68;
+  const filmstripVirtualizer = useVirtualizer({
+    count: files.length,
+    getScrollElement: () => stripRef.current,
+    estimateSize: () => THUMB_SIZE,
+    horizontal: true,
+    overscan: 5,
+  });
+
+  const virtualThumbs = filmstripVirtualizer.getVirtualItems();
+  useFileRevealScroll({
+    groupId,
+    currentPath,
+    paths: files.map((file) => file.path),
+    containerRef: stripRef,
+    scrollToIndex: (index) => filmstripVirtualizer.scrollToIndex(index, { align: 'center' }),
+    onRevealPath: (path) => setFocusedFile(files.find((file) => file.path === path) ?? null),
+  });
+  const renderedFiles = virtualThumbs.flatMap((thumb) =>
+    files[thumb.index] ? [files[thumb.index]] : [],
+  );
+  const { tabStopPath, rememberFileFocus } = useFileTabStop(files, selectedFiles, renderedFiles);
+
+  // Preload only visible, resident images. A stable key also prevents render
+  // updates from starting the same background reads again.
+  const visibleImagePathsKey = renderedFiles
+    .filter((file) => isImageFile(file) && file.is_cloud_placeholder !== true)
+    .map((file) => file.path)
+    .join('\0');
+  useEffect(() => {
+    const imagePaths = visibleImagePathsKey ? visibleImagePathsKey.split('\0') : [];
+    if (imagePaths.length > 0) preloadThumbnails(imagePaths);
+  }, [visibleImagePathsKey, preloadThumbnails]);
+  const bgDropRef = useDroppable(
+    currentPath,
+    currentPath.startsWith('wisp://') || currentPath.startsWith('gdrive://'),
+    true,
+  );
+  const attachContainer = useCallback(
+    (node: HTMLDivElement | null) => {
+      containerRef.current = node;
+      bgDropRef.current = node;
+    },
+    [bgDropRef],
+  );
+  const selectGalleryFile = useCallback(
+    (file: FileEntry, event: React.MouseEvent) => {
+      setFocusedFile(file);
+      handleFileClick(file, event);
+    },
+    [handleFileClick],
+  );
+  const { handleKeyDown } = useGridKeyboardNav({
+    files,
+    selectedFiles,
+    columns: 1,
+    viewMode: 'gallery',
+    getColumnsCount: () => 1,
+    handleFileClick: selectGalleryFile,
+    handleFileDoubleClick,
+    needsVirtualization: true,
+    virtualizer: filmstripVirtualizer,
+    containerRef,
+    onQuickLook,
+  });
+
+  // Reset focused file when files change (navigated to a new folder)
+  useEffect(() => {
+    setFocusedFile(null);
+    setPreviewError(false);
+  }, [currentPath]);
+
+  // Auto-focus: use selected file, or first file
+  const displayFile =
+    files.find((file) => file.path === focusedFile?.path) ??
+    files.find((f) => selectedFiles.has(f.path)) ??
+    files[0] ??
+    null;
+  const isDisplayImage = displayFile
+    ? isImageFile(displayFile) && displayFile.is_cloud_placeholder !== true
+    : false;
+
+  // Reset the preview when the displayed file changes
+  useEffect(() => {
+    setPreviewError(false);
+    setPreviewDimensions(null);
+
+    if (!displayFile || !isImageFile(displayFile)) return;
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [displayFile?.path, displayFile?.is_cloud_placeholder]);
+
+  // Scroll the active thumbnail into view via virtualizer
+  useEffect(() => {
+    if (!displayFile) return;
+    const idx = files.indexOf(displayFile);
+    if (idx !== -1) {
+      filmstripVirtualizer.scrollToIndex(idx, { align: 'center', behavior: 'auto' });
+    }
+  }, [displayFile, files, filmstripVirtualizer]);
+
+  return (
+    <div
+      ref={attachContainer}
+      tabIndex={tabStopPath ? -1 : 0}
+      onFocusCapture={rememberFileFocus}
+      onKeyDown={handleKeyDown}
+      className="wisp-file-selection-surface flex h-full select-none flex-col overflow-hidden"
+      aria-label={t('interface.galleryView')}
+      onContextMenu={handleBackgroundRightClick || undefined}
+    >
+      {/* -- Large preview area -- */}
+      <div
+        className="bg-xp-bg/50 relative flex min-h-0 flex-1 items-center justify-center overflow-hidden"
+        aria-label={
+          displayFile ? `Preview of ${displayFile.name}` : t('panels.properties.noFileSelected')
+        }
+        onDoubleClick={() => displayFile && handleFileDoubleClick(displayFile)}
+        onContextMenu={(e) => displayFile && handleFileRightClick(displayFile, e)}
+      >
+        {(() => {
+          if (!displayFile) {
+            return <div className="text-sm text-xp-text-muted">{t('interface.noFiles')}</div>;
+          }
+          if (isDisplayImage && !previewError) {
+            return (
+              <>
+                <img
+                  src={getThumbnailUrl(displayFile.path)}
+                  alt={displayFile.name}
+                  className="max-h-full max-w-full select-none object-contain"
+                  draggable={false}
+                  onLoad={(e) => {
+                    const img = e.currentTarget;
+                    setPreviewDimensions({ w: img.naturalWidth, h: img.naturalHeight });
+                  }}
+                  onError={() => setPreviewError(true)}
+                />
+                {/* Image dimensions overlay */}
+                {previewDimensions && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      fontSize: 11,
+                      padding: '3px 8px',
+                      borderRadius: 4,
+                      background: 'rgba(0,0,0,0.55)',
+                      color: '#fff',
+                      pointerEvents: 'none',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {previewDimensions.w} x {previewDimensions.h}
+                  </div>
+                )}
+              </>
+            );
+          }
+          return (
+            <div className="flex flex-col items-center gap-2.5 text-xp-text-secondary">
+              <span className="text-[110px] leading-none opacity-80">
+                <FileReferenceBadge file={displayFile}>
+                  {getFileIcon(displayFile)}
+                </FileReferenceBadge>
+              </span>
+              <span className="text-base font-semibold">{displayFile.name}</span>
+              <span className="text-sm">
+                {displayFile.is_dir ? t('common.folder') : formatFileSize(displayFile.size)}
+              </span>
+            </div>
+          );
+        })()}
+
+        {/* File info overlay */}
+        {displayFile && (
+          <div className="gallery-info-bar absolute bottom-0 left-0 right-0 px-4 py-2">
+            <div className="truncate text-sm font-semibold text-xp-on-accent">
+              {displayFile.name}
+            </div>
+            <div className="text-xp-on-accent/70 text-xs">
+              {displayFile.is_dir ? t('common.folder') : formatFileSize(displayFile.size)}
+              {displayFile.modified > 0 && (
+                <> &middot; {formatDateTimeShort(displayFile.modified)}</>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* -- Horizontal filmstrip (virtualized) -- */}
+      <div className="flex-shrink-0 border-t border-xp-border bg-xp-surface">
+        <div
+          ref={stripRef}
+          role="listbox"
+          aria-label={t('explorer.details.fileListAria')}
+          aria-multiselectable={true}
+          className="gallery-filmstrip overflow-x-auto p-2"
+          style={{ position: 'relative', height: '84px' }}
+        >
+          <div
+            style={{
+              width: `${filmstripVirtualizer.getTotalSize()}px`,
+              height: '100%',
+              position: 'relative',
+            }}
+          >
+            {virtualThumbs.map((virtualItem) => {
+              const file = files[virtualItem.index];
+              return (
+                <div
+                  key={virtualItem.key}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: `${virtualItem.size - 4}px`,
+                    height: '64px',
+                    transform: `translateX(${virtualItem.start}px)`,
+                  }}
+                >
+                  <GalleryStripThumb
+                    file={file}
+                    tabStopPath={tabStopPath}
+                    isSelected={selectedFiles.has(file.path)}
+                    selectedFiles={selectedFiles}
+                    allFiles={files}
+                    getFileIcon={getFileIcon}
+                    thumbnailUrl={
+                      isImageFile(file) && file.is_cloud_placeholder !== true
+                        ? getThumbnailUrl(file.path)
+                        : undefined
+                    }
+                    onClick={(e) => selectGalleryFile(file, e)}
+                    onDoubleClick={() => handleFileDoubleClick(file)}
+                    onRightClick={(e) => handleFileRightClick(file, e)}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default GalleryView;

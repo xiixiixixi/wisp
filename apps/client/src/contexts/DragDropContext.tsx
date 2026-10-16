@@ -1,0 +1,996 @@
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
+import { isTauri } from '@/lib/transport';
+import { TauriAPI, type ConflictInfo } from '@/lib/tauri-api';
+import { validateDrop, buildDestinationPath, modifierDragOperation } from '@/lib/drag-utils';
+import { planTransfer, type ConflictPolicy, type TransferPlan } from '@/lib/drag-transfer';
+import { parseBrowserDrop, uniqueDroppedName } from '@/lib/drag-drop-content';
+import { listenForGlobalFileChanges, notifyFilesChanged } from '@/lib/file-change-events';
+import { ensureFileOperationProgressListener } from '@/lib/file-operation-progress';
+import { undoLastTransfer } from '@/hooks/use-transfer-history';
+import { isLiveSpringLoadTarget, springLoadedFolderDetail } from '@/hooks/use-spring-loaded-folder';
+import { ConflictResolutionDialog } from '@/components/dialogs/ConflictResolutionDialog';
+import { TransferProgressToast } from '@/components/explorer/TransferProgressToast';
+import { collectShelfFiles, collectShelfContent } from '@/lib/shelf-drop';
+import { addDroppedBookmarks } from '@/lib/bookmark-drop';
+
+// ── Types ────────────────────────────────────────────────────────────────────
+
+interface DragState {
+  isDragging: boolean;
+  dragSource: 'internal' | 'external' | null;
+  draggedPaths: string[];
+  hoveredDropTarget: string | null; // path from data-drop-target
+  hoveredDropAction: string | null;
+  /** The HTML badge only exists inside this webview. Hide it immediately when
+   * the native drag leaves the Wisp window. */
+  isOverWindow: boolean;
+  operation: 'copy' | 'move' | 'link';
+  /** Operation implied by the modifiers held at drag start. Cross-volume only
+   * overrides the operation while baseOperation is 'move' (no modifiers). */
+  baseOperation: 'copy' | 'move' | 'link';
+  copyOnly: boolean;
+}
+
+type DragAction =
+  | {
+      type: 'START_DRAG';
+      paths: string[];
+      source: 'internal' | 'external';
+      op: 'copy' | 'move' | 'link';
+      copyOnly?: boolean;
+    }
+  | { type: 'SET_HOVER'; targetPath: string | null; action: string | null }
+  | { type: 'SET_OVER_WINDOW'; value: boolean }
+  | { type: 'SET_OPERATION'; op: 'copy' | 'move' | 'link' }
+  | { type: 'SET_BASE_OPERATION'; op: 'copy' | 'move' | 'link' }
+  | { type: 'END_DRAG' };
+
+interface DragDropContextValue {
+  dragState: DragState;
+  /** Register an element as a drop target. Returns cleanup function. */
+  registerDropTarget: (path: string, element: HTMLElement) => () => void;
+  /** Notify context that an internal drag is starting (from useDraggable) */
+  startInternalDrag: (paths: string[], op: 'copy' | 'move' | 'link', copyOnly?: boolean) => void;
+  /** End the internal drag state (drag finished outside the window, etc.) */
+  endInternalDrag: () => void;
+}
+
+interface ConflictRequest {
+  sources: string[];
+  targetDir: string;
+  conflicts: ConflictInfo[];
+  mode: 'copy' | 'move';
+}
+
+interface ActiveTransfer {
+  ids: string[];
+  itemCount: number;
+  mode: 'copy' | 'move';
+  destDir: string;
+  silent: boolean;
+}
+
+interface DragDiagnostic {
+  t: number;
+  type: string;
+  pos?: { x: number; y: number };
+  paths?: number;
+}
+
+// ── Reducer ──────────────────────────────────────────────────────────────────
+
+const initialState: DragState = {
+  isDragging: false,
+  dragSource: null,
+  draggedPaths: [],
+  hoveredDropTarget: null,
+  hoveredDropAction: null,
+  isOverWindow: false,
+  operation: 'move',
+  baseOperation: 'move',
+  copyOnly: false,
+};
+
+const dragReducer = (state: DragState, action: DragAction): DragState => {
+  switch (action.type) {
+    case 'START_DRAG':
+      return {
+        isDragging: true,
+        dragSource: action.source,
+        draggedPaths: action.paths,
+        hoveredDropTarget: null,
+        hoveredDropAction: null,
+        isOverWindow: true,
+        operation: action.copyOnly ? 'copy' : action.op,
+        baseOperation: action.copyOnly ? 'copy' : action.op,
+        copyOnly: action.copyOnly ?? false,
+      };
+    case 'SET_HOVER':
+      if (
+        state.hoveredDropTarget === action.targetPath &&
+        state.hoveredDropAction === action.action
+      ) {
+        return state;
+      }
+      return { ...state, hoveredDropTarget: action.targetPath, hoveredDropAction: action.action };
+    case 'SET_OVER_WINDOW':
+      if (state.isOverWindow === action.value) return state;
+      return { ...state, isOverWindow: action.value };
+    case 'SET_OPERATION':
+      if (state.operation === action.op) return state;
+      return { ...state, operation: action.op };
+    case 'SET_BASE_OPERATION':
+      if (state.baseOperation === action.op) return state;
+      return { ...state, baseOperation: action.op };
+    case 'END_DRAG':
+      return initialState;
+    default:
+      return state;
+  }
+};
+
+/** Whether a hovered drop target accepts the current drag. */
+const isDropTargetValid = (
+  action: string | null,
+  draggedPaths: string[],
+  targetPath: string,
+  isFolder: boolean,
+): boolean => {
+  if (draggedPaths.length === 0) return true;
+  // Special targets (trash, bookmark-add) accept any drop
+  if (action) return true;
+  return validateDrop(draggedPaths, targetPath, isFolder).valid;
+};
+
+// ── Context ──────────────────────────────────────────────────────────────────
+
+const DragDropContext = createContext<DragDropContextValue | null>(null);
+
+const setGlobalDragSelectionGuard = (active: boolean) => {
+  if (typeof document === 'undefined') return;
+  if (active) {
+    document.documentElement.setAttribute('data-wisp-dragging', 'true');
+  } else {
+    document.documentElement.removeAttribute('data-wisp-dragging');
+  }
+};
+
+export const DragDropProvider = ({ children }: { children: React.ReactNode }) => {
+  const [dragState, dispatch] = useReducer(dragReducer, initialState);
+  const stateRef = useRef(dragState);
+  stateRef.current = dragState;
+
+  // Conflict dialog + progress toast state (rendered by the provider below)
+  const [conflictRequest, setConflictRequest] = useState<ConflictRequest | null>(null);
+  const [activeTransfer, setActiveTransfer] = useState<ActiveTransfer | null>(null);
+
+  // Receive refresh notifications from other Wisp windows and start listening
+  // for file-operation completion before a user can begin a transfer.
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    void listenForGlobalFileChanges()
+      .then((fn) => {
+        unlisten = fn;
+      })
+      .catch((error) => console.warn('Failed to listen for Wisp file changes:', error));
+    void ensureFileOperationProgressListener();
+    return () => unlisten?.();
+  }, []);
+
+  // Web-mode hint: file drags need the desktop app
+  const { t } = useTranslation();
+  const [webHint, setWebHint] = useState(false);
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const handleWebDragAttempt = () => {
+      setWebHint(true);
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => setWebHint(false), 4000);
+    };
+    window.addEventListener('web-drag-attempt', handleWebDragAttempt);
+    return () => {
+      window.removeEventListener('web-drag-attempt', handleWebDragAttempt);
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
+
+  // Cross-volume lookups, cached by (source, targetDir) pair
+  const volumeCacheRef = useRef<Map<string, boolean>>(new Map());
+
+  const resolveSameVolume = useCallback(async (source: string, targetDir: string) => {
+    const key = `${source}|${targetDir}`;
+    const cached = volumeCacheRef.current.get(key);
+    if (cached !== undefined) return cached;
+    try {
+      const same = await TauriAPI.sameVolume(source, targetDir);
+      volumeCacheRef.current.set(key, same);
+      return same;
+    } catch {
+      // Volume detection failed; keep default move semantics
+      volumeCacheRef.current.set(key, true);
+      return true;
+    }
+  }, []);
+
+  const runTransfer = useCallback(
+    async (
+      sources: string[],
+      targetDir: string,
+      mode: 'copy' | 'move',
+      conflicts: ConflictInfo[] | null,
+      policies: Map<string, ConflictPolicy> | null,
+    ) => {
+      try {
+        // Register the listener before Rust starts work. A same-volume move can
+        // finish as a single rename before the progress toast is mounted.
+        await ensureFileOperationProgressListener();
+        const plan: TransferPlan = conflicts
+          ? await planTransfer(
+              sources,
+              targetDir,
+              conflicts,
+              (source) => policies?.get(source) ?? 'keepBoth',
+              (name) => TauriAPI.getRenameDest(targetDir, name),
+            )
+          : {
+              items: sources.map((source) => ({
+                source,
+                dest: buildDestinationPath(source, targetDir),
+              })),
+              skippedCount: 0,
+            };
+
+        const ids: string[] = [];
+        let completedWithoutProgress = false;
+        for (const item of plan.items) {
+          if (item.merge) {
+            await TauriAPI.copyDirMerge(item.source, item.dest);
+            completedWithoutProgress = true;
+            continue;
+          }
+          // Cross-volume sources degrade to copy per item (macOS convention)
+          const itemMode =
+            mode === 'copy' || !(await resolveSameVolume(item.source, targetDir)) ? 'copy' : 'move';
+          if (itemMode === 'copy') {
+            ids.push(
+              await TauriAPI.copyWithProgress(item.source, item.dest, item.overwrite === true),
+            );
+          } else {
+            ids.push(
+              await TauriAPI.moveWithProgress(item.source, item.dest, item.overwrite === true),
+            );
+          }
+        }
+
+        const count = plan.items.length;
+        if (count === 0) {
+          await notifyFilesChanged();
+          return;
+        }
+        if (completedWithoutProgress) await notifyFilesChanged();
+        if (ids.length === 0) return;
+        setActiveTransfer({
+          ids,
+          itemCount: count,
+          mode,
+          destDir: targetDir,
+          silent: count <= 10,
+        });
+      } catch (error) {
+        window.dispatchEvent(
+          new CustomEvent('drag-drop-error', { detail: { message: String(error) } }),
+        );
+        await notifyFilesChanged();
+      }
+    },
+    [resolveSameVolume],
+  );
+
+  // Track the currently highlighted element for cleanup
+  const highlightedRef = useRef<HTMLElement | null>(null);
+  // Track the last hovered target path to avoid redundant DOM updates
+  const lastHoverPathRef = useRef<string | null>(null);
+  // Spring-loaded folder timer: fires navigation if hovering a folder for 500ms
+  const springTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cursor position stored in a ref (not state) — only the overlay reads it
+  // via requestAnimationFrame, avoiding React re-renders on every mouse move.
+  const cursorRef = useRef({ x: 0, y: 0 });
+  const hoverPaneRef = useRef<string | null>(null);
+  const paneActivateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+  const rafIdRef = useRef<number>(0);
+
+  const clearPaneActivation = useCallback(() => {
+    if (paneActivateTimerRef.current !== null) {
+      clearTimeout(paneActivateTimerRef.current);
+      paneActivateTimerRef.current = null;
+    }
+    hoverPaneRef.current = null;
+  }, []);
+
+  const clearHighlight = useCallback(() => {
+    if (highlightedRef.current) {
+      highlightedRef.current.removeAttribute('data-drop-hover');
+      highlightedRef.current.removeAttribute('data-drop-invalid');
+      highlightedRef.current.classList.remove('xp-drop-folder-highlight');
+      highlightedRef.current = null;
+    }
+    lastHoverPathRef.current = null;
+    // Cancel any pending spring-load navigation
+    if (springTimerRef.current !== null) {
+      clearTimeout(springTimerRef.current);
+      springTimerRef.current = null;
+    }
+  }, []);
+
+  const findDropTarget = useCallback(
+    (
+      x: number,
+      y: number,
+    ): { element: HTMLElement; path: string; action: string | null } | null => {
+      const el = document.elementFromPoint(x, y);
+      if (!el) return null;
+      const target = (el as HTMLElement).closest('[data-drop-target]') as HTMLElement | null;
+      if (!target) return null;
+      const path = target.getAttribute('data-drop-target');
+      if (path === null) return null;
+      return { element: target, path, action: target.getAttribute('data-drop-action') };
+    },
+    [],
+  );
+
+  // Listen for Tauri drag-drop events (handles BOTH external file drops AND
+  // internal startDrag loops). In web mode, native DnD is not available.
+  useEffect(() => {
+    if (!isTauri()) return;
+    let unlisten: (() => void) | null = null;
+
+    (async () => {
+      const { getCurrentWebview } = await import('@tauri-apps/api/webview');
+      getCurrentWebview()
+        .onDragDropEvent((event) => {
+          const payload = event.payload;
+
+          // Drag diagnostics: enable with localStorage.wispDebugDrag='1'.
+          // Cross-pane drag issues are only reproducible with a REAL mouse
+          // (synthetic CGEvents cannot drive the OS drag session), so the
+          // event stream is recorded for post-hoc reading via
+          // window.__wispDragLog.
+          try {
+            if (localStorage.getItem('wispDebugDrag') === '1') {
+              const debugWindow = window as Window & { __wispDragLog?: DragDiagnostic[] };
+              const log = (debugWindow.__wispDragLog ??= []);
+              log.push({
+                t: Date.now(),
+                type: payload.type,
+                pos: 'position' in payload ? payload.position : undefined,
+                paths: 'paths' in payload ? payload.paths?.length : undefined,
+              });
+              if (log.length > 400) log.splice(0, log.length - 400);
+            }
+          } catch {
+            /* diagnostics must never break the real path */
+          }
+
+          if (payload.type === 'enter') {
+            // Files entering the window (from OS or from our own startDrag)
+            const paths = (payload as { type: string; paths: string[] }).paths;
+            if (paths?.length > 0) {
+              dispatch({ type: 'SET_OVER_WINDOW', value: true });
+              if (!stateRef.current.isDragging) {
+                setGlobalDragSelectionGuard(true);
+                dispatch({ type: 'START_DRAG', paths, source: 'external', op: 'copy' });
+              }
+            }
+          } else if (payload.type === 'over') {
+            if (!stateRef.current.isOverWindow) {
+              dispatch({ type: 'SET_OVER_WINDOW', value: true });
+            }
+            // Hovering — update cursor position and find drop target
+            const pos = (payload as { type: string; position: { x: number; y: number } }).position;
+            if (pos) {
+              // wry reports the drag position in logical points already
+              // (NSPoint from draggingLocation), so no devicePixelRatio
+              // conversion here — halving Retina coordinates made the badge
+              // and the drop target drift away from the real cursor.
+              const x = pos.x;
+              const y = pos.y;
+
+              // Update cursor ref (no React re-render)
+              cursorRef.current.x = x;
+              cursorRef.current.y = y;
+
+              // Move overlay via rAF (GPU-accelerated transform).
+              // The native ghost icon is centered on the cursor and spans
+              // 64pt, so place the label right of the icon, vertically
+              // centered — icon + text read as one horizontal unit.
+              cancelAnimationFrame(rafIdRef.current);
+              rafIdRef.current = requestAnimationFrame(() => {
+                if (overlayRef.current) {
+                  overlayRef.current.style.transform = `translate(${x + 36}px, ${y}px) translateY(-50%)`;
+                }
+              });
+
+              // Find drop target and update highlight only if target changed
+              const target = findDropTarget(x, y);
+              const targetPath = target?.path ?? null;
+
+              // Cross-pane drag: hovering another pane for 300ms activates it,
+              // so keyboard/selection context follows the potential drop pane
+              // (Finder does the same with its split views).
+              if (stateRef.current.dragSource === 'internal') {
+                const paneEl = document
+                  .elementFromPoint(x, y)
+                  ?.closest('[data-group-id]') as HTMLElement | null;
+                const paneId = paneEl?.getAttribute('data-group-id') ?? null;
+                if (paneId !== hoverPaneRef.current) {
+                  if (paneActivateTimerRef.current !== null) {
+                    clearTimeout(paneActivateTimerRef.current);
+                  }
+                  hoverPaneRef.current = paneId;
+                  if (paneId) {
+                    paneActivateTimerRef.current = setTimeout(() => {
+                      window.dispatchEvent(
+                        new CustomEvent('wisp-activate-pane', { detail: { groupId: paneId } }),
+                      );
+                    }, 300);
+                  }
+                }
+              }
+
+              // The same folder path can be visible in two panes. Its DOM
+              // target still changed, so restart the timer for the new pane.
+              if (
+                targetPath !== lastHoverPathRef.current ||
+                (target?.element ?? null) !== highlightedRef.current
+              ) {
+                clearHighlight();
+
+                if (target) {
+                  const { draggedPaths } = stateRef.current;
+                  const isFolder =
+                    target.element.getAttribute('data-is-folder') === 'true' ||
+                    target.element.closest('[data-is-folder="true"]') !== null;
+                  const valid = isDropTargetValid(
+                    target.action,
+                    draggedPaths,
+                    target.path,
+                    isFolder,
+                  );
+                  if (valid) {
+                    target.element.setAttribute('data-drop-hover', 'true');
+                    target.element.classList.add('xp-drop-folder-highlight');
+
+                    // macOS: moving across volumes degrades to copy. Update the
+                    // badge as soon as the target's volume is known (only when
+                    // no modifier overrides the operation).
+                    if (
+                      !target.action &&
+                      stateRef.current.dragSource === 'internal' &&
+                      stateRef.current.baseOperation === 'move'
+                    ) {
+                      const source = stateRef.current.draggedPaths[0];
+                      if (source) {
+                        void resolveSameVolume(source, target.path).then((same) => {
+                          const s = stateRef.current;
+                          if (!s.isDragging || s.baseOperation !== 'move') return;
+                          const want: 'copy' | 'move' = same ? 'move' : 'copy';
+                          if (s.operation !== want) {
+                            dispatch({ type: 'SET_OPERATION', op: want });
+                          }
+                        });
+                      }
+                    }
+
+                    // Spring-loaded folder: if hovering a valid folder drop
+                    // target for 500ms, navigate into it automatically.
+                    if (isFolder) {
+                      springTimerRef.current = setTimeout(() => {
+                        springTimerRef.current = null;
+                        const { x: hoverX, y: hoverY } = cursorRef.current;
+                        const liveTarget = findDropTarget(hoverX, hoverY);
+                        if (
+                          !isLiveSpringLoadTarget(
+                            stateRef.current.isDragging,
+                            stateRef.current.isOverWindow,
+                            target,
+                            liveTarget,
+                          )
+                        ) {
+                          return;
+                        }
+                        window.dispatchEvent(
+                          new CustomEvent('spring-load-folder', {
+                            detail: springLoadedFolderDetail(liveTarget.element, liveTarget.path),
+                          }),
+                        );
+                      }, 500);
+                    }
+                  } else {
+                    target.element.setAttribute('data-drop-invalid', 'true');
+                  }
+                  highlightedRef.current = target.element;
+                }
+                lastHoverPathRef.current = targetPath;
+                dispatch({ type: 'SET_HOVER', targetPath, action: target?.action ?? null });
+              }
+            }
+          } else if (payload.type === 'drop') {
+            // Files dropped
+            const { paths, position } = payload as {
+              type: string;
+              paths: string[];
+              position: { x: number; y: number };
+            };
+            clearHighlight();
+            clearPaneActivation();
+
+            if (paths?.length > 0 && position) {
+              // Logical points already (see the 'over' handler note)
+              const x = position.x;
+              const y = position.y;
+              const target = findDropTarget(x, y);
+
+              if (target) {
+                const isFolder =
+                  target.element.getAttribute('data-is-folder') === 'true' ||
+                  target.element.closest('[data-is-folder="true"]') !== null;
+                if (!isDropTargetValid(target.action, paths, target.path, isFolder)) {
+                  // 无效目标不再静默：告知原因（源与目标同目录是最常见的
+                  // 「跨窗格没反应」来源——两个窗格在同一目录时空白区=同目录）
+                  const sameDir = paths.some((p: string) => {
+                    const parent = p.split(/[/\\]/).slice(0, -1).join('/');
+                    return parent === target.path;
+                  });
+                  window.dispatchEvent(
+                    new CustomEvent('drag-drop-error', {
+                      detail: {
+                        message: sameDir
+                          ? '已在同一文件夹内（源目录即目标目录）'
+                          : '该位置不支持放置',
+                      },
+                    }),
+                  );
+                }
+                if (isDropTargetValid(target.action, paths, target.path, isFolder)) {
+                  if (target.action === 'shelf-add') {
+                    collectShelfFiles(paths, target.path);
+                  } else if (target.action === 'bookmark-add') {
+                    void addDroppedBookmarks(paths).then((result) => {
+                      window.dispatchEvent(
+                        new CustomEvent('bookmark-drop-result', { detail: result }),
+                      );
+                    });
+                  } else if (target.action === 'trash') {
+                    (async () => {
+                      try {
+                        for (const sourcePath of paths) {
+                          await TauriAPI.moveToTrash(sourcePath);
+                        }
+                        await notifyFilesChanged();
+                      } catch (error) {
+                        window.dispatchEvent(
+                          new CustomEvent('drag-drop-error', {
+                            detail: { message: String(error) },
+                          }),
+                        );
+                      }
+                    })();
+                  } else {
+                    const op = stateRef.current.operation;
+                    const isExternal = stateRef.current.dragSource === 'external';
+                    (async () => {
+                      try {
+                        // ⌘+Option: create a symbolic link at the target
+                        if (op === 'link') {
+                          for (const sourcePath of paths) {
+                            const dest = buildDestinationPath(sourcePath, target.path);
+                            await TauriAPI.createSymlink(sourcePath, dest);
+                          }
+                          await notifyFilesChanged();
+                          return;
+                        }
+                        // Default is move; copy on Option or external drags. Cross-volume
+                        // sources degrade to copy per item inside runTransfer.
+                        const mode: 'copy' | 'move' = op === 'copy' || isExternal ? 'copy' : 'move';
+                        // Ask about name conflicts before transferring
+                        const conflicts = await TauriAPI.checkConflicts(paths, target.path);
+                        if (conflicts.length > 0) {
+                          setConflictRequest({
+                            sources: paths,
+                            targetDir: target.path,
+                            conflicts,
+                            mode,
+                          });
+                          return;
+                        }
+                        void runTransfer(paths, target.path, mode, null, null);
+                      } catch (error) {
+                        window.dispatchEvent(
+                          new CustomEvent('drag-drop-error', {
+                            detail: { message: String(error) },
+                          }),
+                        );
+                      }
+                    })();
+                  }
+                }
+              }
+            }
+            setGlobalDragSelectionGuard(false);
+            dispatch({ type: 'END_DRAG' });
+          } else if (payload.type === 'leave') {
+            clearHighlight();
+            clearPaneActivation();
+            cancelAnimationFrame(rafIdRef.current);
+            dispatch({ type: 'SET_OVER_WINDOW', value: false });
+            // Only end drag if it was external — internal startDrag returns to our window
+            if (stateRef.current.dragSource === 'external') {
+              setGlobalDragSelectionGuard(false);
+              dispatch({ type: 'END_DRAG' });
+            }
+          }
+        })
+        .then((fn) => {
+          unlisten = fn;
+        });
+    })();
+
+    return () => {
+      unlisten?.();
+      cancelAnimationFrame(rafIdRef.current);
+      clearPaneActivation();
+    };
+  }, [findDropTarget, clearHighlight, clearPaneActivation, runTransfer, resolveSameVolume]);
+
+  // Listen for Option/⌘ during drag to switch move / copy / link (macOS semantics)
+  useEffect(() => {
+    const handleModifierChange = (e: KeyboardEvent) => {
+      if (e.key !== 'Alt' && e.key !== 'Meta') return;
+      if (!stateRef.current.isDragging || stateRef.current.dragSource !== 'internal') return;
+      const op = stateRef.current.copyOnly ? 'copy' : modifierDragOperation(e.altKey, e.metaKey);
+      dispatch({ type: 'SET_OPERATION', op });
+      dispatch({ type: 'SET_BASE_OPERATION', op });
+    };
+    window.addEventListener('keydown', handleModifierChange);
+    window.addEventListener('keyup', handleModifierChange);
+    return () => {
+      window.removeEventListener('keydown', handleModifierChange);
+      window.removeEventListener('keyup', handleModifierChange);
+    };
+  }, []);
+
+  // Cmd+Z undoes the last drag transfer while its toast is still visible
+  useEffect(() => {
+    const isEditableTarget = (el: EventTarget | null): boolean =>
+      el instanceof HTMLElement &&
+      (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z' || e.shiftKey) return;
+      if (isEditableTarget(document.activeElement)) return;
+      void undoLastTransfer().then((ok) => {
+        if (ok) void notifyFilesChanged();
+      });
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // HTML5 drag events for non-file content (text / URLs / image blobs from
+  // browsers). Real file drags stay on the native onDragDropEvent path.
+  // Registered in both modes: on macOS Tauri the native handler swallows
+  // non-file drags before they reach the page; in web mode these events work
+  // (saving still needs a backend).
+  useEffect(() => {
+    const isContentDrag = (dt: DataTransfer): boolean => {
+      const types = Array.from(dt.types).map((t) => t.toLowerCase());
+      if (
+        types.some((t) =>
+          ['text/plain', 'text/uri-list', 'text/html', 'public.utf8-plain-text'].includes(t),
+        )
+      ) {
+        return true;
+      }
+      const file = dt.files[0];
+      return !!file && file.type.startsWith('image/');
+    };
+
+    const handleDragOver = (e: DragEvent) => {
+      if (!e.dataTransfer || !isContentDrag(e.dataTransfer)) return;
+      e.preventDefault();
+    };
+
+    const handleDrop = (e: DragEvent) => {
+      if (!e.dataTransfer || !isContentDrag(e.dataTransfer)) return;
+      const dt = e.dataTransfer;
+      const target = findDropTarget(e.clientX, e.clientY);
+      if (target?.action === 'shelf-add') {
+        e.preventDefault();
+        collectShelfContent(dt, target.path);
+        return;
+      }
+      if (!target || target.action) return; // folder targets only
+      const targetDir = target.path;
+
+      void (async () => {
+        try {
+          const plan = await parseBrowserDrop(dt);
+          if (!plan) return;
+          if (plan.kind === 'url') {
+            await TauriAPI.createFileWithContent(
+              uniqueDroppedName(targetDir, 'dropped-url', 'webloc'),
+              plan.content,
+            );
+          } else if (plan.kind === 'text') {
+            await TauriAPI.createFileWithContent(
+              uniqueDroppedName(targetDir, 'dropped-text', 'txt'),
+              plan.content,
+            );
+          } else {
+            await TauriAPI.writeBinaryFile(
+              uniqueDroppedName(targetDir, 'dropped-image', plan.ext),
+              plan.bytes,
+            );
+          }
+          await notifyFilesChanged();
+        } catch (error) {
+          window.dispatchEvent(
+            new CustomEvent('drag-drop-error', { detail: { message: String(error) } }),
+          );
+        }
+      })();
+      e.preventDefault();
+    };
+
+    window.addEventListener('dragover', handleDragOver);
+    window.addEventListener('drop', handleDrop);
+    return () => {
+      window.removeEventListener('dragover', handleDragOver);
+      window.removeEventListener('drop', handleDrop);
+    };
+  }, [findDropTarget]);
+
+  const registerDropTarget = useCallback((_path: string, _element: HTMLElement) => {
+    return () => {};
+  }, []);
+
+  const endTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const startInternalDrag = useCallback(
+    (paths: string[], op: 'copy' | 'move' | 'link', copyOnly?: boolean) => {
+      if (endTimerRef.current) clearTimeout(endTimerRef.current);
+      endTimerRef.current = null;
+      setGlobalDragSelectionGuard(true);
+      dispatch({ type: 'START_DRAG', paths, source: 'internal', op, copyOnly });
+    },
+    [],
+  );
+
+  const endInternalDrag = useCallback(() => {
+    // tauri-plugin-drag can invoke its completion callback just before the
+    // destination webview receives `drop`. Keep the operation (especially
+    // Cmd+Option = link) alive for that short hand-off window.
+    if (endTimerRef.current) clearTimeout(endTimerRef.current);
+    endTimerRef.current = setTimeout(() => {
+      clearPaneActivation();
+      setGlobalDragSelectionGuard(false);
+      dispatch({ type: 'END_DRAG' });
+      endTimerRef.current = null;
+    }, 250);
+  }, [clearPaneActivation]);
+
+  useEffect(
+    () => () => {
+      if (endTimerRef.current) clearTimeout(endTimerRef.current);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    setGlobalDragSelectionGuard(dragState.isDragging);
+    return () => setGlobalDragSelectionGuard(false);
+  }, [dragState.isDragging]);
+
+  useEffect(() => {
+    let blurTimer: ReturnType<typeof setTimeout> | null = null;
+    const handleWindowBlur = () => {
+      // A different app normally gains focus only after accepting the drop.
+      // This is the safety net for native backends that omit the completion
+      // callback: wait for React to commit the preceding `leave`, then clear.
+      blurTimer = setTimeout(() => {
+        const state = stateRef.current;
+        if (state.isDragging && !state.isOverWindow) {
+          setGlobalDragSelectionGuard(false);
+          dispatch({ type: 'END_DRAG' });
+        }
+      }, 50);
+    };
+    window.addEventListener('blur', handleWindowBlur);
+    return () => {
+      window.removeEventListener('blur', handleWindowBlur);
+      if (blurTimer) clearTimeout(blurTimer);
+    };
+  }, []);
+
+  return (
+    <DragDropContext.Provider
+      value={{ dragState, registerDropTarget, startInternalDrag, endInternalDrag }}
+    >
+      {children}
+      {dragState.isDragging && dragState.isOverWindow && (
+        <DragOverlay state={dragState} overlayRef={overlayRef} />
+      )}
+      {webHint && (
+        <div
+          role="status"
+          style={{
+            position: 'fixed',
+            top: 16,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 99999,
+            padding: '8px 14px',
+            borderRadius: '8px',
+            backgroundColor: 'var(--xp-surface)',
+            border: '1px solid var(--xp-yellow, #e2b340)',
+            color: 'var(--xp-text)',
+            fontSize: '12px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+          }}
+        >
+          {t('dragOverlay.webModeHint')}
+        </div>
+      )}
+      {conflictRequest && (
+        <ConflictResolutionDialog
+          conflicts={conflictRequest.conflicts}
+          onCancel={() => setConflictRequest(null)}
+          onResolve={(policies) => {
+            const request = conflictRequest;
+            setConflictRequest(null);
+            void runTransfer(
+              request.sources,
+              request.targetDir,
+              request.mode,
+              request.conflicts,
+              policies,
+            );
+          }}
+        />
+      )}
+      {activeTransfer && (
+        <TransferProgressToast
+          ids={activeTransfer.ids}
+          itemCount={activeTransfer.itemCount}
+          mode={activeTransfer.mode}
+          destDir={activeTransfer.destDir}
+          silent={activeTransfer.silent}
+          onDismiss={() => setActiveTransfer(null)}
+        />
+      )}
+    </DragDropContext.Provider>
+  );
+};
+
+// ── DragOverlay ──────────────────────────────────────────────────────────────
+
+const getOverlayAppearance = (
+  op: DragState['operation'],
+  t: ReturnType<typeof useTranslation>['t'],
+) => {
+  if (op === 'link') {
+    return {
+      symbol: '\u2197',
+      label: t('dragOverlay.link'),
+      accent: 'var(--xp-yellow, #e2b340)',
+      accentBg: 'var(--xp-selection-bg)',
+    };
+  }
+  if (op === 'copy') {
+    return {
+      symbol: '+',
+      label: t('dragOverlay.copy'),
+      accent: 'var(--xp-green)',
+      accentBg: 'var(--xp-selection-bg)',
+    };
+  }
+  return {
+    symbol: '\u2192',
+    label: t('dragOverlay.move'),
+    accent: 'var(--xp-blue)',
+    accentBg: 'var(--xp-selection-bg)',
+  };
+};
+
+/** Floating badge near the cursor showing copy/move/link operation + file count. */
+const DragOverlay = ({
+  state,
+  overlayRef,
+}: {
+  state: DragState;
+  overlayRef: React.MutableRefObject<HTMLDivElement | null>;
+}) => {
+  const { t } = useTranslation();
+  const { draggedPaths, operation } = state;
+  const count = draggedPaths.length;
+  if (count === 0) return null;
+
+  const {
+    symbol,
+    label: opLabel,
+    accent,
+    accentBg,
+  } = state.hoveredDropAction === 'bookmark-add'
+    ? {
+        symbol: '+',
+        label: t('dragOverlay.bookmark'),
+        accent: 'var(--xp-blue)',
+        accentBg: 'var(--xp-selection-bg)',
+      }
+    : getOverlayAppearance(operation, t);
+  const fileName = draggedPaths[0]?.split(/[/\\]/).pop() || '';
+  const label = count > 1 ? t('dragOverlay.files', { count }) : fileName;
+
+  return createPortal(
+    <div
+      ref={overlayRef}
+      className="xp-drag-overlay"
+      style={{
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        willChange: 'transform',
+        pointerEvents: 'none',
+        zIndex: 99999,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '4px 10px',
+        borderRadius: '6px',
+        fontSize: '12px',
+        fontWeight: 500,
+        fontFamily: 'inherit',
+        whiteSpace: 'nowrap',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        background: accentBg,
+        border: `1px solid ${accent}`,
+        color: accent,
+        boxShadow: `0 2px 12px ${accentBg}`,
+      }}
+    >
+      <span style={{ fontSize: '14px' }}>{symbol}</span>
+      <span>{opLabel}</span>
+      <span
+        style={{
+          opacity: 0.7,
+          fontSize: '11px',
+          maxWidth: '140px',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        {label}
+      </span>
+    </div>,
+    document.body,
+  );
+};
+
+export const useDragDropContext = (): DragDropContextValue => {
+  const ctx = useContext(DragDropContext);
+  if (!ctx) throw new Error('useDragDropContext must be used within DragDropProvider');
+  return ctx;
+};

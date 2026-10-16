@@ -1,0 +1,7 @@
+{
+  "hash": "3552f2399a8c97d43cdcc4ab3d9e3200c818c2420e1d0343952976361133b801",
+  "signer": "Wisp Team",
+  "timestamp": "2026-10-14T17:40:45.894759+00:00",
+  "verified": true,
+  "ed25519_signature": "431cf4ed5cdad670a168048f040523b2536387ba0d66c5f5173b14e849880858a7a5014c31b189214eed08da2eac9d5b0b0a12daa69ab4bcee55db53ab7cc406"
+}

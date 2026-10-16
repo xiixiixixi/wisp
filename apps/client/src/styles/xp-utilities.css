@@ -1,0 +1,294 @@
+/* Wisp paper utilities — CSS-variable-backed color, hover, and scrollbar
+   classes for the one sun-driven theme (kinari day / sumi night). */
+
+.bg-xp-bg {
+  background-color: var(--xp-bg);
+}
+.bg-xp-surface {
+  background-color: var(--xp-surface);
+}
+.bg-xp-surface-light {
+  background-color: var(--xp-surface-light);
+}
+.bg-xp-popover {
+  background-color: var(--xp-popover);
+}
+.bg-xp-selection {
+  background-color: var(--xp-selection-bg);
+}
+.bg-xp-blue {
+  background-color: var(--xp-blue);
+}
+.bg-xp-blue-dark {
+  background-color: var(--xp-blue-dark);
+}
+.bg-xp-purple {
+  background-color: var(--xp-purple);
+}
+.bg-xp-green {
+  background-color: var(--xp-green);
+}
+.bg-xp-red {
+  background-color: var(--xp-red);
+}
+.bg-xp-orange {
+  background-color: var(--xp-orange);
+}
+.bg-xp-pink {
+  background-color: var(--xp-pink);
+}
+.bg-xp-cyan {
+  background-color: var(--xp-cyan);
+}
+.bg-xp-yellow {
+  background-color: var(--xp-yellow);
+}
+
+.text-xp-text {
+  color: var(--xp-text);
+}
+.text-xp-text-muted {
+  color: var(--xp-text-muted);
+}
+.text-xp-text-secondary {
+  color: var(--xp-text-secondary);
+}
+.text-xp-blue {
+  color: var(--xp-blue);
+}
+.text-xp-green {
+  color: var(--xp-green);
+}
+.text-xp-orange {
+  color: var(--xp-orange);
+}
+.text-xp-pink {
+  color: var(--xp-pink);
+}
+.text-xp-red {
+  color: var(--xp-red);
+}
+.text-xp-yellow {
+  color: var(--xp-yellow);
+}
+.text-xp-cyan {
+  color: var(--xp-cyan);
+}
+.text-xp-purple {
+  color: var(--xp-purple);
+}
+
+.border-xp-border {
+  border-color: var(--xp-border);
+}
+.border-xp-border-light {
+  border-color: var(--xp-border-light);
+}
+.border-xp-blue {
+  border-color: var(--xp-blue);
+}
+.border-t-xp-blue {
+  border-top-color: var(--xp-blue);
+}
+
+.hover\:bg-xp-surface-light:hover {
+  background-color: var(--xp-surface-light);
+}
+.hover\:text-xp-blue:hover {
+  color: var(--xp-blue);
+}
+.hover\:text-xp-pink:hover {
+  color: var(--xp-pink);
+}
+.hover\:text-xp-red:hover {
+  color: var(--xp-red);
+}
+.hover\:text-xp-text:hover {
+  color: var(--xp-text);
+}
+.hover\:border-xp-border-light:hover {
+  border-color: var(--xp-border-light);
+}
+
+/* Close/destructive button hover — 20% opacity background */
+.xp-close-btn:hover {
+  background-color: var(--xp-selection-bg);
+  color: var(--xp-red);
+}
+
+/* Grid auto-fill utility */
+.grid-cols-auto-fill {
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+}
+
+/* Scrollbar styling */
+.xp-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.xp-scrollbar::-webkit-scrollbar-track {
+  background: var(--xp-surface);
+}
+
+.xp-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--xp-border);
+  border-radius: 4px;
+}
+
+.xp-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--xp-border-light);
+}
+
+.xp-scrollbar::-webkit-scrollbar-corner {
+  background: var(--xp-surface);
+}
+
+/* Apply scrollbar styling to scrollable areas */
+.overflow-auto,
+.overflow-y-auto,
+.overflow-x-auto {
+  @apply xp-scrollbar;
+}
+
+/* Transition utilities */
+.transition-all {
+  transition: all 0.2s ease-in-out;
+}
+
+.transition-colors {
+  transition:
+    color 0.2s ease-in-out,
+    background-color 0.2s ease-in-out,
+    border-color 0.2s ease-in-out;
+}
+
+/* Focus styling — keyboard only. A bare :focus ring also fires on every
+   pointer click, painting a blue frame over pressed toggles and buttons. */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--xp-blue);
+  outline-offset: 2px;
+}
+
+/* Selection styling */
+::selection {
+  background-color: var(--xp-selection-border);
+  color: var(--xp-text);
+}
+
+/* Paper: no backdrop blur, and every "big" shadow is the same quiet lift */
+.backdrop-blur-sm {
+  backdrop-filter: none;
+}
+
+.shadow-2xl {
+  box-shadow: var(--xp-shadow-popover);
+}
+
+/* Resize handle */
+.cursor-col-resize {
+  cursor: col-resize;
+}
+
+/* File icons hover effect */
+.file-icon-hover:hover {
+  transform: scale(1.1);
+  transition: transform 0.15s ease-in-out;
+}
+
+/* Context menu animation */
+.context-menu-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.context-menu-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity 0.1s ease-out,
+    transform 0.1s ease-out;
+}
+
+.context-menu-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.context-menu-exit-active {
+  opacity: 0;
+  transform: scale(0.95);
+  transition:
+    opacity 0.1s ease-in,
+    transform 0.1s ease-in;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Proactive agent suggestion fade-in */
+@keyframes proactive-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* File selection animation */
+.file-selected {
+  animation: selectPulse 0.3s ease-out;
+}
+
+@keyframes selectPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Dragging effect */
+.dragging {
+  opacity: 0.5;
+  transform: rotate(5deg);
+  transition:
+    opacity 0.2s ease-out,
+    transform 0.2s ease-out;
+}
+
+/* Drop zone highlighting */
+.drop-zone-active {
+  background-color: var(--xp-selection-bg);
+  border: 1px dashed var(--xp-selection-border);
+  animation: dropZonePulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes dropZonePulse {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
+}

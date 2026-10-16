@@ -1,0 +1,328 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useToast } from '@/hooks/use-toast';
+import { TauriAPI, type FileEntry } from '@/lib/tauri-api';
+import { ShieldAlert, AlertTriangle, Trash2 } from 'lucide-react';
+
+interface SecureDeleteProgress {
+  file: string;
+  pass: number;
+  total_passes: number;
+  pass_label: string;
+  bytes_written: number;
+  file_size: number;
+}
+
+interface SecureDeleteDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onComplete?: () => void;
+  files: FileEntry[];
+}
+
+const SecureDeleteDialog = ({ isOpen, onClose, onComplete, files }: SecureDeleteDialogProps) => {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  const [passes, setPasses] = useState(3);
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<SecureDeleteProgress | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
+  const unlistenRef = useRef<(() => void) | null>(null);
+
+  const fileCount = files.length;
+  const fileNames = files.map((f) => f.name);
+  const displayNames =
+    fileNames.length <= 3
+      ? fileNames.join(', ')
+      : `${fileNames.slice(0, 3).join(', ')} ${t('dialogs.secureDelete.andMore', { count: fileNames.length - 3 })}`;
+
+  useEffect(() => {
+    if (isOpen) {
+      setPasses(3);
+      setProcessing(false);
+      setError(null);
+      setProgress(null);
+      setConfirmed(false);
+    }
+    return () => {
+      if (unlistenRef.current) {
+        unlistenRef.current();
+        unlistenRef.current = null;
+      }
+    };
+  }, [isOpen]);
+
+  const handleSubmit = async () => {
+    if (!confirmed) return;
+
+    setProcessing(true);
+    setError(null);
+    setProgress(null);
+
+    try {
+      const { listenToEvent } = await import('@/lib/transport');
+      const unlisten = await listenToEvent<SecureDeleteProgress>(
+        'secure-delete-progress',
+        (event) => {
+          setProgress(event);
+        },
+      );
+      unlistenRef.current = unlisten;
+
+      const paths = files.map((f) => f.path);
+      const result = await TauriAPI.secureDelete(paths, passes);
+
+      if (unlistenRef.current) {
+        unlistenRef.current();
+        unlistenRef.current = null;
+      }
+
+      if (result.errors.length > 0 && result.files_deleted === 0) {
+        setError(result.errors.join('\n'));
+        toast({
+          title: t('dialogs.secureDelete.toastFailedTitle'),
+          description: result.errors[0],
+          variant: 'destructive',
+        });
+      } else {
+        const errSuffix =
+          result.errors.length > 0
+            ? ` (${t('dialogs.secureDelete.toastErrorCount', { count: result.errors.length })})`
+            : '';
+        toast({
+          title: t('dialogs.secureDelete.toastSuccessTitle'),
+          description:
+            t('dialogs.secureDelete.toastSuccessDesc', {
+              fileCount: result.files_deleted,
+              passes: result.passes,
+            }) + errSuffix,
+        });
+        onComplete?.();
+        onClose();
+      }
+    } catch (err) {
+      const message = (err as Error).message || String(err);
+      setError(message);
+      toast({
+        title: t('dialogs.secureDelete.toastFailedTitle'),
+        description: message,
+        variant: 'destructive',
+      });
+    } finally {
+      setProcessing(false);
+      if (unlistenRef.current) {
+        unlistenRef.current();
+        unlistenRef.current = null;
+      }
+    }
+  };
+
+  const handleClose = () => {
+    if (processing) return;
+    onClose();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !processing && confirmed) {
+      handleSubmit();
+    }
+    if (e.key === 'Escape') {
+      handleClose();
+    }
+  };
+
+  if (!isOpen || files.length === 0) return null;
+
+  const progressPercentage = progress
+    ? Math.round((progress.pass / progress.total_passes) * 100)
+    : 0;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div
+        role="dialog" aria-modal="true"
+        className="elevated-glass w-[520px] max-w-[90vw] overflow-hidden rounded-md"
+        onKeyDown={handleKeyDown}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-xp-border p-6">
+          <div className="flex items-center space-x-3">
+            <ShieldAlert size={20} className="text-xp-red" />
+            <h2 className="text-xl font-semibold text-xp-text">
+              {t('dialogs.secureDelete.title')}
+            </h2>
+          </div>
+          <button
+            onClick={handleClose}
+            disabled={processing}
+            className="rounded-md p-2 transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+            aria-label={t('dialogs.secureDelete.closeAriaLabel')}
+          >
+            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="space-y-5 p-6">
+          {/* Warning banner */}
+          <div className="flex items-start space-x-3 rounded-md border border-xp-red/30 bg-xp-red/10 p-4">
+            <AlertTriangle size={20} className="mt-0.5 shrink-0 text-xp-red" />
+            <div className="text-sm text-xp-red">
+              <p className="mb-1 font-semibold">{t('dialogs.secureDelete.warningIrreversible')}</p>
+              <p>{t('dialogs.secureDelete.warningDescription')}</p>
+            </div>
+          </div>
+
+          {/* File info */}
+          <div className="rounded-md bg-xp-bg p-4">
+            <div className="mb-1 text-sm text-xp-text-muted">
+              {fileCount === 1
+                ? t('dialogs.secureDelete.fileLabel')
+                : t('dialogs.secureDelete.filesLabel', { count: fileCount })}
+            </div>
+            <div
+              className="truncate text-sm font-semibold text-xp-text"
+              title={files.map((f) => f.path).join('\n')}
+            >
+              {displayNames}
+            </div>
+          </div>
+
+          {/* Passes selector */}
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-xp-text">
+              {t('dialogs.secureDelete.overwritePasses')}
+            </label>
+            <div className="flex items-center space-x-4">
+              <select
+                value={passes}
+                onChange={(e) => setPasses(Number(e.target.value))}
+                disabled={processing}
+                className="rounded-md border border-xp-border bg-xp-bg px-3 py-2 text-xp-text focus:border-xp-blue"
+              >
+                <option value={1}>{t('dialogs.secureDelete.passes1')}</option>
+                <option value={3}>{t('dialogs.secureDelete.passes3')}</option>
+                <option value={7}>{t('dialogs.secureDelete.passes7')}</option>
+              </select>
+              <span className="text-xs text-xp-text-muted">
+                {passes === 1 && t('dialogs.secureDelete.passesDesc1')}
+                {passes === 3 && t('dialogs.secureDelete.passesDesc3')}
+                {passes === 7 && t('dialogs.secureDelete.passesDesc7')}
+              </span>
+            </div>
+          </div>
+
+          {/* Overwrite method description */}
+          <div className="space-y-1 rounded-md bg-xp-bg p-3 text-xs text-xp-text-muted">
+            <div className="mb-1 font-semibold text-xp-text">
+              {t('dialogs.secureDelete.overwritePatternTitle')}
+            </div>
+            <div>{t('dialogs.secureDelete.pass1Desc')}</div>
+            <div>{t('dialogs.secureDelete.pass2Desc')}</div>
+            <div>{t('dialogs.secureDelete.pass3Desc')}</div>
+            {passes > 3 && <div>{t('dialogs.secureDelete.passesNDesc', { n: passes })}</div>}
+            <div className="mt-1">{t('dialogs.secureDelete.flushDesc')}</div>
+          </div>
+
+          {/* Confirmation checkbox */}
+          <label className="flex cursor-pointer select-none items-start space-x-3">
+            <input
+              type="checkbox"
+              checked={confirmed}
+              onChange={(e) => setConfirmed(e.target.checked)}
+              disabled={processing}
+              className="mt-1 rounded-md border-xp-border text-xp-red"
+            />
+            <span className="text-sm text-xp-text">
+              {t('dialogs.secureDelete.confirmText', {
+                fileRef:
+                  fileCount === 1
+                    ? t('dialogs.secureDelete.confirmFile')
+                    : t('dialogs.secureDelete.confirmFiles', { count: fileCount }),
+              })}
+            </span>
+          </label>
+
+          {/* Error message */}
+          {error && (
+            <div className="flex items-start space-x-2 rounded-md border border-xp-red/30 bg-xp-red/10 p-3">
+              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-xp-red" />
+              <span className="whitespace-pre-wrap text-sm text-xp-red">{error}</span>
+            </div>
+          )}
+
+          {/* Progress indicator */}
+          {processing && progress && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm text-xp-text-muted">
+                <span className="max-w-[260px] truncate" title={progress.file}>
+                  {progress.file}
+                </span>
+                <span>
+                  {t('dialogs.secureDelete.progressPass', {
+                    pass: progress.pass,
+                    total: progress.total_passes,
+                    label: progress.pass_label,
+                  })}
+                </span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-md bg-xp-bg">
+                <div
+                  className="h-full rounded-md bg-xp-red transition-all duration-300"
+                  style={{ width: `${progressPercentage}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {processing && !progress && (
+            <div className="flex items-center justify-center py-2">
+              <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-xp-red" />
+              <span className="ml-3 text-sm text-xp-text-muted">
+                {t('dialogs.secureDelete.preparing')}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end space-x-3 border-t border-xp-border bg-xp-bg p-6">
+          <button
+            onClick={handleClose}
+            disabled={processing}
+            className="rounded-md px-4 py-2 text-xp-text transition-colors hover:bg-xp-surface-light disabled:opacity-50"
+          >
+            {t('common.cancel')}
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={processing || !confirmed}
+            className="flex items-center space-x-2 rounded-md bg-xp-red px-4 py-2 text-xp-on-accent transition-colors hover:bg-xp-red/80 disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label={t('dialogs.secureDelete.deleteAriaLabel')}
+          >
+            {processing ? (
+              <>
+                <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
+                <span>{t('dialogs.secureDelete.wiping')}</span>
+              </>
+            ) : (
+              <>
+                <Trash2 size={14} />
+                <span>{t('dialogs.secureDelete.title')}</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SecureDeleteDialog;

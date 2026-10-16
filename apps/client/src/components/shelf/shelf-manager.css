@@ -1,0 +1,651 @@
+.shelf-manager {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--xp-text);
+  font-size: 13px;
+}
+.shelf-manager-stage {
+  container-type: inline-size;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+.shelf-manager-scene {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+.shelf-manager-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-width: 0;
+  height: 48px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--xp-border);
+}
+.shelf-manager-tools {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 4px;
+}
+.shelf-manager .shelf-manager-icon,
+.shelf-manager .shelf-manager-scope,
+.shelf-manager .shelf-manager-command,
+.shelf-manager .shelf-summary,
+.shelf-manager .shelf-manager-item {
+  color: inherit;
+  background: transparent;
+  background-image: none;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.shelf-manager .shelf-manager-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  transition:
+    background-color 150ms ease-out,
+    color 150ms ease-out,
+    transform 90ms ease-out;
+}
+.shelf-manager .shelf-manager-icon:hover:not(:disabled),
+.shelf-manager .shelf-manager-scope:hover {
+  background: var(--xp-surface-light);
+}
+.shelf-manager .shelf-manager-icon:active:not(:disabled) {
+  transform: scale(0.92);
+  background: color-mix(in srgb, var(--xp-text) 9%, transparent);
+}
+.shelf-manager .shelf-manager-icon:disabled,
+.shelf-manager .shelf-manager-command:disabled {
+  opacity: 0.4;
+}
+.shelf-manager-view-toggle {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 2px;
+  background: color-mix(in srgb, var(--xp-text) 5%, transparent);
+  border-radius: 6px;
+}
+.shelf-manager-view-toggle .shelf-manager-icon {
+  width: 25px;
+  height: 24px;
+  border-radius: 4px;
+  color: var(--xp-text-secondary);
+}
+.shelf-manager .shelf-manager-view-toggle .shelf-manager-icon[aria-pressed="true"] {
+  color: var(--xp-text);
+  background: color-mix(in srgb, var(--xp-text) 8%, transparent);
+}
+.shelf-manager .shelf-manager-scope {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 5px;
+  text-align: left;
+  transition: background-color 150ms ease-out;
+}
+.shelf-manager-scope > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+}
+.shelf-manager-scope > small,
+.shelf-manager-scope > svg {
+  flex-shrink: 0;
+  color: var(--xp-text-secondary);
+}
+.shelf-manager-scope > small {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.shelf-manager-detail-title {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+/* 返回键不挂焦点蓝圈：进入详情时焦点常驻其上，Dropover 同款是纯 chevron。 */
+.shelf-manager .shelf-manager-back:focus-visible {
+  outline: none;
+}
+.shelf-manager-detail-title h2,
+.shelf-manager-detail-title small {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shelf-manager-detail-title h2 {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 17px;
+}
+.shelf-manager-detail-title small {
+  color: var(--xp-text-secondary);
+  font-size: 10px;
+  line-height: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.shelf-manager-summaries,
+.shelf-manager-contents {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--xp-border) transparent;
+  transition:
+    background-color 150ms ease-out,
+    outline-color 150ms ease-out;
+}
+.shelf-manager-summaries-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
+  align-content: start;
+  gap: 10px;
+  padding: 16px 12px;
+}
+.shelf-manager .shelf-summary {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease-out,
+    border-color 150ms ease-out,
+    transform 90ms ease-out;
+}
+.shelf-manager .shelf-summary-show {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--xp-text-secondary);
+  background: transparent;
+  opacity: 0;
+  cursor: pointer;
+  transition:
+    opacity 120ms ease-out,
+    background-color 120ms ease-out,
+    color 120ms ease-out;
+}
+.shelf-manager .shelf-summary:hover .shelf-summary-show,
+.shelf-manager .shelf-summary:focus-within .shelf-summary-show,
+.shelf-manager .shelf-summary-show:focus-visible {
+  opacity: 1;
+}
+.shelf-manager .shelf-summary-show:hover {
+  color: var(--xp-text);
+  background: var(--xp-surface-light);
+}
+.shelf-manager .shelf-summary:hover {
+  background: var(--xp-surface-light);
+}
+.shelf-manager .shelf-summary:active {
+  transform: scale(0.98);
+}
+.shelf-summary-preview {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 94px;
+  height: 86px;
+  color: var(--xp-text-secondary);
+}
+.shelf-summary-sheet {
+  position: absolute;
+  left: 11px;
+  top: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  font-size: 72px;
+  transform-origin: center bottom;
+  transition: transform 150ms ease-out;
+}
+.shelf-summary-sheet[data-layer="0"] {
+  z-index: 3;
+}
+.shelf-summary-sheet[data-layer="1"] {
+  z-index: 2;
+  transform: translate(5px, 2px) rotate(7deg);
+}
+.shelf-summary-sheet[data-layer="2"] {
+  z-index: 1;
+  transform: translate(-5px, 3px) rotate(-7deg);
+}
+.shelf-summary:hover .shelf-summary-sheet[data-layer="1"] {
+  transform: translate(7px, 1px) rotate(9deg);
+}
+.shelf-summary:hover .shelf-summary-sheet[data-layer="2"] {
+  transform: translate(-7px, 2px) rotate(-9deg);
+}
+.shelf-summary-sheet-missing {
+  opacity: 0.4;
+}
+.shelf-summary-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+}
+.shelf-summary-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 500;
+}
+.shelf-summary-name > span,
+.shelf-summary-caption > small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shelf-summary-name > svg {
+  flex-shrink: 0;
+  color: var(--xp-text-secondary);
+}
+.shelf-summary-caption > small {
+  font-size: 10px;
+  color: var(--xp-text-secondary);
+}
+.shelf-manager-summaries-list {
+  padding: 6px;
+}
+.shelf-manager-summaries-list .shelf-summary {
+  flex-direction: row;
+  gap: 12px;
+  min-height: 64px;
+  padding: 6px 10px;
+  width: 100%;
+  text-align: left;
+}
+.shelf-manager-summaries-list .shelf-summary-preview {
+  width: 48px;
+  height: 48px;
+}
+.shelf-manager-summaries-list .shelf-summary-sheet {
+  left: 5px;
+  top: 5px;
+  width: 38px;
+  height: 38px;
+  font-size: 38px;
+}
+.shelf-manager-summaries-list .shelf-summary-caption {
+  flex: 1;
+}
+.shelf-manager-summaries-list .shelf-summary-name {
+  justify-content: flex-start;
+  font-size: 13px;
+}
+.shelf-manager-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  align-content: start;
+  gap: 8px;
+  padding: 12px;
+}
+.shelf-manager .shelf-manager-item {
+  min-width: 0;
+  border: 0;
+  border-radius: 6px;
+  transition:
+    background-color 150ms ease-out,
+    color 150ms ease-out,
+    transform 90ms ease-out;
+}
+.shelf-manager .shelf-manager-item:hover {
+  background: var(--xp-surface-light);
+}
+.shelf-manager .shelf-manager-item:active {
+  transform: scale(0.98);
+}
+.shelf-manager .shelf-manager-item[aria-selected="true"] {
+  color: white;
+  background: var(--xp-blue);
+}
+.shelf-manager-item[aria-selected="true"]
+  :is(small, .shelf-manager-item-source, .shelf-manager-item-date) {
+  color: white;
+}
+.shelf-manager-gallery .shelf-manager-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 6px 8px;
+}
+.shelf-manager-item-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.shelf-manager-gallery .shelf-manager-item-image {
+  width: 100%;
+  height: 80px;
+  font-size: 72px;
+}
+.shelf-manager-gallery .shelf-manager-item-image img {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 14%);
+}
+.shelf-manager-item-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  gap: 3px;
+}
+.shelf-manager-item-name > span,
+.shelf-manager-item-name > small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shelf-manager-gallery .shelf-manager-item-name {
+  text-align: center;
+  font-size: 12px;
+}
+.shelf-manager-item-name small {
+  color: var(--xp-text-secondary);
+  font-size: 10px;
+}
+.shelf-manager-item-missing .shelf-manager-item-image {
+  opacity: 0.4;
+}
+.shelf-manager-list {
+  padding: 0 6px 6px;
+}
+.shelf-manager-list .shelf-manager-item {
+  display: grid;
+  grid-template-columns: 24px minmax(80px, 1fr) minmax(60px, 0.85fr) 116px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 42px;
+  padding: 4px 8px;
+  text-align: left;
+}
+.shelf-manager-list .shelf-manager-item-image {
+  width: 24px;
+  height: 28px;
+  font-size: 23px;
+}
+.shelf-manager-list-head {
+  display: grid;
+  grid-template-columns: minmax(104px, 1fr) minmax(60px, 0.85fr) 116px;
+  gap: 8px;
+  padding: 9px 8px 9px 40px;
+  color: var(--xp-text-secondary);
+  font-size: 11px;
+}
+.shelf-manager-item-source,
+.shelf-manager-item-date {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--xp-text-secondary);
+  font-size: 11px;
+}
+.shelf-manager-item-date {
+  font-variant-numeric: tabular-nums;
+}
+.shelf-manager-selection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  min-width: 0;
+  height: 42px;
+  padding: 6px 12px;
+  border-top: 1px solid var(--xp-border);
+}
+.shelf-manager-primary {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 26px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 13px;
+  background: var(--xp-blue);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  transition:
+    background-color 150ms ease-out,
+    transform 90ms ease-out;
+}
+.shelf-manager-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--xp-blue) 88%, black);
+}
+.shelf-manager-primary:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.shelf-manager-primary:disabled {
+  opacity: 0.4;
+}
+.shelf-manager-selection > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--xp-text-secondary);
+  font-size: 11px;
+}
+.shelf-manager-empty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 28px 16px;
+  text-align: center;
+}
+.shelf-manager-empty > svg {
+  color: var(--xp-text-secondary);
+}
+.shelf-manager-empty h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+.shelf-manager-empty p {
+  margin: 0;
+  max-width: 340px;
+  color: var(--xp-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+:is(.shelf-manager-gallery, .shelf-manager-summaries-gallery) > .shelf-manager-empty {
+  grid-column: 1 / -1;
+  min-height: 220px;
+}
+.shelf-manager .shelf-manager-command {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 5px;
+  color: var(--xp-blue);
+  font-size: 12px;
+  transition: background-color 150ms ease-out;
+}
+.shelf-manager .shelf-manager-command:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--xp-blue) 10%, transparent);
+}
+.shelf-manager-error {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--xp-border);
+  background: color-mix(in srgb, var(--xp-red, #b74747) 12%, transparent);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.shelf-manager-loading {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
+  gap: 12px;
+  padding: 16px 12px;
+}
+.shelf-manager-loading div {
+  height: 146px;
+  border-radius: 8px;
+  background: var(--xp-surface-light);
+}
+.shelf-manager-confirm,
+.shelf-manager-rename {
+  padding: 20px;
+}
+.shelf-manager-confirm p {
+  margin: 12px 0 20px;
+  color: var(--xp-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.shelf-manager-confirm > div,
+.shelf-manager-rename > div {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.shelf-manager-rename input {
+  width: 100%;
+  height: 32px;
+  margin: 16px 0 20px;
+  padding: 5px 8px;
+  border: 1px solid var(--xp-border);
+  border-radius: 5px;
+  background: var(--xp-surface);
+  color: var(--xp-text);
+  font-size: 13px;
+}
+.shelf-manager :is(button, input):focus-visible {
+  outline: 2px solid var(--xp-blue);
+  outline-offset: 2px;
+}
+.shelf-manager ::selection {
+  color: white;
+  background: var(--xp-blue);
+}
+.shelf-manager input {
+  caret-color: var(--xp-blue);
+}
+.shelf-manager [data-drop-hover="true"] {
+  outline: 2px solid var(--xp-blue);
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--xp-blue) 12%, transparent);
+}
+@container (max-width: 600px) {
+  .shelf-manager-list .shelf-manager-item {
+    grid-template-columns: 24px minmax(80px, 1fr) 104px;
+  }
+  .shelf-manager-list-head {
+    grid-template-columns: minmax(104px, 1fr) 104px;
+  }
+  .shelf-manager-item-source,
+  .shelf-manager-list-head > span:nth-child(2) {
+    display: none;
+  }
+}
+@container (max-width: 350px) {
+  .shelf-manager-header {
+    gap: 6px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .shelf-manager-tools {
+    gap: 2px;
+  }
+  .shelf-manager-scope {
+    gap: 4px;
+  }
+  .shelf-manager-scope > span {
+    font-size: 13px;
+  }
+  .shelf-manager-list .shelf-manager-item {
+    grid-template-columns: 24px minmax(80px, 1fr);
+  }
+  .shelf-manager-item-date,
+  .shelf-manager-list-head > span:last-child {
+    display: none;
+  }
+  .shelf-manager-list-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shelf-manager-icon,
+  .shelf-manager-scope,
+  .shelf-manager-command,
+  .shelf-summary,
+  .shelf-summary-sheet,
+  .shelf-manager-item,
+  .shelf-manager-summaries,
+  .shelf-manager-contents {
+    transition: none;
+  }
+}

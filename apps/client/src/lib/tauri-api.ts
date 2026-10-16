@@ -1,0 +1,10 @@
+// Thin re-export — the real implementation lives in ./tauri-api/ domain modules.
+export { TauriAPI } from './tauri-api/index';
+export * from './tauri-api-types';
+export type { WeatherReport, WeatherDailyEntry, GeoPlace } from './tauri-api/weather';
+export type { EpubChapter, EpubInfo, QuickLookFrame } from './tauri-api/preview';
+export type { Mem0ConfigState, Mem0HitDto } from './tauri-api/ai';
+export type {
+  ShelfItem, ShelfRecord, ShelfShortcut, ShelfActionPreset, ShelfWatchedFolder,
+  ShelfCloudAccount, ShelfCloudShare, ShelfSettings, ShelfState, ShelfRequest,
+} from './tauri-api/shelf';
