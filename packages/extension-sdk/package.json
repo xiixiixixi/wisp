@@ -26,7 +26,7 @@
     "@types/react": "^19.0.0",
     "archiver": "^7.0.1",
     "react": "^19.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.9.3"
   },
   "devDependencies": {
     "@testing-library/react": "^16.0.0",
