@@ -55,7 +55,7 @@
     },
     {
       "id": "chatgpt-bridge",
-      "title": "只读文件桥",
+      "title": "ChatGPT 连接器",
       "path": "chatgpt-bridge.png",
       "crop": null,
       "note": "实际应用截图的连续矩形局部。"

@@ -539,7 +539,7 @@
     "performance": "パフォーマンス",
     "marketplace": "マーケットプレイス",
     "settings": "設定",
-    "chatgptBridge": "ChatGPT ブリッジ",
+    "chatgptBridge": "ChatGPT コネクター",
     "chat": "チャット",
     "weixin": "WeChat ボット"
   },
@@ -1968,7 +1968,7 @@
     "hoursAgo": "{{count}}時間前"
   },
   "chatgptBridge": {
-    "title": "ChatGPT ブリッジ",
+    "title": "ChatGPT コネクター",
     "subtitle": "OpenAI 公式トンネルで ChatGPT に共有フォルダを閲覧許可",
     "state": {
       "stopped": "未接続",
@@ -1976,7 +1976,7 @@
       "running": "コンピュータはオンライン",
       "error": "エラー"
     },
-    "enabledTitle": "ブリッジを有効化",
+    "enabledTitle": "コネクターを有効化",
     "enabledDesc": "Wisp の起動中は接続を維持し、終了時に自動切断します。",
     "enabledStateOn": "有効",
     "enabledStateOff": "無効",
@@ -2041,9 +2041,9 @@
     "step5Link": "ChatGPT のプラグインを開く",
     "save": "保存して適用",
     "privacyNote": "注意：ChatGPT が読み取った内容は OpenAI に送信され、会話コンテキストに入ります。共有フォルダに機密情報を置かないでください。",
-    "loadError": "ブリッジにはデスクトップ版 Wisp が必要です。",
+    "loadError": "コネクターにはデスクトップ版 Wisp が必要です。",
     "toastSavedOn": "有効化しました — トンネルに接続中",
-    "toastSavedOff": "ブリッジを無効化しました",
+    "toastSavedOff": "コネクターを無効化しました",
     "toastSaveError": "保存に失敗しました",
     "toastRestartError": "再起動に失敗しました",
     "toastCopied": "クリップボードにコピーしました"

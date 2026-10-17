@@ -539,7 +539,7 @@
     "performance": "Performa",
     "marketplace": "Marketplace",
     "settings": "Pengaturan",
-    "chatgptBridge": "Jembatan ChatGPT",
+    "chatgptBridge": "Konektor ChatGPT",
     "chat": "Obrolan",
     "weixin": "Bot WeChat"
   },
@@ -1968,7 +1968,7 @@
     "hoursAgo": "{{count}} jam lalu"
   },
   "chatgptBridge": {
-    "title": "Jembatan ChatGPT",
+    "title": "Konektor ChatGPT",
     "subtitle": "Izinkan ChatGPT membaca folder bersama lewat tunnel resmi OpenAI",
     "state": {
       "stopped": "Tersambung tidak",
@@ -1976,7 +1976,7 @@
       "running": "Komputer online",
       "error": "Galat"
     },
-    "enabledTitle": "Aktifkan jembatan",
+    "enabledTitle": "Aktifkan konektor",
     "enabledDesc": "Tetap tersambung selama Wisp berjalan; terputus saat Wisp keluar.",
     "enabledStateOn": "Aktif",
     "enabledStateOff": "Nonaktif",
@@ -2041,9 +2041,9 @@
     "step5Link": "Buka plugin ChatGPT",
     "save": "Simpan & terapkan",
     "privacyNote": "Catatan: konten yang dibaca ChatGPT dikirim ke OpenAI dan masuk konteks percakapan. Jangan simpan rahasia di folder bersama.",
-    "loadError": "Jembatan memerlukan aplikasi Wisp desktop.",
+    "loadError": "Konektor memerlukan aplikasi Wisp desktop.",
     "toastSavedOn": "Diaktifkan — menyambungkan tunnel",
-    "toastSavedOff": "Jembatan dinonaktifkan",
+    "toastSavedOff": "Konektor dinonaktifkan",
     "toastSaveError": "Gagal menyimpan",
     "toastRestartError": "Gagal memulai ulang",
     "toastCopied": "Disalin ke clipboard"

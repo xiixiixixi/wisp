@@ -1368,7 +1368,7 @@
     "performance": "活动",
     "marketplace": "扩展市场",
     "settings": "设置",
-    "chatgptBridge": "连接对话助手",
+    "chatgptBridge": "ChatGPT 连接器",
     "chat": "对话",
     "weixin": "微信机器人",
     "previewShort": "预览",
@@ -3738,15 +3738,15 @@
     "limit": "显示最近 {{count}} 项"
   },
   "chatgptBridge": {
-    "title": "连接 ChatGPT（对话助手）",
-    "subtitle": "让 ChatGPT（对话助手）读取指定文件夹",
+    "title": "ChatGPT 连接器",
+    "subtitle": "让网页助手读取你选定的本地文件夹",
     "overviewTitle": "只读共享",
     "overviewDesc": "让对话助手查看所选文件夹、查找文件、读取文本。此连接不能修改文件。",
     "helpButton": "使用说明",
     "helpTitle": "怎么使用",
     "helpSetup": "选好文件夹，填写连接编号和运行密钥，再到对话助手添加连接。连接程序随应用附带，不需要在终端安装。",
     "helpScope": "只共享你选中的文件夹。共享前请检查其中是否有不想发送到对话的内容。",
-    "helpPrivacy": "被读取的内容会发送给 OpenAI（服务提供方）并进入对话；关闭“启用桥接”开关后，桌面版不再自动连接。",
+    "helpPrivacy": "被读取的内容会发送给 OpenAI（服务提供方）并进入对话；关闭“启用连接器”开关后，桌面版不再自动连接。",
     "desktopOnlyTitle": "请在桌面版连接",
     "desktopOnlyDesc": "浏览器中只能查看功能介绍。打开桌面版，选好共享文件夹并完成连接设置后即可使用。",
     "state": {
@@ -3755,13 +3755,13 @@
       "running": "电脑已在线",
       "error": "出错"
     },
-    "enabledTitle": "启用桥接",
+    "enabledTitle": "启用连接器",
     "enabledDesc": "应用运行时保持连接；退出应用后自动断开。",
     "enabledStateOn": "已开启",
     "enabledStateOff": "已关闭",
     "restart": "重启",
     "stop": "本次停止",
-    "stopHint": "只停止当前连接；要持续停用，请关闭“启用桥接”开关。",
+    "stopHint": "只停止当前连接；要持续停用，请关闭“启用连接器”开关。",
     "openAdminUi": "打开管理页",
     "step1Title": "安装连接工具",
     "step1Desc": "连接工具会向外建立连接，无需对外开放端口。在“终端”执行：",
@@ -3824,7 +3824,7 @@
     "privacyNote": "读取的内容会发送给 OpenAI（服务提供方）并进入对话。请谨慎选择共享文件夹；只读不等于内容保密。",
     "loadError": "请检查桌面版是否正常运行，然后重试。",
     "toastSavedOn": "已启用，正在建立隧道连接",
-    "toastSavedOff": "已停用桥接",
+    "toastSavedOff": "已停用连接器",
     "toastSaveError": "保存失败",
     "toastRestartError": "重启失败",
     "toastCopied": "已复制到剪贴板"
@@ -4029,7 +4029,7 @@
   "panelPurpose": {
     "chat": "围绕选中文件提问，或处理当前文件夹中的工作。",
     "weixin-bridge": "连接微信，在离开电脑时继续使用助手。",
-    "chatgpt-bridge": "让 ChatGPT（对话助手）读取指定文件夹。",
+    "chatgpt-bridge": "让网页助手读取你选定的本地文件夹。",
     "performance": "查看文件夹情况，并在操作前预览文件变化。",
     "marketplace": "为日常文件工作添加需要的工具。"
   }

@@ -1368,7 +1368,7 @@
     "performance": "Activity",
     "marketplace": "Marketplace",
     "settings": "Settings",
-    "chatgptBridge": "ChatGPT Bridge",
+    "chatgptBridge": "ChatGPT Connector",
     "chat": "Chat",
     "weixin": "WeChat bot",
     "previewShort": "Preview",
@@ -3738,7 +3738,7 @@
     "limit": "Showing {{count}} recent items"
   },
   "chatgptBridge": {
-    "title": "ChatGPT Bridge",
+    "title": "ChatGPT Connector",
     "subtitle": "Let ChatGPT read shared folders via OpenAI's official tunnel",
     "overviewTitle": "Read-only sharing",
     "overviewDesc": "Share selected folders with ChatGPT. It can find files and read text, but cannot change files through this connection.",
@@ -3746,7 +3746,7 @@
     "helpTitle": "How to use it",
     "helpSetup": "Choose folders, enter your connection ID and runtime key, then add the connection in ChatGPT. The connection component is included in Wisp; no Terminal installation is needed.",
     "helpScope": "Only selected folders are shared. Check them for anything you do not want sent to a conversation.",
-    "helpPrivacy": "Read content is sent to OpenAI and enters the conversation. Turn off Enable bridge to prevent automatic reconnection.",
+    "helpPrivacy": "Read content is sent to OpenAI and enters the conversation. Turn off Enable connector to prevent automatic reconnection.",
     "desktopOnlyTitle": "Connect in the desktop app",
     "desktopOnlyDesc": "The browser can only show this overview. Open the desktop app, choose shared folders, and complete the connection setup.",
     "state": {
@@ -3755,13 +3755,13 @@
       "running": "Computer online",
       "error": "Error"
     },
-    "enabledTitle": "Enable bridge",
+    "enabledTitle": "Enable connector",
     "enabledDesc": "Stays connected while Wisp runs; disconnects when Wisp quits.",
     "enabledStateOn": "On",
     "enabledStateOff": "Off",
     "restart": "Restart",
     "stop": "Stop for now",
-    "stopHint": "Stops this connection only. Turn off Enable bridge to prevent automatic reconnection.",
+    "stopHint": "Stops this connection only. Turn off Enable connector to prevent automatic reconnection.",
     "openAdminUi": "Open admin UI",
     "step1Title": "Install tunnel-client",
     "step1Desc": "The connection tool connects outward, so you do not need to open a port to the internet. Run in Terminal:",
@@ -3824,7 +3824,7 @@
     "privacyNote": "Note: content ChatGPT reads is sent to OpenAI and enters the conversation context. Keep secrets out of shared folders. Read-only ≠ private.",
     "loadError": "Check that the desktop app is running, then try again.",
     "toastSavedOn": "Enabled — connecting the tunnel",
-    "toastSavedOff": "Bridge disabled",
+    "toastSavedOff": "Connector disabled",
     "toastSaveError": "Save failed",
     "toastRestartError": "Restart failed",
     "toastCopied": "Copied to clipboard"
