@@ -34,6 +34,7 @@ import { useDirectoryWatch } from '@/hooks/use-directory-watch';
 import { dispatchFileContentChanged } from '@/lib/file-change-events';
 import { parentDirectory } from '@/lib/recent-entry-actions';
 import { useSpringLoadedFolder } from '@/hooks/use-spring-loaded-folder';
+import { useFileSelection } from '@/hooks/use-file-selection';
 import { invoke } from '@tauri-apps/api/core';
 import { isTauri } from '@/lib/transport';
 import type { NativeWebPageState } from '@/lib/native-web-tab';
@@ -543,61 +544,13 @@ const EditorGroupPane = ({
     queryFiles,
   ]);
 
-  // Track last-clicked index for shift-click range selection
-  const lastClickedIndexRef = useRef<number>(-1);
-  const sortedFilesRef = useRef(sortedFiles);
-  sortedFilesRef.current = sortedFiles;
-
-  // File click handler (per-pane) — uses parent's setSelectedFile directly
-  const handleFileClick = useCallback(
-    (file: FileEntry, event?: React.MouseEvent) => {
-      setSelectedFile(file);
-
-      const currentFiles = sortedFilesRef.current;
-      const clickedIndex = currentFiles.findIndex((f) => f.path === file.path);
-
-      if (event && event.shiftKey && lastClickedIndexRef.current >= 0) {
-        // Shift+click: select range from last clicked to current
-        const start = Math.min(lastClickedIndexRef.current, clickedIndex);
-        const end = Math.max(lastClickedIndexRef.current, clickedIndex);
-        const rangePaths = currentFiles.slice(start, end + 1).map((f) => f.path);
-
-        if (event.ctrlKey || event.metaKey) {
-          // Shift+Ctrl: add range to existing selection
-          setSelectedFiles((prev) => {
-            const next = new Set(prev);
-            for (const p of rangePaths) next.add(p);
-
-            return next;
-          });
-        } else {
-          // Shift only: replace selection with range
-          const newSet = new Set(rangePaths);
-          setSelectedFiles(newSet);
-        }
-        return;
-      }
-
-      if (event && (event.ctrlKey || event.metaKey)) {
-        // Ctrl+click: toggle individual file
-        lastClickedIndexRef.current = clickedIndex;
-        setSelectedFiles((prev) => {
-          const next = new Set(prev);
-          if (next.has(file.path)) next.delete(file.path);
-          else next.add(file.path);
-
-          return next;
-        });
-        return;
-      }
-
-      // Normal click: select single file
-      lastClickedIndexRef.current = clickedIndex;
-      const newSet = new Set([file.path]);
-      setSelectedFiles(newSet);
-    },
-    [setSelectedFiles, setSelectedFile],
-  );
+  const { handleFileClick } = useFileSelection({
+    files: sortedFiles,
+    currentPath,
+    selectedFiles,
+    setSelectedFiles,
+    setSelectedFile,
+  });
 
   // File double click (per-pane)
   const handleFileDoubleClick = useCallback(

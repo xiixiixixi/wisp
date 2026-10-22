@@ -373,11 +373,16 @@ const FileGridItem = React.memo(
     );
     const {
       onLabelPointerDown,
+      onLabelPointerCancel,
       onLabelClick,
       noteRowClick: noteItemRowClick,
-    } = useLabelRename(isSelected, startLabelRename);
+    } = useLabelRename(isSelected && selectedFiles.size === 1, startLabelRename);
     const labelClickHandlers = onRenameStart
-      ? { onPointerDown: onLabelPointerDown, onClick: onLabelClick }
+      ? {
+          onPointerDown: onLabelPointerDown,
+          onPointerCancel: onLabelPointerCancel,
+          onClick: onLabelClick,
+        }
       : {};
 
     // ─── Render the file name area (normal label or inline rename input) ──────

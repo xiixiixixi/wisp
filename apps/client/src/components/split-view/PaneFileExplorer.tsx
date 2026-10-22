@@ -55,7 +55,7 @@ interface PaneFileExplorerProps {
   groupId: string;
   handleCreateFolder: () => void;
   handleDelete: () => void;
-  handleFileClick: (file: FileEntry, event: React.MouseEvent) => void;
+  handleFileClick: (file: FileEntry, event: React.MouseEvent, visibleFiles?: FileEntry[]) => void;
   handleFileDoubleClick: (file: FileEntry) => void;
   onFileRightClick: (file: FileEntry, event: React.MouseEvent) => void;
   onBgRightClick: (event: React.MouseEvent) => void;

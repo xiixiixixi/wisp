@@ -1,0 +1,76 @@
+---
+id: intro
+title: Introduction
+sidebar_position: 1
+slug: /
+---
+
+# Wisp
+
+**Wisp** is a modern, AI-powered desktop file explorer built with [Tauri v2](https://v2.tauri.app/). It combines the speed of a native application with the flexibility of a web-based UI, offering features far beyond traditional file managers.
+
+## What is Wisp?
+
+Wisp is a cross-platform desktop application that reimagines file management.
+
+![Wisp main interface](/screenshots/main-interface.png)
+
+It provides:
+
+- **Native Performance** — Built on Rust with Tauri v2, file operations run at native speed
+- **Rich File Previews** — Preview PDFs, documents, images, code, spreadsheets, and more without leaving the app
+- **AI-Powered Features** — Multi-provider AI integration (Claude, GPT, Gemini, DeepSeek, Mistral, Ollama) for file analysis, smart organization, and natural language chat
+- **SSH Remote Browsing** — Connect to remote servers and browse files as if they were local
+- **Git Integration** — View git history, blame, diffs, branches, and stash directly in the explorer
+- **Smart Search** — Tokenized file search with content indexing across your entire filesystem
+- **Extension System** — Extend functionality with a plugin SDK and marketplace
+- **Keyboard-Driven** — Customizable keyboard shortcuts for power users
+
+## Tech Stack
+
+| Layer    | Technology                               |
+| -------- | ---------------------------------------- |
+| Backend  | Rust + Tauri v2                          |
+| Frontend | React 18 + TypeScript                    |
+| Styling  | Tailwind CSS + Custom Glassmorphic Theme |
+| Build    | Vite 5                                   |
+| Routing  | Wouter                                   |
+| State    | TanStack React Query                     |
+| AI       | Claude, GPT, Gemini, Ollama, and more    |
+| Testing  | Vitest + Testing Library                 |
+
+## Project Structure
+
+```
+wisp/
+├── apps/
+│   ├── client/              # React frontend (Vite SPA)
+│   │   └── src/
+│   │       ├── pages/       # Route pages (explorer, settings, SSH)
+│   │       ├── components/  # UI components
+│   │       ├── lib/         # Core libraries (transport, API bridge, AI)
+│   │       ├── hooks/       # Custom React hooks
+│   │       └── extensions/  # Client-side extension logic
+│   ├── src-tauri/           # Rust backend (Tauri v2)
+│   │   └── src/
+│   │       ├── main.rs      # Entry point + Tauri commands
+│   │       ├── operations/  # File system operations
+│   │       ├── extensions/  # Extension system
+│   │       └── shortcuts/   # Keyboard shortcuts
+│   └── web/                 # Marketplace + docs site (Next.js)
+├── packages/
+│   ├── sdk/                 # Internal service layer (@wisp/sdk)
+│   ├── extension-sdk/       # Extension SDK (@wisp/extension-sdk)
+│   ├── create-extension/    # Extension scaffolder CLI
+│   └── extensions/          # 25 built-in extensions
+├── e2e/                     # Playwright end-to-end tests
+└── docs/                    # Standalone documentation
+```
+
+## Quick Links
+
+- [Getting Started](/docs/getting-started) — Install and run Wisp
+- [Architecture Overview](/docs/architecture/overview) — How the system works
+- [Features](/docs/features/overview) — Complete feature overview
+- [API Reference](/docs/category/api-reference) — Tauri commands and frontend API
+- [Extension SDK](/docs/extensions/sdk) — Build your own extensions

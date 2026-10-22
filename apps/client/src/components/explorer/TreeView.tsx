@@ -75,13 +75,17 @@ const TreeRow = ({
     },
     [file.path],
   );
-  const { onLabelPointerDown, onLabelClick, noteRowClick } = useLabelRename(
-    selectedFiles.has(file.path),
+  const { onLabelPointerDown, onLabelPointerCancel, onLabelClick, noteRowClick } = useLabelRename(
+    selectedFiles.size === 1 && selectedFiles.has(file.path),
     startLabelRename,
   );
   const isRenaming = renamingPath === file.path && Boolean(onRenameFile);
   const labelClickHandlers = onRenameFile
-    ? { onPointerDown: onLabelPointerDown, onClick: onLabelClick }
+    ? {
+        onPointerDown: onLabelPointerDown,
+        onPointerCancel: onLabelPointerCancel,
+        onClick: onLabelClick,
+      }
     : {};
 
   return (
@@ -308,6 +312,10 @@ const TreeView = ({
     return result;
   }, [sortedFiles, expandedFolders, folderContents]);
   const { tabStopPath, rememberFileFocus } = useFileTabStop(visibleFiles, selectedFiles);
+  const selectTreeFile = useCallback(
+    (file: FileEntry, event: React.MouseEvent) => handleFileClick(file, event, visibleFiles),
+    [handleFileClick, visibleFiles],
+  );
   useFileRevealScroll({
     groupId,
     currentPath,
@@ -320,7 +328,7 @@ const TreeView = ({
     columns: 1,
     viewMode: 'tree',
     getColumnsCount: () => 1,
-    handleFileClick,
+    handleFileClick: selectTreeFile,
     handleFileDoubleClick,
     needsVirtualization: false,
     virtualizer: treeVirtualizer,
@@ -362,7 +370,7 @@ const TreeView = ({
           folderContents={folderContents}
           toggleFolder={toggleFolder}
           getFileIcon={getFileIcon}
-          handleFileClick={handleFileClick}
+          handleFileClick={selectTreeFile}
           handleFileDoubleClick={handleFileDoubleClick}
           handleFileRightClick={handleFileRightClick}
           onQuickLook={onQuickLook}

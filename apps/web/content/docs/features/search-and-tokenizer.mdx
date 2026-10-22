@@ -1,0 +1,50 @@
+---
+id: search-and-tokenizer
+title: Search
+sidebar_position: 4
+---
+
+# Search
+
+Wisp searches the filesystem through the operating system instead of maintaining an
+index of its own. Nothing is pre-built and nothing stays resident, so every query
+reflects the disk as it is right now — and Wisp spends no memory or startup time on
+an index it would have to keep in sync.
+
+## How It Works
+
+- **Filename search** is delegated to the platform search provider. On macOS that is
+  Spotlight (`mdfind`), which answers name queries across indexed volumes in a fraction
+  of a second. Wisp never maintains a second copy of the file list.
+- **Content search** reads files on demand, scoped to the folder being searched. It
+  needs no background index and works in locations the system index does not cover.
+
+The practical consequences: no "indexing in progress" state, no rebuild after moving
+files, no stale results, and no background CPU or disk churn while you work.
+
+## Opening Search
+
+Press <kbd>⌘P</kbd> (or <kbd>⌘F</kbd>) to open the search palette. Results come from the
+system search provider across every mounted volume, and the palette shows folders
+alongside files with an explicit folder marker. Recently opened files are offered before
+you type anything.
+
+## Content Search
+
+Content search is available to the built-in agent (its `search_content` tool) and to
+extensions through the extension API. It scans the requested directory on demand rather
+than consulting an index, so it can search inside projects, temporary folders, and
+files that the system index skipped.
+
+## System Requirements
+
+Filename search depends on the system search index:
+
+- On macOS, Spotlight indexing must be enabled for the volume you are searching
+  (`mdutil -s /` reports the current state).
+- Locations the system excludes by default — `~/Library`, hidden directories, and
+  folders marked as noise — do not appear in filename results.
+- If the index is unavailable, filename search returns nothing rather than silently
+  falling back to a full disk walk.
+
+Content search does not depend on any of this: it reads files directly.

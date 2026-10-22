@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, CheckCircle2, X } from 'lucide-react';
 import { TauriAPI, type FileOperationProgress } from '@/lib/tauri-api';
@@ -12,7 +12,10 @@ import { BottomRightOverlayStackItem } from '@/components/ui/BottomRightOverlayS
 import {
   recordTransfer,
   clearTransferRecord,
+  getLastTransfer,
   undoLastTransfer,
+  useTransferHistory,
+  type RecordedTransfer,
 } from '@/hooks/use-transfer-history';
 
 interface TransferProgressToastProps {
@@ -46,10 +49,36 @@ export const TransferProgressToast = ({
   const { t } = useTranslation();
   const [opStates, setOpStates] = useState<Map<string, OpState>>(new Map());
   const [currentFile, setCurrentFile] = useState('');
-  const [undoing, setUndoing] = useState(false);
+  const [undoState, setUndoState] = useState<'ready' | 'pending' | 'restored' | 'error'>('ready');
+  const undoing = undoState === 'pending';
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const recordedRef = useRef(false);
+  const ownRecordRef = useRef<RecordedTransfer | null>(null);
+  const pendingRef = useRef(false);
+  const dismissedRef = useRef(false);
+  const mountedRef = useRef(true);
+  const remainingRef = useRef(AUTO_DISMISS_MS);
+  const timerStateRef = useRef(undoState);
+  const dismissRef = useRef(onDismiss);
+  dismissRef.current = onDismiss;
+  const latestTransfer = useTransferHistory();
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const handleDismiss = useCallback(() => {
+    if (pendingRef.current || dismissedRef.current) return;
+    dismissedRef.current = true;
+    if (ownRecordRef.current) clearTransferRecord(ownRecordRef.current);
+    dismissRef.current();
+  }, []);
 
   const states = [...opStates.values()];
   const failedCount = states.filter((o) => o.status === 'Failed').length;
@@ -109,14 +138,29 @@ export const TransferProgressToast = ({
     if (phase !== 'done' || recordedRef.current) return;
     recordedRef.current = true;
     if (completedCount > 0) {
-      recordTransfer({ count: completedCount, mode, destDir, timestamp: Date.now() });
+      ownRecordRef.current = recordTransfer({
+        count: completedCount,
+        mode,
+        destDir,
+        timestamp: Date.now(),
+      });
     }
-    const timer = setTimeout(() => {
-      clearTransferRecord();
-      onDismiss();
-    }, AUTO_DISMISS_MS);
-    return () => clearTimeout(timer);
-  }, [phase, completedCount, mode, destDir, onDismiss]);
+  }, [phase, completedCount, mode, destDir]);
+
+  useEffect(() => {
+    if (phase !== 'done' || dismissedRef.current) return;
+    if (timerStateRef.current !== undoState) {
+      timerStateRef.current = undoState;
+      remainingRef.current = undoState === 'restored' ? 1400 : AUTO_DISMISS_MS;
+    }
+    if (undoing || undoState === 'error' || hovered || focused) return;
+    const started = Date.now();
+    const timer = setTimeout(handleDismiss, remainingRef.current);
+    return () => {
+      clearTimeout(timer);
+      remainingRef.current = Math.max(0, remainingRef.current - (Date.now() - started));
+    };
+  }, [phase, undoState, undoing, hovered, focused, handleDismiss]);
 
   const handleCancel = async () => {
     setCancelling(true);
@@ -137,16 +181,29 @@ export const TransferProgressToast = ({
     setCancelError(t('transfer.cancelFailed'));
   };
 
-  const handleDismiss = () => {
-    if (phase === 'done') clearTransferRecord();
-    onDismiss();
-  };
-
   const handleUndo = async () => {
-    setUndoing(true);
-    const ok = await undoLastTransfer();
-    if (ok) await notifyFilesChanged();
-    onDismiss();
+    const record = ownRecordRef.current;
+    if (
+      pendingRef.current ||
+      undoState === 'restored' ||
+      !record ||
+      getLastTransfer()?.id !== record.id
+    ) {
+      return;
+    }
+    pendingRef.current = true;
+    setUndoState('pending');
+    let ok = false;
+    try {
+      ok = await undoLastTransfer(record);
+    } catch {
+      // Keep failed undo visible and retryable.
+    } finally {
+      // Partial undo changes files even when a later item fails.
+      await notifyFilesChanged().catch(() => undefined);
+      pendingRef.current = false;
+      if (mountedRef.current) setUndoState(ok ? 'restored' : 'error');
+    }
   };
 
   // Silent transfers show nothing while running
@@ -156,13 +213,23 @@ export const TransferProgressToast = ({
   const donePlurality = itemCount === 1 ? 'one' : 'other';
   const doneLabelKey = `transfer.${doneAction}_${donePlurality}`;
   const doneLabel = t(doneLabelKey, { count: itemCount });
-  const canUndo = !undoing && completedCount > 0;
+  const canUndo =
+    !undoing &&
+    undoState !== 'restored' &&
+    completedCount > 0 &&
+    latestTransfer?.id === ownRecordRef.current?.id;
 
   return (
     <BottomRightOverlayStackItem className="flex justify-end">
       <div
         role="region"
         aria-label={t('transfer.notificationLabel')}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onFocusCapture={() => setFocused(true)}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
+        }}
         style={{
           position: 'relative',
           width: 320,
@@ -280,7 +347,9 @@ export const TransferProgressToast = ({
                 ) : (
                   <CheckCircle2 size={16} color="var(--xp-green)" aria-hidden="true" />
                 )}
-                <span style={{ fontWeight: 500 }}>{doneLabel}</span>
+                <span style={{ fontWeight: 500 }}>
+                  {undoState === 'restored' ? t('statusBar.undoDone') : doneLabel}
+                </span>
                 {failedCount > 0 && (
                   <span style={{ color: 'var(--xp-red)' }}>
                     {t('transfer.failed', { count: failedCount })}
@@ -290,6 +359,7 @@ export const TransferProgressToast = ({
               <button
                 type="button"
                 onClick={handleDismiss}
+                disabled={undoing}
                 aria-label={t('transfer.dismiss')}
                 title={t('transfer.dismiss')}
                 className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-xp-blue"
@@ -314,6 +384,7 @@ export const TransferProgressToast = ({
               <button
                 type="button"
                 disabled={!canUndo}
+                aria-busy={undoing}
                 onClick={handleUndo}
                 style={{
                   padding: '4px 12px',
@@ -326,7 +397,7 @@ export const TransferProgressToast = ({
                   opacity: canUndo ? 1 : 0.5,
                 }}
               >
-                {t('transfer.undo')}
+                {t(undoing ? 'chat.undoing' : 'transfer.undo')}
               </button>
             </div>
           </>
@@ -334,6 +405,11 @@ export const TransferProgressToast = ({
         {cancelError && (
           <div role="alert" style={{ color: 'var(--xp-red)', lineHeight: 1.4 }}>
             {cancelError}
+          </div>
+        )}
+        {undoState === 'error' && (
+          <div role="alert" style={{ color: 'var(--xp-red)', lineHeight: 1.4 }}>
+            {t('statusBar.undoFailed')}
           </div>
         )}
       </div>

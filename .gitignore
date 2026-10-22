@@ -3,9 +3,13 @@ node_modules/
 dist/
 build/
 target/
+/.build/
+.swiftpm/
+.next/
 apps/shelf/.build/
 apps/src-tauri/shelf-engine/
 apps/src-tauri/target/
+/apps/src-tauri/binaries/
 apps/client/dist/
 *.tsbuildinfo
 *.DS_Store
@@ -19,9 +23,17 @@ apps/shelf/Tests/
 **/*.test.mjs
 **/*.test.js
 coverage/
+/test-results/
+/playwright-report/
+/e2e/screenshots/
 
 # ── 文档与过程产物 ──
-docs/
+/docs/
+/apps/web/content/docs/contributing-audit.mdx
+/apps/web/content/docs/contributing-roadmap.mdx
+/apps/shelf/FEATURES.md
+/apps/shelf/REFERENCE-AUDIT.md
+/apps/shelf/WISP-INTEGRATION-DESIGN.md
 design-qa*.png
 design-qa.md
 DESIGN.md
@@ -44,7 +56,8 @@ AGENTS.md
 # ── 本地运行产物 ──
 .local-artifacts/
 .env
-.env.local
+.env.*
+!.env.example
 *.log
 
 # ── 既有保留的本地迁移助手 ──

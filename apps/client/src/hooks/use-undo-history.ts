@@ -36,7 +36,7 @@ export interface UseUndoHistoryReturn {
   handleRedo: () => Promise<void>;
   handleClear: () => Promise<void>;
   toggleGroup: (groupId: string) => void;
-  handleUndoThis: (item: DisplayItem) => Promise<void>;
+  handleUndoThis: (item: DisplayItem) => Promise<boolean>;
   handleUndoThisAndAfter: (item: DisplayItem) => Promise<void>;
   handleShowDetails: (item: DisplayItem, x: number, y: number) => void;
   handleReplayOnSelection: (item: DisplayItem) => void;
@@ -57,6 +57,7 @@ export const useUndoHistory = (): UseUndoHistoryReturn => {
   const [detailsPopover, setDetailsPopover] = useState<DetailsPopoverState | null>(null);
   const [replayDialog, setReplayDialog] = useState<{ item: DisplayItem } | null>(null);
 
+  const actionInProgressRef = useRef(false);
   const listRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<HTMLDivElement>(null);
 
@@ -106,6 +107,8 @@ export const useUndoHistory = (): UseUndoHistoryReturn => {
   );
 
   const handleUndo = useCallback(async () => {
+    if (actionInProgressRef.current) return;
+    actionInProgressRef.current = true;
     setActionInProgress(true);
     try {
       await TauriAPI.undoOperation();
@@ -113,11 +116,14 @@ export const useUndoHistory = (): UseUndoHistoryReturn => {
     } catch {
       // Silently handle
     } finally {
+      actionInProgressRef.current = false;
       setActionInProgress(false);
     }
   }, [refresh]);
 
   const handleRedo = useCallback(async () => {
+    if (actionInProgressRef.current) return;
+    actionInProgressRef.current = true;
     setActionInProgress(true);
     try {
       await TauriAPI.redoOperation();
@@ -125,11 +131,14 @@ export const useUndoHistory = (): UseUndoHistoryReturn => {
     } catch {
       // Silently handle
     } finally {
+      actionInProgressRef.current = false;
       setActionInProgress(false);
     }
   }, [refresh]);
 
   const handleClear = useCallback(async () => {
+    if (actionInProgressRef.current) return;
+    actionInProgressRef.current = true;
     setActionInProgress(true);
     try {
       await TauriAPI.clearUndoHistory();
@@ -137,6 +146,7 @@ export const useUndoHistory = (): UseUndoHistoryReturn => {
     } catch {
       // Silently handle
     } finally {
+      actionInProgressRef.current = false;
       setActionInProgress(false);
     }
   }, [refresh]);
@@ -154,22 +164,26 @@ export const useUndoHistory = (): UseUndoHistoryReturn => {
   }, []);
 
   const handleUndoThis = useCallback(
-    async (item: DisplayItem) => {
+    async (item: DisplayItem): Promise<boolean> => {
+      if (actionInProgressRef.current) return false;
+      actionInProgressRef.current = true;
       setActionInProgress(true);
       try {
         const entriesToUndo = item.kind === 'group' ? item.group.entries : [item.entry];
-        for (let i = 0; i < entriesToUndo.length; i++) {
-          const entry = entriesToUndo[i];
-          if (entry.undoable) {
-            await TauriAPI.undoOperation();
-          } else {
-            await TauriAPI.redoOperation();
-          }
+        for (const entry of entriesToUndo) {
+          const result = entry.undoable
+            ? await TauriAPI.undoOperation()
+            : await TauriAPI.redoOperation();
+          if (result?.success === false) return false;
         }
-        await refresh();
+        return true;
       } catch {
-        // Silently handle
+        return false;
       } finally {
+        // A batch can succeed partially. Refresh even after failure so the
+        // visible restore boundary always follows the real backend stack.
+        await refresh();
+        actionInProgressRef.current = false;
         setActionInProgress(false);
       }
     },
@@ -178,6 +192,8 @@ export const useUndoHistory = (): UseUndoHistoryReturn => {
 
   const handleUndoThisAndAfter = useCallback(
     async (item: DisplayItem) => {
+      if (actionInProgressRef.current) return;
+      actionInProgressRef.current = true;
       setActionInProgress(true);
       try {
         const targetEntries = item.kind === 'group' ? item.group.entries : [item.entry];
@@ -190,6 +206,7 @@ export const useUndoHistory = (): UseUndoHistoryReturn => {
       } catch {
         // Silently handle
       } finally {
+        actionInProgressRef.current = false;
         setActionInProgress(false);
       }
     },
@@ -205,9 +222,10 @@ export const useUndoHistory = (): UseUndoHistoryReturn => {
   }, []);
 
   const executeReplay = useCallback(async () => {
-    if (!replayDialog) return;
+    if (!replayDialog || actionInProgressRef.current) return;
     const { item } = replayDialog;
     setReplayDialog(null);
+    actionInProgressRef.current = true;
     setActionInProgress(true);
 
     try {
@@ -276,12 +294,15 @@ export const useUndoHistory = (): UseUndoHistoryReturn => {
     } catch {
       // Silently handle
     } finally {
+      actionInProgressRef.current = false;
       setActionInProgress(false);
     }
   }, [replayDialog, refresh]);
 
   const handleClearAbove = useCallback(
     async (_item: DisplayItem) => {
+      if (actionInProgressRef.current) return;
+      actionInProgressRef.current = true;
       setActionInProgress(true);
       try {
         await TauriAPI.clearUndoHistory();
@@ -289,6 +310,7 @@ export const useUndoHistory = (): UseUndoHistoryReturn => {
       } catch {
         // Silently handle
       } finally {
+        actionInProgressRef.current = false;
         setActionInProgress(false);
       }
     },

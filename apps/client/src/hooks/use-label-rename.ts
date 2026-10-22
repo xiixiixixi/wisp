@@ -14,10 +14,10 @@ import { caretOffsetAtPoint, RENAME_DOUBLE_CLICK_MS } from '@/lib/label-rename';
  *   barely move between pointerdown and click).
  */
 export const useLabelRename = (
-  isSelected: boolean,
+  isSoleSelected: boolean,
   onStart: (caretOffset: number | undefined) => void,
 ) => {
-  const pressStartRef = useRef<{ x: number; y: number } | null>(null);
+  const pressStartRef = useRef<{ x: number; y: number; canRename: boolean } | null>(null);
   const lastRowClickAtRef = useRef(0);
 
   /** Records a click on the row so the gap to the next name click can tell a
@@ -26,15 +26,40 @@ export const useLabelRename = (
     lastRowClickAtRef.current = Date.now();
   }, []);
 
-  const onLabelPointerDown = useCallback((e: React.PointerEvent) => {
-    pressStartRef.current = { x: e.clientX, y: e.clientY };
+  const onLabelPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      // Selection/focus can change between pointerdown and click. Only a file
+      // that was already the sole selection when this press began may rename.
+      pressStartRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        canRename:
+          isSoleSelected && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey,
+      };
+    },
+    [isSoleSelected],
+  );
+
+  const onLabelPointerCancel = useCallback(() => {
+    pressStartRef.current = null;
   }, []);
 
   const onLabelClick = useCallback(
     (e: React.MouseEvent<HTMLSpanElement>) => {
       const start = pressStartRef.current;
       pressStartRef.current = null;
-      if (!start || !isSelected) return;
+      if (
+        !start?.canRename ||
+        !isSoleSelected ||
+        e.button !== 0 ||
+        e.metaKey ||
+        e.ctrlKey ||
+        e.shiftKey ||
+        e.altKey ||
+        e.detail > 1
+      ) {
+        return;
+      }
       // Dragging the item by its label must keep working.
       const moved = Math.abs(e.clientX - start.x) + Math.abs(e.clientY - start.y);
       if (moved > 4) return;
@@ -45,8 +70,8 @@ export const useLabelRename = (
       // Finder places the edit caret exactly where the name was clicked.
       onStart(caretOffsetAtPoint(e.currentTarget, e.clientX, e.clientY));
     },
-    [isSelected, onStart],
+    [isSoleSelected, onStart],
   );
 
-  return { onLabelPointerDown, onLabelClick, noteRowClick };
+  return { onLabelPointerDown, onLabelPointerCancel, onLabelClick, noteRowClick };
 };

@@ -1,0 +1,31 @@
+import { MDXRemote } from 'next-mdx-remote/rsc';
+import { getDocBySlug } from '@/lib/docs';
+import { useMDXComponents } from '@/mdx-components';
+import type { Metadata } from 'next';
+import { SITE_NAME } from '@/lib/constants';
+
+export const metadata: Metadata = {
+  title: `Documentation | ${SITE_NAME}`,
+  description: 'Wisp documentation - learn how to install, configure, and extend Wisp.',
+};
+
+export default function DocsIndexPage() {
+  const doc = getDocBySlug(['intro']);
+
+  if (!doc) {
+    return (
+      <div>
+        <h1>Welcome to Wisp Docs</h1>
+        <p>Documentation is coming soon.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">{doc.meta.title}</h1>
+      {doc.meta.description && <p className="mb-8 text-lg text-gray-500">{doc.meta.description}</p>}
+      <MDXRemote source={doc.content} components={useMDXComponents({})} />
+    </div>
+  );
+}

@@ -23,7 +23,9 @@ import { FileGridSkeleton } from '@/components/ui/Skeleton';
 import { FilePlus2, FolderOpen, FolderPlus } from 'lucide-react';
 import {
   CROSS_TAB_SELECTION_EVENT,
+  CROSS_TAB_SELECTION_CLEAR_EVENT,
   type CrossTabSelectionEventDetail,
+  type CrossTabSelectionClearEventDetail,
 } from '@/hooks/use-cross-tab-selection';
 
 interface FileGridProps {
@@ -38,7 +40,7 @@ interface FileGridProps {
   formatFileSize: (bytes: number) => string;
   formatFolderSize: (folderSizeInfo: FolderSizeInfo | null, isCalculating?: boolean) => string;
   formatDate: (timestamp: number) => string;
-  handleFileClick: (file: FileEntry, event: React.MouseEvent) => void;
+  handleFileClick: (file: FileEntry, event: React.MouseEvent, visibleFiles?: FileEntry[]) => void;
   handleFileDoubleClick: (file: FileEntry) => void;
   handleFileRightClick: (file: FileEntry, event: React.MouseEvent) => void;
   handleBackgroundRightClick?: (event: React.MouseEvent) => void;
@@ -73,7 +75,7 @@ const FileGrid = ({
   formatFileSize,
   formatFolderSize,
   formatDate,
-  handleFileClick,
+  handleFileClick: selectFile,
   handleFileDoubleClick,
   handleFileRightClick,
   handleBackgroundRightClick,
@@ -89,6 +91,26 @@ const FileGrid = ({
   onCreateFile,
 }: FileGridProps) => {
   const { t } = useTranslation();
+
+  const needsVirtualization =
+    files.length >= 200 && !['tree', 'gallery', 'details', 'column'].includes(viewMode);
+  // Range selection must use the same order and filtering as the rendered
+  // view. Tree/column/gallery ignore grouping; large grid/list views use their
+  // ungrouped virtual list, while details keeps grouping at every size.
+  const selectionFiles = useMemo(
+    () =>
+      !needsVirtualization &&
+      !['tree', 'gallery', 'column'].includes(viewMode) &&
+      fileGroups?.length
+        ? fileGroups.flatMap((group) => group.files)
+        : files,
+    [files, fileGroups, needsVirtualization, viewMode],
+  );
+  const handleFileClick = useCallback(
+    (file: FileEntry, event: React.MouseEvent, visibleFiles = selectionFiles) =>
+      selectFile(file, event, visibleFiles),
+    [selectFile, selectionFiles],
+  );
 
   // ─── Git status for the current directory ───────────────────────────────────
   const [gitStatusMap, setGitStatusMap] = useState<Map<string, string>>(new Map());
@@ -201,31 +223,41 @@ const FileGrid = ({
 
   // ─── Cross-tab selection state (Ctrl+Shift+Click toggles) ────────────────
   const [localCrossTabPaths, setLocalCrossTabPaths] = useState<Set<string>>(new Set());
+  const localCrossTabScope = useRef({ groupId, currentPath });
 
   // Dispatch cross-tab selection event when the local set changes
   useEffect(() => {
-    if (localCrossTabPaths.size === 0) return;
-    const selectedEntries = files.filter((f) => localCrossTabPaths.has(f.path));
-    if (selectedEntries.length > 0) {
-      const detail: CrossTabSelectionEventDetail = {
-        tabId: groupId,
-        tabPath: currentPath,
-        files: selectedEntries,
-      };
-      window.dispatchEvent(new CustomEvent(CROSS_TAB_SELECTION_EVENT, { detail }));
-    }
-  }, [localCrossTabPaths, files, groupId, currentPath]);
-
-  // Clear local cross-tab selection when path changes
-  useEffect(() => {
-    setLocalCrossTabPaths(new Set());
-    // Also emit a clear event for this tab
+    const sameScope =
+      localCrossTabScope.current.groupId === groupId &&
+      localCrossTabScope.current.currentPath === currentPath;
+    const selectedEntries = sameScope ? files.filter((f) => localCrossTabPaths.has(f.path)) : [];
     const detail: CrossTabSelectionEventDetail = {
       tabId: groupId,
       tabPath: currentPath,
-      files: [],
+      files: selectedEntries,
     };
     window.dispatchEvent(new CustomEvent(CROSS_TAB_SELECTION_EVENT, { detail }));
+  }, [localCrossTabPaths, files, groupId, currentPath]);
+
+  // Keep the local marks and global basket in sync when cleared, navigated or closed.
+  useEffect(() => {
+    localCrossTabScope.current = { groupId, currentPath };
+    setLocalCrossTabPaths((prev) => (prev.size === 0 ? prev : new Set()));
+    const clearLocalSelection = (event: Event) => {
+      const detail = (event as CustomEvent<CrossTabSelectionClearEventDetail>).detail;
+      if (detail?.tabId && detail.tabId !== groupId) return;
+      setLocalCrossTabPaths((prev) => (prev.size === 0 ? prev : new Set()));
+    };
+    window.addEventListener(CROSS_TAB_SELECTION_CLEAR_EVENT, clearLocalSelection);
+    return () => {
+      window.removeEventListener(CROSS_TAB_SELECTION_CLEAR_EVENT, clearLocalSelection);
+      const detail: CrossTabSelectionEventDetail = {
+        tabId: groupId,
+        tabPath: currentPath,
+        files: [],
+      };
+      window.dispatchEvent(new CustomEvent(CROSS_TAB_SELECTION_EVENT, { detail }));
+    };
   }, [currentPath, groupId]);
 
   // Merge local + external cross-tab selections for visual indicator
@@ -324,6 +356,15 @@ const FileGrid = ({
   useEffect(() => {
     if (!onRenameFile) return;
     const handler = (e: Event) => {
+      // A path can be visible in several split panes at once. Only the active
+      // pane may handle a window-wide rename request, otherwise both editors
+      // mount and one steals focus from (and cancels) the other. Use the pane
+      // marker rather than document.activeElement: menu/toolbar commands can
+      // intentionally start a rename while focus is outside the file list.
+      const activePane = document.querySelector<HTMLElement>(
+        '.wisp-editor-pane[data-active="true"]',
+      );
+      if (activePane && activePane.dataset.groupId !== groupId) return;
       const detail = (e as CustomEvent<{ path: string; caretOffset?: number }>).detail;
       if (detail?.path && files.some((f) => f.path === detail.path)) {
         startRename(detail.path, detail.caretOffset ?? null);
@@ -331,7 +372,7 @@ const FileGrid = ({
     };
     window.addEventListener('start-inline-rename', handler);
     return () => window.removeEventListener('start-inline-rename', handler);
-  }, [onRenameFile, files, startRename]);
+  }, [onRenameFile, files, groupId, startRename]);
 
   // Row click wrapper. Rename is started only by clicking the name label of
   // the already-selected item (see FileGridItem/useLabelRename) — the rest of
@@ -434,9 +475,6 @@ const FileGrid = ({
   } = useGridLayout(viewMode, parentRef);
 
   const rowCount = Math.ceil(files.length / columns);
-  const needsVirtualization =
-    files.length >= 200 && !['tree', 'gallery', 'details', 'column'].includes(viewMode);
-
   const virtualizer = useVirtualizer({
     count: needsVirtualization ? rowCount : 0,
     getScrollElement: () => parentRef.current,
@@ -455,13 +493,7 @@ const FileGrid = ({
     getColumnsCount,
   });
 
-  const keyboardFiles = useMemo(
-    () =>
-      !needsVirtualization && fileGroups?.length
-        ? fileGroups.flatMap((group) => group.files)
-        : files,
-    [files, fileGroups, needsVirtualization],
-  );
+  const keyboardFiles = selectionFiles;
   const virtualRows = virtualizer.getVirtualItems();
   const mountedFiles = needsVirtualization
     ? virtualRows.flatMap((row) => files.slice(row.index * columns, (row.index + 1) * columns))

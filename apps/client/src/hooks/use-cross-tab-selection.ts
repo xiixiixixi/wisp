@@ -36,11 +36,17 @@ export interface CrossTabSelectionState {
 // ── Custom event name ────────────────────────────────────────────────────────
 
 export const CROSS_TAB_SELECTION_EVENT = 'cross-tab-selection-changed';
+export const CROSS_TAB_SELECTION_CLEAR_EVENT = 'cross-tab-selection-clear';
 
 export interface CrossTabSelectionEventDetail {
   tabId: string;
   tabPath: string;
   files: FileEntry[];
+}
+
+export interface CrossTabSelectionClearEventDetail {
+  /** Omitted when every mounted file grid should clear its local selection. */
+  tabId?: string;
 }
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
@@ -50,6 +56,15 @@ export const useCrossTabSelection = (): CrossTabSelectionState => {
 
   const addSelection = useCallback((tabId: string, tabPath: string, files: FileEntry[]) => {
     setSelections((prev) => {
+      const existing = prev.get(tabId);
+      if (files.length === 0 && !existing) return prev;
+      if (
+        existing?.tabPath === tabPath &&
+        existing.files.length === files.length &&
+        existing.files.every((file, index) => file === files[index])
+      ) {
+        return prev;
+      }
       const next = new Map(prev);
       if (files.length === 0) {
         next.delete(tabId);
@@ -62,14 +77,25 @@ export const useCrossTabSelection = (): CrossTabSelectionState => {
 
   const clearSelection = useCallback((tabId: string) => {
     setSelections((prev) => {
+      if (!prev.has(tabId)) return prev;
       const next = new Map(prev);
       next.delete(tabId);
       return next;
     });
+    window.dispatchEvent(
+      new CustomEvent<CrossTabSelectionClearEventDetail>(CROSS_TAB_SELECTION_CLEAR_EVENT, {
+        detail: { tabId },
+      }),
+    );
   }, []);
 
   const clearAll = useCallback(() => {
-    setSelections(new Map());
+    setSelections((prev) => (prev.size === 0 ? prev : new Map()));
+    window.dispatchEvent(
+      new CustomEvent<CrossTabSelectionClearEventDetail>(CROSS_TAB_SELECTION_CLEAR_EVENT, {
+        detail: {},
+      }),
+    );
   }, []);
 
   const getAllSelectedFiles = useCallback((): CrossTabSelectedFile[] => {

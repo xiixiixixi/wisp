@@ -21,7 +21,8 @@
 需要 Node.js（服务运行环境）。以下命令只在主动执行后启动；密钥随机生成，不使用固定示例密钥。命令会把新密钥放进剪贴板，替换当前复制内容，便于在应用中填写：
 
 ```sh
-cd /Users/tc/git/wisp/apps/shelf/share-service
+# 从仓库根目录进入服务目录
+cd apps/shelf/share-service
 export SHELF_SHARE_TOKEN="$(/usr/bin/openssl rand -hex 32)"
 export SHELF_SHARE_DIR="$HOME/Library/Application Support/WispShelfShare"
 printf '%s' "$SHELF_SHARE_TOKEN" | pbcopy
@@ -55,7 +56,7 @@ PORT=5198 node server.mjs
 
 ## 本机测试与公网边界
 
-服务自身测试入口是 [server.test.mjs（服务测试）](/Users/tc/git/wisp/apps/shelf/share-service/server.test.mjs)，检查真实字节、授权、撤销和短期限到期。收集架另有三项 [LoopbackUploaderTests.swift（本机真实上传测试）](/Users/tc/git/wisp/apps/shelf/Tests/ShelfCoreTests/LoopbackUploaderTests.swift)：临时端口、临时保存目录、测试密钥，运行结束终止服务并清理；找不到运行环境会明确跳过，不假报通过。
+本地保留的 `server.test.mjs`（服务测试）检查真实字节、授权、撤销和短期限到期。收集架的 `Tests/ShelfCoreTests/LoopbackUploaderTests.swift`（本机真实上传测试）使用临时端口、临时保存目录和测试密钥，运行结束终止服务并清理；找不到运行环境会明确跳过。测试文件不随源码仓库分发，以下命令仅适用于保留了本地测试的工作区。
 
 ```sh
 node --test server.test.mjs

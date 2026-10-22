@@ -86,12 +86,16 @@ const FileRow = React.memo(
       },
       [file.path],
     );
-    const { onLabelPointerDown, onLabelClick, noteRowClick } = useLabelRename(
-      selectedFiles.has(file.path),
+    const { onLabelPointerDown, onLabelPointerCancel, onLabelClick, noteRowClick } = useLabelRename(
+      selectedFiles.size === 1 && selectedFiles.has(file.path),
       startLabelRename,
     );
     const labelClickHandlers = onRenameFile
-      ? { onPointerDown: onLabelPointerDown, onClick: onLabelClick }
+      ? {
+          onPointerDown: onLabelPointerDown,
+          onPointerCancel: onLabelPointerCancel,
+          onClick: onLabelClick,
+        }
       : {};
     const handleClick = useCallback(
       (e: React.MouseEvent) => {

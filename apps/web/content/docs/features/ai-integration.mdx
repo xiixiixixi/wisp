@@ -1,0 +1,116 @@
+---
+id: ai-integration
+title: AI Integration
+sidebar_position: 5
+---
+
+# AI Integration
+
+Wisp integrates with multiple AI providers to deliver intelligent file analysis, chat assistance, semantic search, and automated organization.
+
+## Supported Providers
+
+Configure your preferred provider in **Settings > AI Agent**.
+
+| Provider  | Models                      | Setup                       |
+| --------- | --------------------------- | --------------------------- |
+| Anthropic | Claude Sonnet, Haiku, Opus  | API key in Settings         |
+| OpenAI    | GPT-4o, o1, o3, o4          | API key in Settings         |
+| Google    | Gemini                      | API key in Settings         |
+| DeepSeek  | DeepSeek models             | API key in Settings         |
+| Mistral   | Mistral models              | API key in Settings         |
+| Ollama    | Any locally installed model | Ollama running on localhost |
+
+### Ollama (Local Models)
+
+For fully offline AI, install [Ollama](https://ollama.ai) and pull at least one model:
+
+```bash
+# Recommended general-purpose model
+ollama pull llama3.2
+
+# For semantic search embeddings
+ollama pull nomic-embed-text
+```
+
+Ollama runs locally on `http://localhost:11434`. Wisp auto-detects it.
+
+## AI Chat Panel
+
+The AI chat interface lives in the right sidebar. You can:
+
+- Ask questions about files in the current directory
+- Request file analysis and summaries
+- Get organization suggestions
+- Ask general questions with file context
+- Save and resume chat sessions
+- Create `.chat` files stored directly in directories
+
+### Context-Aware Chat
+
+When chatting, Wisp automatically provides context about:
+
+- Current directory path and contents
+- Selected file(s) metadata
+- Recent navigation history
+- System information
+
+## File Analysis
+
+Right-click a file > **Analyze with AI** to get:
+
+- Content summary
+- Key topics and themes
+- File type-specific insights
+- AI-suggested filenames
+
+## AI File Organizer
+
+The File Organizer panel uses AI to analyze a directory and suggest organization:
+
+### Analysis Output
+
+1. **File Categories** -- Groups files by type (Images, Documents, Code, etc.)
+2. **Organization Suggestions**:
+   - Group similar files into folders
+   - Cluster by date (monthly folders)
+   - Group by name prefix patterns
+3. **Duplicate Summary** -- Identifies duplicate files with cleanup recommendations
+4. **Directory Insights**:
+   - Largest files
+   - Oldest / newest files
+   - Type distribution chart
+   - Average file size
+   - Files-by-month breakdown
+
+### Smart Suggestions
+
+The organizer generates suggestions like:
+
+- "Create an 'Images' folder for 15 PNG and JPG files"
+- "Group 8 files from January 2024 into a '2024-01' folder"
+- "3 files share the prefix 'report\_' -- create a 'Reports' folder"
+
+## AI Agent
+
+For autonomous file operations, see the dedicated [AI Agent](/docs/features/ai-agent) page. The agent can read/write files, execute commands, create plans, and request approval -- with granular permission controls.
+
+## Semantic Search
+
+With an embedding model installed (via Ollama or a cloud provider), Wisp can find files by meaning rather than keywords:
+
+```
+Query: "machine learning research papers"
+Results: files about AI, neural networks, data science
+(even if they don't contain the exact phrase "machine learning")
+```
+
+This works by:
+
+1. Converting file content into vector embeddings
+2. Converting the search query into a vector
+3. Finding files with the highest cosine similarity
+
+## AI-Powered Tagging
+
+Wisp can automatically tag files using AI analysis. Select files, right-click, and choose **Auto-tag** to have the AI categorize them based on content.

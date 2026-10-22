@@ -337,7 +337,12 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
       // selection and font shortcuts. Keep unrelated app commands (e.g. ⌘J).
       if (target.closest('.xterm') && terminalOwnsKey(event)) return;
       // Ignore if a modal dialog or command palette is open
-      if (target.closest('[role="dialog"]') || document.querySelector('[data-command-palette]')) {
+      if (
+        target.closest('[role="dialog"], [role="alertdialog"]') ||
+        document.querySelector(
+          '[role="dialog"][aria-modal="true"], [role="alertdialog"][aria-modal="true"], [data-command-palette]',
+        )
+      ) {
         return;
       }
 
@@ -345,7 +350,9 @@ export const useShortcuts = (handlers: ShortcutHandlers, context: string = 'file
       // phase, file Open/Quick Look must not swallow a button's Enter/Space or
       // a menu's Escape before the control can handle them.
       if (!event.metaKey && !event.ctrlKey && !event.altKey) {
-        const inComposite = target.closest('[role="menu"], [role="tablist"], select');
+        const inComposite = target.closest(
+          '[role="menu"], [role="tablist"], [role="listbox"], [role="combobox"], select',
+        );
         const activatingControl =
           (event.key === 'Enter' || event.key === ' ') &&
           target.closest('button, a[href], [role="button"], [role="tab"], [role="switch"]');

@@ -26,6 +26,7 @@ const ColumnFileRow = React.memo(
     file,
     isActive,
     isSelected,
+    isSoleSelected,
     tabStopPath,
     getFileIcon,
     onQuickLook,
@@ -41,6 +42,7 @@ const ColumnFileRow = React.memo(
     file: FileEntry;
     isActive: boolean;
     isSelected: boolean;
+    isSoleSelected: boolean;
     tabStopPath?: string;
     getFileIcon: (file: FileEntry) => React.ReactNode;
     onQuickLook?: (file: FileEntry) => void;
@@ -64,13 +66,17 @@ const ColumnFileRow = React.memo(
       },
       [file.path],
     );
-    const { onLabelPointerDown, onLabelClick, noteRowClick } = useLabelRename(
-      isSelected,
+    const { onLabelPointerDown, onLabelPointerCancel, onLabelClick, noteRowClick } = useLabelRename(
+      isSoleSelected,
       startLabelRename,
     );
     const isRenaming = renamingPath === file.path && Boolean(onRenameFile);
     const labelClickHandlers = onRenameFile
-      ? { onPointerDown: onLabelPointerDown, onClick: onLabelClick }
+      ? {
+          onPointerDown: onLabelPointerDown,
+          onPointerCancel: onLabelPointerCancel,
+          onClick: onLabelClick,
+        }
       : {};
     return (
       <div
@@ -286,6 +292,7 @@ const VirtualizedColumnPane = ({
             tabStopPath={tabStopPath}
             isActive={column.selectedFile === file.path}
             isSelected={selectedFiles.has(file.path)}
+            isSoleSelected={selectedFiles.size === 1 && selectedFiles.has(file.path)}
             getFileIcon={getFileIcon}
             onQuickLook={onQuickLook}
             onClick={(e) => handleColumnFileClick(file, colIndex, e)}
@@ -360,6 +367,7 @@ const VirtualizedColumnPane = ({
                 tabStopPath={tabStopPath}
                 isActive={column.selectedFile === file.path}
                 isSelected={selectedFiles.has(file.path)}
+                isSoleSelected={selectedFiles.size === 1 && selectedFiles.has(file.path)}
                 getFileIcon={getFileIcon}
                 onQuickLook={onQuickLook}
                 onClick={(e) => handleColumnFileClick(file, colIndex, e)}
@@ -421,7 +429,7 @@ const ColumnView = ({
 
   const handleColumnFileClick = useCallback(
     async (file: FileEntry, columnIndex: number, event: React.MouseEvent) => {
-      handleFileClick(file, event);
+      handleFileClick(file, event, columns[columnIndex]?.files);
 
       // Finder parity：.app 是目录但不钻入栏视图下一级——单击仅选中，
       // 双击由上层 handleFileDoubleClick 启动应用（特判见 recent-entry-actions）。
@@ -460,7 +468,7 @@ const ColumnView = ({
         });
       }
     },
-    [handleFileClick],
+    [handleFileClick, columns],
   );
 
   const getExtension = (name: string): string | null => {

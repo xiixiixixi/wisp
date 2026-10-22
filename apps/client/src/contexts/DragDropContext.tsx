@@ -872,6 +872,7 @@ export const DragDropProvider = ({ children }: { children: React.ReactNode }) =>
       )}
       {activeTransfer && (
         <TransferProgressToast
+          key={activeTransfer.ids.join(',')}
           ids={activeTransfer.ids}
           itemCount={activeTransfer.itemCount}
           mode={activeTransfer.mode}

@@ -12,7 +12,7 @@ export interface ViewComponentProps {
   formatFileSize: (bytes: number) => string;
   formatFolderSize: (folderSizeInfo: FolderSizeInfo | null, isCalculating?: boolean) => string;
   formatDate: (timestamp: number) => string;
-  handleFileClick: (file: FileEntry, event: React.MouseEvent) => void;
+  handleFileClick: (file: FileEntry, event: React.MouseEvent, visibleFiles?: FileEntry[]) => void;
   handleFileDoubleClick: (file: FileEntry) => void;
   handleFileRightClick: (file: FileEntry, event: React.MouseEvent) => void;
   handleBackgroundRightClick?: (event: React.MouseEvent) => void;
